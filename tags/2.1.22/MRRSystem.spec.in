@@ -1,0 +1,163 @@
+Summary: Model Railroad System
+Name: @PACKAGE@
+Version: @VERSION@
+Release: 1
+Group: Applications/Engineering
+License: GPL
+Packager: Robert Heller <heller@deepsoft.com>
+URL: http://www.deepsoft.com/ModelRailroadSystem
+Source: ftp://ftp.deepsoft.com/pub/deepwoods/Products/MRRSystem/@PACKAGE@-@VERSION@.tar.gz
+BuildRoot: /var/tmp/%{name}-root
+BuildRequires: doc++ >= 3.4, tcl-devel >= 8.4, bison++, swig >= 1.3
+BuildRequires: libusb-devel >= 0.1.10, bwidget, tcllib, gcc >= 3.4, gcc-c++
+BuildRequires: boost-devel, libtool, automake, autoconf
+%description
+The Model Railroad System contains programs and libraries to support
+various model railroad activities, including operating the model
+railroad itself, freight car forwarding, time table creating, and
+dealing with some of the design work as well.
+
+
+%package doc
+Summary: Model Railroad System Documentation
+Group: Applications/Engineering
+%description doc
+The Model Railroad System contains programs and libraries to support
+various model railroad activities, including operating the model
+railroad itself, freight car forwarding, time table creating, and
+dealing with some of the design work as well. This is the documentation
+package.
+
+%package devel
+Summary: Model Railroad System Development
+Group: Applications/Engineering
+%description devel
+The Model Railroad System contains programs and libraries to support
+various model railroad activities, including operating the model
+railroad itself, freight car forwarding, time table creating, and
+dealing with some of the design work as well. This is the development
+package.
+
+%prep
+%setup -q
+
+%build
+aclocal
+automake --gnu --add-missing --copy --force
+autoconf
+sh configure --prefix=/usr
+make
+
+%install
+rm -rf $RPM_BUILD_ROOT/usr
+rm -rf $RPM_BUILD_ROOT/etc
+make DESTDIR=$RPM_BUILD_ROOT install
+/usr/bin/install -d $RPM_BUILD_ROOT/etc/hotplug/usb
+/usr/bin/install -c $RPM_BUILD_ROOT/usr/share/@PACKAGE@/RailDriver/raildriverd.hotplug $RPM_BUILD_ROOT/etc/hotplug/usb/raildriverd
+
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%post 
+grep -v raildriverd /etc/hotplug/usb.usermap > /etc/hotplug/usb.usermap.tmp
+/usr/share/@PACKAGE@/RailDriver/print-usb-usermap >> /etc/hotplug/usb.usermap.tmp
+mv /etc/hotplug/usb.usermap.tmp /etc/hotplug/usb.usermap
+# register libraries
+/sbin/ldconfig
+
+%postun 
+/sbin/ldconfig
+if [ "$1" = 0 ]; then
+    # remove raildriverd from /etc/hotplug/usb.usermap
+    grep -v 'raildriverd' /etc/hotplug/usb.usermap > /etc/hotplug/usb.usermap.new
+    mv /etc/hotplug/usb.usermap.new /etc/hotplug/usb.usermap
+fi
+
+
+%files
+%defattr(-, root, root)
+
+%doc AUTHORS COPYING INSTALL NEWS README ChangeLog
+/usr/bin/LocoTest
+/usr/bin/UniversalTest
+/usr/bin/Dispatcher
+/usr/bin/DispatcherBoost
+/usr/bin/AnyDistance
+/usr/bin/Closest
+/usr/bin/Resistor
+/usr/bin/FCFMain
+/usr/bin/FCFCreate
+/usr/bin/TTChart2TT2
+/usr/bin/TimeTable
+/usr/bin/ModelRRSystem
+/usr/sbin
+/etc/hotplug/usb/raildriverd
+/usr/lib/libcmri.so 
+/usr/lib/libcmri.so.0 
+/usr/lib/libcmri.so.0.0.0 
+/usr/lib/libfcfclasses.so 
+/usr/lib/libfcfclasses.so.0 
+/usr/lib/libfcfclasses.so.0.0.0 
+/usr/lib/libMRRParserClasses.so 
+/usr/lib/libMRRParserClasses.so.0 
+/usr/lib/libMRRParserClasses.so.0.0.0 
+/usr/lib/libMRRParserClassesBoost.so 
+/usr/lib/libMRRParserClassesBoost.so.0 
+/usr/lib/libMRRParserClassesBoost.so.0.0.0 
+/usr/lib/libttclasses.so 
+/usr/lib/libttclasses.so.0 
+/usr/lib/libttclasses.so.0.0.0 
+/usr/lib/libxpressnet.so 
+/usr/lib/libxpressnet.so.0 
+/usr/lib/libxpressnet.so.0.0.0 
+/usr/lib/@PACKAGE@/libcmri.so 
+/usr/lib/@PACKAGE@/libfcfclasses.so 
+/usr/lib/@PACKAGE@/libMRRParserClasses.so 
+/usr/lib/@PACKAGE@/libMRRParserClassesBoost.so 
+/usr/lib/@PACKAGE@/libttclasses.so 
+/usr/lib/@PACKAGE@/libxpressnet.so 
+/usr/lib/@PACKAGE@/pkgIndex.tcl 
+/usr/share/@PACKAGE@/Common 
+/usr/share/@PACKAGE@/GRSupport 
+/usr/share/@PACKAGE@/TTScripts 
+/usr/share/@PACKAGE@/RailDriver 
+/usr/man/man1
+
+%files doc
+%defattr(-, root, root)
+
+/usr/share/@PACKAGE@/Doc
+
+%files devel
+
+/usr/bin/@TCLKITRUN@
+/usr/lib/libcmri.la 
+/usr/lib/libfcfclasses.la 
+/usr/lib/libMRRParserClasses.la 
+/usr/lib/libMRRParserClassesBoost.la 
+/usr/lib/libttclasses.la 
+/usr/lib/libxpressnet.la 
+/usr/lib/libcmri.a 
+/usr/lib/libfcfclasses.a 
+/usr/lib/libMRRParserClasses.a 
+/usr/lib/libMRRParserClassesBoost.a 
+/usr/lib/libttclasses.a
+/usr/lib/libxpressnet.a
+/usr/lib/@PACKAGE@/AddKitDir.kit
+/usr/lib/@PACKAGE@/AddKitFile.kit
+/usr/lib/@PACKAGE@/MakePkgIndex.kit
+/usr/lib/@PACKAGE@/sdx.kit
+/usr/lib/@PACKAGE@/pkgIndex_cmri.tcl
+/usr/lib/@PACKAGE@/pkgIndex_fcfclasses.tcl
+/usr/lib/@PACKAGE@/pkgIndex_mrr.tcl
+/usr/lib/@PACKAGE@/pkgIndex_mrrboost.tcl
+/usr/lib/@PACKAGE@/pkgIndex_ttclasses.tcl
+/usr/lib/@PACKAGE@/pkgIndex_xpressnet.tcl
+/usr/lib/@PACKAGE@/Installer
+/usr/man/man3
+/usr/man/mann
+/usr/include
+
+
+
