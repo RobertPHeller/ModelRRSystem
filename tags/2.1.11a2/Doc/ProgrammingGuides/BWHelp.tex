@@ -1,0 +1,144 @@
+%* 
+%* ------------------------------------------------------------------
+%* BWHelp.tex - Using the help package.
+%* Created by Robert Heller on Thu Apr 19 14:35:28 2007
+%* ------------------------------------------------------------------
+%* Modification History: $Log$
+%* Modification History: Revision 1.2  2007/10/22 17:17:27  heller
+%* Modification History: 10222007
+%* Modification History:
+%* Modification History: Revision 1.1  2007/05/06 12:49:38  heller
+%* Modification History: Lock down  for 2.1.8 release candidate 1
+%* Modification History:
+%* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+%* Modification History: Add it copyright notice headers
+%* Modification History:
+%* ------------------------------------------------------------------
+%* Contents:
+%* ------------------------------------------------------------------
+%*  
+%*     Model RR System, Version 2
+%*     Copyright (C) 1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software
+%* 			51 Locke Hill Road
+%* 			Wendell, MA 01379-9728
+%* 
+%*     This program is free software; you can redistribute it and/or modify
+%*     it under the terms of the GNU General Public License as published by
+%*     the Free Software Foundation; either version 2 of the License, or
+%*     (at your option) any later version.
+%* 
+%*     This program is distributed in the hope that it will be useful,
+%*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%*     GNU General Public License for more details.
+%* 
+%*     You should have received a copy of the GNU General Public License
+%*     along with this program; if not, write to the Free Software
+%*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+%* 
+%*  
+%* 
+
+\chapter{Using the Help package.}
+\label{chapt:BWHelp}
+\typeout{$Id$}
+
+Included with the Model Railroad System is a simple hyperhelp package,
+consisting of a Tcl package (BWHelp) and a pair of support tclkits
+(HelpIndexBuild.kit and IndexHH.kit).  To include help with your Tcl
+code you need to use a package require for the BWHelp package and
+create a directory with the properly formatted help files, complete
+with an index, created with the tclkit HelpIndexBuild.kit. 
+Section~\ref{sect:BWH:BWHelpPackage} describes how to use the Tcl
+package, Section~\ref{sect:BWH:HyperHelpFiles} describes how to create
+help files, and Section~\ref{sect:BWH:BuildIndex} describes how to build
+the indexe files.
+
+
+\section{Using the BWHelp package}
+\label{sect:BWH:BWHelpPackage}
+
+The BWHelp package provides four functions and uses one global
+variable.  The four functions are:
+
+\begin{enumerate}
+\item \lstinline=BWHelp::HelpTopic topic updateHistory key= This
+function displays the selected topic in the help window. Its arguments
+are the help topic to display, a flag indicating whether or not to
+update the help history, and an optional key into the help index.
+\item \lstinline=BWHelp::GetTopLevelOfFocus menu= This function returns
+the toplevel that currently has the keyboard focus.  This is used when
+generic pulldown menus are activated to determine which object the menu
+refers to.  Its argument is the menu that was selected.  This is used to
+select which display to search on.
+\item \lstinline=BWHelp::HelpContext widget= This displays an ``On
+Context'' help dialog. Its argument is the toplevel to track context on.
+\item \lstinline=BWHelp::HelpWindow widget= This displays help for a
+selected widget, passed as its argument.
+\end{enumerate}
+
+The global variable, \lstinline=HelpDir=, is used to find the help files
+containing the on-line help.  There is one special file,
+\lstinline=hh.index=, that contains a mapping of topic strings to files
+and offsets with the specified help topic text resides.
+
+Normally, all you need to do is set the \lstinline=HelpDir= global
+variable to the path of the directory where the help files are and bind
+scripts using the \lstinline=BWHelp::HelpTopic= function to Help buttons
+and Help menus\footnote{The BWStdMenuBar package includes code to create
+a standard Help menu with all of the proper Help menu items. See
+Chapter~\ref{chapt:MainWindows} for more information.}.
+
+\section{Help File Formatting}
+\label{sect:BWH:HyperHelpFiles}
+
+\begin{lstlisting}[language=HTML,
+		   caption={Typical help file},
+		   label={lst:BWH:HelpFile}]
+0 Main help
+This is the main topic.  There are several sub-topics.
+1 First Subtopic
+This is a subtopic.
+2 Subsubtopic
+This is a subsubtopic.
+1 Second Subtopic
+This is another subtopic.
+1 Third Subtopic
+This is yet another subtopic.
+2 A subsubtopic under the third Subtopic
+Nested topic.
+3 Deeper nesting
+A more deeply nested topic.
+\end{lstlisting}
+Hyper help files are plain text files that use a combination of simple
+hyper text markup and a technique ``lifted'' from VMS Help.  Each help
+file contains one or more sections set off by a header line.  A header
+line is a list that starts with a positive decimal number, whitespace
+characters and a help topic.  The decimal number represents a help
+level within a tree of help.  Level 0 is a root topic.  Higher values
+represent branche and leaf topics and indicate a nesting of help topics.
+Generally, each help file has at least one Level 0 or root topic, as
+shown in Listing~\ref{lst:BWH:HelpFile}.
+
+The simple markup uses pairs of delimiters: \verb=<>= for links,
+\verb=[]= for bolding, and \verb={}= for inlined images.  The backslash
+(\verb=\=) is used to escape these characters when they are used
+literally.  Links use the topic heading as the link text.  Images can be
+whatever is supported by the base Tcl/Tk code (GIF and PPM in base level
+Tcl/Tk, other formats in the case the Img package is loaded).
+
+
+\section{Hyper Help Build Support}
+\label{sect:BWH:BuildIndex}
+
+The BWHelp package uses a pre-computed topic indexing file, named
+\verb=hh.index=, to map between help topics and help files are offsets
+into help files.  The tclkit, \verb=HelpIndexBuild.kit=, is used to
+generate this file.  This program takes as its first argument the name
+of the indexing file and the names of the help files as the rest of its
+arguments.  The help files are scanned one by one and a topic index tree is
+created and stored in the indexing file, which in turn is used by the
+BWHelp package to quickly find the help topic text at runtime.
+
+Another script, \verb=IndexHH.kit=, can be used to create a displayable
+help index (typically called index.hh), with a toplevel topic of Index.
