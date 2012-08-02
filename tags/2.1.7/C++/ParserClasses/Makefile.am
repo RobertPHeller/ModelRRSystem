@@ -1,0 +1,101 @@
+#* 
+#* ------------------------------------------------------------------
+#* Makefile.am - Automake file
+#* Created by Robert Heller on Tue Jan  9 10:48:20 2007
+#* ------------------------------------------------------------------
+#* Modification History: $Log$
+#* Modification History: Revision 1.7  2007/02/02 03:30:21  heller
+#* Modification History: Lock down for 2.1.7
+#* Modification History:
+#* Modification History: Revision 1.5  2007/02/02 03:21:12  heller
+#* Modification History: Lock down for 2.1.7
+#* Modification History:
+#* Modification History: Revision 1.4  2007/02/02 03:12:16  heller
+#* Modification History: Lock down for 2.1.7
+#* Modification History:
+#* Modification History: Revision 1.3  2007/02/02 02:37:16  heller
+#* Modification History: Lock down for 2.1.7
+#* Modification History:
+#* Modification History: Revision 1.1  2007/02/01 20:00:51  heller
+#* Modification History: Lock down for Release 2.1.7
+#* Modification History:
+#* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+#* Modification History: Add it copyright notice headers
+#* Modification History:
+#* ------------------------------------------------------------------
+#* Contents:
+#* ------------------------------------------------------------------
+#*  
+#*     Model RR System, Version 2
+#*     Copyright (C) 1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software
+#* 			51 Locke Hill Road
+#* 			Wendell, MA 01379-9728
+#* 
+#*     This program is free software; you can redistribute it and/or modify
+#*     it under the terms of the GNU General Public License as published by
+#*     the Free Software Foundation; either version 2 of the License, or
+#*     (at your option) any later version.
+#* 
+#*     This program is distributed in the hope that it will be useful,
+#*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#*     GNU General Public License for more details.
+#* 
+#*     You should have received a copy of the GNU General Public License
+#*     along with this program; if not, write to the Free Software
+#*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#* 
+#*  
+#* 
+
+pkgincludedir = $(includedir)/$(PACKAGE)/TTSupport
+
+pkginclude_HEADERS = TrackGraph.h TrackBody.h ParseFile.h IntegerList.h \
+			TurnoutBody.h MRRXtrkCad.tab.h
+
+lib_LTLIBRARIES = libMRRParserClasses.la
+INCLUDES = -I. -I$(TCL_INC_DIR)
+nodist_libMRRParserClasses_la_SOURCES = MRRXtrkCad.tab.cc MRRXtrkCad.tab.h \
+		mrr_wrap.cc
+libMRRParserClasses_la_SOURCES = ParseFile.cc TrackGraph.cc
+if CROSSCOMPILING
+libMRRParserClasses_la_LDFLAGS = -g -avoid-version $(TCL_STUB_LIB_SPEC) -lwsock32
+else
+libMRRParserClasses_la_LDFLAGS = -g -version-info 0:0:0 $(TCL_STUB_LIB_SPEC)
+endif
+libMRRParserClasses_la_CXXFLAGS = $(INCLUDES)
+
+EXTRA_DIST = MRRXtrkCad.y Begin.h End.h mrr.i
+BUILT_SOURCES = MRRXtrkCad.tab.cc MRRXtrkCad.tab.h mrr_wrap.cc
+noinst_SCRIPTS = pkgIndex.tcl
+
+CLEANFILES = $(BUILT_SOURCES) MRRXtrkCad.output
+
+DEFS = @DEFS@ $(TCL_DEFS)
+SWIG_FLAGS =  -tcl8 -c++ $(INCLUDES) \
+	-DSWIGVERSION=$(SWIGVERSION) -DSWIGVERSIONMAJOR=$(SWIGVERSIONMAJOR) \
+	-DSWIGVERSIONMINOR=$(SWIGVERSIONMINOR)
+
+
+MRRXtrkCad.tab.h MRRXtrkCad.tab.cc : MRRXtrkCad.y 
+	$(BISONXX) \
+		--verbose --defines \
+		--output-file=MRRXtrkCad.tab.cc -h MRRXtrkCad.tab.h \
+		MRRXtrkCad.y
+	
+mrr_wrap.cc : mrr.i $(pkginclude_HEADERS)
+	$(SWIG) $(SWIG_FLAGS) $(INCLUDES) -o mrr_wrap.cc mrr.i
+
+pkgIndex.tcl: libMRRParserClasses.la
+	echo 'package ifneeded  Mrr $(MRR_PATCH_LEVELLIB) [list load [file join $$dir libMRRParserClasses[info sharedlibextension]]]' > pkgIndex.tcl
+
+install-exec-hook: libMRRParserClasses.la pkgIndex.tcl
+	$(INSTALL) -d $(DESTDIR)$(pkglibdir)
+if CROSSCOMPILING
+	cp    $(DESTDIR)$(bindir)/libMRRParserClasses$(SHLIB_SUFFIX) $(DESTDIR)$(pkglibdir)/libMRRParserClasses$(SHLIB_SUFFIX)
+else
+	ln -s $(libdir)/libMRRParserClasses$(SHLIB_SUFFIX) $(DESTDIR)$(pkglibdir)/libMRRParserClasses$(SHLIB_SUFFIX)
+endif
+	touch $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
+	cat   pkgIndex.tcl >>$(DESTDIR)$(pkglibdir)/pkgIndex.tcl
+
