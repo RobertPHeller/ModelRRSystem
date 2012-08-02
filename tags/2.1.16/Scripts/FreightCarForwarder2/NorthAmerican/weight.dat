@@ -1,0 +1,8 @@
+'
+' Weight Classifications
+'
+1,  50,nominal 4-axle load limit of 177000 lbs older small cars - very rare
+2,  70,nominal 4-axle load limit of 220000 lbs most 50 ft boxcars etc
+3, 100,nominal 4-axle load limit of 263000 lbs most common load limit
+4, 125,nominal 4-axle load limit of 315000 lbs articulated 48 ft wells
+

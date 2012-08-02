@@ -1,0 +1,18 @@
+#! /bin/sh
+
+# A fake texi file so that automake can see what we want to do
+test -f autobook.texi || cat > autobook.texi <<EOF
+@setfilename fnord
+@include version.texi
+EOF
+
+# make setup
+aclocal
+automake --gnu --add-missing --copy --force
+autoconf
+
+# Remove the fake texi file (if any)
+grep "@setfilename fnord" autobook.texi >/dev/null 2>&1 \
+  && rm -f autobook.texi
+
+exit 0
