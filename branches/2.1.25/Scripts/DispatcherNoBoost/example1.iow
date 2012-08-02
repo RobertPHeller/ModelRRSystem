@@ -1,0 +1,163 @@
+#* 
+#* ------------------------------------------------------------------
+#* example1.iow - C/MRI I/O Worksheet for example1
+#* Created by Robert Heller on Wed Jun  4 08:49:30 2008
+#* ------------------------------------------------------------------
+#* Modification History: $Log$
+#* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+#* Modification History: Add it copyright notice headers
+#* Modification History:
+#* ------------------------------------------------------------------
+#* Contents:
+#* ------------------------------------------------------------------
+#*  
+#*     Model RR System, Version 2
+#*     Copyright (C) 1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software
+#* 			51 Locke Hill Road
+#* 			Wendell, MA 01379-9728
+#* 
+#*     This program is free software; you can redistribute it and/or modify
+#*     it under the terms of the GNU General Public License as published by
+#*     the Free Software Foundation; either version 2 of the License, or
+#*     (at your option) any later version.
+#* 
+#*     This program is distributed in the hope that it will be useful,
+#*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#*     GNU General Public License for more details.
+#* 
+#*     You should have received a copy of the GNU General Public License
+#*     along with this program; if not, write to the Free Software
+#*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#* 
+#*  
+#* 
+# $Id$
+
+SMINI @ UA 0:
+
+Card No. 0 Output
+--------------------------------------------------------------
+|PORT|BIT|PIN|DESCRIPTION OF FUNCTION PERFORMED              |
+--------------------------------------------------------------
+|    | 0 | 1 |Lower Green \                                  |
+|    | 1 | 2 |Lower Red   | CP1E Signal                      |
+|    | 2 | 3 |Upper Green |                                  |
+| A  | 3 | 4 |Upper Red   /                                  |
+|    | 4 | 5 |Lower Green \                                  |
+|    | 5 | 6 |Lower Red   | CP1WM Signal                     |
+|    | 6 | 7 |Upper Green |                                  |
+|    | 7 | 8 |Upper Red   /                                  |
+--------------------------------------------------------------
+|    | 0 | 9 |Lower Green \                                  |
+|    | 1 |10 |Lower Red   | CP1WS Signal                     |
+|    | 2 |11 |Upper Green |                                  |
+| B  | 3 |12 |Upper Red   /                                  |
+|    | 4 |13 |Normal \ Switch 1                              |
+|    | 5 |14 |Reverse/ Motor                                 |
+|    | 6 |15 |                                               |
+|    | 7 |16 |                                               |
+--------------------------------------------------------------
+|    | 0 |17 |Lower Green \                                  |
+|    | 1 |18 |Lower Red   | CP1E Signal                      |
+|    | 2 |19 |Upper Green |                                  |
+| C  | 3 |20 |Upper Red   /                                  |
+|    | 4 |21 |Lower Green \                                  |
+|    | 5 |22 |Lower Red   | CP1WM Signal                     |
+|    | 6 |23 |Upper Green |                                  |
+|    | 7 |24 |Upper Red   /                                  |
+--------------------------------------------------------------
+|    | 0 |25 |                                               |
+|    | 1 |26 |                                               |
+|    | 2 |27 |                                               |
+| D  | 3 |28 |                                               |
+|    | 4 |29 |                                               |
+|    | 5 |30 |                                               |
+|    | 6 |31 |                                               |
+|    | 7 |32 |                                               |
+--------------------------------------------------------------
+
+Card No. 1 Input
+--------------------------------------------------------------
+|PORT|BIT|PIN|DESCRIPTION OF FUNCTION PERFORMED              |
+--------------------------------------------------------------
+|    | 0 | 1 | Block 1 Occupation Detector		     |
+|    | 1 | 2 | Switch 1 Occupation Detector		     |
+|    | 2 | 3 | Block 3 Occupation Detector		     |
+| A  | 3 | 4 | Siding Occupation Detector		     |
+|    | 4 | 5 | Switch 2 Occupation Detector		     |
+|    | 5 | 6 | Block 4 Occupation Detector		     |
+|    | 6 | 7 |                                               |
+|    | 7 | 8 |                                               |
+--------------------------------------------------------------
+|    | 0 | 9 | Switch 1 state (normal)			     |
+|    | 1 |10 | Switch 1 state (reverse)			     |
+|    | 2 |11 | Switch 2 state (normal)			     |
+| B  | 3 |12 | Switch 2 state (reverse)			     |
+|    | 4 |13 |                                               |
+|    | 5 |14 |                                               |
+|    | 6 |15 |                                               |
+|    | 7 |16 |                                               |
+--------------------------------------------------------------
+|    | 0 |17 |                                               |
+|    | 1 |18 |                                               |
+|    | 2 |19 |                                               |
+| C  | 3 |20 |                                               |
+|    | 4 |21 |                                               |
+|    | 5 |22 |                                               |
+|    | 6 |23 |                                               |
+|    | 7 |24 |                                               |
+--------------------------------------------------------------
+|    | 0 |25 |                                               |
+|    | 1 |26 |                                               |
+|    | 2 |27 |                                               |
+| D  | 3 |28 |                                               |
+|    | 4 |29 |                                               |
+|    | 5 |30 |                                               |
+|    | 6 |31 |                                               |
+|    | 7 |32 |                                               |
+--------------------------------------------------------------
+
+Card No. 2 Output
+--------------------------------------------------------------
+|PORT|BIT|PIN|DESCRIPTION OF FUNCTION PERFORMED              |
+--------------------------------------------------------------
+|    | 0 | 1 |Lower Green \                                  |
+|    | 1 | 2 |Lower Red   | CP2W Signal                      |
+|    | 2 | 3 |Upper Green |                                  |
+| A  | 3 | 4 |Upper Red   /                                  |
+|    | 4 | 5 |Normal \ Switch 2                              |
+|    | 5 | 6 |Reverse/ Motor                                 |
+|    | 6 | 7 |                                               |
+|    | 7 | 8 |                                               |
+--------------------------------------------------------------
+|    | 0 | 9 |                                               |
+|    | 1 |10 |                                               |
+|    | 2 |11 |                                               |
+| B  | 3 |12 |                                               |
+|    | 4 |13 |                                               |
+|    | 5 |14 |                                               |
+|    | 6 |15 |                                               |
+|    | 7 |16 |                                               |
+--------------------------------------------------------------
+|    | 0 |17 |                                               |
+|    | 1 |18 |                                               |
+|    | 2 |19 |                                               |
+| C  | 3 |20 |                                               |
+|    | 4 |21 |                                               |
+|    | 5 |22 |                                               |
+|    | 6 |23 |                                               |
+|    | 7 |24 |                                               |
+--------------------------------------------------------------
+|    | 0 |25 |                                               |
+|    | 1 |26 |                                               |
+|    | 2 |27 |                                               |
+| D  | 3 |28 |                                               |
+|    | 4 |29 |                                               |
+|    | 5 |30 |                                               |
+|    | 6 |31 |                                               |
+|    | 7 |32 |                                               |
+--------------------------------------------------------------
+
+
+
