@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=DispatcherBoost
+Comment=Construct dispatcher or tower panel programs.
+Exec=DispatcherBoost %F
+Icon=DispatcherBoost.png
+Encoding=UTF-8
+Categories=Application;Model-Railroad-System;Development
+
