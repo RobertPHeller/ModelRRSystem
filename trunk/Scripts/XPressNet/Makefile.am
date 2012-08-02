@@ -8,7 +8,7 @@ pkgdata_DATA =  xpressnet.tcl pkgIndex.tcl XPressNetThrottle.pot
 
 BUILT_SOURCES = $(TCLKIT)
 
-bin_SCRIPTS = XPressNetThrottle
+bin_SCRIPTS = XPressNetThrottle${EXEEXT}
 
 desktopdir = $(datadir)/applications
 desktop_DATA = XPressNetThrottle.desktop

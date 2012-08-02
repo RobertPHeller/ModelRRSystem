@@ -139,7 +139,7 @@ pkgIndex.tcl: libazatrax.la $(top_builddir)/config.status
 
 MRDTest${EXEEXT}: MRDTest.src libazatrax.la $(MRDTestSCRIPTS) \
 		pkgIndex.tcl \
-		$(top_builddir)/Doc/User/MRDTest/MRDTest.html \
+		$(top_builddir)/Doc/User/AzatraxProg/AzatraxProg.html \
 		$(top_builddir)/po/AzatraxProg/msgfiles
 	-rm -f  MRDTest.kit
 	-rm -rf MRDTest.vfs
@@ -159,7 +159,7 @@ MRDTest${EXEEXT}: MRDTest.src libazatrax.la $(MRDTestSCRIPTS) \
 	$(UNZIP) -qq -d MRDTest.vfs/lib \
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit MRDTest \
-		Help $(top_builddir)/Doc/User/MRDTest/*
+		Help $(top_builddir)/Doc/User/AzatraxProg/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit MRDTest \
 		Messages $(top_builddir)/po/AzatraxProg/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap MRDTest${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)

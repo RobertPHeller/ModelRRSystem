@@ -1734,7 +1734,3 @@ void XPressNet::SetLI101Address(unsigned char addr)
 	write(ttyfd,message,4);
 }
 
-
-
-
-.

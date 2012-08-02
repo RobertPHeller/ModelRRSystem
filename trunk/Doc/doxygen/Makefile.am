@@ -190,3 +190,7 @@ $(top_builddir)/C++/RailDriver/RaildriverIO.h : \
 	$(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/C++/RailDriver RaildriverIO.h
 
+$(top_builddir)/C++/Azatrax/Azatrax.h : \
+	$(top_srcdir)/C++/Azatrax/Azatrax.h.in \
+	$(top_builddir)/config.status
+	$(MAKE) -C $(top_builddir)/C++/Azatrax Azatrax.h
