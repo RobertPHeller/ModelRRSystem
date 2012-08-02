@@ -1,0 +1,773 @@
+#* 
+#* ------------------------------------------------------------------
+#* Dispatcher.src - Boost version of Dispatcher
+#* Created by Robert Heller on Tue Apr 28 09:09:25 2009
+#* ------------------------------------------------------------------
+#* Modification History: $Log$
+#* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+#* Modification History: Add it copyright notice headers
+#* Modification History:
+#* ------------------------------------------------------------------
+#* Contents:
+#* ------------------------------------------------------------------
+#*  
+#*     Model RR System, Version 2
+#*     Copyright (C) 1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software
+#* 			51 Locke Hill Road
+#* 			Wendell, MA 01379-9728
+#* 
+#*     This program is free software; you can redistribute it and/or modify
+#*     it under the terms of the GNU General Public License as published by
+#*     the Free Software Foundation; either version 2 of the License, or
+#*     (at your option) any later version.
+#* 
+#*     This program is distributed in the hope that it will be useful,
+#*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#*     GNU General Public License for more details.
+#* 
+#*     You should have received a copy of the GNU General Public License
+#*     along with this program; if not, write to the Free Software
+#*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#* 
+#*  
+#* 
+
+# $Id$
+
+## @defgroup Dispatcher Dispatcher
+# @brief Create and edit dispatcher or tower control panel programs.
+#
+# @section SYNOPSIS
+#
+# Dispatcher [X11 Resource Options] [options] [panel program files...]
+#
+# @section DESCRIPTION
+#
+# The Dispatcher program is used to create computerized CTC (Centralized
+# Traffic Control) panels, to be used by dispatchers as part of a CATC
+# (Computer Assisted Traffic Control) system to manage traffic flow for a
+# model railroad.  A computerized CTC panel typically contains a track work
+# schematic and a collection of control elements (such as switch plates,
+# signal plates, toggle switches, push buttons, etc.) that control the
+# track work and track side signals.  In addition to creating and editing
+# CTC panels, the Dispatcher program can read in an XTrkCAD layout file
+# and create a compressed graph (using the Boost library) of the track work 
+# and this graph can be used as a guide while creating CTC panels.
+#
+#
+# @section OPTIONS
+#
+# @arg -simplepanels Run in simplified mode.  Include the MRD library and
+#       generates scripts to use Azatrax MRD2-U units to control switch
+#       machines directly from switch plates, with no signaling, occupency
+#	detection, etc.
+# @arg -console Run with a console window.
+# @arg -xtrkcad The next file is an XtrkCad file not a pannel file.
+# @par
+#
+# @section PARAMETERS
+#
+# Zero or more panel program files.
+#
+# @section FILES
+#
+# <b>\$HOME</b>/.dispatcher (dispatcher.rc under MS-Windows) contains 
+# personal program configuration information.  There are three configuration
+# options:
+# -# useExternalEditor Use External Editor, a boolean option. Default false.
+# -# externalEditor The path of the External Editor. Default /usr/bin/emacs.
+# -# tclkit The path of the Tcl Kit runtime file to use when wrapping\n
+#	CTC panel programs. Default /usr/local/bin/tclkit.
+#
+# @section AUTHOR
+# Robert Heller \<heller\@deepsoft.com\>
+
+
+set argv0 [file join [file dirname [info nameofexecutable]] [file rootname [file tail [info script]]]]
+
+package require Version
+namespace export _*
+
+namespace eval MRRSystem {variable MRR_LoadedVersion}
+set MRRSystem::MRR_LoadedVersion [package require Mrr]
+
+package require gettext
+package require Tk
+package require BWidget
+package require BWStdMenuBar
+package require HTMLHelp
+package require DWpanedw
+package require snit
+package require Splash
+package require MainWindow
+package require ReadConfiguration
+
+global ImageDir 
+set ImageDir [file join [file dirname [file dirname [info script]]] \
+			DispatcherLib]
+global CommonImageDir 
+set CommonImageDir [file join [file dirname [file dirname [info script]]] \
+			Common]
+global HelpDir
+set HelpDir [file join [file dirname [file dirname [file dirname \
+                                                        [info script]]]] Help]
+set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirname \
+							[info script]]]] Messages]]
+#puts stderr "*** msgfiles = $msgfiles"
+
+image create photo banner -file [file join $ImageDir banner.gif]
+# Image used as a banner for all dialog boxes.
+# [index] banner!image
+
+image create photo DeepwoodsBanner -format gif -file [file join $CommonImageDir DeepwoodsBanner.gif]
+# Deepwoods banner image.  Used in the splash screen.
+# [index] DeepwoodsBanner!image
+
+global argcTest IsSlave
+set argcTest 0
+set IsSlave 0
+set CTCFiles {}
+set HaveXTrkCADFile no
+set XTrkCADFile {}
+namespace eval Dispatcher {
+  variable SimpleMode no
+}
+
+for {set ia 0} {$ia < $argc} {incr ia} {
+  switch -glob -- "[lindex $argv $ia]" {
+    -isslave* {
+      set IsSlave 1
+      incr argcTest
+      fconfigure stdin -buffering line
+      fconfigure stdout -buffering line
+    }
+    -console {
+	catch {console show}
+    }
+    -xtrkcad {
+	set ia1 [expr {$ia + 1}]
+	if {$HaveXTrkCADFile || $ia1 >= $argc} {
+	  puts stderr "usage: $argv0 \[wish options\] -- \[-isslave\] \[-console\] \[-xtrkcad xtrkcadfile\] [CTCWindowFile]"
+	  exit 96
+	} else {
+	  set HaveXTrkCADFile yes
+	  set XTrkCADFile "[lindex $argv $ia1]"
+	  incr ia
+	}	    
+    }
+    -simplepanels {
+       set Dispatcher::SimpleMode yes
+    }
+    -* {
+    	puts stderr "usage: $argv0 \[wish options\] -- \[-isslave\] \[-console\] \[-simplepanels\] \[-xtrkcad xtrkcadfile\] \[CTCWindowFiles\]"
+	exit 96
+    }
+    default {
+      lappend CTCFiles "[lindex $argv $ia]"
+    }
+  }
+}
+
+
+
+
+global HelpDir
+
+proc Dispatcher::SplashScreen {} {
+  # Build the ``Splash Screen'' -- A popup window that tells the user what 
+  # we are all about.  It gives the version and brief copyright information.
+  #
+  # The upper part of the splash screen gives the brief information, with
+  # directions on how to get detailed information.  The lower part contains
+  # an image banner for Deepwoods Software.
+  # [index] SplashScreen!procedure
+
+  splash .mrrSplash \
+	-title [_ "Model Railroad Dispatcher, Copyright (C) \
+2006-2011 Robert Heller D/B/A Deepwoods Software Model Railroad Freight Car \
+Forwarder comes with ABSOLUTELY NO WARRANTY; for details select \
+'Warranty...' under the Help menu.  This is free software, and you are \
+welcome to redistribute it under certain conditions; select 'Copying...' \
+under the Help menu. Mrr Support Library version: \
+%s. System patch level: %s." $MRRSystem::MRR_LoadedVersion \
+$MRRSystem::SYSTEMVERSION] \
+	-icon banner -image DeepwoodsBanner -background {#2ba2bf} \
+	-titleforeground white -statusforeground {black}
+}
+
+namespace eval Dispatcher {variable CurrentProgress 0}
+proc Dispatcher::SplashWorkMessage {message percent} {
+  global IsSlave
+  variable CurrentProgress
+  incr CurrentProgress $percent
+  if {$CurrentProgress > 100} {set CurrentProgress 100}
+  if {!$IsSlave} {
+    .mrrSplash update "$message" $CurrentProgress
+    update
+  }
+}
+
+if {!$IsSlave} {
+  Dispatcher::SplashScreen
+  update
+}
+
+Dispatcher::SplashWorkMessage [_ "Building Main window"] 0
+
+proc Dispatcher::MainWindow {} {
+  global CommonImageDir
+  global ImageDir
+
+  wm protocol . WM_DELETE_WINDOW {Dispatcher::CarefulExit}
+  if {!$::IsSlave} {wm withdraw .}
+  wm title . [_ "Dispatcher, using %s of Mrr" [package versions Mrr]]
+
+  variable FocusNowhere [canvas .focusNowhere]
+
+  variable Main [mainwindow .main -dontwithdraw $::IsSlave -extramenus {"&Windows" {windows} {windows} 0 {}}]
+  pack $Main -expand yes -fill both
+  $Main toolbar add tools
+  $Main toolbar show tools
+  $Main menu entryconfigure file [_m "Menu|File|New"] \
+		-command "CTCPanelWindow::CTCPanelWindow new -parent . -simplemode $Dispatcher::SimpleMode" \
+		-dynamichelp [_ "New CTC Panel Window"] \
+		-label [_m "Menu|File|New CTC Panel Window"] \
+		-accelerator {Ctrl-N}
+  image create photo NewButtonImage -file [file join $CommonImageDir new.gif]
+  $Main toolbar addbutton tools new -image NewButtonImage \
+	-command "CTCPanelWindow::CTCPanelWindow new -parent . -simplemode $Dispatcher::SimpleMode"\
+	-helptext "New CTC Panel Window" \
+	-text [_m "Toolbar|New CTC Window"] -compound top
+  $Main menu insert file [_m "Menu|File|Open..."] \
+	command -label [_m "Menu|File|Load..."] \
+	-dynamichelp [_ "Open and Load XTrkCad Layout File"] \
+	-command Dispatcher::LoadLayout \
+	-underline 0 \
+	-accelerator {Ctrl-L}
+  $Main menu entryconfigure file [_m "Menu|File|Open..."] \
+	-command "CTCPanelWindow::CTCPanelWindow open -parent ." \
+	-dynamichelp [_ "Open an existing CTC Panel Window file"] \
+	-accelerator {Ctrl-O}
+  image create photo LoadButtonImage -file [file join $ImageDir load.gif]
+  $Main toolbar addbutton tools load -image LoadButtonImage \
+	-command Dispatcher::LoadLayout \
+	-helptext [_ "Open and Load XTrkCad Layout File"] \
+	-text [_m "Toolbar|Load XTrkCad File"] -compound top
+  image create photo OpenButtonImage -file [file join $CommonImageDir open.gif]
+  $Main toolbar addbutton tools open -image OpenButtonImage \
+	-command "CTCPanelWindow::CTCPanelWindow open -parent ." \
+	-helptext [_ "Open an existing CTC Panel Window file"] \
+	-text [_m "Toolbar|Open CTC File"] -compound top
+  $Main menu entryconfigure file [_m "Menu|File|Save As..."] -state disabled
+  $Main menu entryconfigure file [_m "Menu|File|Close"] -command {Dispatcher::CarefulExit} \
+		-accelerator {Ctrl-Q}
+  $Main menu entryconfigure file [_m "Menu|File|Exit"] -command {Dispatcher::CarefulExit}
+  variable MainWindow [$Main scrollwindow getframe]
+  variable CanvasWindow [NodeGraphCanvas::NodeGraphCanvas $MainWindow.canvas -width 400 -height 400\
+				-scrollregion {0 0 400 400}]
+  $Main scrollwindow setwidget $CanvasWindow
+  image create photo FindButtonImage -file [file join $ImageDir search.gif]
+  $Main toolbar addbutton tools find -image FindButtonImage \
+	-command "$CanvasWindow searchbyid"\
+	-helptext [_ "Find a node by NID"] \
+	-text [_m "Toolbar|Find Node"] -compound top
+  $Main menu entryconfigure file [_m "Menu|File|Print..."] -command "$CanvasWindow print" \
+	-dynamichelp [_ "Print Node Graph"] \
+	-accelerator {Ctrl-P}
+  image create photo PrintImage -file [file join $CommonImageDir print.gif]
+  $Main toolbar addbutton tools print -image PrintImage \
+	-command "$CanvasWindow print" \
+	-helptext [_ "Print Node Graph"] \
+	-text [_m "Toolbar|Print Node Graph"] -compound top
+
+  $Main menu add options command \
+	-label [_m "Menu|Options|Edit Configuration"] \
+	-command "::Dispatcher::Configuration edit"
+
+  $Main menu add options command \
+	-label [_m "Menu|Options|Save Configuration"] \
+	-command "::Dispatcher::Configuration save"
+
+  $Main menu add options command \
+	-label [_m "Menu|Options|Load Configuration"] \
+	-command {::Dispatcher::Configuration load
+		  WrapIt::SetTclkit [::Dispatcher::Configuration getoption tclkit]}
+
+  $Main menu delete help [_m "Menu|Help|On Keys..."]
+  $Main menu delete help [_m "Menu|Help|Index..."]
+  $Main menu add help command \
+	-label [_m "Menu|Help|Reference Manual"] \
+	-command "::HTMLHelp::HTMLHelp help {Dispatcher Reference}"
+  $Main menu entryconfigure help [_m "Menu|Help|On Help..."] \
+	-command "::HTMLHelp::HTMLHelp help Help"
+  $Main menu entryconfigure help [_m "Menu|Help|Tutorial..."] \
+	-command "::HTMLHelp::HTMLHelp help {Dispatcher Tutorial}"
+  $Main menu entryconfigure help [_m "Menu|Help|On Version"] \
+	-command "::HTMLHelp::HTMLHelp help Version"
+  $Main menu entryconfigure help [_m "Menu|Help|Copying"] \
+	-command "::HTMLHelp::HTMLHelp help Copying"
+  $Main menu entryconfigure help [_m "Menu|Help|Warranty"] \
+	-command "::HTMLHelp::HTMLHelp help Warranty"
+
+  ::HTMLHelp::HTMLHelp setDefaults "$::HelpDir" "Dispatcherli1.html"
+}
+
+proc Dispatcher::AddToWindows {window name} {
+  variable Main
+
+  $Main menu add windows command -label "$name" -command "$window showme"
+}
+
+proc Dispatcher::RemoveFromWindows {window name} {
+  variable Main
+
+  $Main menu delete windows "$name" "$name"
+}
+
+package require BWLabelSpinBox
+
+
+snit::macro Dispatcher::StdShell {dialogclass} {
+  hulltype toplevel
+  widgetclass $dialogclass
+
+  component headerframe
+  component iconimage
+  component headerlabel
+  component userframe
+  component dismisbutton
+
+#  option -title -default [_ "Dispatcher Dialog"] \
+#		-configuremethod _SetTitle
+  option -title -configuremethod _SetTitle
+
+  option -parent -default .
+  method _SetTitle {option value} {
+    wm title $win "$value"
+    $headerlabel configure -text "$value"
+    set options($option) "$value"
+  }
+
+  option {-activebackground activeBackground Foreground} -default #ececec \
+		-configuremethod _SetWidgetOption
+  option {-activeforeground activeForeground Background} -default Black \
+		-configuremethod _SetWidgetOption
+  option {-anchor anchor Anchor} -default center \
+		-configuremethod _SetWidgetOption
+  option {-background background Background} -default #d9d9d9 \
+		-configuremethod _SetWidgetOption
+  option {-borderwidth borderWidth BorderWidth} -default 2 \
+		-configuremethod _SetWidgetOption
+  option {-cursor cursor Cursor} -default {} \
+		-configuremethod _SetWidgetOption
+  option {-disabledforeground disabledForeground DisabledForeground} -default #a3a3a3 \
+		-configuremethod _SetWidgetOption
+  option {-foreground foreground Foreground} -default Black \
+		-configuremethod _SetWidgetOption
+  option {-highlightbackground highlightBackground HighlightBackground} -default #d9d9d9 \
+		-configuremethod _SetWidgetOption
+  option {-highlightcolor highlightColor HighlightColor} -default Black \
+		-configuremethod _SetWidgetOption
+  option {-highlightthickness highlightThickness HighlightThickness} -default 0 \
+		-configuremethod _SetWidgetOption
+  option {-padx padX Pad} -default 1 \
+		-configuremethod _SetWidgetOption
+  option {-pady padY Pad} -default 1 \
+		-configuremethod _SetWidgetOption
+  option {-takefocus takeFocus TakeFocus} -default 0 \
+		-configuremethod _SetWidgetOption
+
+  method _SetWidgetOption {option value} {
+    catch [list $win configure $option "$value"]
+    catch [list $iconimage configure $option "$value"]
+    catch [list $headerlabel configure $option "$value"]
+    catch [list $self settopframeoption $userframe $option "$value"]
+    catch [list $dismisbutton configure $option "$value"]
+    set options($option) "$value"
+  }
+
+  constructor {args} {
+    wm withdraw $win
+    install headerframe using frame $win.headerframe -relief ridge -bd 5
+    pack  $headerframe -fill x
+    install iconimage using label $headerframe.iconimage -image banner
+    pack  $iconimage -side left
+    install headerlabel using label $headerframe.headerlabel -anchor w -font {Helvetica -24 bold}
+    pack  $headerlabel -side right -anchor w -expand yes -fill x
+    install userframe using frame $win.userframe -bd 0 -relief flat
+    pack  $userframe -expand yes -fill both
+    install dismisbutton using Button::create $win.dismisbutton \
+	-default active \
+	-text [_m "Button|Dismis"] \
+	-command [mymethod _Dismis]
+    pack $dismisbutton -expand yes -fill x
+    if {[catch [list $self constructtopframe $userframe] message]} {
+#      puts stderr "*** ${self}::constructor: constructtopframe failed: $message"
+    }
+    $self configurelist $args
+    wm transient $win [$self cget -parent]
+    $type push availlist $self
+    bind <Return> $win [list $dismisbutton invoke]
+    bind <Esc> $win [list $dismisbutton invoke]
+    wm protocol $win WM_DELETE_WINDOW [list $dismisbutton invoke]
+  }
+
+  method _Dismis {} {
+    wm withdraw $win
+    $type remove inuselist $self
+    $type push   availlist $self
+  }
+
+  method draw {args} {
+    catch [concat $self initializetopframe $userframe $args] message
+#    puts stderr "*** $self draw: $self initializetopframe returned: $message"
+    update idle
+    set x [expr {[winfo screenwidth $win]/2 - ([winfo reqwidth $win])/2 \
+	    - [winfo vrootx $win]}]
+    set y [expr {[winfo screenheight $win]/2 - [winfo reqheight $win]/2 \
+	    - [winfo vrooty $win]}]
+    if {$x < 0} {set x 0}
+    if {$y < 0} {set y 0}
+    wm geom $win +$x+$y
+    wm transient $win [$self cget -parent]
+    wm deiconify $win
+    $type push inuselist $self
+  }
+
+  typemethod draw {args} {
+    if {[$type length availlist] == 0} {
+      $type create .[string tolower [lindex [split $type :] end]]%AUTO%
+    }
+    set object [$type pop availlist]
+#    puts stderr "*** ${type}::typemethod draw: object = $object"
+    eval [list $object draw] $args
+    return $object
+  }
+
+  destructor {
+    $type remove availlist $self
+    $type remove inuselist $self
+  }
+
+  typevariable availlist {}
+  typevariable inuselist {}
+
+  typemethod _CheckList {list} {
+    if {[lsearch -exact {availlist inuselist} $list] < 0} {
+      error "No such list: $list"
+    }
+  }
+
+  typemethod push {list object} {
+    $type _CheckList $list
+    if {![$type member $list $object]} {
+      lappend $list $object
+    }
+  }
+
+  typemethod pop {list} {
+    $type _CheckList $list
+    if {[$type length $list] > 0} {
+#      puts stderr "*** ${type}::typemethod pop: list = $list ([set [set list]])"
+      set object [lindex [set [set list]] 0]
+#      puts stderr "*** ${type}::typemethod pop: object = $object"
+      set $list  [lrange [set [set list]] 1 end]
+#      puts stderr "*** ${type}::typemethod pop: list = $list ([set [set list]])"
+    } else {
+      set object {}
+    }
+    return $object
+  }
+
+  typemethod member {list object} {
+    $type _CheckList $list 
+    if {[lsearch -exact [set [set list]] $object] < 0} {
+      return 0
+    } else {
+      return 1
+    }
+  }
+
+  typemethod length {list} {
+    $type _CheckList $list 
+    return [llength [set [set list]]]
+  }
+
+  typemethod remove {list object} {
+    $type _CheckList $list 
+    set index [lsearch -exact [set [set list]] $object]
+    if {$index < 0} {
+      # nothing
+    } elseif {$index == 0} {
+      set $list [lrange [set [set list]] 1 end]
+    } else {
+      set $list [lreplace [set [set list]] $index $index]
+    }
+  }
+}
+
+package require NodeGraphCanvas
+
+Dispatcher::MainWindow
+
+
+package require TrackGraph
+
+proc Dispatcher::LoadLayout {{filename {}}} {
+  variable CanvasWindow
+  variable Main
+
+  if {[string length "$filename"]  == 0} {
+    set filename [tk_getOpenFile -defaultextension .xtc \
+				 -filetypes {
+				     {{XTrkCad Files} {.xtc} TEXT}
+				     {{All Files}     *      TEXT}
+				  } \
+				 -parent . -title "XTrkCad Layout file to open"]
+  }
+  if {[string length "$filename"]  == 0} {return}
+
+  $CanvasWindow delete all
+
+  variable WorkingAfterID [after 1000 Dispatcher::WorkingUpdate]
+  SetBusy $Main on
+  set errorP [catch {
+    TrackGraph::TrackGraph ClearGraph
+    TrackGraph::TrackGraph LoadLayout "$filename"
+    foreach edge [TrackGraph::TrackGraph PrimMinimumSpanningTree] {
+      $CanvasWindow create edge [lindex $edge 0] [lindex $edge 1]
+    }
+#    puts stderr "*** Dispatcher::LoadLayout: TrackGraph::TrackGraph Roots = [TrackGraph::TrackGraph Roots]"
+#    puts stderr "*** Dispatcher::LoadLayout: TrackGraph::TrackGraph Heads = [TrackGraph::TrackGraph Heads]"
+    foreach head [TrackGraph::TrackGraph Heads] {
+      switch [$head TypeOfNode] {
+	TrackGraph::Block {
+	  $CanvasWindow create block $head
+	}
+	TrackGraph::SwitchMotor {
+	  $CanvasWindow create switchmotor $head
+	}
+	default {
+	}
+      }
+    }} errorMessage]
+  SetBusy $Main off
+  catch {after cancel $WorkingAfterID}
+  set eInfo $::errorInfo
+  set eCode $::errorCode
+  if {$errorP} {
+    error $errorMessage $eInfo $eCode
+  }
+  set xtrkcad [auto_execok xtrkcad[file extension [info nameofexecutable]]]
+  if {[string length "$xtrkcad"] > 0 &&
+      [tk_messageBox -type yesno -icon question \
+	-message "Start XTrkCAD ($xtrkcad)?"]} {
+    catch {exec "$xtrkcad" "$filename" &}
+  }    
+}
+
+proc Dispatcher::WorkingUpdate {} {
+  update
+  variable WorkingAfterID [after 1000 Dispatcher::WorkingUpdate]
+}
+
+package require CTCPanelWindow
+  
+proc Dispatcher::UnPostMenu {menu} {
+#  global errorInfo
+#  puts stderr "*** UnPostMenu: errorInfo = $errorInfo"
+  catch {
+    upvar #0 $menu data
+    $menu unpost
+    focus $data(oldfocus)      
+  }
+}
+
+proc Dispatcher::PostMenuOnPointer {menu w} {
+  set X [winfo pointerx $w]
+  set Y [winfo pointery $w]
+
+#  global errorInfo
+#  puts stderr "*** PostMenuOnWidget: errorInfo = $errorInfo"
+  $menu activate none
+  $menu post $X $Y
+  upvar #0 $menu data
+  set data(oldfocus) [focus]
+  focus $menu
+}
+
+proc Dispatcher::SetBusy {w flag} {
+  variable FocusNowhere
+  switch [string tolower "$flag"] {
+    1 -
+    on -
+    yes {
+	if {[string equal [grab current $w] $FocusNowhere]} {return}
+	catch {array unset ::WatchList}
+	SetWatchCursor [winfo toplevel $w]
+	grab $FocusNowhere
+    }
+    0 -
+    off -
+    no {
+	if {![string equal [grab current $w] $FocusNowhere]} {return}
+	UnSetWatchCursor
+	grab release $FocusNowhere
+    }
+  }
+}
+
+proc Dispatcher::SetWatchCursor {w} {
+  variable WatchList
+  if {![catch {$w cget -cursor} oldcursor] && [winfo ismapped $w]} {
+    set WatchList($w) $oldcursor
+    catch {$w configure -cursor watch}
+  }
+  foreach iw [winfo children $w] {
+    SetWatchCursor $iw
+  }
+}
+
+proc Dispatcher::UnSetWatchCursor {} {
+  variable WatchList
+  foreach w [array names WatchList] {
+    catch {$w configure -cursor "$WatchList($w)"}
+  }
+}
+	
+proc Dispatcher::WIPStart {{message {}}} {
+  variable Main
+  $Main wipmessage configure -text "$message"
+  $Main setprogress 0
+  $Main setstatus {}
+  SetBusy $::Main on
+  update idle
+}
+
+proc Dispatcher::WIPUpdate {value {message {}}} {
+  variable Main
+  $Main setstatus "$message"
+  $Main setprogress $value
+  if {$value >= 100} {
+    SetBusy $::Main off
+  }
+  update idle
+}
+
+proc Dispatcher::WIPDone {{message {}}} {
+  WIPUpdate 100 "$message"
+  update idle
+}
+
+proc Dispatcher::CarefulExit {{dontask no}} {
+  if {$dontask} {
+    set answer yes
+  } else {
+    set answer "[tk_messageBox -icon question -type yesno -message {Really Exit}]"
+  }
+  switch -exact $answer {
+    no {return}
+    yes {
+	global IsSlave
+	flush stderr
+	if {$IsSlave} {
+	  puts stdout "101 Exit"
+	  flush stdout
+	  set ans [gets stdin]
+	}
+	set dirtywindows {}
+	foreach w [CTCPanelWindow::CTCPanelWindow allopenwindownames] {
+	  set panel [CTCPanelWindow::CTCPanelWindow selectwindowbyname $w]
+	  if {[$panel isdirtyp]} {
+	    lappend dirtywindows $panel
+	  }
+	}
+	if {[llength $dirtywindows] > 0} {
+	  if {$dontask} {
+	    set answer yes
+	  } else {
+	    set answer [tk_messageBox -icon question \
+		       -type yesno \
+		       -message {There are modified panels.  Save them?}]
+	  }
+	  if {$answer} {
+	    foreach p $dirtywindows {$p save}
+	  }
+	}
+	exit
+    }
+  }
+}
+
+
+namespace eval Dispatcher {
+  global CommonImageDir
+
+#  $Main buttons add -name quit -anchor w \
+#			-text {Quit -- Exit NOW} -command Dispatcher::CarefulExit \
+#			-underline 0 \
+#			-helptext "Exit the program"
+  bind Main <Q> "$Main buttons invoke quit"
+  bind Main <q> "$Main buttons invoke quit"
+
+  image create photo CloseButtonImage -file [file join $::CommonImageDir close.gif]
+  $Main toolbar addbutton tools close -image CloseButtonImage \
+	-command Dispatcher::CarefulExit \
+	-helptext [_ "Close the application"] \
+	-text [_m "Toolbar|Quit"] -compound top
+
+  proc _AddBindTag {w tag} {
+    if {[string equal [winfo class $w] Entry]} {return}
+    if {[string equal [winfo class $w] Text]} {return}
+    if {[string equal [winfo toplevel $w] $w] && ![string equal $w .]} {return}
+    bindtags $w [linsert [bindtags $w] end $tag]
+    foreach c [winfo children $w] {_AddBindTag $c $tag}
+  }
+
+  _AddBindTag . Main
+
+  set ConfigurationBody [list ReadConfiguration::ConfigurationType \
+      [list [_m "Label|Use External Editor"] useExternalEditor boolean false] \
+      [list [_m "Label|External Editor"] externalEditor program /usr/bin/emacs {}] \
+      [list [_m "Label|Tcl Kit"] tclkit program /usr/local/bin/tclkit {}] ]
+  snit::type Configuration $ConfigurationBody
+
+
+  Configuration load
+
+  WrapIt::SetTclkit [Configuration getoption tclkit]
+
+  update idle
+  set extraX 0
+  foreach s [$Main slideout list] {
+    set rw [$Main slideout reqwidth $s]
+    if {$rw > $extraX} {set extraX $rw}
+  }
+
+
+  if {!$::IsSlave} {$Main showit $extraX}
+  
+}
+
+catch {Dispatcher::SplashWorkMessage [_ "Done"] 100}
+
+
+
+if {$IsSlave} {
+  fileevent stdin readable {
+    if {[gets stdin line] < 0} {Dispatcher::CarefulExit yes}
+    switch -- "$line" {
+      {201 Exit} {Dispatcher::CarefulExit yes}
+      default {}
+    }
+  }
+}
+
+if {$HaveXTrkCADFile} {Dispatcher::LoadLayout "$XTrkCADFile"}
+
+foreach ctcfile $CTCFiles {
+  CTCPanelWindow::CTCPanelWindow open -parent . -file "$ctcfile"
+}
+
+

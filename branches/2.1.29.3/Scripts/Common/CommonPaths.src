@@ -1,0 +1,113 @@
+#* 
+#* ------------------------------------------------------------------
+#* CommonPaths.src - Common Path code
+#* Created by Robert Heller on Sun Feb 26 13:46:31 2006
+#* ------------------------------------------------------------------
+#* Modification History: $Log$
+#* Modification History: Revision 1.3  2007/02/01 20:00:54  heller
+#* Modification History: Lock down for Release 2.1.7
+#* Modification History:
+#* Modification History: Revision 1.2  2006/05/22 17:01:12  heller
+#* Modification History: Updated make install
+#* Modification History:
+#* Modification History: Revision 1.1  2006/02/26 23:11:48  heller
+#* Modification History: Lockdown for machine xfer
+#* Modification History:
+#* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+#* Modification History: Add it copyright notice headers
+#* Modification History:
+#* ------------------------------------------------------------------
+#* Contents:
+#* ------------------------------------------------------------------
+#*  
+#*     Model RR System, Version 2
+#*     Copyright (C) 1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software
+#* 			51 Locke Hill Road
+#* 			Wendell, MA 01379-9728
+#* 
+#*     This program is free software; you can redistribute it and/or modify
+#*     it under the terms of the GNU General Public License as published by
+#*     the Free Software Foundation; either version 2 of the License, or
+#*     (at your option) any later version.
+#* 
+#*     This program is distributed in the hope that it will be useful,
+#*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#*     GNU General Public License for more details.
+#* 
+#*     You should have received a copy of the GNU General Public License
+#*     along with this program; if not, write to the Free Software
+#*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#* 
+#*  
+#* 
+
+# $Id$
+
+proc ComputeCommonPaths { {packageLibDir {}} {packageHelpDir {}} } {
+
+  global BuildDir
+  set BuildDir "=BUILD_DIR="
+  global prefix PkgDataDir PkgHelpDir
+  set prefix "=prefix="
+  set exec_prefix "=exec_prefix="
+  set PkgDataDir [file join "=datadir=" "=PACKAGE="]
+  set PkgHelpDir [file join "=datadir=" "=PACKAGE=" Help]
+  set PkgLibDir  [file join "=libdir="  "=PACKAGE="]
+
+  set xscriptdir "[file dirname [info script]]"
+
+  if {[string equal [file pathtype "$xscriptdir"] relative]} {
+    set xscriptdir [file join [pwd] "$xscriptdir"]
+    set here [pwd]
+    cd "$xscriptdir"
+    set xscriptdir [pwd]
+    cd "$here"
+  }
+
+  set appBuildDirName [file tail $xscriptdir]
+  if {[string equal packageLibDir ""]} {
+    set packageLibDir [file rootname [file tail [info script]]]
+    set packageHelpDir [file rootname [file tail [info script]]]
+  }
+
+  set xbuilddir [file dirname [file dirname "$xscriptdir"]]
+
+  global ImageDir CommonImageDir auto_path
+
+  if {[string equal "$BuildDir" "$xbuilddir"]} {
+    rename load _load
+    proc load {filename args} {
+      if {[file exists "$filename"]} {
+	return [eval [list _load "$filename"] $args]
+      } else {
+	set dir  [file dirname "$filename"]
+	set tail [file tail    "$filename"]
+	set newfilename [file join  "$dir" .libs "$tail"]
+	return [eval [list _load "$newfilename"] $args]
+      }
+    }
+    lappend auto_path [file join "$BuildDir" C++] [file join "$BuildDir" Scripts]
+    set ImageDir [file join "$BuildDir" Scripts $appBuildDirName]
+    set CommonImageDir [file join "$BuildDir" Scripts Common]
+  } else {
+    lappend auto_path "$PkgLibDir" "$PkgDataDir"
+    set ImageDir [file join "$PkgDataDir" $packageLibDir]
+    set CommonImageDir [file join "$PkgDataDir" Common]
+  }
+
+  lappend auto_path =BWLIB= =SNITLIB=
+
+  global HelpDir
+
+  if {[string equal "$BuildDir" "$xbuilddir"]} {
+    set HelpDir [file join "$BuildDir" Help $appBuildDirName]
+  } else {
+    set HelpDir [file join "$PkgHelpDir" $packageHelpDir]
+  }
+
+#  puts stderr "*** [info script]: ComputeCommonPaths: auto_path = \{$auto_path\}"
+#  puts stderr "*** [info script]: ComputeCommonPaths: ImageDir = $ImageDir"
+#  puts stderr "*** [info script]: ComputeCommonPaths: CommonImageDir = $CommonImageDir"
+#  puts stderr "*** [info script]: ComputeCommonPaths: HelpDir = $HelpDir"
+}
