@@ -1,0 +1,80 @@
+$Id$
+
+The Deepwoods Software Model Railroad System contains several parts, most of
+can be used independently or with other pieces of software.
+
+Right now it contains several complete (but not necessarily finished!)
+programs:
+
+	1) A port of Tim O'Conner's older Freight Car Forwarding
+	   system, written in a mix of (portable) C++ and Tcl/Tk -- it is
+	   completely cross-platform.  Included is a program to create
+	   the data files needed for this system.
+
+	2) A Working Time Table creation program, also in a mix of
+	   (portable) C++ and Tcl/Tk (but it needs LaTeX installed to
+	   format the Time Tables). Like the Freight Car Forwarding
+	   program, it is completely cross-platform.
+
+	3) A pair scripts for computing focal distances, view area, and
+	   scaling when taking pictures, coded completely in Tcl/Tk.
+
+	4) A program for computing resistor values, also completely in
+	   Tcl/Tk.
+
+	5) A program to create computerized CTC dispather and/or
+	   'tower' control panels that exist on a computer screen. Code
+	   for supporting a CMR/I interface can be generated, allowing
+	   the creation of programs that can interface to your trackwork
+	   using CMR/I interface boards using the CMR/I C++ class
+	   library.  This program can read in XTrkCAD layout files as an
+	   aid in creating the dispather control panels This program is
+	   itself cross-platform, although panel programs using the
+	   CMR/I interface will be Linux only (until someone ports the
+	   C++ C/MRI class).
+
+These programs are documented in the User Manual and all include their
+own on-line documentation.
+
+There are some other bits and pieces:
+
+	There is a C++ module with a Tcl interface for talking to C/MRI
+nodes via a serial port (RS232).  This is working and includes a version
+of the Universal Test Program in Tcl/Tk.  Right now, this is Linux only.
+Porting to other UNIXes, MS-Windows, or MacOS would be somewhat
+non-trivial, since the low-level serial port code is not cross-platform
+(this is in the nature of this sort of code).
+
+	There is a C++ class library with a Tcl interface for talking
+to Lenz XpressNet nodes via a serial port (RS232). This code has not
+been tested yet, since I have not yet gotten by Lenz XpressNet system
+up and running (I don't yet have all of the parts needed to do this). 
+Right now, this is Linux only. Porting to other UNIXes, MS-Windows, or
+MacOS would be somewhat non-trivial, since the low-level serial port
+code is not cross-platform (this is in the nature of this sort of
+code).
+
+	There is also a collection of Tcl/Tk script modules that provide
+various support for different things.  
+
+The use of these additional code packages is described in detailed in
+the Programming Guide documention, which abound with example code,
+which is also included with the Programming Guide (a 'How To' sort of
+guide) and Internals Manuals (detailed API reference).
+
+The directory structure is pretty straight forward:
+
+All of the C++ code lives under C++ (each C++ library includes its own
+SWIG interface module), all of the Tcl code lives under Scripts, all of
+the on-line help is under Help and all of the 'printed' documentation
+is under Doc.  Under the C++ directory are directories for the C/MRI
+module/library, the XPressNet module/library, the XTrakCad parser
+module/library, and the C++ support module/library for the freight car
+forwarder and time table programs.  Under the Scripts directory are
+directories for each of the main programs, as well as directories for
+the various support packages.  Under Help are the on-line help files.
+Under the Doc directory are directories for the User and Internals
+manuals, and the Programming Guide, plus a support directory.  There is
+a BuildTools directory containing various propgrams needed in the build
+process. 
+
