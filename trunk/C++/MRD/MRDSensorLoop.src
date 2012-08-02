@@ -1,0 +1,378 @@
+#* 
+#* ------------------------------------------------------------------
+#* MRDSensorLoop.src - MRD Sensor Loop program
+#* Created by Robert Heller on Fri Nov  4 09:46:59 2011
+#* ------------------------------------------------------------------
+#* Modification History: $Log$
+#* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+#* Modification History: Add it copyright notice headers
+#* Modification History:
+#* ------------------------------------------------------------------
+#* Contents:
+#* ------------------------------------------------------------------
+#*  
+#*     Model RR System, Version 2
+#*     Copyright (C) 1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software
+#* 			51 Locke Hill Road
+#* 			Wendell, MA 01379-9728
+#* 
+#*     This program is free software; you can redistribute it and/or modify
+#*     it under the terms of the GNU General Public License as published by
+#*     the Free Software Foundation; either version 2 of the License, or
+#*     (at your option) any later version.
+#* 
+#*     This program is distributed in the hope that it will be useful,
+#*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#*     GNU General Public License for more details.
+#* 
+#*     You should have received a copy of the GNU General Public License
+#*     along with this program; if not, write to the Free Software
+#*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#* 
+#*  
+#* 
+
+# $Id$
+
+## @defgroup MRDSensorLoop MRDSensorLoop
+#  @brief MRD Sensor Loop program
+#  
+# @section SYNOPSIS
+# 
+# MRDSensorLoop [X11 Resource Options] sensorSerialNumber
+# 
+# @section DESCRIPTION
+# 
+# This program is a GUI program for testing MRD sensor response.
+#
+# This program loops and updates the display of sensor sense and latch bits,
+# and the current state of the stopwatch.
+#
+# @section PARAMETERS
+#
+# The serial number of the unit to test.
+#  
+# @section AUTHOR 
+# Robert Heller \<heller\@deepsoft.com\>
+#
+
+set argv0 [file join  [file dirname [info nameofexecutable]] MRDSensorLoop]
+
+package require Mrd
+
+package require gettext
+package require Tk
+package require BWidget
+package require BWStdMenuBar
+package require HTMLHelp
+package require snit
+
+#puts stderr "*** class of . is [. cget -class]"
+
+global HelpDir
+set HelpDir [file join [file dirname [file dirname [file dirname \
+							[info script]]]] Help]
+#puts stderr "*** HelpDir = $HelpDir"
+set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirname \
+							[info script]]]] Messages]]
+#puts stderr "*** msgfiles = $msgfiles"
+
+if {[tk windowingsystem] eq "classic" || [tk windowingsystem] eq "aqua"} {
+    bind Radiobutton_RO <Enter> {
+	tk::ButtonEnter %W
+    }
+    bind Checkbutton_RO <Enter> {
+	tk::ButtonEnter %W
+    }
+}
+if {"windows" eq $tcl_platform(platform)} {
+    bind Checkbutton_RO <Enter> {
+	tk::CheckRadioEnter %W
+    }
+
+    bind Radiobutton_RO <Enter> {
+	tk::CheckRadioEnter %W
+    }
+}
+if {"x11" eq [tk windowingsystem]} {
+    bind Checkbutton_RO <Enter> {
+	tk::ButtonEnter %W
+    }
+    bind Radiobutton_RO <Enter> {
+	tk::ButtonEnter %W
+    }
+}
+
+bind Checkbutton_RO <FocusIn> {}
+bind Checkbutton_RO <Leave> {
+    tk::ButtonLeave %W
+}
+
+bind Radiobutton_RO <FocusIn> {}
+bind Radiobutton_RO <Leave> {
+    tk::ButtonLeave %W
+}
+
+
+proc MainWindow {} {
+
+  # Window manager configurations
+  wm minsize . 300 1
+  wm protocol . WM_DELETE_WINDOW {ProgExit}
+  wm title . [_ "MRD Sensor Loop program for MRD Units"]
+
+  set menubar [StdMenuBar::MakeMenu \
+	-file [list [_m "Menu|&File"] {file} {file} 0 [list \
+	        [list command [_m "Menu|File|E&xit"] {file:exit} [_ "Exit the application"] {} -command {ProgExit}]\
+	     ] \
+	] -help [list [_m "Menu|&Help"] {help} {help} 0 [list \
+		[list command [_m "Menu|Help|On &Help..."] {help:help} [_ "Help on help"] {} -command "HTMLHelp::HTMLHelp help Help"]\
+		[list command [_m "Menu|Help|On &Version"] {help:version} [_ "Version"] {} -command "HTMLHelp::HTMLHelp help Version"]\
+		[list command [_m "Menu|Help|Warranty"] {help:warranty} [_ "Warranty"] {} -command "HTMLHelp::HTMLHelp help Warranty"]\
+		[list command [_m "Menu|Help|Copying"] {help:copying} [_ "Copying"] {} -command "HTMLHelp::HTMLHelp help Copying"]\
+		[list command [_m "Menu|Help|Reference Manual"] {help:reference} [_ "Reference Manual"] {} -command {HTMLHelp::HTMLHelp help "MRD Test Programs Reference"}]\
+		] \
+        ] ]
+
+#  puts stderr "*** MainWindow: menubar = $menubar"
+#  foreach x $menubar {
+#    puts stderr [list *** x = $x]
+#  }
+
+  set ::Main [MainFrame .main -menu $menubar \
+	-progressmax 100 -progresstype normal -progressvar ::progress \
+	-textvariable status \
+	-separator both]
+  pack $::Main -expand yes -fill both
+  $::Main showstatusbar progression
+
+  HTMLHelp::HTMLHelp setDefaults "$::HelpDir" "MRDTestli1.html"
+
+  set ::MainFrame [$::Main getframe]
+
+  LabelFrame $::MainFrame.senseLatch \
+  	-width 22 -text "Sense / Latch"
+  pack $::MainFrame.senseLatch -fill x
+  set slframe [$::MainFrame.senseLatch getframe]
+  foreach rb    {sense1 sense2 latch1 latch2} \
+	  rbLab {{Sense 1} {Sense 2} {Latch 1} {Latch 2}} \
+	  rbVar {senseLatch(sense,1) senseLatch(sense,2)
+		 senseLatch(latch,1) senseLatch(latch,2)} {
+    set b [radiobutton $slframe.$rb -variable $rbVar -text $rbLab -value 1 \
+			-relief flat]
+    pack $b -side left
+    set tags [bindtags $b]
+    set i [lsearch -exact $tags Radiobutton]
+    if {$i >= 0} {
+      bindtags $b [lreplace $tags $i $i Radiobutton_RO]
+    }
+  }
+  LabelFrame $::MainFrame.stopwatchTicking \
+	-width 22 -text "Stopwatch Ticking?"
+  pack $::MainFrame.stopwatchTicking -fill x
+  set stframe [$::MainFrame.stopwatchTicking getframe]
+  foreach rb    {yes no} rbLab {Yes No} rbVal {1 0} {
+    set b [radiobutton $stframe.$rb -variable StopwatchTicking -text $rbLab \
+		-value $rbVal -relief flat]
+    pack $b -side left
+    set tags [bindtags $b]
+    set i [lsearch -exact $tags Radiobutton]
+    if {$i >= 0} {
+      bindtags $b [lreplace $tags $i $i Radiobutton_RO]
+    }
+  }
+  LabelEntry $::MainFrame.stopwatch \
+	-labelwidth 22 -label "Stopwatch:" -editable no
+  pack $::MainFrame.stopwatch -fill x
+  set w .
+  global IsSlave
+  if {!$IsSlave} {
+    wm withdraw $w
+    update idletasks
+    set rw [winfo reqwidth $w]
+    if {$rw < 200} {set rw 300}
+    set rh [winfo reqheight $w]
+    set x [expr {[winfo screenwidth $w]/2 - $rw/2 \
+            - [winfo vrootx $w]}]
+    set y [expr {[winfo screenheight $w]/2 - $rh/2 \
+            - [winfo vrooty $w]}]
+    wm geom $w =${rw}x${rh}+$x+$y
+    wm deiconify .
+  }
+  update idletasks
+  wm minsize . [winfo reqwidth $w] [expr [winfo reqheight $w] + 35]
+  bind all <q> ProgExit
+  bind all <Q> ProgExit
+  wm deiconify .
+}
+
+proc ProgExit {} {
+# Procedure to carefully exit.
+# [index] ProgExit!procedure
+
+  global IsSlave
+  #puts stderr "*** CarefulExit: IsSlave = $IsSlave"
+  flush stderr
+  if {$IsSlave} {
+    puts stdout "101 Exit"
+    flush stdout
+    set ans [gets stdin]
+    #puts stderr "*** CarefulExit: ans = '$ans'"
+  }
+  if {[llength [info command mrdunit]] > 0} {
+    CloseUnit
+  }
+  exit
+}
+
+# Open a selected unit...
+proc OpenUnit {serialnumber} {
+
+#  puts stderr "*** OpenUnit: serialnumber is '$serialnumber'"
+
+#  puts stderr "*** OpenUnit: info command mrdunit = [info command mrdunit]"
+
+  if {[llength [info command mrdunit]] > 0} {
+    CloseUnit
+  }
+
+  
+  if {[string length "$serialnumber"] != 0} {
+    if {[catch [list MRD mrdunit "$serialnumber"] errormessage]} {
+#      puts stderr "*** OpenUnit: errormessage = $errormessage"
+      catch {rename mrdunit {}}
+      set ::status [_ "Failed to open unit because %s." errormessage]
+      tk_messageBox -icon error -message "$errormessage" -type ok
+    } else {
+#      puts stderr "*** OpenUnit: Serial Number is [mrdunit SerialNumber]"
+      if {![catch {mrdunit GetStateData} ::status]} {
+	UpdateSenseData
+      }
+    }
+  }
+}
+
+proc CloseUnit {} {
+  catch {rename mrdunit {}}
+}
+
+proc UpdateSenseData {} {
+  if {[catch {mrdunit GetStateData} ::status]} {
+    if {$::status eq "LIBUSB_ERROR_NO_DEVICE"} {
+      ProgExit
+    }
+  }
+  set ::senseLatch(sense,1) [mrdunit Sense_1]
+  set ::senseLatch(sense,2) [mrdunit Sense_2]
+  set ::senseLatch(latch,1) [mrdunit Latch_1]
+  set ::senseLatch(latch,2) [mrdunit Latch_2]
+  set ::StopwatchTicking [mrdunit StopwatchTicking]
+  foreach {f s m h} [mrdunit Stopwatch] {break}
+  $::MainFrame.stopwatch configure -text \
+	[format {%d:%02d:%02d.%02d} $h $m $s $f]
+  after 500 UpdateSenseData
+}
+
+if {$::tcl_platform(platform) eq "windows"} {
+  update idle
+  wm withdraw .
+}
+
+snit::type SelectSerialNumberDialog {
+  pragma -hastypeinfo    no
+  pragma -hastypedestroy no
+  pragma -hasinstances   no
+
+  typecomponent dialog
+  typecomponent   snLF
+  typecomponent     serialNumberCB
+  typecomponent     rescanButton
+
+  typeconstructor {
+    set dialog [Dialog .selectSerialNumberDialog -bitmap question \
+			-cancel 1 -default 0 -modal local \
+			-cancel 1 -default 0 -modal local \
+			-parent . -side bottom \
+			-title [_ "Select Serial Number"] -transient yes]
+    $dialog add -name open -text [_m "Button|Open"] \
+				-command [mytypemethod _Open]
+    $dialog add -name cancel -text [_m "Button|Cancel"] \
+				-command [mytypemethod _Cancel]
+    set frame [$dialog getframe]
+    set snLF [LabelFrame $frame.snframe -text [_ "Serial Number To open:"]]
+    pack $snLF -fill x
+    set snframe [$snLF getframe]
+    set serialNumberCB [ComboBox $snframe.serialNumber \
+				 -editable yes \
+				 -values [MRD_AllConnectedDevices]]
+    pack $serialNumberCB -side left -fill x -expand yes
+    $serialNumberCB bind <Return> [mytypemethod _Open]
+    set rescanButton [Button $snframe.rescan -text "Rescan" \
+			-command [list $serialNumberCB configure \
+					-values [MRD_AllConnectedDevices]]]
+    pack $rescanButton -side right
+  }
+  typemethod _Cancel {} {
+    $dialog withdraw
+    return [$dialog enddialog {}]
+  }
+  typemethod _Open {} {
+    set serialNumber [$serialNumberCB cget -text]
+    if {"$serialNumber" eq ""} {
+      tk_messageBox -icon warning -type ok -message [_ "No serial number entered or selected!"]
+      return
+    }
+    $dialog withdraw
+    return [$dialog enddialog $serialNumber]
+  }
+  typemethod draw {args} {
+    $serialNumberCB configure -values [MRD_AllConnectedDevices]
+    set parent [from args -parent .]
+    $dialog configure -parent $parent
+    wm transient [winfo toplevel $dialog] $parent
+    return [$dialog draw]
+  }    
+}
+
+# Process command line options.
+
+global IsSlave
+set IsSlave 0
+global argcTest
+set argcTest 0
+global argc argv argv0
+global SerialNumber
+set SerialNumber {}
+
+for {set ia 0} {$ia < $argc} {incr ia} {
+  switch -glob -- "[lindex $argv $ia]" {
+    -isslave* {
+      set IsSlave 1
+      incr argcTest
+      fconfigure stdin -buffering line
+      fconfigure stdout -buffering line
+    }
+    default {
+      if {"$SerialNumber" eq ""} {
+	set SerialNumber [lindex $argv $ia]
+      } else {
+        puts stderr "usage: $argv0 \[wish options\] SerialNumber"
+        exit 96
+      }
+    }
+  }
+}
+
+MainWindow
+
+if {"$SerialNumber" eq ""} {
+  set SerialNumber [SelectSerialNumberDialog draw]
+  if {$SerialNumber eq ""} {exit}
+}
+
+OpenUnit $SerialNumber
+
+
+
+
