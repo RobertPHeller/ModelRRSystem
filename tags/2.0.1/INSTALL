@@ -1,0 +1,82 @@
+$Id$
+$Log$
+Revision 1.1  2004/05/30 14:43:11  heller
+Standard top-level text files
+
+
+Throughout this file I will refer to the two 'reference' Linux systems
+I use:  RH 7.3 (RedHat 7.3) and RH 6.2 (RedHat 6.2).  Right now I am
+running RH 7.3 on my main desktop and I've not upgraded for a number of
+reasons, mostly to avoid breaking some critical software.  I run RH 6.2
+on my '486-based LapTop (upgrading beyond RH 6.2 is likely to be
+problematical for this older machine).  RedHat 6.2 is also good as a
+reference platform, since it is likely to be a more 'comfortable'
+distribution for older systems, such as 486 based and early Pentiums
+(P75 though P133 or so).  These are machines that are probably quite
+sufficient to run all but the most elaborate model RR empires, esp. if
+a mechanical CTC board is used.  Machines like this can be 'rescued'
+from dumpsters (they can be had basically for free) and a 'low-end'
+incarnation of Linux (such as RH 6.2) can be installed on these boxes.
+
+To completely build the Model RR System, you will need:
+
+bison++-1.21. The Mandrake RPM package bison++-1.21.8-1mdk.i586.rpm
+installs under Redhat 7.3, and the bison++-1.21.7-2mdk.src.rpm package
+can be rebuilt under RH 6.2.
+
+Swig 1.1p5.  This package comes with RH 7.3 and there is a RPM available
+for RH 6.2
+
+LaTeX needs to be installed.  teTex come with both RH 7.3 and RH 6.2 --
+you just need to be sure to install it.
+
+Tcl/Tk 8.3 (or later).  Comes with RH 7.3.  You can download the source
+tarballs from http://tcl.sourceforge.net/ and build them on RH 6.2 and
+install them under /usr/local.  RH 6.2 comes with Tcl/Tk 8.0 installed
+under /usr.  You will need to specify --with-tcl=/usr/local/lib on the
+configure script to insure that the configure script picks up the 8.3
+version.
+
+Doc++ is used to create the C++ internals docs.  Doc++ is available on
+the Web somewhere.  Download and build it.  Install it under
+/usr/local/bin.
+
+dvidvi is used to handle two sided printing.  You can skip this if you
+want.  ps2pdf is used to convert the documents to PDF files.  ps2pdf is
+part of the ghostscript package, which comes with all RedHat
+distributions. 
+
+In order for the configure scripts to work, you'll need to make sure
+your PATH includes /usr/local/bin.
+
+I'm also assuming that you have the g++, gcc, bintools, and the base
+level *-devel packages installed, as well as make and autoconf (you
+need these to build anything).
+
+Once you have all of the various support software installed, you should
+be able to enter these commands in the main directory (where this file
+is):
+
+./configure	('./configure --with-tcl=/usr/local/lib' under RH 6.2)
+make
+
+And everything will be built.
+
+Note that once you have done the configure at the top level, you can
+skip to a selected sub directory and build there only.  For example:
+
+./configure
+cd Scripts
+make
+cd ..
+cd C++/CMri
+make
+
+
+That is, you don't have to build *everything* if you don't need to.
+
+Right now, the 'install' target is not completely implemented.  Don't
+even try to do a 'make install'.  You should be able to run everything
+right from the build directory.  You might need to set the environment
+variable LD_LIBRARY_PATH (should point at the Lib directory off the main
+build tree) to use the shared libraries.

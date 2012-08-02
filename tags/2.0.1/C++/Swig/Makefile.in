@@ -1,0 +1,116 @@
+#* 
+#* ------------------------------------------------------------------
+#* Makefile.in - 
+#* Created by Robert Heller on Sun Jul 28 09:58:05 2002
+#* ------------------------------------------------------------------
+#* Modification History: $Log$
+#* Modification History: Revision 1.4  2004/06/26 13:31:09  heller
+#* Modification History: Update versioning for new release
+#* Modification History:
+#* Modification History: Revision 1.3  2004/03/13 15:50:03  heller
+#* Modification History: *** empty log message ***
+#* Modification History:
+#* Modification History: Revision 1.2  2002/07/28 14:03:50  heller
+#* Modification History: Add it copyright notice headers
+#* Modification History:
+#* ------------------------------------------------------------------
+#* Contents:
+#* ------------------------------------------------------------------
+#*  
+#*     Model RR System, Version 2
+#*     Copyright (C) 1994,1995,2002  Robert Heller D/B/A Deepwoods Software
+#* 			51 Locke Hill Road
+#* 			Wendell, MA 01379-9728
+#* 
+#*     This program is free software; you can redistribute it and/or modify
+#*     it under the terms of the GNU General Public License as published by
+#*     the Free Software Foundation; either version 2 of the License, or
+#*     (at your option) any later version.
+#* 
+#*     This program is distributed in the hope that it will be useful,
+#*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#*     GNU General Public License for more details.
+#* 
+#*     You should have received a copy of the GNU General Public License
+#*     along with this program; if not, write to the Free Software
+#*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#* 
+#*  
+#* 
+prefix     = @prefix@
+exec_prefix= @exec_prefix@
+LIB_DIR        = ../../Lib
+INSTALL         = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA    = @INSTALL_DATA@
+CXX             = @CXX@
+BaseCXXFLAGS    = @CXXFLAGS@
+DEFS		= @DEFS@
+SHLIB_CFLAGS    = @TCL_SHLIB_CFLAGS@
+SHLIB_SUFFIX    = @TCL_SHLIB_SUFFIX@
+SHLIB_LD        = @SHLIB_LD@
+TCL_VERSION	= @TCL_VERSION@
+VERSION		= @TCL_VERSION@
+TCL_PREFIX      = @TCL_PREFIX@
+TCL_EXEC_PREFIX	= @TCL_EXEC_PREFIX@
+TCL_CFLAGS      = @TCL_CFLAGS@
+TCL_DEFS	= @TCL_DEFS@
+TCL_DBGX	= @TCL_DBGX@
+TCLSH		= @TCLSH@
+TCL_LIB_SPEC	= @TCL_LIB_SPEC@
+TCL_SHARED_LIBS	= @TCL_SHARED_LIBS@
+INCLUDES        = -I$(TCL_PREFIX)/include -I. -I../Parsers -I../Classes
+SWIG		= @SWIG@ -tcl -c++ -dlatex -I../Parsers -I../Classes
+TARGET		= mrr
+INTERFACE	= $(TARGET).i
+SRCS		= $(TARGET)_wrap.cc
+LTEX		= $(TARGET)_wrap.tex
+OBJS		= $(TARGET)_wrap.o
+CXXFLAGS = $(DEFS) $(TCL_DEFS) $(BaseCXXFLAGS) $(SHLIB_CFLAGS) $(INCLUDES) -c -Wall
+
+TARGETLIB = $(LIB_DIR)/$(TARGET)$(SHLIB_SUFFIX)
+
+all: .depend $(LTEX) $(TARGETLIB) $(LIB_DIR)/pkgIndex.tcl
+
+$(LTEX) $(SRCS) : $(INTERFACE)
+	$(SWIG) $(INTERFACE)
+	mv $(TARGET)_wrap.c $(SRCS)
+
+$(TARGETLIB) : $(OBJS) \
+		$(LIB_DIR)/libMRRClass$(SHLIB_SUFFIX) \
+		$(LIB_DIR)/libMRRParser$(SHLIB_SUFFIX)
+	rm -f $(TARGETLIB)*
+	$(SHLIB_LD) -o $(TARGETLIB) $(OBJS) \
+		-L$(LIB_DIR) -lMRRClass -lMRRParser  $(TCL_SHARED_LIBS)
+
+$(LIB_DIR)/libMRRClass$(SHLIB_SUFFIX) :
+	make -C ../Classes $(LIB_DIR)/libMRRClass$(SHLIB_SUFFIX)
+
+$(LIB_DIR)/libMRRParser$(SHLIB_SUFFIX) :
+	make -C ../Parsers $(LIB_DIR)/libMRRParser$(SHLIB_SUFFIX)
+
+$(LIB_DIR)/pkgIndex.tcl : ../../Lib/$(TARGET)$(SHLIB_SUFFIX)
+	../../BuildScripts/generateLib_pkgIndex.sh $(TCLSH) $(LIB_DIR) $(TARGET)$(SHLIB_SUFFIX)
+
+install: 
+
+clean:
+	rm -f .depend $(SRCS) $(LTEX) $(OBJS)
+
+$(TARGET)_wrap.o : $(TARGET)_wrap.cc
+
+.depend: $(TARGET)_wrap.cc
+	$(CXX) -M $(CXXFLAGS) $(TARGET)_wrap.cc  > .depend
+
+distclean: clean
+	rm -f Makefile $(TARGET)_wrap.cc $(LTEX) $(SRCS)
+
+#
+# include a dependency file if one exists
+#
+ifeq (.depend,$(wildcard .depend))
+include .depend
+endif
+
+

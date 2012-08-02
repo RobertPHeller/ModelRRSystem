@@ -1,0 +1,14 @@
+ 2
+ 
+'============================================================================
+'
+' This is the file that translates the owner initials from CARS.DAT into
+' full names. You can add a descriptive text string after each name. The
+' string isn't now printed but it may help with file maintenance.
+'
+' You can also add comment lines anywhere you wish.
+'
+'============================================================================
+ 
+RPH,Robert Heller,
+SKL,Skylar Lewis,

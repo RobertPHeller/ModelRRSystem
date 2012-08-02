@@ -1,0 +1,31 @@
+'============================================================================
+'
+' Train Orders
+'
+'============================================================================
+'
+'   These are extra text messages that are printed on train switchlists,
+'   usually as special instructions for the crews.
+'
+'   The below are just examples for a few trains.
+'
+'
+' Date: June 24 1996
+'
+'============================================================================
+
+KME-1,"Become: KME-2 at Elkton"
+
+CHM2-1,"Become: CHM2-2 at Elkton"
+
+KRE-1,"Become: KRE-2 at Elkton"
+
+SOR2-1,"Become: SOR2-2 at Elkton"
+
+KMW-1,"Become: KMW-2 at Elkton"
+
+CHM1-1,"Become: CHM1-2 at Elkton"
+
+KRW-1,"Become: KRW-2 at Elkton"
+
+SOR1-1,"Become: SOR1-2 at Elkton"

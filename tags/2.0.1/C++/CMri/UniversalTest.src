@@ -1,0 +1,888 @@
+#!=WISH=
+#* 
+#* ------------------------------------------------------------------
+#* UniversalTest.src - Universal Test Program for C/MRI
+#* Created by Robert Heller on Sat Apr 17 17:19:17 2004
+#* ------------------------------------------------------------------
+#* Modification History: $Log$
+#* Modification History: Revision 1.6  2004/05/22 15:01:53  heller
+#* Modification History: Updates after live tests with a Super Mini node.
+#* Modification History:
+#* Modification History: Revision 1.5  2004/04/17 21:20:34  heller
+#* Modification History: Small changes.  Add copyright.
+#* Modification History:
+#* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+#* Modification History: Add it copyright notice headers
+#* Modification History:
+#* ------------------------------------------------------------------
+#* Contents:
+#* ------------------------------------------------------------------
+#*  
+#*     Model RR System, Version 2
+#*     Copyright (C) 1994,1995,2002  Robert Heller D/B/A Deepwoods Software
+#* 			51 Locke Hill Road
+#* 			Wendell, MA 01379-9728
+#* 
+#*     This program is free software; you can redistribute it and/or modify
+#*     it under the terms of the GNU General Public License as published by
+#*     the Free Software Foundation; either version 2 of the License, or
+#*     (at your option) any later version.
+#* 
+#*     This program is distributed in the hope that it will be useful,
+#*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#*     GNU General Public License for more details.
+#* 
+#*     You should have received a copy of the GNU General Public License
+#*     along with this program; if not, write to the Free Software
+#*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#* 
+#*  
+#* 
+
+# $Id$
+
+global prefix
+set prefix {=prefix=}
+
+global Package
+set Package {mrrsys-=MRR_PATCH_LEVEL=}
+
+global ShareDir
+set ShareDir [file join $prefix share $Package]
+if {[file exists $ShareDir] == 0} {
+  set ShareDir =BUILD_DIR=
+}
+
+load [file join $ShareDir Lib cmri[info sharedlibextension]]
+
+set global ScriptsDir
+set ScriptsDir [file join $ShareDir Scripts]
+
+lappend auto_path $ScriptsDir
+
+package require StdMenuBar 1.0
+
+proc MainWindow {} {
+
+  # Window manager configurations
+  wm minsize . 300 1
+  wm protocol . WM_DELETE_WINDOW {CareFulExit}
+  wm title . {Universal Test Program for Serial C/MRI Nodes}
+
+  MakeStandardMenuBar
+
+  set fm [GetMenuByName File]
+  $fm entryconfigure Exit -command {CareFulExit}
+  $fm entryconfigure Close -command {CareFulExit}
+  $fm entryconfigure Save  -state disabled
+  $fm entryconfigure {Save As...} -state disabled
+  $fm entryconfigure New -command {OpenNewPort}
+  $fm entryconfigure {Open...} -command {OpenPort}
+  $fm entryconfigure {Print...} -state disabled
+
+  set em [GetMenuByName Edit]
+  for {set i 0} {$i <= [$em index end]} {incr i} {
+    $em entryconfigure $i -state disabled
+  }
+
+  AddExtraMenuButton Actions
+  set am [GetMenuByName Actions]
+  $am add command -label {Test Output Card} -command {TestOutputCard} -state disabled
+  $am add command -label {Wraparound Test} -command {WraparoundTest} -state disabled
+  $am add command -label {Close Port} -command {ClosePort} -state disabled
+
+# .status
+# The above line makes pasting MUCH easier for me.
+# It contains the pathname of the cutted widget.
+# Tcl version: 8.3 (Tcl/Tk/XF)
+# Tk version: 8.3
+# XF version: 4.0
+#
+
+  # build widget .status
+  frame .status \
+    -borderwidth {4} \
+    -relief {ridge}
+
+  # build widget .status.port
+  frame .status.port \
+    -borderwidth {2}
+
+  # build widget .status.port.label16
+  label .status.port.label16 \
+    -text {Port:}
+
+  # build widget .status.port.port
+  label .status.port.port \
+    -anchor {w} \
+    -justify {left} \
+    -relief {sunken}
+
+  # build widget .status.baud
+  frame .status.baud \
+    -borderwidth {2}
+
+  # build widget .status.baud.label18
+  label .status.baud.label18 \
+    -text {Baud:}
+
+  # build widget .status.baud.baud
+  label .status.baud.baud \
+    -anchor {w} \
+    -justify {left} \
+    -relief {sunken}
+
+  # build widget .status.retryCount
+  frame .status.retryCount \
+    -borderwidth {2}
+
+  # build widget .status.retryCount.label20
+  label .status.retryCount.label20 \
+    -text {Retry Count:}
+
+  # build widget .status.retryCount.count
+  label .status.retryCount.count \
+    -anchor {w} \
+    -justify {left} \
+    -relief {sunken}
+
+  # build widget .status.state
+  frame .status.state \
+    -borderwidth {2}
+
+  # build widget .status.state.label22
+  label .status.state.label22 \
+    -text {State:}
+
+  # build widget .status.state.state
+  label .status.state.state \
+    -anchor {w} \
+    -justify {left} \
+    -relief {sunken}
+
+  # pack master .status.port
+  pack configure .status.port.label16 \
+    -side left
+  pack configure .status.port.port \
+    -expand 1 \
+    -fill x \
+    -side right
+
+  # pack master .status.baud
+  pack configure .status.baud.label18 \
+    -side left
+  pack configure .status.baud.baud \
+    -expand 1 \
+    -fill x \
+    -side right
+
+  # pack master .status.retryCount
+  pack configure .status.retryCount.label20 \
+    -side left
+  pack configure .status.retryCount.count \
+    -expand 1 \
+    -fill x \
+    -side right
+
+  # pack master .status.state
+  pack configure .status.state.label22 \
+    -side left
+  pack configure .status.state.state \
+    -expand 1 \
+    -fill x \
+    -side right
+
+  # pack master .status
+  pack configure .status.port \
+    -fill x
+  pack configure .status.baud \
+    -fill x
+  pack configure .status.retryCount \
+    -fill x
+  pack configure .status.state \
+    -fill x
+
+  # pack slave .status
+  pack configure .status \
+    -fill x
+# end of widget tree
+
+
+# .nodeType
+# The above line makes pasting MUCH easier for me.
+# It contains the pathname of the cutted widget.
+# Tcl version: 8.3 (Tcl/Tk/XF)
+# Tk version: 8.3
+# XF version: 4.0
+#
+
+  # build widget .nodeType
+  frame .nodeType \
+    -borderwidth {4} \
+    -relief {ridge}
+
+  # build widget .nodeType.label27
+  label .nodeType.label27 \
+    -text {Node Type:}
+
+  global NodeType
+  # build widget .nodeType.type
+  tk_optionMenu .nodeType.type NodeType USIC SUSIC SMINI
+
+  # pack master .nodeType
+  pack configure .nodeType.label27 \
+    -side left
+  pack configure .nodeType.type \
+    -expand 1 \
+    -fill x \
+    -side right
+
+  # pack slave .nodeType
+  pack configure .nodeType \
+    -fill x
+# end of widget tree
+
+# .ioparams
+# The above line makes pasting MUCH easier for me.
+# It contains the pathname of the cutted widget.
+# Tcl version: 8.3 (Tcl/Tk/XF)
+# Tk version: 8.3
+# XF version: 4.0
+#
+
+  # build widget .ioparams
+  frame .ioparams \
+    -borderwidth {4} \
+    -relief {ridge}
+
+  # build widget .ioparams.dl
+  frame .ioparams.dl \
+    -borderwidth {2}
+
+  # build widget .ioparams.dl.label33
+  label .ioparams.dl.label33 \
+    -text {USIC Delay:}
+
+  # build widget .ioparams.dl.dl
+  entry .ioparams.dl.dl \
+  	-validate all \
+	-validatecommand {IntegerOrEmpty %P}
+
+  # build widget .ioparams.slowdis
+  frame .ioparams.slowdis \
+    -borderwidth {2}
+
+  # build widget .ioparams.slowdis.label35
+  label .ioparams.slowdis.label35 \
+    -text {Display Delay Factor:}
+
+  # build widget .ioparams.slowdis.slowdis
+  entry .ioparams.slowdis.slowdis \
+  	-validate all \
+	-validatecommand {IntegerOrEmpty %P}
+
+  # build widget .ioparams.infiltdly
+  frame .ioparams.infiltdly \
+    -borderwidth {2}
+
+  # build widget .ioparams.infiltdly.label37
+  label .ioparams.infiltdly.label37 \
+    -text {Input Filter Delay:}
+
+  # build widget .ioparams.infiltdly.infilter
+  entry .ioparams.infiltdly.infilter \
+  	-validate all \
+	-validatecommand {IntegerOrEmpty %P}
+
+  # pack master .ioparams.dl
+  pack configure .ioparams.dl.label33 \
+    -side left
+  pack configure .ioparams.dl.dl \
+    -expand 1 \
+    -fill x \
+    -side right
+
+  # pack master .ioparams.slowdis
+  pack configure .ioparams.slowdis.label35 \
+    -side left
+  pack configure .ioparams.slowdis.slowdis \
+    -expand 1 \
+    -fill x \
+    -side right
+
+  # pack master .ioparams.infiltdly
+  pack configure .ioparams.infiltdly.label37 \
+    -side left
+  pack configure .ioparams.infiltdly.infilter \
+    -expand 1 \
+    -fill x \
+    -side right
+
+  # pack master .ioparams
+  pack configure .ioparams.dl \
+    -fill x
+  pack configure .ioparams.slowdis \
+    -fill x
+  pack configure .ioparams.infiltdly \
+    -fill x
+
+  # pack slave .ioparams
+  pack configure .ioparams \
+    -fill x
+
+  .ioparams.dl.dl insert end {0}
+  .ioparams.slowdis.slowdis insert end {100}
+  .ioparams.infiltdly.infilter insert end {0}
+
+
+# end of widget tree
+
+
+
+  set w .
+  global IsSlave
+  if {!$IsSlave} {
+    wm withdraw $w
+    update idletasks
+    set rw [winfo reqwidth $w]
+    if {$rw < 200} {set rw 300}
+    set rh [winfo reqheight $w]
+    set x [expr {[winfo screenwidth $w]/2 - $rw/2 \
+            - [winfo vrootx $w]}]
+    set y [expr {[winfo screenheight $w]/2 - $rh/2 \
+            - [winfo vrooty $w]}]
+    wm geom $w =${rw}x${rh}+$x+$y
+    wm deiconify .
+  }
+  update idletasks
+  wm minsize . [winfo reqwidth $w] [expr [winfo reqheight $w] + 35]
+  bind all <q> CareFulExit
+  bind all <Q> CareFulExit
+}
+
+proc CareFulExit {} {
+# Procedure to carefully exit.
+# [index] CarefulExit!procedure
+
+  if {[string compare \
+        [tk_messageBox -default no -icon question -message {Really Quit?} \
+                -title {Careful Exit} -type yesno] {yes}] == 0} {
+    global IsSlave
+    #puts stderr "*** CarefulExit: IsSlave = $IsSlave"
+    flush stderr
+    if {$IsSlave} {
+      puts stdout "101 Exit"
+      flush stdout
+      set ans [gets stdin]
+      #puts stderr "*** CarefulExit: ans = '$ans'"
+    }
+    set am [GetMenuByName Actions]
+    if {[string equal [$am entrycget {Close Port} -state] {normal}]} {
+      ClosePort 0
+    }
+    exit
+  }
+}
+
+proc OpenNewPort {} {
+# .openNewPort
+# The above line makes pasting MUCH easier for me.
+# It contains the pathname of the cutted widget.
+# Tcl version: 8.3 (Tcl/Tk/XF)
+# Tk version: 8.3
+# XF version: 4.0
+#
+
+  # build widget .openNewPort
+  if {"[info procs XFEdit]" != ""} {
+    catch "XFDestroy .openNewPort"
+  } {
+    catch "destroy .openNewPort"
+  }
+  toplevel .openNewPort 
+
+  # Window manager configurations
+  wm positionfrom .openNewPort ""
+  wm sizefrom .openNewPort ""
+  wm maxsize .openNewPort 1009 738
+  wm minsize .openNewPort 1 1
+  wm protocol .openNewPort WM_DELETE_WINDOW {.openNewPort.buttons.cancel invoke}
+  wm title .openNewPort {Open New Port}
+  wm transient .openNewPort .
+
+  global OpenNewPortState
+
+  # build widget .openNewPort.serialPort
+  eval [concat tk_optionMenu .openNewPort.serialPort \
+    OpenNewPortState(Port) [GetAllSerialPorts]]
+
+  # build widget .openNewPort.baudRate
+  tk_optionMenu .openNewPort.baudRate \
+    OpenNewPortState(Baud) 9600 19200 28800 57600 115200
+
+  # build widget .openNewPort.retryCount
+  frame .openNewPort.retryCount \
+    -borderwidth {2}
+
+  # build widget .openNewPort.retryCount.label6
+  label .openNewPort.retryCount.label6 \
+    -text {Retry Count:}
+
+  # build widget .openNewPort.retryCount.count
+  entry .openNewPort.retryCount.count \
+  	-validate all \
+	-validatecommand {IntegerOrEmpty %P}
+
+  # build widget .openNewPort.buttons
+  frame .openNewPort.buttons \
+    -borderwidth {2}
+
+  # build widget .openNewPort.buttons.cancel
+  button .openNewPort.buttons.cancel \
+    -text {Cancel} \
+    -command {global OpenNewPortState; set OpenNewPortState(Button) 0}
+
+  # build widget .openNewPort.buttons.open
+  button .openNewPort.buttons.open \
+    -text {Open} \
+    -command {global OpenNewPortState; set OpenNewPortState(Button) 1}
+
+  # build widget .openNewPort.buttons.help
+  button .openNewPort.buttons.help \
+    -text {Help}
+
+  # pack master .openNewPort.retryCount
+  pack configure .openNewPort.retryCount.label6 \
+    -side left
+  pack configure .openNewPort.retryCount.count \
+    -expand 1 \
+    -fill x \
+    -side right
+
+  # pack master .openNewPort.buttons
+  pack configure .openNewPort.buttons.cancel \
+    -expand 1 \
+    -side left
+  pack configure .openNewPort.buttons.open \
+    -expand 1 \
+    -side left
+  pack configure .openNewPort.buttons.help \
+    -expand 1 \
+    -side right
+
+  # pack master .openNewPort
+  pack configure .openNewPort.serialPort \
+    -fill x
+  pack configure .openNewPort.baudRate \
+    -fill x
+  pack configure .openNewPort.retryCount \
+    -fill x
+  pack configure .openNewPort.buttons \
+    -expand 1 \
+    -fill both
+
+  .openNewPort.retryCount.count insert end {30000}
+
+
+# end of widget tree
+
+  set w .openNewPort
+  wm withdraw $w
+  update idletasks
+  set x [expr {[winfo screenwidth $w]/2 - [winfo reqwidth $w]/2 \
+		- [winfo vrootx $w]}]
+  set y [expr {[winfo screenheight $w]/2 - [winfo reqheight $w]/2 \
+		- [winfo vrooty $w]}]
+  wm geom $w +$x+$y
+  wm deiconify $w
+
+  set OpenNewPortState(Button) -1
+
+  set oldFocus [focus]
+  set oldGrab [grab current $w]
+  if {[string compare $oldGrab ""]} {
+    set grabStatus [grab status $oldGrab]
+  }
+  grab $w
+  focus .openNewPort.retryCount.count
+
+  tkwait variable OpenNewPortState(Button)
+
+  set retryCount "[.openNewPort.retryCount.count get]"
+  catch {focus $oldFocus}
+  catch {destroy $w}
+  if {[string compare $oldGrab ""]} {
+    if {[string compare $grabStatus "global"]} {
+      grab $oldGrab
+    } else {
+      grab -global $oldGrab
+    }
+  }
+
+  if {$OpenNewPortState(Button) < 1} {return}
+
+  .status.port.port configure -text $OpenNewPortState(Port)
+  .status.baud.baud configure -text $OpenNewPortState(Baud)
+  .status.retryCount.count configure -text $retryCount
+
+  OpenPort
+}
+
+proc OpenPort {} {
+  set port "[.status.port.port cget -text]"
+  set baud "[.status.baud.baud cget -text]"
+  set retryCount "[.status.retryCount.count cget -text]"
+
+  if {[string length "$port"] == 0} {
+    return [OpenNewPort]
+  }
+
+  set am [GetMenuByName Actions]
+  if {[string equal [$am entrycget {Close Port} -state] {normal}]} {
+    ClosePort
+  }
+
+  if {[catch [list \
+	  CMri CMriBus $port $baud $retryCount] errormessage]} {
+    rename CMriBus {}
+    .status.state.state configure -text "Open Failed: $errormessage"
+    tk_messageBox -icon error \
+		  -message "$errormessage"
+		  -type ok
+  } else {
+    for {set i 0} {$i <= [$am index end]} {incr i} {
+      $am entryconfigure $i -state normal
+    }
+    .status.state.state configure -text {Open}
+    tk_messageBox -icon info -message "Port $port opened."
+  } 
+}
+
+proc GetAllSerialPorts {} {
+  set portlist [eval [concat exec /bin/setserial -gb \
+			     [glob -nocomplain /dev/ttyS*] 2>/dev/null]]
+  set result {}
+  foreach line [split $portlist "\n"] {
+    if {[regexp {^(.*) at } "$line" => port] > 0} {
+      lappend result [string trim "$port"]
+    }
+  }
+  return $result
+}
+
+proc IntegerOrEmpty {val} {
+  if {[string length "$val"] == 0} {
+    return 1
+  } elseif {[catch [list expr int($val)] ival]} {
+    return 0
+  } elseif {$val != $ival || [string equal "$val" "$ival"] == 0} {
+    return 0
+  } else {
+    return 1
+  }
+}
+
+proc TestOutputCard {} {
+  global NodeType
+
+  set slowdis "[.ioparams.slowdis.slowdis get]"
+  if {[string length "$slowdis"] == 0} {set slowdis 0}
+  set displayDelay [expr $slowdis * 10]
+
+  switch -exact -- $NodeType {
+    USIC {
+      set UA 0
+      set NS 1
+      set NI 0
+      set NO 3
+      set CT [list 2]
+      set DL "[.ioparams.dl.dl get]"
+      if {[string length "$DL"] == 0} {set DL 0}
+      array set pnames {0 A 1 B 2 C}
+      set ctype N
+    }
+    SUSIC {
+      set UA 0
+      set NS 1
+      set NI 0
+      set NO 4
+      set CT [list 2]
+      set DL "[.ioparams.dl.dl get]"
+      if {[string length "$DL"] == 0} {set DL 0}
+      array set pnames {0 A 1 B 2 C 3 D}
+      set ctype X
+    }
+    SMINI {
+      set UA 0
+      set NS 0
+      set NI 3
+      set NO 6
+      set CT {0 0 0 0 0 0}
+      set DL 0
+      array set pnames {0 {0 A} 1 {0 B} 2 {0 C} 3 {1 A} 4 {1 B} 5 {1 C}}
+      set ctype M
+    }
+  }
+  CMriBus InitBoard $CT $NI $NO $NS $UA $ctype $DL
+
+  toplevel .oports
+  wm maxsize .oports 1024 768
+  wm protocol .oports WM_DELETE_WINDOW {.oports.cancel invoke}
+  wm transient .oports .
+
+  global B
+  frame .oports.r0
+  pack .oports.r0 -side top -fill x
+  if {[string equal "$ctype" {M}]} {
+    frame .oports.r1
+    pack .oports.r1 -side top -fill x
+  }
+  foreach port [lsort -integer [array names pnames]] {
+    set pm $pnames($port)
+    if {[string length "$pm"] > 1} {
+      set r [lindex $pm 0]
+    } else {
+      set r 0
+    }
+    frame .oports.r$r.f$port -relief ridge -borderwidth 4
+    pack .oports.r$r.f$port -side left 
+    label .oports.r$r.f$port.pname -text $pnames($port)
+    pack .oports.r$r.f$port.pname -side top
+    frame .oports.r$r.f$port.bits
+    pack .oports.r$r.f$port.bits -side top
+    foreach b {1 2 3 4 5 6 7 8} {
+      radiobutton .oports.r$r.f$port.bits.b$b -variable B($port) -text {} -value $b
+      pack .oports.r$r.f$port.bits.b$b -side left
+    }
+    set B($port) 0
+  }
+  global Testing
+  set Testing 1
+  button .oports.cancel -text {Cancel} -command {global Testing; set Testing 0}
+  pack .oports.cancel -side top -expand 1 -fill x
+
+  set w .oports
+  wm withdraw $w
+  update idletasks
+  set rw [winfo reqwidth $w]
+  set rh [winfo reqheight $w]
+
+  set x [expr {[winfo screenwidth $w]/2 - $rw/2 \
+		- [winfo vrootx $w]}]
+  set y [expr {[winfo screenheight $w]/2 - $rh/2 \
+		- [winfo vrooty $w]}]
+  wm geom $w +$x+$y
+  wm deiconify $w
+
+  set oldFocus [focus]
+  set oldGrab [grab current $w]
+  if {[string compare $oldGrab ""]} {
+    set grabStatus [grab status $oldGrab]
+  }
+  grab $w
+
+  array set bits {1 1 2 2 3 4 4 8 5 16 6 32 7 64 8 128}
+
+  while {$Testing} {
+    set OB {}
+    for {set i 0} {$i < $NO} {incr i} {lappend OB 0}
+    for {set i 0} {$i < $NO} {incr i} {
+      if {!$Testing} break
+      for {set n 1} {$n < 9} {incr n} {
+	if {!$Testing} break
+	set B($i) $n
+	set OB [lreplace $OB $i $i $bits($n)]
+	CMriBus Outputs $OB $UA
+	update
+	if {$displayDelay > 0} {after $displayDelay}
+      }
+      set B($i) 0
+      set OB [lreplace $OB $i $i 0]
+    }
+  }
+
+  catch {focus $oldFocus}
+  catch {destroy $w}
+  if {[string compare $oldGrab ""]} {
+    if {[string compare $grabStatus "global"]} {
+      grab $oldGrab
+    } else {
+      grab -global $oldGrab
+    }
+  }
+}
+
+proc WraparoundTest {} {
+  global NodeType
+
+  set infiltdly "[.ioparams.infiltdly.infilter get]"
+  if {[string length "$infiltdly"] == 0} {set infiltdly 0}
+  set displayDelay [expr $infiltdly * 10]
+
+  switch -exact -- $NodeType {
+    USIC {
+      set UA 0
+      set NS 1
+      set NI 3
+      set NO 3
+      set N3NO $NO
+      set CT [list 6]
+      set DL "[.ioparams.dl.dl get]"
+      if {[string length "$DL"] == 0} {set DL 0}
+      array set pnames {0 A 1 B 2 C}
+      set ctype N
+    }
+    SUSIC {
+      set UA 0
+      set NS 1
+      set NI 4
+      set NO 4
+      set N3NO $NO
+      set CT [list 6]
+      set DL "[.ioparams.dl.dl get]"
+      if {[string length "$DL"] == 0} {set DL 0}
+      array set pnames {0 A 1 B 2 C 3 D}
+      set ctype X
+    }
+    SMINI {
+      set UA 0
+      set NS 0
+      set NI 3
+      set NO 6
+      set N3NO 3
+      set CT {0 0 0 0 0 0}
+      set DL 0
+      array set pnames {0 A 1 B 2 C}
+      set ctype M
+    }
+  }
+  CMriBus InitBoard $CT $NI $NO $NS $UA $ctype $DL
+
+  toplevel .wports
+  wm maxsize .wports 1024 768
+  wm protocol .wports WM_DELETE_WINDOW {.wports.cancel invoke}
+  wm transient .wports .
+
+  frame .wports.ports
+  pack .wports.ports -side top -fill x
+  for {set ip 0} {$ip < $N3NO} {incr ip} {
+    set pm $pnames($ip)
+    label .wports.ports.l$ip -text "$pm" -font [list Courier -50 bold]
+    label .wports.ports.o$ip -relief sunken -text {  0} -font [list Courier -50 bold]
+    label .wports.ports.i$ip -relief sunken -text {  0} -font [list Courier -50 bold]
+    grid configure .wports.ports.l$ip -column $ip -row 0
+    grid configure .wports.ports.o$ip -column $ip -row 1
+    grid configure .wports.ports.i$ip -column $ip -row 2
+  }
+  global Testing
+  set Testing 1
+  button .wports.cancel -text {Cancel} -command {global Testing; set Testing 0}
+  pack .wports.cancel -side top -expand 1 -fill x
+
+
+  set w .wports
+  wm withdraw $w
+  update idletasks
+  set rw [winfo reqwidth $w]
+  set rh [winfo reqheight $w]
+
+  set x [expr {[winfo screenwidth $w]/2 - $rw/2 \
+		- [winfo vrootx $w]}]
+  set y [expr {[winfo screenheight $w]/2 - $rh/2 \
+		- [winfo vrooty $w]}]
+  wm geom $w +$x+$y
+  wm deiconify $w
+
+  set oldFocus [focus]
+  set oldGrab [grab current $w]
+  if {[string compare $oldGrab ""]} {
+    set grabStatus [grab status $oldGrab]
+  }
+  grab $w
+
+  while {$Testing} {
+    set OB {}
+    for {set i 0} {$i < $NO} {incr i} {lappend OB 0}
+    for {set i 0} {$i < $N3NO} {incr i} {
+      if {!$Testing} break
+      for {set d 0} {$d < 256} {incr d} {
+        if {!$Testing} break
+        set OB [lreplace $OB $i $i $d]
+	.wports.ports.o$i configure -text "[format {%3d} $d]"
+	if {[string equal "$ctype" {M}]} {
+	  set OB [lreplace $OB [expr $i + 3] [expr $i + 3] $d]
+	}
+	CMriBus Outputs $OB $UA
+	after 100
+	if {$displayDelay > 0} {after $displayDelay}
+	set inputs [CMriBus Inputs $NI $UA]
+	#set  inputs $OB
+	.wports.ports.i$i configure -text "[format {%3d} [lindex $inputs $i]]"
+	update
+	if {[lindex $inputs $i] != $d} {
+	  tk_messageBox -icon error -type ok -message "Error Found In @ port $pnames($i)"
+	}
+      }
+      set OB [lreplace $OB $i $i 0]
+      if {[string equal "$ctype" {M}]} {
+	set OB [lreplace $OB [expr $i + 3] [expr $i + 3] 0]
+      }
+      .wports.ports.o$i configure -text {  0}
+      .wports.ports.i$i configure -text {  0}
+    }
+  }
+  catch {focus $oldFocus}
+  catch {destroy $w}
+  if {[string compare $oldGrab ""]} {
+    if {[string compare $grabStatus "global"]} {
+      grab $oldGrab
+    } else {
+      grab -global $oldGrab
+    }
+  }
+}
+
+proc ClosePort {{messageP 1}} {
+  set am [GetMenuByName Actions]
+  catch {rename CMriBus {}}
+  for {set i 0} {$i <= [$am index end]} {incr i} {
+    $am entryconfigure $i -state disabled
+  }
+  .status.state.state configure -text {Closed}
+  if {$messageP} {
+    tk_messageBox -icon info -message "Port [.status.port.port cget -text] closed."
+  }
+  
+}
+
+
+
+
+# Process command line options.
+
+global IsSlave
+set IsSlave 0
+global argcTest
+set argcTest 0
+global argc argv argv0
+
+for {set ia 0} {$ia < $argc} {incr ia} {
+  switch -glob -- "[lindex $argv $ia]" {
+    -isslave* {
+      set IsSlave 1
+      incr argcTest
+      fconfigure stdin -buffering line
+      fconfigure stdout -buffering line
+    }
+    default {
+      puts stderr "usage: $argv0 \[wish options\]"
+      exit 96
+    }
+  }
+}
+
+
+
+MainWindow
+

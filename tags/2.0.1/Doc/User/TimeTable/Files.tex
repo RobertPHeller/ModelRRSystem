@@ -1,0 +1,154 @@
+%* 
+%* ------------------------------------------------------------------
+%* Model Railroad System by Deepwoods Software
+%* ------------------------------------------------------------------
+%* Files.tex - Data file formats
+%* Created by Robert Heller on Sat Mar  9 09:34:43 2002
+%* ------------------------------------------------------------------
+%* Modification History: $Log$
+%* Modification History: Revision 1.1  2002/11/09 21:21:07  heller
+%* Modification History: Time Table User Manual
+%* Modification History:
+%* ------------------------------------------------------------------
+%* Contents:
+%* ------------------------------------------------------------------
+%*  
+%*     Model RR System, Version 2
+%*     Copyright (C) 1994-2002  Robert Heller D/B/A Deepwoods Software
+%* 			51 Locke Hill Road
+%* 			Wendell, MA 01379-9728
+%* 
+%*     This program is free software; you can redistribute it and/or modify
+%*     it under the terms of the GNU General Public License as published by
+%*     the Free Software Foundation; either version 2 of the License, or
+%*     (at your option) any later version.
+%* 
+%*     This program is distributed in the hope that it will be useful,
+%*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%*     GNU General Public License for more details.
+%* 
+%*     You should have received a copy of the GNU General Public License
+%*     along with this program; if not, write to the Free Software
+%*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+%* 
+%*  
+%* 
+
+\chapter{Data File Formats}
+\label{chapt:Files}
+
+All data files used by this program are plain text files.  The can be
+edited with a plain text editor, although this is not recommended in
+general.
+
+\section{Cabs File}
+
+Cab files have an extension of \verb=.cabs=, and are formatted one cab
+per line as shown in Figure~\ref{fig:cabfile}.
+
+\begin{figure}
+\begin{centering}
+\verb=cab name|cab color=\\
+\caption{Cab File line syntax}
+\label{fig:cabfile}
+\end{centering}
+\end{figure}
+
+\section{Stations File}
+
+Station files an extension of \verb=.stations=, and are formatted with
+the first line containing the total end-to-end run length in $smiles$
+(or $skilometers$), followed by each station as shown in
+Figure~\ref{fig:stationFileStations}, then comes the duplicate trackage
+map as shown in Figure~\ref{fig:stationFileDupTracks}, which is flagged
+by a line consisting of \verb=%%% Duplicate Trackage Map=.
+
+\begin{figure}   
+\begin{centering}
+\verb=station|distance=
+\caption{Station line in the Stations file}
+\label{fig:stationFileStations}
+\end{centering}
+\end{figure}
+
+\begin{figure}   
+\begin{centering}
+\verb"station=station|station=station"
+\caption{Duplicate Trackage line in the Stations file}
+\label{fig:stationFileDupTracks}
+\end{centering}
+\end{figure}
+
+
+\section{Storage Track List File}
+
+Storage Track files have an extension of \verb=.tracks=, and are
+formatted one station per line as shown in Figure~\ref{fig:trackfile}.
+
+\begin{figure}
+\begin{centering}
+\verb=station|track list=\\
+\caption{Storage Track File  line syntax}
+\label{fig:trackfile}
+\end{centering}
+\end{figure}
+
+
+\section{Chart File}
+
+Chart files have an extension of \verb=.chart=, and are formatted as a
+series of sections, set off by lines beginning with three percent signs
+(\verb=%%%=).  The first section is the time scale section, formatted
+as shown in Figure~\ref{fig:chtimescale}.  Then the cab color section,
+headed with the line, \verb=%%%CABCOLORS:= and then formatted as shown
+in Figure~\ref{fig:cabfile}, then the station list, headed with a line
+containing the total length, formatted as
+\verb=%%%STATIONTOTALLENGTH:length=, followed by lines formatted as in
+Figure~\ref{fig:stationFileStations}.  This is followed by the
+duplicate track map, set off by the line \verb=%%%DUPLICATETRACKMAP:=
+with lines formatted as in Figure~\ref{fig:stationFileDupTracks}.  Then
+comes the storage tracks, headed by the line \verb=%%%STORAGETRACKS:=
+with lines formatted as in Figure~\ref{fig:trackfile}.  After this
+comes the trains, which are set off with the line \verb=%%%TRAINS:= and
+formatted as in Figure~\ref{fig:chfileTrains}.  Then comes the storage
+track usage map, headed by the line \verb=%%%STORAGETRACKMAP:= with
+lines formatted as shown in Figure~\ref{fig:chfileStorUseMap}. See the
+Internals Manual for details on the format of the train array and the
+storage track usage map array.  Finally the notes are stored after a
+heading line of \verb=%%%NOTES:= as lines formatted as in
+Figure~\ref{fig:chfileNotes}. The note entries have had their internal
+new line characters replaced by the two character sequence \verb=\n=.
+
+\begin{figure}
+\begin{centering}
+\verb=%%%TIMESCALE: TotalTime TimeIncrement=\\
+\caption{Time scale line in Chart file}
+\label{fig:chtimescale}
+\end{centering}
+\end{figure}
+
+\begin{figure}
+\begin{centering}
+\verb=train|train structure=\\
+\caption{Train line in chart file}
+\label{fig:chfileTrains}
+\end{centering}
+\end{figure}
+
+\begin{figure}
+\begin{centering}
+\verb=storage key|storage usage=\\
+\caption{Storage Track Usage line in chart file}
+\label{fig:chfileStorUseMap}
+\end{centering}
+\end{figure}
+
+\begin{figure}
+\begin{centering}
+\verb=note number|note text=\\
+\caption{Note line in chart file}
+\label{fig:chfileNotes}
+\end{centering}
+\end{figure}
+
