@@ -1,0 +1,86 @@
+.\" * 
+.\" * ------------------------------------------------------------------
+.\" * TimeTable.1 - Time Table man page
+.\" * Created by Robert Heller on Thu Aug 14 20:43:08 2008
+.\" * ------------------------------------------------------------------
+.\" * Modification History: $Log$
+.\" * Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+.\" * Modification History: Add it copyright notice headers
+.\" * Modification History:
+.\" * ------------------------------------------------------------------
+.\" * Contents:
+.\" * ------------------------------------------------------------------
+.\" *  
+.\" *     Model RR System, Version 2
+.\" *     Copyright (C) 1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software
+.\" * 			51 Locke Hill Road
+.\" * 			Wendell, MA 01379-9728
+.\" * 
+.\" *     This program is free software; you can redistribute it and/or modify
+.\" *     it under the terms of the GNU General Public License as published by
+.\" *     the Free Software Foundation; either version 2 of the License, or
+.\" *     (at your option) any later version.
+.\" * 
+.\" *     This program is distributed in the hope that it will be useful,
+.\" *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" *     GNU General Public License for more details.
+.\" * 
+.\" *     You should have received a copy of the GNU General Public License
+.\" *     along with this program; if not, write to the Free Software
+.\" *     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\" * 
+.\" *  
+.\" *
+.TH TimeTable  1 "Aug 2008" "Model Railroad System" "User Manual"
+.SH NAME
+TimeTable -- Time Table creation program
+.SH SYNOPSIS
+.B TimeTable [X11 Toolkit options...] [-totaltime time] [-timeincrement time] Name
+.sp
+.B TimeTable [X11 Toolkit options...] [TimeTableFile]
+.SH DESCRIPTION
+The Time Table (V2) program is a hybrid program, consisting of a Tcl/Tk
+GUI on top of a C++ class library.  The GUI provides the user interface
+to the algorithms and data structures contained in the C++ class
+library.  This program was inspired by chapter 8 of the book 
+.I How to Operate Your Model Railroad
+by Bruce A. Chubb.  I strongly recommend reading this chapter fully
+before using this program.  This program implements the methods
+described in this chapter, in an automated fashion.
+.PP
+There are two formats for the TimeTable program's command line.  The
+command line can either have a single file name, the name of an
+existing time table file or it can have two options (-totaltime 
+and -timeincrement) and the name of a new time table.  The first
+form loads an existing time table and the second form creates
+a new time table.
+.PP
+Full complete documentation on the use of this program is included in the
+online help files as well as in the printable PDF and displayable HTML user
+manual.
+.SH OPTIONS
+.B -totaltime
+minutes
+.sp
+The total time of the time table chart, in minutes.
+.sp
+.B -timeincrement
+minutes
+.sp
+The incremental number of minutes for each vertical line on the chart display.
+.SH PARAMETERS
+.B Name
+.sp
+The name of the new time table.
+.sp
+.B TimeTableFile
+.sp
+The name of an existing time table file to load.
+.SH AUTHOR
+Robert Heller <heller@deepsoft.com>
+
+
+
+
+
