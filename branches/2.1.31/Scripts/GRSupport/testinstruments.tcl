@@ -60,7 +60,7 @@ namespace eval TestInstruments {
   variable OVRECT [OvalWidgets::OvalRoundCornerRectangle create ovrect $Canvas -x 400 -y 300 -width 400 -height 300 -color green]
   variable OVLABEL [OvalWidgets::OvalLabel create ovlab $Canvas -x 450 -y 350 \
 		-text "Hello, Captian Picard" -font {federationbold -20} \
-		-color yellow -undercolor blue -under 7
+		-color yellow -undercolor blue -under 7]
 
   set bbAll [$Canvas bbox all]
 

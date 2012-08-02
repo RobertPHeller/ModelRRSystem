@@ -167,7 +167,7 @@ while {true} {
 #  REM**INITIALIZE ALL SIGNALS TO GREEN
 #     FOR I = 1 TO 6: SE(I) = GRN: SW(I) = GRN: NEXT I
 
-	for {set i 0} {$i < 6} {incr i) {set SE($i) $GRN;set SW($i) $GRN}
+	for {set i 0} {$i < 6} {incr i} {set SE($i) $GRN;set SW($i) $GRN}
 
 # 
 # REM**CHECK IF BLOCK OCCUPIED THEN SET SIGNALS LEADING INTO BLOCK RED
