@@ -1,0 +1,14 @@
+s|=WISH=|@WISH@|g
+s|=TCLSH=|@TCLSH@|g
+s|=prefix=|@prefix@|g
+s|=exec_prefix=|@exec_prefix@|g
+s|=datadir=|@datadir@|g
+s|=libdir=|@libdir@|g
+s|=PACKAGE=|@PACKAGE@|g
+s|=VERSION=|@VERSION@|g
+s|=MRR_PATCH_LEVEL=|@MRR_PATCH_LEVELLIB@|g
+s|=TOP_DIR=|@TOP_DIR@|g
+s|=BUILD_DIR=|@BUILD_DIR@|g
+s|=BWLIB=|@BWLIB@|g
+s|=SNITLIB=|@SNITLIB@|g
+

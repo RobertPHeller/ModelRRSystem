@@ -1,0 +1,609 @@
+#* 
+#* ------------------------------------------------------------------
+#* FCFCreate.src - Program to create the collection of data files needed by FCF2
+#* Created by Robert Heller on Wed Nov 14 19:27:15 2007
+#* ------------------------------------------------------------------
+#* Modification History: $Log$
+#* Modification History: Revision 1.1  2007/11/30 13:56:51  heller
+#* Modification History: Novemeber 30, 2007 lockdown.
+#* Modification History:
+#* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+#* Modification History: Add it copyright notice headers
+#* Modification History:
+#* ------------------------------------------------------------------
+#* Contents:
+#* ------------------------------------------------------------------
+#*  
+#*     Model RR System, Version 2
+#*     Copyright (C) 1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software
+#* 			51 Locke Hill Road
+#* 			Wendell, MA 01379-9728
+#* 
+#*     This program is free software; you can redistribute it and/or modify
+#*     it under the terms of the GNU General Public License as published by
+#*     the Free Software Foundation; either version 2 of the License, or
+#*     (at your option) any later version.
+#* 
+#*     This program is distributed in the hope that it will be useful,
+#*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#*     GNU General Public License for more details.
+#* 
+#*     You should have received a copy of the GNU General Public License
+#*     along with this program; if not, write to the Free Software
+#*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#* 
+#*  
+#* 
+
+#* $Id$
+
+## @defgroup FCFCreate FCFCreate
+# @brief Freight Car Forwarder (V2) Dataset creater
+#
+# @section SYNOPIS
+#
+# FCFCreate [X11 Resource Options]
+#
+# @section DESCRIPTION
+#
+# The Freight Car Forwarder uses a collection of data files that describe the
+# collection of available rolling stock (freight cars), the available 
+# industries (both sources and destinations of goods and materials that need 
+# to be moved over the rails), and the available scheduled trains. The FCFCreate
+# program helps you to create these files
+#
+# Each freight car is of a specific type, which implies the sort of goods or
+# materials it can carry.  Each industry accepts certain types of cars as empty
+# cars (cars the industry will load) and certain types of cars as loaded (cars
+# that it will unload).  Industries have an associated yard, which in turn are 
+# part of a division.  This allows for sensible scheduling on the proper trains,
+# both the local switch moves as well as the mainline freights.
+#
+# @section PARAMETERS
+#
+# @section AUTHOR
+# Robert Heller \<heller\@deepsoft.com\>
+#
+
+set argv0 [file join [file dirname [info nameofexecutable]] FCFCreate] 
+
+package require Version
+namespace eval MRRSystem {variable FCFCLASSES_VERSION}
+package require Tk
+package require BWidget
+package require BWStdMenuBar
+package require HTMLHelp
+package require DWpanedw
+package require snit
+package require Splash
+package require MainWindow
+
+global ImageDir 
+set ImageDir [file join [file dirname [file dirname [info script]]] \
+			FreightCarForwarder2]
+global CommonImageDir 
+set CommonImageDir [file join [file dirname [file dirname [info script]]] \
+			Common]
+global HelpDir
+set HelpDir [file join [file dirname [file dirname [file dirname \
+                                                        [info script]]]] Help]
+
+image create photo banner -file [file join $ImageDir banner.gif]
+# Image used as a banner for all dialog boxes.
+# [index] banner!image
+
+image create photo DeepwoodsBanner -format gif -file [file join $CommonImageDir DeepwoodsBanner.gif]
+# Deepwoods banner image.  Used in the splash screen.
+# [index] DeepwoodsBanner!image
+
+global argcTest IsSlave
+set argcTest 0
+set IsSlave 0
+set HasSystemFile 0
+
+for {set ia 0} {$ia < $argc} {incr ia} {
+  switch -glob -- "[lindex $argv $ia]" {
+    -isslave* {
+      set IsSlave 1
+      incr argcTest
+      fconfigure stdin -buffering line
+      fconfigure stdout -buffering line
+    }
+    -console {
+	catch {console show}
+    }
+    -* {
+    	puts stderr "usage: $argv0 \[wish options\] -- \[-isslave\] \[-console\] [systemfile]"
+	exit 96
+    }
+    default {
+	if {$HasSystemFile == 0} {
+	  set SystemFile "[lindex $argv $ia]"
+	  incr HasSystemFile
+	} else {
+	  puts stderr "usage: $argv0 \[wish options\] -- \[-isslave\] [systemfile]"
+	  exit 96
+	}
+    }
+  }
+}
+
+global HelpDir
+
+proc SplashScreen {} {
+  # Build the ``Splash Screen'' -- A popup window that tells the user what 
+  # we are all about.  It gives the version and brief copyright information.
+  #
+  # The upper part of the splash screen gives the brief information, with
+  # directions on how to get detailed information.  The lower part contains
+  # an image banner for Deepwoods Software.
+  # [index] SplashScreen!procedure
+
+  splash .mrrSplash \
+	-title "Model Railroad Freight Car Forwarder data creation program, \
+Copyright (C) 2007 Robert Heller D/B/A Deepwoods Software Model Railroad \
+The Freight Car Forwarder data creation program comes with ABSOLUTELY NO \
+WARRANTY; for details select 'Warranty...' under the Help menu.  This is free \
+software, and you are welcome to redistribute it under certain conditions; \
+select 'Copying...' under the Help menu. System patch level: \
+$MRRSystem::SYSTEMVERSION." \
+	-icon banner -image DeepwoodsBanner -background {#2ba2bf} \
+	-titleforeground white -statusforeground {black}
+}
+
+proc SplashWorkMessage {message percent} {
+  global IsSlave
+  if {!$IsSlave} {
+    .mrrSplash update "$message" $percent
+    update
+  }
+}
+
+if {!$IsSlave} {
+  SplashScreen
+  update
+}
+
+SplashWorkMessage "Building Main window" 0
+
+
+catch {
+# Standard Motif bindings:
+
+bind ROText <1> {
+    tk::TextButton1 %W %x %y
+    %W tag remove sel 0.0 end
+}
+bind ROText <B1-Motion> {
+    set tk::Priv(x) %x
+    set tk::Priv(y) %y
+    tk::TextSelectTo %W %x %y
+}
+bind ROText <Double-1> {
+    set tk::Priv(selectMode) word
+    tk::TextSelectTo %W %x %y
+    catch {%W mark set insert sel.last}
+    catch {%W mark set anchor sel.first}
+}
+bind ROText <Triple-1> {
+    set tk::Priv(selectMode) line
+    tk::TextSelectTo %W %x %y
+    catch {%W mark set insert sel.last}
+    catch {%W mark set anchor sel.first}
+}
+bind ROText <Shift-1> {
+    tk::TextResetAnchor %W @%x,%y
+    set tk::Priv(selectMode) char
+    tk::TextSelectTo %W %x %y
+}
+bind ROText <Double-Shift-1>	{
+    set tk::Priv(selectMode) word
+    tk::TextSelectTo %W %x %y 1
+}
+bind ROText <Triple-Shift-1>	{
+    set tk::Priv(selectMode) line
+    tk::TextSelectTo %W %x %y
+}
+bind ROText <B1-Leave> {
+    set tk::Priv(x) %x
+    set tk::Priv(y) %y
+    tk::TextAutoScan %W
+}
+bind ROText <B1-Enter> {
+    tk::CancelRepeat
+}
+bind ROText <ButtonRelease-1> {
+    tk::CancelRepeat
+}
+bind ROText <Control-1> {
+    %W mark set insert @%x,%y
+}
+bind ROText <Left> {
+    tk::TextSetCursor %W insert-1c
+}
+bind ROText <Right> {
+    tk::TextSetCursor %W insert+1c
+}
+bind ROText <Up> {
+    tk::TextSetCursor %W [tk::TextUpDownLine %W -1]
+}
+bind ROText <Down> {
+    tk::TextSetCursor %W [tk::TextUpDownLine %W 1]
+}
+bind ROText <Shift-Left> {
+    tk::TextKeySelect %W [%W index {insert - 1c}]
+}
+bind ROText <Shift-Right> {
+    tk::TextKeySelect %W [%W index {insert + 1c}]
+}
+bind ROText <Shift-Up> {
+    tk::TextKeySelect %W [tk::TextUpDownLine %W -1]
+}
+bind ROText <Shift-Down> {
+    tk::TextKeySelect %W [tk::TextUpDownLine %W 1]
+}
+bind ROText <Control-Left> {
+    tk::TextSetCursor %W [tk::TextPrevPos %W insert tcl_startOfPreviousWord]
+}
+bind ROText <Control-Right> {
+    tk::TextSetCursor %W [tk::TextNextWord %W insert]
+}
+bind ROText <Control-Up> {
+    tk::TextSetCursor %W [tk::TextPrevPara %W insert]
+}
+bind ROText <Control-Down> {
+    tk::TextSetCursor %W [tk::TextNextPara %W insert]
+}
+bind ROText <Shift-Control-Left> {
+    tk::TextKeySelect %W [tk::TextPrevPos %W insert tcl_startOfPreviousWord]
+}
+bind ROText <Shift-Control-Right> {
+    tk::TextKeySelect %W [tk::TextNextWord %W insert]
+}
+bind ROText <Shift-Control-Up> {
+    tk::TextKeySelect %W [tk::TextPrevPara %W insert]
+}
+bind ROText <Shift-Control-Down> {
+    tk::TextKeySelect %W [tk::TextNextPara %W insert]
+}
+bind ROText <Prior> {
+    tk::TextSetCursor %W [tk::TextScrollPages %W -1]
+}
+bind ROText <Shift-Prior> {
+    tk::TextKeySelect %W [tk::TextScrollPages %W -1]
+}
+bind ROText <Next> {
+    tk::TextSetCursor %W [tk::TextScrollPages %W 1]
+}
+bind ROText <Shift-Next> {
+    tk::TextKeySelect %W [tk::TextScrollPages %W 1]
+}
+bind ROText <Control-Prior> {
+    %W xview scroll -1 page
+}
+bind ROText <Control-Next> {
+    %W xview scroll 1 page
+}
+
+bind ROText <Home> {
+    tk::TextSetCursor %W {insert linestart}
+}
+bind ROText <Shift-Home> {
+    tk::TextKeySelect %W {insert linestart}
+}
+bind ROText <End> {
+    tk::TextSetCursor %W {insert lineend}
+}
+bind ROText <Shift-End> {
+    tk::TextKeySelect %W {insert lineend}
+}
+bind ROText <Control-Home> {
+    tk::TextSetCursor %W 1.0
+}
+bind ROText <Control-Shift-Home> {
+    tk::TextKeySelect %W 1.0
+}
+bind ROText <Control-End> {
+    tk::TextSetCursor %W {end - 1 char}
+}
+bind ROText <Control-Shift-End> {
+    tk::TextKeySelect %W {end - 1 char}
+}
+
+bind ROText <Control-Tab> {
+    focus [tk_focusNext %W]
+}
+bind ROText <Control-Shift-Tab> {
+    focus [tk_focusPrev %W]
+}
+bind ROText <Select> {
+    %W mark set anchor insert
+}
+bind ROText <<Copy>> {
+    tk_textCopy %W
+}
+# Additional emacs-like bindings:
+
+bind ROText <Control-a> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W {insert linestart}
+    }
+}
+bind ROText <Control-b> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W insert-1c
+    }
+}
+bind ROText <Control-e> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W {insert lineend}
+    }
+}
+bind ROText <Control-f> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W insert+1c
+    }
+}
+bind ROText <Control-n> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W [tk::TextUpDownLine %W 1]
+    }
+}
+bind ROText <Control-p> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W [tk::TextUpDownLine %W -1]
+    }
+}
+if {[string compare $tcl_platform(platform) "windows"]} {
+bind ROText <Control-v> {
+    if {!$tk_strictMotif} {
+	tk::TextScrollPages %W 1
+    }
+}
+}
+
+bind ROText <Meta-b> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W [tk::TextPrevPos %W insert tcl_startOfPreviousWord]
+    }
+}
+bind ROText <Meta-f> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W [tk::TextNextWord %W insert]
+    }
+}
+bind ROText <Meta-less> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W 1.0
+    }
+}
+bind ROText <Meta-greater> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W end-1c
+    }
+}
+# Macintosh only bindings:
+
+# if text black & highlight black -> text white, other text the same
+if {[string equal $tcl_platform(platform) "macintosh"]} {
+bind ROText <FocusIn> {
+    %W tag configure sel -borderwidth 0
+    %W configure -selectbackground systemHighlight -selectforeground systemHighlightText
+}
+bind ROText <FocusOut> {
+    %W tag configure sel -borderwidth 1
+    %W configure -selectbackground white -selectforeground black
+}
+bind ROText <Option-Left> {
+    tk::TextSetCursor %W [tk::TextPrevPos %W insert tcl_startOfPreviousWord]
+}
+bind ROText <Option-Right> {
+    tk::TextSetCursor %W [tk::TextNextWord %W insert]
+}
+bind ROText <Option-Up> {
+    tk::TextSetCursor %W [tk::TextPrevPara %W insert]
+}
+bind ROText <Option-Down> {
+    tk::TextSetCursor %W [tk::TextNextPara %W insert]
+}
+bind ROText <Shift-Option-Left> {
+    tk::TextKeySelect %W [tk::TextPrevPos %W insert tcl_startOfPreviousWord]
+}
+bind ROText <Shift-Option-Right> {
+    tk::TextKeySelect %W [tk::TextNextWord %W insert]
+}
+bind ROText <Shift-Option-Up> {
+    tk::TextKeySelect %W [tk::TextPrevPara %W insert]
+}
+bind ROText <Shift-Option-Down> {
+    tk::TextKeySelect %W [tk::TextNextPara %W insert]
+}
+
+# End of Mac only bindings
+}
+
+}
+
+proc MainWindow {} {
+  global CommonImageDir Main
+  global NoteBook MainWindow
+
+  wm protocol . WM_DELETE_WINDOW {CarefulExit}
+  if {!$::IsSlave} {wm withdraw .}
+  wm title . "Freight Car Forwarder Data file creater"
+
+  global FocusNowhere Main
+  set FocusNowhere [canvas .focusNowhere]
+
+  pack [set Main [mainwindow .main -dontwithdraw $::IsSlave]]  -expand yes -fill both
+  $Main toolbar add tools
+  $Main toolbar show tools
+  $Main menu entryconfigure file New \
+	-dynamichelp "Reset all forms" \
+	-command     FCFCreReset
+  image create photo NewButtonImage -file [file join $CommonImageDir new.gif]
+  $Main toolbar addbutton tools new  -image NewButtonImage \
+	-helptext "Reset all forms" \
+	-command     FCFCreReset
+  $Main menu entryconfigure file Open... -state disabled
+  $Main menu entryconfigure file Save -state disabled
+  $Main menu entryconfigure file {Save As...} \
+	-dynamichelp "Save files to directory" \
+	-command     FCFCreSaveAs
+  image create photo SaveAsButtonImage -file [file join $CommonImageDir save.gif]
+  $Main toolbar addbutton tools saveas -image SaveAsButtonImage \
+	-helptext "Save files to directory" \
+	-command     FCFCreSaveAs
+  $Main menu entryconfigure file Print... -state disabled
+  $Main menu entryconfigure file Close -command {CarefulExit} \
+					-accelerator {Ctrl-Q}
+  $Main menu entryconfigure file Exit -command {CarefulExit}
+  image create photo CloseButtonImage -file [file join $CommonImageDir close.gif]
+  $Main toolbar addbutton tools close -image CloseButtonImage \
+		-command {CarefulExit}
+  set MainWindow [$Main scrollwindow getframe]
+  pack [set sf [ScrollableFrame::create $MainWindow.sf \
+			-constrainedheight yes -constrainedwidth yes]] \
+	-fill both -expand yes
+  $Main scrollwindow setwidget $sf
+  pack [set NoteBook [NoteBook::create [$sf getframe].noteBook -side top]] \
+	-fill both -expand yes
+
+  $Main menu delete help "On Keys..."
+  $Main menu delete help "Index..."
+  $Main menu add help command \
+	-label "Reference Manual" \
+	-command "::HTMLHelp::HTMLHelp help {Freight Car Forwarder (V2) Reference}"
+  $Main menu entryconfigure help "On Help..." \
+	-command "::HTMLHelp::HTMLHelp help Help"
+  $Main menu entryconfigure help "Tutorial..." \
+	-command "::HTMLHelp::HTMLHelp help {Freight Car Forwarder (V2) Tutorial}"
+  $Main menu entryconfigure help "On Version" \
+	-command "::HTMLHelp::HTMLHelp help Version"
+  $Main menu entryconfigure help "Copying" \
+	-command "::HTMLHelp::HTMLHelp help Copying"
+  $Main menu entryconfigure help "Warranty" \
+	-command "::HTMLHelp::HTMLHelp help Warranty"
+
+  ::HTMLHelp::HTMLHelp setDefaults "$::HelpDir" "FCFli1.html"
+}
+
+MainWindow
+
+proc CarefulExit {{answer no}} {
+  if {!$answer} {
+    set answer "[tk_messageBox -icon question -type yesno -message {Really Exit}]"
+  }
+  switch -exact $answer {
+    no {return}
+    yes {
+	global IsSlave
+	flush stderr
+	if {$IsSlave} {
+	  puts stdout "101 Exit"
+	  flush stdout
+	  set ans [gets stdin]
+	}
+        exit
+    }
+  }
+}
+
+SplashWorkMessage "Loading system file code" 14
+set FCFCreSystemLoaded [expr ![catch {package require FCFCreSystem} message]]
+if {!$FCFCreSystemLoaded} {
+  puts stderr "*** package require FCFCreSystem => $message"
+} else {
+  FCFCreSystem::FCFCreSystem $NoteBook
+}
+
+SplashWorkMessage "Loading industries file code" 28
+set FCFCreIndustriesLoaded [expr ![catch {package require FCFCreIndustries} message]]
+if {!$FCFCreIndustriesLoaded} {
+  puts stderr "*** package require FCFCreIndustries => $message"
+} else {
+  FCFCreIndustries::FCFCreIndustries $NoteBook
+}
+
+SplashWorkMessage "Loading trains file code" 42
+set FCFCreTrainsLoaded [expr ![catch {package require FCFCreTrains} message]]
+if {!$FCFCreTrainsLoaded} {
+  puts stderr "*** package require FCFCreTrains => $message"
+} else {
+  FCFCreTrains::FCFCreTrains $NoteBook
+}
+
+SplashWorkMessage "Loading owners file code" 56
+set FCFCreOwnersLoaded [expr ![catch {package require FCFCreOwners} message]]
+if {!$FCFCreOwnersLoaded} {
+  puts stderr "*** package require FCFCreOwners => $message"
+} else {
+  FCFCreOwners::FCFCreOwners $NoteBook
+}
+
+SplashWorkMessage "Loading orders file code" 70
+set FCFCreOrdersLoaded [expr ![catch {package require FCFCreOrders} message]]
+if {!$FCFCreOrdersLoaded} {
+  puts stderr "*** package require FCFCreOrders => $message"
+} else {
+  FCFCreOrders::FCFCreOrders $NoteBook
+}
+
+SplashWorkMessage "Loading cars file code" 84
+set FCFCreCarsLoaded [expr ![catch {package require FCFCreCars} message]]
+if {!$FCFCreCarsLoaded} {
+  puts stderr "*** package require FCFCreCars => $message"
+} else {
+  FCFCreCars::FCFCreCars $NoteBook
+  FCFCreCars::FCFCreCarTypes $NoteBook
+}
+
+proc FCFCreReset {} {
+  FCFCreSystem::ResetForm
+  FCFCreIndustries::ResetForm
+  FCFCreTrains::ResetForm
+  FCFCreOrders::ResetForm
+  FCFCreOwners::ResetForm
+  FCFCreCars::ResetForm
+  FCFCreCars::ResetCarTypesForm
+}
+
+proc FCFCreSaveAs {{directory {}}} {
+  if {[string length "$directory"] == 0} {
+    set directory [tk_chooseDirectory -initialdir "$directory" -parent . \
+				      -title "Folder to store data files in"]
+  }
+  if {[string length "$directory"] == 0} {return}
+  FCFCreSystem::WriteSystemFile "$directory"  
+}
+
+$NoteBook compute_size
+
+$NoteBook raise system
+
+update idle
+set extraX 0
+foreach s [$Main slideout list] {
+  set rw [$Main slideout reqwidth $s]
+  if {$rw > $extraX} {set extraX $rw}
+}
+
+
+if {!$IsSlave} {$Main showit $extraX}
+
+wm geometry . 800x600
+
+catch {SplashWorkMessage {Done} 100}
+
+if {$IsSlave} {
+  fileevent stdin readable {
+    if {[gets stdin line] < 0} {CarefulExit yes}
+    switch -- "$line" {
+      {201 Exit} {CarefulExit yes}
+      default {}
+    }
+  }
+}
+
+
