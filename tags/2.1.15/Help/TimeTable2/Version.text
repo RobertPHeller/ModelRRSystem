@@ -1,0 +1,2 @@
+This is version 2 of the Time Table program.  It uses a C++ class library with
+a Tcl/Tk GUI front end.
