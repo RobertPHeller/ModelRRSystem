@@ -1,0 +1,1009 @@
+#!=WISH=
+#* 
+#* ------------------------------------------------------------------
+#* FCFMain.src - FCF -- Main
+#* Created by Robert Heller on Tue Oct 25 14:13:32 2005
+#* ------------------------------------------------------------------
+#* Modification History: $Log$
+#* Modification History: Revision 1.12  2007/10/22 17:17:28  heller
+#* Modification History: 10222007
+#* Modification History:
+#* Modification History: Revision 1.11  2007/10/16 13:04:19  heller
+#* Modification History: *** empty log message ***
+#* Modification History:
+#* Modification History: Revision 1.10  2007/10/15 20:12:46  heller
+#* Modification History: add -console option
+#* Modification History:
+#* Modification History: Revision 1.9  2007/10/15 19:57:48  heller
+#* Modification History: variois vixes
+#* Modification History:
+#* Modification History: Revision 1.8  2007/09/30 15:48:32  heller
+#* Modification History: Rev 2.1.10 Lockdown
+#* Modification History:
+#* Modification History: Revision 1.7  2007/05/06 12:49:45  heller
+#* Modification History: Lock down  for 2.1.8 release candidate 1
+#* Modification History:
+#* Modification History: Revision 1.6  2007/04/19 17:23:24  heller
+#* Modification History: April 19 Lock Down
+#* Modification History:
+#* Modification History: Revision 1.5  2007/02/01 20:00:54  heller
+#* Modification History: Lock down for Release 2.1.7
+#* Modification History:
+#* Modification History: Revision 1.4  2006/05/22 17:01:12  heller
+#* Modification History: Updated make install
+#* Modification History:
+#* Modification History: Revision 1.3  2006/03/06 18:46:20  heller
+#* Modification History: March 6 lockdown
+#* Modification History:
+#* Modification History: Revision 1.2  2006/02/26 23:09:24  heller
+#* Modification History: Lockdown for machine xfer
+#* Modification History:
+#* Modification History: Revision 1.1  2005/11/04 19:06:38  heller
+#* Modification History: Nov 4, 2005 Lockdown
+#* Modification History:
+#* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+#* Modification History: Add it copyright notice headers
+#* Modification History:
+#* ------------------------------------------------------------------
+#* Contents:
+#* ------------------------------------------------------------------
+#*  
+#*     Model RR System, Version 2
+#*     Copyright (C) 1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software
+#* 			51 Locke Hill Road
+#* 			Wendell, MA 01379-9728
+#* 
+#*     This program is free software; you can redistribute it and/or modify
+#*     it under the terms of the GNU General Public License as published by
+#*     the Free Software Foundation; either version 2 of the License, or
+#*     (at your option) any later version.
+#* 
+#*     This program is distributed in the hope that it will be useful,
+#*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#*     GNU General Public License for more details.
+#* 
+#*     You should have received a copy of the GNU General Public License
+#*     along with this program; if not, write to the Free Software
+#*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#* 
+#*  
+#* 
+
+#* $Id$
+
+set argv0 [file join [file dirname [info nameofexecutable]] FCFMain]
+
+package require Version
+namespace eval MRRSystem {variable FCFCLASSES_VERSION}
+set MRRSystem::FCFCLASSES_VERSION [package require Fcfclasses]
+package require Tk
+package require BWidget
+#package require FCFdialog
+package require BWStdMenuBar
+package require BWHelp
+package require DWpanedw
+package require snit
+package require Splash
+package require MainWindow
+
+global ImageDir 
+set ImageDir [file join [file dirname [file dirname [info script]]] \
+			FreightCarForwarder2]
+global CommonImageDir 
+set CommonImageDir [file join [file dirname [file dirname [info script]]] \
+			Common]
+global HelpDir
+set HelpDir [file join [file dirname [file dirname [file dirname \
+                                                        [info script]]]] Help]
+
+image create photo banner -file [file join $ImageDir banner.gif]
+# Image used as a banner for all dialog boxes.
+# [index] banner!image
+
+image create photo DeepwoodsBanner -format gif -file [file join $CommonImageDir DeepwoodsBanner.gif]
+# Deepwoods banner image.  Used in the splash screen.
+# [index] DeepwoodsBanner!image
+
+global argcTest IsSlave
+set argcTest 0
+set IsSlave 0
+set HasSystemFile 0
+
+for {set ia 0} {$ia < $argc} {incr ia} {
+  switch -glob -- "[lindex $argv $ia]" {
+    -isslave* {
+      set IsSlave 1
+      incr argcTest
+      fconfigure stdin -buffering line
+      fconfigure stdout -buffering line
+    }
+    -console {
+	catch {console show}
+    }
+    -* {
+    	puts stderr "usage: $argv0 \[wish options\] -- \[-isslave\] \[-console\] [systemfile]"
+	exit 96
+    }
+    default {
+	if {$HasSystemFile == 0} {
+	  set SystemFile "[lindex $argv $ia]"
+	  incr HasSystemFile
+	} else {
+	  puts stderr "usage: $argv0 \[wish options\] -- \[-isslave\] [systemfile]"
+	  exit 96
+	}
+    }
+  }
+}
+
+
+
+
+global HelpDir
+
+proc SplashScreen {} {
+  # Build the ``Splash Screen'' -- A popup window that tells the user what 
+  # we are all about.  It gives the version and brief copyright information.
+  #
+  # The upper part of the splash screen gives the brief information, with
+  # directions on how to get detailed information.  The lower part contains
+  # an image banner for Deepwoods Software.
+  # [index] SplashScreen!procedure
+
+  splash .mrrSplash \
+	-title "Model Railroad Freight Car Forwarder 2.0, Copyright (C) \
+2006-2007 Robert Heller D/B/A Deepwoods Software Model Railroad Freight Car \
+Forwarder comes with ABSOLUTELY NO WARRANTY; for details select \
+'Warranty...' under the Help menu.  This is free software, and you are \
+welcome to redistribute it under certain conditions; select 'Copying...' \
+under the Help menu. FCF Support Library version: \
+$MRRSystem::FCFCLASSES_VERSION. System patch level: \
+$MRRSystem::SYSTEMVERSION." \
+	-icon banner -image DeepwoodsBanner -background {#2ba2bf} \
+	-titleforeground white -statusforeground {black}
+}
+
+proc SplashWorkMessage {message percent} {
+  global IsSlave
+  if {!$IsSlave} {
+    .mrrSplash update "$message" $percent
+    update
+  }
+}
+
+if {!$IsSlave} {
+  SplashScreen
+  update
+}
+
+SplashWorkMessage "Building Main window" 0
+
+
+catch {
+# Standard Motif bindings:
+
+bind ROText <1> {
+    tk::TextButton1 %W %x %y
+    %W tag remove sel 0.0 end
+}
+bind ROText <B1-Motion> {
+    set tk::Priv(x) %x
+    set tk::Priv(y) %y
+    tk::TextSelectTo %W %x %y
+}
+bind ROText <Double-1> {
+    set tk::Priv(selectMode) word
+    tk::TextSelectTo %W %x %y
+    catch {%W mark set insert sel.last}
+    catch {%W mark set anchor sel.first}
+}
+bind ROText <Triple-1> {
+    set tk::Priv(selectMode) line
+    tk::TextSelectTo %W %x %y
+    catch {%W mark set insert sel.last}
+    catch {%W mark set anchor sel.first}
+}
+bind ROText <Shift-1> {
+    tk::TextResetAnchor %W @%x,%y
+    set tk::Priv(selectMode) char
+    tk::TextSelectTo %W %x %y
+}
+bind ROText <Double-Shift-1>	{
+    set tk::Priv(selectMode) word
+    tk::TextSelectTo %W %x %y 1
+}
+bind ROText <Triple-Shift-1>	{
+    set tk::Priv(selectMode) line
+    tk::TextSelectTo %W %x %y
+}
+bind ROText <B1-Leave> {
+    set tk::Priv(x) %x
+    set tk::Priv(y) %y
+    tk::TextAutoScan %W
+}
+bind ROText <B1-Enter> {
+    tk::CancelRepeat
+}
+bind ROText <ButtonRelease-1> {
+    tk::CancelRepeat
+}
+bind ROText <Control-1> {
+    %W mark set insert @%x,%y
+}
+bind ROText <Left> {
+    tk::TextSetCursor %W insert-1c
+}
+bind ROText <Right> {
+    tk::TextSetCursor %W insert+1c
+}
+bind ROText <Up> {
+    tk::TextSetCursor %W [tk::TextUpDownLine %W -1]
+}
+bind ROText <Down> {
+    tk::TextSetCursor %W [tk::TextUpDownLine %W 1]
+}
+bind ROText <Shift-Left> {
+    tk::TextKeySelect %W [%W index {insert - 1c}]
+}
+bind ROText <Shift-Right> {
+    tk::TextKeySelect %W [%W index {insert + 1c}]
+}
+bind ROText <Shift-Up> {
+    tk::TextKeySelect %W [tk::TextUpDownLine %W -1]
+}
+bind ROText <Shift-Down> {
+    tk::TextKeySelect %W [tk::TextUpDownLine %W 1]
+}
+bind ROText <Control-Left> {
+    tk::TextSetCursor %W [tk::TextPrevPos %W insert tcl_startOfPreviousWord]
+}
+bind ROText <Control-Right> {
+    tk::TextSetCursor %W [tk::TextNextWord %W insert]
+}
+bind ROText <Control-Up> {
+    tk::TextSetCursor %W [tk::TextPrevPara %W insert]
+}
+bind ROText <Control-Down> {
+    tk::TextSetCursor %W [tk::TextNextPara %W insert]
+}
+bind ROText <Shift-Control-Left> {
+    tk::TextKeySelect %W [tk::TextPrevPos %W insert tcl_startOfPreviousWord]
+}
+bind ROText <Shift-Control-Right> {
+    tk::TextKeySelect %W [tk::TextNextWord %W insert]
+}
+bind ROText <Shift-Control-Up> {
+    tk::TextKeySelect %W [tk::TextPrevPara %W insert]
+}
+bind ROText <Shift-Control-Down> {
+    tk::TextKeySelect %W [tk::TextNextPara %W insert]
+}
+bind ROText <Prior> {
+    tk::TextSetCursor %W [tk::TextScrollPages %W -1]
+}
+bind ROText <Shift-Prior> {
+    tk::TextKeySelect %W [tk::TextScrollPages %W -1]
+}
+bind ROText <Next> {
+    tk::TextSetCursor %W [tk::TextScrollPages %W 1]
+}
+bind ROText <Shift-Next> {
+    tk::TextKeySelect %W [tk::TextScrollPages %W 1]
+}
+bind ROText <Control-Prior> {
+    %W xview scroll -1 page
+}
+bind ROText <Control-Next> {
+    %W xview scroll 1 page
+}
+
+bind ROText <Home> {
+    tk::TextSetCursor %W {insert linestart}
+}
+bind ROText <Shift-Home> {
+    tk::TextKeySelect %W {insert linestart}
+}
+bind ROText <End> {
+    tk::TextSetCursor %W {insert lineend}
+}
+bind ROText <Shift-End> {
+    tk::TextKeySelect %W {insert lineend}
+}
+bind ROText <Control-Home> {
+    tk::TextSetCursor %W 1.0
+}
+bind ROText <Control-Shift-Home> {
+    tk::TextKeySelect %W 1.0
+}
+bind ROText <Control-End> {
+    tk::TextSetCursor %W {end - 1 char}
+}
+bind ROText <Control-Shift-End> {
+    tk::TextKeySelect %W {end - 1 char}
+}
+
+bind ROText <Control-Tab> {
+    focus [tk_focusNext %W]
+}
+bind ROText <Control-Shift-Tab> {
+    focus [tk_focusPrev %W]
+}
+bind ROText <Select> {
+    %W mark set anchor insert
+}
+bind ROText <<Copy>> {
+    tk_textCopy %W
+}
+# Additional emacs-like bindings:
+
+bind ROText <Control-a> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W {insert linestart}
+    }
+}
+bind ROText <Control-b> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W insert-1c
+    }
+}
+bind ROText <Control-e> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W {insert lineend}
+    }
+}
+bind ROText <Control-f> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W insert+1c
+    }
+}
+bind ROText <Control-n> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W [tk::TextUpDownLine %W 1]
+    }
+}
+bind ROText <Control-p> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W [tk::TextUpDownLine %W -1]
+    }
+}
+if {[string compare $tcl_platform(platform) "windows"]} {
+bind ROText <Control-v> {
+    if {!$tk_strictMotif} {
+	tk::TextScrollPages %W 1
+    }
+}
+}
+
+bind ROText <Meta-b> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W [tk::TextPrevPos %W insert tcl_startOfPreviousWord]
+    }
+}
+bind ROText <Meta-f> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W [tk::TextNextWord %W insert]
+    }
+}
+bind ROText <Meta-less> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W 1.0
+    }
+}
+bind ROText <Meta-greater> {
+    if {!$tk_strictMotif} {
+	tk::TextSetCursor %W end-1c
+    }
+}
+# Macintosh only bindings:
+
+# if text black & highlight black -> text white, other text the same
+if {[string equal $tcl_platform(platform) "macintosh"]} {
+bind ROText <FocusIn> {
+    %W tag configure sel -borderwidth 0
+    %W configure -selectbackground systemHighlight -selectforeground systemHighlightText
+}
+bind ROText <FocusOut> {
+    %W tag configure sel -borderwidth 1
+    %W configure -selectbackground white -selectforeground black
+}
+bind ROText <Option-Left> {
+    tk::TextSetCursor %W [tk::TextPrevPos %W insert tcl_startOfPreviousWord]
+}
+bind ROText <Option-Right> {
+    tk::TextSetCursor %W [tk::TextNextWord %W insert]
+}
+bind ROText <Option-Up> {
+    tk::TextSetCursor %W [tk::TextPrevPara %W insert]
+}
+bind ROText <Option-Down> {
+    tk::TextSetCursor %W [tk::TextNextPara %W insert]
+}
+bind ROText <Shift-Option-Left> {
+    tk::TextKeySelect %W [tk::TextPrevPos %W insert tcl_startOfPreviousWord]
+}
+bind ROText <Shift-Option-Right> {
+    tk::TextKeySelect %W [tk::TextNextWord %W insert]
+}
+bind ROText <Shift-Option-Up> {
+    tk::TextKeySelect %W [tk::TextPrevPara %W insert]
+}
+bind ROText <Shift-Option-Down> {
+    tk::TextKeySelect %W [tk::TextNextPara %W insert]
+}
+
+# End of Mac only bindings
+}
+
+}
+
+proc MainWindow {} {
+  global CommonImageDir Main
+  global LogWindow MainWindow
+
+  wm protocol . WM_DELETE_WINDOW {CarefulExit}
+  if {!$::IsSlave} {wm withdraw .}
+  wm title . "Freight Car Forwarder V2, using [package versions Fcfclasses] of Fcfclasses"
+
+  global FocusNowhere Main
+  set FocusNowhere [canvas .focusNowhere]
+
+  pack [set Main [mainwindow .main -dontwithdraw $::IsSlave]]  -expand yes -fill both
+  $Main toolbar add tools
+  $Main toolbar show tools
+  $Main menu entryconfigure file New -state disabled
+  $Main menu entryconfigure file Open... \
+	-dynamichelp "Open and Load System File" \
+        -command LoadSystem
+  image create photo OpenButtonImage -file [file join $CommonImageDir open.gif]
+  $Main toolbar addbutton tools open -image OpenButtonImage \
+		-command LoadSystem \
+		-helptext "Open and Load System File"
+  $Main menu entryconfigure file {Save As...} -state disabled
+  $Main menu entryconfigure file Print... -state disabled
+  $Main menu entryconfigure file Close -command {CarefulExit} \
+					-accelerator {Ctrl-Q}
+  $Main menu entryconfigure file Exit -command {CarefulExit}
+  set MainWindow [$Main scrollwindow getframe]
+# Need Read-Only Text...
+  pack [set LogWindow [text $MainWindow.text]] -fill both -expand yes
+  bindtags $LogWindow [list $LogWindow ROText . all Main]
+  $Main scrollwindow setwidget $LogWindow
+
+
+}
+
+MainWindow
+
+set FCFCarsLoaded [expr ![catch {package require FCFCars} message]]
+if {!$FCFCarsLoaded} {puts stderr "*** package require FCFCars => $message"}
+set FCFTrainsLoaded [expr ![catch {package require FCFTrains} message]]
+if {!$FCFTrainsLoaded} {puts stderr "*** package require FCFTrains => $message"}
+set FCFIndustriesLoaded [expr ![catch {package require FCFIndustries} message]]
+if {!$FCFIndustriesLoaded} {puts stderr "*** package require FCFIndustries => $message"}
+set FCFDivisionsLoaded [expr ![catch {package require FCFDivisions} message]]
+if {!$FCFDivisionsLoaded} {puts stderr "*** package require FCFDivisions => $message"}
+set FCFReportsLoaded [expr ![catch {package require FCFReports} message]]
+if {!$FCFReportsLoaded} {puts stderr "*** package require FCFReports => $message"}
+set FCFPrintersLoaded [expr ![catch {package require FCFPrinters} message]]
+if {!$FCFPrintersLoaded} {puts stderr "*** package require FCFPrinter => $message"}
+
+
+
+proc UnPostMenu {menu} {
+#  global errorInfo
+#  puts stderr "*** UnPostMenu: errorInfo = $errorInfo"
+  catch {
+    upvar #0 $menu data
+    $menu unpost
+    focus $data(oldfocus)      
+  }
+}
+
+proc PostMenuOnPointer {menu w} {
+  set X [winfo pointerx $w]
+  set Y [winfo pointery $w]
+
+#  global errorInfo
+#  puts stderr "*** PostMenuOnWidget: errorInfo = $errorInfo"
+  $menu activate none
+  $menu post $X $Y
+  upvar #0 $menu data
+  set data(oldfocus) [focus]
+  focus $menu
+}
+
+proc SetBusy {w flag} {
+  global FocusNowhere
+  switch [string tolower "$flag"] {
+    1 -
+    on -
+    yes {
+        if {[string equal [grab current $w] $FocusNowhere]} {return}
+	catch {array unset ::WatchList}
+	SetWatchCursor [winfo toplevel $w]
+	grab $FocusNowhere
+    }
+    0 -
+    off -
+    no {
+	if {![string equal [grab current $w] $FocusNowhere]} {return}
+	UnSetWatchCursor
+	grab release $FocusNowhere
+    }
+  }
+}
+
+proc SetWatchCursor {w} {
+  global WatchList
+  if {![catch {$w cget -cursor} oldcursor] && [winfo ismapped $w]} {
+    set WatchList($w) $oldcursor
+    catch {$w configure -cursor watch}
+  }
+  foreach iw [winfo children $w] {
+    SetWatchCursor $iw
+  }
+}
+
+proc UnSetWatchCursor {} {
+  global WatchList
+  foreach w [array names WatchList] {
+    catch {$w configure -cursor "$WatchList($w)"}
+  }
+}
+	
+proc WIPStart {{message {}}} {
+  global Main
+  $Main wipmessage configure -text "$message"
+  $Main setprogress 0
+  $Main setstatus {}
+  SetBusy $::Main on
+  update idle
+}
+
+proc WIPUpdate {value {message {}}} {
+  global Main
+  $Main setstatus "$message"
+  $Main setprogress $value
+  if {$value >= 100} {
+    SetBusy $::Main off
+  }
+  update idle
+}
+
+proc WIPDone {{message {}}} {
+  WIPUpdate 100 "$message"
+  update idle
+}
+
+Tcl8WorkInProgressCallback WIP WIPStart WIPUpdate WIPDone
+
+proc LogMessage {type message} {
+  global LogWindow
+
+  switch -exact "$type" {
+    :informational {
+      $LogWindow insert end "$message"
+      $LogWindow see end
+    }
+    :warning {
+      tk_messageBox -icon warning -type ok -message "$message"
+    }  
+    :error {
+      tk_messageBox -icon error -type ok -message "$message"
+    }
+  }
+}
+
+Tcl8LogMessageCallback Log LogMessage
+
+proc ShowBanner {} {
+  global LogWindow
+  $LogWindow insert end "\n[TheSystem SystemName]\n\n" BOLD
+  $LogWindow see end
+  update idle
+}
+
+Tcl8ShowBannerCallback Banner ShowBanner
+
+proc MakeSeed {} {
+  set dtlist [split [clock format [clock seconds] -format {%y %m %d %H %M %S}] " "]
+  set sum 0
+  foreach i $dtlist {
+    set ii "[string trimleft $i {0}]"
+    if {"$ii" == {}} {set ii 0}
+    incr sum $ii
+  }
+  return $sum
+}  
+
+
+proc LoadSystem {{fileName {}}} {
+  global LogWindow Main
+  if {[string length "$fileName"] == 0} {
+    set fileName [tk_getOpenFile \
+	-defaultextension {.dat} \
+	-initialfile system.dat \
+	-parent . \
+	-title {Name of a system file to load}]
+  }
+  if {[string length "$fileName"] == 0} {return}
+  if {[llength [info commands TheSystem]] > 0} {
+    rename TheSystem {}
+  }
+  System TheSystem [file nativename "$fileName"] [MakeSeed]
+  $LogWindow insert end \
+	"$fileName loaded:\n"
+  $LogWindow insert end \
+	"[TheSystem SystemName] [TheSystem SessionNumber] [TheSystem ShiftNumber]\n"
+  $LogWindow insert end \
+	"[TheSystem NumberOfDivisions] Divisions\n"
+  $LogWindow insert end \
+	"[TheSystem NumberOfStations] Stations\n"
+  $LogWindow insert end \
+	"[TheSystem NumberOfIndustries] Industries\n"
+  $LogWindow insert end \
+	"[TheSystem NumberOfCars] Cars\n"
+  $LogWindow insert end \
+	"[TheSystem NumberOfTrains] Trains\n"
+  $LogWindow see end
+  $Main buttons configure -state disabled
+  $Main buttons configure -state normal
+  $Main menu entryconfigure file Save -state normal
+  $Main toolbar setbuttonstate tools normal
+  global FCFCarsLoaded
+  if {$FCFCarsLoaded} {UpdateCarDisplayOptionMenus}
+
+}
+
+proc CarefulExit {{answer no}} {
+  if {!$answer} {
+    set answer "[tk_messageBox -icon question -type yesno -message {Really Exit}]"
+  }
+  switch -exact $answer {
+    no {return}
+    yes {
+	global IsSlave
+	flush stderr
+	if {$IsSlave} {
+	  puts stdout "101 Exit"
+	  flush stdout
+	  set ans [gets stdin]
+	}
+	if {[llength [info commands TheSystem]] > 0} {
+	  rename TheSystem {}
+	}
+	if {[llength [info commands CurrentPrinter]] > 0} {
+	  if {[CurrentPrinter IsOpenP]} {
+	    CurrentPrinter ClosePrinter
+	  }
+	  rename CurrentPrinter {}
+	}
+	exit
+    }
+  }
+}
+
+
+SplashWorkMessage "Adding button menu and toolbar items" 70
+
+if {$FCFCarsLoaded} {
+  image create photo LoadCarsButtonImage -file [file join $ImageDir loadcars.gif]
+  $Main toolbar addbutton tools loadcars -image LoadCarsButtonImage \
+			-command LoadCars \
+			-state disabled \
+			-helptext "(Re-)Load Cars File"
+  $Main buttons add -name loadcars -anchor w \
+			-text {Load Cars File} -command LoadCars -underline 0 \
+			  -state disabled \
+			  -helptext "(Re-)Load Cars File"
+  bind Main <L> "$Main buttons invoke loadcars"
+  bind Main <l> "$Main buttons invoke loadcars"
+  $Main menu entryconfigure file Save \
+	-dynamichelp "Save Cars" \
+	-command SaveCars \
+	-state disabled
+  image create photo SaveButtonImage -file [file join $CommonImageDir save.gif]
+  $Main toolbar addbutton tools savecars -image SaveButtonImage \
+		-command SaveCars \
+		-helptext "Save Cars" \
+		-state disabled
+  $Main buttons add -name savecars -anchor w \
+			-text {Save Cars File} -command SaveCars -underline 0 \
+			  -state disabled \
+			  -helptext "Save Cars File"
+  bind Main <S> "$Main buttons invoke savecars"
+  bind Main <s> "$Main buttons invoke savecars"
+  if {0} {
+    $Main buttons add -name groups -anchor w \
+			-text {Car Selection Groups} -command SelectGroups \
+			-underline [string first G {Car Selection Groups}] \
+			-state disabled \
+			  -helptext "Car Selection Groups Utility"
+    bind Main <G> "$Main buttons invoke groups"
+    bind Main <g> "$Main buttons invoke groups"
+  }
+}
+if {$FCFTrainsLoaded} {
+  $Main buttons add -name manageTrnPrint -anchor w \
+			-text {Manage trains/printing} \
+			-underline 0 \
+			-state disabled \
+			  -helptext "Manage Train Printing Menu"
+  bind Main <M> "$Main buttons invoke manageTrnPrint"
+  bind Main <m> "$Main buttons invoke manageTrnPrint"
+  set menu [CreateManageTrainsPrintingMenu $Main manageTrnPrint]
+  image create photo ManageTrainsPrintingImage \
+		-file [file join $ImageDir managetrainsprint.gif]
+  $Main toolbar addbutton tools manageTrnPrint \
+		-image ManageTrainsPrintingImage \
+		-command [list PostMenuOnPointer $menu $Main] \
+		-state disabled \
+		-helptext "Manage Train Printing Menu"
+
+}
+
+if {$FCFCarsLoaded} {
+  image create photo ViewCarImage -file [file join $ImageDir viewcar.gif]
+  $Main toolbar addbutton tools viewcar -image ViewCarImage \
+		-command ViewCar \
+		-state disabled \
+		-helptext "View one Car"
+  $Main buttons add -name viewcar -anchor w \
+			-text {View Car Information} -command ViewCar \
+			-underline 0 \
+			-state disabled \
+			-helptext "View one Car"
+  bind Main <V> "$Main buttons invoke viewcar"
+  bind Main <v> "$Main buttons invoke viewcar"
+  image create photo EditCarImage -file [file join $ImageDir editcar.gif]
+  $Main toolbar addbutton tools editcar -image EditCarImage \
+			-command EditCar \
+			-state disabled \
+			-helptext "Edit a Car"
+  $Main buttons add -name editcar -anchor w \
+			-text {Edit Car Information} -command EditCar \
+			-underline 0 \
+			 -state disabled \
+			  -helptext "Edit a Car"
+  bind Main <E> "$Main buttons invoke editcar"
+  bind Main <e> "$Main buttons invoke editcar"
+  image create photo AddCarImage -file [file join $ImageDir addcar.gif]
+  $Main toolbar addbutton tools addcar -image AddCarImage \
+			-command AddNewCar \
+			-state disabled \
+			-helptext "Add a new Car"
+  $Main buttons add  -name addcar -anchor w \
+			-text {Add a New Car} -command AddNewCar \
+			-underline [string first N {Add a New Car}] \
+			-state disabled \
+			  -helptext "Add a new Car"
+  bind Main <N> "$Main buttons invoke addcar"
+  bind Main <n> "$Main buttons invoke addcar"
+  image create photo DeleteCarImage -file [file join $ImageDir deletecar.gif]
+  $Main toolbar addbutton tools deletecar -image DeleteCarImage \
+			-command DeleteCar \
+			-state disabled \
+			-helptext "Delete an existing Car"
+  $Main buttons add -name deletecar -anchor w \
+			-text {Delete An Existing Car} -command DeleteCar \
+			   -underline 0 -state disabled \
+			  -helptext "Delete an existing Car"
+  bind Main <D> "$Main buttons invoke deletecar"
+  bind Main <d> "$Main buttons invoke deletecar"
+  image create photo UnassignedCarsImage \
+		-file [file join $ImageDir unassignedcars.gif]
+  $Main toolbar addbutton tools unassignedcars -image UnassignedCarsImage \
+		-command ShowUnassignedCars \
+		-state disabled \
+		-helptext "Show Unassigned Cars"
+  $Main buttons add -name unassignedcars -anchor w \
+			-text {Show Unassigned Cars} \
+				-command ShowUnassignedCars \
+				-underline [string first U {Show Unassigned Cars}] \
+				-state disabled \
+			  -helptext "Show Unassigned Cars"
+  bind Main <U> "$Main buttons invoke unassignedcars"
+  bind Main <u> "$Main buttons invoke unassignedcars"
+  image create photo AssignCarsImage \
+		-file [file join $ImageDir assigncars.gif]
+  $Main toolbar addbutton tools assigncars -image AssignCarsImage \
+		-command AssignCars \
+		-state disabled \
+		-helptext "Run the Car Assignment procedure"
+  $Main buttons add -name assigncars -anchor w \
+			-text {Run Car Assignments} \
+			    -command AssignCars \
+			    -underline [string first A {Run Car Assignments}] \
+			    -state disabled \
+			  -helptext "Run the Car Assignment procedure"
+  bind Main <A> "$Main buttons invoke assigncars"
+  bind Main <a> "$Main buttons invoke assigncars"
+}
+if {$FCFTrainsLoaded} {
+  image create photo RunAllTrainsImage \
+		-file [file join $ImageDir runalltrains.gif]
+  $Main toolbar addbutton tools runalltrains -image RunAllTrainsImage \
+			-command RunAllTrains \
+			-state disabled \
+			-helptext "Run All Trains In Operating Session"
+  $Main buttons add -name runalltrains -anchor w \
+			-text {Run All Trains In Operating Session} \
+			      -command RunAllTrains \
+			      -underline [string first O {Run All Trains In Operating Session}] \
+			      -state disabled \
+			  -helptext "Run All Trains In Operating Session"
+  bind Main <O> "$Main buttons invoke runalltrains"
+  bind Main <o> "$Main buttons invoke runalltrains"
+  image create photo RunBoxMovesImage \
+		-file [file join $ImageDir runboxmoves.gif]
+  $Main toolbar addbutton tools runboxmoves -image RunBoxMovesImage \
+			-command RunBoxMoves \
+			-state disabled \
+			-helptext "Run Boxmove Trains"
+  $Main buttons add -name runboxmovetrains -anchor w \
+			-text {Run Boxmove Trains} \
+				  -command RunBoxMoves \
+				  -underline [string first B {Run Boxmove Trains}] \
+			          -state disabled \
+			  -helptext "Run Boxmove Trains"
+  bind Main <B> "$Main buttons invoke runboxmovetrains"
+  bind Main <b> "$Main buttons invoke runboxmovetrains"
+  image create photo RunOneTrainImage \
+		-file [file join $ImageDir runonetrain.gif]
+  $Main toolbar addbutton tools runonetrain -image RunOneTrainImage \
+			-command RunOneTrain \
+			-state disabled \
+			-helptext "Run a single train"
+  $Main buttons add -name runonetrain -anchor w \
+			-text {Run Trains One At A Time} \
+			     -command RunOneTrain \
+			     -underline [string first T {Run Trains One At A Time}] \
+			     -state disabled \
+			  -helptext "Run a single train"
+  bind Main <T> "$Main buttons invoke runonetrain"
+  bind Main <t> "$Main buttons invoke runonetrain"
+}
+if {$FCFPrintersLoaded} {
+  image create photo PrintImage \
+		-file [file join $CommonImageDir print.gif]
+  $Main toolbar addbutton tools openprinter -image PrintImage \
+		-command OpenPrinter \
+		-helptext "Open printer"
+  $Main buttons add -name openprinter -anchor w \
+			-text {Open Printer  Alt-P} \
+			   -command OpenPrinter \
+			  -helptext "Open printer"
+  bind Main <Alt-P> "$Main buttons invoke openprinter"
+  bind Main <Alt-p> "$Main buttons invoke openprinter"
+  image create photo ClosePrintImage \
+		-file [file join $ImageDir closeprint.gif]
+  global PrinterIndicator
+  set PrinterIndicator [$Main mainframe addindicator \
+				-relief flat -borderwidth 4 \
+				-image ClosePrintImage]
+  $Main toolbar addbutton tools closeprinter -image ClosePrintImage \
+  		-command ClosePrinter \
+		-helptext "Close printer"
+  $Main buttons add -name closeprinter -anchor w \
+			-text {Close Printer  Alt-C} \
+			   -command ClosePrinter \
+			  -helptext "Close printer"
+  bind Main <Alt-C> "$Main buttons invoke closeprinter"
+  bind Main <Alt-c> "$Main buttons invoke closeprinter"
+  image create photo YardPrintImage \
+		-file [file join $ImageDir yardprint.gif]
+  $Main toolbar addbutton tools printyard -image YardPrintImage \
+  		-command PrintYardLists \
+		-state disabled \
+		-helptext "Print Yard lists and other lists"
+  $Main buttons add -name printyard -anchor w \
+			-text {Print Yard Lists, etc.} \
+			   -command PrintYardLists -underline 0 \
+			   -state disabled \
+			  -helptext "Print Yard lists and other lists"
+  bind Main <P> "$Main buttons invoke printyard"
+  bind Main <p> "$Main buttons invoke printyard"
+}
+if {$FCFCarsLoaded} {
+  $Main buttons add -name showcars -anchor w \
+			-text {Show Cars On Screen} \
+			  -underline [string first C {Show Cars On Screen}] \
+			  -state disabled \
+			  -helptext "Show cars on screen"
+  bind Main <C> "$Main buttons invoke showcars"
+  bind Main <c> "$Main buttons invoke showcars"
+  set menu [CreateShowCarsMenu $Main showcars]
+  image create photo ShowCarsImage \
+		-file [file join $ImageDir showcars.gif]
+  $Main toolbar addbutton tools showcars -image ShowCarsImage \
+		-command [list PostMenuOnPointer $menu $Main] \
+		-state disabled \
+		-helptext "Show cars on screen"
+}
+if {$FCFReportsLoaded && $FCFPrintersLoaded} {
+  $Main buttons add -name reportsmenu -anchor w \
+			-text {Reports Menu} \
+			     -underline 0 -state disabled \
+			  -helptext "Reports menu"
+  bind Main <R> "$Main buttons invoke reportsmenu"
+  bind Main <r> "$Main buttons invoke reportsmenu"
+  set menu [CreateReportsMenu $Main reportsmenu]
+  image create photo ReportsImage -file [file join $ImageDir reports.gif]
+  $Main toolbar addbutton tools reportsmenu -image ReportsImage \
+	-command [list PostMenuOnPointer $menu $Main] \
+	-state disabled \
+	-helptext "Reports menu"
+}
+if {$FCFIndustriesLoaded} {
+  image create photo ResetIndustriesImage \
+	-file [file join $ImageDir resetIndustries.gif]
+  $Main toolbar addbutton tools resetindustries -image ResetIndustriesImage \
+	-command ResetIndustryStatistics \
+	-state disabled \
+	-helptext "Reset industry statistics"
+  $Main buttons add -name resetindustries -anchor w \
+			-text {Reset Industry Statistics} \
+				 -command ResetIndustryStatistics \
+				 -underline [string first I {Reset Industry Statistics}] \
+			         -state disabled \
+			  -helptext "Reset industry statistics"
+  bind Main <I> "$Main buttons invoke resetindustries"
+  bind Main <i> "$Main buttons invoke resetindustries"
+}
+if {$FCFTrainsLoaded} {
+  CreateTrainDisplay
+}
+if {$FCFCarsLoaded} {
+  CreateCarDisplay
+}
+
+$Main buttons add -name quit -anchor w \
+			-text {Quit -- Exit NOW} -command CarefulExit \
+			-underline 0 \
+			-helptext "Exit the program"
+bind Main <Q> "$Main buttons invoke quit"
+bind Main <q> "$Main buttons invoke quit"
+
+image create photo CloseButtonImage -file [file join $CommonImageDir close.gif]
+$Main toolbar addbutton tools close -image CloseButtonImage \
+	-command CarefulExit \
+	-helptext "Close the application"
+
+proc _AddBindTag {w tag} {
+  if {[string equal [winfo class $w] Entry]} {return}
+  if {[string equal [winfo class $w] Text]} {return}
+  if {[string equal [winfo toplevel $w] $w] && ![string equal $w .]} {return}
+  bindtags $w [linsert [bindtags $w] end $tag]
+  foreach c [winfo children $w] {_AddBindTag $c $tag}
+}
+
+_AddBindTag . Main
+
+
+
+update idle
+set extraX 0
+foreach s [$Main slideout list] {
+  set rw [$Main slideout reqwidth $s]
+  if {$rw > $extraX} {set extraX $rw}
+}
+
+
+if {!$IsSlave} {$Main showit $extraX}
+  
+if {$HasSystemFile > 0} {LoadSystem "$SystemFile"}
+
+catch {SplashWorkMessage {Done} 100}
+
+
+if {$IsSlave} {
+  fileevent stdin readable {
+    if {[gets stdin line] < 0} {CarefulExit yes}
+    switch -- "$line" {
+      {201 Exit} {CarefulExit yes}
+      default {}
+    }
+  }
+}
+
