@@ -1,0 +1,75 @@
+%* 
+%* ------------------------------------------------------------------
+%* GraphicsSupport.tex - Using the graphics support code.
+%* Created by Robert Heller on Thu Apr 19 14:38:52 2007
+%* ------------------------------------------------------------------
+%* Modification History: $Log$
+%* Modification History: Revision 1.2  2007/11/30 13:56:50  heller
+%* Modification History: Novemeber 30, 2007 lockdown.
+%* Modification History:
+%* Modification History: Revision 1.1  2007/05/06 12:49:38  heller
+%* Modification History: Lock down  for 2.1.8 release candidate 1
+%* Modification History:
+%* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+%* Modification History: Add it copyright notice headers
+%* Modification History:
+%* ------------------------------------------------------------------
+%* Contents:
+%* ------------------------------------------------------------------
+%*  
+%*     Model RR System, Version 2
+%*     Copyright (C) 1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software
+%* 			51 Locke Hill Road
+%* 			Wendell, MA 01379-9728
+%* 
+%*     This program is free software; you can redistribute it and/or modify
+%*     it under the terms of the GNU General Public License as published by
+%*     the Free Software Foundation; either version 2 of the License, or
+%*     (at your option) any later version.
+%* 
+%*     This program is distributed in the hope that it will be useful,
+%*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%*     GNU General Public License for more details.
+%* 
+%*     You should have received a copy of the GNU General Public License
+%*     along with this program; if not, write to the Free Software
+%*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+%* 
+%*  
+%* 
+
+\chapter{Using the Graphics Support Code.}
+\label{chapt:GraphicsSupport}
+\typeout{$Id}
+
+Version 2 of the Graphics Support is covered in this chapter.  Version
+1 is depreciated and is included only for older applications.
+
+The grsupport package defines the constants $\pi$ and $\pi \over 2$, a
+procedure to convert degrees to radians, plus a collection of Snit
+macros that define common validating methods that are useful when
+defining Snit types.
+
+\lstinputlisting[caption={Graphics Support package examples},
+		   label={lst:GRS:Examples},
+		   firstline=38]{SampleCodeCircle.tcl}
+\begin{figure}[hbpt]
+\begin{centering}
+\includegraphics{Circles.png}
+\caption{Circles drawn with the Circle type.}
+\label{fig:GRS:Circles}
+\end{centering}
+\end{figure}
+Listing~\ref{lst:GRS:Examples} shows some code that uses the Graphics
+Support package.  This code defines a Snit type named Circle, which extends
+the oval item type for canvas drawing.  The type draws an oval, and
+then binds several events to the oval. Figure~\ref{fig:GRS:Circles}
+shows a pair of circles drawn with the code in
+Listing~\ref{lst:GRS:Examples}.
+
+This code uses several constants and macros defined in the
+Graphics Support package, including code to verify option values and the
+constant $\pi$.
+
+
