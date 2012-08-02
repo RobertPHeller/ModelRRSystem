@@ -1,0 +1,4471 @@
+Fri Nov 30 08:53:42 2007
+
+  2.1.12 Released:
+
+	Created FCFCreate application.
+
+	    FCFCreate is an application to create the set of data files
+		used by the Freight Car Forwarder program.
+
+	 Continued to flesh out the programming guide.
+
+	 Fixed minor problem with the ReadConfiguration code.
+
+Sat Nov  3 16:27:44 2007
+
+  2.1.11 Released:
+
+	Fixed problems with dialog boxes under MS-Windows (FCF2, TT2, and 
+		CamCalc).
+
+	    Converted dialog creation to 'lazy eval' -- create the dialogs
+		just before first use.
+
+	Fixed NULL pointer problem in FCF Support code.
+
+	    Added missing check for NULL industry in stats saving code.
+
+	Fixed missing dialog problem in FCF2.
+
+	    A dialog box was missing from the report code.
+
+	Added version reporting code to both help and internal script code.
+
+	    Created build code to create Version.tcl and Version.hh file(s).
+
+	Started to flesh out the programming guide.
+
+Sun Sep 30 11:59:58 2007
+
+  2.1.10 Released:
+
+	Fixed a minor bug in the Freight Car Forwarder.
+
+	     It was a binding problem with accelerator keys that interfered
+	     with the Add and Edit car slideouts.
+
+	Updated the Freight Car Forwarder documentation.
+
+	     Added additional detail to the tutorial about creating and
+	     maintaining the data files used by the Freight Car Forwarder
+	     system.
+
+Mon Sep  3 12:37:02 2007
+
+  2.1.9 Released:
+
+	Fixed a nasty bug in the Time Table C++ support code.
+
+	    It was a problem with the print option hash table, which
+prevented any sort of customization of the printed time tables.
+	
+	Fixed a minor bug in the Time Table Tcl code.
+
+	    A minor problem with error handling when sub-processes die
+with problems.
+
+
+
+Sun May  6 12:00:21 2007
+
+  2.1.8 Released:
+
+        Added a ManPages directory. Started creating man pages.
+
+	Added a hook for htlatex (part of tex4ht) to create HTML versions of
+the documentation, along with the PDF versions.
+
+	Removed support for the older version of SWIG (pre 1.3), which
+does not work anymore.
+
+	Recoded the Rail Driver daemon to be a single-threaded, event
+driven process.
+
+	Cleaned up the conditional build code in the C++ directory.
+
+	Revised all of the C++ API documentation and added lots of
+additional comments in the C++ code.  Found and fixed a number of bugs
+in both the Freight Car Forwarder (V2) and Time Table (V2) C++ support
+code.
+
+	Revised the Tcl API documentation and completed the SNIT
+re-writes of the various support libraries.
+
+	Found and fixed a number of bugs in both the Freight Car
+Forwarder (V2) and Time Table (V2) Tcl/Tk code.
+
+	Completed both the Help and printed user documentation for both
+the Freight Car Forwarder (V2) and Time Table (V2) programs.
+
+	Started work on a Programming Guide for the C++ and Tcl libraries.
+
+
+Fri Feb  2 09:54:14 2007:
+
+   2.1.7 Released:
+
+	Many fixes to configure scripts and makefiles (many parts of
+the build process have been fixed) to allow for cross-building for
+MS-Windows, as well as more intelligent building under other systems. 
+Someday I need to get a MacOSX build box and do a build for MacOSX.
+
+	All Tcl/Tk code has been converted/adapted to the use of
+StarKits and StarPacks for all platforms.  All Tcl coded build scripts
+are now StarKits. All Tcl/Tk *programs* are now built as StarPack
+executables.  Tcl/Tk does not need to be installed on the target system
+and the StarPack executables can be copied as loose executable files,
+without needing any support code installed (which facilitates installing
+on dedicated machines, such as a yard boss's desktop or laptop).  Tcl
+and Tk (with their development packages) are needed on the build
+system, along with the BWidget and Snit extensions. And the Sdx kit is
+needed as well as both native and target system TclKit executables.
+
+	The C/C++ has been reorganized.  The C/C++ libraries are now
+also the Tcl sharable load modules.  The Parser and Classes libraries
+have been combined into a single library (eliminating the circular
+dependency).  The separate Swig directory has been eliminated and the
+Swig interface files (*.i) have been moved to the regular C/C++
+subdirectories.  The C/C++ header files are now installed, so it is
+possible to write C/C++ code on top of these libraries.
+
+	Some of the Tcl/Tk code has been updated to make use of Snit
+and/or BWidget.  The older version is still available, at least for the
+time being.
+
+
+
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/CHANGELOG,v
+Working file: CHANGELOG
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.3
+date: 2004/06/26 14:04:46;  author: heller;  state: Exp;  lines: +12 -4
+Update changelog for 2.0.1 (Jun-26-2004)
+----------------------------
+revision 1.2
+date: 2004/06/26 13:54:56;  author: heller;  state: Exp;  lines: +526 -528
+Update changelog for 2.0.1 (Jun-26-2004)
+----------------------------
+revision 1.1
+date: 2004/05/30 14:44:24;  author: heller;  state: Exp;
+Changelog
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/COPYING,v
+Working file: COPYING
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	start: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2000/11/10 00:40:01;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2000/11/10 00:40:01;  author: heller;  state: Exp;  lines: +0 -0
+Base tree
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/INSTALL,v
+Working file: INSTALL
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 14:43:11;  author: heller;  state: Exp;
+Standard top-level text files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Makefile.in,v
+Working file: Makefile.in
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 4;	selected revisions: 4
+description:
+----------------------------
+revision 1.3
+date: 2004/06/06 13:57:38;  author: heller;  state: Exp;  lines: +14 -1
+Added code to install target.
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/README,v
+Working file: README
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 14:43:11;  author: heller;  state: Exp;
+Standard top-level text files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/config_tcl.sed.in,v
+Working file: config_tcl.sed.in
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/04/17 16:54:24;  author: heller;  state: Exp;
+Add sed edit file for configuring Tcl/Tk scripts.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/configure,v
+Working file: configure
+head: 1.7
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.6
+	R-05222004: 1.6
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 8;	selected revisions: 8
+description:
+----------------------------
+revision 1.7
+date: 2004/06/26 13:31:08;  author: heller;  state: Exp;  lines: +102 -68
+Update versioning for new release
+----------------------------
+revision 1.6
+date: 2004/04/17 16:54:24;  author: heller;  state: Exp;  lines: +2 -2
+Add sed edit file for configuring Tcl/Tk scripts.
+----------------------------
+revision 1.5
+date: 2004/04/14 23:16:31;  author: heller;  state: Exp;  lines: +256 -247
+Fixed shared lib linking.
+----------------------------
+revision 1.4
+date: 2002/11/10 14:27:05;  author: heller;  state: Exp;  lines: +8 -2
+Updated for Time Table files
+----------------------------
+revision 1.3
+date: 2002/07/27 12:58:59;  author: heller;  state: Exp;  lines: +2 -2
+Small update
+----------------------------
+revision 1.2
+date: 2002/07/14 19:01:36;  author: heller;  state: Exp;  lines: +24 -2
+Add in Camera scripts
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/configure.in,v
+Working file: configure.in
+head: 1.8
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.7
+	R-05222004: 1.7
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 9;	selected revisions: 9
+description:
+----------------------------
+revision 1.8
+date: 2004/06/26 13:31:08;  author: heller;  state: Exp;  lines: +23 -12
+Update versioning for new release
+----------------------------
+revision 1.7
+date: 2004/04/17 16:54:24;  author: heller;  state: Exp;  lines: +4 -1
+Add sed edit file for configuring Tcl/Tk scripts.
+----------------------------
+revision 1.6
+date: 2004/04/14 23:16:31;  author: heller;  state: Exp;  lines: +30 -7
+Fixed shared lib linking.
+----------------------------
+revision 1.5
+date: 2002/11/10 14:27:05;  author: heller;  state: Exp;  lines: +8 -3
+Updated for Time Table files
+----------------------------
+revision 1.4
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.3
+date: 2002/07/27 12:57:54;  author: heller;  state: Exp;  lines: +1 -1
+Add Graphics Support Code
+----------------------------
+revision 1.2
+date: 2002/07/14 19:01:36;  author: heller;  state: Exp;  lines: +12 -1
+Add in Camera scripts
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/copyright.text,v
+Working file: copyright.text
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;
+Add it copyright notice headers
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/headerfile.text,v
+Working file: headerfile.text
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;
+Add it copyright notice headers
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/install-sh,v
+Working file: install-sh
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/BuildScripts/Makefile.in,v
+Working file: BuildScripts/Makefile.in
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/BuildScripts/generateLib_pkgIndex.sh,v
+Working file: BuildScripts/generateLib_pkgIndex.sh
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/26 13:53:37;  author: heller;  state: Exp;
+Add in additional files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Makefile.in,v
+Working file: C++/Makefile.in
+head: 1.5
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.3
+	R-05222004: 1.3
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 6;	selected revisions: 6
+description:
+----------------------------
+revision 1.5
+date: 2004/06/26 13:31:08;  author: heller;  state: Exp;  lines: +8 -0
+Update versioning for new release
+----------------------------
+revision 1.4
+date: 2004/06/06 13:57:51;  author: heller;  state: Exp;  lines: +12 -0
+Added code to install target.
+----------------------------
+revision 1.3
+date: 2004/03/13 15:49:13;  author: heller;  state: Exp;  lines: +5 -2
+none
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/CMri/CxxInternals.texenv,v
+Working file: C++/CMri/CxxInternals.texenv
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/03/16 02:37:39;  author: heller;  state: Exp;
+Base class documentation
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/CMri/Makefile.in,v
+Working file: C++/CMri/Makefile.in
+head: 1.7
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.5
+	R-05222004: 1.5
+keyword substitution: kv
+total revisions: 7;	selected revisions: 7
+description:
+----------------------------
+revision 1.7
+date: 2004/06/26 13:31:09;  author: heller;  state: Exp;  lines: +14 -1
+Update versioning for new release
+----------------------------
+revision 1.6
+date: 2004/06/06 13:57:55;  author: heller;  state: Exp;  lines: +11 -1
+Added code to install target.
+----------------------------
+revision 1.5
+date: 2004/04/17 16:54:48;  author: heller;  state: Exp;  lines: +10 -2
+Universal Test program for C/MRI cards.
+----------------------------
+revision 1.4
+date: 2004/03/16 14:49:28;  author: heller;  state: Exp;  lines: +6 -4
+Code comments added
+----------------------------
+revision 1.3
+date: 2004/03/16 02:37:39;  author: heller;  state: Exp;  lines: +44 -1
+Base class documentation
+----------------------------
+revision 1.2
+date: 2004/03/14 05:20:17;  author: heller;  state: Exp;  lines: +41 -5
+First Alpha Release Lockdown
+----------------------------
+revision 1.1
+date: 2004/03/13 15:49:28;  author: heller;  state: Exp;
+Initial code
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/CMri/UniversalTest.src,v
+Working file: C++/CMri/UniversalTest.src
+head: 1.6
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.6
+	R-05222004: 1.6
+keyword substitution: kv
+total revisions: 6;	selected revisions: 6
+description:
+----------------------------
+revision 1.6
+date: 2004/05/22 15:01:53;  author: heller;  state: Exp;  lines: +10 -4
+Updates after live tests with a Super Mini node.
+----------------------------
+revision 1.5
+date: 2004/04/17 21:20:34;  author: heller;  state: Exp;  lines: +38 -2
+Small changes.  Add copyright.
+----------------------------
+revision 1.4
+date: 2004/04/17 18:46:55;  author: heller;  state: Exp;  lines: +126 -2
+Ready for hard test.
+----------------------------
+revision 1.3
+date: 2004/04/17 17:17:22;  author: heller;  state: Exp;  lines: +1 -1
+Enforce a large enough window size for Output Test.
+----------------------------
+revision 1.2
+date: 2004/04/17 17:13:10;  author: heller;  state: Exp;  lines: +6 -2
+Update maxsize (overwrite screen size if needed).
+----------------------------
+revision 1.1
+date: 2004/04/17 16:54:48;  author: heller;  state: Exp;
+Universal Test program for C/MRI cards.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/CMri/cmri.cc,v
+Working file: C++/CMri/cmri.cc
+head: 1.5
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.5
+	R-05222004: 1.5
+keyword substitution: kv
+total revisions: 5;	selected revisions: 5
+description:
+----------------------------
+revision 1.5
+date: 2004/05/22 15:01:53;  author: heller;  state: Exp;  lines: +25 -2
+Updates after live tests with a Super Mini node.
+----------------------------
+revision 1.4
+date: 2004/04/14 23:17:38;  author: heller;  state: Exp;  lines: +10 -7
+Removed default args in C++ code.
+----------------------------
+revision 1.3
+date: 2004/03/16 14:49:28;  author: heller;  state: Exp;  lines: +175 -54
+Code comments added
+----------------------------
+revision 1.2
+date: 2004/03/16 02:37:39;  author: heller;  state: Exp;  lines: +6 -3
+Base class documentation
+----------------------------
+revision 1.1
+date: 2004/03/14 05:20:17;  author: heller;  state: Exp;
+First Alpha Release Lockdown
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/CMri/cmri.h,v
+Working file: C++/CMri/cmri.h
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.3
+	R-05222004: 1.3
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.3
+date: 2004/04/15 00:03:25;  author: heller;  state: Exp;  lines: +6 -4
+Hacked to compile under RH 6.2
+(sys/select.h broken)
+----------------------------
+revision 1.2
+date: 2004/03/16 02:37:39;  author: heller;  state: Exp;  lines: +269 -14
+Base class documentation
+----------------------------
+revision 1.1
+date: 2004/03/14 05:20:17;  author: heller;  state: Exp;
+First Alpha Release Lockdown
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/CMri/cmri.i,v
+Working file: C++/CMri/cmri.i
+head: 1.4
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.3
+	R-05222004: 1.3
+keyword substitution: kv
+total revisions: 4;	selected revisions: 4
+description:
+----------------------------
+revision 1.4
+date: 2004/06/26 13:31:09;  author: heller;  state: Exp;  lines: +5 -2
+Update versioning for new release
+----------------------------
+revision 1.3
+date: 2004/03/16 14:49:28;  author: heller;  state: Exp;  lines: +39 -9
+Code comments added
+----------------------------
+revision 1.2
+date: 2004/03/16 02:37:39;  author: heller;  state: Exp;  lines: +6 -3
+Base class documentation
+----------------------------
+revision 1.1
+date: 2004/03/14 05:20:17;  author: heller;  state: Exp;
+First Alpha Release Lockdown
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/Block.cc,v
+Working file: C++/Classes/Block.cc
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/Block.h,v
+Working file: C++/Classes/Block.h
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/Cross.cc,v
+Working file: C++/Classes/Cross.cc
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/Cross.h,v
+Working file: C++/Classes/Cross.h
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/IntegerList.h,v
+Working file: C++/Classes/IntegerList.h
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/26 13:53:37;  author: heller;  state: Exp;
+Add in additional files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/Makefile.in,v
+Working file: C++/Classes/Makefile.in
+head: 1.6
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.5
+	R-05222004: 1.5
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 7;	selected revisions: 7
+description:
+----------------------------
+revision 1.6
+date: 2004/06/06 13:58:00;  author: heller;  state: Exp;  lines: +5 -0
+Added code to install target.
+----------------------------
+revision 1.5
+date: 2004/03/13 15:49:49;  author: heller;  state: Exp;  lines: +11 -3
+*** empty log message ***
+----------------------------
+revision 1.4
+date: 2002/10/17 00:00:53;  author: heller;  state: Exp;  lines: +5 -1
+Add Documentation  (Doc++)
+
+Implement turnout body, track length, and turntable support.
+----------------------------
+revision 1.3
+date: 2002/09/24 04:20:18;  author: heller;  state: Exp;  lines: +13 -8
+MRRXtrkCad => TrackGraph
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/NonROW.cc,v
+Working file: C++/Classes/NonROW.cc
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/NonROW.h,v
+Working file: C++/Classes/NonROW.h
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/ParseFile.cc,v
+Working file: C++/Classes/ParseFile.cc
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 4;	selected revisions: 4
+description:
+----------------------------
+revision 1.3
+date: 2004/06/26 14:03:52;  author: heller;  state: Exp;  lines: +5 -2
+Remove unused header reference
+----------------------------
+revision 1.2
+date: 2002/09/24 04:20:18;  author: heller;  state: Exp;  lines: +8 -12
+MRRXtrkCad => TrackGraph
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/ParseFile.h,v
+Working file: C++/Classes/ParseFile.h
+head: 1.4
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.4
+	R-05222004: 1.4
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 5;	selected revisions: 5
+description:
+----------------------------
+revision 1.4
+date: 2002/10/17 00:00:53;  author: heller;  state: Exp;  lines: +53 -0
+Add Documentation  (Doc++)
+
+Implement turnout body, track length, and turntable support.
+----------------------------
+revision 1.3
+date: 2002/09/25 01:54:53;  author: heller;  state: Exp;  lines: +10 -0
+Implement Tcl access to graph nodes.
+----------------------------
+revision 1.2
+date: 2002/09/24 04:20:18;  author: heller;  state: Exp;  lines: +5 -3
+MRRXtrkCad => TrackGraph
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/Segment.cc,v
+Working file: C++/Classes/Segment.cc
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/Segment.h,v
+Working file: C++/Classes/Segment.h
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/SigExpr.cc,v
+Working file: C++/Classes/SigExpr.cc
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/SigExpr.h,v
+Working file: C++/Classes/SigExpr.h
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/Signal.cc,v
+Working file: C++/Classes/Signal.cc
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/Signal.h,v
+Working file: C++/Classes/Signal.h
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/Table.cc,v
+Working file: C++/Classes/Table.cc
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/Table.h,v
+Working file: C++/Classes/Table.h
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/TrackBody.h,v
+Working file: C++/Classes/TrackBody.h
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2002/10/17 00:00:53;  author: heller;  state: Exp;  lines: +54 -12
+Add Documentation  (Doc++)
+
+Implement turnout body, track length, and turntable support.
+----------------------------
+revision 1.1
+date: 2002/09/24 04:20:18;  author: heller;  state: Exp;
+MRRXtrkCad => TrackGraph
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/TrackGraph.cc,v
+Working file: C++/Classes/TrackGraph.cc
+head: 1.4
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.4
+	R-05222004: 1.4
+keyword substitution: kv
+total revisions: 4;	selected revisions: 4
+description:
+----------------------------
+revision 1.4
+date: 2002/10/17 00:00:53;  author: heller;  state: Exp;  lines: +584 -11
+Add Documentation  (Doc++)
+
+Implement turnout body, track length, and turntable support.
+----------------------------
+revision 1.3
+date: 2002/09/25 23:56:50;  author: heller;  state: Exp;  lines: +26 -1
+Add in support for block gaps and turntables
+----------------------------
+revision 1.2
+date: 2002/09/25 01:54:53;  author: heller;  state: Exp;  lines: +85 -2
+Implement Tcl access to graph nodes.
+----------------------------
+revision 1.1
+date: 2002/09/24 04:20:18;  author: heller;  state: Exp;
+MRRXtrkCad => TrackGraph
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/TrackGraph.h,v
+Working file: C++/Classes/TrackGraph.h
+head: 1.5
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.5
+	R-05222004: 1.5
+keyword substitution: kv
+total revisions: 5;	selected revisions: 5
+description:
+----------------------------
+revision 1.5
+date: 2004/03/13 15:49:49;  author: heller;  state: Exp;  lines: +7 -0
+*** empty log message ***
+----------------------------
+revision 1.4
+date: 2002/10/17 00:00:53;  author: heller;  state: Exp;  lines: +182 -10
+Add Documentation  (Doc++)
+
+Implement turnout body, track length, and turntable support.
+----------------------------
+revision 1.3
+date: 2002/09/25 23:56:50;  author: heller;  state: Exp;  lines: +5 -0
+Add in support for block gaps and turntables
+----------------------------
+revision 1.2
+date: 2002/09/25 01:54:53;  author: heller;  state: Exp;  lines: +11 -1
+Implement Tcl access to graph nodes.
+----------------------------
+revision 1.1
+date: 2002/09/24 04:20:18;  author: heller;  state: Exp;
+MRRXtrkCad => TrackGraph
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/Tree.cc,v
+Working file: C++/Classes/Tree.cc
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/Tree.h,v
+Working file: C++/Classes/Tree.h
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/Turnout.cc,v
+Working file: C++/Classes/Turnout.cc
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/Turnout.h,v
+Working file: C++/Classes/Turnout.h
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Classes/TurnoutBody.h,v
+Working file: C++/Classes/TurnoutBody.h
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/26 13:53:37;  author: heller;  state: Exp;
+Add in additional files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/FCFSupport/Makefile.in,v
+Working file: C++/FCFSupport/Makefile.in
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Parsers/MRRClassFile.y,v
+Working file: C++/Parsers/MRRClassFile.y
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Parsers/MRRLayoutFile.y,v
+Working file: C++/Parsers/MRRLayoutFile.y
+head: 1.1
+branch: 1.1.1
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1.1.1
+	R-05222004: 1.1.1.1
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Parsers/MRRSigExpr.y,v
+Working file: C++/Parsers/MRRSigExpr.y
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.2
+date: 2002/09/24 04:20:18;  author: heller;  state: Exp;  lines: +5 -6
+MRRXtrkCad => TrackGraph
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Parsers/MRRXtrkCad.y,v
+Working file: C++/Parsers/MRRXtrkCad.y
+head: 1.6
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.6
+	R-05222004: 1.6
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 7;	selected revisions: 7
+description:
+----------------------------
+revision 1.6
+date: 2002/10/17 00:01:37;  author: heller;  state: Exp;  lines: +236 -33
+Update Parser to full functionality.
+
+Implement turnout body, track length, and turntable support.
+----------------------------
+revision 1.5
+date: 2002/09/25 23:56:50;  author: heller;  state: Exp;  lines: +16 -3
+Add in support for block gaps and turntables
+----------------------------
+revision 1.4
+date: 2002/09/24 04:20:18;  author: heller;  state: Exp;  lines: +31 -32
+MRRXtrkCad => TrackGraph
+----------------------------
+revision 1.3
+date: 2002/07/28 14:06:34;  author: heller;  state: Exp;  lines: +35 -1
+Add it copyright notice headers
+----------------------------
+revision 1.2
+date: 2002/07/27 12:57:54;  author: heller;  state: Exp;  lines: +3 -3
+Add Graphics Support Code
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Parsers/Makefile.in,v
+Working file: C++/Parsers/Makefile.in
+head: 1.5
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.4
+	R-05222004: 1.4
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 6;	selected revisions: 6
+description:
+----------------------------
+revision 1.5
+date: 2004/06/06 13:58:03;  author: heller;  state: Exp;  lines: +5 -0
+Added code to install target.
+----------------------------
+revision 1.4
+date: 2004/03/13 15:49:58;  author: heller;  state: Exp;  lines: +10 -3
+*** empty log message ***
+----------------------------
+revision 1.3
+date: 2002/09/24 04:20:18;  author: heller;  state: Exp;  lines: +8 -5
+MRRXtrkCad => TrackGraph
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Swig/Makefile.in,v
+Working file: C++/Swig/Makefile.in
+head: 1.4
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.3
+	R-05222004: 1.3
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 5;	selected revisions: 5
+description:
+----------------------------
+revision 1.4
+date: 2004/06/26 13:31:09;  author: heller;  state: Exp;  lines: +3 -3
+Update versioning for new release
+----------------------------
+revision 1.3
+date: 2004/03/13 15:50:03;  author: heller;  state: Exp;  lines: +13 -6
+*** empty log message ***
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/C++/Swig/mrr.i,v
+Working file: C++/Swig/mrr.i
+head: 1.6
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.5
+	R-05222004: 1.5
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 7;	selected revisions: 7
+description:
+----------------------------
+revision 1.6
+date: 2004/06/26 13:31:09;  author: heller;  state: Exp;  lines: +5 -2
+Update versioning for new release
+----------------------------
+revision 1.5
+date: 2004/03/13 15:50:03;  author: heller;  state: Exp;  lines: +79 -68
+*** empty log message ***
+----------------------------
+revision 1.4
+date: 2002/10/17 00:02:07;  author: heller;  state: Exp;  lines: +163 -4
+Implement turnout body, track length, and turntable support, along with
+accessors.
+----------------------------
+revision 1.3
+date: 2002/09/25 01:55:14;  author: heller;  state: Exp;  lines: +12 -2
+Implement Tcl access to graph nodes.
+----------------------------
+revision 1.2
+date: 2002/07/28 14:06:34;  author: heller;  state: Exp;  lines: +35 -1
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/MRR.bib,v
+Working file: Doc/MRR.bib
+head: 1.4
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.4
+	R-05222004: 1.4
+keyword substitution: kv
+total revisions: 4;	selected revisions: 4
+description:
+----------------------------
+revision 1.4
+date: 2004/04/27 21:58:33;  author: heller;  state: Exp;  lines: +6 -0
+Added Finn's Make Circle doc to bib database.
+----------------------------
+revision 1.3
+date: 2004/03/16 02:38:25;  author: heller;  state: Exp;  lines: +53 -1
+Added C/MRI references to BIBTeX database
+----------------------------
+revision 1.2
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;  lines: +6 -0
+Time Table User Manual
+----------------------------
+revision 1.1
+date: 2002/10/17 00:02:24;  author: heller;  state: Exp;
+Documentation support files.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/Makefile.in,v
+Working file: Doc/Makefile.in
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/MyPart.sty,v
+Working file: Doc/MyPart.sty
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2002/11/10 00:40:16;  author: heller;  state: Exp;  lines: +20 -0
+Time Table Internals Docs
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/MyTitlepage.sty,v
+Working file: Doc/MyTitlepage.sty
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/10/17 00:02:24;  author: heller;  state: Exp;
+Documentation support files.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/RR.bib,v
+Working file: Doc/RR.bib
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/26 13:53:37;  author: heller;  state: Exp;
+Add in additional files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/titlepage.tex,v
+Working file: Doc/titlepage.tex
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2004/04/14 23:20:24;  author: heller;  state: Exp;  lines: +6 -3
+Updated copyright.
+----------------------------
+revision 1.1
+date: 2002/10/17 00:02:24;  author: heller;  state: Exp;
+Documentation support files.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/Internals/Biblio.h,v
+Working file: Doc/Internals/Biblio.h
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/10/17 00:02:54;  author: heller;  state: Exp;
+Internals documentation generation (Doc++ and SWIG).
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/Internals/CxxInternals.texenv,v
+Working file: Doc/Internals/CxxInternals.texenv
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/10/17 00:02:54;  author: heller;  state: Exp;
+Internals documentation generation (Doc++ and SWIG).
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/Internals/Intro.h,v
+Working file: Doc/Internals/Intro.h
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/10/17 00:02:54;  author: heller;  state: Exp;
+Internals documentation generation (Doc++ and SWIG).
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/Internals/IntroTclInternals.tex,v
+Working file: Doc/Internals/IntroTclInternals.tex
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/10 00:40:16;  author: heller;  state: Exp;
+Time Table Internals Docs
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/Internals/Makefile.in,v
+Working file: Doc/Internals/Makefile.in
+head: 1.8
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.7
+	R-05222004: 1.7
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 9;	selected revisions: 9
+description:
+----------------------------
+revision 1.8
+date: 2004/06/26 13:31:09;  author: heller;  state: Exp;  lines: +25 -5
+Update versioning for new release
+----------------------------
+revision 1.7
+date: 2004/04/27 21:58:48;  author: heller;  state: Exp;  lines: +7 -1
+Added in CTC Documentation.
+----------------------------
+revision 1.6
+date: 2004/04/14 23:20:42;  author: heller;  state: Exp;  lines: +4 -1
+Updated copyright.
+----------------------------
+revision 1.5
+date: 2002/11/10 14:27:19;  author: heller;  state: Exp;  lines: +4 -1
+Updated for Time Table internals docs
+----------------------------
+revision 1.4
+date: 2002/11/10 00:40:16;  author: heller;  state: Exp;  lines: +68 -4
+Time Table Internals Docs
+----------------------------
+revision 1.3
+date: 2002/10/17 00:02:54;  author: heller;  state: Exp;  lines: +161 -4
+Internals documentation generation (Doc++ and SWIG).
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/Internals/SwigInternals.sed,v
+Working file: Doc/Internals/SwigInternals.sed
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/10/17 00:02:54;  author: heller;  state: Exp;
+Internals documentation generation (Doc++ and SWIG).
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/Internals/TclInternals.tex,v
+Working file: Doc/Internals/TclInternals.tex
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2004/06/06 13:58:25;  author: heller;  state: Exp;  lines: +1 -0
+Added CTCPannel chapter.
+----------------------------
+revision 1.1
+date: 2002/11/10 00:40:16;  author: heller;  state: Exp;
+Time Table Internals Docs
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/Internals/common_part.tex,v
+Working file: Doc/Internals/common_part.tex
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2004/04/27 21:58:48;  author: heller;  state: Exp;  lines: +1 -1
+Added in CTC Documentation.
+----------------------------
+revision 1.1
+date: 2002/11/10 00:40:16;  author: heller;  state: Exp;
+Time Table Internals Docs
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/Internals/docxx.sty,v
+Working file: Doc/Internals/docxx.sty
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/10/17 00:02:54;  author: heller;  state: Exp;
+Internals documentation generation (Doc++ and SWIG).
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/Internals/timetable_part.tex,v
+Working file: Doc/Internals/timetable_part.tex
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/10 00:40:16;  author: heller;  state: Exp;
+Time Table Internals Docs
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/Support/Makefile.in,v
+Working file: Doc/Support/Makefile.in
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/Support/tcl2tex.sh.in,v
+Working file: Doc/Support/tcl2tex.sh.in
+head: 1.4
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.3
+	R-05222004: 1.3
+keyword substitution: kv
+total revisions: 4;	selected revisions: 4
+description:
+----------------------------
+revision 1.4
+date: 2004/06/06 13:58:39;  author: heller;  state: Exp;  lines: +52 -3
+Updated to better handle namespaces.
+----------------------------
+revision 1.3
+date: 2004/04/27 21:58:59;  author: heller;  state: Exp;  lines: +4 -0
+Updated to handle citations.
+----------------------------
+revision 1.2
+date: 2004/04/14 23:22:58;  author: heller;  state: Exp;  lines: +4 -1
+Misc. updated.
+----------------------------
+revision 1.1
+date: 2002/11/10 00:40:16;  author: heller;  state: Exp;
+Time Table Internals Docs
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/Makefile.in,v
+Working file: Doc/User/Makefile.in
+head: 1.4
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.3
+	R-05222004: 1.3
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 5;	selected revisions: 5
+description:
+----------------------------
+revision 1.4
+date: 2004/06/26 13:31:09;  author: heller;  state: Exp;  lines: +7 -1
+Update versioning for new release
+----------------------------
+revision 1.3
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;  lines: +111 -3
+Time Table User Manual
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/UserManual.tex,v
+Working file: Doc/User/UserManual.tex
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/AddingNotes.tex,v
+Working file: Doc/User/TimeTable/AddingNotes.tex
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2004/04/14 23:22:17;  author: heller;  state: Exp;  lines: +23 -12
+Updated documentation.
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/AddingTrains.tex,v
+Working file: Doc/User/TimeTable/AddingTrains.tex
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/CommandLineArgs.tex,v
+Working file: Doc/User/TimeTable/CommandLineArgs.tex
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/Files.tex,v
+Working file: Doc/User/TimeTable/Files.tex
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/Install.tex,v
+Working file: Doc/User/TimeTable/Install.tex
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/Introduction.tex,v
+Working file: Doc/User/TimeTable/Introduction.tex
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/LJandBS.ps,v
+Working file: Doc/User/TimeTable/LJandBS.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/MainGUI.tex,v
+Working file: Doc/User/TimeTable/MainGUI.tex
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/Preface.tex,v
+Working file: Doc/User/TimeTable/Preface.tex
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/PrintingATimetable.tex,v
+Working file: Doc/User/TimeTable/PrintingATimetable.tex
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2004/04/14 23:22:17;  author: heller;  state: Exp;  lines: +28 -20
+Updated documentation.
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/SettingUp.tex,v
+Working file: Doc/User/TimeTable/SettingUp.tex
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/TimeTableUser.tex,v
+Working file: Doc/User/TimeTable/TimeTableUser.tex
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/26 14:07:41;  author: heller;  state: Exp;
+Add missed file
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/addNoteToTrain.ps,v
+Working file: Doc/User/TimeTable/addNoteToTrain.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/addNoteToTrainAtStation1.ps,v
+Working file: Doc/User/TimeTable/addNoteToTrainAtStation1.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/addNoteToTrainAtStation2.ps,v
+Working file: Doc/User/TimeTable/addNoteToTrainAtStation2.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/classGroupHeader.ps,v
+Working file: Doc/User/TimeTable/classGroupHeader.ps
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+keyword substitution: b
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2004/04/14 23:22:17;  author: heller;  state: Exp;  lines: +13896 -389
+Updated documentation.
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/createNewNote.ps,v
+Working file: Doc/User/TimeTable/createNewNote.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/createNewTrainDialog.ps,v
+Working file: Doc/User/TimeTable/createNewTrainDialog.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/deleteNote.ps,v
+Working file: Doc/User/TimeTable/deleteNote.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/editNote.ps,v
+Working file: Doc/User/TimeTable/editNote.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/getBasicTimeTableInfo.ps,v
+Working file: Doc/User/TimeTable/getBasicTimeTableInfo.ps
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+keyword substitution: b
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2004/04/14 23:22:17;  author: heller;  state: Exp;  lines: +33655 -1092
+Updated documentation.
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/getCabInfoDialog.ps,v
+Working file: Doc/User/TimeTable/getCabInfoDialog.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/getDuplicateTrackageDialog.ps,v
+Working file: Doc/User/TimeTable/getDuplicateTrackageDialog.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/getStationListDialog.ps,v
+Working file: Doc/User/TimeTable/getStationListDialog.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/getStorageTracksDialog.ps,v
+Working file: Doc/User/TimeTable/getStorageTracksDialog.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/getTimeDialog.ps,v
+Working file: Doc/User/TimeTable/getTimeDialog.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/getTrainScheduleDialog.ps,v
+Working file: Doc/User/TimeTable/getTrainScheduleDialog.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/manualGroup.ps,v
+Working file: Doc/User/TimeTable/manualGroup.ps
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+keyword substitution: b
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2004/04/14 23:22:18;  author: heller;  state: Exp;  lines: +24867 -1034
+Updated documentation.
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/mrrTTMain.ps,v
+Working file: Doc/User/TimeTable/mrrTTMain.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/multipleTimeTableInfo.ps,v
+Working file: Doc/User/TimeTable/multipleTimeTableInfo.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/removeNoteFromTrain.ps,v
+Working file: Doc/User/TimeTable/removeNoteFromTrain.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/removeNoteFromTrainAtStation1.ps,v
+Working file: Doc/User/TimeTable/removeNoteFromTrainAtStation1.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/removeNoteFromTrainAtStation2.ps,v
+Working file: Doc/User/TimeTable/removeNoteFromTrainAtStation2.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/viewAllNotes.ps,v
+Working file: Doc/User/TimeTable/viewAllNotes.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/viewAllTrainsPopup.ps,v
+Working file: Doc/User/TimeTable/viewAllTrainsPopup.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/viewSingleTrainPopup.ps,v
+Working file: Doc/User/TimeTable/viewSingleTrainPopup.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Doc/User/TimeTable/viewStations.ps,v
+Working file: Doc/User/TimeTable/viewStations.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/09 21:21:07;  author: heller;  state: Exp;
+Time Table User Manual
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Help/Makefile.in,v
+Working file: Help/Makefile.in
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Installer/Makefile.in,v
+Working file: Installer/Makefile.in
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:38;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:38;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Lib/Makefile.in,v
+Working file: Lib/Makefile.in
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.3
+	R-05222004: 1.3
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 4;	selected revisions: 4
+description:
+----------------------------
+revision 1.3
+date: 2004/04/14 23:28:34;  author: heller;  state: Exp;  lines: +6 -3
+Minor fix.
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/Makefile.in,v
+Working file: Scripts/Makefile.in
+head: 1.6
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.5
+	R-05222004: 1.5
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 7;	selected revisions: 7
+description:
+----------------------------
+revision 1.6
+date: 2004/06/06 13:58:52;  author: heller;  state: Exp;  lines: +10 -0
+Added code to install target.
+----------------------------
+revision 1.5
+date: 2004/04/17 16:55:07;  author: heller;  state: Exp;  lines: +4 -1
+*** empty log message ***
+----------------------------
+revision 1.4
+date: 2002/11/10 14:27:30;  author: heller;  state: Exp;  lines: +5 -2
+Updated for Time Table scripts
+----------------------------
+revision 1.3
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.2
+date: 2002/07/27 12:57:54;  author: heller;  state: Exp;  lines: +1 -1
+Add Graphics Support Code
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/CalcScripts/Resistor.tcl,v
+Working file: Scripts/CalcScripts/Resistor.tcl
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/01/24 18:08:59;  author: heller;  state: Exp;
+Initial Version.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/CameraScripts/AnyDistance.tcl.in,v
+Working file: Scripts/CameraScripts/AnyDistance.tcl.in
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.3
+	R-05222004: 1.3
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.3
+date: 2004/04/14 23:26:38;  author: heller;  state: Exp;  lines: +50 -6
+Add Slave option
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 19:01:36;  author: heller;  state: Exp;
+Add in Camera scripts
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/CameraScripts/Closest.tcl.in,v
+Working file: Scripts/CameraScripts/Closest.tcl.in
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.3
+	R-05222004: 1.3
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.3
+date: 2004/04/14 23:26:38;  author: heller;  state: Exp;  lines: +51 -6
+Add Slave option
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 19:01:36;  author: heller;  state: Exp;
+Add in Camera scripts
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/CameraScripts/Makefile.in,v
+Working file: Scripts/CameraScripts/Makefile.in
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.3
+	R-05222004: 1.3
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 4;	selected revisions: 4
+description:
+----------------------------
+revision 1.3
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.2
+date: 2002/07/14 19:01:36;  author: heller;  state: Exp;  lines: +1 -1
+Add in Camera scripts
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/Common/CTCPanel.tcl,v
+Working file: Scripts/Common/CTCPanel.tcl
+head: 1.10
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.8
+	R-05222004: 1.8
+keyword substitution: kv
+total revisions: 10;	selected revisions: 10
+description:
+----------------------------
+revision 1.10
+date: 2004/06/26 13:30:40;  author: heller;  state: Exp;  lines: +11 -1
+Partial documentation done
+----------------------------
+revision 1.9
+date: 2004/06/06 13:59:07;  author: heller;  state: Exp;  lines: +914 -206
+Added code to install target.
+Added documentation.
+----------------------------
+revision 1.8
+date: 2004/04/27 21:59:14;  author: heller;  state: Exp;  lines: +108 -28
+Started with documentation.
+----------------------------
+revision 1.7
+date: 2004/04/24 21:52:22;  author: heller;  state: Exp;  lines: +39 -29
+Updated CurvedBlock:
+  Range checking, misc. other changes.
+Updated ThreeWaySW:
+  Fixed Left and Right tags.
+----------------------------
+revision 1.6
+date: 2004/04/22 23:22:39;  author: heller;  state: Exp;  lines: +98 -34
+Finn's code for CurvedBlock
+----------------------------
+revision 1.5
+date: 2004/04/20 14:18:36;  author: heller;  state: Exp;  lines: +353 -2
+Added Yards.
+----------------------------
+revision 1.4
+date: 2004/04/20 13:31:20;  author: heller;  state: Exp;  lines: +258 -1
+Added in Hidden block.
+----------------------------
+revision 1.3
+date: 2004/04/19 21:39:19;  author: heller;  state: Exp;  lines: +466 -15
+Additional trackwork elements.
+----------------------------
+revision 1.2
+date: 2004/04/18 02:29:42;  author: heller;  state: Exp;  lines: +435 -2
+Added slip switches.
+----------------------------
+revision 1.1
+date: 2004/04/14 23:10:17;  author: heller;  state: Exp;
+Added CTC panel graphics and logic
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/Common/Finn.tex,v
+Working file: Scripts/Common/Finn.tex
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/04/27 01:22:02;  author: heller;  state: Exp;
+Finn's Make Circle documentation.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/Common/FinnFigure1.ps,v
+Working file: Scripts/Common/FinnFigure1.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/04/27 01:22:02;  author: heller;  state: Exp;
+Finn's Make Circle documentation.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/Common/FinnFigure1.tcl,v
+Working file: Scripts/Common/FinnFigure1.tcl
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/04/27 01:22:02;  author: heller;  state: Exp;
+Finn's Make Circle documentation.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/Common/FinnFigure2.tcl,v
+Working file: Scripts/Common/FinnFigure2.tcl
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/04/27 01:22:02;  author: heller;  state: Exp;
+Finn's Make Circle documentation.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/Common/FinnFigure2a.ps,v
+Working file: Scripts/Common/FinnFigure2a.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/04/27 01:22:02;  author: heller;  state: Exp;
+Finn's Make Circle documentation.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/Common/FinnFigure2b.ps,v
+Working file: Scripts/Common/FinnFigure2b.ps
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/04/27 01:22:02;  author: heller;  state: Exp;
+Finn's Make Circle documentation.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/Common/Makefile.in,v
+Working file: Scripts/Common/Makefile.in
+head: 1.4
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.3
+	R-05222004: 1.3
+keyword substitution: kv
+total revisions: 4;	selected revisions: 4
+description:
+----------------------------
+revision 1.4
+date: 2004/06/06 13:59:07;  author: heller;  state: Exp;  lines: +18 -0
+Added code to install target.
+Added documentation.
+----------------------------
+revision 1.3
+date: 2004/04/27 01:22:02;  author: heller;  state: Exp;  lines: +18 -1
+Finn's Make Circle documentation.
+----------------------------
+revision 1.2
+date: 2004/04/14 23:10:17;  author: heller;  state: Exp;  lines: +6 -3
+Added CTC panel graphics and logic
+----------------------------
+revision 1.1
+date: 2002/11/10 14:27:36;  author: heller;  state: Exp;
+Updated for Common scripts
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/Common/StdMenuBar.tcl,v
+Working file: Scripts/Common/StdMenuBar.tcl
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2004/04/14 23:09:55;  author: heller;  state: Exp;  lines: +13 -6
+Misc. fixes.
+----------------------------
+revision 1.1
+date: 2002/11/10 14:27:36;  author: heller;  state: Exp;
+Updated for Common scripts
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/ControlSupport/CmriSupport.tcl,v
+Working file: Scripts/ControlSupport/CmriSupport.tcl
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/06 13:59:45;  author: heller;  state: Exp;
+Start of C/MRI Support code.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/Dispatcher/Makefile.in,v
+Working file: Scripts/Dispatcher/Makefile.in
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/FreightCarForwarder.tcl,v
+Working file: Scripts/FreightCarForwarder/FreightCarForwarder.tcl
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/Makefile.in,v
+Working file: Scripts/FreightCarForwarder/Makefile.in
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+	V20: 1.1.1.1
+	Deepwoods: 1.1.1
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002/07/14 18:09:37;  author: heller;  state: Exp;  lines: +0 -0
+Imported Sources
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/PrinterGeneric.tcl,v
+Working file: Scripts/FreightCarForwarder/PrinterGeneric.tcl
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/PrinterLQ24.tcl,v
+Working file: Scripts/FreightCarForwarder/PrinterLQ24.tcl
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/PrinterPostscript.tcl,v
+Working file: Scripts/FreightCarForwarder/PrinterPostscript.tcl
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/cars.dat,v
+Working file: Scripts/FreightCarForwarder/cars.dat
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/cartypes.dat,v
+Working file: Scripts/FreightCarForwarder/cartypes.dat
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/hazard.dat,v
+Working file: Scripts/FreightCarForwarder/hazard.dat
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/indus.dat,v
+Working file: Scripts/FreightCarForwarder/indus.dat
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/junk.dat,v
+Working file: Scripts/FreightCarForwarder/junk.dat
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/oldcars.dat,v
+Working file: Scripts/FreightCarForwarder/oldcars.dat
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/orders.dat,v
+Working file: Scripts/FreightCarForwarder/orders.dat
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/owners.dat,v
+Working file: Scripts/FreightCarForwarder/owners.dat
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/plate.dat,v
+Working file: Scripts/FreightCarForwarder/plate.dat
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/stats.dat,v
+Working file: Scripts/FreightCarForwarder/stats.dat
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/system.dat,v
+Working file: Scripts/FreightCarForwarder/system.dat
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/trains.dat,v
+Working file: Scripts/FreightCarForwarder/trains.dat
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/FreightCarForwarder/weight.dat,v
+Working file: Scripts/FreightCarForwarder/weight.dat
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/05/30 19:00:25;  author: heller;  state: Exp;
+Added in Tcl port of Freight Car Forwarder.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/HBar.xbm,v
+Working file: Scripts/GRSupport/HBar.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:48;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/Instruments.tcl,v
+Working file: Scripts/GRSupport/Instruments.tcl
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/LCARSWidgets.tcl,v
+Working file: Scripts/GRSupport/LCARSWidgets.tcl
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/LLHFatVNarrow.gif,v
+Working file: Scripts/GRSupport/LLHFatVNarrow.gif
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/LLHFatVNarrow.xbm,v
+Working file: Scripts/GRSupport/LLHFatVNarrow.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/LLHNarrowVFat.gif,v
+Working file: Scripts/GRSupport/LLHNarrowVFat.gif
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/LLHNarrowVFat.xbm,v
+Working file: Scripts/GRSupport/LLHNarrowVFat.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/LRHFatVNarrow.gif,v
+Working file: Scripts/GRSupport/LRHFatVNarrow.gif
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/LRHFatVNarrow.xbm,v
+Working file: Scripts/GRSupport/LRHFatVNarrow.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/LRHNarrowVFat.gif,v
+Working file: Scripts/GRSupport/LRHNarrowVFat.gif
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/LRHNarrowVFat.xbm,v
+Working file: Scripts/GRSupport/LRHNarrowVFat.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/Makefile.in,v
+Working file: Scripts/GRSupport/Makefile.in
+head: 1.8
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.7
+	R-05222004: 1.7
+keyword substitution: kv
+total revisions: 8;	selected revisions: 8
+description:
+----------------------------
+revision 1.8
+date: 2004/06/06 13:59:59;  author: heller;  state: Exp;  lines: +16 -0
+Added code to install target.
+----------------------------
+revision 1.7
+date: 2004/04/14 23:08:02;  author: heller;  state: Exp;  lines: +4 -1
+Various minor updates.
+----------------------------
+revision 1.6
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;  lines: +7 -2
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+----------------------------
+revision 1.5
+date: 2002/08/29 01:03:22;  author: heller;  state: Exp;  lines: +4 -0
+Add OvalSlider
+----------------------------
+revision 1.4
+date: 2002/08/20 21:51:42;  author: heller;  state: Exp;  lines: +5 -2
+Square ended buttons
+----------------------------
+revision 1.3
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.2
+date: 2002/07/28 01:06:42;  author: heller;  state: Exp;  lines: +10 -2
+Further updates to the graphics support code
+----------------------------
+revision 1.1
+date: 2002/07/27 12:57:54;  author: heller;  state: Exp;
+Add Graphics Support Code
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/OvalHFatVNarrow.tcl,v
+Working file: Scripts/GRSupport/OvalHFatVNarrow.tcl
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/26 13:53:37;  author: heller;  state: Exp;
+Add in additional files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/OvalHNarrowVFat.tcl,v
+Working file: Scripts/GRSupport/OvalHNarrowVFat.tcl
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/26 13:53:38;  author: heller;  state: Exp;
+Add in additional files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/OvalWidgets.tcl,v
+Working file: Scripts/GRSupport/OvalWidgets.tcl
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/ULHFatVNarrow.gif,v
+Working file: Scripts/GRSupport/ULHFatVNarrow.gif
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/ULHFatVNarrow.xbm,v
+Working file: Scripts/GRSupport/ULHFatVNarrow.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/ULHNarrowVFat.gif,v
+Working file: Scripts/GRSupport/ULHNarrowVFat.gif
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/ULHNarrowVFat.xbm,v
+Working file: Scripts/GRSupport/ULHNarrowVFat.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/URHFatVNarrow.gif,v
+Working file: Scripts/GRSupport/URHFatVNarrow.gif
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/URHFatVNarrow.xbm,v
+Working file: Scripts/GRSupport/URHFatVNarrow.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/URHNarrowVFat.gif,v
+Working file: Scripts/GRSupport/URHNarrowVFat.gif
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/URHNarrowVFat.xbm,v
+Working file: Scripts/GRSupport/URHNarrowVFat.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/VBar.xbm,v
+Working file: Scripts/GRSupport/VBar.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/camviewer.tcl,v
+Working file: Scripts/GRSupport/camviewer.tcl
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.3
+	R-05222004: 1.3
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.3
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.2
+date: 2002/07/28 01:06:42;  author: heller;  state: Exp;  lines: +3 -693
+Further updates to the graphics support code
+----------------------------
+revision 1.1
+date: 2002/07/27 12:57:54;  author: heller;  state: Exp;
+Add Graphics Support Code
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/GRSupport/grsupport.tcl,v
+Working file: Scripts/GRSupport/grsupport.tcl
+head: 1.8
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.8
+	R-05222004: 1.8
+keyword substitution: kv
+total revisions: 8;	selected revisions: 8
+description:
+----------------------------
+revision 1.8
+date: 2004/04/14 23:08:02;  author: heller;  state: Exp;  lines: +31 -3
+Various minor updates.
+----------------------------
+revision 1.7
+date: 2002/09/14 03:02:49;  author: heller;  state: Exp;  lines: +4 -1533
+Split up GR Support into several files. Include LCARS Corner Bitmaps
+----------------------------
+revision 1.6
+date: 2002/08/29 21:22:22;  author: heller;  state: Exp;  lines: +10 -6
+Update to use the full space available for the slider
+----------------------------
+revision 1.5
+date: 2002/08/29 01:03:22;  author: heller;  state: Exp;  lines: +233 -1
+Add OvalSlider
+----------------------------
+revision 1.4
+date: 2002/08/21 02:13:29;  author: heller;  state: Exp;  lines: +296 -0
+Added Oval Scale
+----------------------------
+revision 1.3
+date: 2002/08/20 21:51:42;  author: heller;  state: Exp;  lines: +39 -15
+Square ended buttons
+----------------------------
+revision 1.2
+date: 2002/07/28 14:03:50;  author: heller;  state: Exp;  lines: +31 -0
+Add it copyright notice headers
+----------------------------
+revision 1.1
+date: 2002/07/28 01:08:00;  author: heller;  state: Exp;
+Import Graphics Support library: pannel meters, flat GUI elements, etc.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/MainProgram/AnyDistance.xbm,v
+Working file: Scripts/MainProgram/AnyDistance.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/26 13:53:38;  author: heller;  state: Exp;
+Add in additional files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/MainProgram/Clostest.xbm,v
+Working file: Scripts/MainProgram/Clostest.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/26 13:53:38;  author: heller;  state: Exp;
+Add in additional files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/MainProgram/DeepwoodsBanner.gif,v
+Working file: Scripts/MainProgram/DeepwoodsBanner.gif
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/26 13:53:38;  author: heller;  state: Exp;
+Add in additional files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/MainProgram/ModelRRSystem,v
+Working file: Scripts/MainProgram/ModelRRSystem
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/26 13:53:38;  author: heller;  state: Exp;
+Add in additional files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/MainProgram/TimeTable.xbm,v
+Working file: Scripts/MainProgram/TimeTable.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/26 13:53:38;  author: heller;  state: Exp;
+Add in additional files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/MainProgram/banner.gif,v
+Working file: Scripts/MainProgram/banner.gif
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/26 13:53:38;  author: heller;  state: Exp;
+Add in additional files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/MainProgram/dot.xbm,v
+Working file: Scripts/MainProgram/dot.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/26 13:53:38;  author: heller;  state: Exp;
+Add in additional files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/MainProgram/menu.xbm,v
+Working file: Scripts/MainProgram/menu.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/26 13:53:38;  author: heller;  state: Exp;
+Add in additional files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/MainProgram/resistor.xbm,v
+Working file: Scripts/MainProgram/resistor.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/04/14 23:27:09;  author: heller;  state: Exp;
+Icon for slave option.
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/MainProgram/xtc64.xbm,v
+Working file: Scripts/MainProgram/xtc64.xbm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004/06/26 13:53:38;  author: heller;  state: Exp;
+Add in additional files
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/TimeTable/DeepwoodsBanner.gif,v
+Working file: Scripts/TimeTable/DeepwoodsBanner.gif
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/10 14:27:46;  author: heller;  state: Exp;
+Updated for Time Table scripts
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/TimeTable/MakeTimeTable.tcl,v
+Working file: Scripts/TimeTable/MakeTimeTable.tcl
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2004/04/14 23:25:17;  author: heller;  state: Exp;  lines: +235 -31
+Various updates: slave option, additional LaTeX code inclusion.
+----------------------------
+revision 1.1
+date: 2002/11/10 14:27:46;  author: heller;  state: Exp;
+Updated for Time Table scripts
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/TimeTable/Makefile.in,v
+Working file: Scripts/TimeTable/Makefile.in
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2004/04/14 23:25:17;  author: heller;  state: Exp;  lines: +5 -2
+Various updates: slave option, additional LaTeX code inclusion.
+----------------------------
+revision 1.1
+date: 2002/11/10 14:27:46;  author: heller;  state: Exp;
+Updated for Time Table scripts
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/TimeTable/TimeTable.sty,v
+Working file: Scripts/TimeTable/TimeTable.sty
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/10 14:27:46;  author: heller;  state: Exp;
+Updated for Time Table scripts
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/TimeTable/banner.gif,v
+Working file: Scripts/TimeTable/banner.gif
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.1
+	R-05222004: 1.1
+keyword substitution: b
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/11/10 14:27:46;  author: heller;  state: Exp;
+Updated for Time Table scripts
+=============================================================================
+
+RCS file: /home3/heller/Deepwoods/cvsroot/Deepwoods/ModelRRSystem/Scripts/TimeTable/mrrTimeTable.tcl,v
+Working file: Scripts/TimeTable/mrrTimeTable.tcl
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	May-30-2004: 1.2
+	R-05222004: 1.2
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2004/04/14 23:25:18;  author: heller;  state: Exp;  lines: +165 -120
+Various updates: slave option, additional LaTeX code inclusion.
+----------------------------
+revision 1.1
+date: 2002/11/10 14:27:46;  author: heller;  state: Exp;
+Updated for Time Table scripts
+=============================================================================
