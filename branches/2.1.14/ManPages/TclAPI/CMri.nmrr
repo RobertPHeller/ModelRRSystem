@@ -1,0 +1,175 @@
+.\" * 
+.\" * ------------------------------------------------------------------
+.\" * CMri.nmrr - Man page for the Tcl (SWIG) interface to the CMri class
+.\" * Created by Robert Heller on Sun Apr 22 15:57:23 2007
+.\" * ------------------------------------------------------------------
+.\" * Modification History: $Log$
+.\" * Modification History: Revision 1.1  2007/05/06 13:08:01  heller
+.\" * Modification History: Lock down  for 2.1.8 release candidate 1
+.\" * Modification History:
+.\" * Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+.\" * Modification History: Add it copyright notice headers
+.\" * Modification History:
+.\" * ------------------------------------------------------------------
+.\" * Contents:
+.\" * ------------------------------------------------------------------
+.\" *  
+.\" *     Model RR System, Version 2
+.\" *     Copyright (C) 1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software
+.\" * 			51 Locke Hill Road
+.\" * 			Wendell, MA 01379-9728
+.\" * 
+.\" *     This program is free software; you can redistribute it and/or modify
+.\" *     it under the terms of the GNU General Public License as published by
+.\" *     the Free Software Foundation; either version 2 of the License, or
+.\" *     (at your option) any later version.
+.\" * 
+.\" *     This program is distributed in the hope that it will be useful,
+.\" *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" *     GNU General Public License for more details.
+.\" * 
+.\" *     You should have received a copy of the GNU General Public License
+.\" *     along with this program; if not, write to the Free Software
+.\" *     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\" * 
+.\" *  
+.\" * 
+.TH CMri n "May 2007" "Model Railroad System" "Tcl API Manual"
+.SH NAME
+CMri \- Tcl (SWIG) interface to the CMri class
+.SH SYNOPSIS
+.B package require Cmri
+.sp
+.BI "CMri -this " CMriObject
+.sp
+.BI "CMri -args " ?port? " " ?baud? " " ?maxtries?
+.sp
+.BI "CMri " ?name? " " ?port? " " ?baud? " " ?maxtries?
+.sp
+.BI "new_CMri " ?port? " " ?baud? " " ?maxtries?
+.sp
+.BI "delete_CMri " CMriObject
+.sp
+.BI "CMri_Inputs " CMriObject " " ni " " ?ua?
+.sp 
+.BI "CMri_Outputs " CMriObject " " ports " " ?ua?
+.sp
+.BI "CMri_InitBoard " CMriObject " " CT " " ni " " no " " ?ns? " " ?ua? " " ?card? " " ?dl?
+.sp
+.BI "CMriObject " -delete
+.sp
+.BI "CMriObject " Inputs " " ni " " ?ua?
+.sp
+.BI "CMriObject " Outputs " " ports " " ?ua?
+.sp
+.BI "CMriObject " InitBoard " " CT " " ni " " no " " ?ns? " " ?ua? " " ?card? " " ?dl?
+.sp
+.BI "CMriObject " cget " " -this
+.sp 
+.BI "rename " CMriObject " " {}
+.SH DESCRIPTION
+This is a Linux implementation of Bruce Chubb's C/MRI QBASIC serial port code 
+ported to C++.  This code works (tested) with 2.2 kernels and GLIBC 2.1 
+(RedHat 6.2) and 2.4 kernels and GLIBC 2.2 (RedHat 7.3). And it can use any 
+serial port device supported by these kernels.  That is, in addition to the 
+standard four COM ports, it can also use the various supported multi-port
+cards as well.
+.PP  
+The code is presently "hardwired" to use the Linux termios interface. I
+wanted to get the code up and running and presently I don't have any machines
+running other operating systems to test other low-level terminal I/O code.
+MS-Windows users do have access to Bruce Chubb's C/MRI QBasic and Visual 
+Basic code, so there is no rush at this point to support MS-Windows, although
+for MS-Windows who might want to use my forthcoming Tcl/Tk MRI code I'll
+probably want to port this code to run under MS-Windows.  This header and
+the class interface specification won't change much.  There will probably be
+lots of fun with ifdef in the C++ file.  Since this is open source code, I
+would hope that some enterprising MS-Windows C++ programmer will take up the
+"gauntlet" and do the MS-Windows port.  (Ditto for MacOSX and FreeBSD
+programmers.)
+.PP
+Basically, the way this code works is to use a class to  interface to
+the serial port, which may have one or more serial port cards  (a mix
+of USICs, SUSICs, and SMINIs).  A given class instance interfaces to 
+all of the cards on attached to a given serial port.  There are three
+public  member functions, one to initialize a given board, one to set
+the  output ports , and one to  poll the state of the input ports.
+.PP
+I was inspired to write this code after reading the four part series in 
+.I Model Railroader
+and reading the download package for the SMINI card.  I already have a copy of 
+Bruce Chubb's 
+.I Build Your Own Universal Computer Interface
+, but the SMINI looks like a great option for small "remote" locations of a 
+layout where there are a few turnouts and a some signals, such as a small 
+junction, interchange yard, or isolated industrial spur.
+.PP
+This class implements the interface logic for all of the boards on a given 
+serial bus, attached to a given serial (COM) port.  This class effectively 
+implements in C++ under Linux what the QBasic serial I/O subroutines 
+implemented by Bruce Chubb implement under MS-Windows.
+.PP
+The constructor opens the serial port and does low-level serial I/O setup
+(BAUD rate, etc.). This is the first part of the INIT subroutine.
+.SH PARAMETERS
+The parameters to the  constructor are:
+.br
+.IP port
+The serial port the CMR/I network is connected to.  Defaults to "/dev/ttyS0".
+.IP baud
+The baud rate to communicate at.  Defaults to 9600.
+.IP maxtries
+The maximum number of retries.   Defaults to 10000.
+.PP
+The Parameters to the InitBoard member function are:
+.br
+.IP CT
+The card type / yellow bi-color LED map. For USIC and SUSIC cards this is the 
+card type map.  For the SMINI card this is a 6 element list containing the 
+port pairs for any simulated yellow bi-color LEDs.
+.PP
+The card type map for USIC and SUSIC is a packed array of 2-bit values, packed 
+4 per element (byte) from low to high. Each 2-bit value is one of 0 (for no 
+card), 1 (for an input card), or 2 (for an output card).  The cards  must be 
+"packed" with no open slots except at the end of the bus. 
+.PP
+For the simulated yellow LEDs (SMINI card) the paired bits must be adjacent 
+red/green bits and cannot span ports.
+.IP ni
+The total number of input ports (must be 3 for SMINI).
+.IP no 
+The total number of output ports (must be 6 or SMINI).
+.IP ns 
+The number of yellow bi-color LED signals.  Only used for SMINI cards.  For 
+USIC and SUSIC cards the Length() member function of the CT parameter is used. 
+Defaults to 0.
+.IP ua 
+The card address.  Defaults to 0.
+.IP card 
+The card type. Defaults to SMINI.
+.IP dl 
+The delay value to use. Defaults to 0.
+.PP
+The parameters to the Inputs member function are:
+.br
+.IP ni 
+The number of input ports to be read.  Must equal the number of ports on the 
+specified card.
+.IP ua 
+The card address. Defaults to 0.
+.IP outmessage 
+This holds a pointer to an error message, if any.
+.PP
+The parameters to the Outputs member function are:
+.br
+.IP ports 
+The list of port values.  Should have as many elements as there are output 
+ports.
+.IP ua 
+The card address. Defaults to 0.
+.SH AUTHOR
+Robert Heller <heller@deepsoft.com>
+.SH "SEE ALSO"
+.BR CMri (3)
+
