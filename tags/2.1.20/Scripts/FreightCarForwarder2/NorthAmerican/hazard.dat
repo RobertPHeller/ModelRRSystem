@@ -1,0 +1,7 @@
+'
+' Hazard Classifications
+'
+1,Flammable ,gasoline and such,
+2,Explosive ,propane and dynamite,
+3,Toxic     ,chlorine and ammonia,
+4,Dimension ,high or wide or long,

@@ -1,0 +1,608 @@
+#* 
+#* ------------------------------------------------------------------
+#* UniversalTest.src - Universal Test Program for C/MRI
+#* Created by Robert Heller on Sat Apr 17 17:19:17 2004
+#* ------------------------------------------------------------------
+#* Modification History: $Log$
+#* Modification History: Revision 1.11  2007/04/19 17:23:20  heller
+#* Modification History: April 19 Lock Down
+#* Modification History:
+#* Modification History: Revision 1.10  2007/02/01 20:00:51  heller
+#* Modification History: Lock down for Release 2.1.7
+#* Modification History:
+#* Modification History: Revision 1.9  2006/05/22 17:01:11  heller
+#* Modification History: Updated make install
+#* Modification History:
+#* Modification History: Revision 1.8  2006/02/26 23:09:23  heller
+#* Modification History: Lockdown for machine xfer
+#* Modification History:
+#* Modification History: Revision 1.7  2006/02/06 00:18:09  heller
+#* Modification History: Start converting to BWidget from Tix
+#* Modification History:
+#* Modification History: Revision 1.6  2004/05/22 15:01:53  heller
+#* Modification History: Updates after live tests with a Super Mini node.
+#* Modification History:
+#* Modification History: Revision 1.5  2004/04/17 21:20:34  heller
+#* Modification History: Small changes.  Add copyright.
+#* Modification History:
+#* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+#* Modification History: Add it copyright notice headers
+#* Modification History:
+#* ------------------------------------------------------------------
+#* Contents:
+#* ------------------------------------------------------------------
+#*  
+#*     Model RR System, Version 2
+#*     Copyright (C) 1994,1995,2002  Robert Heller D/B/A Deepwoods Software
+#* 			51 Locke Hill Road
+#* 			Wendell, MA 01379-9728
+#* 
+#*     This program is free software; you can redistribute it and/or modify
+#*     it under the terms of the GNU General Public License as published by
+#*     the Free Software Foundation; either version 2 of the License, or
+#*     (at your option) any later version.
+#* 
+#*     This program is distributed in the hope that it will be useful,
+#*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#*     GNU General Public License for more details.
+#* 
+#*     You should have received a copy of the GNU General Public License
+#*     along with this program; if not, write to the Free Software
+#*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#* 
+#*  
+#* 
+
+# $Id$
+
+set argv0 [file join  [file dirname [info nameofexecutable]] UniversalTest]
+
+package require Cmri
+
+package require Tk
+package require BWidget
+package require BWStdMenuBar
+package require BWHelp
+package require BWLabelComboBox
+package require BWLabelSpinBox
+
+#puts stderr "*** class of . is [. cget -class]"
+
+global HelpDir
+set HelpDir [file join [file dirname [file dirname [file dirname \
+							[info script]]]] Help]
+#puts stderr "*** HelpDir = $HelpDir"
+
+proc MainWindow {} {
+
+  # Window manager configurations
+  wm minsize . 300 1
+  wm protocol . WM_DELETE_WINDOW {CareFulExit}
+  wm title . {Universal Test Program for Serial C/MRI Nodes}
+
+  set menubar [StdMenuBar::MakeMenu \
+	-file {"&File" {file} {file} 0 {
+	        {command "&New"     {file:new} "Open New Port"     {Ctrl n} -command {OpenNewPort}}
+	        {command "&Open..." {file:open} "Open Current Port" {Ctrl o} -command {OpenPort}}
+	        {command "&Save"    {file:save} "" {Ctrl s} -state disabled}
+		{command "Save &As..." {file:save} "" {Ctrl a} -state disabled}
+	        {command "&Close" {file:close} "Close the application" {} -command {CareFulExit}}
+	        {command "E&xit" {file:exit} "Exit the application" {} -command {CareFulExit}}
+	     }
+	} -actions {"&Actions" {actions:menu} {actions} 0 {
+		{command {Test Output Card} {actions actions:testout} "Test Output Card" {} -command {TestOutputCard} -state disabled}
+		{command {Wraparound Test} {actions actions:wraptest} "Wraparound Test" {} -command {WraparoundTest} -state disabled}
+		{command {Close Port} {actions actions:closeport} "Close Current Port" {} -command {ClosePort} -state disabled}
+		}
+	}]
+
+#  foreach x $menubar {
+#    puts stderr [list *** x = $x]
+#  }
+
+  set ::Main [MainFrame .main -menu $menubar \
+	-progressmax 100 -progresstype normal -progressvar ::progress \
+	-textvariable status \
+	-separator both]
+  pack $::Main -expand yes -fill both
+  $::Main showstatusbar progression
+
+  set ::MainFrame [$::Main getframe]
+
+
+  # build widget $::MainFrame.status
+  frame $::MainFrame.status \
+    -borderwidth {4} \
+    -relief {ridge}
+
+  pack configure $::MainFrame.status -fill x
+
+  pack [set ::CurrentPort [LabelEntry $::MainFrame.status.port \
+				-editable no \
+				-label "Port:" \
+				-labelwidth 19]] -fill x
+  pack [set ::CurrentBaud [LabelEntry $::MainFrame.status.baud \
+				-editable no \
+				-label "Baud:" \
+				-labelwidth 19]] -fill x
+  pack [set ::CurrentRetryCount [LabelEntry $::MainFrame.status.retryCount \
+  				-editable no \
+				-label "Retry Count:" \
+				-labelwidth 19]] -fill x
+  pack [set ::CurrentState [LabelEntry $::MainFrame.status.state \
+				-editable no \
+				-label "State:" \
+				-labelwidth 19]] -fill x
+
+
+  set ::NodeType USIC
+  pack [frame $::MainFrame.nt -borderwidth 4 -relief ridge] -fill x
+
+  pack [set ::NodeTypeEntry [LabelComboBox $::MainFrame.nt.nodeType \
+				-label {Node Type:} \
+				-labelwidth 19 \
+				-values [list USIC SUSIC SMINI] \
+				-editable no \
+				-textvariable ::NodeType]] -fill x
+
+  pack [frame $::MainFrame.ioparams \
+    -borderwidth {4} \
+    -relief {ridge}] -fill x
+
+
+  pack [set ::USICDelay [LabelSpinBox $::MainFrame.ioparams.dl \
+				-label {USIC Delay:} -labelwidth 19 \
+				-range {0 3000 1} -text 0]] -fill x
+
+
+  pack [set ::DisplayDelayFactor [LabelSpinBox $::MainFrame.ioparams.slowdis \
+				-label {Display Delay Factor:} \
+				-labelwidth 19 -text 100 \
+				-range {100 2000 10}]] -fill x
+
+  pack [set ::InputFilterDelay [LabelSpinBox $::MainFrame.ioparams.infiltdly \
+				-label {Input Filter Delay:} \
+				-labelwidth 19  -text 0 \
+				-range {0 2000 10}]] -fill x
+
+  set w .
+  global IsSlave
+  if {!$IsSlave} {
+    wm withdraw $w
+    update idletasks
+    set rw [winfo reqwidth $w]
+    if {$rw < 200} {set rw 300}
+    set rh [winfo reqheight $w]
+    set x [expr {[winfo screenwidth $w]/2 - $rw/2 \
+            - [winfo vrootx $w]}]
+    set y [expr {[winfo screenheight $w]/2 - $rh/2 \
+            - [winfo vrooty $w]}]
+    wm geom $w =${rw}x${rh}+$x+$y
+    wm deiconify .
+  }
+  update idletasks
+  wm minsize . [winfo reqwidth $w] [expr [winfo reqheight $w] + 35]
+  bind all <q> CareFulExit
+  bind all <Q> CareFulExit
+}
+
+proc CareFulExit {} {
+# Procedure to carefully exit.
+# [index] CarefulExit!procedure
+
+  if {[string compare \
+        [tk_messageBox -default no -icon question -message {Really Quit?} \
+                -title {Careful Exit} -type yesno] {yes}] == 0} {
+    global IsSlave
+    #puts stderr "*** CarefulExit: IsSlave = $IsSlave"
+    flush stderr
+    if {$IsSlave} {
+      puts stdout "101 Exit"
+      flush stdout
+      set ans [gets stdin]
+      #puts stderr "*** CarefulExit: ans = '$ans'"
+    }
+    if {[llength [info command CMriBus]] > 0} {
+      ClosePort 0
+    }
+    exit
+  }
+}
+
+proc OpenNewPort {} {
+
+  if {[llength [info command CMriBus]] > 0} {
+    ClosePort
+  }
+
+  global OpenNewPortState
+
+  if {![winfo exists .openNewPort]} {
+    Dialog .openNewPort -title {Open New Port} -modal local -parent . \
+			-transient yes -side bottom -bitmap questhead \
+			-default 0 -cancel 1
+    .openNewPort add -text {Open}
+    .openNewPort add -text {Cancel}
+    .openNewPort add -text {Help} -command {BWHelp::HelpTopic OpenNewPort}
+    wm protocol .openNewPort WM_DELETE_WINDOW {.openNewPort enddialog 1}
+
+    set uframe [.openNewPort getframe]
+    pack [ComboBox $uframe.serialPort \
+		-textvariable ::OpenNewPortState(Port) -editable no \
+		-values [GetAllSerialPorts]] -fill x
+    set ::OpenNewPortState(Port) [lindex [$uframe.serialPort cget -values] 0]
+    pack [ComboBox $uframe.baudRate   \
+		-textvariable ::OpenNewPortState(Baud) -editable no \
+		-values {9600 19200 28800 57600 115200}] -fill x
+    set ::OpenNewPortState(Baud) [lindex [$uframe.baudRate cget -values] 0]
+    pack [set ::OpenNewPortState(RetryCount) \
+		[LabelSpinBox $uframe.retryCount -label {Retry Count:} \
+			      -range {0 30000 1} -text 30000]] -fill x
+    
+  }
+
+
+  set result [.openNewPort draw]
+  .openNewPort withdraw
+  if {$result == 1} {return}
+  set retryCount "[$::OpenNewPortState(RetryCount) cget -text]"
+  $::CurrentPort configure -text $OpenNewPortState(Port)
+  $::CurrentState configure -text ""
+  $::CurrentBaud configure -text $OpenNewPortState(Baud)
+  $::CurrentRetryCount configure -text $retryCount
+
+  OpenPort
+}
+
+proc OpenPort {} {
+  set port "[$::CurrentPort cget -text]"
+  set baud "[$::CurrentBaud cget -text]"
+  set retryCount "[$::CurrentRetryCount cget -text]"
+
+  if {[llength [info command CMriBus]] > 0} {
+    ClosePort
+  }
+
+  if {[string length "$port"] == 0} {
+    return [OpenNewPort]
+  }
+
+  if {[catch [list \
+	  CMri CMriBus $port $baud $retryCount] errormessage]} {
+    rename CMriBus {}
+    $::CurrentState configure -text "Open Failed: $errormessage"
+    tk_messageBox -icon error \
+		  -message "$errormessage" \
+		  -type ok
+  } else {
+    $::Main setmenustate actions normal
+    $::CurrentState configure -text {Open}
+    tk_messageBox -icon info -message "Port $port opened."
+  } 
+}
+
+proc GetAllSerialPorts {} {
+  set portlist [eval [concat exec /bin/setserial -gb \
+			     [glob -nocomplain /dev/ttyS*] 2>/dev/null]]
+  set result {}
+  foreach line [split $portlist "\n"] {
+    if {[regexp {^(.*) at } "$line" => port] > 0} {
+      lappend result [string trim "$port"]
+    }
+  }
+  return $result
+}
+
+proc IntegerOrEmpty {val} {
+  if {[string length "$val"] == 0} {
+    return 1
+  } elseif {[catch [list expr int($val)] ival]} {
+    return 0
+  } elseif {$val != $ival || [string equal "$val" "$ival"] == 0} {
+    return 0
+  } else {
+    return 1
+  }
+}
+
+proc TestOutputCard {} {
+  global NodeType
+
+  set slowdis "[$::DisplayDelayFactor cget -text]"
+  if {[string length "$slowdis"] == 0} {set slowdis 0}
+  set displayDelay [expr $slowdis * 10]
+
+  switch -exact -- $NodeType {
+    USIC {
+      set UA 0
+      set NS 1
+      set NI 0
+      set NO 3
+      set CT [list 2]
+      set DL "[$::USICDelay cget -text]"
+      if {[string length "$DL"] == 0} {set DL 0}
+      array set pnames {0 A 1 B 2 C}
+      set ctype N
+    }
+    SUSIC {
+      set UA 0
+      set NS 1
+      set NI 0
+      set NO 4
+      set CT [list 2]
+      set DL "[$::USICDelay cget -text]"
+      if {[string length "$DL"] == 0} {set DL 0}
+      array set pnames {0 A 1 B 2 C 3 D}
+      set ctype X
+    }
+    SMINI {
+      set UA 0
+      set NS 0
+      set NI 3
+      set NO 6
+      set CT {0 0 0 0 0 0}
+      set DL 0
+      array set pnames {0 {0 A} 1 {0 B} 2 {0 C} 3 {1 A} 4 {1 B} 5 {1 C}}
+      set ctype M
+    }
+  }
+  CMriBus InitBoard $CT $NI $NO $NS $UA $ctype $DL
+
+  toplevel .oports
+  wm maxsize .oports 1024 768
+  wm protocol .oports WM_DELETE_WINDOW {.oports.cancel invoke}
+  wm transient .oports .
+
+  global B
+  frame .oports.r0
+  pack .oports.r0 -side top -fill x
+  if {[string equal "$ctype" {M}]} {
+    frame .oports.r1
+    pack .oports.r1 -side top -fill x
+  }
+  foreach port [lsort -integer [array names pnames]] {
+    set pm $pnames($port)
+    if {[string length "$pm"] > 1} {
+      set r [lindex $pm 0]
+    } else {
+      set r 0
+    }
+    frame .oports.r$r.f$port -relief ridge -borderwidth 4
+    pack .oports.r$r.f$port -side left 
+    label .oports.r$r.f$port.pname -text $pnames($port)
+    pack .oports.r$r.f$port.pname -side top
+    frame .oports.r$r.f$port.bits
+    pack .oports.r$r.f$port.bits -side top
+    foreach b {1 2 3 4 5 6 7 8} {
+      radiobutton .oports.r$r.f$port.bits.b$b -variable B($port) -text {} -value $b
+      pack .oports.r$r.f$port.bits.b$b -side left
+    }
+    set B($port) 0
+  }
+  global Testing
+  set Testing 1
+  button .oports.cancel -text {Cancel} -command {global Testing; set Testing 0}
+  pack .oports.cancel -side top -expand 1 -fill x
+
+  set w .oports
+  wm withdraw $w
+  update idletasks
+  set rw [winfo reqwidth $w]
+  set rh [winfo reqheight $w]
+
+  set x [expr {[winfo screenwidth $w]/2 - $rw/2 \
+		- [winfo vrootx $w]}]
+  set y [expr {[winfo screenheight $w]/2 - $rh/2 \
+		- [winfo vrooty $w]}]
+  wm geom $w +$x+$y
+  wm deiconify $w
+
+  set oldFocus [focus]
+  set oldGrab [grab current $w]
+  if {[string compare $oldGrab ""]} {
+    set grabStatus [grab status $oldGrab]
+  }
+  grab $w
+
+  array set bits {1 1 2 2 3 4 4 8 5 16 6 32 7 64 8 128}
+
+  while {$Testing} {
+    set OB {}
+    for {set i 0} {$i < $NO} {incr i} {lappend OB 0}
+    for {set i 0} {$i < $NO} {incr i} {
+      if {!$Testing} break
+      for {set n 1} {$n < 9} {incr n} {
+	if {!$Testing} break
+	set B($i) $n
+	set OB [lreplace $OB $i $i $bits($n)]
+	CMriBus Outputs $OB $UA
+	update
+	if {$displayDelay > 0} {after $displayDelay}
+      }
+      set B($i) 0
+      set OB [lreplace $OB $i $i 0]
+    }
+  }
+
+  catch {focus $oldFocus}
+  catch {destroy $w}
+  if {[string compare $oldGrab ""]} {
+    if {[string compare $grabStatus "global"]} {
+      grab $oldGrab
+    } else {
+      grab -global $oldGrab
+    }
+  }
+}
+
+proc WraparoundTest {} {
+  global NodeType
+
+  set infiltdly "[$::InputFilterDelay cget -text]"
+  if {[string length "$infiltdly"] == 0} {set infiltdly 0}
+  set displayDelay [expr $infiltdly * 10]
+
+  switch -exact -- $NodeType {
+    USIC {
+      set UA 0
+      set NS 1
+      set NI 3
+      set NO 3
+      set N3NO $NO
+      set CT [list 6]
+      set DL "[$::USICDelay cget -text]"
+      if {[string length "$DL"] == 0} {set DL 0}
+      array set pnames {0 A 1 B 2 C}
+      set ctype N
+    }
+    SUSIC {
+      set UA 0
+      set NS 1
+      set NI 4
+      set NO 4
+      set N3NO $NO
+      set CT [list 6]
+      set DL "[$::USICDelay cget -text]"
+      if {[string length "$DL"] == 0} {set DL 0}
+      array set pnames {0 A 1 B 2 C 3 D}
+      set ctype X
+    }
+    SMINI {
+      set UA 0
+      set NS 0
+      set NI 3
+      set NO 6
+      set N3NO 3
+      set CT {0 0 0 0 0 0}
+      set DL 0
+      array set pnames {0 A 1 B 2 C}
+      set ctype M
+    }
+  }
+  CMriBus InitBoard $CT $NI $NO $NS $UA $ctype $DL
+
+  toplevel .wports
+  wm maxsize .wports 1024 768
+  wm protocol .wports WM_DELETE_WINDOW {.wports.cancel invoke}
+  wm transient .wports .
+
+  frame .wports.ports
+  pack .wports.ports -side top -fill x
+  for {set ip 0} {$ip < $N3NO} {incr ip} {
+    set pm $pnames($ip)
+    label .wports.ports.l$ip -text "$pm" -font [list Courier -50 bold]
+    label .wports.ports.o$ip -relief sunken -text {  0} -font [list Courier -50 bold]
+    label .wports.ports.i$ip -relief sunken -text {  0} -font [list Courier -50 bold]
+    grid configure .wports.ports.l$ip -column $ip -row 0
+    grid configure .wports.ports.o$ip -column $ip -row 1
+    grid configure .wports.ports.i$ip -column $ip -row 2
+  }
+  global Testing
+  set Testing 1
+  button .wports.cancel -text {Cancel} -command {global Testing; set Testing 0}
+  pack .wports.cancel -side top -expand 1 -fill x
+
+
+  set w .wports
+  wm withdraw $w
+  update idletasks
+  set rw [winfo reqwidth $w]
+  set rh [winfo reqheight $w]
+
+  set x [expr {[winfo screenwidth $w]/2 - $rw/2 \
+		- [winfo vrootx $w]}]
+  set y [expr {[winfo screenheight $w]/2 - $rh/2 \
+		- [winfo vrooty $w]}]
+  wm geom $w +$x+$y
+  wm deiconify $w
+
+  set oldFocus [focus]
+  set oldGrab [grab current $w]
+  if {[string compare $oldGrab ""]} {
+    set grabStatus [grab status $oldGrab]
+  }
+  grab $w
+
+  while {$Testing} {
+    set OB {}
+    for {set i 0} {$i < $NO} {incr i} {lappend OB 0}
+    for {set i 0} {$i < $N3NO} {incr i} {
+      if {!$Testing} break
+      for {set d 0} {$d < 256} {incr d} {
+        if {!$Testing} break
+        set OB [lreplace $OB $i $i $d]
+	.wports.ports.o$i configure -text "[format {%3d} $d]"
+	if {[string equal "$ctype" {M}]} {
+	  set OB [lreplace $OB [expr $i + 3] [expr $i + 3] $d]
+	}
+	CMriBus Outputs $OB $UA
+	after 100
+	if {$displayDelay > 0} {after $displayDelay}
+	set inputs [CMriBus Inputs $NI $UA]
+	#set  inputs $OB
+	.wports.ports.i$i configure -text "[format {%3d} [lindex $inputs $i]]"
+	update
+	if {[lindex $inputs $i] != $d} {
+	  tk_messageBox -icon error -type ok -message "Error Found In @ port $pnames($i)"
+	}
+      }
+      set OB [lreplace $OB $i $i 0]
+      if {[string equal "$ctype" {M}]} {
+	set OB [lreplace $OB [expr $i + 3] [expr $i + 3] 0]
+      }
+      .wports.ports.o$i configure -text {  0}
+      .wports.ports.i$i configure -text {  0}
+    }
+  }
+  catch {focus $oldFocus}
+  catch {destroy $w}
+  if {[string compare $oldGrab ""]} {
+    if {[string compare $grabStatus "global"]} {
+      grab $oldGrab
+    } else {
+      grab -global $oldGrab
+    }
+  }
+}
+
+proc ClosePort {{messageP 1}} {
+  $::Main setmenustate actions disabled
+  $::CurrentState configure -text {Closed}
+  rename CMriBus {}
+  if {$messageP} {
+    tk_messageBox -icon info -message "Port [$::CurrentPort cget -text] closed."
+  }
+  
+}
+
+
+
+
+# Process command line options.
+
+global IsSlave
+set IsSlave 0
+global argcTest
+set argcTest 0
+global argc argv argv0
+
+for {set ia 0} {$ia < $argc} {incr ia} {
+  switch -glob -- "[lindex $argv $ia]" {
+    -isslave* {
+      set IsSlave 1
+      incr argcTest
+      fconfigure stdin -buffering line
+      fconfigure stdout -buffering line
+    }
+    default {
+      puts stderr "usage: $argv0 \[wish options\]"
+      exit 96
+    }
+  }
+}
+
+
+
+MainWindow
+
