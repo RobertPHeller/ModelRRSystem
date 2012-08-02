@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Closest
+Comment=Compute Camera View information for the closest focal distance.
+Exec=Closest
+Icon=Closest.png
+Encoding=UTF-8
+Categories=Application;Camera;Model-Railroad-System
+

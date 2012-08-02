@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Freight Car Forwarder (2)
+Comment=Freight Car Forwarder program (V2)
+Exec=FCFMain %f
+Icon=FCFMain.png
+Encoding=UTF-8
+Categories=Application;Model-Railroad-System
+
