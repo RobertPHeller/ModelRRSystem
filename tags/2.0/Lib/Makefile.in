@@ -1,0 +1,16 @@
+LIBRARIES = MRRClass MRRParser
+SWIGMODULES = mrr
+SHLIB_SUFFIX    = @TCL_SHLIB_SUFFIX@
+LIB_SUFFIX      = .a
+
+all:
+	
+clean:
+
+install:
+
+distclean: clean
+	rm -f $(SWIGMODULES)$(SHLIB_SUFFIX)
+	set -e; for i in $(LIBRARIES); \
+		do rm -f lib$$i$(SHLIB_SUFFIX) lib$$i$(LIB_SUFFIX); done
+	rm -f Makefile pkgIndex.tcl
