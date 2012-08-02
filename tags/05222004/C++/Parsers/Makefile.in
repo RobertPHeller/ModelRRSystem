@@ -1,0 +1,114 @@
+#* 
+#* ------------------------------------------------------------------
+#* Makefile.in - 
+#* Created by Robert Heller on Sun Jul 28 09:58:05 2002
+#* ------------------------------------------------------------------
+#* Modification History: $Log$
+#* Modification History: Revision 1.4  2004/03/13 15:49:58  heller
+#* Modification History: *** empty log message ***
+#* Modification History:
+#* Modification History: Revision 1.3  2002/09/24 04:20:18  heller
+#* Modification History: MRRXtrkCad => TrackGraph
+#* Modification History:
+#* Modification History: Revision 1.2  2002/07/28 14:03:50  heller
+#* Modification History: Add it copyright notice headers
+#* Modification History:
+#* ------------------------------------------------------------------
+#* Contents:
+#* ------------------------------------------------------------------
+#*  
+#*     Model RR System, Version 2
+#*     Copyright (C) 1994,1995,2002  Robert Heller D/B/A Deepwoods Software
+#* 			51 Locke Hill Road
+#* 			Wendell, MA 01379-9728
+#* 
+#*     This program is free software; you can redistribute it and/or modify
+#*     it under the terms of the GNU General Public License as published by
+#*     the Free Software Foundation; either version 2 of the License, or
+#*     (at your option) any later version.
+#* 
+#*     This program is distributed in the hope that it will be useful,
+#*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#*     GNU General Public License for more details.
+#* 
+#*     You should have received a copy of the GNU General Public License
+#*     along with this program; if not, write to the Free Software
+#*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#* 
+#*  
+#* 
+LibSRCS = MRRXtrkCad.tab.cc #MRRSigExpr.tab.cc 
+HEADERS = MRRXtrkCad.tab.h #MRRSigExpr.tab.h 
+LibOBJS = MRRXtrkCad.tab.o #MRRSigExpr.tab.o 
+Outs    = MRRXtrkCad.output #MRRSigExpr.output
+LIBRARY = MRRParser
+LIB = ../../Lib
+prefix     = @prefix@
+exec_prefix= @exec_prefix@
+BIN_DIR        = $(exec_prefix)/bin
+LIB_DIR        = $(exec_prefix)/lib
+NSTALL         = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA    = @INSTALL_DATA@
+CXX = @CXX@
+BISONXX = @BISONXX@
+AR              = @AR@
+RANLIB          = @RANLIB@
+BaseCXXFLAGS    = @CXXFLAGS@
+DEFS            = @DEFS@
+SHLIB_CFLAGS    = @TCL_SHLIB_CFLAGS@
+SHLIB_SUFFIX    = @TCL_SHLIB_SUFFIX@
+SHLIB_LD        = @SHLIB_LD@
+INCLUDES        = -I. -I../Classes
+
+CXXFLAGS = $(DEFS) $(BaseCXXFLAGS) $(SHLIB_CFLAGS) $(INCLUDES) -c -Wall
+
+all: .depend $(LIB)/lib$(LIBRARY).a $(LIB)/lib$(LIBRARY)$(SHLIB_SUFFIX)
+
+$(LIB)/lib$(LIBRARY).a : $(LibOBJS)
+	rm -f $(LIB)/lib$(LIBRARY).a
+	$(AR) rv $(LIB)/lib$(LIBRARY).a $(LibOBJS)
+	$(RANLIB) $(LIB)/lib$(LIBRARY).a
+
+$(LIB)/lib$(LIBRARY)$(SHLIB_SUFFIX) : $(LibOBJS)
+	rm -f $(LIB)/lib$(LIBRARY)$(SHLIB_SUFFIX)*
+	$(SHLIB_LD) -Wl,-soname,lib$(LIBRARY)$(SHLIB_SUFFIX).0 \
+		-o $(LIB)/lib$(LIBRARY)$(SHLIB_SUFFIX).0 $(LibOBJS)
+	ln -sf lib$(LIBRARY)$(SHLIB_SUFFIX).0 \
+		$(LIB)/lib$(LIBRARY)$(SHLIB_SUFFIX)
+
+
+
+MRRXtrkCad.tab.h MRRXtrkCad.tab.cc : MRRXtrkCad.y
+	$(BISONXX) \
+		--verbose --defines \
+		--output-file=MRRXtrkCad.tab.cc -h MRRXtrkCad.tab.h \
+		MRRXtrkCad.y
+
+MRRSigExpr.tab.h MRRSigExpr.tab.cc : MRRSigExpr.y
+	$(BISONXX) \
+		--verbose --defines \
+		--output-file=MRRSigExpr.tab.cc -h MRRSigExpr.tab.h \
+		MRRSigExpr.y
+
+
+.depend depend dep: $(LibSRCS) $(HEADERS)
+	$(CPP) -M $(CXXFLAGS) $(LibSRCS) > .depend
+
+
+clean:
+	rm -f $(LibOBJS) .depend
+
+distclean: clean
+	rm -f $(LibSRCS) $(HEADERS) $(Outs) Makefile
+
+#
+# include a dependency file if one exists
+#
+ifeq (.depend,$(wildcard .depend))
+include .depend
+endif
+
+
+
