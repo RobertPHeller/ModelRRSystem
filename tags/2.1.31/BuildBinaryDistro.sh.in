@@ -1,0 +1,216 @@
+#!/bin/sh
+#************************
+#* 
+#* ------------------------------------------------------------------
+#* BuildBinaryDistro.sh - Build Binary Distro arvhives
+#* Created by Robert Heller on Fri Aug  3 10:31:22 2012
+#* ------------------------------------------------------------------
+#* Modification History: $Log$
+#* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+#* Modification History: Add it copyright notice headers
+#* Modification History:
+#* ------------------------------------------------------------------
+#* Contents:
+#* ------------------------------------------------------------------
+#*  
+#*     Model RR System, Version 2
+#*     Copyright (C) 1994,1995,2002-2012  Robert Heller D/B/A Deepwoods Software
+#* 			51 Locke Hill Road
+#* 			Wendell, MA 01379-9728
+#* 
+#*     This program is free software; you can redistribute it and/or modify
+#*     it under the terms of the GNU General Public License as published by
+#*     the Free Software Foundation; either version 2 of the License, or
+#*     (at your option) any later version.
+#* 
+#*     This program is distributed in the hope that it will be useful,
+#*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#*     GNU General Public License for more details.
+#* 
+#*     You should have received a copy of the GNU General Public License
+#*     along with this program; if not, write to the Free Software
+#*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#* 
+#*  
+#* 
+#*****************************
+#
+# $1 = archive type, one of .zip, .tar.gz, or .tar.bz2 -- default: .tar.gz
+# $2 = DESTDIR (default /tmp)
+# $3 = archive directory (default ..)
+# $4 = archive target name (default is target)
+#
+if [ x$1 = x ]; then
+  archiveropts=" czfT "
+  archiver="tar"
+  archiverext=".tar.gz"
+else
+  archiverext=$1
+  case $1 in 
+    .zip) 
+	archiveropts=" -rq@ "
+	archiver="zip"
+	;;
+    .tar.bz2)
+        archiveropts=" cjfT "
+	archiver="tar"
+	;;
+    .tar.gz)
+        archiveropts=" czfT "
+	archiver="tar"
+	;;
+    *)  
+	echo "Undefined archive type: $1, using default (.tar.gz)"
+	archiveropts=" czfT "
+	archiver="tar"
+	archiverext=".tar.gz"
+	;;
+  esac
+fi
+
+if [ x$2 = x ]; then
+  DESTDIR="/tmp"
+else
+  DESTDIR=$2
+fi
+
+if [ x$3 = x ]; then
+  archive_dir=".."
+else
+  archive_dir=$3
+fi
+
+here=`pwd`
+cd $archive_dir
+archive_dir=`pwd`
+cd $here
+
+if [ x$4 = x ]; then
+  archive_target=@target@
+else
+  archive_target=$4
+fi
+
+echo "archiver is $archiver"
+echo "DESTDIR is $DESTDIR"
+echo "target is @target@"
+echo "archive_dir is $archive_dir"
+echo "Package is @PACKAGE@, Version is @VERSION@"
+echo "Archive basename is $archive_dir/@PACKAGE@-@VERSION@-$archive_target"
+
+BIN=$archive_dir/@PACKAGE@-@VERSION@-${archive_target}BinOnly${archiverext}
+DEV=$archive_dir/@PACKAGE@-@VERSION@-${archive_target}BinDevel${archiverext}
+DOC=$archive_dir/@PACKAGE@-@VERSION@-${archive_target}BinDoc${archiverext}
+
+echo "Archive names are:"
+echo "  $BIN"
+echo "  $DEV"
+echo "  $DOC"
+
+# First make it
+
+make
+
+# Then fake install it
+
+make DESTDIR=$DESTDIR install
+
+# Now create the archives
+
+rm -f /tmp/BINFILES$$.list
+touch /tmp/BINFILES$$.list
+echo bin/AnyDistance@EXEEXT@ \
+bin/Closest@EXEEXT@ \
+bin/Dispatcher@EXEEXT@ \
+bin/FCFCreate@EXEEXT@ \
+bin/FCFMain@EXEEXT@ \
+bin/GenericThrottle@EXEEXT@ \
+bin/LocoPull@EXEEXT@ \
+bin/LocoTest@EXEEXT@ \
+bin/ModelRRSystem@EXEEXT@ \
+bin/AzatraxDeviceMap@EXEEXT@ \
+bin/SL2Test@EXEEXT@ \
+bin/SR4Test@EXEEXT@ \
+bin/MRDSensorLoop@EXEEXT@ \
+bin/MRDTest@EXEEXT@ \
+bin/Resistor@EXEEXT@ \
+bin/TimeTable@EXEEXT@ \
+bin/TTChart2TT2@EXEEXT@ \
+bin/UniversalTest@EXEEXT@ \
+bin/XPressNetThrottle@EXEEXT@ \
+bin/xplocotest@EXEEXT@ | tr ' ' '\n' >>/tmp/BINFILES$$.list
+(cd ${DESTDIR}/usr/local&&find bin -name 'lib*@SHLIB_SUFFIX@*') >> /tmp/BINFILES$$.list
+(cd ${DESTDIR}/usr/local&&find sbin) >> /tmp/BINFILES$$.list
+(cd ${DESTDIR}/usr/local&&find lib -name 'lib*@SHLIB_SUFFIX@*') >> /tmp/BINFILES$$.list
+(cd ${DESTDIR}/usr/local&&find lib/@PACKAGE@ -name 'lib*@SHLIB_SUFFIX@') >> /tmp/BINFILES$$.list
+echo lib/@PACKAGE@/pkgIndex.tcl  \
+share/@PACKAGE@/CMri \
+share/@PACKAGE@/Common  \
+share/@PACKAGE@/GRSupport  \
+share/@PACKAGE@/RailDriverSupport \
+share/@PACKAGE@/NCE \
+share/@PACKAGE@/Azatrax \
+share/@PACKAGE@/RailDriver  \
+share/@PACKAGE@/TTScripts  \
+share/@PACKAGE@/XPressNet \
+man/man1 \
+man/man8 \
+share/applications \
+share/pixmaps \
+share/locale/en/LC_MESSAGES/mrrsystem.mo | tr ' ' '\n' >>/tmp/BINFILES$$.list
+
+rm -f /tmp/DOCFILES$$.list
+touch /tmp/DOCFILES$$.list
+echo share/@PACKAGE@/Doc/DispatcherExamples \
+share/@PACKAGE@/Doc/UserManual \
+share/@PACKAGE@/Doc/UserManual.pdf | tr ' ' '\n' >>/tmp/DOCFILES$$.list
+
+rm -f /tmp/DEVFILES$$.list
+touch /tmp/DEVFILES$$.list
+(cd ${DESTDIR}/usr/local&&find bin -name 'tclkit-*') >>/tmp/DEVFILES$$.list
+(cd ${DESTDIR}/usr/local&&find lib -name 'lib*.la') >>/tmp/DEVFILES$$.list
+(cd ${DESTDIR}/usr/local&&find lib -name 'lib*.a') >>/tmp/DEVFILES$$.list
+echo lib/@PACKAGE@/AddKitDir.kit \
+lib/@PACKAGE@/AddKitFile.kit \
+lib/@PACKAGE@/MakePkgIndex.kit \
+lib/@PACKAGE@/sdx.kit | tr ' ' '\n' >>/tmp/DEVFILES$$.list
+(cd ${DESTDIR}/usr/local&&find lib/@PACKAGE@ -name 'Img-1.3*.zip') >>/tmp/DEVFILES$$.list
+(cd ${DESTDIR}/usr/local&&find lib/@PACKAGE@ -name 'pkgIndex_*.tcl') >>/tmp/DEVFILES$$.list
+echo lib/@PACKAGE@/Installer >>/tmp/DEVFILES$$.list
+(cd ${DESTDIR}/usr/local&&find share/@PACKAGE@ -name '*.pot') >>/tmp/DEVFILES$$.list
+(cd ${DESTDIR}/usr/local&&find man/man3 ) >>/tmp/DEVFILES$$.list
+(cd ${DESTDIR}/usr/local&&find include ) >>/tmp/DEVFILES$$.list
+(cd ${DESTDIR}/usr/local&&find share/@PACKAGE@/Doc -name 'fig*') >>/tmp/DEVFILES$$.list
+echo share/@PACKAGE@/Doc/Help.tex \
+share/@PACKAGE@/Doc/InternalsHTML \
+share/@PACKAGE@/Doc/internals.pdf \
+share/@PACKAGE@/Doc/ProgrammingGuide.pdf | tr ' ' '\n' >>/tmp/DEVFILES$$.list
+(cd ${DESTDIR}/usr/local&&find share/@PACKAGE@/Doc -name 'SampleCode*') >>/tmp/DEVFILES$$.list
+echo share/@PACKAGE@/Doc/Finn.pdf >>/tmp/DEVFILES$$.list
+
+echo "Writing archives..."
+
+case $archiver in
+  tar)
+	(cd ${DESTDIR}/usr/local&&$archiver $archiveropts $BIN /tmp/BINFILES$$.list)
+	echo "Wrote $BIN"
+	(cd ${DESTDIR}/usr/local&&$archiver $archiveropts $DOC /tmp/DOCFILES$$.list)
+	echo "Wrote $DOC"
+	(cd ${DESTDIR}/usr/local&&$archiver $archiveropts $DEV /tmp/DEVFILES$$.list)
+	echo "Wrote $DEV"
+  ;;
+  zip)
+	(cd ${DESTDIR}/usr/local&&${archiver} ${archiveropts} $BIN < /tmp/BINFILES$$.list)
+	echo "Wrote $BIN"
+	(cd ${DESTDIR}/usr/local&&${archiver} ${archiveropts} $DOC < /tmp/DOCFILES$$.list)
+	echo "Wrote $DOC"
+	(cd ${DESTDIR}/usr/local&&${archiver} ${archiveropts} $DEV < /tmp/DEVFILES$$.list)
+	echo "Wrote $DEV"
+  ;;
+esac
+
+rm -f /tmp/DEVFILES$$.list /tmp/DOCFILES$$.list /tmp/BINFILES$$.list
+rm -rf ${DESTDIR}
+
+
