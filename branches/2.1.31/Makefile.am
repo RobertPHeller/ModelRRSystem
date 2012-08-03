@@ -48,7 +48,7 @@
 SUBDIRS = BuildScripts BuildData Doc C++ Scripts Installer intl po
 
 EXTRA_DIST = $(PACKAGE).spec bootstrap config_tcl.sed.in Doxyfile.in \
-	ModelRailroadSystem.h
+	ModelRailroadSystem.h BuildBinaryDistro.sh.in
 
 man_MANS = man1/ModelRailroadSystem.1
 
