@@ -60,3 +60,6 @@ man1/ModelRailroadSystem.1 : Doxyfile ModelRailroadSystem.h
 
 clean-local:
 	-rm -rf man1
+
+rpm: dist
+	rpmbuild -ta $(distdir).tar.gz

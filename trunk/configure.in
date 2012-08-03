@@ -100,7 +100,7 @@ MRR_MINOR_VERSION=1
 AC_DEFINE_UNQUOTED([MRR_MINOR_VERSION],$MRR_MINOR_VERSION,[MRR Minor])
 MRR_PATCH_LEVEL="2.1.31"
 AC_DEFINE_UNQUOTED([MRR_PATCH_LEVEL],$MRR_PATCH_LEVEL,[MRR Patch Level])
-MRR_PATCH_LEVEL="2.1.31"
+MRR_PATCH_LEVELLIB="2.1.31"
 AC_SUBST(MRR_PATCH_LEVELLIB)
 AC_SUBST(MRR_PATCH_LEVEL)
 AC_SUBST(MRR_VERSION)
@@ -788,7 +788,7 @@ AC_SUBST(SYSTEMVERSION)
 
 
 
-AC_OUTPUT(config_tcl.sed \
+AC_OUTPUT([config_tcl.sed \
 	  Makefile \
 	  BuildScripts/Makefile \
 	  BuildData/Makefile \
@@ -852,7 +852,7 @@ AC_OUTPUT(config_tcl.sed \
 		po/raildriverd/Makefile \
 		po/xplocotest/Makefile \
 	  MRRSystem.spec \
-	  Doxyfile \
-	  )
+	  BuildBinaryDistro.sh \
+	  Doxyfile],[chmod +x BuildBinaryDistro.sh])
 
 

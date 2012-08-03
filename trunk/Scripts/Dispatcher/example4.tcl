@@ -690,7 +690,7 @@ namespace eval Signals {
 	switch $a {
 	  Dark {MainWindow ctcpanel setv $options(-signal) dark}
 	  GreenRed {MainWindow ctcpanel setv $options(-signal) {green red}}
-	  YellowRed {MainWindow ctcpanel setv $options(-signal) {yellow red}
+	  YellowRed {MainWindow ctcpanel setv $options(-signal) {yellow red}}
 	  RedYellow {MainWindow ctcpanel setv $options(-signal) {red yellow}}
 	  RedRed {MainWindow ctcpanel setv $options(-signal) {red red}}
 	}
@@ -725,7 +725,7 @@ namespace eval Signals {
 	switch $a {
 	  Dark {MainWindow ctcpanel setv $options(-signal) dark}
 	  GreenRedRed {MainWindow ctcpanel setv $options(-signal) {green red red}}
-	  YellowRedRed {MainWindow ctcpanel setv $options(-signal) {yellow red red}
+	  YellowRedRed {MainWindow ctcpanel setv $options(-signal) {yellow red red}}
 	  RedYellowRed {MainWindow ctcpanel setv $options(-signal) {red yellow red}}
 	  RedRedYellow {MainWindow ctcpanel setv $options(-signal) {red red yellow}}
 	  RedRedRed {MainWindow ctcpanel setv $options(-signal) {red red red}}

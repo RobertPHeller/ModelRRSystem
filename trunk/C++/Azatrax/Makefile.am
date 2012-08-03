@@ -61,7 +61,7 @@ noinst_DATA = azatrax.potlist
 pkgdatadir = $(datadir)/$(PACKAGE)
 pkgdata_DATA = AzatraxProg.pot
 pkgdata2dir = $(datadir)/$(PACKAGE)/Azatrax
-pkgdata2_SCRIPTS = 90-MRD.rules
+pkgdata2_SCRIPTS = 90-Azatrax.rules
 
 desktopdir = $(datadir)/applications
 desktop_DATA = MRDTest.desktop MRDSensorLoop.desktop AzatraxDeviceMap.desktop \
@@ -100,15 +100,15 @@ SR4TestSCRIPTS = $(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl \
 		$(top_builddir)/Scripts/Common/Version.tcl
 
 EXTRA_DIST = MRDTest.src azatrax.i MRDTest.desktop MRDTest.png Doxyfile.in \
-	90-MRD.rules.in MRDSensorLoop.src MRDSensorLoop.desktop \
+	90-Azatrax.rules.in MRDSensorLoop.src MRDSensorLoop.desktop \
 	MRDSensorLoop.png AzatraxDeviceMap.desktop AzatraxDeviceMap.png \
 	AzatraxDeviceMap.src SL2Test.desktop SL2Test.png SL2Test.src \
-	SR4Test.desktop SR4Test.png SR4Test.src
+	SR4Test.desktop SR4Test.png SR4Test.src Azatrax.h.in
 
 DEFS = @DEFS@ $(TCL_DEFS)
 SWIG_FLAGS =  -tcl8 -c++ $(INCLUDES)
 CLEANFILES    = $(BUILT_SOURCES) *.kit azatrax_wrap.cc MRDTest${EXEEXT} \
-		pkgIndex.tcl AzatraxProg.pot azatrax.potlist 90-MRD.rules \
+		pkgIndex.tcl AzatraxProg.pot azatrax.potlist 90-Azatrax.rules \
 		MRDSensorLoop${EXEEXT} SL2Test${EXEEXT} SR4Test${EXEEXT} \
 		AzatraxDeviceMap${EXEEXT}
 
@@ -290,7 +290,7 @@ else
 endif
 	touch $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
 	cat   pkgIndex.tcl >>$(DESTDIR)$(pkglibdir)/pkgIndex.tcl
-	$(INSTALL_DATA) pkgIndex.tcl $(DESTDIR)$(pkglibdir)/pkgIndex_mrd.tcl
+	$(INSTALL_DATA) pkgIndex.tcl $(DESTDIR)$(pkglibdir)/pkgIndex_azatrax.tcl
 
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
@@ -310,8 +310,8 @@ $(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
 
 FORCE:
 
-90-MRD.rules : 90-MRD.rules.in 
-	cp $(srcdir)/90-MRD.rules.in ./90-MRD.rules
+90-Azatrax.rules : 90-Azatrax.rules.in 
+	cp $(srcdir)/90-Azatrax.rules.in ./90-Azatrax.rules
 
 man1/MRDTest.1 : Doxyfile MRDTest.src
 	-rm -rf man1/MRDTest.1

@@ -187,7 +187,7 @@ snit::widget DeviceMap {
     set serialnumber [$serialNumberCB cget -text]
     if {"$azatraxOpen" eq ""} {
       if {[string length "$serialnumber"] != 0} {
-	if {[catch {Azatrax_OpenDevice $serialnumber] errormessage]} {
+	if {[catch {Azatrax_OpenDevice $serialnumber} errormessage]} {
 	  tk_messageBox -icon error -message "$errormessage"
 	} else {
 	  set azatraxOpen $errormessage
@@ -213,7 +213,7 @@ snit::widget DeviceMap {
     if {$productCol >= 0} {
       if {"$azatraxOpen" eq ""} {
 	if {[string length "$serialnumber"] != 0} {
-	  if {[catch {Azatrax_OpenDevice $serialnumber] errormessage]} {
+	  if {[catch {Azatrax_OpenDevice $serialnumber} errormessage]} {
 	    tk_messageBox -icon error -message "$errormessage"
 	  } else {
 	    set row [lreplace $row $productCol $productCol [$errormessage MyProduct]]
