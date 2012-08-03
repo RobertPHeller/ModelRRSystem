@@ -59,7 +59,7 @@ make DESTDIR=$RPM_BUILD_ROOT install
 /usr/bin/install -c $RPM_BUILD_ROOT/usr/share/@PACKAGE@/RailDriver/raildriverd.hotplug $RPM_BUILD_ROOT/etc/hotplug/usb/raildriverd
 /usr/bin/install -d $RPM_BUILD_ROOT/etc/udev/rules.d
 /usr/bin/install -c $RPM_BUILD_ROOT/usr/share/@PACKAGE@/RailDriver/90-raildriver.rules $RPM_BUILD_ROOT/etc/udev/rules.d
-/usr/bin/install -c $RPM_BUILD_ROOT/usr/share/@PACKAGE@/MRD/90-MRD.rules $RPM_BUILD_ROOT/etc/udev/rules.d
+/usr/bin/install -c $RPM_BUILD_ROOT/usr/share/@PACKAGE@/Azatrax/90-Azatrax.rules $RPM_BUILD_ROOT/etc/udev/rules.d
 /usr/bin/install -d $RPM_BUILD_ROOT/lib/udev
 /usr/bin/install -c $RPM_BUILD_ROOT/usr/share/@PACKAGE@/RailDriver/raildriverd.udev $RPM_BUILD_ROOT/lib/udev/raildriverd
 
@@ -97,7 +97,9 @@ fi
 %{_bindir}/LocoPull
 %{_bindir}/LocoTest
 %{_bindir}/ModelRRSystem
-%{_bindir}/MRDDeviceMap
+%{_bindir}/AzatraxDeviceMap
+%{_bindir}/SL2Test
+%{_bindir}/SR4Test
 %{_bindir}/MRDSensorLoop
 %{_bindir}/MRDTest
 %{_bindir}/Resistor
@@ -105,10 +107,11 @@ fi
 %{_bindir}/TTChart2TT2
 %{_bindir}/UniversalTest
 %{_bindir}/XPressNetThrottle
+%{_bindir}/xplocotest
 %{_sbindir}
 %{_sysconfdir}/hotplug/usb/raildriverd
 %{_sysconfdir}/udev/rules.d/90-raildriver.rules
-%{_sysconfdir}/udev/rules.d/90-MRD.rules
+%{_sysconfdir}/udev/rules.d/90-Azatrax.rules
 /lib/udev/raildriverd
 %{_libdir}/libcmri.so 
 %{_libdir}/libcmri.so.0 
@@ -116,9 +119,9 @@ fi
 %{_libdir}/libfcfclasses.so 
 %{_libdir}/libfcfclasses.so.0 
 %{_libdir}/libfcfclasses.so.0.0.0 
-%{_libdir}/libmrd.so 
-%{_libdir}/libmrd.so.0 
-%{_libdir}/libmrd.so.0.0.0 
+%{_libdir}/libazatrax.so 
+%{_libdir}/libazatrax.so.0 
+%{_libdir}/libazatrax.so.0.0.0 
 %{_libdir}/libMRRParserClasses.so 
 %{_libdir}/libMRRParserClasses.so.0 
 %{_libdir}/libMRRParserClasses.so.0.0.0 
@@ -133,7 +136,7 @@ fi
 %{_libdir}/libxpressnet.so.0.0.0 
 %{_libdir}/@PACKAGE@/libcmri.so 
 %{_libdir}/@PACKAGE@/libfcfclasses.so 
-%{_libdir}/@PACKAGE@/libmrd.so 
+%{_libdir}/@PACKAGE@/libazatrax.so 
 %{_libdir}/@PACKAGE@/libMRRParserClasses.so 
 %{_libdir}/@PACKAGE@/libraildriverio.so
 %{_libdir}/@PACKAGE@/libttclasses.so 
@@ -142,8 +145,9 @@ fi
 %{_datadir}/@PACKAGE@/CMri
 %{_datadir}/@PACKAGE@/Common 
 %{_datadir}/@PACKAGE@/GRSupport 
-%{_datadir}/@PACKAGE@/MRD
+%{_datadir}/@PACKAGE@/RailDriverSupport
 %{_datadir}/@PACKAGE@/NCE
+%{_datadir}/@PACKAGE@/Azatrax
 %{_datadir}/@PACKAGE@/RailDriver 
 %{_datadir}/@PACKAGE@/TTScripts 
 %{_datadir}/@PACKAGE@/XPressNet
@@ -165,14 +169,14 @@ fi
 %{_bindir}/tclkit-*
 %{_libdir}/libcmri.la 
 %{_libdir}/libfcfclasses.la 
-%{_libdir}/libmrd.la 
+%{_libdir}/libazatrax.la 
 %{_libdir}/libMRRParserClasses.la 
 %{_libdir}/libraildriverio.la
 %{_libdir}/libttclasses.la 
 %{_libdir}/libxpressnet.la 
 %{_libdir}/libcmri.a 
 %{_libdir}/libfcfclasses.a 
-%{_libdir}/libmrd.a 
+%{_libdir}/libazatrax.a 
 %{_libdir}/libMRRParserClasses.a 
 %{_libdir}/libraildriverio.a
 %{_libdir}/libttclasses.a 
@@ -184,7 +188,7 @@ fi
 %{_libdir}/@PACKAGE@/Img-1.3*.zip
 %{_libdir}/@PACKAGE@/pkgIndex_cmri.tcl
 %{_libdir}/@PACKAGE@/pkgIndex_fcfclasses.tcl
-%{_libdir}/@PACKAGE@/pkgIndex_mrd.tcl
+%{_libdir}/@PACKAGE@/pkgIndex_azatrax.tcl
 %{_libdir}/@PACKAGE@/pkgIndex_mrr.tcl
 %{_libdir}/@PACKAGE@/pkgIndex_raildriverio.tcl
 %{_libdir}/@PACKAGE@/pkgIndex_ttclasses.tcl

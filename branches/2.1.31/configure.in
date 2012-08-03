@@ -788,7 +788,7 @@ AC_SUBST(SYSTEMVERSION)
 
 
 
-AC_OUTPUT(config_tcl.sed \
+AC_OUTPUT([config_tcl.sed \
 	  Makefile \
 	  BuildScripts/Makefile \
 	  BuildData/Makefile \
@@ -852,7 +852,7 @@ AC_OUTPUT(config_tcl.sed \
 		po/raildriverd/Makefile \
 		po/xplocotest/Makefile \
 	  MRRSystem.spec \
-	  Doxyfile \
-	  )
+	  BuildBinaryDistro.sh \
+	  Doxyfile],[chmod +x BuildBinaryDistro.sh])
 
 
