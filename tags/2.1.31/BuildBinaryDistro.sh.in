@@ -114,6 +114,7 @@ make
 
 # Then fake install it
 
+rm -rf ${DESTDIR}
 make DESTDIR=$DESTDIR install
 
 # Now create the archives
