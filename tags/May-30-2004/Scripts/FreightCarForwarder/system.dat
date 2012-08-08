@@ -1,0 +1,74 @@
+Library Junction & Bench Station
+
+indus.dat
+trains.dat
+orders.dat
+owners.dat
+cartypes.dat
+cars.dat
+stats.dat
+
+'****************************************************************************
+'
+' Divisions
+'
+'    #          Numeric identifier
+'    Symbol     Symbolic alphanumeric identifier (A-Z a-z 0-9)
+'    Home       Numeric Home yard of the division
+'    Area       Symbolic alphanumeric Area identifier
+'    Name       Text name of the division
+'
+' Note that several "divisions" can share a Home Yard, but the Home Yard
+' belongs to only one station which in turn belongs to a single Division.
+'
+' When this is true, cars must be "forwarded" to the Home Yard on behalf
+' of those extra divisions.
+'
+' The purpose of this is finer car-waybill-routing. For example, each of
+' the Chicago line trains terminate at Morgantown, but their cars may be
+' destined for California or Michigan, which are in different divisions.
+'
+'****************************************************************************
+ 
+Divisions = 3
+
+'    HOME
+'# S YARD A NAME
+'---------------
+
+ 1,E,   2,e,East
+ 2,W,   3,e,West
+ 3,C,   4,c,Center
+
+-1
+
+'****************************************************************************
+'
+' Stations (Cities)
+'
+'****************************************************************************
+
+Stations = 20
+
+
+' 
+' ----------------------------------------------
+
+' # NAME                DIV COMMENT
+  2,Tub Yard,             1,yard
+  3,Tub Yard,             2,yard
+  4,Counter Weight City,  3,yard
+
+  5,Counter Weight City,  3,Fish Wharf
+  6,Tub Yard,             1,Stooper Stop & Barf
+  7,Tub Yard,             2,Tub Intermodal
+  8,Tub Yard,             1,Tub Intermodal
+  9,Tub Yard,             1,Pepsi Bottler
+ 10,Counter Weight City,  3,Pepsico Exports
+ 11,Counter Weight City,  3,Don Juan Imports
+ 12,Counter Weight City,  3,Seafood Specialties
+ 13,Tub Yard,             1,Sams Specialties
+ 14,Counter Weight City,  3,Freight North
+ 15,Counter Weight City,  3,Freight South
+
+-1

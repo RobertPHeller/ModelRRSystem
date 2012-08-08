@@ -1,0 +1,96 @@
+'----------------------------------------------------------------------------
+'
+' Industries and Yards
+'
+'       ID    Numeric identifier
+'       T     Types are YARD or INDUSTRY or OFFLINE
+'       STA   Station Identifier
+'       NAME  User friendly place name
+'       TLEN  Actual or virtual track length
+'       ALEN  Assignable length
+'       P     Priority for car assignments
+'
+'             If YARD or STAGE, P is
+'
+'                 n     number of yardlists to print of type A P D
+'
+'       R     Reloads cars Yes or No
+'       H     Hazard class for outbound cargo
+'       MIR   Mirror industry or 0 if none
+'       C     Maximum clearance plate
+'       W     Maximum weight class
+'       DCL   Destination Control List of divisions
+'
+'             If YARD or STAGE, DCL can contain
+'
+'                 A     alphabetical listing of cars in yard is permitted
+'                 P     pickup listing of cars in yard is permitted
+'                 D     dropoff listing of cars in yard is permitted
+'
+'       MAX   Maximum allowed car length
+'       LD    Loaded car types accepted
+'       EM    Empty car types accepted
+'
+'
+' Date: June 24 1996
+'
+'----------------------------------------------------------------------------
+
+Industries = 30
+
+'    This is for cars not in service! Note City #1 == WORKBENCH
+ 
+  0,I,  1,REPAIR YARD,                0,   0,9,N, ,  0,0,0,,999,,
+ 
+' Yards
+
+'ID T STA NAME                     TLEN ALEN P R H MIR C W DCL MAX LD-EM
+ 
+  2,Y,  2,Tub Yard,                 760, 760,1,N, ,  3,9,9,APD,999,,
+  3,Y,  3,Tub Yard,                 760, 760,1,N, ,  2,9,9,APD,999,,
+  4,Y,  4,CC Exchange Yard,         310, 310,1,N, ,  0,5,3,APD,999,,
+
+' Imaginary (offline) industries -- all handled by Tub yard
+
+'ID T STA NAME                     TLEN ALEN P R H MIR C W DCL MAX LD-EM
+ 
+  6,I,  6,Stooper Stop & Barf,      500, 500,9,N, ,  0,5,3,CE , 50,K69,
+  7,I,  7,Tub Intermodal East,      600, 600,9,Y, ,  8,9,9,WE ,200,@,@
+  8,I,  8,Tub Intermodal West,      600, 600,9,Y, ,  7,9,9,EW ,200,@,@
+  9,I,  9,Pepsi Bottler,            100, 100,9,Y, ,  0,5,3,EC , 50,69,K
+ 13,I, 13,Sams Specialties,          50,  50,9,N, ,  0,5,3,CE , 50,K69,
+
+' Industries on CC's waterfront.
+
+'ID T STA NAME                     TLEN ALEN P R H MIR C W DCL MAX LD-EM
+ 
+  5,I,  5,Fish Wharf,                40,  40,1,Y, ,  0,5,3,E,40,9,6
+ 10,I, 10,Pepsico Exports,           50,  50,1,N, ,  0,5,3,E,50,K,
+ 11,I, 11,Don Juan Imports,	     72,  72,1,Y, ,  0,5,3,E,50,9,6K
+ 12,I, 12,Seafood Specialties,       40,  40,1,Y, ,  0,5,3,E,40,9,6K
+ 14,I, 14,Freight North,	     90,  90,1,Y, ,  0,5,3,EC,50,9,9
+ 15,I, 15,Freight South,	     70,  70,1,Y, ,  0,5,3,EC,50,9,9
+ 16,O, 14,Box Factory,		     90,  90,1,Y, ,  0,5,3,EC,50,9!#*1478,9
+ 17,O, 14,Cans R Us,		     90,  90,1,Y, ,  0,5,3,EC,50,924,9
+ 18,O, 15,Glass Jar Works,	     70,  70,1,Y, ,  0,5,3,EC,50,9SY,9
+ 19,O, 15,Home Gas And Oil,	     70,  70,1,Y, ,  0,5,3,EC,50,()h,
+ 20,O, 15,Home Depot,		     70,  70,1,Y, ,  0,5,3,EC,50,9!#*1478,
+
+'----------------------------------------------------------------------------
+'
+'
+'    These identifiers are available for new industries -- note they use
+'    station #0 "NOPLACE" - this prevents printing of these locations in
+'    reports so always use station #0 if the industry is not in use.
+'
+'
+'----------------------------------------------------------------------------
+
+'ID T STA NAME                     TLEN ALEN P R H MIR C W DCL MAX LD-EM
+ 
+  1,I,  0,RESERVED CITY,              0,   0,9,N, ,  0,0,0,,999,,
+
+'    Thats all folks !
+
+-1
+
