@@ -172,25 +172,25 @@ public:
 		return send2Bytes(cmd_OutputRelayInputControl,byte2);
 	}
 	/** Sense 1, return true if input line 1 was activated since last get status. */
-	bool Sense_1() const {
+	bool Sense_1_Latch() const {
 		status2_union b;
 		b.theByte = stateDataPacket.status2;
 		return b.theBits.sense_1 == 1;
 	}
 	/** Sense 2, return true if input line 2 was activated since last get status. */
-	bool Sense_2() const {
+	bool Sense_2_Latch() const {
 		status2_union b;
 		b.theByte = stateDataPacket.status2;
 		return b.theBits.sense_2 == 1;
 	}
 	/** Sense 3, return true if input line 3 was activated since last get status. */
-	bool Sense_3() const {
+	bool Sense_3_Latch() const {
 		status2_union b;
 		b.theByte = stateDataPacket.status2;
 		return b.theBits.sense_3 == 1;
 	}
 	/** Sense 4, return true if input line 4 was activated since last get status. */
-	bool Sense_4() const {
+	bool Sense_4_Latch() const {
 		status2_union b;
 		b.theByte = stateDataPacket.status2;
 		return b.theBits.sense_4 == 1;
@@ -242,6 +242,30 @@ public:
 		status3_union b;
 		b.theByte = stateDataPacket.status3;
 		return b.theBits.input_4_enabled == 1;
+	}
+	/** Sense 1, return true if input line 1 is now activated. */
+	bool Sense_1_Live() const {
+		status2_union b;
+		b.theByte = stateDataPacket.status4;
+		return b.theBits.sense_1 == 1;
+	}
+	/** Sense 2, return true if input line 2 is now activated. */
+	bool Sense_2_Live() const {
+		status2_union b;
+		b.theByte = stateDataPacket.status4;
+		return b.theBits.sense_2 == 1;
+	}
+	/** Sense 3, return true if input line 3 is now activated. */
+	bool Sense_3_Live() const {
+		status2_union b;
+		b.theByte = stateDataPacket.status4;
+		return b.theBits.sense_3 == 1;
+	}
+	/** Sense 4, return true if input line 4 is now activated. */
+	bool Sense_4_Live() const {
+		status2_union b;
+		b.theByte = stateDataPacket.status4;
+		return b.theBits.sense_4 == 1;
 	}
 #ifndef SWIGTCL8
 private:

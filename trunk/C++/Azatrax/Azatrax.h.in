@@ -423,12 +423,14 @@ protected:
 		  * @sa MRD, SL2, and SR4 for detailed bitfields of this byte.
 		  */
 		uint8_t status2;		// byte 3
-		/** Stopwatch 1/100ths of a second (MRD2 only) */
-		uint8_t stopwatchFract;		// byte 4
+		/** Status byte 3 (SR4-U, SL2-U) / Stopwatch 1/100ths of a second (MRD2 only) */
+		uint8_t status3;		// byte 4
 /* Alternitive element name */
-#define status3 stopwatchFract
-		/** Stopwatch seconds (MRD2 only) */
-		uint8_t stopwatchSeconds;	// byte 5
+#define stopwatchFract status3 
+		/** Status byte 4 (SR4-U, SL2-U) / Stopwatch seconds (MRD2 only) */
+		uint8_t status4;	// byte 5
+/* Alternitive element name */
+#define stopwatchSeconds status4
 		/** Stopwatch minutes (MRD2 only) */
 		uint8_t stopwatchMinutes;	// byte 6
 		/** Stopwatch hours (MRD2 only) */

@@ -175,7 +175,7 @@ proc MainWindow {} {
   # Row 1
   button $::MainFrame.commands.blinkRelays \
 	-text "Blink Relays" \
-	-command {catch {sr4unit BlinkRelays $::B1 $::B2 $::B3 $::B4 [$::MainFrame.commands.blickSpeed getvalue]} ::status} \
+	-command {catch {sr4unit BlinkRelays $::B1 $::B2 $::B3 $::B4 [$::MainFrame.commands.blinkSpeed getvalue]} ::status} \
 	-state disabled
   grid configure $::MainFrame.commands.blinkRelays -column 0  -row 0 -sticky we
   lappend ::CommandButtons $::MainFrame.commands.blinkRelays
@@ -233,7 +233,7 @@ proc MainWindow {} {
 
   # Row 4
   button $::MainFrame.commands.pulseRelays \
-	-text "Blink Relays" \
+	-text "Pulse Relays" \
 	-command {catch {sr4unit PulseRelays $::P1 $::P2 $::P3 $::P4 [$::MainFrame.commands.pulsePeriod getvalue]} ::status} \
 	-state disabled
   grid configure $::MainFrame.commands.pulseRelays -column 0  -row 3 -sticky we
@@ -323,12 +323,27 @@ proc MainWindow {} {
       bindtags $b [lreplace $tags $i $i Radiobutton_RO]
     }
   }
-  LabelFrame $::MainFrame.sensedata.inputSense \
-	-width 22 -text "Input sense"
-  pack $::MainFrame.sensedata.inputSense -fill x
-  set isframe [$::MainFrame.sensedata.inputSense getframe] 
+  LabelFrame $::MainFrame.sensedata.inputSenseLatch \
+	-width 22 -text "Input sense, Latched"
+  pack $::MainFrame.sensedata.inputSenseLatch -fill x
+  set isframe [$::MainFrame.sensedata.inputSenseLatch getframe] 
   foreach rb    {i1 i2 i3 i4} rbLab {I1 I2 I3 I4} \
-	  rbVar {::senseLatch(I1,sense) ::senseLatch(I2,sense) ::senseLatch(I3,sense) ::senseLatch(I4,sense)} {
+	  rbVar {::senseLatch(I1,senseLatch) ::senseLatch(I2,senseLatch) ::senseLatch(I3,senseLatch) ::senseLatch(I4,senseLatch)} {
+    set b [radiobutton $isframe.$rb -variable $rbVar -text $rbLab \
+		-value 1 -relief flat]
+    pack $b -side left -expand yes -fill x
+    set tags [bindtags $b]
+    set i [lsearch -exact $tags Radiobutton]
+    if {$i >= 0} {
+      bindtags $b [lreplace $tags $i $i Radiobutton_RO]
+    }
+  }
+  LabelFrame $::MainFrame.sensedata.inputSenseLive \
+	-width 22 -text "Input sense, Live"
+  pack $::MainFrame.sensedata.inputSenseLive -fill x
+  set isframe [$::MainFrame.sensedata.inputSenseLive getframe] 
+  foreach rb    {i1 i2 i3 i4} rbLab {I1 I2 I3 I4} \
+	  rbVar {::senseLatch(I1,senseLive) ::senseLatch(I2,senseLive) ::senseLatch(I3,senseLive) ::senseLatch(I4,senseLive)} {
     set b [radiobutton $isframe.$rb -variable $rbVar -text $rbLab \
 		-value 1 -relief flat]
     pack $b -side left -expand yes -fill x
@@ -447,10 +462,14 @@ proc UpdateSenseData {} {
   set ::senseLatch(Q2,state) [sr4unit Q2_State]
   set ::senseLatch(Q3,state) [sr4unit Q3_State]
   set ::senseLatch(Q4,state) [sr4unit Q4_State]
-  set ::senseLatch(I1,sense) [sr4unit Sense_1]
-  set ::senseLatch(I2,sense) [sr4unit Sense_2]
-  set ::senseLatch(I3,sense) [sr4unit Sense_3]
-  set ::senseLatch(I4,sense) [sr4unit Sense_4]
+  set ::senseLatch(I1,senseLatch) [sr4unit Sense_1_Latch]
+  set ::senseLatch(I2,senseLatch) [sr4unit Sense_2_Latch]
+  set ::senseLatch(I3,senseLatch) [sr4unit Sense_3_Latch]
+  set ::senseLatch(I4,senseLatch) [sr4unit Sense_4_Latch]
+  set ::senseLatch(I1,senseLive) [sr4unit Sense_1_Live]
+  set ::senseLatch(I2,senseLive) [sr4unit Sense_2_Live]
+  set ::senseLatch(I3,senseLive) [sr4unit Sense_3_Live]
+  set ::senseLatch(I4,senseLive) [sr4unit Sense_4_Live]
   set ::senseLatch(I1,enabled) [sr4unit Input_1_Enabled]
   set ::senseLatch(I2,enabled) [sr4unit Input_2_Enabled]
   set ::senseLatch(I3,enabled) [sr4unit Input_3_Enabled]
@@ -463,10 +482,14 @@ array set ::senseLatch {
   Q2,state 0
   Q3,state 0
   Q4,state 0
-  I1,sense 0
-  I2,sense 0
-  I3,sense 0
-  I4,sense 0
+  I1,senseLatch 0
+  I2,senseLatch 0
+  I3,senseLatch 0
+  I4,senseLatch 0
+  I1,senseLive 0
+  I2,senseLive 0
+  I3,senseLive 0
+  I4,senseLive 0
   I1,enabled 0
   I2,enabled 0
   I3,enabled 0
