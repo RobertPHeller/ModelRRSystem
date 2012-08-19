@@ -208,12 +208,14 @@ snit::type InertiaEntryThrottle {
 	  set Throttle 0
 	}
       }
+      set Throttle 0
       # Throttle lever moved?  Fetch its value.
       if {[regexp {THROTTLE=([[:digit:]]+)} "$message" -> throttle] > 0} {
 	if {$Direction != 0} {
 	  set Throttle $ThrottleValues($throttle)
 	}
       }
+      set IndepentBrake 0
       # Indepent Brake lever moved?  Fetch its value.
       if {[regexp {INDEPENDBRK=([[:digit:]]+)} $message => ibrake] > 0} {
 	set IndepentBrake $IndepentBrakeValues($ibrake)
