@@ -231,7 +231,8 @@ if test "x$PHYSDEVPATH" = "x"; then
   PHYSDEVPATH="`echo $2|sed 's|/usbdev.*$||g'`"
 fi
 
-usbdev=`echo /sys${PHYSDEVPATH}/usbdev*_ep02|awk -F/ '{print $9}'`
+usbdev=`basename /sys${PHYSDEVPATH}/usbdev*_ep02`
+/usr/bin/logger -i -t  $0 "usbdev is $usbdev"
 busnum=`echo ${usbdev}|awk -F. '{print $1;}'|sed 's/usbdev//g'`
 devnum=`echo ${usbdev}|awk -F. '{print $2;}'|sed 's/_ep02//g'`
 
