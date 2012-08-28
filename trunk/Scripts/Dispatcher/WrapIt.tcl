@@ -38,6 +38,7 @@ package require Mk4tcl
 namespace eval WrapIt {
   variable TclKit {}
   variable HasTested no
+  variable PackageBaseDir {}
   proc islink {file} {
     set result no
     catch {
@@ -59,6 +60,26 @@ namespace eval WrapIt {
       }
       set HasTested yes
     }
+  }
+  proc CheckPackageBaseDir {} {
+    variable PackageBaseDir
+    puts stderr "*** WrapIt::CheckPackageBaseDir (at start): PackageBaseDir = '$PackageBaseDir'"
+    if {$PackageBaseDir ne {}} {return}
+    set bindir [file dirname [info nameofexecutable]]
+    puts stderr "*** WrapIt::CheckPackageBaseDir: bindir = $bindir"
+    set instdir [file dirname $bindir]
+    puts stderr "*** WrapIt::CheckPackageBaseDir: instdir = $instdir"
+    if {[file isdirectory [file join $instdir XPressNet]] &&
+	[file isdirectory [file join $instdir RailDriverSupport]] &&
+	[file isdirectory [file join $instdir NCE]]} {
+      # Running from Build dir
+      set PackageBaseDir $instdir
+    } elseif {[file isdirectory [file join $instdir share]] &&
+	      [file isdirectory [file join $instdir share MRRSystem]]} {
+      # Running from Install dir
+      set PackageBaseDir [file join $instdir share MRRSystem]
+    }
+    puts stderr "*** WrapIt::CheckPackageBaseDir (after if): PackageBaseDir = '$PackageBaseDir'"
   }
   proc CanWrapP {} {
     variable TclKit
@@ -98,8 +119,9 @@ namespace eval WrapIt {
     [file join $Lib Common gettext.tcl] \
   ]
 #  puts stderr "*** WrapIt::CopyCommonLibFiles = $CopyCommonLibFiles"
-  proc WrapIt {filename writeprogfun {needcmri no} {needazatrax no}} {
+  proc WrapIt {filename writeprogfun {needcmri no} {needazatrax no} {additionalPackages {}}} {
     variable TclKit
+    variable PackageBaseDir
     set compress 1
     set ropts -readonly
     file copy $TclKit $filename
@@ -140,6 +162,13 @@ namespace eval WrapIt {
       variable AzatraxLibDir
       file copy $AzatraxLibDir [file join $filename lib [file tail $AzatraxLibDir]]
     }
+    
+    foreach ap $additionalPackages {
+      file mkdir [file join $filename lib $ap]
+      foreach f [glob -nocomplain [file join $PackageBaseDir $ap *.tcl]] {
+        file copy $f [file join $filename lib $ap]
+      }
+    }      
     set lib [file join $filename lib]
     file mkdir [file join $lib app-$module]
     set fp [open [file join $lib app-$module $module.tcl] w]

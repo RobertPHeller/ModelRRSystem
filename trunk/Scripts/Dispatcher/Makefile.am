@@ -142,7 +142,7 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit Dispatcher \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) Dispatcher \
-		lib/$(DispatcherLib) $(DispatcherLibFiles)
+		lib/$(DispatcherLib) $(DispatcherLibFiles) 
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit Dispatcher \
 		$(DispatcherLib)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \

@@ -137,6 +137,9 @@ namespace eval CTCPanelWindow {
       set IsDirty no
       $dirty configure -foreground [$dirty cget -background]
     }
+
+    variable additionalPackages {}
+
     constructor {args} {
       wm protocol $win WM_DELETE_WINDOW {Dispatcher::CarefulExit}
       wm withdraw $win
@@ -144,6 +147,7 @@ namespace eval CTCPanelWindow {
 
       if {[WrapIt::CanWrapP]} {
 	set wrapasstate normal
+	WrapIt::CheckPackageBaseDir
       } else {
 	set wrapasstate disabled
       }
@@ -277,6 +281,28 @@ namespace eval CTCPanelWindow {
 	[list cascade [_m "Menu|Edit|Modules"] \
 			{edit:modules edit:simplemode} \
 			edit:modules 0 $em1m]
+
+      set em1apm {}
+      lappend em1apm \
+		[list command [_m "Menu|Edit|Additional Packages|XPressNet"] \
+		   {edit:additionalpackages edit:simplemode} \
+		   "" {} -command [mymethod AddAdditionalPackage XPressNet] \
+		   -state $editstate]
+      lappend em1apm \
+		[list command [_m "Menu|Edit|Additional Packages|NCE"] \
+		   {edit:additionalpackages edit:simplemode} \
+		   "" {} -command [mymethod AddAdditionalPackage NCE] \
+		   -state $editstate]
+      lappend em1apm \
+		[list command [_m "Menu|Edit|Additional Packages|Raildriver Client"] \
+		   {edit:additionalpackages edit:simplemode} \
+		   "" {} -command [mymethod AddAdditionalPackage RailDriverSupport] \
+		   -state $editstate]
+      lappend em1 \
+	[list cascade [_m "Menu|Edit|Additional Packages"] \
+			{edit:additionalpackages edit:simplemode} \
+			edit:additionalpackages 0 $em1apm]
+
       set editmenu [list [_m "Menu|&Edit"] {edit} {edit} 0 $em1]
       #puts stderr "*** CTCPanelWindow::create: editmenu = $editmenu"
       set mainmenu [StdMenuBar::MakeMenu -file  $filemenu -edit  $editmenu ]
@@ -455,6 +481,9 @@ namespace eval CTCPanelWindow {
       }
       puts $fp "# -hasazatrax $options(-hasazatrax)"
       puts $fp "# -simplemode $options(-simplemode)"
+      set line "# "
+      append line [list additionalPackages $additionalPackages]
+      puts $fp $line
       puts $fp {# Load Tcl/Tk system supplied packages}
       puts $fp {package require Tk;#		Make sure Tk is loaded}
       puts $fp {package require BWidget;#       Load BWidgets}
@@ -539,7 +568,7 @@ namespace eval CTCPanelWindow {
       if {[file exists "$filename"]} {
 	file rename -force "$filename" "${filename}~"
       }
-      WrapIt::WrapIt $filename [mymethod writeprog] $options(-hascmri) $options(-hasazatrax)
+      WrapIt::WrapIt $filename [mymethod writeprog] $options(-hascmri) $options(-hasazatrax) $additionalPackages
     }
     method print {} {
       if {[llength [$ctcpanel objectlist]] < 1} {
@@ -762,6 +791,7 @@ namespace eval CTCPanelWindow {
       }
       set opts [list -filename "$filename"]
       set buffer {}
+      set aplist {}
       while {[gets $fp line] >= 0} {
 #	puts stderr "*** $type open (looking for options): line = '$line'"
 	append buffer "$line"
@@ -769,6 +799,10 @@ namespace eval CTCPanelWindow {
 	    ![string equal "\\" "[string index $buffer end]"]} {
 #	  puts stderr "*** $type open (looking for options): buffer = '$buffer'"
 	  if {[regexp {^#} "$buffer"] < 1} {break}
+	  if {[regexp {^# additionalPackages[[:space:]]*(.*)$} $line -> aplist] > 0} {
+	    set buffer {}
+	    continue
+	  }
 	  if {[regexp {^# -} "$buffer"] < 1} {set buffer {};continue}
 #	  puts stderr "*** $type open: buffer = '$buffer'"
 #	  puts stderr "*** $type open: llength \$buffer is [llength $buffer]"
@@ -779,7 +813,12 @@ namespace eval CTCPanelWindow {
 	  append buffer "\n"
 	}
       }
+      puts stderr "*** $type open aplist is '$aplist'"
       set newWindow [eval [list $type create .ctcpanel%AUTO%] $opts]
+      foreach ap $aplist {
+	puts stderr "*** $type open ap is '$ap'"
+	$newWindow AddAdditionalPackage $ap
+      }
       while {[gets $fp line] >= 0} {
 #	puts stderr "*** $type open (looking for CTCPanelObjects): line = '$line'"
 	if {[regexp {^# CTCPanelObjects$} "$line"] > 0} {break}
@@ -1384,6 +1423,28 @@ namespace eval CTCPanelWindow {
 	unset azatraxnodes($nodeToDelete)
 	$self setdirty
       }
+    }
+    method AddAdditionalPackage {packagename} {
+      if {[lsearch -exact $additionalPackages $packagename] >= 0} {
+	tk_messageBox -icon info -type ok -message [format [_ "Package %s has already been added!"] $packagename]
+	return
+      }
+      switch $packagename {
+	XPressNet {
+	  set userCode "package require Xpressnet\n$userCode"
+	}
+	NCE {
+	  set userCode "package require NCE\n$userCode"
+	}
+	RailDriverSupport {
+	  set userCode "package require RaildriverClient\n$userCode"
+	}
+	default {
+	  tk_messageBox -icon error -type ok -message [format [_ "Unknown package %s!"] $packagename]
+	  return
+	}
+      }
+      lappend additionalPackages $packagename
     }
     method AddModule {modname} {
 #      puts stderr "*** $self AddModule $modname"
