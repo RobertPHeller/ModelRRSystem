@@ -221,7 +221,7 @@ namespace eval xpressnet {
       # Additional parameters are passed to the actual response constructors.
       #
 
-      puts stderr "*** $type create $args"
+#      puts stderr "*** $type create $args"
       set options(-responsetype) [from args -responsetype]
       set _time_stamp [clock clicks -milliseconds]
       switch $options(-responsetype) {
@@ -1133,21 +1133,21 @@ namespace eval xpressnet {
 	# the serial port and initializes the port.
 	# @param port The serial port device file.
 
-      puts stderr "*** $type create $port"
+#      puts stderr "*** $type create $port"
       if {[catch {open $port r+} ttyfd]} {
 	set theerror $ttyfd
 	catch {unset ttyfd}
 	error [_ "Failed to open port %s because %s." $port $theerror]
 	return
       }
-      puts stderr "*** $type create: port opened: $ttyfd"
+#      puts stderr "*** $type create: port opened: $ttyfd"
       if {[catch {fconfigure $ttyfd -mode}]} {
 	close $ttyfd
 	catch {unset ttyfd}
 	error [_ "%s is not a terminal port." $port]
 	return
       }
-      puts stderr "*** $type create: port is a tty"
+#      puts stderr "*** $type create: port is a tty"
       if {[catch {fconfigure $ttyfd -mode 19200,n,8,1 \
 				    -blocking no -buffering none \
 				    -encoding binary -translation binary \
@@ -1158,8 +1158,8 @@ namespace eval xpressnet {
 	return
       }
       set mode [fconfigure $ttyfd -mode]
-      puts stderr "*** $type create: mode is '$mode', should be '19200,n,8,1'"
-      puts stderr "*** $type create: port fconfigure'ed"
+#      puts stderr "*** $type create: mode is '$mode', should be '19200,n,8,1'"
+#      puts stderr "*** $type create: port fconfigure'ed"
       if {[catch {fconfigure $ttyfd -ttycontrol {BREAK 1}} err]} {
 	close $ttyfd
 	catch {unset ttyfd}
@@ -1173,15 +1173,15 @@ namespace eval xpressnet {
 	error [_ "Cannot clear BREAK on port %s because %s." $port $err]
 	return
       }
-      puts stderr "*** $type create: BREAK sent"
+#      puts stderr "*** $type create: BREAK sent"
       $self GetLI100VersionNumbers
-      puts stderr "*** $type create: Sent GetLI100VersionNumbers message"
+#      puts stderr "*** $type create: Sent GetLI100VersionNumbers message"
       while {1} {
 	set response [$self GetNextCommandStationResponse 5]
-	puts stderr "*** $type create: response is $response"
+#	puts stderr "*** $type create: response is $response"
 	if {$response eq {}} {
 	  set mode [fconfigure $ttyfd -mode]
-	  puts stderr "*** $type create: mode is '$mode'"
+#	  puts stderr "*** $type create: mode is '$mode'"
 	  if {$mode eq "9600,n,8,1"} {
 	    close $ttyfd
 	    catch {unset ttyfd}
@@ -1190,7 +1190,7 @@ namespace eval xpressnet {
 	  }
 	  close $ttyfd
 	  set ttyfd [open $port r+]
-	  puts stderr "*** $type create: re-opened port, about to set speed to 9600"
+#	  puts stderr "*** $type create: re-opened port, about to set speed to 9600"
 	  if {[catch {fconfigure $ttyfd -mode 9600,n,8,1 \
 				    -blocking no -buffering none \
 				    -encoding binary -translation binary \
@@ -1200,11 +1200,11 @@ namespace eval xpressnet {
 	    error [_ "Cannot set speed to 9600 on port %s because %s." $port $err]
 	    return
 	  }
-	  puts stderr "*** $type create: fconfigure'd port to 9600"
+#	  puts stderr "*** $type create: fconfigure'd port to 9600"
 	  $self GetLI100VersionNumbers
-	  puts stderr "*** $type create: Resent GetLI100VersionNumbers message"
+#	  puts stderr "*** $type create: Resent GetLI100VersionNumbers message"
 	} elseif {[$response ResponseType] eq "LI100_VERSION"} {
-	  puts stderr "*** $type create: Received LI100_VERSION response"
+#	  puts stderr "*** $type create: Received LI100_VERSION response"
 	  return
 	} else {
 	  $self GetLI100VersionNumbers
@@ -1220,7 +1220,7 @@ namespace eval xpressnet {
     proc _CheckForResponse_0x00 {message} {
 	## @private Helper function for CheckForResponse: handles the 0x00 arm.
 
-	  puts stderr "*** _CheckForResponse_0x00 $message"
+#	  puts stderr "*** _CheckForResponse_0x00 $message"
 	  if {[lindex $message 0] == 0x01} {
 	    set response [xpressnet::CommandStationResponse %%AUTO%% \
 				-responsetype LI100_MESSAGE [lindex $message 1]]
@@ -1243,7 +1243,7 @@ namespace eval xpressnet {
     proc _CheckForResponse_0x40 {message} {
 	## @private Helper function for CheckForResponse: handles the 0x40 arm.
 
-	puts stderr "*** _CheckForResponse_0x40 $message"
+#	puts stderr "*** _CheckForResponse_0x40 $message"
 	  set count [expr {[lindex $message 0] & 0x0f}]
 	  switch $count {
 	    2 {
@@ -1338,7 +1338,7 @@ namespace eval xpressnet {
     proc _CheckForResponse_0x60 {message} {
 	## @private Helper function for CheckForResponse: handles the 0x60 arm.
 
-      puts stderr "*** _CheckForResponse_0x60 $message"
+#      puts stderr "*** _CheckForResponse_0x60 $message"
       
 	  if {([lindex $message 0] & 0x0f) < 1} {
 	    set response {}
@@ -1570,7 +1570,7 @@ namespace eval xpressnet {
     proc _CheckForResponse_0xc0 {message} {
 	## @private Helper function for CheckForResponse: handles the 0xc0 arm.
 
-	puts stderr "*** _CheckForResponse_0xc0 $message"
+#	puts stderr "*** _CheckForResponse_0xc0 $message"
 	  set l [expr {[lindex $message 0] & 0x0f}]
 	  if {$l < 5 || $l > 6} {
 	    set response {}
@@ -1627,7 +1627,7 @@ namespace eval xpressnet {
     proc _CheckForResponse_0xe0 {message} {
 	## @private Helper function for CheckForResponse: handles the 0xe0 arm.
 
-      puts stderr "*** _CheckForResponse_0xe0 $message"
+#      puts stderr "*** _CheckForResponse_0xe0 $message"
 	  switch [format {0x%02x} [expr {[lindex $message 0] & 0x0f}]] {
 	    0x01 {
 	      switch [format {0x%02x} [lindex $message 1]] {
@@ -1843,7 +1843,7 @@ namespace eval xpressnet {
 	##  Check for a response from the command station.
 	#  @param timeout Timeout in seconds
 
-      puts stderr "*** $self CheckForResponse $timeout"
+#      puts stderr "*** $self CheckForResponse $timeout"
       if {[catch {set ttyfd}]} {
 	return NO_RESPONSE_AVAILABLE
       }
@@ -1861,7 +1861,7 @@ namespace eval xpressnet {
 	  break
 	}
       }
-      puts stderr "*** $self CheckForResponse: message is $message"
+#      puts stderr "*** $self CheckForResponse: message is $message"
       if {$len != (([lindex $message 0] & 0x0f) + 2)} {
 	error [_ "Read error: read %d bytes, header says %d bytes -- is a LI100/LI100F/LI101 connected?" $len [expr {([lindex $message 0] & 0x0f)+2}]]
 	return NO_RESPONSE_AVAILABLE
@@ -1875,7 +1875,7 @@ namespace eval xpressnet {
 	return NO_RESPONSE_AVAILABLE
       }
       set response {}
-      puts stderr [format {*** %s CheckForResponse: message type code is 0x%02x} $self [expr {[lindex $message 0] & 0x0f0}]]
+#      puts stderr [format {*** %s CheckForResponse: message type code is 0x%02x} $self [expr {[lindex $message 0] & 0x0f0}]]
       switch [format {0x%02x} [expr {[lindex $message 0] & 0x0f0}]] {
 	0x00 {set response [_CheckForResponse_0x00 $message]}
 	0x40 {set response [_CheckForResponse_0x40 $message]}
@@ -1895,15 +1895,15 @@ namespace eval xpressnet {
 	##  Return the next response from the command station.
 	#  @param timeout Timeout in seconds
 
-      puts stderr "*** $self GetNextCommandStationResponse $timeout"
+#      puts stderr "*** $self GetNextCommandStationResponse $timeout"
       if {[catch {set ttyfd}]} {
 	return {}
       }
-      puts stderr "*** $self GetNextCommandStationResponse: tty is open..."
-      puts stderr "*** $self GetNextCommandStationResponse: responseList is $responseList"
+#      puts stderr "*** $self GetNextCommandStationResponse: tty is open..."
+#      puts stderr "*** $self GetNextCommandStationResponse: responseList is $responseList"
       if {[llength $responseList] == 0 &&
 	  [$self CheckForResponse $timeout] eq "NO_RESPONSE_AVAILABLE"} {
-	puts stderr "*** $self GetNextCommandStationResponse: list empty and no new response available"
+#	puts stderr "*** $self GetNextCommandStationResponse: list empty and no new response available"
 	return {}
       }
       if {[llength $responseList] == 0} {return {}}
@@ -2525,13 +2525,13 @@ namespace eval xpressnet {
       upvar $thebytevar thebyte
       set oldscript [fileevent $ttyfd readable]
       foreach {in out} [fconfigure $ttyfd -queue] {break}
-      puts stderr "*** $self _readbyte: in = $in"
+#      puts stderr "*** $self _readbyte: in = $in"
       if {$in > 0} {
         # Data available, grab the next byte.
 	set therawbyte [read $ttyfd 1]
 	binary scan $therawbyte c thebyte
 	set thebyte [expr {$thebyte & 0x0ff}]
-	puts stderr [format "*** %s _readbyte: thebyte is 0x%02x" $self $thebyte]
+#	puts stderr [format "*** %s _readbyte: thebyte is 0x%02x" $self $thebyte]
 	return true
       } else {
 	# Data not available and there is no fileevent.
@@ -2548,13 +2548,13 @@ namespace eval xpressnet {
 	after cancel $e
 	# See if some data arrived.
 	foreach {in out} [fconfigure $ttyfd -queue] {break}
- 	puts stderr "*** $self _readbyte (after timeout): in = $in"
+# 	puts stderr "*** $self _readbyte (after timeout): in = $in"
 	if {$in > 0} {
 	  # YES! We have data, peel off a byte.
 	  set therawbyte [read $ttyfd 1]
 	  binary scan $therawbyte c thebyte
 	  set thebyte [expr {$thebyte & 0x0ff}]
-	  puts stderr [format "*** %s _readbyte (after timeout): thebyte is 0x%02x" $self $thebyte]
+#	  puts stderr [format "*** %s _readbyte (after timeout): thebyte is 0x%02x" $self $thebyte]
 	  return true
 	} else {
 	  # Nope -- fail.
