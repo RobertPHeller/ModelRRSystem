@@ -80,7 +80,17 @@ RaildriverIO::RaildriverIO(short int thebus, short int thedevice,char **outmessa
   ssize_t cnt = libusb_get_device_list(NULL, &list);
   ssize_t i = 0;
   int err = 0;
+#ifdef DEBUG
+  fprintf(stderr,"*** RaildriverIO::RaildriverIO: cnt = %d\n",cnt);
+#endif
+
   if (cnt < 0) {
+    if (outmessage != NULL) {
+      sprintf(buffer,_("RaildriverIO::RaildriverIO: libusb_get_device_list failed: %d\n"),cnt);
+      	*outmessage = new char[strlen(buffer)+1];
+	strcpy(*outmessage,buffer);
+    }
+    return;
   }
   rdriverdev = NULL;
   theInterface = -1;

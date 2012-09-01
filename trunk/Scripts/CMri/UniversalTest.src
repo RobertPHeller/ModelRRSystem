@@ -323,15 +323,33 @@ proc OpenPort {} {
 
 proc GetAllSerialPorts {} {
   set result {}
-  foreach port [lsort [glob -nocomplain /dev/ttyS*]] {
-#    puts stderr "*** GetAllSerialPorts: port = $port"
+  switch $::tcl_platform(platform) {
+    unix {
+	## Glob is our friend under UNIX (assumes Linux actually...)
+	set allports [lsort [glob -nocomplain /dev/ttyS* /dev/ttyUSB*]]
+    }
+    windows {
+	## Brute force under mess-windows...
+	set allports {}
+	for {set i 1} {$i <= 99} {incr i} {
+	  lappend allports [format {COM%d:} $i]
+	}
+    }
+    macintosh {
+	## Glob is *also* our friend under MacOSX
+	set allports [list [glob -nocomplain /dev/tty.* /dev/cu.*]]
+    }
+  }
+  foreach port $allports {
+    puts stderr "*** GetAllSerialPorts: port = $port"
     if {[catch {open $port r} chan]} {continue}
-#    puts stderr "*** GetAllSerialPorts: chan = $chan"
+    puts stderr "*** GetAllSerialPorts: chan = $chan"
     if {![catch {fconfigure $chan -mode}]} {lappend result $port}
     close $chan
   }
   return $result
 }
+
 
 proc IntegerOrEmpty {val} {
   if {[string length "$val"] == 0} {
