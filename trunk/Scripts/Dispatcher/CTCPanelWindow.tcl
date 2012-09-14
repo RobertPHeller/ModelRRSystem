@@ -88,6 +88,8 @@ namespace eval CTCPanelWindow {
 				-configuremethod _ConfigureCMRI
     option -hasazatrax -default no -validatemethod _VerifyBoolean \
 				-configuremethod _ConfigureAZATRAX
+    option -hasmrd -default no -validatemethod _VerifyBoolean \
+				-configuremethod _ConfigureAZATRAX
     GRSupport::VerifyBooleanMethod
     method _ConfigureCMRI {option value} {
       set options($option) $value
@@ -105,6 +107,7 @@ namespace eval CTCPanelWindow {
     variable cmrinodes -array {}
 
     method _ConfigureAZATRAX {option value} {
+      if {"$option" eq "-hasmrd"} {set option -hasazatrax}
       set options($option) $value
       if {$value} {
 	$main mainframe setmenustate azatrax normal
@@ -2082,6 +2085,7 @@ namespace eval CTCPanelWindow {
     method lappendCP {args} {}
     method getZoom {} {return 1.0}
     method redrawgraphic {} {
+      puts stderr "*** $self redrawgraphic"
       $graphicCanvas delete all
       if {[lsearch -exact $objectTypeOptions($objectType) radius] >= 0} {
 	if {[$self doRangeCheck]} {
@@ -2090,6 +2094,7 @@ namespace eval CTCPanelWindow {
 	}
       }
       set opts {}
+      puts stderr "*** $self redrawgraphic: calling getOptions"
       $self getOptions opts
 #      puts stderr "*** $self redrawgraphic: opts is $opts"
       eval [list ::CTCPanel::$objectType create %AUTO% $self $graphicCanvas -controlpoint nil] $opts
@@ -2349,6 +2354,8 @@ namespace eval CTCPanelWindow {
 	  set azatraxprod "SL2 Switch $azatraxswn"
 	} elseif {[regexp {NormalSR4[[:space:]]+([[:digit:]])[[:space:]]+[^[:space:]]+[[:space:]]+([^[:space:]]+)[[:space:]]+([^[:space:]]+)$} "$command" => azatraxswn switch azatraxsn] > 0} {
 	  set azatraxprod "SR4 Switch $azatraxswn"
+	} elseif {[regexp {Normal[[:space:]]+[^[:space:]]+[[:space:]]+([^[:space:]]+)[[:space:]]+([^[:space:]]+)$} "$command" => switch azatraxsn] > 0} {
+	  set azatraxprod MRD2-U
 	}
 	pack $azatraxSerialNumberLE -fill x
 	$azatraxSerialNumberLE configure -text "$azatraxsn"
@@ -2502,12 +2509,14 @@ namespace eval CTCPanelWindow {
       $hull withdraw
       lappend result "$objectType" "$name"
       lappend result -controlpoint "$cp"
+      puts stderr "*** $self _Add: calling getOptions"
       $self getOptions result
       return [$hull enddialog "$result"]
     }
     method doRangeCheck {} {
       $graphicCanvas delete all
       set opts {}
+      puts stderr "*** $self doRangeCheck: calling getOptions"
       $self getOptions opts
 #      puts stderr "*** $self doRangeCheck: opts is $opts"
       if {[catch {eval [list ::CTCPanel::$objectType create %AUTO% $self $graphicCanvas -controlpoint nil] $opts} error]} {
@@ -2552,6 +2561,7 @@ namespace eval CTCPanelWindow {
       return 0
     }
     method getOptions {resultVar} {
+      puts stderr "*** $self getOptions $resultVar"
       upvar $resultVar result
       foreach opt $objectTypeOptions($objectType) {
 	switch -exact $opt {
