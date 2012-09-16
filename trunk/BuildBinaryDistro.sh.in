@@ -165,7 +165,9 @@ rm -f /tmp/DOCFILES$$.list
 touch /tmp/DOCFILES$$.list
 echo share/@PACKAGE@/Doc/DispatcherExamples \
 share/@PACKAGE@/Doc/UserManual \
-share/@PACKAGE@/Doc/UserManual.pdf | tr ' ' '\n' >>/tmp/DOCFILES$$.list
+share/@PACKAGE@/Doc/UserManual.pdf \
+share/@PACKAGE@/Doc/ApplicationNote01.pdf \
+share/@PACKAGE@/Doc/ApplicationNote02.pdf | tr ' ' '\n' >>/tmp/DOCFILES$$.list
 
 rm -f /tmp/DEVFILES$$.list
 touch /tmp/DEVFILES$$.list

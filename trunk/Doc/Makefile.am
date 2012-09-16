@@ -39,7 +39,7 @@
 #*  
 #* 
 
-SUBDIRS = Support User ProgrammingGuides doxygen
+SUBDIRS = Support User ProgrammingGuides ApplicationNotes doxygen
 
 EXTRA_DIST = MRR.bib MyPart.sty RR.bib MyTitlepage.sty titlepage.tex \
 	MyBibIndex.sty tips.sty

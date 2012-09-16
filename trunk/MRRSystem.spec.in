@@ -163,6 +163,9 @@ fi
 %{_datadir}/@PACKAGE@/Doc/DispatcherExamples
 %{_datadir}/@PACKAGE@/Doc/UserManual
 %{_datadir}/@PACKAGE@/Doc/UserManual.pdf
+%{_datadir}/@PACKAGE@/Doc/ApplicationNote01.pdf
+%{_datadir}/@PACKAGE@/Doc/ApplicationNote02.pdf
+
 
 %files devel
 

@@ -835,6 +835,7 @@ AC_OUTPUT([config_tcl.sed \
 		Doc/doxygen/Doxyfile \
 		Doc/doxygen/tcldoxyfilter.sh \
 		Doc/ProgrammingGuides/Makefile \
+		Doc/ApplicationNotes/Makefile \
 	  Installer/Makefile \
 	  intl/Makefile \
 	  po/Makefile \
