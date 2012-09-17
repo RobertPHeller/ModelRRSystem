@@ -36,10 +36,12 @@
 
 SUFFIXES        = .tex .sty
 
-AN01Code = 
+AN01Code = AN01.tcl
 AN01 = ApplicationNote01
 AN01_TEXS = ../MyTitlepage.sty ../MyBibIndex.sty ../titlepage.tex $(AN01).tex \
-	AN01_Introduction.tex AN01_TheLayout.tex
+	AN01_Introduction.tex AN01_TheLayout.tex AN01_TurnoutControl.tex \
+	AN01_Signals.tex AN01_Uncouplers.tex AN01_RailDriverInterface.tex \
+	AN01_XPressNet.tex AN01_SimpleDispatcher.tex
 AN01_FIGS = SwitchTestDemo.pdf SwitchTestDemo-MainInterlocking.png \
 	    SwitchTestDemo-DowntownStation.png \
 	    SwitchTestDemo-SuburbiaStation.png SwitchTestDemo-UncouplingRamp.png
