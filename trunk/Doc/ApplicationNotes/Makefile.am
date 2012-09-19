@@ -44,14 +44,19 @@ AN01_TEXS = ../MyTitlepage.sty ../MyBibIndex.sty ../titlepage.tex $(AN01).tex \
 	AN01_XPressNet.tex AN01_SimpleDispatcher.tex
 AN01_FIGS = SwitchTestDemo.pdf SwitchTestDemo-MainInterlocking.png \
 	    SwitchTestDemo-DowntownStation.png \
-	    SwitchTestDemo-SuburbiaStation.png SwitchTestDemo-UncouplingRamp.png
+	    SwitchTestDemo-SuburbiaStation.png \
+	    SwitchTestDemo-UncouplingRamp.png Quad-Uncoupler-Buffer.pdf \
+	    QuadUncouplerBuffer.png
 AN01_DEPS = Makefile.am
 AN01_PDF = $(AN01).pdf
 
 AN02Code = 
 AN02 = ApplicationNote02
-AN02_TEXS = ../MyTitlepage.sty ../MyBibIndex.sty ../titlepage.tex $(AN02).tex
-AN02_FIGS =
+AN02_TEXS = ../MyTitlepage.sty ../MyBibIndex.sty ../titlepage.tex $(AN02).tex \
+	AN02_Introduction.tex AN02_TheLayout.tex AN02_TrackPower.tex \
+	AN02_Turnouts.tex AN02_PowerRelay.tex AN02_Signals.tex
+AN02_FIGS = CDblock.GIF CDtransistor.GIF SCRPot.GIF FullWaveSRCThrottle.png \
+	4-CDtransistor-on-SB400.png
 AN02_DEPS = Makefile.am
 AN02_PDF = $(AN02).pdf
 
