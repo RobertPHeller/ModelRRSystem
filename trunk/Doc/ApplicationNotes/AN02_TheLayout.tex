@@ -95,5 +95,12 @@ pattern. Sensor one for each MRD2-U is the sensor at the entrance end
 of each logical route through the single track main lines, located at
 the signal (just before the turnout) and sensor two for that MRD2-U is
 the sensor at the exit of that logical route through the single track
-main line (just after the turnout).
+main line (just after the turnout). The end curves handle bi-direction
+traffic and each MRD2-U device detects trains going in a specific
+direction.  If the software determines that the route is occupied by a
+train going in one direction, it will hold the train going in the other
+direction until the first train clears the exit sensor. If the entrance
+sensor detects a train (which will be stopped at the sensor/signal), the
+software will change the turnout alignment and flip the direction of
+travel and will hold opposing traffic. 
 

@@ -55,11 +55,11 @@ AN02 = ApplicationNote02
 AN02_TEXS = ../MyTitlepage.sty ../MyBibIndex.sty ../titlepage.tex $(AN02).tex \
 	AN02_Introduction.tex AN02_TheLayout.tex \
 	AN02_Turnouts.tex AN02_PowerRelay.tex AN02_Signals.tex
-AN02_FIGS = CDblock.GIF CDtransistor.GIF SCRPot.GIF FullWaveSRCThrottle.png \
-	4-CDtransistor-on-SB400.png TwoSidingOval-N.pdf \
+AN02_FIGS = CDblock.png CDtransistor.png SCRPot.png FullWaveSRCThrottle.png \
+	4-CDtransistor-on-SB400.pdf TwoSidingOval-N.pdf \
 	TwoSidingOval-N-NW-Switch-sig-sensor.pdf  \
 	TwoSidingOval-N-NW-sig-sensor-detail.pdf \
-	TwoSidingOval-N-East-MRD2.pdf CD-on-SB400.png
+	TwoSidingOval-N-East-MRD2.pdf CD-on-SB400.pdf
 AN02_DEPS = Makefile.am
 AN02_PDF = $(AN02).pdf
 
