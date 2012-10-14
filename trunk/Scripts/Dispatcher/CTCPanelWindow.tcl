@@ -105,6 +105,7 @@ namespace eval CTCPanelWindow {
     option -simplemode -default no -validatemethod _VerifyBoolean \
 					-configuremethod _ConfigureSimpleMode
     variable cmrinodes -array {}
+    variable cmrinodes_comments -array {}
 
     method _ConfigureAZATRAX {option value} {
       if {"$option" eq "-hasmrd"} {set option -hasazatrax}
@@ -127,6 +128,7 @@ namespace eval CTCPanelWindow {
       }
     }
     variable azatraxnodes -array {}
+    variable azatraxnodes_comments -array {}
 
     variable userCode {}
     variable IsDirty yes
@@ -485,7 +487,7 @@ namespace eval CTCPanelWindow {
       puts $fp "# -hasazatrax $options(-hasazatrax)"
       puts $fp "# -simplemode $options(-simplemode)"
       set line "# "
-      append line [list additionalPackages $additionalPackages]
+      append line [concat additionalPackages $additionalPackages]
       puts $fp $line
       puts $fp {# Load Tcl/Tk system supplied packages}
       puts $fp {package require Tk;#		Make sure Tk is loaded}
@@ -527,7 +529,13 @@ namespace eval CTCPanelWindow {
 				     $options(-cmrispeed) \
 				     $options(-cmriretries)]
 	puts $fp {# CMRIBoards}
+	foreach n [array names cmrinodes_comments] {
+	  puts stderr "*** $self writeprog: cmrinodes_comments($n) = '$cmrinodes_comments($n)'"
+	}
 	foreach board [array names cmrinodes] {
+	  if {![catch {set cmrinodes_comments($board)} board_comment]} {
+	    puts $fp "# $board_comment"
+	  }
 	  puts $fp [concat CMriNode create $board $cmrinodes($board)]
 	}
       }
@@ -537,6 +545,9 @@ namespace eval CTCPanelWindow {
 	puts $fp {# Azatrax Nodes}
 	foreach name [array names azatraxnodes] {
 	  foreach {sn prod} $azatraxnodes($name) {break}
+	  if {![catch {set azatraxnodes_comments($name)} the_comment]} {
+	    puts $fp "# $the_comment"
+	  }
 	  puts $fp "$prod $name -this \[Azatrax_OpenDevice $sn \$::Azatrax_id${prod}Product\]"
 
 	}
@@ -816,10 +827,11 @@ namespace eval CTCPanelWindow {
 	  append buffer "\n"
 	}
       }
-      puts stderr "*** $type open aplist is '$aplist'"
+      puts stderr "*** $type open: aplist is '$aplist'"
       set newWindow [eval [list $type create .ctcpanel%AUTO%] $opts]
       foreach ap $aplist {
-	puts stderr "*** $type open ap is '$ap'"
+ 	if {"$ap" eq ""} {continue}
+	puts stderr "*** $type open: ap is '$ap'"
 	$newWindow AddAdditionalPackage $ap
       }
       while {[gets $fp line] >= 0} {
@@ -855,15 +867,22 @@ namespace eval CTCPanelWindow {
 	  set mode EOF
 	}
 #	puts stderr "*** $type open: mode is $mode"
+	set board_comment ""
 	switch $mode {
 	  CMRIBoards {
 	    set buffer {}
 	    while {[gets $fp line] >= 0} {
+	      puts stderr "*** $type open: read CMRIBoards loop: line = '$line'"
+	      if {[regexp {^# Azatrax Nodes$} "$line"] > 0 ||
+		  [regexp {^# Add User code after this line$} "$line"] > 0} {break}
+	      if {[regexp {^# (.*)$} "$line" => board_comment] > 0} {continue}
 	      append buffer "$line"
+	      puts stderr "*** $type open: read CMRIBoards loop: buffer = '$buffer'"
 	      if {[info complete "$buffer"] && 
 		  ![string equal "\\" "[string index $buffer end]"]} {
 		if {[regexp {^CMriNode create .*$} "$buffer"] > 0} {
-		  $newWindow setcmrinode [lindex $buffer 2] "[lrange $buffer 3 end]"
+		  $newWindow setcmrinode [lindex $buffer 2] "[lrange $buffer 3 end]" "$board_comment"
+		  set board_comment ""
 		} else {
 		  break
 		}
@@ -876,13 +895,17 @@ namespace eval CTCPanelWindow {
 	  AZATRAXNodes {
 	    set buffer {}
 	    while {[gets $fp line] >= 0} {
+	      if {[regexp {^# CMRIBoards} "$line"] > 0 ||
+		  [regexp {^# Add User code after this line$} "$line"] > 0} {break}
+	      if {[regexp {^# (.*)$} "$line" => board_comment] > 0} {continue}
 	      append buffer "$line"
 	      if {[info complete "$buffer"] && 
 		  ![string equal "\\" "[string index $buffer end]"]} {
 #		puts stderr "*** $type open: (AZATRAXNodes branch) buffer = '$buffer'"
 		if {[regexp {^(MRD|SL2|SR4)[[:space:]]([[:alpha:]][[:alnum:]_.-]*)[[:space:]]-this[[:space:]]\[Azatrax_OpenDevice[[:space:]](0[[:digit:]]*)[[:space:]]\$::Azatrax_id(MRD|SL2|SR4)Product\]}  $buffer => product name serial] > 0} {
 		  puts stderr "*** $type open: \$newWindow setazatraxnode $name $serial $product"
-		  $newWindow setazatraxnode $name $serial $product
+		  $newWindow setazatraxnode $name $serial $product $board_comment
+		  set board_comment ""
 		} else {
 		  break
 		}
@@ -910,8 +933,11 @@ namespace eval CTCPanelWindow {
       $newWindow cleardirty
       return $newWindow
     }
-    method setcmrinode {board value} {
+    method setcmrinode {board value {comment {}}} {
       set cmrinodes($board) "$value"
+      if {$comment ne ""} {
+	set cmrinodes_comments($board) "$comment"
+      }
     }
     method getcmrinode {board} {
       if {[catch {set cmrinodes($board)} value]} {
@@ -920,18 +946,35 @@ namespace eval CTCPanelWindow {
 	return "$value"
       }
     }
+    method getcmrinode_comment {board} {
+      if {[catch {set cmrinodes_comments($board)} value]} {
+	return ""
+      } else {
+	return "$value"
+      }
+    }
     method cmrinodelist {} {
       return [array names cmrinodes]
     }
 
-    method setazatraxnode {name serial product} {
+    method setazatraxnode {name serial product {comment {}}} {
       set azatraxnodes($name) [list "$serial" $product]
+      if {$comment ne ""} {
+	set azatraxnodes_comments($name) "$comment"
+      }
     }
     method getazatraxnode {name} {
       if {[catch {set azatraxnodes($name)} serialprod]} {
 	error [_ "No such node: %s" $name]
       } else {
 	return $serialprod
+      }
+    }
+    method getazatraxnode_comment {name} {
+      if {[catch {set azatraxnodes_comments($name)} comment]} {
+	return ""
+      } else {
+	return "$comment"
       }
     }
     method azatraxnodelist {} {
@@ -1372,18 +1415,23 @@ namespace eval CTCPanelWindow {
       set result [eval [list $addCMRINodeDialog draw -mode add] $args]
       if {[string equal "$result" {}]} {return}
       set board [lindex $result 0]
-      set opts  "[lrange $result 1 end]"
+      set comment [lindex $result 1]
+      set opts  "[lrange $result 2 end]"
       set cmrinodes($board) "$opts"
+      if {$comment ne ""} {set cmrinodes_comments($board) "$comment"}
       $self setdirty
     }
     method editcmrinode {args} {
       set nodeToEdit [eval [list $selectCMRINodeDialog draw] $args]
       if {[string equal "$nodeToEdit" {}]} {return}
       set result [eval [list $addCMRINodeDialog draw -mode edit -node $nodeToEdit] $args]
+      puts stderr "*** $self editcmrinode: result = $result"
       if {[string equal "$result" {}]} {return}
       set board [lindex $result 0]
-      set opts  "[lrange $result 1 end]"
+      set comment [lindex $result 1]
+      set opts  "[lrange $result 2 end]"
       set cmrinodes($board) "$opts"
+      if {$comment ne ""} {set cmrinodes_comments($board) "$comment"}
       $self setdirty
     }
     method deletecmrinode {args} {
@@ -1393,6 +1441,7 @@ namespace eval CTCPanelWindow {
 			-message [_ "Really delete $nodeToDelete?"] \
 			-parent $win]} {
 	unset cmrinodes($nodeToDelete)
+	catch {unset cmrinodes_comments($nodeToDelete)}
 	$self setdirty
       }
     }
@@ -1404,6 +1453,8 @@ namespace eval CTCPanelWindow {
       set serial [lindex $result 1]
       set prod  [lindex $result 2]
       set azatraxnodes($node) [list $serial $prod]
+      set comment [lindex $result 3]
+      if {$comment ne ""} {set azatraxnodes_comments($node) $comment}
       $self setdirty
     }
     method editazatraxnode {args} {
@@ -1415,6 +1466,8 @@ namespace eval CTCPanelWindow {
       set serial [lindex $result 1]
       set prod  [lindex $result 2]
       set azatraxnodes($node) [list $serial $prod]
+      set comment [lindex $result 3]
+      if {$comment ne ""} {set azatraxnodes_comments($node) $comment}
       $self setdirty
     }
     method deleteazatraxnode {args} {
@@ -1424,6 +1477,7 @@ namespace eval CTCPanelWindow {
 			-message [_ "Really delete $nodeToDelete?"] \
 			-parent $win]} {
 	unset azatraxnodes($nodeToDelete)
+	catch {unset azatraxnodes_comments($nodeToDelete)}
 	$self setdirty
       }
     }
@@ -2934,7 +2988,8 @@ namespace eval CTCPanelWindow {
     delegate option -parent to hull
     option -node -default {}
     option -mode -default add
-    component nameLE;#		  Name of board (symbol)
+    component nameLE;#		  	Name of board (symbol)
+    component commentLE;#	  	Comment text
     component uaLSB;#			UA of board (0-127)
     component nodeTypeLCB;#		Type of board (SUSIC, USIC, or SMINI)
     component numberYellowSigsLSB;#	-ns (0-24)
@@ -2956,11 +3011,17 @@ namespace eval CTCPanelWindow {
       set lwidth [_mx "Label|Name:" "Label|Address:" "Label|Board Type:" \
 		      "Label|# Yellow Signals:" "Label|# Input ports:" \
 		      "Label|# Output ports:" "Label|Delay Value:" \
-		      "Label|Card Type Map:" "Label|Yellow Signal Map:"]
+		      "Label|Card Type Map:" "Label|Yellow Signal Map:" \
+		      "Label|Comment:"]
       install nameLE using LabelEntry $frame.nameLE -label [_m "Label|Name:"] \
 						    -labelwidth $lwidth \
 						    -text {}
       pack $nameLE -fill x
+      install commentLE using LabelEntry $frame.commentLE \
+						-label [_m "Label|Comment:"] \
+						-labelwidth $lwidth \
+						-text {}
+      pack $commentLE -fill x
       install uaLSB using LabelSpinBox $frame.uaLSB  -label [_m "Label|Address:"] \
 						     -labelwidth $lwidth \
 						     -range {0 127 1}
@@ -3009,6 +3070,7 @@ namespace eval CTCPanelWindow {
 	edit {
 	  set node [$parent getcmrinode "$options(-node)"]
 	  $nameLE configure -text $options(-node) -editable no
+	  $commentLE configure -text [$parent getcmrinode_comment "$options(-node)"]
 	  $uaLSB configure -text [lindex $node 0]
 	  $nodeTypeLCB configure -text [lindex $node 1]
 	  $self _updateCTLab
@@ -3053,12 +3115,15 @@ namespace eval CTCPanelWindow {
 	}
       }
       $hull withdraw
-      lappend result "$name" [$uaLSB cget -text] [$nodeTypeLCB cget -text]
+      lappend result "$name"
+      lappend result "[$commentLE cget -text]"
+      lappend result [$uaLSB cget -text] [$nodeTypeLCB cget -text]
       lappend result -ns [$numberYellowSigsLSB cget -text]
       lappend result -ni [$numberInputsLSB cget -text]
       lappend result -no [$numberOutputsLSB cget -text]
       lappend result -dl [$delayValueLSB cget -text]
       lappend result -ct "[$cardTypeMapLE cget -text]"
+      puts stderr "*** $self _Add: result = $result"
       return [$hull enddialog "$result"]
     }
     method _updateCTLab {} {
@@ -3132,7 +3197,7 @@ namespace eval CTCPanelWindow {
       $nameList delete [$nameList items]
       set parent [$hull cget -parent]
       set elts [lsort -dictionary [lsearch -glob -all -inline \
-					[$parent azatraxnodelist] \
+					[$parent cmrinodelist] \
 					"[$namePatternLE cget -text]"]]
       foreach elt $elts {
 	$nameList insert end $elt -data $elt -text $elt
@@ -3161,6 +3226,7 @@ namespace eval CTCPanelWindow {
     option -node -default {}
     option -mode -default add
     component nameLE;#			Name of board (symbol)   
+    component commentLE;#		Board comment
     component serialLE;#		Serial number (0XYYYYYYY)
     component prodLSB;#			Product type {MRD SL2 SR4}
 
@@ -3174,11 +3240,16 @@ namespace eval CTCPanelWindow {
       wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
       $hull add -name help -text [_m "Button|Help"] -command {HTMLHelp::HTMLHelp help {Add AZATRAX Node Dialog}}
       set frame [$hull getframe]
-      set lwidth [_mx "Label|Name:" "Label|Serial Number:" "Label|Product:"]
+      set lwidth [_mx "Label|Name:" "Label|Serial Number:" "Label|Product:" \
+			"Label|Comment:"]
       install nameLE using LabelEntry $frame.nameLE -label [_m "Label|Name:"] \
 						    -labelwidth $lwidth \
 						    -text {}
       pack $nameLE -fill x
+      install commentLE using LabelEntry $frame.commentLE -label [_m "Label|Comment:"] \
+						    -labelwidth $lwidth \
+						    -text {}
+      pack $commentLE -fill x
       install serialLE using LabelEntry $frame.serialLE \
 					-label [_m "Label|Serial Number:"] \
 					-labelwidth $lwidth \
@@ -3201,6 +3272,7 @@ namespace eval CTCPanelWindow {
 	  foreach {sn prod} [$parent getazatraxnode "$options(-node)"] {break}
 	  if {$prod eq ""} {set prod MRD}
 	  $nameLE configure -text $options(-node) -editable no
+	  $commentLE configure -text [$parent getazatraxnode_comment "$options(-node)"]
 	  $serialLE configure -text [lindex $sn 0]
 	  $prodLSB  setvalue @[lsearch -exact [$prodLSB cget -values] $prod]
 	  $hull itemconfigure add -text [_m "Button|Update"]
@@ -3225,6 +3297,7 @@ namespace eval CTCPanelWindow {
     }
     method _Add {} {
       set name "[$nameLE cget -text]"
+      set comment "[$commentLE cget -text]"
       set serial "[$serialLE cget -text]"
       set prod "[$prodLSB cget -text]"
       if {[string equal "$options(-mode)" add]} {
@@ -3241,7 +3314,7 @@ namespace eval CTCPanelWindow {
 	}
       }
       $hull withdraw
-      return [$hull enddialog [list "$name" "$serial" "$prod"]]
+      return [$hull enddialog [list "$name" "$serial" "$prod" "$comment"]]
     }
   }
   snit::widgetadaptor SelectAZATRAXNodeDialog {

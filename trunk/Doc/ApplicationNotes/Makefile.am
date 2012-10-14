@@ -54,7 +54,8 @@ AN02Code = AN02.tcl
 AN02 = ApplicationNote02
 AN02_TEXS = ../MyTitlepage.sty ../MyBibIndex.sty ../titlepage.tex $(AN02).tex \
 	AN02_Introduction.tex AN02_TheLayout.tex \
-	AN02_Turnouts.tex AN02_PowerRelay.tex AN02_Signals.tex
+	AN02_Turnouts.tex AN02_PowerRelay.tex AN02_Signals.tex \
+	AN02_AutoDispatcher.tex
 AN02_FIGS = CDblock.png CDtransistor.png SCRPot.png FullWaveSRCThrottle.png \
 	4-CDtransistor-on-SB400.pdf TwoSidingOval-N.pdf \
 	TwoSidingOval-N-NW-Switch-sig-sensor.pdf  \
