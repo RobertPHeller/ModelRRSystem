@@ -60,7 +60,7 @@ AN02_FIGS = CDblock.png CDtransistor.png SCRPot.png FullWaveSRCThrottle.png \
 	4-CDtransistor-on-SB400.pdf TwoSidingOval-N.pdf \
 	TwoSidingOval-N-NW-Switch-sig-sensor.pdf  \
 	TwoSidingOval-N-NW-sig-sensor-detail.pdf \
-	TwoSidingOval-N-East-MRD2.pdf CD-on-SB400.pdf
+	TwoSidingOval-N-East-MRD2.pdf CD-on-SB400.pdf singletrack-ink1.png
 AN02_DEPS = Makefile.am
 AN02_PDF = $(AN02).pdf
 

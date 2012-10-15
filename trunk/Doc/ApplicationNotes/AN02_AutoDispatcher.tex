@@ -37,3 +37,52 @@
 \label{chapt:AutoDispatcher}
 \typeout{$Id$}
 
+The software for this layout implements a simple automatic dispatching
+system. Most of the time the trains are on a double track ``main line''
+and require no dispatching, since each main line track segment is
+operated in a single direction with only one train.  At the either end of the
+layout is a segment of bi-directional single track.  Using 
+Azatrax MRD2-U's the computer senses trains traveling through these
+segments of bi-directional single track and uses Azatrax SR4-Us to
+control the turnouts, signals, and the polarity of the power feed to the
+segments of bi-directional single track, allowing only one train access
+at a time.
+
+Each segment of bi-directional single track, with associated turnouts
+use two MRD2-U's (one for each logical direction) to sense trains.
+
+\section{Dispatching Logic}
+
+\begin{figure}[hbpt]
+\begin{centering}
+\includegraphics[width=5in]{singletrack-ink1.png}
+\caption{Schematic of a bi-direction single track segment}
+\label{fig:AutoDispatcher:singletrack-ink1}
+\end{centering}
+\end{figure}
+A schematic track diagram of a bi-direction single track segment is
+shown in Figure~\ref{fig:AutoDispatcher:singletrack-ink1}. There are
+four sensor locations, shown as white dots and labeled \texttt{Left 1},
+\texttt{Left 2}, \texttt{Right 1}, and \texttt{Right 2}.  These sensors
+are connected to two MRD2-U, \texttt{Left} and \texttt{Right}. The
+sensors are connected to the MRD2-U such that a given MRD2-U's ``sense
+1'' is the entry and ``sense 2'' is the exit.  Each MRD2-U device thus
+senses a train going in a specific direction through the single track
+segment. There is a gap (eg with insulating rail joiners) between both
+mainline tracks and the single track segment.  There is an additional
+gap about the length of the engine past the entrance sensor.  This short
+segment of track is powered via diodes from the rest of the single track
+segment. The diodes enforce the correct direction of travel for the
+entering train. The single track segment is considered occupied by a train
+traveling from right to left if either of the left sensors are active
+(the train is entering or leaving) or if the left sensor 1 latch is set
+(the train is between sensors).  The  single track segment is
+considered occupied by a train traveling from left to right if either
+of the right sensors are active (the train is entering or leaving) or
+if the right sensor 1 latch is set (the train is between sensors). 
+When a train arrives at a sensor 1 position (either \texttt{Left 1} or
+\texttt{Right 1}), the computer checks to see if the single track
+segment is occupied by a train going in the opposite direction.
+
+
+
