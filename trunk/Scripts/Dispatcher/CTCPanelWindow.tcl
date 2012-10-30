@@ -729,7 +729,10 @@ namespace eval CTCPanelWindow {
       set outfiles [$type drawExportDialog -parent $win \
 					   -schematicfile $schematicfile \
 					   -controlsfile $controlsfile]
-      update idletasks
+      update;# idletasks
+      raise [winfo toplevel $ctcpanel]
+      update;# idletasks
+      puts stderr "*** $self export: \[wm stackorder [winfo parent [winfo toplevel $ctcpanel]]\] yields: [wm stackorder [winfo parent [winfo toplevel $ctcpanel]]]"
       foreach {schematicfile controlsfile} $outfiles break
       if {"$schematicfile" ne ""} {
 	set img [image create photo -format window -data [set [$ctcpanel info vars schematic]]]
