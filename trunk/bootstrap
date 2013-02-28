@@ -7,7 +7,7 @@ test -f autobook.texi || cat > autobook.texi <<EOF
 EOF
 
 # make setup
-aclocal
+aclocal -I m4
 automake --gnu --add-missing --copy --force
 autoconf
 

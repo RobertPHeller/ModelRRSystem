@@ -36,6 +36,8 @@
 #ifndef _AZATRAX_H_
 #define _AZATRAX_H_
 
+#include "config.h"
+
 #ifdef HAVE_LIBUSB1
 #include <libusb.h>
 #endif

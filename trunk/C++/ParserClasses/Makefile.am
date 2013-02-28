@@ -74,9 +74,9 @@ libMRRParserClasses_la_SOURCES = ParseFile.cc TrackGraph.cc \
 libMRRParserClasses_la_XGETTEXTFILES = \
 			$(libMRRParserClasses_la_SOURCES) MRRXtrkCad.y
 if CROSSCOMPILING
-libMRRParserClasses_la_LDFLAGS = -g -avoid-version $(TCL_STUB_LIB_SPEC) -lwsock32 -lws2_32
+libMRRParserClasses_la_LDFLAGS = -g -avoid-version $(TCL_STUB_LIB_SPEC) $(BOOST_LDFLAGS) -lwsock32 -lws2_32
 else
-libMRRParserClasses_la_LDFLAGS = -g -version-info 0:0:0 $(TCL_STUB_LIB_SPEC)
+libMRRParserClasses_la_LDFLAGS = -g -version-info 0:0:0 $(TCL_STUB_LIB_SPEC) $(BOOST_LDFLAGS)
 endif
 libMRRParserClasses_la_CXXFLAGS = $(INCLUDES) $(BOOST_CPPFLAGS) -Wall
 

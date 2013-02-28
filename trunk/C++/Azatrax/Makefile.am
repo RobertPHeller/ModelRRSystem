@@ -39,14 +39,24 @@ lib_LTLIBRARIES = libazatrax.la
 libazatrax_la_SOURCES = Azatrax.cc $(pkginclude_HEADERS) ../gettext.h
 libazatrax_la_XGETTEXTFILES = $(libazatrax_la_SOURCES)
 nodist_libazatrax_la_SOURCES = azatrax_wrap.cc ../gettext.c
-INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)
+#INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)
+INCLUDES = -I$(top_srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)
 #LTCFLAGS = -O0 -ggdb -g
-libazatrax_la_CXXFLAGS =  $(INCLUDES) -Wall $(LIBUSB_CFLAGS) -g
+libazatrax_la_CXXFLAGS =  -Wall $(LIBUSB_CFLAGS) -g
 if CROSSCOMPILING
 libazatrax_la_LDFLAGS =   -g -avoid-version  $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 else
 libazatrax_la_LDFLAGS =   -g -version-info 0:0:0  $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 endif
+
+#libazatrax_la-azatrax_wrap.lo : azatrax_wrap.cc
+#	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(TCL_DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libazatrax_la_CXXFLAGS) $(CXXFLAGS) -MT libazatrax_la-Azatrax.lo -MD -MP -MF "$(DEPDIR)/libazatrax_la-Azatrax.Tpo" -c -o libazatrax_la-Azatrax.lo `test -f 'Azatrax.cc' || echo '$(srcdir)/'`Azatrax.cc; \
+#	then mv -f "$(DEPDIR)/libazatrax_la-Azatrax.Tpo" "$(DEPDIR)/libazatrax_la-Azatrax.Plo"; else rm -f "$(DEPDIR)/libazatrax_la-Azatrax.Tpo"; exit 1; fi
+##	source='Azatrax.cc' object='libazatrax_la-Azatrax.lo' libtool=yes \
+##	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+##	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(TCL_DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libazatrax_la_CXXFLAGS) $(CXXFLAGS) -c -o libazatrax_la-Azatrax.lo `test -f 'Azatrax.cc' || echo '$(srcdir)/'`Azatrax.cc
+	
+	
 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
@@ -105,7 +115,7 @@ EXTRA_DIST = MRDTest.src azatrax.i MRDTest.desktop MRDTest.png Doxyfile.in \
 	AzatraxDeviceMap.png AzatraxDeviceMap.src SL2Test.desktop SL2Test.png \
 	SL2Test.src SR4Test.desktop SR4Test.png SR4Test.src Azatrax.h.in
 
-DEFS = @DEFS@ $(TCL_DEFS)
+#DEFS = @DEFS@
 SWIG_FLAGS =  -tcl8 -c++ $(INCLUDES)
 CLEANFILES    = $(BUILT_SOURCES) *.kit azatrax_wrap.cc MRDTest${EXEEXT} \
 		pkgIndex.tcl AzatraxProg.pot azatrax.potlist 90-Azatrax.rules \
