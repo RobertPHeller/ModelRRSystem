@@ -67,6 +67,7 @@
 #define _TIMETABLESYSTEM_H_
 
 #ifndef SWIG
+#include <string.h>
 #include <Common.h>
 #include <PathName.h>
 #include <Station.h>

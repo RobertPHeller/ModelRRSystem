@@ -106,7 +106,6 @@ libsigterm_la_LDFLAGS = -g -avoid-version  $(TCL_STUB_LIB_SPEC)
 else
 libsigterm_la_LDFLAGS = -g -version-info 0:0:0  $(TCL_STUB_LIB_SPEC)
 endif
-DEFS = @DEFS@ $(TCL_DEFS)
 SWIG_FLAGS =  -tcl8 -c++ $(INCLUDES)
 
 
