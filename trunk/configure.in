@@ -107,7 +107,7 @@ AC_SUBST(MRR_VERSION)
 AC_SUBST(MRR_MAJOR_VERSION)
 AC_SUBST(MRR_MINOR_VERSION)
 AM_INIT_AUTOMAKE(MRRSystem, $MRR_PATCH_LEVEL )
-
+AC_CONFIG_MACRO_DIR([m4])
 AC_DEFINE([CMRI_VERSION],["1.0.0"],[CMRI Version])
 CMRI_VERSIONLIB=1.0.0
 AC_SUBST(CMRI_VERSIONLIB)
@@ -668,7 +668,6 @@ AC_CONFIG_FILES([config_tcl.sed \
 		Doc/ProgrammingGuides/Makefile \
 		Doc/ApplicationNotes/Makefile \
 	  Installer/Makefile \
-	  intl/Makefile \
 	  po/Makefile \
 	  	po/CalcScripts/Makefile \
 	  	po/CameraScripts/Makefile \

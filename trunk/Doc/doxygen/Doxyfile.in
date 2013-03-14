@@ -487,21 +487,6 @@ INPUT                  = @top_srcdir@/Doc/doxygen/titlepage.h \
 			 @top_srcdir@/Scripts/GRSupport/OvalWidgets2.tcl 
 
 
-# Depreciated code...
-#			 @top_srcdir@/C++/ParserClasses/Begin.h \
-#			 @top_srcdir@/C++/ParserClasses/IntegerList.h \
-#			 @top_srcdir@/C++/ParserClasses/ParseFile.h \
-#			 @top_srcdir@/C++/ParserClasses/TrackBody.h \
-#			 @top_srcdir@/C++/ParserClasses/TurnoutBody.h \
-#			 @top_srcdir@/C++/ParserClasses/TrackGraph.h \
-#			 @top_srcdir@/C++/ParserClasses/SocketPair.h \
-#			 @top_srcdir@/C++/XPressNet/XPressNetGroup.h \
-#			 @top_srcdir@/C++/XPressNet/xpressnet.h \
-#			 @top_srcdir@/C++/XPressNet/xpressnet_Event.h \
-#			 @top_srcdir@/C++/CMri/cmri.h \
-#			 @top_srcdir@/C++/RailDriver/RaildriverServer.h \
-#			 @top_srcdir@/C++/RailDriver/RailDriverGroup.h \
-#			 @top_builddir@/C++/MRD/mrd.h \
 
 
 # If the value of the INPUT tag contains directories, you can use the 
