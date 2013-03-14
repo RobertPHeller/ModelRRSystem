@@ -85,6 +85,7 @@
 #if __GNUC__ >= 3
 using namespace std;
 #endif
+#include "config.h"
 #include <ParseFile.h>
 #include <TrackGraph.h>
 /*#include <Tree.h>*/

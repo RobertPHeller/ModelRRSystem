@@ -50,6 +50,7 @@
 
 static char Id[] = "$Id$";
  
+#include "config.h"
 #include <TimeTableSystem.h>
 #include <iostream>
 #include <fstream>

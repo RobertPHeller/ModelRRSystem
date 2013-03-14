@@ -64,6 +64,7 @@
 
 static char rcsid[] = "$Id: ParseFile.cc 483 2007-04-19 17:23:25Z heller $";
 
+#include "config.h"
 #include <ParseFile.h>
 #include <TrackGraph.h>
 //#include <MRRSigExpr.tab.h>

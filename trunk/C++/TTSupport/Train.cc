@@ -45,6 +45,7 @@
  *  
  */
 
+#include "config.h"
 #include <Train.h>
 #include <Station.h>
 #include <Cab.h>

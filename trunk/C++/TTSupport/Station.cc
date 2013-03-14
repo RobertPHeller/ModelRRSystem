@@ -54,6 +54,7 @@
  *  
  */
 
+#include "config.h"
 #include <Station.h>
 #include <ctype.h>
 

@@ -103,8 +103,8 @@ libfcfclasses_la_LDFLAGS = -g -avoid-version $(TCL_STUB_LIB_SPEC)
 else
 libfcfclasses_la_LDFLAGS = -g -version-info 0:0:0 $(TCL_STUB_LIB_SPEC)
 endif
-INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)  
-libfcfclasses_la_CXXFLAGS = $(INCLUDES) -Wall
+INCLUDES = -I$(top_builddir) -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)  
+libfcfclasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) -Wall
 libfcfclasses_la_LIBADD   = $(LTLIBOBJS)
 
 BUILT_SOURCES = FCFClasses_wrap.cc System.h
@@ -113,7 +113,7 @@ noinst_DATA = FCFClasses.potlist
 
 EXTRA_DIST = FCFSupportGroup.h FCFClasses.i System.h.in
 CLEANFILES = $(BUILT_SOURCES) pkgIndex.tcl FCFClasses.potlist
-DEFS = @DEFS@ $(TCL_DEFS)
+
 SWIG_FLAGS = -tcl8 -c++ $(INCLUDES)
 
 FCFClasses_wrap.cc : FCFClasses.i $(pkginclude_HEADERS) \

@@ -56,6 +56,7 @@
 
 %module TTClasses
 %{
+#include "config.h"
 #include <TimeTableSystem.h>
 #include <string.h>
 #include "../gettext.h"

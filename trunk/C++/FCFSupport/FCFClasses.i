@@ -52,6 +52,7 @@
  */
 %module FCFClasses
 %{
+#include "config.h"
 #include <System.h>
 #include <TextPrinter.h>
 #include <LQ24Printer.h>

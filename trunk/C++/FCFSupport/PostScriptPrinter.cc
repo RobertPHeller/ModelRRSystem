@@ -42,6 +42,7 @@
  *  
  */
 
+#include "config.h"
 #include <PostScriptPrinter.h>
 #include "../gettext.h"
 

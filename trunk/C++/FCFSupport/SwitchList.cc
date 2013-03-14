@@ -44,6 +44,7 @@
 
 static char Id[] = "$Id$";
 
+#include "config.h"
 #include <SwitchList.h>
 
 namespace FCFSupport {

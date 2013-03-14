@@ -42,6 +42,7 @@
 %module Sigterm
 %{
 
+#include "config.h"
 #include <signal.h>
 
 #if defined(__WIN32__) || defined(_WIN32)

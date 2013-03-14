@@ -41,10 +41,10 @@ BUILT_SOURCES = diskfree_wrap.cc
 pkglibdir = $(libdir)/$(PACKAGE)/Installer
 
 pkglib_LTLIBRARIES = diskfree.la
-INCLUDES = -I. -I$(TCL_INC_DIR)
+INCLUDES = -I$(top_builddir)  -I. -I$(TCL_INC_DIR)
 nodist_diskfree_la_SOURCES = diskfree_wrap.cc
 diskfree_la_LDFLAGS = -g -module -avoid-version $(TCL_STUB_LIB_SPEC)
-diskfree_la_CXXFLAGS = $(INCLUDES)
+diskfree_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES)
 setupSCRIPTS = $(top_builddir)/Scripts/Common/Version.tcl \
 		$(top_srcdir)/Scripts/Common/fileentry.tcl
 setupIMAGES = 
@@ -52,7 +52,7 @@ setupLIBIMAGES = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif
 EXTRA_DIST = diskfree.i setup.tcl $(setupIMAGES)
 pkglib_SCRIPTS = pkgIndex.tcl setup${EXEEXT}
 CLEANFILES = $(BUILT_SOURCES) pkgIndex.tcl setup.kit setup${EXEEXT}
-DEFS = @DEFS@ $(TCL_DEFS)
+
 SWIG_FLAGS =  -tcl8 -c++ $(INCLUDES)
 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}

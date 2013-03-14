@@ -1,5 +1,6 @@
 %module Raildriverio
 %{
+#include "config.h"
 #include <RaildriverIO.h>
 #include "gettext.h"
 static char rcsid[] = "$Id$";

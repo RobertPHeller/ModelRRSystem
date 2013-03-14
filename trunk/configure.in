@@ -202,11 +202,10 @@ if test ${cross_compiling} = "yes"; then
   export PKG_CONFIG_LIBDIR="${xcprefix}/lib/pkgconfig:${xcprefix}/share/pkgconfig"
   dnl AC_MSG_NOTICE([PKG_CONFIG_LIBDIR is $PKG_CONFIG_PATH])
 fi
-AC_DEFINE([HAVE_LIBUSB1], [], [Indicates if we have Libusb1 or not.])
 
 PKG_CHECK_EXISTS(libusb-1.0,[have_libusb1="yes"],[have_libusb1="no"])
 if test ${have_libusb1} = "yes"; then
-  AC_DEFINE(HAVE_LIBUSB1,1)
+  AC_DEFINE(HAVE_LIBUSB1,1, [Indicates if we have Libusb1 or not.])
   PKG_CHECK_MODULES([LIBUSB],libusb-1.0)
   AC_SUBST(HAVE_LIBUSB1)
   libusbVer=`pkg-config --modversion libusb-1.0`
@@ -634,8 +633,6 @@ AC_CONFIG_FILES([config_tcl.sed \
 		C++/Azatrax/Doxyfile \
 		C++/TTSupport/Makefile \
 		C++/FCFSupport/Makefile \
-		C++/CMri/Makefile \
-		C++/XPressNet/Makefile \
 	  Scripts/Makefile \
 		Scripts/Common/Makefile \
 		Scripts/GRSupport/Makefile \

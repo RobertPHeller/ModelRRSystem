@@ -38,6 +38,7 @@
 
 static char Id[] = "$Id$";
 
+#include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>

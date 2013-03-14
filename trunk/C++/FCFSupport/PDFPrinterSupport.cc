@@ -53,6 +53,7 @@
 
 static char Id[] = "$Id$";
 
+#include "config.h"
 #include <stdio.h>
 #include <iostream>
 #include <PDFPrinterSupport.h>

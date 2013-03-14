@@ -55,6 +55,7 @@
 
 static char rcsid[] = "$Id: TrackGraph.cc 624 2008-04-21 23:36:58Z heller $";
 
+#include "config.h"
 #include <math.h>
 #include <limits.h>
 #include <TrackGraph.h>

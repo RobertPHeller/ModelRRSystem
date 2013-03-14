@@ -40,9 +40,9 @@ libazatrax_la_SOURCES = Azatrax.cc $(pkginclude_HEADERS) ../gettext.h
 libazatrax_la_XGETTEXTFILES = $(libazatrax_la_SOURCES)
 nodist_libazatrax_la_SOURCES = azatrax_wrap.cc ../gettext.c
 #INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)
-INCLUDES = -I$(top_srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)
+INCLUDES = -I$(top_builddir) -I$(srcdir)/.. -I$(TCL_INC_DIR)
 #LTCFLAGS = -O0 -ggdb -g
-libazatrax_la_CXXFLAGS =  -Wall $(LIBUSB_CFLAGS) -g
+libazatrax_la_CXXFLAGS = -DUSE_TCL_STUBS -Wall $(LIBUSB_CFLAGS) -g
 if CROSSCOMPILING
 libazatrax_la_LDFLAGS =   -g -avoid-version  $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 else

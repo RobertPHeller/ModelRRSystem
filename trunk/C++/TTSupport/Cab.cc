@@ -43,6 +43,7 @@
  */
 
 
+#include "config.h"
 #include <Cab.h>
 #include <iostream>
 

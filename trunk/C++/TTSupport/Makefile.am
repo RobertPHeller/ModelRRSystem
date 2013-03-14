@@ -77,12 +77,12 @@ pkgincludedir = $(includedir)/$(PACKAGE)/TTSupport
 pkginclude_HEADERS = Common.h TimeTableSystem.h PathName.h Station.h Cab.h \
 	Train.h
 lib_LTLIBRARIES = libttclasses.la
-INCLUDES = -I. -I$(TCL_INC_DIR)
+INCLUDES = -I$(top_builddir) -I. -I$(TCL_INC_DIR)
 nodist_libttclasses_la_SOURCES  = TTClasses_wrap.cc ../gettext.c
 libttclasses_la_SOURCES = TimeTableSystem.cc PathName.cc Station.cc Train.cc \
 		Cab.cc CreateLaTeXTimetable.cc $(pkginclude_HEADERS) ../gettext.h
 libttclasses_la_XGETTEXTFILES = $(libttclasses_la_SOURCES)
-libttclasses_la_CXXFLAGS = $(INCLUDES) -Wall
+libttclasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) -Wall
 if CROSSCOMPILING
 libttclasses_la_LDFLAGS = -g -avoid-version $(TCL_STUB_LIB_SPEC)
 else
@@ -93,7 +93,6 @@ noinst_DATA = TTClasses.potlist
 BUILT_SOURCES = TTClasses_wrap.cc TTSupportGroup.h
 EXTRA_DIST = TTSupportGroup.h.in TTClasses.i TimeTableSystemTcl.h
 CLEANFILES = pkgIndex.tcl $(BUILT_SOURCES) TTClasses.potlist
-DEFS = @DEFS@ $(TCL_DEFS)
 SWIG_FLAGS =  -tcl8 -c++ $(INCLUDES)
 
 TTClasses_wrap.cc : TTClasses.i $(pkginclude_HEADERS) TimeTableSystemTcl.h \

@@ -42,6 +42,7 @@
  *  
  */
 
+#include "config.h"
 #include <TextPrinter.h>
 #include "../gettext.h"
 

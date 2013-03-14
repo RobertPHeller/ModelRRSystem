@@ -86,12 +86,12 @@
 pkgincludedir = $(includedir)/$(PACKAGE)/RaildriverIO
 pkginclude_HEADERS = RaildriverIO.h
 
-INCLUDES = -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)
+INCLUDES = -I$(top_builddir) -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)
 lib_LTLIBRARIES = libraildriverio.la
 libraildriverio_la_SOURCES = RaildriverIO.cc $(pkginclude_HEADERS) ../gettext.h
 libraildriverio_la_XGETTEXTFILES = $(libraildriverio_la_SOURCES)
 nodist_libraildriverio_la_SOURCES = raildriverio_wrap.cc ../gettext.c
-libraildriverio_la_CXXFLAGS =  $(INCLUDES) -Wall $(LIBUSB_CFLAGS) -g
+libraildriverio_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) -Wall $(LIBUSB_CFLAGS) -g
 if CROSSCOMPILING
 libraildriverio_la_LDFLAGS =   -g -avoid-version  $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 else

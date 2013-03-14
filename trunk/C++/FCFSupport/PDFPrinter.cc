@@ -42,6 +42,7 @@
  *  
  */
 
+#include "config.h"
 #include <PDFPrinter.h>
 #include "../gettext.h"
 

@@ -43,6 +43,7 @@
 %{
 #if defined(__WIN32__)
 
+#include "config.h"
 #include <windows.h>
 
 typedef int (WINAPI *FARPROC4)(LPCSTR,PULARGE_INTEGER,PULARGE_INTEGER,PULARGE_INTEGER);
@@ -80,6 +81,7 @@ double SpaceAvailable(const char *device)
 
 #else
 
+#include "config.h"
 #include <sys/vfs.h>
 
 double SpaceAvailable(const char *device)

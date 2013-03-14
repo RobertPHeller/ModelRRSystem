@@ -56,6 +56,7 @@
  *  
  */
 %header{
+#include "config.h"
 #include <stdio.h>
 #include <iostream>
 #if __GNUC__ >= 3

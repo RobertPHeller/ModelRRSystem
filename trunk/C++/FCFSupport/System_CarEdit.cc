@@ -41,6 +41,7 @@
 
 static char Id[] = "$Id$";
 
+#include "config.h"
 #include <System.h>
 
 namespace FCFSupport {
