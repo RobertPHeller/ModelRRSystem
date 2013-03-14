@@ -47,7 +47,7 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = BuildScripts BuildData Doc C++ Scripts Installer po
+SUBDIRS = BuildScripts BuildData Doc C++ Scripts Installer po intl
 
 EXTRA_DIST = config.rpath  $(PACKAGE).spec bootstrap config_tcl.sed.in Doxyfile.in \
 	ModelRailroadSystem.h BuildBinaryDistro.sh.in
