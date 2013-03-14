@@ -45,6 +45,7 @@
  *  
  */
 
+#include "config.h"
 #include <LQ24Printer.h>
 #include "../gettext.h"
 

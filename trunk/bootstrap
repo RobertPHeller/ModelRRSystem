@@ -7,8 +7,6 @@ test -f autobook.texi || cat > autobook.texi <<EOF
 EOF
 
 # make setup
-#gettextize -f --no-changelog 
-ln -s /usr/share/gettext/config.rpath config.rpath
 libtoolize
 aclocal -I m4
 automake --gnu --add-missing --copy --force
