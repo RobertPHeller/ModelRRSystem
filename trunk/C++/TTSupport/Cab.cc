@@ -60,19 +60,20 @@ ostream & Cab::Write(ostream & stream) const
 istream & Cab::Read(istream & stream)
 {
 	char buffer[2048], ch, *p;
+	const char *p1;
 	int i/*, count*/;
 	do {
 	 	stream.get(ch);
 		if (!stream) return stream;
 	} while (isspace(ch));
 	stream.putback(ch);
-	for (i = 0,p = "<Cab \""; *p != '\0'; p++,i++) {
+	for (i = 0,p1 = "<Cab \""; *p1 != '\0'; p1++,i++) {
 		stream.get(ch);
 		if (!stream) return stream;
 #ifdef DBUG
 		cerr << "*** Cab::Read: (for <Cab...) ch = '" << ch << "'" << endl;
 #endif
-		if (ch != *p) {
+		if (ch != *p1) {
 			stream.putback(ch);
 			while (i > 0) stream.putback(buffer[--i]);
 			stream.setstate(ios::failbit);

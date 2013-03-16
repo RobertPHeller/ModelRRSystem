@@ -86,3 +86,55 @@ segment is occupied by a train going in the opposite direction.
 
 
 
+\section{The code, annotated.}
+
+
+\begin{figure}[hbpt]\begin{centering}
+\includegraphics[width=5in]{AN02_schematic_rev.pdf}
+\caption{Schematic of the layout}
+\label{fig:an02log:AN02_schematic_rev}
+\end{centering}
+\end{figure}
+Listing~\ref{lst:an02:dispatchinglogic} contains the user code section
+of the dispatcher program for this layout. The displayed schematic of
+the layout is shown in Figure~\ref{fig:an02log:AN02_schematic_rev}.
+
+The code starts with a procedure named \texttt{CurveOccupancy}, starting
+at line 268 of the source file (\texttt{AN02.tcl}). This procedure is
+used by the single track curved sections at the east and west ends of
+the layout to check for occupancy. It uses both MRD2-U units to test for
+either a clockwise or counter-clockwise train occupying the curved
+section (including the turnouts at the ends).
+
+The next section, starting at line 314, defines a \texttt{SNIT} type to
+handle the logic for occupancy checking for the four straight sections.
+Four instances of this type are created, one for each of the straight
+sections, starting at line 431.
+
+Starting at line 446 is a pair of blocks of code to initialize the two
+SR4 devices to a known powered up state.
+
+At line 460 the main loop starts. The main loop starts by reading in the
+state data of the six Azatrax devices.  This is done at lines 463--473.
+Then all of the trackwork is ``invoked'', which runs the occupancy
+scripts for each piece of trackwork and thus determines whether or not
+the various blocks are occupied.  This is done at lines 475--492.
+
+Next come 4 blocks of code, starting at line 494 that implement the
+dispatcher logic, which is to check for a train arriving at an entry
+detector and then testing to see if there is an opposing movement in
+the single track block.  If the block is clear, the turnout is thrown
+in favor of the entering train and the power reversing relay is set or
+unset to also favor the entering train. There is a block of code for
+each entrance sensor.  The four blocks of code are at lines 507--523
+(West end clockwise block), 525--541 (West end counter-clockwise
+block), 546--562 (East end clockwise block), and 564--580 (East end
+counter-clockwise block).
+
+At the bottom of the main loop is a call to the \texttt{update}, which
+causes the GUI to update to reflect the state of the layout.
+
+\lstinputlisting[caption={Dispatching logic, implemented in Tcl \texttt{AN02.tcl}},
+		 label={lst:an02:dispatchinglogic},
+		 firstline=268]{AN02.tcl}
+

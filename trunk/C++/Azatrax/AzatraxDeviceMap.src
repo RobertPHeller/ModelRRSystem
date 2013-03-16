@@ -57,7 +57,7 @@
 
 set argv0 [file join  [file dirname [info nameofexecutable]] AzatraxDeviceMap]
 
-package require Mrd
+package require Azatrax
 
 package require gettext
 package require Tk

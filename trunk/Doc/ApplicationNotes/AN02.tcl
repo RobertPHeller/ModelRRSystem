@@ -142,7 +142,7 @@ MainWindow ctcpanel create StraightBlock SouthT1 \
 	-controlpoint South \
 	-label {} \
 	-position below \
-	-occupiedcommand {SouthT1_Occ occupiedP}
+	-occupiedcommand {::SouthT1_Occ occupiedP}
 MainWindow ctcpanel create StraightBlock SouthT2 \
 	-x1 150.0 \
 	-y1 200 \
@@ -151,7 +151,7 @@ MainWindow ctcpanel create StraightBlock SouthT2 \
 	-controlpoint South \
 	-label {} \
 	-position below \
-	-occupiedcommand {SouthT2_Occ occupiedP}
+	-occupiedcommand {::SouthT2_Occ occupiedP}
 MainWindow ctcpanel create Switch Switch1n \
 	-x 110.0 \
 	-y 20.0 \
@@ -160,7 +160,7 @@ MainWindow ctcpanel create Switch Switch1n \
 	-orientation 0 \
 	-flipped no \
 	-statecommand {$::WestTurnoutState} \
-	-occupiedcommand {CurveOccupancy WestClockwise WestCounterClockwise
+	-occupiedcommand {::CurveOccupancy ::WestClockwise ::WestCounterClockwise
 }
 MainWindow ctcpanel create CurvedBlock SE1 \
 	-x1 620.0 \
@@ -171,7 +171,7 @@ MainWindow ctcpanel create CurvedBlock SE1 \
 	-controlpoint East \
 	-label {} \
 	-position below \
-	-occupiedcommand {CurveOccupancy EastClockwise EastCounterClockwise}
+	-occupiedcommand {::CurveOccupancy ::EastClockwise ::EastCounterClockwise}
 MainWindow ctcpanel create CurvedBlock SW1 \
 	-x1 10.0 \
 	-y1 120.0 \
@@ -181,7 +181,7 @@ MainWindow ctcpanel create CurvedBlock SW1 \
 	-controlpoint West \
 	-label {} \
 	-position below \
-	-occupiedcommand {CurveOccupancy WestClockwise WestCounterClockwise}
+	-occupiedcommand {::CurveOccupancy ::WestClockwise ::WestCounterClockwise}
 MainWindow ctcpanel create Switch Switch1s \
 	-x 110.0 \
 	-y 220.0 \
@@ -190,7 +190,7 @@ MainWindow ctcpanel create Switch Switch1s \
 	-orientation 0 \
 	-flipped yes \
 	-statecommand {$::WestTurnoutState} \
-	-occupiedcommand {CurveOccupancy WestClockwise WestCounterClockwise
+	-occupiedcommand {::CurveOccupancy ::WestClockwise ::WestCounterClockwise
 }
 MainWindow ctcpanel create StraightBlock NorthT1 \
 	-x1 150.0 \
@@ -200,7 +200,7 @@ MainWindow ctcpanel create StraightBlock NorthT1 \
 	-controlpoint North \
 	-label {} \
 	-position below \
-	-occupiedcommand {NorthT1_Occ occupiedP}
+	-occupiedcommand {::NorthT1_Occ occupiedP}
 MainWindow ctcpanel create StraightBlock NorthT2 \
 	-x1 150.0 \
 	-y1 40.0 \
@@ -209,7 +209,7 @@ MainWindow ctcpanel create StraightBlock NorthT2 \
 	-controlpoint North \
 	-label {} \
 	-position below \
-	-occupiedcommand {NorthT2_Occ occupiedP}
+	-occupiedcommand {::NorthT2_Occ occupiedP}
 MainWindow ctcpanel create Switch Switch2n \
 	-x 620.0 \
 	-y 20 \
@@ -218,7 +218,7 @@ MainWindow ctcpanel create Switch Switch2n \
 	-orientation 4 \
 	-flipped yes \
 	-statecommand {$::EastTurnoutState} \
-	-occupiedcommand {CurveOccupancy EastClockwise EastCounterClockwise}
+	-occupiedcommand {::CurveOccupancy ::EastClockwise ::EastCounterClockwise}
 MainWindow ctcpanel create CurvedBlock NE1 \
 	-x1 720.0 \
 	-y1 120.0 \
@@ -228,7 +228,7 @@ MainWindow ctcpanel create CurvedBlock NE1 \
 	-controlpoint East \
 	-label {} \
 	-position below \
-	-occupiedcommand {CurveOccupancy EastClockwise EastCounterClockwise}
+	-occupiedcommand {::CurveOccupancy ::EastClockwise ::EastCounterClockwise}
 MainWindow ctcpanel create CurvedBlock NW1 \
 	-x1 110 \
 	-y1 20 \
@@ -238,7 +238,7 @@ MainWindow ctcpanel create CurvedBlock NW1 \
 	-controlpoint West \
 	-label {} \
 	-position below \
-	-occupiedcommand {CurveOccupancy WestClockwise WestCounterClockwise}
+	-occupiedcommand {::CurveOccupancy ::WestClockwise ::WestCounterClockwise}
 MainWindow ctcpanel create Switch Switch2s \
 	-x 620.0 \
 	-y 220.0 \
@@ -247,7 +247,7 @@ MainWindow ctcpanel create Switch Switch2s \
 	-orientation 4 \
 	-flipped no \
 	-statecommand {$::EastTurnoutState} \
-	-occupiedcommand {CurveOccupancy EastClockwise EastCounterClockwise}
+	-occupiedcommand {::CurveOccupancy ::EastClockwise ::EastCounterClockwise}
 
 package require Azatrax
 # Azatrax Nodes
@@ -267,28 +267,36 @@ MRD WestCounterClockwise -this [Azatrax_OpenDevice 002 $::Azatrax_idMRDProduct]
 # Add User code after this line
 
 proc CurveOccupancy {CW_Sensor CCW_Sensor} {
-## @brief Check for curve occupancy. 
-#  First the clockwise sensor is checked and then the counter-clockwise sensor 
-#  is checked. The logic is:
-#  @arg Sense_1 This is at the entrance to the curve, just before the turnout. 
-#		If this sensor is active, then a train is presently entering.
-#  @arg Latch_1 This is the latched state of sense 1. If it is set, then the 
-#		train has cleared sense 1, but has not yet covered sense 2,
-#		this means that the train is in the curve between the sensors.
-#  @arg Sense_2 This is the sensor at the exit from the curve. If this sensor
-#		is active, then a train is presently exiting the curve. When
-#		this sensor is activated, the latch for sensor 1 is cleared.
-#  @par
-#  If all of the above are clear (return false), then the train has cleared
-#  the exit sensor and the curve is not occupied. Bother the clockwise and 
-#  counter-clockwise sensors are checked, since a tain going in either direction
-#  could be occupying the curve.
+## Check for curve occupancy. 
+#  First the clockwise sensor is checked and then the counter-
+#  clockwise sensor is checked. The logic is:
+#  Sense_1 This is at the entrance to the curve, just before the 
+#		turnout. If this sensor is active, then a train 
+#		is presently entering.
+#  Latch_1 This is the latched state of sense 1. If it is set, 
+#		then the train has cleared sense 1, but has not 
+#		yet covered sense 2, this means that the train is 
+#		in the curve between the sensors.
+#  Sense_2 This is the sensor at the exit from the curve. If this 
+#		sensor is active, then a train is presently 
+#		exiting the curve. When this sensor is activated, 
+#		the latch for sensor 1 is cleared.
+#  
+#  If all of the above are clear (return false), then the train 
+#  has cleared the exit sensor and the curve is not occupied. 
+#  If any of the above are set (return true), then there is a 
+#  train occupying the block.
 #
-#  This procedure is used as the Occupancy Script for the curved sections of
-#  the trackwork.
+#  Both the clockwise and counter-clockwise sensors are checked, 
+#  since a tain going in either direction could be occupying the 
+#  curve.
 #
-#  @param CW_Sensor The Clockwise sensor, a MRD object.
-#  @param CCW_Sensor The Counter-Clockwise sensor, a MRD object.
+#  This procedure is used as the Occupancy Script for the curved 
+#  sections of the trackwork, including the turnouts.
+#
+#  Parameters:
+#  CW_Sensor The Clockwise sensor, a MRD object.
+#  CCW_Sensor The Counter-Clockwise sensor, a MRD object.
 #
   if {[$CW_Sensor Sense_1] ||
       [$CW_Sensor Latch_1] ||
@@ -304,40 +312,47 @@ proc CurveOccupancy {CW_Sensor CCW_Sensor} {
 }
 
 snit::type StraightOccupancy {
-## @brief Object to implement occupancy testing on the straight sections.
-#  This object is used to check occupancy on the four straight sections.
+## Object to implement occupancy testing on the straight 
+#  sections. This object is used to check occupancy on the 
+#  four straight sections.
 #
-#  @param ... Options:
-#  @arg -enter_sense Sensor at the entrance to the straight section.  This 
-#		will be a sense 2, so only Sense\_2 and Latch\_2 are checked.
-#  @arg -exit_sense Sensor at the exit of the straight section.  This will
-#		be a sense 1, so only Sense\_1 is checked.
-#  @par
+#  Options:
+#  -enter_sense Sensor at the entrance to the straight section. 
+#		This will be a sense 2, so only Sense_2 and 
+#		Latch_2 are checked.
+#  -exit_sense Sensor at the exit of the straight section.  
+#		This will be a sense 1, so only Sense_1 is 
+#		checked.
+#  
 #
-#  A state variable is used to keep track of possible states: exited, 
-#  entering, entered, exiting, and default (unknown).  Each state determines
-#  which sensors or their latches are checked and determine the next state.
+#  A state variable is used to keep track of possible states: 
+#  exited, entering, entered, exiting, and default (unknown).  
+#  Each state determines which sensors or their latches are 
+#  checked and determine the next state.
 #
-#  Four of these objects will be created and used in the Occupancy scripts of
-#  each of the four straight senctions.  The occupiedP method will be called
-#  to compute the occupancy state.
+#  Four of these objects will be created and used in the 
+#  Occupancy scripts of each of the four straight senctions.  
+#  The occupiedP method will be called to compute the occupancy 
+#  state.
 #
   option -enter_sense -readonly yes -default {}
   option -exit_sense -readonly yes -default {}
   variable state unknown
-  ## @privatesection State variable.
+  ## State variable.
   constructor {args} {
-    ## @publicsection The constructor just processes the object options.
+    ## The constructor just processes the object options.
     $self configurelist $args
   }
   method occupiedP {} {
-    ## Method to check for occupancy.  The state variable is checked and
-    #  depending on the state, the sensors or latches are checked to determine
-    #  the possible progress of a train through the straight section.
+    ## Method to check for occupancy.  The state variable is 
+    #  checked and depending on its value, the sensors or latches 
+    #  are checked to determine the possible progress of a train 
+    #  through the straight section.
     #
     switch $state {
       exited {
-	# A train has exited.  Has a train reached the entry sensor?
+	# A train has exited.  Has a train reached the entry 
+	# sensor?
 	if {[$options(-enter_sense) Sense_2]} {
 	  # Yes, save the state.
 	  set state entering
@@ -374,34 +389,37 @@ snit::type StraightOccupancy {
 	  # The block is no longer occupied.
 	  set occupied no
 	} else {
-	  # No, the train has not completely left, so the block is still occupied.
+	  # No, the train has not completely left, so the block 
+	  # is still occupied.
 	  set occupied yes
 	}
       }
       default {
-	# Unknown state.  Check each possible sensor and determine where the
-	# train might be.
+	# Unknown state.  Check each possible sensor and 
+	# determine where the train might be.
 	if {[$options(-enter_sense) Sense_2]} {
-	  # Entry sensor is covered: train is entering and the block is 
-	  # occupied.
+	  # Entry sensor is covered: a train is entering and the 
+	  # block is occupied.
 	  set state entering
 	  set occupied yes
 	} elseif {[$options(-enter_sense) Latch_2]} {
-	  # Entry sensor was covered, but isn't anymore: train has fully 
-	  # entered and the block is occupied.
+	  # Entry sensor was covered, but isn't anymore: a train 
+	  # has fully entered and the block is occupied.
 	  set state entered
 	  set occupied yes
 	} elseif {[$options(-exit_sense) Sense_1]} {
-	  # Exit sensor is covered: train is exiting and the block is occupied.
+	  # Exit sensor is covered: the train is exiting and the 
+	  # block is occupied.
 	  set state exiting
 	  set occupied yes
         } elseif {[$options(-exit_sense) Latch_1]} {
-	  # Exit sensor was covered, but isn't anymore: train has fully exited
-	  # and the block is no longer occupied.
+	  # Exit sensor was covered, but isn't anymore: the train 
+	  # has fully exited and the block is no longer occupied.
 	  set state exited
 	  set occupied no 
 	} else {
-	  # No sensor state was met.  Presume that the block is not occupied.
+	  # No sensor state was met.  Presume that the block is 
+	  # not occupied.
 	  set occupied no
 	}
       }
@@ -410,15 +428,20 @@ snit::type StraightOccupancy {
   }
 }
 
-# Four occupancy detection objects, one for each of the four straight sections.
-StraightOccupancy create SouthT1_Occ -enter_sense WestCounterClockwise \
-				     -exit_sense  EastCounterClockwise
-StraightOccupancy create SouthT2_Occ -enter_sense EastClockwise \
-				     -exit_sense  WestClockwise
-StraightOccupancy create NorthT1_Occ -enter_sense EastCounterClockwise \
-				     -exit_sense  WestCounterClockwise
-StraightOccupancy create NorthT2_Occ -enter_sense WestClockwise \
-				     -exit_sense  EastClockwise
+# Four occupancy detection objects, one for each of the four 
+# straight sections.
+StraightOccupancy create SouthT1_Occ \
+			-enter_sense WestCounterClockwise \
+			-exit_sense  EastCounterClockwise
+StraightOccupancy create SouthT2_Occ \
+			-enter_sense EastClockwise \
+			-exit_sense  WestClockwise
+StraightOccupancy create NorthT1_Occ \
+			-enter_sense EastCounterClockwise \
+			-exit_sense  WestCounterClockwise
+StraightOccupancy create NorthT2_Occ \
+			-enter_sense WestClockwise \
+			-exit_sense  EastClockwise
 
 # Initialize both Turnout states and both reversing relays.
 
@@ -437,19 +460,24 @@ set EastTurnoutState normal
 # Main Loop Start
 # The main loop consistes ofthree sections
 while {true} {
-  # Read all AZATRAX state data: read all sensors from the devices to the
-  # sensor memory buffer.  This data will be used to check occupicency
-  # and to determine if it needful to throw turnouts and relays.
+  ## Read all AZATRAX state data: read all sensors from the 
+  #  devices to the sensor memory buffer.  This data will be 
+  #  used to check occupicency and to determine if it needful 
+  #  to throw turnouts and relays.
+
   WestControl GetStateData
   EastClockwise GetStateData
   EastCounterClockwise GetStateData
   EastControl GetStateData
   WestClockwise GetStateData
   WestCounterClockwise GetStateData
-  # Invoke all trackwork and get occupicency.  Occupicency is computed
-  # from the MRD sensor data loaded above.  Each piece of trackwork contains
-  # an occupicency script which checks the sense data and determines if the
-  # pirce of trackwork is occupied.
+
+  ## Invoke all trackwork and get occupicency.  Occupicency is 
+  #  computed from the MRD sensor data loaded above.  Each piece 
+  #  of trackwork contains an occupicency script which checks the 
+  #  sense data and determines if the piece of trackwork is 
+  #  occupied.
+
   MainWindow ctcpanel invoke SouthT1
   MainWindow ctcpanel invoke SouthT2
   MainWindow ctcpanel invoke SE1
@@ -463,72 +491,90 @@ while {true} {
   MainWindow ctcpanel invoke NW1
   MainWindow ctcpanel invoke Switch2s
 
-  # Implement dispatcher logic: check for train arrival at the start of a 
-  # single track section, then check for possible opposing movement. If there
-  # is no opposing movement, set the turnout and reversion relay to favor
-  # the newly arrived train.
+  ## Implement dispatcher logic: check for train arrival at the 
+  #  start of a single track section, then check for a possible 
+  #  opposing movement. If there is no opposing movement, set the 
+  #  turnout and reversing relay to favor the newly arrived 
+  #  train.
   #
-  # There are four blocks, two for each of two ends.  Each end has a clockwise
-  # and a counter-clockwise block.
+  #  There are four blocks, two for each of two ends.  Each end 
+  #  has a clockwise and a counter-clockwise block.
   #
 
-  ## West end movements.  Clockwise and then Counter Clockwise.
+  ## West end movements.  A clockwise and then counter clockwise 
+  #  block.
 
-  # Has a clockwise train arrived at the west end single track segment?
-  # If WestClockwise's Sense_1 is covered, WestCounterClockwise sensors
-  # are checked to see if there is an opposing movement.
+  ## West end clockwise block.
+  # Has a clockwise train arrived at the west end single track 
+  # segment? If WestClockwise's Sense_1 is covered, 
+  # WestCounterClockwise sensors are checked to see if there is 
+  # an opposing movement.
   if {[WestClockwise Sense_1]} {
     # Check for opposing movement
     if {![WestCounterClockwise Sense_1] &&
 	![WestCounterClockwise Sense_2] &&
 	![WestCounterClockwise Latch_1]} {
       # single track segment is clear
-      WestControl PulseRelays 1 0 0 0 4;# Throw turnout 
-      WestControl RelaysOn    0 0 1 0;# Set relay
+      # Throw turnouts 1n and 1s (reversed).
+      WestControl PulseRelays 1 0 0 0 4
+      WestControl RelaysOn    0 0 1 0;# Set relay.
       set WestTurnoutState reverse
     }
   }
 
-  # Has a counterclockwise train arrived at the west end single track segment?
-  # If WestCounterClockwise's Sense_1 is covered, WestClockwise sensors
-  # are checked to see if there is an opposing movement.
+  ## West end counter-clockwise block.
+  # Has a counterclockwise train arrived at the west end single 
+  # track segment? If WestCounterClockwise's Sense_1 is covered, 
+  # WestClockwise sensors are checked to see if there is an 
+  # opposing movement.
   if {[WestCounterClockwise Sense_1]} {
     # Check for opposing movement
     if {![WestClockwise Sense_1] &&
 	![WestClockwise Sense_2] &&
 	![WestClockwise Latch_1]} {
       # single track segment is clear
-      WestControl PulseRelays 0 1 0 0 4;# Throw turnout 
-      WestControl RelaysOff   0 0 1 0;# Unset relay
+      # Throw turnouts 1n and 1s (normal).
+      WestControl PulseRelays 0 1 0 0 4
+      WestControl RelaysOff   0 0 1 0;# Unset relay.
       set WestTurnoutState normal
     }
   }
 
-  ## East end movements: just like the west end, a clockwise block and then a
-  #  counter clockwise block.
+  ## East end movements: just like the west end, a clockwise 
+  #  block and then a counter clockwise block.
 
-  # Has a clockwise train arrived at the east end single track segment?
+  ## East end clockwise block.  
+  # Has a clockwise train arrived at the east end single track 
+  # segment? If EastClockwise's Sense_1 is covered, 
+  # EastCounterClockwise sensors are checked to see if there 
+  # is an opposing movement.
   if {[EastClockwise Sense_1]} {
     # Check for opposing movement
     if {![EastCounterClockwise Sense_1] &&
 	![EastCounterClockwise Sense_2] &&
 	![EastCounterClockwise Latch_1]} {
       # single track segment is clear
-      EastControl PulseRelays 0 1 0 0 4;# Throw turnout 
-      EastControl RelaysOff   0 0 1 0;# Unset relay
+      # Throw turnouts 2n and 2s (normal).
+      EastControl PulseRelays 0 1 0 0 4
+      EastControl RelaysOff   0 0 1 0;# Unset relay.
       set EastTurnoutState normal
     }
   }
 
-  # Has a counterclockwise train arrived at the east end single track segment?
+  ## East end counter-clockwise block.  
+  # Has a counterclockwise train arrived at the east end single 
+  # track segment? If EastCounterClockwise's Sense_1 is covered, 
+  # EastClockwise sensors are checked to see if there is an 
+  # opposing movement.
   if {[EastCounterClockwise Sense_1]} {
     # Check for opposing movement
     if {![EastClockwise Sense_1] &&
 	![EastClockwise Sense_2] &&
 	![EastClockwise Latch_1]} {
       # single track segment is clear
-      EastControl PulseRelays 1 0 0 0 4;# Throw turnout 
-      EastControl RelaysOn   0 0 1 0;# Set relay
+      # Throw turnouts 2n and 2s (reverse).
+      EastControl PulseRelays 1 0 0 0 4
+      EastControl RelaysOn   0 0 1 0;# Set relay.
       set EastTurnoutState reverse
     }
   }

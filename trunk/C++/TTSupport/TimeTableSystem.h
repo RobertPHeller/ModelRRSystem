@@ -76,22 +76,18 @@
 #include <list>
 
 #ifdef __GNUC__
-#if __GNUC__ < 3
-#include <hash_map.h>
-        namespace Sgi { using ::hash_map; }; // inherit globals
-#else
-#include <ext/hash_map>
-#if __GNUC_MINOR__ == 0
-          namespace Sgi = std;               // GCC 3.0
-#else
-          namespace Sgi = ::__gnu_cxx;       // GCC 3.1 and later
-#endif
-#endif
+#  if __GNUC__ > 3 // GCC 4
+#    include <tr1/unordered_map>
+#    define USE_UNORDERED_MAP
+#  else // GCC 3.1
+#    define USE_HASH_MAP
+#    include <ext/hash_map>
+#  endif
 #else      // ...  there are other compilers, right?
-        namespace Sgi = std;
-#endif
+#  define USE_HASH_MAP
 #endif
 
+#endif
 /** @addtogroup TimeTableSystem
   * @{
   */
@@ -109,6 +105,7 @@ namespace TTSupport {
   */
 typedef vector<double> doubleVector;
 
+#ifdef USE_HASH_MAP
 /** @brief Equality structure.
   *
   * Used with the hash map used for Print Options 
@@ -123,13 +120,18 @@ struct eqstr
 		return strcmp(s1, s2) == 0;
 	}
 };
+#endif
 /** @brief Option hash map, used for Print options.
   *
   * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
-typedef Sgi::hash_map<const char*, string, Sgi::hash<const char*>, eqstr> OptionHashMap;
 
+#ifdef USE_HASH_MAP
+typedef __gnu_cxx::hash_map<const char*, string, __gnu_cxx::hash<const char*>, eqstr> OptionHashMap;
+#else
+typedef std::tr1::unordered_map<const char*, std::string> OptionHashMap;
+#endif
 
 /** @brief List of trains.
   *
@@ -451,7 +453,7 @@ public:
 	  *   @param outmessage Pointer to a pointer to receive any error 
 	  *     messages for any errors that might occur.
 	  */
-	TimeTableSystem(string filename,char **outmessage = NULL);
+	TimeTableSystem(const string filename,char **outmessage = NULL);
 	/** @brief The constructor that creates a new, empty time table system from
 	  * stratch, given a set of esentual parameters.
 	  *
@@ -460,7 +462,7 @@ public:
 	  *	1440 minutes in 24 hours.
 	  *  @param timeinterval The tick frequency in time units.
 	  */
-	TimeTableSystem(string name,int timescale,int timeinterval);
+	TimeTableSystem(const string name,int timescale,int timeinterval);
 #endif
 	/** @brief Destructor. 
 	  *

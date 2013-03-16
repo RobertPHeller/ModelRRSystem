@@ -60,7 +60,7 @@ using namespace TTSupport;
 char PathName::PathSeparator() const {
 	string::size_type seploc = pathname.size(), newloc;
 	char      sep = '\0';
-	char *seps;
+	const char *seps;
 	for (seps = PATHSEPARATORS; *seps != '\0'; seps++) {
 		newloc = pathname.find(*seps);
 		if (newloc != string::npos && newloc < seploc) {

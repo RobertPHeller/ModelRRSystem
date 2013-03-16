@@ -37,17 +37,27 @@
 \label{chapt:Introduction}
 \typeout{$Id$}
 
-This application note presents the hardware and software for a 2' by 6'
-N scale continious running oval layout.  This module is a table top
-module and features a single track oval with a pair of passing sidings.
- It is set up to run two trains in \textit{opposite} directions and
-does so in a fully automated way using computer control, using USB
-connected IR sensors and control modules from Azatrax.  The layout
-illustrates how to automate signaling and control of trains moving in
-opposing directions through a single track main line.  The ideas
-presented in this Application Note could be adapted for more realistic
-layouts and can incorporated into a CTC system, with automated
-diversions into passing sidings.  This layout, as is, could also be
-used as a unattended educational museum layout, demostrating how
-bi-directional traffic is handled on a single track mainline.
+This application note presents the software for a 2' by 6' N scale
+continious running oval layout.  This module is a table top module and
+features a single track oval with a pair of passing sidings. It is set
+up to run two trains in \textit{opposite} directions and does so in a
+fully automated way using computer control, using USB connected IR
+sensors and control modules from Azatrax.  The layout illustrates how
+to automate signaling and control of trains moving in opposing
+directions through a single track main line.  The ideas presented in
+this Application Note could be adapted for more realistic layouts and
+can be incorporated into a CTC system, with automated diversions into
+passing sidings.  This layout, as is, could also be used as a
+unattended educational museum layout, demostrating how bi-directional
+traffic is handled on a single track mainline.
+
+This application note expands on information contained in the
+Programming Guides\cite{progguide}, User Manual\cite{userman}, and
+Internals Manual\cite{internals}. The \textit{Dispatcher} program,
+described in the User Manual, was used to create and maintain the
+dispatcher code described in Chapter~\ref{chapt:AutoDispatcher}. This
+code makes use of the Tcl API for the Azatrax MRD2-U and SR4 devices,
+which is described in the Internals Manual and Programming Guides. The
+layout uses some circuits described by Rob
+Paisley\cite{MRRElectronicsRPAISLEY}. 
 

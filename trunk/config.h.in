@@ -331,6 +331,9 @@
 /* MRR Patch Level */
 #undef MRR_PATCH_LEVEL
 
+/* MRR Patch Level for libraries */
+#undef MRR_PATCH_LEVELLIB
+
 /* MRR Version */
 #undef MRR_VERSION
 

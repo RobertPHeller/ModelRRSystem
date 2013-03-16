@@ -86,6 +86,7 @@
 using namespace std;
 #endif
 #include <boost/config.hpp>
+#include <boost/version.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <list>
 using namespace boost;
@@ -737,7 +738,7 @@ private:
 	};
 	/** Boost Compressed Graph type (adjacency_list).
 	  */
-	typedef adjacency_list < setS, vecS, undirectedS, CompressedNodeValues , CompressedEdgeValues > CompressedGraph;
+	typedef adjacency_list < vecS, vecS, undirectedS, CompressedNodeValues , CompressedEdgeValues > CompressedGraph;
 	/** Compressed Graph Vertex type.
 	  */
 	typedef graph_traits < CompressedGraph >::vertex_descriptor CompressedNode;

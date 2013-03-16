@@ -150,16 +150,17 @@ ostream & Train::Write(ostream & stream) const
 istream & Train::Read(istream & stream,const CabNameMap cabs)
 {
 	char buffer[2048], ch, *p;
+	const char *p1;
 	int i, count;
 	do {
 	 	stream.get(ch);
 		if (!stream) return stream;
 	} while (isspace(ch));
 	stream.putback(ch);
-	for (i = 0,p = "<Train \""; *p != '\0'; p++,i++) {
+	for (i = 0,p1 = "<Train \""; *p1 != '\0'; p1++,i++) {
 		stream.get(ch);
 		if (!stream) return stream;
-		if (ch != *p) {
+		if (ch != *p1) {
 			stream.putback(ch);
 			while (i > 0) stream.putback(buffer[--i]);
 			stream.setstate(ios::failbit);
@@ -241,6 +242,7 @@ ostream & Stop::Write(ostream & stream) const
 istream & Stop::Read(istream & stream,const CabNameMap cabs)
 {
 	char buffer[2048], ch, *p;
+	const char *p1;
 	int i, count;
 	do {
 	 	stream.get(ch);
@@ -250,13 +252,13 @@ istream & Stop::Read(istream & stream,const CabNameMap cabs)
 #endif
 	} while (isspace(ch));
 	stream.putback(ch);
- 	for (i = 0,p = "<Stop "; *p != '\0'; p++,i++) {
+ 	for (i = 0,p1 = "<Stop "; *p1 != '\0'; p1++,i++) {
 		stream.get(ch);
 		if (!stream) return stream;
 #ifdef DEBUG
 		cerr << "*** Stop::Read() (buffer1): ch = " << ch << endl;
 #endif
-		if (ch != *p) {
+		if (ch != *p1) {
 			stream.putback(ch);
 			while (i > 0) stream.putback(buffer[--i]);
 			stream.setstate(ios::failbit);

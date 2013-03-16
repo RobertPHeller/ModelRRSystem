@@ -68,7 +68,7 @@ static char rcsid[] = "$Id: TrackGraph.cc 624 2008-04-21 23:36:58Z heller $";
 #include <stdio.h>
 #include "../gettext.h"
 
-using namespace Parsers;
+namespace Parsers {
 
 //const int TrackGraph::ElementCount = 512;
 
@@ -368,7 +368,7 @@ void TrackGraph::InsertSwitchMotor(int number, int turnout, char * _name, char *
 	nodes[newNode].length = -1.0;
 }
 
-std::ostream& Parsers::operator << (ostream& stream,TrackGraph& graph)
+std::ostream& operator << (ostream& stream,TrackGraph& graph)
 {
 	int jj;
 	int nid,nedges,iedge;
@@ -671,7 +671,7 @@ TrackGraph::Transform2D::Transform2D(float r11, float r12, float tx,
   matrix[2][2] = s;
 }
 
-TrackGraph::Transform2D* Parsers::operator * (const TrackGraph::Transform2D& t1, const TrackGraph::Transform2D& t2)
+TrackGraph::Transform2D* operator * (const TrackGraph::Transform2D& t1, const TrackGraph::Transform2D& t2)
 {
   TrackGraph::Transform2D *new_t = new TrackGraph::Transform2D;
 
@@ -1361,24 +1361,30 @@ void TrackGraph::computeHeads()
 
 void TrackGraph::CompressedGraphCircleLayout(double radius)
 {
+#if BOOST_VERSION < 104600
 	if (!compressedP) CompressGraph();
 	circle_graph_layout(c_nodes,
 			    get(&CompressedNodeValues::position, c_nodes), 
 			    radius);
 	circleLayoutP = true;
+#endif
 }
 
 
 bool TrackGraph::CompressedGraphKamadaKawaiSpring(double sidelength)
 {
+#if BOOST_VERSION < 104600
 	if (!compressedP) CompressGraph();
 	if (!circleLayoutP) CompressedGraphCircleLayout(1000.0);
 	return kamada_kawai_spring_layout(c_nodes,
 					  get(&CompressedNodeValues::position, c_nodes),
 					  get(&CompressedEdgeValues::length, c_nodes),
 					  boost::side_length(sidelength));
+#else
+	return false;
+#endif
 }
-        
+
 
 TrackGraph::CompressedEdgePairVector TrackGraph::CompressedGraphKruskalMinimumSpanningTree()// const
 {
@@ -1433,4 +1439,6 @@ void TrackGraph::traversePrimMST (TrackGraph::CompressedEdgePairVector &result,
 			traversePrimMST(result,parents,t);
 		}
 	}
+}
+
 }

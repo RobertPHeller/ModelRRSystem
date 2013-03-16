@@ -239,6 +239,7 @@ ostream & Station::Write(ostream & stream) const
 istream & Station::Read(istream & stream)
 {
 	char buffer[2048], ch, *p;
+	const char *p1;
 	int i, count;
 	do {
 	 	stream.get(ch);
@@ -248,13 +249,13 @@ istream & Station::Read(istream & stream)
 #endif
 	} while (isspace(ch));
 	stream.putback(ch);
-	for (i = 0,p = "<Station \""; *p != '\0'; p++,i++) {
+	for (i = 0,p1 = "<Station \""; *p1 != '\0'; p1++,i++) {
 		stream.get(ch);
 		if (!stream) return stream;
 #ifdef DEBUG
 		cerr << "*** Station::Read (for (<Station...)): ch = '" << ch << "'" << endl;
 #endif
-		if (ch != *p) {
+		if (ch != *p1) {
 			stream.putback(ch);
 			while (i > 0) stream.putback(buffer[--i]);
 			stream.setstate(ios::failbit);
@@ -317,16 +318,17 @@ ostream & StorageTrack::Write(ostream & stream) const
 istream & StorageTrack::Read(istream & stream)
 {
 	char buffer[2048], ch, *p;
+	const char *p1;
 	int i, count;
 	do {
 	 	stream.get(ch);
 		if (!stream) return stream;
 	} while (isspace(ch));
 	stream.putback(ch);
-	for (i = 0,p = "<StorageTrack \""; *p != '\0'; p++,i++) {
+	for (i = 0,p1 = "<StorageTrack \""; *p1 != '\0'; p1++,i++) {
 		stream.get(ch);
 		if (!stream) return stream;
-		if (ch != *p) {
+		if (ch != *p1) {
 			stream.putback(ch);
 			while (i > 0) stream.putback(buffer[--i]);
 			stream.setstate(ios::failbit);
@@ -369,16 +371,17 @@ ostream & TimeRange::Write(ostream & stream) const
 istream & TimeRange::Read(istream & stream)
 {
 	char buffer[2048], ch, *p;
+	const char *p1;
 	int i/*, count*/;
 	do {
 	 	stream.get(ch);
 	 	if (!stream) return stream;
 	} while (isspace(ch));
 	stream.putback(ch);
-	for (i = 0,p = "<TimeRange "; *p != '\0'; p++,i++) {
+	for (i = 0,p1 = "<TimeRange "; *p1 != '\0'; p1++,i++) {
 		stream.get(ch);
 		if (!stream) return stream;
-		if (ch != *p) {
+		if (ch != *p1) {
 			stream.putback(ch);
 			while (i > 0) stream.putback(buffer[--i]);
 			stream.setstate(ios::failbit);
@@ -413,16 +416,17 @@ ostream & Occupied::Write(ostream & stream) const
 istream & Occupied::Read(istream & stream)
 {
 	char buffer[2048], ch, *p;
+	const char *p1;
 	int i/*, count*/;
 	do {
 	 	stream.get(ch);
 		if (!stream) return stream;
 	} while (isspace(ch));
 	stream.putback(ch);
-	for (i = 0,p = "<Occupied \""; *p != '\0'; p++,i++) {
+	for (i = 0,p1 = "<Occupied \""; *p1 != '\0'; p1++,i++) {
 		stream.get(ch);
 		if (!stream) return stream;
-		if (ch != *p) {
+		if (ch != *p1) {
 			stream.putback(ch);
 			while (i > 0) stream.putback(buffer[--i]);
 			stream.setstate(ios::failbit);

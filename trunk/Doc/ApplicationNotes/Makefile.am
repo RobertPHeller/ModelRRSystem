@@ -60,7 +60,8 @@ AN02_FIGS = CDblock.png CDtransistor.png SCRPot.png FullWaveSRCThrottle.png \
 	4-CDtransistor-on-SB400.pdf TwoSidingOval-N.pdf \
 	TwoSidingOval-N-NW-Switch-sig-sensor.pdf  \
 	TwoSidingOval-N-NW-sig-sensor-detail.pdf \
-	TwoSidingOval-N-East-MRD2.pdf CD-on-SB400.pdf singletrack-ink1.png
+	TwoSidingOval-N-East-MRD2.pdf CD-on-SB400.pdf singletrack-ink1.png \
+	AN02_schematic_rev.pdf
 AN02_DEPS = Makefile.am
 AN02_PDF = $(AN02).pdf
 
@@ -76,6 +77,7 @@ EXTRA_DIST = $(AN01_TEXS) $(AN01_FIGS) $(AN01Code) \
 	     $(AN02_TEXS) $(AN02_FIGS) $(AN02Code)
 
 BIBLIO = ../MRR.bib
+
 
 $(AN01_PDF) : $(AN01_TEXS) $(BIBLIO) $(AN01_DEPS) $(AN01_FIGS) $(AN01Code)
 	-ln -s $(srcdir)/../titlepage.tex ./titlepage.tex

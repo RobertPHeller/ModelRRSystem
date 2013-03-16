@@ -215,7 +215,7 @@ clean-local:
 	$(PS2PDF) $< $@
 
 titlepage.tex : ../titlepage.tex
-	ln -sf $(srcdir)/../titlepage.tex ./titlepage.tex
+	-ln -sf $(srcdir)/../titlepage.tex ./titlepage.tex
 
 example1.tcl example1.iow example2.tcl example2.iow \
 	example3.tcl example3.iow example4.tcl example4.iow : $(srcdir)/../../Scripts/Dispatcher/example[1234].tcl $(srcdir)/../../Scripts/Dispatcher/example[1234].iow
@@ -259,7 +259,9 @@ $(USERMAN_HTML) : $(USERMAN_PDF)
 	-rm -rf $(USERMANHBase)
 	-mkdir $(USERMANHBase)
 	$(HTLATEX) $(USERMAN) "html,2,info" "" "-d$(USERMANHBase)/"
-	(cd $(USERMANHBase)&&ln -s ../*.png ./)
+	for f in $(USERMAN_FIGS); do \
+	  if test -f "$(USERMANHBase)/$$f"; then continue; else (cd $(USERMANHBase)&&ln -s ../$$f ./); fi; \
+	done
 	-rm -f zz$(USERMAN).p* $(USERMAN).4ct $(USERMAN).xref \
 		 $(USERMAN).4tc tex4ht.fls $(USERMAN).tmp $(USERMAN).lg \
 		 $(USERMAN).idv $(USERMAN).dvi $(USERMAN)*.html
@@ -296,7 +298,7 @@ $(AZATRAX_PROG_HTML) : $(AZATRAX_PROG).pdf
 	-mkdir $(AZATRAX_PROGHBase)
 	$(HTLATEX) $(AZATRAX_PROG) "html,4,info" "" "-d$(AZATRAX_PROGHBase)/"
 	for f in $(USERMAN_AZATRAX_PROG_FIGS); do \
-	    (cd $(AZATRAX_PROGHBase)&&ln -s ../$$f ./) \
+	    if test -f "$(AZATRAX_PROGHBase)/$$f"; then continue; else (cd $(AZATRAX_PROGHBase)&&ln -s ../$$f ./); fi; \
 	done
 	-rm -f zz$(AZATRAX_PROG).p* $(AZATRAX_PROG).4ct $(AZATRAX_PROG).xref \
 		 $(AZATRAX_PROG).4tc tex4ht.fls $(AZATRAX_PROG).tmp $(AZATRAX_PROG).lg \
@@ -335,7 +337,7 @@ $(UNIVERSALTEST_HTML) : $(UNIVERSALTEST).pdf
 	-mkdir $(UNIVERSALTESTHBase)
 	$(HTLATEX) $(UNIVERSALTEST) "html,4,info" "" "-d$(UNIVERSALTESTHBase)/"
 	for f in $(USERMAN_UNIVERSALTEST_FIGS); do \
-	   (cd $(UNIVERSALTESTHBase)&&ln -s ../$$f ./) \
+	  if test -f "$(UNIVERSALTESTHBase)/$$f"; then continue; else (cd $(UNIVERSALTESTHBase)&&ln -s ../$$f ./); fi; \
 	done
 	-rm -f zz$(UNIVERSALTEST).p* $(UNIVERSALTEST).4ct $(UNIVERSALTEST).xref \
 		 $(UNIVERSALTEST).4tc tex4ht.fls $(UNIVERSALTEST).tmp $(UNIVERSALTEST).lg \
@@ -373,7 +375,7 @@ $(XPRESSNETTHROTTLE_HTML) : $(XPRESSNETTHROTTLE).pdf
 	-mkdir $(XPRESSNETTHROTTLEHBase)
 	$(HTLATEX) $(XPRESSNETTHROTTLE) "html,4,info" "" "-d$(XPRESSNETTHROTTLEHBase)/"
 	for f in $(USERMAN_XPRESSNETTHROTTLE_FIGS); do \
-	   (cd $(XPRESSNETTHROTTLEHBase)&&ln -s ../$$f ./) \
+	  if test -f "$(XPRESSNETTHROTTLEHBase)/$$f"; then continue; else (cd $(XPRESSNETTHROTTLEHBase)&&ln -s ../$$f ./); fi; \
 	done
 	-rm -f zz$(XPRESSNETTHROTTLE).p* $(XPRESSNETTHROTTLE).4ct $(XPRESSNETTHROTTLE).xref \
 		 $(XPRESSNETTHROTTLE).4tc tex4ht.fls $(XPRESSNETTHROTTLE).tmp $(XPRESSNETTHROTTLE).lg \
@@ -411,7 +413,7 @@ $(GENERICTHROTTLE_HTML) : $(GENERICTHROTTLE).pdf
 	-mkdir $(GENERICTHROTTLEHBase)
 	$(HTLATEX) $(GENERICTHROTTLE) "html,4,info" "" "-d$(GENERICTHROTTLEHBase)/"
 	for f in $(USERMAN_GENERICTHROTTLE_FIGS); do \
-	   (cd $(GENERICTHROTTLEHBase)&&ln -s ../$$f ./) \
+	  if test -f "$(GENERICTHROTTLEHBase)/$$f"; then continue; else (cd $(GENERICTHROTTLEHBase)&&ln -s ../$$f ./); fi; \
 	done
 	-rm -f zz$(GENERICTHROTTLE).p* $(GENERICTHROTTLE).4ct $(GENERICTHROTTLE).xref \
 		 $(GENERICTHROTTLE).4tc tex4ht.fls $(GENERICTHROTTLE).tmp $(GENERICTHROTTLE).lg \
@@ -449,7 +451,7 @@ $(TIMETABLE_HTML) : $(TIMETABLE).pdf
 	-mkdir $(TIMETABLEHBase)
 	$(HTLATEX) $(TIMETABLE) "html,4,info" "" "-d$(TIMETABLEHBase)/"
 	for f in $(USERMAN_TIMETABLE_FIGS); do \
-	   (cd $(TIMETABLEHBase)&&ln -s ../$$f ./) \
+	  if test -f "$(TIMETABLEHBase)/$$f"; then continue; else (cd $(TIMETABLEHBase)&&ln -s ../$$f ./); fi; \
 	done
 	-rm -f zz$(TIMETABLE).p* $(TIMETABLE).4ct $(TIMETABLE).xref \
 		 $(TIMETABLE).4tc tex4ht.fls $(TIMETABLE).tmp $(TIMETABLE).lg \
@@ -487,7 +489,7 @@ $(FCF_HTML) : $(FCF).pdf
 	-mkdir $(FCFHBase)
 	$(HTLATEX) $(FCF) "html,4,info" "" "-d$(FCFHBase)/"
 	for f in $(USERMAN_FCF_FIGS); do \
-	   (cd $(FCFHBase)&&ln -s ../$$f ./) \
+	  if test -f "$(FCFHBase)/$$f"; then continue; else (cd $(FCFHBase)&&ln -s ../$$f ./); fi; \
 	done
 	-rm -f zz$(FCF).p* $(FCF).4ct $(FCF).xref \
 		 $(FCF).4tc tex4ht.fls $(FCF).tmp $(FCF).lg \
@@ -524,7 +526,7 @@ $(CALC_HTML) : $(CALC).pdf
 	-mkdir $(CALCHBase)
 	$(HTLATEX) $(CALC) "html,4,info" "" "-d$(CALCHBase)/"
 	for f in $(USERMAN_CALC_FIGS); do \
-	   (cd $(CALCHBase)&&ln -s ../$$f ./) \
+	  if test -f "$(CALCHBase)/$$f"; then continue; else (cd $(CALCHBase)&&ln -s ../$$f ./); fi; \
 	done
 	-rm -f zz$(CALC).p* $(CALC).4ct $(CALC).xref \
 		 $(CALC).4tc tex4ht.fls $(CALC).tmp $(CALC).lg \
@@ -560,7 +562,7 @@ $(CAMERA_HTML) : $(CAMERA).pdf
 	-mkdir $(CAMERAHBase)
 	$(HTLATEX) $(CAMERA) "html,4,info" "" "-d$(CAMERAHBase)/"
 	for f in $(USERMAN_CAMERA_FIGS); do \
-	   (cd $(CAMERAHBase)&&ln -s ../$$f ./) \
+	  if test -f "$(CAMERAHBase)/$$f"; then continue; else (cd $(CAMERAHBase)&&ln -s ../$$f ./); fi; \
 	done
 	-rm -f zz$(CAMERA).p* $(CAMERA).4ct $(CAMERA).xref \
 		 $(CAMERA).4tc tex4ht.fls $(CAMERA).tmp $(CAMERA).lg \
@@ -598,7 +600,7 @@ $(DISPATCHER_HTML) : $(DISPATCHER).pdf
 	-mkdir $(DISPATCHERHBase)
 	$(HTLATEX) $(DISPATCHER) "html,4,info" "" "-d$(DISPATCHERHBase)/"
 	for f in $(USERMAN_DISPATCHER_FIGS); do \
-	   (cd $(DISPATCHERHBase)&&ln -s ../$$f ./) \
+	  if test -f "$(DISPATCHERHBase)/$$f"; then continue; else (cd $(DISPATCHERHBase)&&ln -s ../$$f ./); fi; \
 	done
 	-rm -f zz$(DISPATCHER).p* $(DISPATCHER).4ct $(DISPATCHER).xref \
 		 $(DISPATCHER).4tc tex4ht.fls $(DISPATCHER).tmp $(DISPATCHER).lg \
@@ -634,7 +636,7 @@ $(MAINPROGRAM_HTML) : $(MAINPROGRAM).pdf
 	-mkdir $(MAINPROGRAMHBase)
 	$(HTLATEX) $(MAINPROGRAM) "html,4,info" "" "-d$(MAINPROGRAMHBase)/"
 	for f in $(USERMAN_MAINPROGRAM_FIGS); do \
-	   (cd $(MAINPROGRAMHBase)&&ln -s ../$$f ./) \
+	  if test -f "$(MAINPROGRAMHBase)/$$f"; then continue; else (cd $(MAINPROGRAMHBase)&&ln -s ../$$f ./); fi; \
 	done
 	-rm -f zz$(MAINPROGRAM).p* $(MAINPROGRAM).4ct $(MAINPROGRAM).xref \
 		 $(MAINPROGRAM).4tc tex4ht.fls $(MAINPROGRAM).tmp $(MAINPROGRAM).lg \
