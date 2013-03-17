@@ -57,15 +57,16 @@ SampleCodePackages = SampleCodeMain.tcl SampleCodeCTCPanel.tcl \
 PROGRAMMINGGUIDE = ProgrammingGuide
 PROGRAMMINGGUIDE_TEXS = ../MyTitlepage.sty ../MyBibIndex.sty \
 		../titlepage.tex $(PROGRAMMINGGUIDE).tex Introduction.tex \
-		RaildriverServer.tex CMRIProgramming.tex MRDProgramming.tex \
-		XPressNetProgramming.tex HTMLHelp.tex CTCPanels.tex \
-		ReadConfiguration.tex LabelFrameWidgets.tex SplashWindows.tex \
-		MainWindows.tex GraphicsSupport.tex PanelInstruments.tex \
-		OvalWidgets.tex LCARSWidgets.tex StarKitsStarPacks.tex
+		RaildriverIOLib.tex RaildriverServer.tex CMRIProgramming.tex \
+		AzatraxProgramming.tex XPressNetProgramming.tex HTMLHelp.tex \
+		CTCPanels.tex ReadConfiguration.tex LabelFrameWidgets.tex \
+		SplashWindows.tex MainWindows.tex GraphicsSupport.tex \
+		PanelInstruments.tex OvalWidgets.tex LCARSWidgets.tex \
+		StarKitsStarPacks.tex
 PROGRAMMINGGUIDE_FIGS = CTCPanel.png EditConf.png SplashScreen.png \
 			MainWindow1.png MainWindow2.png Circles.png \
-			PanelInstrument.png fig9-5.cc fig9-5.tcl \
-			fig12-13.cc fig12-13.tcl fig14-5.cc fig14-5.tcl
+			PanelInstrument.png fig9-5.tcl \
+			fig12-13.tcl fig14-5.tcl
 PROGRAMMINGGUIDE_DEPS = ../../C++/RailDriver/LocoTest SampleCode.tcl \
 		$(SampleCodePackages) Makefile.am
 PROGRAMMINGGUIDE_PDF = $(PROGRAMMINGGUIDE).pdf
@@ -79,8 +80,8 @@ CLEANFILES = LocoTest.tcl ProgrammingGuide.pdf *.aux *.bbl *.blg *.idx *.ilg \
 	MyTitlepage.sty
 
 pkgdata_DATA = $(PROGRAMMINGGUIDE_PDF) SampleCode.tcl \
-	$(SampleCodePackages) fig9-5.cc fig9-5.tcl fig12-13.cc fig12-13.tcl \
-	fig14-5.cc fig14-5.tcl SampleCode.tex
+	$(SampleCodePackages) fig9-5.tcl fig12-13.tcl \
+	fig14-5.tcl SampleCode.tex
 
 EXTRA_DIST = $(PROGRAMMINGGUIDE_TEXS)  $(PROGRAMMINGGUIDE_FIGS)
 

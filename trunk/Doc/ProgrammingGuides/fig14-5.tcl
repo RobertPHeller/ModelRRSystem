@@ -50,18 +50,13 @@
 
 # Load MRR System packages
 # Add MRR System package Paths
-lappend auto_path /usr/local/lib/MRRSystem;# C++ (binary) packages
-package require Cmri;#          Load the CMR/I package
+lappend auto_path /usr/local/share/MRRSystem;# Tcl packages
+package require Cmri 2.0.0;#          Load the CMR/I package
 
 #  
 #  REM**INITIALIZE CONSTANTS FOR PACKING AND UNPACKING I/O BYTES
 #     B0 = 1: B1 = 2: B2 = 4: B3 = 8: B4 = 16: B5 = 32: B6 = 64: B7 = 128
 #     W1 = 1: W2 = 3: W3 = 7: W4 = 15: W5 = 31: W6 = 63: W7 = 127
-
-# Load MRR System packages
-# Add MRR System package Paths
-lappend auto_path /usr/local/lib/MRRSystem;# C++ (binary) packages
-package require Cmri;#          Load the CMR/I package
 
 #  REM**SUSIC SINGLE-NODE SYSTEM USING 3-ASPECT COLOR LIGHT SIGNALS**
 #  REM**DEFINE VARIABLE TYPES AND ARRAY SIZES
@@ -187,11 +182,10 @@ set WBD 2;# WestBounD Direction
 #     MAXTRIES = 10000 'MAXIMUM READ TRIES BEFORE ABORT INPUTS
 # Connect to the bus on COM3: (/dev/ttyS2), at 19200 BAUD, with
 # a retry count of 10000, capturing error messages.
-if {[catch {CMri bus /dev/ttyS2 19200 10000} result]} {
-	set errorMessage [lindex $result 1]
+if {[catch {cmri::CMri bus /dev/ttyS2 -baud 19200 -retries 10000} result]} {
 	# Handle error.
 	puts -nonewline stderr "Could not connect to CMR/I bus on /dev/ttyS2: "
-	puts stderr "$errorMessage"
+	puts stderr "$result"
 	rename bus {}
 	exit 99
 }
@@ -205,10 +199,9 @@ if {[catch {CMri bus /dev/ttyS2 19200 10000} result]} {
 #     CALL INIT        'INVOKE INITIALIZATION SUBROUTINE
 set UA 0
 if {[catch {bus InitBoard {} 3 6 0 $UA SMINI 0} result]} {
-	set errorMessage [lindex $result 1]
 	# Handle error.
 	puts -nonewline stderr "Could not initialize SMINI card at UA "
-	puts stderr "$UA: $errorMessage"
+	puts stderr "$UA: $result"
 	rename bus {}
 	exit 99
 }
@@ -222,10 +215,9 @@ if {[catch {bus InitBoard {} 3 6 0 $UA SMINI 0} result]} {
 #     CALL INIT        'INVOKE INITIALIZATION SUBROUTINE
 set UA 1
 if {[catch {bus InitBoard {} 3 6 0 $UA SMINI 0} result]} {
-	set errorMessage [lindex $result 1]
 	# Handle error.
 	puts -nonewline stderr "Could not initialize SMINI card at UA "
-	puts stderr "$UA: $errorMessage"
+	puts stderr "$UA: $result"
 	rename bus {}
 	exit 99
 }
@@ -239,10 +231,9 @@ if {[catch {bus InitBoard {} 3 6 0 $UA SMINI 0} result]} {
 #     CALL INIT        'INVOKE INITIALIZATION SUBROUTINE
 set UA 2
 if {[catch {bus InitBoard {} 3 6 0 $UA SMINI 0} result]} {
-	set errorMessage [lindex $result 1]
 	# Handle error.
 	puts -nonewline stderr "Could not initialize SMINI card at UA "
-	puts stderr "$UA: $errorMessage"
+	puts stderr "$UA: $result"
 	rename bus {}
 	exit 99
 }
@@ -256,10 +247,9 @@ if {[catch {bus InitBoard {} 3 6 0 $UA SMINI 0} result]} {
 #     CALL INIT        'INVOKE INITIALIZATION SUBROUTINE
 set UA 3
 if {[catch {bus InitBoard {} 3 6 0 $UA SMINI 0} result]} {
-	set errorMessage [lindex $result 1]
 	# Handle error.
 	puts -nonewline stderr "Could not initialize SMINI card at UA "
-	puts stderr "$UA: $errorMessage"
+	puts stderr "$UA: $result"
 	rename bus {}
 	exit 99
 }
@@ -274,10 +264,9 @@ if {[catch {bus InitBoard {} 3 6 0 $UA SMINI 0} result]} {
 #     CALL INIT        'INVOKE INITIALIZATION SUBROUTINE
 set UA 4
 if {[catch {bus InitBoard {0x06} 4 4 0 $UA SUSICI 0} result]} {
-	set errorMessage [lindex $result 1]
 	# Handle error.
 	puts -nonewline stderr "Could not initialize SUSIC card at UA "
-	puts stderr "$UA: $errorMessage"
+	puts stderr "$UA: $result"
 	rename bus {}
 	exit 99
 }
@@ -300,9 +289,8 @@ while {true} {
 
 	set UA 0
 	if {[catch {bus Inputs 3 $UA} result]} {
-		set errorMessage [lindex $result 1]
 		puts -nonewline stderr "Could not read from the input ports of "
-		puts stderr "SMINI card at UA $UA: $errorMessage"
+		puts stderr "SMINI card at UA $UA: $result"
 		break
 	}
 	set Inputs $result
@@ -330,9 +318,8 @@ while {true} {
 
 	set UA 1
 	if {[catch {bus Inputs 3 $UA} result]} {
-		set errorMessage [lindex $result 1]
 		puts -nonewline stderr "Could not read from the input ports of "
-		puts stderr "SMINI card at UA $UA: $errorMessage"
+		puts stderr "SMINI card at UA $UA: $result"
 		break
 	}
 	set Inputs $result
@@ -357,9 +344,8 @@ while {true} {
 
 	set UA 2
 	if {[catch {bus Inputs 3 $UA} result]} {
-		set errorMessage [lindex $result 1]
 		puts -nonewline stderr "Could not read from the input ports of "
-		puts stderr "SMINI card at UA $UA: $errorMessage"
+		puts stderr "SMINI card at UA $UA: $result"
 		break
 	}
 	set Inputs $result
@@ -382,9 +368,8 @@ while {true} {
 
 	set UA 3
 	if {[catch {bus Inputs 3 $UA} result]} {
-		set errorMessage [lindex $result 1]
 		puts -nonewline stderr "Could not read from the input ports of "
-		puts stderr "SMINI card at UA $UA: $errorMessage"
+		puts stderr "SMINI card at UA $UA: $result"
 		break
 	}
 	set Inputs $result
@@ -414,9 +399,8 @@ while {true} {
 
 	set UA 4
 	if {[catch {bus Inputs 4 $UA} result]} {
-		set errorMessage [lindex $result 1]
 		puts -nonewline stderr "Could not read from the input ports of "
-		puts stderr "SUSIC card at UA $UA: $errorMessage"
+		puts stderr "SUSIC card at UA $UA: $result"
 		break
 	}
 	set Inputs $result
@@ -1013,10 +997,9 @@ while {true} {
 
 	set UA 0
 	if {[catch {bus Outputs $Outputs $UA} result]} {
-		set errorMessage [lindex $result 1]
 		# Handle error.
 		puts -nonewline stderr "Could not write to the output ports of "
-		puts stderr "SMINI card at UA $UA: $errorMessage"
+		puts stderr "SMINI card at UA $UA: $result"
 		break
 	}
             
@@ -1057,10 +1040,9 @@ while {true} {
 
 	set UA 1
 	if {[catch {bus Outputs $Outputs $UA} result]} {
-		set errorMessage [lindex $result 1]
 		# Handle error.
 		puts -nonewline stderr "Could not write to the output ports of "
-		puts stderr "SMINI card at UA $UA: $errorMessage"
+		puts stderr "SMINI card at UA $UA: $result"
 		break
 	}
             
@@ -1107,10 +1089,9 @@ while {true} {
 
 	set UA 2
 	if {[catch {bus Outputs $Outputs $UA} result]} {
-		set errorMessage [lindex $result 1]
 		# Handle error.
 		puts -nonewline stderr "Could not write to the output ports of "
-		puts stderr "SMINI card at UA $UA: $errorMessage"
+		puts stderr "SMINI card at UA $UA: $result"
 		break
 	}
             
@@ -1143,10 +1124,9 @@ while {true} {
 
 	set UA 3
 	if {[catch {bus Outputs $Outputs $UA} result]} {
-		set errorMessage [lindex $result 1]
 		# Handle error.
 		puts -nonewline stderr "Could not write to the output ports of "
-		puts stderr "SMINI card at UA $UA: $errorMessage"
+		puts stderr "SMINI card at UA $UA: $result"
 		break
 	}
 #
@@ -1216,10 +1196,9 @@ while {true} {
 
 	set UA 4
 	if {[catch {bus Outputs $Outputs $UA} result]} {
-		set errorMessage [lindex $result 1]
 		# Handle error.
 		puts -nonewline stderr "Could not write to the output ports of "
-		puts stderr "SUISC card at UA $UA: $errorMessage"
+		puts stderr "SUISC card at UA $UA: $result"
 		break
 	}
 #   

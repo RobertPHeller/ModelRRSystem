@@ -38,8 +38,8 @@
 
 # Load MRR System packages
 # Add MRR System package Paths
-lappend auto_path /usr/local/lib/MRRSystem;# C++ (binary) packages
-package require Cmri;#          Load the CMR/I package
+lappend auto_path /usr/local/chare/MRRSystem;# Tcl packages
+package require Cmri 2.0.0;#          Load the CMR/I package
 
 #  REM**DEFINE CONSTANTS FOR PACKING AND UNPACKING I/O BYTES
 #     B0 = 1: B1 = 2: B2 = 4: B3 = 8: B4 = 16: B5 = 32: B6 = 64: B7 = 128
@@ -106,8 +106,8 @@ puts "SIGNALING LOOP TRACK USING SMINI WITH 2-ASPECT COLOR LIGHT SIGNALS"
 #**************************************
 # Connect to the bus on COM2: (/dev/ttyS1), at 9600 BAUD, with
 # a retry count of 10000, capturing error messages.
-if {[catch {CMri bus /dev/ttyS1 9600 10000} result]} {
-	set errorMessage [lindex $result 1] 
+if {[catch {cmri::CMri bus /dev/ttyS1 -baud 9600 -retries 10000} result]} {
+	set errorMessage $result
 	# Handle error.
 	puts -nonewline stderr "Could not connect to CMR/I bus on /dev/ttyS1: "
 	puts stderr "$errorMessage"
@@ -118,7 +118,7 @@ if {[catch {CMri bus /dev/ttyS1 9600 10000} result]} {
 #* Initialize board                   *
 #**************************************
 if {[catch {bus InitBoard {0 0 0 0 0 0} 3 6 0 $UA SMINI 0} result]} {
-	set errorMessage [lindex $result 1]
+	set errorMessage $result
 	# Handle error.
 	puts -nonewline stderr "Could not initialize SMINI card at UA "
 	puts stderr "$UA: $errorMessage"
@@ -142,7 +142,7 @@ while {true} {
 #     GOSUB INPUTS    'Input bytes are stored as IB(1), IB(2), IB(3)
 
 	if {[catch {bus Inputs 3 $UA} result]} {
-		set errorMessage [lindex $result 1]
+		set errorMessage $result
 		puts -nonewline stderr "Could not read from the input ports of "
 		puts stderr "SMINI card at UA $UA: $errorMessage"
 		break
@@ -239,7 +239,7 @@ while {true} {
 #     GOSUB OUTPUTS
 
 	if {[catch {bus Outputs $Outputs $UA} result]} {
-		set errorMessage [lindex $result 1]
+		set errorMessage $result
 		# Handle error.
 		puts -nonewline stderr "Could not write to the output ports of "
 		puts stderr "SMINI card at UA $UA: $errorMessage"

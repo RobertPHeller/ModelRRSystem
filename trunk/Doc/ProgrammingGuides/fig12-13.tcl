@@ -37,8 +37,8 @@
 
 # Load MRR System packages
 # Add MRR System package Paths
-lappend auto_path /usr/local/lib/MRRSystem;# C++ (binary) packages
-package require Cmri;#          Load the CMR/I package
+lappend auto_path /usr/local/share/MRRSystem;# Tcl packages
+package require Cmri 2.0.0;#          Load the CMR/I package
 
 #  REM**SUSIC SINGLE-NODE SYSTEM USING 3-ASPECT COLOR LIGHT SIGNALS**
 #  REM**DEFINE VARIABLE TYPES AND ARRAY SIZES
@@ -179,8 +179,7 @@ set UA 0    /* Address of our SUSIC card. */
 #**************************************
 # Connect to the bus on COM2: (/dev/ttyS1), at 19200 BAUD, with
 # a retry count of 10000, capturing error messages.
-if {[catch {CMri bus /dev/ttyS1 19200 10000} result]} {
-	set errorMessage [lindex $result 1]
+if {[catch {cmri::CMri bus /dev/ttyS1 -baud 19200 -retries 10000} errorMessage]} {
 	# Handle error.
 	puts -nonewline stderr "Could not connect to CMR/I bus on /dev/ttyS1: "
 	puts stderr "$errorMessage"
@@ -196,10 +195,9 @@ set CT [list 0x96 0x0A]
 	# 00001010
 	#  X X O O
 if {[catch {bus InitBoard $CT 8 16 0 $UA SUSIC 0} result]} {
-	set errorMessage [lindex $result 1]
 	# Handle error.
 	puts -nonewline stderr "Could not initialize SUSIC card at UA "
-	puts stderr "$UA: $errorMessage"
+	puts stderr "$UA: $result"
 	rename bus {}
 	exit 99
 }
@@ -220,9 +218,8 @@ while {true} {
 #  REM**READ AND UNPACK INPUTS
 #     GOSUB INPUTS
 	if {[catch {bus Inputs 8 $UA} result]} {
-		set errorMessage [lindex $result 1]
 		puts -nonewline stderr "Could not read from the input ports of "
-		puts stderr "SUSIC card at UA $UA: $errorMessage"
+		puts stderr "SUSIC card at UA $UA: $result"
 		break
 	}
 	set Inputs $result
@@ -980,10 +977,9 @@ while {true} {
 #     GOSUB OUTPUTS     'INVOKE OUTPUTS SUBROUTINE
 
 	if {[catch {bus Outputs $Outputs $UA} result]} {
-		set errorMessage [lindex $result 1]
 		# Handle error.
 		puts -nonewline stderr "Could not write to the output ports of "
-		puts stderr "SUISC card at UA $UA: $errorMessage"
+		puts stderr "SUISC card at UA $UA: $result"
 		break
 	}
             

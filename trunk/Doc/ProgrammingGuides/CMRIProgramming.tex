@@ -47,133 +47,59 @@
 \typeout{$Id$}
 
 \section{CMri Class}
-\begin{lstlisting}[caption={CMri Class},
-		   language=C++,label=lst:CMRI:CMriClass]
-// CMri Class
-class CMri {
-public:
-	CMri(const char *port, int baud, int maxtries, char **outmessage);
-	~CMri();
-	ListP Inputs(int ni,int ua=0,char **outmessage);
-	void Outputs(const List *ports,int ua=0,char **outmessage);
-	void InitBoard(const List *CT,int ni,int no,int ns,int ua,
-		       CardType card,int dl,char **outmessage);
-};
+\begin{lstlisting}[caption={CMri SNIT type (Class), simplified public interface},
+		   language=Tcl,label=lst:CMRI:CMriClass]
+snit::type CMri {
+  option -baud -readonly yes -default 9600 \
+		-type {snit::enum -values {9600 19200 28800 57600 115200}}
+  option -maxtries -readonly yes -default 10000 \
+		-type {snit::integer -min 1000 -max 100000}
+  constructor {port args} { }
+  destructor { }
+  method Inputs {ni {ua 0}} { }
+  method Outputs {ports {ua 0}} { }
+  method InitBoard {CT ni no ns ua card dl} { }
+}
+
 \end{lstlisting}
-The CMR/I Interface\cite{internals} has a Tcl API and
-this chapter will cover both. The API is based on a
-C++ class that encapsulates a Bruce Chubb
+The CMR/I Interface\cite{internals} has a Tcl API encoded as a Tcl SNIT
+type (class) that encapsulates a Bruce Chubb
 CMR/I\cite{Chubb89,ChubbBAS04} serial ``bus'', containing one or more
 interface nodes, which are instances of SMINI\index{CMR/I!Super Mini
-Node} (Super Mini
-Node), USIC\index{CMR/I!Classic Universal Serial Interface
-Card} (Classic Universal Serial Interface
-Card), or SUSIC\index{CMR/I!Super Classic Universal Serial Interface
-Card} (Super Classic Universal
-Serial Interface Card). Each card has a unique 6 bit address and
-contains a number of input and output ports\footnote{The SMINI is a
-self contained card with 3 input ports (24 bits) and 6 output ports (48
-bits).}. The C++ class connects to a serial port which has an RS232 to
-RS485 conversion card that in turn connects to the RS485-based serial
-bus. This class exposes three methods to access cards on the bus, an
-initialization method to initialize the board, an input method to read
-the input ports, and an output method to write to the output ports. A
-simplified listing of this class is shown in
-Listing~\ref{lst:CMRI:CMriClass}. 
+Node} (Super Mini Node), USIC\index{CMR/I!Classic Universal Serial
+Interface Card} (Classic Universal Serial Interface Card), or
+SUSIC\index{CMR/I!Super Classic Universal Serial Interface Card} (Super
+Classic Universal Serial Interface Card). Each card has a unique 6 bit
+address and contains a number of input and output ports\footnote{The
+SMINI is a self contained card with 3 input ports (24 bits) and 6
+output ports (48 bits).}. The SNIT type (class) connects to a serial
+port which has an RS232 to RS485 conversion card that in turn connects
+to the RS485-based serial bus. This SNIT type (class) exposes three
+methods to access cards on the bus, an initialization method to
+initialize the board, an input method to read the input ports, and an
+output method to write to the output ports. A simplified listing of
+this SNIT type (class) is shown in Listing~\ref{lst:CMRI:CMriClass}. 
 
-The constructor takes the name of the port device file, the BAUD rate,
-the maximum number of retries, and a pointer to hold an error message.
-The constructor opens the serial port and conditions it for unbuffered
-binary I/O at the specified BAUD rate. The destructor restores the port
-and closes it. The Inputs() method reads the contents of the input
-ports of a specified node and the Outputs() method writes to the output
-ports of a specified node. The InitBoard() method initializes a
-specified node. The InitBoard takes either a packed card type list (for
-USIC or SUSIC nodes) or a yellow bi-color LED map (for SMINI nodes),
-the number of input\footnote{Must be 3 for SMINI cards.} and
-output\footnote{Must be 6 for SMINI cards.} ports, the number of yellow
-bi-color LED signals\footnote{Only used for SMINI cards.}, the card
-address, delay value to use\footnote{Only used for for older USIC
-cards.}, and the error message pointer.  The Tcl interface is much the
-same with the outmessage arguments hidden\footnote{The error message
-handling is managed by the Tcl--C++ interface wrapper.}.
+The constructor takes the name of the port device file, with options
+for the BAUD rate and the maximum number of retries. The constructor opens
+the serial port and conditions it for unbuffered binary I/O at the
+specified BAUD rate. The destructor restores the port and closes it.
+The Inputs() method reads the contents of the input ports of a
+specified node and the Outputs() method writes to the output ports of a
+specified node. The InitBoard() method initializes a specified node.
+The InitBoard takes either a packed card type list (for USIC or SUSIC
+nodes) or a yellow bi-color LED map (for SMINI nodes), the number of
+input\footnote{Must be 3 for SMINI cards.} and output\footnote{Must be
+6 for SMINI cards.} ports, the number of yellow bi-color LED
+signals\footnote{Only used for SMINI cards.}, the card address, delay
+value to use\footnote{Only used for for older USIC cards.}, and the
+error message pointer.  
 
 \section{Basic usage}
-\begin{lstlisting}[caption={Using the CMR/I from C++},
-		   language=C++,
-		   label=lst:CMRI:Cpp1]
-#include <iostream>
-#include <MRRSystem/CMri/cmri.h>	// Include the CMri class definition
-
-#define UA 0	/* Address of our SMINI card */
-
-int main(int argc,char *argv[])
-{
-	List Outputs(6);	/* Output Port Vector */
-	List *Inputs;		/* Pointer for inputs */
-	CMri *bus;		/* The CMR/I bus */
-	char *errorMessage;	/* Holds Error messages */
-	int i;			/* Index variable */
-
-	errorMessage = NULL;	/* No message yet */
-	// Connect to the bus on COM3: (/dev/ttyS2), at 9600 BAUD, with
-	// a retry count of 10000, capturing error messages.
-	bus = new CMri("/dev/ttyS2",9600,10000,&errorMessage);
-	if (errorMessage != NULL) {	/* Error? */
-		cerr << "Could not connect to CMR/I bus on /dev/ttyS2: " 
-		     << errorMessage << endl;
-		delete bus;
-		delete errorMessage;
-		abort();
-	}
-	// Initialize SMINI board
-	bus->InitBoard(&Outputs,3,6,0,UA,SMINI,0,&errorMessage);
-	if (errorMessage != NULL) {     /* Error? */  
-		cerr << "Could not initialize SMINI card at UA " << UA
-		     << ": " << errorMessage << endl;
-		delete errorMessage;
-		delete bus;
-		abort();
-	}
-	/* Initialize port buffer */
-	Outputs[0] = 0xFF;	/* Turn all bits of port 0 on */
-	Outputs[1] = 0xAA;	/* Turn all of the even bits of port 1
-				   on */
-	Outputs[2] = 0x55;	/* Turn all of the odd bits of port 2 on */
-	Outputs[3] = 0x0F;	/* Turn the lower nibble of port 3 on */
-	Outputs[4] = 0xF0;	/* Turn the upper nibble of port 4 on */
-	Outputs[5] = 0;		/* Leave port 5 off */
-	// Write to SMINI ports
-	bus->Outputs(&Outputs,UA,&errorMessage);
-	if (errorMessage != NULL) {     /* Error? */
-		cerr << 
-		"Could not write to the output ports of SMINI card at UA " 
-		     << UA << ": " << errorMessage << endl;
-		delete errorMessage;
-		errorMessage = NULL;
-	}
-	// Read SMINI ports
-	Inputs = bus->Inputs(3,UA,errorMessage);
-	if (errorMessage != NULL) {     /* Error? */
-		cerr <<
-		"Could not read from the input ports of SMINI card at UA "
-		     << UA << ": " << errorMessage << endl;
-		delete errorMessage;
-		errorMessage = NULL;
-	}
-	// Display ports.
-	for (i = 0; i < Inputs->Length(); i++) {
-		cout << "Port " << i << " = " << (*Inputs)[i] << endl;
-	}
-	delete Inputs; 	// Free up memory.
-	delete bus;	// Free up memory and close port.
-	exit(0);	// Exit
-}
-\end{lstlisting}
 \begin{lstlisting}[caption={Using the CMR/I from Tcl},
 		   label=lst:CMRI:Tcl1]
 #
-package require Cmri;#		Load the CMR/I shared library.
+package require Cmri 2.0.0;#		Load the CMR/I snit type.
 
 # The board address of the SMINI card.
 global UA
@@ -182,8 +108,7 @@ set UA 0
 
 # Connect to the bus on COM3: (/dev/ttyS2), at 9600 BAUD, with
 # a retry count of 10000, capturing error messages.
-if {[catch {CMri CMriBus /dev/ttys0 9600 10000} result]} {
-  set errorMessage [lindex $result 1]
+if {[catch {cmri::CMri CMriBus /dev/ttys0 -baud 9600 -maxtries 10000} errorMessage]} {
   # Handle error.
   puts -nonewline stderr "Could not connect to CMR/I bus on /dev/ttyS2: "
   puts stderr "$errorMessage"
@@ -211,19 +136,17 @@ if {[catch {CMriBus InitBoard {0 0 0 0 0 0} 3 6 0 $UA SMINI 0} result]} {
   set Outputs {0xFF 0xAA 0x55 0x0F 0xF0 0}
 # Write to SMINI ports
 if {[catch {CMriBus Outputs $Outputs $UA} result]} {
-  set errorMessage [lindex $result 1]
   # Handle error.
   puts -nonewline stderr "Could not write to the output ports of "
-  puts stderr "SMINI card at UA $UA: $errorMessage"
+  puts stderr "SMINI card at UA $UA: $result"
   rename CMriBus {}
   exit 99
 }
 
 # Read SMINI ports
 if {[catch {CMriBus Inputs 3 $UA} result]} {
-  set errorMessage [lindex $result 1]
   puts -nonewline stderr "Could not read from the input ports of "
-  puts stderr "SMINI card at UA $UA: $errorMessage"
+  puts stderr "SMINI card at UA $UA: $result"
   rename CMriBus {}
   exit 99
 }
@@ -237,103 +160,31 @@ foreach p {0 1 2} v $Inputs {
 rename CMriBus {} 
 exit 
 \end{lstlisting} 
-The programs shown in Listings~\ref{lst:CMRI:Cpp1} and
-\ref{lst:CMRI:Tcl1} do the same thing in C++ and Tcl.  They open a
-connection to a CMR/I bus with a SMINI card (Line 18 of
-Listing~\ref{lst:CMRI:Cpp1} and Line 10 of
-Listing~\ref{lst:CMRI:Tcl1}). They then initialize the SMINI card (Line
-27 of Listing~\ref{lst:CMRI:Cpp1} and Line 20 of
+The program shown in Listing~\ref{lst:CMRI:Tcl1} opens a connection to
+a CMR/I bus with a SMINI card (Line 10 of Listing~\ref{lst:CMRI:Tcl1}).
+It then initialize the SMINI card (Line 20 of
 Listing~\ref{lst:CMRI:Tcl1}), write to the output ports of the SMINI
-card (Line 44 of Listing~\ref{lst:CMRI:Cpp1} and Line 38 of
-Listing~\ref{lst:CMRI:Tcl1}), and then then read from the input ports
-of the SMINI card (Line 53 of Listing~\ref{lst:CMRI:Cpp1} and Line 48
-of Listing~\ref{lst:CMRI:Tcl1}). Finally, the serial port is closed
-when the instance is deleted (Line 66 of Listing~\ref{lst:CMRI:Cpp1}
-and Line 62 of Listing~\ref{lst:CMRI:Tcl1}) and the program exits.
-While these are valid programs, they are not partitularly useful in a
-Model Railroad control context.  More typically, the program would have
-a loop around the I/O functions, repeatedly reading the inputs, which
-would typically contain information about the state of CTC panel
-controls, track switches (turnouts), and block occupancy detectors, and
-code to set the outputs, which would control turnouts (via switch machines),
-track side signals, and CTC panel lamps\footnote{See
-Chapter~\ref{chapt:CTCPanels} for information about programming CTC
-Panels on a computer screen using Tcl/Tk.}.  More realistic programs
-are shown in skeleton form in Listings~\ref{lst:CMRI:Cpp2} and
-~\ref{lst:CMRI:Tcl2}.
+card (Line 38 of Listing~\ref{lst:CMRI:Tcl1}), and then then read from
+the input ports of the SMINI card (Line 48 of
+Listing~\ref{lst:CMRI:Tcl1}). Finally, the serial port is closed when
+the instance is deleted (Line 62 of Listing~\ref{lst:CMRI:Tcl1}) and
+the program exits. While this is valid program, it is not partitularly
+useful in a Model Railroad control context.  More typically, the
+program would have a loop around the I/O functions, repeatedly reading
+the inputs, which would typically contain information about the state
+of CTC panel controls, track switches (turnouts), and block occupancy
+detectors, and code to set the outputs, which would control turnouts
+(via switch machines), track side signals, and CTC panel
+lamps\footnote{See Chapter~\ref{chapt:CTCPanels} for information about
+programming CTC Panels on a computer screen using Tcl/Tk.}.  A more
+realistic program is shown in skeleton form in
+Listing~\ref{lst:CMRI:Tcl2}.
 
 \section{Advanced usage}
-\begin{lstlisting}[caption={Using the CMR/I from C++, more realistic version},
-		   language=C++,
-		   label=lst:CMRI:Cpp2]
-#include <iostream>
-#include <MRRSystem/CMri/cmri.h>        // Include the CMri class definition
-#include <unistd.h>
-
-#define UA 0    /* Address of our SMINI card */
-
-int main(int argc,char *argv[])
-{
-	List Outputs(6);	/* Output Port Vector */
-	List *Inputs;		/* Pointer for inputs */
-	CMri *bus;		/* The CMR/I bus */
-	char *errorMessage;	/* Holds Error messages */
-	int i;			/* Index variable */
-
-	errorMessage = NULL;	/* No message yet */
-	// Connect to the bus on COM3: (/dev/ttyS2), at 9600 BAUD, with
-	// a retry count of 10000, capturing error messages.
-	bus = new CMri("/dev/ttyS2",9600,10000,&errorMessage);
-	if (errorMessage != NULL) {	/* Error? */
-		cerr << "Could not connect to CMR/I bus on /dev/ttyS2: " 
-		     << errorMessage << endl;
-		delete bus;
-		delete errorMessage;
-		abort();
-	}
-	// Initialize SMINI board
-	bus->InitBoard(&Outputs,3,6,0,UA,SMINI,0,&errorMessage);
-	if (errorMessage != NULL) {     /* Error? */  
-		cerr << "Could not initialize SMINI card at UA " << UA
-		     << ": " << errorMessage << endl;
-		delete errorMessage;
-		delete bus;
-		abort();
-	}
-	while (1) {
-		// Read SMINI ports
-		Inputs = bus->Inputs(3,UA,&errorMessage);
-		if (errorMessage != NULL) {     /* Error? */
-			cerr <<
-			"Error reading SMINI card at UA "
-			     << UA << ": " << errorMessage << endl;
-			delete errorMessage;
-			errorMessage = NULL;
-		} else {
-			// Process input bits, loading values in the Output
-			// vector.
-			// (Processing code goes here)
-			delete Inputs; 	// Free up memory.
-			// Write to SMINI ports
-			bus->Outputs(&Outputs,UA,&errorMessage);
-			if (errorMessage != NULL) {     /* Error? */
-				cerr << 
-				"Error writing SMINI card at UA " 
-				     << UA << ": " << errorMessage << endl;
-				delete errorMessage;
-				errorMessage = NULL;
-			}
-		}
-		sleep(1);	// Sleep for one second.
-	}
-	delete bus;	// Free up memory and close port.
-	exit(0);	// Exit
-}
-\end{lstlisting}
 \begin{lstlisting}[caption={Using the CMR/I from Tcl, more realistic version},
 		   label=lst:CMRI:Tcl2]
 #
-package require Cmri;#		Load the CMR/I shared library.
+package require Cmri 2.0.0;#		Load the CMR/I shared library.
 
 # The board address of the SMINI card.
 global UA
@@ -342,8 +193,7 @@ set UA 0
 
 # Connect to the bus on COM3: (/dev/ttyS2), at 9600 BAUD, with
 # a retry count of 10000, capturing error messages.
-if {[catch {CMri CMriBus /dev/ttys0 9600 10000} result]} {
-  set errorMessage [lindex $result 1]
+if {[catch {cmri::CMri CMriBus /dev/ttys0 -baud 9600 -maxtries 10000} errorMessage]} {
   # Handle error.
   puts -nonewline stderr "Could not connect to CMR/I bus on /dev/ttyS2: "
   puts stderr "$errorMessage"
@@ -363,8 +213,7 @@ if {[catch {CMriBus InitBoard {0 0 0 0 0 0} 3 6 0 $UA SMINI 0} result]} {
 
 while {1} {
   # Read SMINI ports
-  if {[catch {CMriBus Inputs 3 $UA} result]} {
-    set errorMessage [lindex $result 1]
+  if {[catch {CMriBus Inputs 3 $UA} errorMessage]} {
     puts -nonewline stderr "Could not read from the input ports of "
     puts stderr "SMINI card at UA $UA: $errorMessage"
   } else {
@@ -372,8 +221,7 @@ while {1} {
     # Process Input ports, generating values for the output ports
     # (Process code goes here)
     # Write to SMINI ports
-    if {[catch {CMriBus Outputs $Outputs $UA} result]} {
-      set errorMessage [lindex $result 1]
+    if {[catch {CMriBus Outputs $Outputs $UA} errorMessage]} {
       # Handle error.
       puts -nonewline stderr "Could not write to the output ports of "
       puts stderr "SMINI card at UA $UA: $errorMessage"
@@ -393,21 +241,14 @@ V3.0\cite{Chubb03}.  The source code files are included in the
 documentation directory.
 
 \subsection{From Chapter 9: SMINI Application Examples}
-\lstinputlisting[caption={Figure 9-5, C++ Translation},
-		 firstline=37,language=C++]{fig9-5.cc}
 \lstinputlisting[caption={Figure 9-5, Tcl Translation},
 		 firstline=37]{fig9-5.tcl}
 
 \subsection{From Chapter 12: SUSIC/USIC Application Examples}
-\lstinputlisting[caption={Figure 12-13, C++ Translation},
-		 firstline=37,language=C++]{fig12-13.cc}
 \lstinputlisting[caption={Figure 12-13, Tcl Translation},
 		 firstline=37]{fig12-13.tcl}
 
 \subsection{From Chapter 14: Distributed Application Examples}
-\lstinputlisting[caption={Figure 14-4, C++ Translation},
-		 firstline=37,language=C++]{fig14-5.cc}
 \lstinputlisting[caption={Figure 14-5, Tcl Translation},
 		 firstline=37]{fig14-5.tcl}
-
 
