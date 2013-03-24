@@ -1361,7 +1361,7 @@ void TrackGraph::computeHeads()
 
 void TrackGraph::CompressedGraphCircleLayout(double radius)
 {
-#if BOOST_VERSION < 104600
+#if BOOST_VERSION < 104000
 	if (!compressedP) CompressGraph();
 	circle_graph_layout(c_nodes,
 			    get(&CompressedNodeValues::position, c_nodes), 
@@ -1373,7 +1373,7 @@ void TrackGraph::CompressedGraphCircleLayout(double radius)
 
 bool TrackGraph::CompressedGraphKamadaKawaiSpring(double sidelength)
 {
-#if BOOST_VERSION < 104600
+#if BOOST_VERSION < 104000
 	if (!compressedP) CompressGraph();
 	if (!circleLayoutP) CompressedGraphCircleLayout(1000.0);
 	return kamada_kawai_spring_layout(c_nodes,
