@@ -1,3 +1,33 @@
+
+  2.1.32 Released:
+
+    SR4 updates and bug fixes.
+
+    Update raildriver UDEV helper script.
+
+    Update Raildriver code.
+
+    Add "Add Additional Packages" edit sub-menu.
+
+    Update GetAllSerialPorts in UniversalTest (CMR/I).
+
+    Include Ubuntu flavored udev rule files.
+
+    Update Application Node 2s code.
+
+    Minor updates to Dispatcher (export as images weirdness).
+
+    Remove C++ version of the CMR/I code.
+
+    Remove C++ version of XPressnet code.
+
+    Remove MRD directory.
+
+    Build update: gettextize.
+
+    Update Build infrastructure to build under CentOS/RHEL 6.4 and 
+    Ubuntu 12.04.1 LTS.
+
 Sat Aug  4 09:08:21 2012
 
   2.1.31 Released:
