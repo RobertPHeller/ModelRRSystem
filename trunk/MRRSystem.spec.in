@@ -43,9 +43,7 @@ package.
 
 %prep
 %setup -q
-aclocal
-automake --gnu --add-missing --copy --force
-autoconf
+./bootstrap
 
 %build
 %configure

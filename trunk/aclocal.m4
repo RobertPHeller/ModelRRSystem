@@ -4505,6 +4505,7 @@ AC_SUBST([am__untar])
 
 m4_include([m4/ax_boost_base.m4])
 m4_include([m4/ax_cxx_bool.m4])
+m4_include([m4/ax_pkg_doxygen.m4])
 m4_include([m4/ax_pkg_swig.m4])
 m4_include([m4/ax_swig_enable_cxx.m4])
 m4_include([m4/libtool.m4])
