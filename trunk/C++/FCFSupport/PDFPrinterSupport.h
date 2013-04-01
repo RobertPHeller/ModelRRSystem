@@ -352,7 +352,7 @@ private:
 		  */
 		~PDFNameArray() {}
 	};
-	/** @beirf Typed dictionary.
+	/** @brief Typed dictionary.
 	 *
 	 * A dictionary with a /Type field.
 	 *
