@@ -1,0 +1,2 @@
+# Azatrax devices -- give them world permissions
+ATTRS{idVendor}=="265f", MODE="0666"
