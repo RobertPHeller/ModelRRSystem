@@ -1,0 +1,4 @@
+# Raildriver 
+ATTRS{idVendor}=="05f3", ATTRS{idProduct}=="00d2", ACTION=="add", MODE="0666", RUN+="raildriverd $env{ACTION} $env{DEVPATH}"
+ATTRS{idVendor}=="05f3", ATTRS{idProduct}=="00d2", ACTION=="remove", RUN+="raildriverd $env{ACTION} $env{DEVPATH}"
+
