@@ -646,15 +646,15 @@ install-data-hook: $(USERMAN_HTML)
 	$(INSTALL) -d $(DESTDIR)$(pkgdatadir)/$(USERMANHBase)
 	for p in $(USERMANHBase)/*; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(pkgdataDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(pkgdatadir)/$(USERMANHBase)$$f'"; \
-	  $(pkgdataDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(pkgdatadir)/$(USERMANHBase)/$$f"; \
+	  f=`echo $$p | sed -e 's|^.*/||'`; \
+	  echo " $(INSTALL_DATA) '$$d$$p' '$(DESTDIR)$(pkgdatadir)/$(USERMANHBase)$$f'"; \
+	  $(INSTALL_DATA) "$$d$$p" "$(DESTDIR)$(pkgdatadir)/$(USERMANHBase)/$$f"; \
 	done
 	
 uninstall-hook: 
 	for p in $(DESTDIR)$(pkgdatadir)/$(USERMANHBase)/*; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
+	  f=`echo $$p | sed -e 's|^.*/||'`; \
 	  echo " rm -f '$(DESTDIR)$(pkgdatadir)/$(USERMANHBase)$$f'"; \
 	  rm -f "$(DESTDIR)$(pkgdatadir)/$(USERMANHBase)/$$f"; \
 	done

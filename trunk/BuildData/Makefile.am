@@ -13,12 +13,7 @@ noinst_DATA = $(IMG_ZIP)
 
 install-data-hook: $(IMG_ZIP)
 	test -z "$(pkglibdir)" || $(mkdir_p) "$(DESTDIR)$(pkglibdir)"
-	@list='$(IMG_ZIP)'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(INSTALL_DATA) '$$d$$p' '$(DESTDIR)$(pkglibdir)/$$f'"; \
-	  $(INSTALL_DATA) "$$d$$p" "$(DESTDIR)$(pkglibdir)/$$f"; \
-	done
+	$(INSTALL_DATA) "$(srcdir)/$(IMG_ZIP)" "$(DESTDIR)$(pkglibdir)/$(IMG_ZIP)"
 
 tclkit${BEXEEXT}: $(TCLKITBSRC) $(top_builddir)/config.status
 	cp $(srcdir)/$(TCLKITBSRC) ./tclkit${BEXEEXT}

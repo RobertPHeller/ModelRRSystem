@@ -118,9 +118,9 @@ install-data-hook: html/index.html man/man3
 	$(INSTALL) -d $(DESTDIR)$(pkgdatadir)/InternalsHTML
 	for p in html/*; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(pkgdataDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(pkgdatadir)/InternalsHTML/$$f'"; \
-	  $(pkgdataDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(pkgdatadir)/InternalsHTML/$$f"; \
+	  f=`echo $$p | sed -e 's|^.*/||'`; \
+	  echo " $(INSTALL_DATA) '$$d$$p' '$(DESTDIR)$(pkgdatadir)/InternalsHTML/$$f'"; \
+	  $(INSTALL_DATA) "$$d$$p" "$(DESTDIR)$(pkgdatadir)/InternalsHTML/$$f"; \
 	done
 	test -z "$(man3dir)" || $(mkdir_p) "$(DESTDIR)$(man3dir)"
 	@list=man/man3/* ; \
@@ -141,7 +141,7 @@ install-data-hook: html/index.html man/man3
 uninstall-hook: 
 	for p in $(DESTDIR)$(pkgdatadir)/InternalsHTML/*; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
+	  f=`echo $$p | sed -e 's|^.*/||'`; \
 	  echo " rm -f '$(DESTDIR)$(pkgdatadir)/InternalsHTML/$$f'"; \
 	  rm -f "$(DESTDIR)$(pkgdatadir)/InternalsHTML/$$f"; \
 	done

@@ -212,15 +212,15 @@ $(top_builddir)/Help/index.hh : $(top_builddir)/Help/*.hh $(top_srcdir)/Help/*.h
 #	$(INSTALL) -d $(DESTDIR)$(pkgdatadir)/$(PROGRAMMINGGUIDEHBase)
 #	for p in $(PROGRAMMINGGUIDEHBase)/*; do \
 #	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-#	  f=$(am__strip_dir) \
-#	  echo " $(pkgdataDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(pkgdatadir)/$(PROGRAMMINGGUIDEHBase)$$f'"; \
-#	  $(pkgdataDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(pkgdatadir)/$(PROGRAMMINGGUIDEHBase)/$$f"; \
+#	  f=`echo $$p | sed -e 's|^.*/||'`; \
+#	  echo " $(INSTALL_DATA) '$$d$$p' '$(DESTDIR)$(pkgdatadir)/$(PROGRAMMINGGUIDEHBase)$$f'"; \
+#	  $(INSTALL_DATA) "$$d$$p" "$(DESTDIR)$(pkgdatadir)/$(PROGRAMMINGGUIDEHBase)/$$f"; \
 #        done
 	
 #uninstall-hook: 
 #	for p in $(DESTDIR)$(pkgdatadir)/$(PROGRAMMINGGUIDEHBase)/*; do \
 #	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-#	  f=$(am__strip_dir) \
+#	  f=`echo $$p | sed -e 's|^.*/||'`; \
 #	  echo " rm -f '$(DESTDIR)$(pkgdatadir)/$(PROGRAMMINGGUIDEHBase)$$f'"; \
 #	  rm -f "$(DESTDIR)$(pkgdatadir)/$(PROGRAMMINGGUIDEHBase)/$$f"; \
 #        done

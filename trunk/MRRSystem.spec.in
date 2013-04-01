@@ -47,7 +47,7 @@ package.
 
 %build
 %configure
-make
+LANG=en_US.UTF-8 make
 
 %install
 rm -rf $RPM_BUILD_ROOT/usr
@@ -111,9 +111,6 @@ fi
 %{_sysconfdir}/udev/rules.d/90-raildriver.rules
 %{_sysconfdir}/udev/rules.d/90-Azatrax.rules
 /lib/udev/raildriverd
-%{_libdir}/libcmri.so 
-%{_libdir}/libcmri.so.0 
-%{_libdir}/libcmri.so.0.0.0 
 %{_libdir}/libfcfclasses.so 
 %{_libdir}/libfcfclasses.so.0 
 %{_libdir}/libfcfclasses.so.0.0.0 
@@ -129,16 +126,11 @@ fi
 %{_libdir}/libttclasses.so 
 %{_libdir}/libttclasses.so.0 
 %{_libdir}/libttclasses.so.0.0.0 
-%{_libdir}/libxpressnet.so 
-%{_libdir}/libxpressnet.so.0 
-%{_libdir}/libxpressnet.so.0.0.0 
-%{_libdir}/@PACKAGE@/libcmri.so 
 %{_libdir}/@PACKAGE@/libfcfclasses.so 
 %{_libdir}/@PACKAGE@/libazatrax.so 
 %{_libdir}/@PACKAGE@/libMRRParserClasses.so 
 %{_libdir}/@PACKAGE@/libraildriverio.so
 %{_libdir}/@PACKAGE@/libttclasses.so 
-%{_libdir}/@PACKAGE@/libxpressnet.so 
 %{_libdir}/@PACKAGE@/pkgIndex.tcl 
 %{_datadir}/@PACKAGE@/CMri
 %{_datadir}/@PACKAGE@/Common 
@@ -162,38 +154,34 @@ fi
 %{_datadir}/@PACKAGE@/Doc/UserManual
 %{_datadir}/@PACKAGE@/Doc/UserManual.pdf
 %{_datadir}/@PACKAGE@/Doc/ApplicationNote01.pdf
+%{_datadir}/@PACKAGE@/Doc/AN01.tcl
 %{_datadir}/@PACKAGE@/Doc/ApplicationNote02.pdf
+%{_datadir}/@PACKAGE@/Doc/AN02.tcl
 
 
 %files devel
 
 %{_bindir}/tclkit-*
-%{_libdir}/libcmri.la 
 %{_libdir}/libfcfclasses.la 
 %{_libdir}/libazatrax.la 
 %{_libdir}/libMRRParserClasses.la 
 %{_libdir}/libraildriverio.la
 %{_libdir}/libttclasses.la 
-%{_libdir}/libxpressnet.la 
-%{_libdir}/libcmri.a 
 %{_libdir}/libfcfclasses.a 
 %{_libdir}/libazatrax.a 
 %{_libdir}/libMRRParserClasses.a 
 %{_libdir}/libraildriverio.a
 %{_libdir}/libttclasses.a 
-%{_libdir}/libxpressnet.a 
 %{_libdir}/@PACKAGE@/AddKitDir.kit
 %{_libdir}/@PACKAGE@/AddKitFile.kit
 %{_libdir}/@PACKAGE@/MakePkgIndex.kit
 %{_libdir}/@PACKAGE@/sdx.kit
 %{_libdir}/@PACKAGE@/Img-1.3*.zip
-%{_libdir}/@PACKAGE@/pkgIndex_cmri.tcl
 %{_libdir}/@PACKAGE@/pkgIndex_fcfclasses.tcl
 %{_libdir}/@PACKAGE@/pkgIndex_azatrax.tcl
 %{_libdir}/@PACKAGE@/pkgIndex_mrr.tcl
 %{_libdir}/@PACKAGE@/pkgIndex_raildriverio.tcl
 %{_libdir}/@PACKAGE@/pkgIndex_ttclasses.tcl
-%{_libdir}/@PACKAGE@/pkgIndex_xpressnet.tcl
 %{_libdir}/@PACKAGE@/Installer
 %{_datadir}/@PACKAGE@/*.pot
 %{_mandir}/man3
