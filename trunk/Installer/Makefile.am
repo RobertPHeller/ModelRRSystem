@@ -50,7 +50,18 @@ setupSCRIPTS = $(top_builddir)/Scripts/Common/Version.tcl \
 setupIMAGES = 
 setupLIBIMAGES = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif
 EXTRA_DIST = diskfree.i setup.tcl $(setupIMAGES)
-pkglib_SCRIPTS = pkgIndex.tcl setup${EXEEXT}
+
+noinst_SCRIPTS = setup${EXEEXT}
+
+install-data-hook: setup${EXEEXT}
+	test -z "$(pkglibdir)" || $(mkdir_p) "$(DESTDIR)$(pkglibdir)"
+	@list='setup${EXEEXT}'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(INSTALL_DATA) '$$d$$p' '$(DESTDIR)$(pkglibdir)/$$f'"; \
+	  $(INSTALL_DATA) "$$d$$p" "$(DESTDIR)$(pkglibdir)/$$f"; \
+	done
+
 CLEANFILES = $(BUILT_SOURCES) pkgIndex.tcl setup.kit setup${EXEEXT}
 
 SWIG_FLAGS =  -tcl8 -c++ $(INCLUDES)

@@ -50,4 +50,17 @@ EXTRA_DIST = generateLib_pkgIndex.sh generateLib_pkgIndex.tcl \
 	MakePkgIndex.kit MakePkgIndex.tcl MakeVersion.tcl MakeVersion.kit \
 	MakeVersionHelp.tcl MakeVersionHelp.kit sdx.kit
 
-pkglib_SCRIPTS = AddKitDir.kit AddKitFile.kit MakePkgIndex.kit sdx.kit
+KITFILES = AddKitDir.kit AddKitFile.kit MakePkgIndex.kit sdx.kit
+
+
+noinst_SCRIPTS = $(KITFILES)
+
+install-data-hook: $(KITFILES)
+	test -z "$(pkglibdir)" || $(mkdir_p) "$(DESTDIR)$(pkglibdir)"
+	@list='$(KITFILES)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(INSTALL_DATA) '$$d$$p' '$(DESTDIR)$(pkglibdir)/$$f'"; \
+	  $(INSTALL_DATA) "$$d$$p" "$(DESTDIR)$(pkglibdir)/$$f"; \
+	done
+
