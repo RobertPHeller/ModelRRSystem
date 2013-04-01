@@ -93,19 +93,22 @@ libraildriverio_la_XGETTEXTFILES = $(libraildriverio_la_SOURCES)
 nodist_libraildriverio_la_SOURCES = raildriverio_wrap.cc ../gettext.c
 libraildriverio_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) -Wall $(LIBUSB_CFLAGS) -g
 if CROSSCOMPILING
-libraildriverio_la_LDFLAGS =   -g -avoid-version  $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
+libraildriverio_la_LDFLAGS = -no-undefined   -g -avoid-version  $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 else
 libraildriverio_la_LDFLAGS =   -g -version-info 0:0:0  $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 endif
+libraildriverio_la_LIBADD = $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 xlibdir = $(libdir)/$(PACKAGE)/RailDriverNotInstalled
 xlib_LTLIBRARIES = libsigterm.la
 libsigterm_la_SOURCES = sigterm_wrap.cc
 libsigterm_la_CXXFLAGS =  $(INCLUDES) -Wall -g
 if CROSSCOMPILING
-libsigterm_la_LDFLAGS = -g -avoid-version  $(TCL_STUB_LIB_SPEC)
+libsigterm_la_LDFLAGS = -no-undefined -g -avoid-version  $(TCL_STUB_LIB_SPEC)
 else
 libsigterm_la_LDFLAGS = -g -version-info 0:0:0  $(TCL_STUB_LIB_SPEC)
 endif
+libsigterm_la_LIBADD = $(TCL_STUB_LIB_SPEC)
+
 SWIG_FLAGS =  -tcl8 -c++ $(INCLUDES)
 
 

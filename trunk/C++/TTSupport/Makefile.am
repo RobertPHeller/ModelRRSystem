@@ -84,10 +84,11 @@ libttclasses_la_SOURCES = TimeTableSystem.cc PathName.cc Station.cc Train.cc \
 libttclasses_la_XGETTEXTFILES = $(libttclasses_la_SOURCES)
 libttclasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) -Wall
 if CROSSCOMPILING
-libttclasses_la_LDFLAGS = -g -avoid-version $(TCL_STUB_LIB_SPEC)
+libttclasses_la_LDFLAGS = -no-undefined -g -avoid-version $(TCL_STUB_LIB_SPEC) 
 else
 libttclasses_la_LDFLAGS = -g -version-info 0:0:0 $(TCL_STUB_LIB_SPEC)
 endif
+libttclasses_la_LIBADD = $(TCL_STUB_LIB_SPEC)
 noinst_SCRIPTS = pkgIndex.tcl
 noinst_DATA = TTClasses.potlist
 BUILT_SOURCES = TTClasses_wrap.cc TTSupportGroup.h

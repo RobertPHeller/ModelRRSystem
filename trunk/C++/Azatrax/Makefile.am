@@ -44,11 +44,11 @@ INCLUDES = -I$(top_builddir) -I$(srcdir)/.. -I$(TCL_INC_DIR)
 #LTCFLAGS = -O0 -ggdb -g
 libazatrax_la_CXXFLAGS = -DUSE_TCL_STUBS -Wall $(LIBUSB_CFLAGS) -g
 if CROSSCOMPILING
-libazatrax_la_LDFLAGS =   -g -avoid-version  $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
+libazatrax_la_LDFLAGS = -no-undefined  -g -avoid-version  $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 else
 libazatrax_la_LDFLAGS =   -g -version-info 0:0:0  $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 endif
-
+libazatrax_la_LIBADD $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 #libazatrax_la-azatrax_wrap.lo : azatrax_wrap.cc
 #	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(TCL_DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libazatrax_la_CXXFLAGS) $(CXXFLAGS) -MT libazatrax_la-Azatrax.lo -MD -MP -MF "$(DEPDIR)/libazatrax_la-Azatrax.Tpo" -c -o libazatrax_la-Azatrax.lo `test -f 'Azatrax.cc' || echo '$(srcdir)/'`Azatrax.cc; \
 #	then mv -f "$(DEPDIR)/libazatrax_la-Azatrax.Tpo" "$(DEPDIR)/libazatrax_la-Azatrax.Plo"; else rm -f "$(DEPDIR)/libazatrax_la-Azatrax.Tpo"; exit 1; fi
