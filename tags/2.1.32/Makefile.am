@@ -1,20 +1,47 @@
 #* 
 #* ------------------------------------------------------------------
-#* Makefile.am - Toplevel Makefile
-#* Created by Robert Heller on Sat Aug  5 05:56:29 2006
+#* Makefile.am - Automake file
+#* Created by Robert Heller on Mon Dec 19 16:35:07 2005
 #* ------------------------------------------------------------------
 #* Modification History: $Log$
-#* Modification History: Revision 1.6  2007/05/06 12:49:37  heller
-#* Modification History: Lock down  for 2.1.8 release candidate 1
+#* Modification History: Revision 1.14  2007/10/22 17:17:27  heller
+#* Modification History: 10222007
 #* Modification History:
-#* Modification History: Revision 1.5  2007/04/19 17:23:19  heller
+#* Modification History: Revision 1.13  2007/04/19 17:23:22  heller
 #* Modification History: April 19 Lock Down
 #* Modification History:
-#* Modification History: Revision 1.4  2007/02/02 00:52:00  heller
+#* Modification History: Revision 1.12  2007/02/21 20:19:29  heller
+#* Modification History: SWIG Hackery
+#* Modification History:
+#* Modification History: Revision 1.11  2007/02/02 03:30:21  heller
 #* Modification History: Lock down for 2.1.7
 #* Modification History:
-#* Modification History: Revision 1.3  2007/01/08 19:05:52  heller
+#* Modification History: Revision 1.10  2007/02/02 03:27:16  heller
+#* Modification History: Lock down for 2.1.7
+#* Modification History:
+#* Modification History: Revision 1.9  2007/02/02 03:21:12  heller
+#* Modification History: Lock down for 2.1.7
+#* Modification History:
+#* Modification History: Revision 1.7  2007/02/02 02:37:16  heller
+#* Modification History: Lock down for 2.1.7
+#* Modification History:
+#* Modification History: Revision 1.6  2007/02/02 01:51:01  heller
+#* Modification History: Lock down for 2.1.7
+#* Modification History:
+#* Modification History: Revision 1.5  2007/02/01 20:00:52  heller
+#* Modification History: Lock down for Release 2.1.7
+#* Modification History:
+#* Modification History: Revision 1.4  2007/01/08 19:05:54  heller
 #* Modification History: Jan 8, 2007 Lockdown
+#* Modification History:
+#* Modification History: Revision 1.3  2006/05/22 19:38:06  heller
+#* Modification History: Release 2.1.4 Final
+#* Modification History:
+#* Modification History: Revision 1.2  2006/05/16 19:27:45  heller
+#* Modification History: May162006 Lockdown
+#* Modification History:
+#* Modification History: Revision 1.1  2006/01/03 15:30:21  heller
+#* Modification History: Lockdown
 #* Modification History:
 #* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
 #* Modification History: Add it copyright notice headers
@@ -45,23 +72,52 @@
 #*  
 #* 
 
-ACLOCAL_AMFLAGS = -I m4
+pkgincludedir = $(includedir)/$(PACKAGE)/TTSupport
 
-SUBDIRS = BuildScripts BuildData Doc C++ Scripts Installer po intl
+pkginclude_HEADERS = Common.h TimeTableSystem.h PathName.h Station.h Cab.h \
+	Train.h
+lib_LTLIBRARIES = libttclasses.la
+INCLUDES = -I$(top_builddir) -I. -I$(TCL_INC_DIR)
+nodist_libttclasses_la_SOURCES  = TTClasses_wrap.cc ../gettext.c
+libttclasses_la_SOURCES = TimeTableSystem.cc PathName.cc Station.cc Train.cc \
+		Cab.cc CreateLaTeXTimetable.cc $(pkginclude_HEADERS) ../gettext.h
+libttclasses_la_XGETTEXTFILES = $(libttclasses_la_SOURCES)
+libttclasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) -Wall
+if CROSSCOMPILING
+libttclasses_la_LDFLAGS = -no-undefined -g -avoid-version $(TCL_STUB_LIB_SPEC) 
+else
+libttclasses_la_LDFLAGS = -g -version-info 0:0:0 $(TCL_STUB_LIB_SPEC)
+endif
+libttclasses_la_LIBADD = $(TCL_STUB_LIB_SPEC)
+noinst_SCRIPTS = pkgIndex.tcl
+noinst_DATA = TTClasses.potlist
+BUILT_SOURCES = TTClasses_wrap.cc TTSupportGroup.h
+EXTRA_DIST = TTSupportGroup.h.in TTClasses.i TimeTableSystemTcl.h
+CLEANFILES = pkgIndex.tcl $(BUILT_SOURCES) TTClasses.potlist
+SWIG_FLAGS =  -tcl8 -c++ $(INCLUDES)
 
-EXTRA_DIST = config.rpath  $(PACKAGE).spec bootstrap config_tcl.sed.in Doxyfile.in \
-	ModelRailroadSystem.h BuildBinaryDistro.sh.in
+TTClasses_wrap.cc : TTClasses.i $(pkginclude_HEADERS) TimeTableSystemTcl.h \
+		$(top_builddir)/config.status
+	$(SWIG) $(SWIG_FLAGS) -o TTClasses_wrap.cc $(srcdir)/TTClasses.i
 
-man_MANS = man1/ModelRailroadSystem.1
+pkgIndex.tcl: libttclasses.la $(top_builddir)/config.status
+	echo 'package ifneeded Ttclasses $(TTCLASSES_VERSIONLIB) [list load [file join $$dir libttclasses[info sharedlibextension]]]' > pkgIndex.tcl
 
-man1/ModelRailroadSystem.1 : Doxyfile ModelRailroadSystem.h
-	-rm -rf man1
-	$(DOXYGEN)
-	-rm man1/ModelRailroadSystem.h.1
+TTClasses.potlist: $(libttclasses_la_XGETTEXTFILES)
+	echo $(addprefix $(subdir)/,$(libttclasses_la_XGETTEXTFILES)) |\
+	tr ' ' '\n' > TTClasses.potlist
 
+install-exec-hook: libttclasses.la pkgIndex.tcl
+	$(INSTALL) -d $(DESTDIR)$(pkglibdir)
+if CROSSCOMPILING
+	cp    $(DESTDIR)$(bindir)/libttclasses$(SHLIB_SUFFIX) $(DESTDIR)$(pkglibdir)/libttclasses$(SHLIB_SUFFIX)
+else
+	ln -fs $(libdir)/libttclasses$(SHLIB_SUFFIX) $(DESTDIR)$(pkglibdir)/libttclasses$(SHLIB_SUFFIX)
+endif
+	touch $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
+	cat   pkgIndex.tcl >>$(DESTDIR)$(pkglibdir)/pkgIndex.tcl
+	$(INSTALL_DATA) pkgIndex.tcl $(DESTDIR)$(pkglibdir)/pkgIndex_ttclasses.tcl
 
-clean-local:
-	-rm -rf man1
-
-rpm: dist
-	rpmbuild -ta $(distdir).tar.gz
+TTSupportGroup.h: TTSupportGroup.h.in $(top_builddir)/config.status
+	sed -e 's|=TTCLASSES_VERSIONLIB=|@TTCLASSES_VERSIONLIB@|g' \
+	< $(srcdir)/TTSupportGroup.h.in > ./TTSupportGroup.h
