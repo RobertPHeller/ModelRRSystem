@@ -103,10 +103,9 @@ libfcfclasses_la_LDFLAGS = -no-undefined -g -avoid-version $(TCL_STUB_LIB_SPEC)
 else
 libfcfclasses_la_LDFLAGS = -g -version-info 0:0:0 $(TCL_STUB_LIB_SPEC)
 endif
-libfcfclasses_la_LIBADD = $(TCL_STUB_LIB_SPEC)
 INCLUDES = -I$(top_builddir) -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)  
 libfcfclasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) -Wall
-libfcfclasses_la_LIBADD   = $(LTLIBOBJS)
+libfcfclasses_la_LIBADD   = $(LTLIBOBJS) $(TCL_STUB_LIB_SPEC)
 
 BUILT_SOURCES = FCFClasses_wrap.cc System.h
 noinst_SCRIPTS = pkgIndex.tcl
