@@ -85,7 +85,7 @@ EXTRA_DIST = $(CommonScripts) \
 	     DeepwoodsBanner.gif new.gif open.gif save.gif print.gif close.gif \
 	     CommonTests.tcl CommonTclGroup.h
 
-TESTS = CommonTests${EXEEXT}
+XXX_TESTS = CommonTests${EXEEXT}
 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 

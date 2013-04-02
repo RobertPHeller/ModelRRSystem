@@ -62,13 +62,13 @@ testinstrumentsSCRIPTS = grsupport2.tcl Instruments2.tcl OvalWidgets2.tcl \
 		HBar.xbm VBar.xbm \
 		$(top_builddir)/Scripts/Common/BWStdMenuBar.tcl
 
-TESTS = testinstruments$(EXEEXT)
+XXX_TESTS = testinstruments$(EXEEXT)
 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
 BUILT_SOURCES = $(TCLKIT)
 
-CLEANFILES = pkgIndex.tcl $(TESTS)
+CLEANFILES = pkgIndex.tcl $(XXX_TESTS)
 
 pkgIndex.tcl : $(GRPackages)
 	for f in $(notdir $^) ; do \
