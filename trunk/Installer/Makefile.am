@@ -61,7 +61,7 @@ noinst_SCRIPTS = setup${EXEEXT}
 
 install-data-hook: setup${EXEEXT}
 	test -z "$(pkglibdir)" || $(mkdir_p) "$(DESTDIR)$(pkglibdir)"
-	$(INSTALL_DATA) "setup${EXEEXT}  "$(DESTDIR)$(pkglibdir)/setup${EXEEXT}"
+	$(INSTALL_DATA) "setup${EXEEXT}"  "$(DESTDIR)$(pkglibdir)/setup${EXEEXT}"
 
 CLEANFILES = $(BUILT_SOURCES) pkgIndex.tcl setup.kit setup${EXEEXT}
 
