@@ -101,7 +101,7 @@ libraildriverio_la_LIBADD = $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 xlibdir = $(libdir)/$(PACKAGE)/RailDriverNotInstalled
 xlib_LTLIBRARIES = libsigterm.la
 libsigterm_la_SOURCES = sigterm_wrap.cc
-libsigterm_la_CXXFLAGS =  $(INCLUDES) -Wall -g
+libsigterm_la_CXXFLAGS =  -DUSE_TCL_STUBS $(INCLUDES) -Wall -g
 if CROSSCOMPILING
 libsigterm_la_LDFLAGS = -no-undefined -g -avoid-version  $(TCL_STUB_LIB_SPEC)
 else
