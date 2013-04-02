@@ -43,7 +43,13 @@ pkglibdir = $(libdir)/$(PACKAGE)/Installer
 pkglib_LTLIBRARIES = diskfree.la
 INCLUDES = -I$(top_builddir)  -I. -I$(TCL_INC_DIR)
 nodist_diskfree_la_SOURCES = diskfree_wrap.cc
-diskfree_la_LDFLAGS = -g -module -avoid-version $(TCL_STUB_LIB_SPEC)
+if CROSSCOMPILING
+NOUNDEFINED = -no-undefined
+else
+NOUNDEFINED = 
+endif
+diskfree_la_LDFLAGS = $(NOUNDEFINED) -g -module -avoid-version 
+diskfree_la_LIBADD = $(TCL_STUB_LIB_SPEC)
 diskfree_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES)
 setupSCRIPTS = $(top_builddir)/Scripts/Common/Version.tcl \
 		$(top_srcdir)/Scripts/Common/fileentry.tcl
@@ -55,12 +61,7 @@ noinst_SCRIPTS = setup${EXEEXT}
 
 install-data-hook: setup${EXEEXT}
 	test -z "$(pkglibdir)" || $(mkdir_p) "$(DESTDIR)$(pkglibdir)"
-	@list='setup${EXEEXT}'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=`echo $$p | sed -e 's|^.*/||'`; \
-	  echo " $(INSTALL_DATA) '$$d$$p' '$(DESTDIR)$(pkglibdir)/$$f'"; \
-	  $(INSTALL_DATA) "$$d$$p" "$(DESTDIR)$(pkglibdir)/$$f"; \
-	done
+	$(INSTALL_DATA) "setup${EXEEXT}  "$(DESTDIR)$(pkglibdir)/setup${EXEEXT}"
 
 CLEANFILES = $(BUILT_SOURCES) pkgIndex.tcl setup.kit setup${EXEEXT}
 
