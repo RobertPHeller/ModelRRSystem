@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Resistor
+Comment=Compute Load (dropping) resistor values.
+Exec=Resistor
+Icon=Resistor.png
+Encoding=UTF-8
+Categories=Application;Electronics;Model-Railroad-System
+
