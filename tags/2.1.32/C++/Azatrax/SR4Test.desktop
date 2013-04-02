@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=SR4 Test Program
+Comment=SR4 Test Program
+Exec=SR4Test
+Icon=SR4Test.png
+Encoding=UTF-8
+Categories=Application;Model-Railroad-System
+
