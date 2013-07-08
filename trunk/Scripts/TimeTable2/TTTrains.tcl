@@ -831,10 +831,9 @@ snit::type TimeTable::editTrainDialog {
     set _Speed [$speed cget -text]
     set _First [TimeTable FindStationByName "[$firststation get]"]
     set _Last  [TimeTable FindStationByName "[$laststation get]"]
-    set dHours [$departureHours cget -text]
-    set dMinutes [$departureMinutes cget -text]
+    scan [$departureHours cget -text] {%d} dHours
+    scan [$departureMinutes cget -text] {%02d} dMinutes
     set _Departure [expr {$dHours * 60}]
-    regsub {^0([0-9])$} "$dMinutes" {\1} dMinutes
     incr _Departure $dMinutes
     $type _ResetSchedule
     $editpages raise schedule
