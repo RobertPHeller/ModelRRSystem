@@ -98,8 +98,8 @@ GenericThrottle$(EXEEXT) : GenericThrottle.src $(GTLibFiles) $(GTCommonFiles) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/GenericThrottle.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap GenericThrottle.kit
 	-rm -rf GenericThrottle.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit GenericThrottle \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d GenericThrottle.vfs/lib \
+		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit GenericThrottle \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) GenericThrottle \

@@ -84,8 +84,8 @@ ModelRRSystem$(EXEEXT) : ModelRRSystem.src $(ModelRRSystemLibFiles) $(CommonLibF
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/ModelRRSystem.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap  ModelRRSystem.kit
 	-rm -rf ModelRRSystem.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit ModelRRSystem \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d ModelRRSystem.vfs/lib \
+		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit ModelRRSystem \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) ModelRRSystem \

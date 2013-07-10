@@ -85,8 +85,7 @@ setup${EXEEXT}: setup.tcl $(setupSCRIPTS) $(setupIMAGES) $(setupLIBIMAGES) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/setup.tcl
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap setup.kit
 	-rm -f  setup.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit setup \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d setup.vfs/lib $(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit setup \
 		lib/Diskfree .libs/diskfree$(SHLIB_SUFFIX) pkgIndex.tcl
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit setup \

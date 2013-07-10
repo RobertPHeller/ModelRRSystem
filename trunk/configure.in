@@ -423,21 +423,21 @@ else
   AC_PATH_PROGS(HOSTTCLSH,[tclsh8.4 tclsh])
 fi
 
-AC_MSG_CHECKING(bwidget dir)
-BWLIB=`echo 'puts $tcl_library'|${HOSTTCLSH}`
-dirs="${TCL_PREFIX}/lib/bwidget* ${TCL_PREFIX}/lib/tcllib*/bwidget* ${BWLIB}/bwidget* ${BWLIB}/../tcllib*/bwidget* ${BWLIB}/../bwidget* ${BWLIB}/tcllib*/bwidget*"
-for i in $dirs ; do
-  if test -d "$i" -a -f "$i/pkgIndex.tcl"; then
-    BWLIB=`cd $i; pwd`
-  fi
-done
-AC_ARG_WITH(bwlib, [  --with-bwlib=DIR          use BWidget from DIR], BWLIB=$withval,)
-if test -d $BWLIB; then
-   AC_MSG_RESULT([using BWidget library in $BWLIB])
-else
-   AC_MSG_ERROR(BWidget library directory $BWLIB doesn't exist)
-fi
-AC_SUBST(BWLIB)
+dnl AC_MSG_CHECKING(bwidget dir)
+dnl BWLIB=`echo 'puts $tcl_library'|${HOSTTCLSH}`
+dnl dirs="${TCL_PREFIX}/lib/bwidget* ${TCL_PREFIX}/lib/tcllib*/bwidget* ${BWLIB}/bwidget* ${BWLIB}/../tcllib*/bwidget* ${BWLIB}/../bwidget* ${BWLIB}/tcllib*/bwidget*"
+dnl for i in $dirs ; do
+dnl   if test -d "$i" -a -f "$i/pkgIndex.tcl"; then
+dnl     BWLIB=`cd $i; pwd`
+dnl   fi
+dnl done
+dnl AC_ARG_WITH(bwlib, [  --with-bwlib=DIR          use BWidget from DIR], BWLIB=$withval,)
+dnl if test -d $BWLIB; then
+dnl    AC_MSG_RESULT([using BWidget library in $BWLIB])
+dnl else
+dnl    AC_MSG_ERROR(BWidget library directory $BWLIB doesn't exist)
+dnl fi
+dnl AC_SUBST(BWLIB)
 
 AC_MSG_CHECKING(snit dir)
 SNITLIB=`echo 'puts $tcl_library'|${HOSTTCLSH}`

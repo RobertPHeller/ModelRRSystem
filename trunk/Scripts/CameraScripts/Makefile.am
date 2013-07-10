@@ -93,8 +93,8 @@ AnyDistance${EXEEXT} : AnyDistance.src $(CameraSCRIPTS) \
 	-rm -rf AnyDistance.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap  $(srcdir)/AnyDistance.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap  AnyDistance.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit AnyDistance \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d AnyDistance.vfs/lib \
+	        $(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit AnyDistance \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) AnyDistance \
@@ -118,8 +118,8 @@ Closest${EXEEXT} : Closest.src $(CameraSCRIPTS) \
 	-rm -rf Closest.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap  $(srcdir)/Closest.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap  Closest.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit Closest \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d Closest.vfs/lib \
+		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit Closest \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) Closest \

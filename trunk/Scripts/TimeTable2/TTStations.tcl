@@ -545,7 +545,7 @@ proc TimeTable::ViewAllStations {} {
 
 proc TimeTable::SetDuplicateStationIndex {} {
   if {[TimeTable NumberOfTrains] > 0} {
-    TtWarningMessage draw -message "Cannot update duplicate trackage once you have trains defined."
+    ::TimeTable::TtWarningMessage draw -message "Cannot update duplicate trackage once you have trains defined."
     return
   }
   set stationName [SelectOneStationDialog draw -title [_ "Station to update"]]
@@ -560,7 +560,7 @@ proc TimeTable::SetDuplicateStationIndex {} {
 
 proc TimeTable::ClearDuplicateStationIndex {} {
   if {[TimeTable NumberOfTrains] > 0} {
-    TtWarningMessage draw -message "Cannot update duplicate trackage once you have trains defined."
+    ::TimeTable::TtWarningMessage draw -message "Cannot update duplicate trackage once you have trains defined."
     return
   }
   set stationName [SelectOneStationDialog draw -title [_ "Station to update"]]

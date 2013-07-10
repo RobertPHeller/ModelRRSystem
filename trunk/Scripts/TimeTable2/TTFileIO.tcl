@@ -245,7 +245,7 @@ proc TimeTable::NewTimeTable {{name {}} {totaltime 1440} {timeinterval 15}} {
 
 proc TimeTable::SaveTimeTable {} {
   if {[llength [info commands TimeTable]] == 0} {
-    TtWarningMessage draw -message [_ "There is no time table to save!"]
+    ::TimeTable::TtWarningMessage draw -message [_ "There is no time table to save!"]
     return
   }
   SaveTimeTableAs "[TimeTable Filename]"
@@ -253,7 +253,7 @@ proc TimeTable::SaveTimeTable {} {
 
 proc TimeTable::SaveTimeTableAs {{filename {}}} {
   if {[llength [info commands TimeTable]] == 0} {
-    TtWarningMessage draw -message [_ "There is no time table to save!"]
+    ::TimeTable::TtWarningMessage draw -message [_ "There is no time table to save!"]
     return
   }
 

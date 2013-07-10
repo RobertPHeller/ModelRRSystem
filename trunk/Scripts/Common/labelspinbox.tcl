@@ -106,7 +106,7 @@ namespace eval LabelSpinBox {
 
     Widget::addmap LabelSpinBox "" :cmd {-background {}}
 
-    Widget::syncoptions LabelSpinBox SpinBox .spin {-range {} -values {}}
+    Widget::syncoptions LabelSpinBox SpinBox .spin {-text {} -range {} -values {}}
     Widget::syncoptions LabelSpinBox LabelFrame .labf {-label -text 
 						       -underline {}}
 

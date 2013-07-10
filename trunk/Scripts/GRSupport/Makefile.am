@@ -82,8 +82,8 @@ testinstruments$(EXEEXT): testinstruments.tcl $(testinstrumentsSCRIPTS)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap testinstruments.tcl
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap testinstruments.kit
 	-rm -rf testinstruments.kit
-	$(TCLKIT) $(top_builddir)/BuildScripts/AddKitDir.kit testinstruments \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d testinstruments.vfs/lib \
+		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_builddir)/BuildScripts/AddKitDir.kit testinstruments \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_builddir)/BuildScripts/AddKitFile.kit testinstruments \

@@ -94,8 +94,8 @@ Resistor${EXEEXT}: Resistor.tcl $(ResistorSCRIPTS) \
 	-rm -rf Resistor.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/Resistor.tcl
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap Resistor.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit Resistor \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d Resistor.vfs/lib \
+		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit Resistor \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Resistor \
@@ -118,8 +118,8 @@ LocoPull${EXEEXT}: LocoPull.tcl $(LocoPullSCRIPTS) \
 	-rm -rf LocoPull.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/LocoPull.tcl
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap LocoPull.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit LocoPull \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d LocoPull.vfs/lib \
+		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit LocoPull \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit LocoPull \

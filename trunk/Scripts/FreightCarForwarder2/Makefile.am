@@ -168,8 +168,8 @@ FCFMain${EXEEXT} : FCFMain.src $(FCFLibFiles) $(FCFCommonFiles) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/FCFMain.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap  FCFMain.kit
 	-rm -rf FCFMain.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit FCFMain \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d FCFMain.vfs/lib \
+		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit FCFMain \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) FCFMain \
@@ -199,8 +199,8 @@ FCFCreate$(EXEEXT) : FCFCreate.src $(FCFCreLibFiles) $(FCFCommonFiles) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap  $(srcdir)/FCFCreate.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap FCFCreate.kit
 	-rm -rf FCFCreate.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit FCFCreate \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d FCFCreate.vfs/lib \
+		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit FCFCreate \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) FCFCreate \

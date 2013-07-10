@@ -180,8 +180,8 @@ SampleCode${EXEEXT}: SampleCode.tcl $(SampleCodeScripts) $(SampleCodeHelpDep) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/SampleCode.tcl
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap SampleCode.kit
 	-rm -rf SampleCode.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit SampleCode \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d SampleCode.vfs/lib \
+		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit SampleCode \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SampleCode \

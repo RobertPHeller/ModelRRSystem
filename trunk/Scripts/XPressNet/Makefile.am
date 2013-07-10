@@ -60,8 +60,8 @@ XPressNetThrottle${EXEEXT}: XPressNetThrottle.src \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/XPressNetThrottle.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap XPressNetThrottle.kit
 	-rm -f  XPressNetThrottle.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit XPressNetThrottle \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d XPressNetThrottle.vfs/lib \
+	        $(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit XPressNetThrottle \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit XPressNetThrottle \

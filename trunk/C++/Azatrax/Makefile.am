@@ -157,8 +157,8 @@ MRDTest${EXEEXT}: MRDTest.src libazatrax.la $(MRDTestSCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/MRDTest.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap MRDTest.kit
 	-rm -f  MRDTest.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit MRDTest \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d MRDTest.vfs/lib \
+		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit MRDTest \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit MRDTest \
@@ -185,8 +185,8 @@ SL2Test${EXEEXT}: SL2Test.src libazatrax.la $(SL2TestSCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/SL2Test.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap SL2Test.kit
 	-rm -f  SL2Test.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit SL2Test \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d SL2Test.vfs/lib \
+		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit SL2Test \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SL2Test \
@@ -213,8 +213,8 @@ SR4Test${EXEEXT}: SR4Test.src libazatrax.la $(SR4TestSCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/SR4Test.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap SR4Test.kit
 	-rm -f  SR4Test.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit SR4Test \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d SR4Test.vfs/lib \
+		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit SR4Test \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SR4Test \
@@ -241,8 +241,8 @@ MRDSensorLoop${EXEEXT}: MRDSensorLoop.src libazatrax.la $(MRDSensorLoopSCRIPTS) 
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/MRDSensorLoop.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap MRDSensorLoop.kit
 	-rm -f  MRDSensorLoop.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit MRDSensorLoop \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d MRDSensorLoop.vfs/lib \
+		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit MRDSensorLoop \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit MRDSensorLoop \
@@ -269,8 +269,8 @@ AzatraxDeviceMap${EXEEXT}: AzatraxDeviceMap.src libazatrax.la $(AzatraxDeviceMap
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/AzatraxDeviceMap.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap AzatraxDeviceMap.kit
 	-rm -f  AzatraxDeviceMap.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit AzatraxDeviceMap \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d AzatraxDeviceMap.vfs/lib \
+		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit AzatraxDeviceMap \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit AzatraxDeviceMap \

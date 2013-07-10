@@ -113,8 +113,6 @@ catch {TimeTable::SplashWorkMessage [_ "Loading Print Code"] 88}
 
 package require snit
 
-package require BWLabelSpinBox
-package require BWLabelComboBox
 package require BWFileEntry
 
 namespace eval TimeTable {
@@ -206,7 +204,7 @@ snit::type TimeTable::printConfigurationDialog {
     set titleLE $frame.titleLE
     pack [LabelEntry::create $titleLE \
 			     -side left -label [_m "Label|Title:"] \
-			     -labelwidth $lwidth] fill x
+			     -labelwidth $lwidth] -fill x
     set subtitleLE $frame.subtitleLE
     pack [LabelEntry::create $subtitleLE \
 			     -side left -label [_m "Label|Sub Title:"] \
@@ -215,10 +213,14 @@ snit::type TimeTable::printConfigurationDialog {
     pack [LabelEntry::create $dateLE \
 			     -side left -label [_m "Label|Date:"] \
 			     -labelwidth $lwidth] -fill x
-    set nSidesLCB $frame.nSidesLCB
-    pack [LabelComboBox $nSidesLCB -editable no \
-			     -side left -label [_m "Label|Number of sides:"] \
-			     -labelwidth $lwidth -values {single double}] -fill x
+    set nSidesLF $frame.nSidesLF
+    pack [LabelFrame $nSidesLF -side left -text [_m "Label|Number of sides:"] \
+          -width $lwidth] -fill x
+    set nSidesLCB [$nSidesLF getframe].nSidesLCB
+    pack [spinbox $nSidesLCB -state readonly \
+          -values [list [_m "Answer|single"] [_m "Answer|double"]]] \
+          -fill x -side left -expand yes
+    $nSidesLCB set [_m "Answer|single"]
     set timeformatLF $frame.timeformatLF
     pack [LabelFrame::create $timeformatLF \
 			     -side left -text [_m "Label|Time Format:"] \
@@ -256,29 +258,32 @@ snit::type TimeTable::printConfigurationDialog {
 			-indicatoron yes -state disabled] -fill x
     lappend ampmLF_RBS $ampmLF_frame.rb_lB
     set _AMPMFormat a
-    set directionLCB $frame.directionLCB
-    pack [LabelComboBox::create $directionLCB \
-				-side left \
-				-label [_m "Label|Forward Direction is generally:"] \
-				-labelwidth $lwidth \
-				-values {Northbound Eastbound
-					 Southbound Westbound} \
-				-editable no] -fill x
-    $directionLCB setvalue first
-    set stationcwLSB $frame.stationcwLSB
-    pack [LabelSpinBox::create $stationcwLSB \
-			       -side left \
-			       -label [_m "Label|Station Column Width:"] \
-			       -labelwidth $lwidth \
-			       -range {.125 2.5 .125} \
-			       -text 1.5] -fill x
-    set timecwLSB $frame.timecwLSB
-    pack [LabelSpinBox::create $timecwLSB \
-			       -side left \
-			       -label [_m "Label|Time Column Width:"] \
-			       -labelwidth $lwidth \
-			       -range {.125 2.5 .125} \
-			       -text .5] -fill x
+    set directionLF $frame.directionLF
+    pack [LabelFrame $directionLF -side left \
+          -text [_m "Label|Forward Direction is generally:"] \
+          -width $lwidth] -fill x
+    set directionLCB [$directionLF getframe].directionLCB
+    pack [spinbox $directionLCB \
+          -values [list [_m "Answer|Northbound"] [_m "Answer|Eastbound"] \
+                        [_m "Answer|Southbound"] [_m "Answer|Westbound"]] \
+          -state readonly] -fill x -expand yes -side left
+    $directionLCB set [_m "Answer|Northbound"]
+    set stationcwLF $frame.stationcwLF
+    pack [LabelFrame $stationcwLF -side left \
+          -text [_m "Label|Station Column Width:"] \
+          -width $lwidth] -fill x
+    set stationcwLSB [$stationcwLF getframe].stationcwLSB
+    pack [spinbox $stationcwLSB \
+          -from .125 -to 2.5 -increment .125] -side left -fill x -expand yes
+    $stationcwLSB set 1.5
+    set timecwLF $frame.timecwLF
+    pack [LabelFrame $timecwLF -side left \
+          -text [_m "Label|Time Column Width:"] \
+          -width $lwidth] -fill x
+    set timecwLSB [$timecwLF getframe].timecwLSB
+    pack [spinbox $timecwLSB \
+          -from .125 -to 2.5 -increment .125] -side left  -fill x -expand yes
+    $timecwLSB set .5
     set extraPreambleLF $frame.extraPreambleLF
     pack [LabelFrame::create $extraPreambleLF \
 		-side top -text [_ "Additional LaTeX preamble code:"]] -fill both
@@ -298,10 +303,27 @@ snit::type TimeTable::printConfigurationDialog {
     set _LocalPrintConfiguration(Date) "[$dateLE cget -text]"
     set _LocalPrintConfiguration(TimeFormat) "$_TimeFormat"
     set _LocalPrintConfiguration(AMPMFormat) "$_AMPMFormat"
-    set _LocalPrintConfiguration(DirectionName) "[$directionLCB get]"
+    set dn "[$directionLCB get]"
+    if {$dn eq [_m "Answer|Northbound"]} {
+        set _LocalPrintConfiguration(DirectionName) Northbound
+    } elseif {$dn eq [_m "Answer|Eastbound"]} {
+        set _LocalPrintConfiguration(DirectionName) Eastbound
+    } elseif {$dn eq [_m "Answer|Southbound"]} {
+        set _LocalPrintConfiguration(DirectionName) Southbound
+    } elseif {$dn eq [_m "Answer|Westbound"]} {
+        set _LocalPrintConfiguration(DirectionName) Westbound
+    }
     set _LocalPrintConfiguration(StationColWidth) [$stationcwLSB cget -text]
+    if {![string is double -strict $_LocalPrintConfiguration(StationColWidth)]} {
+        set _LocalPrintConfiguration(StationColWidth) 1.5
+    }
     set _LocalPrintConfiguration(TimeColWidth) [$timecwLSB cget -text]
-    set _LocalPrintConfiguration(NSides) [$nSidesLCB get]
+    if {![string is double -strict $_LocalPrintConfiguration(TimeColWidth)]} {
+        set _LocalPrintConfiguration(TimeColWidth) .5
+    }
+    if {[$nSidesLCB get] eq [_m "Answer|single"]} {
+        set _LocalPrintConfiguration(NSides) single
+    }
     set _LocalPrintConfiguration(ExtraPreamble) "[$extraPreambleText get 1.0 end-1c]"
     return 1
   }
@@ -321,6 +343,9 @@ snit::type TimeTable::printConfigurationDialog {
     if {[catch {set _LocalPrintConfiguration(TimeFormat)}]} {
       set _LocalPrintConfiguration(TimeFormat) "24"
     }
+    if {[lsearch -exact {12 24} $_LocalPrintConfiguration(TimeFormat)] < 0} {
+      set _LocalPrintConfiguration(TimeFormat) "24"
+    }
     set _TimeFormat "$_LocalPrintConfiguration(TimeFormat)"
     if {[catch {set _LocalPrintConfiguration(AMPMFormat)}]} {
       set _LocalPrintConfiguration(AMPMFormat) "a"
@@ -329,12 +354,20 @@ snit::type TimeTable::printConfigurationDialog {
     if {[catch {set _LocalPrintConfiguration(NSides)}]} {
       set _LocalPrintConfiguration(NSides) "single"
     }
-    $nSidesLCB setvalue @[lsearch -exact [$nSidesLCB cget -values] "$_LocalPrintConfiguration(NSides)"]
+    if {"$_LocalPrintConfiguration(NSides)" eq "single"} {
+        $nSidesLCB set [_m "Answer|single"]
+    } else {
+        $nSidesLCB set [_m "Answer|double"]
+    }
     if {[catch {set _LocalPrintConfiguration(DirectionName)}]} {
       set _LocalPrintConfiguration(DirectionName)  "Northbound"
     }
-    $directionLCB setvalue @[lsearch -exact [$directionLCB cget -values] \
-				"$_LocalPrintConfiguration(DirectionName)"]
+    switch "$_LocalPrintConfiguration(DirectionName)" {
+        Northbound {$directionLCB set [_m "Answer|Northbound"]}
+        Eastbound {$directionLCB set [_m "Answer|Eastbound"]}
+        Southbound {$directionLCB set [_m "Answer|Southbound"]}
+        Westbound {$directionLCB set [_m "Answer|Westbound"]}
+    }
     if {[catch {set _LocalPrintConfiguration(StationColWidth)}]} {
       set _LocalPrintConfiguration(StationColWidth) 1.5
     }
@@ -370,25 +403,28 @@ snit::type TimeTable::printConfigurationDialog {
   typemethod _BuildMulti {frame} {
     set multiFrame $frame
     set lwidth [_mx "Label|Create Table Of Contents?" \
-		    "Label|Use multiple tables?" "Label|All Trains Header:"]
-    set tocP $frame.tocP
-    pack [LabelComboBox::create $tocP \
-			-side left \
-			-label [_m "Label|Create Table Of Contents?"] \
-			-labelwidth $lwidth \
-			-editable no \
-			-values {no yes}] -fill x
-    $tocP setvalue last
-    set useMultipleTablesP $frame.useMultipleTablesP
-    pack [LabelComboBox::create $useMultipleTablesP \
-			-side left \
-			-label [_m "Label|Use multiple tables?"] \
-			-labelwidth $lwidth \
-			-modifycmd [mytypemethod _SetGroupsState] \
-			-editable no \
-			-values [list [_m "Answer|No"] [_m "Answer|Yes"]] \
+                "Label|Use multiple tables?" "Label|All Trains Header:"]
+    set tocLF $frame.tocLF
+    pack [LabelFrame $tocLF -side left \
+          -text [_m "Label|Create Table Of Contents?"] \
+          -width $lwidth] -fill x
+    set tocP [$tocLF getframe].tocP    
+    pack [spinbox $tocP \
+          -state readonly \
+          -values [list [_m "Answer|No"] [_m "Answer|Yes"]]] \
+          -fill x -expand yes -side left
+    $tocP set [_m "Answer|Yes"]
+    set useMultipleTablesLF $frame.useMultipleTablesLF
+    pack [LabelFrame $useMultipleTablesLF -side left \
+          -text [_m "Label|Use multiple tables?"] \
+          -width $lwidth] -fill x
+    set useMultipleTablesP [$useMultipleTablesLF getframe].useMultipleTablesP
+    pack [spinbox $useMultipleTablesP \
+          -command [mytypemethod _SetGroupsState] \
+          -state readonly \
+          -values [list [_m "Answer|No"] [_m "Answer|Yes"]]] \
 	-fill x
-    $useMultipleTablesP setvalue last
+    $useMultipleTablesP set [_m "Answer|Yes"]
     set beforeTOCLF $frame.beforeTOCLF
     pack [LabelFrame::create $beforeTOCLF \
 			-side top \
@@ -444,36 +480,56 @@ snit::type TimeTable::printConfigurationDialog {
   typemethod _RaiseMulti {} {
     set ntrains [TimeTable NumberOfTrains]
     set stationColW $_LocalPrintConfiguration(StationColWidth)
+    if {![string is double -strict $stationColW]} {
+        set _LocalPrintConfiguration(StationColWidth) 1.5
+        set stationColW $_LocalPrintConfiguration(StationColWidth)
+    }
     set timeColW    $_LocalPrintConfiguration(TimeColWidth)
+    if {![string is double -strict $timeColW]} {
+        set _LocalPrintConfiguration(TimeColWidth) .5
+        set timeColW    $_LocalPrintConfiguration(TimeColWidth)
+    }
     set maxtrains [expr int((7 - $stationColW - $timeColW)/double($timeColW))]
     if {$ntrains > $maxtrains} {
       if {[catch {set _LocalPrintConfiguration(UseMultipleTables)}]} {
         set _LocalPrintConfiguration(UseMultipleTables) true
       }
+      if {![string is boolean -strict $_LocalPrintConfiguration(UseMultipleTables)]} {
+          set _LocalPrintConfiguration(UseMultipleTables) true
+      }
       if {[catch {set _LocalPrintConfiguration(TOCP)}]} {
+        set _LocalPrintConfiguration(TOCP) true
+      }
+      if {![string is boolean -strict $_LocalPrintConfiguration(TOCP)]} {
         set _LocalPrintConfiguration(TOCP) true
       }
     } else {
       if {[catch {set _LocalPrintConfiguration(UseMultipleTables)}]} {
         set _LocalPrintConfiguration(UseMultipleTables) false
       }
+      if {![string is boolean -strict $_LocalPrintConfiguration(UseMultipleTables)]} {
+          set _LocalPrintConfiguration(UseMultipleTables) false
+      }
       if {[catch {set _LocalPrintConfiguration(TOCP)}]} {
+        set _LocalPrintConfiguration(TOCP) $_LocalPrintConfiguration(UseMultipleTables)
+      }
+      if {![string is boolean -strict $_LocalPrintConfiguration(TOCP)]} {
         set _LocalPrintConfiguration(TOCP) $_LocalPrintConfiguration(UseMultipleTables)
       }
     }
 #    puts stderr "*** $type _RaiseMulti: _LocalPrintConfiguration(UseMultipleTables) = $_LocalPrintConfiguration(UseMultipleTables)"
     if {$_LocalPrintConfiguration(UseMultipleTables)} {
-      $useMultipleTablesP setvalue @[lsearch -exact [$useMultipleTablesP cget -values] yes]
+      $useMultipleTablesP set [_m "Answer|Yes"]
     } else {
-      $useMultipleTablesP setvalue @[lsearch -exact [$useMultipleTablesP cget -values] no]
+      $useMultipleTablesP set [_m "Answer|No"]
     }
 #    puts stderr "*** $type _RaiseMulti: _LocalPrintConfiguration(TOCP) = $_LocalPrintConfiguration(TOCP)"
     if {$_LocalPrintConfiguration(TOCP)} {
-      $tocP setvalue @[lsearch -exact [$tocP cget -values] [_m "Answer|Yes"]]
+      $tocP set [_m "Answer|Yes"]
     } else {
-      $tocP setvalue @[lsearch -exact [$tocP cget -values] [_m "Answer|No"]]
+      $tocP set [_m "Answer|No"]
     }
-#    puts stderr "*** $type _RaiseMulti: $useMultipleTablesP getvalue = [$useMultipleTablesP getvalue], $useMultipleTablesP get = [$useMultipleTablesP get]"
+#    puts stderr "*** $type _RaiseMulti: $useMultipleTablesP get = [$useMultipleTablesP getvalue], $useMultipleTablesP get = [$useMultipleTablesP get]"
     if {[catch {set _LocalPrintConfiguration(BeforeTOC)}]} {
       set _LocalPrintConfiguration(BeforeTOC) {%
 % Insert Pre TOC material here.  Cover graphic, logo, etc.
@@ -500,22 +556,22 @@ snit::type TimeTable::printConfigurationDialog {
     $allTrainsSectionTOPText insert end "$_LocalPrintConfiguration(AllTrainsSectionTOP)"
   }
   typemethod _LeaveMulti {} {
-#    puts stderr "*** $type _LeaveMulti: $useMultipleTablesP getvalue = [$useMultipleTablesP getvalue], $useMultipleTablesP get = [$useMultipleTablesP get]"
+#    puts stderr "*** $type _LeaveMulti: $useMultipleTablesP get = [$useMultipleTablesP getvalue], $useMultipleTablesP get = [$useMultipleTablesP get]"
     set ntrains [TimeTable NumberOfTrains]
     set stationColW $_LocalPrintConfiguration(StationColWidth)
     set timeColW    $_LocalPrintConfiguration(TimeColWidth)
     set maxtrains [expr int((7 - $stationColW - $timeColW)/double($timeColW))]
-    if {[$useMultipleTablesP getvalue] eq [_m "Answer|Yes"]} {
+    if {[$useMultipleTablesP get] eq [_m "Answer|Yes"]} {
       set _LocalPrintConfiguration(UseMultipleTables) true
     } elseif {$ntrains > $maxtrains} {
-      TtWarningMessage draw -message [_ "You have too many trains to fit in a single table!"]
+      ::TimeTable::TtWarningMessage draw -message [_ "You have too many trains to fit in a single table!"]
       return 0
     } else {
       set _LocalPrintConfiguration(UseMultipleTables) false
     }
 #    puts stderr "*** $type _LeaveMulti: _LocalPrintConfiguration(UseMultipleTables) = $_LocalPrintConfiguration(UseMultipleTables)"
 #    puts stderr "*** $type _LeaveMulti: $tocP getvalue = [$tocP getvalue], $tocP get = [$tocP get]"
-    if {[$tocP getvalue]} {
+    if {[$tocP get] eq [_m "Answer|Yes"]} {
       set _LocalPrintConfiguration(TOCP) true
     } else {
       set _LocalPrintConfiguration(TOCP) false
@@ -542,19 +598,21 @@ snit::type TimeTable::printConfigurationDialog {
   typevariable  _GroupAddTrainButtons -array {}
   typemethod _BuildGroups {frame} {
     set groupsFrame    $frame
-    set groupByLCB     $frame.groupByLCB
     set addgroupButton $frame.addgroupButton
     set groupItemsSW   $frame.groupItemsSW
     set groupItemsSF   $groupItemsSW.groupItemsSW
     set lwidth [_mx "Label|Group by:"]
-    pack [LabelComboBox::create $groupByLCB -side left -labelwidth $lwidth \
-				-label [_m "Label|Group by:"] \
-				-values [list [_m "Answer|Class"] \
-					      [_m "Answer|Manually"]] \
-				-editable no \
-				-modifycmd [mytypemethod _GroupByUpdated]] \
-	-fill x
-    $groupByLCB setvalue first
+    set groupByLF      $frame.groupByLF
+    pack [LabelFrame $groupByLF -side left -width $lwidth \
+          -text [_m "Label|Group by:"]] -fill x
+    set groupByLCB     [$groupByLF getframe].groupByLCB
+    pack [spinbox $groupByLCB \
+          -values [list [_m "Answer|Class"] \
+                   [_m "Answer|Manually"]] \
+          -state readonly \
+          -command [mytypemethod _GroupByUpdated]] \
+          -fill x -expand yes -side left
+    $groupByLCB set [_m "Answer|Class"]
     pack [Button::create $addgroupButton -text [_m "Button|Add group"] \
 					 -command [mytypemethod _AddGroup]] \
 	-fill x
@@ -568,10 +626,8 @@ snit::type TimeTable::printConfigurationDialog {
       set _LocalPrintConfiguration(GroupBy) "Class"
     }
     switch $_LocalPrintConfiguration(GroupBy) {
-      Class {$groupByLCB setvalue @[lsearch -exact [$groupByLCB cget -values] \
-		[_m "Answer|Class"]}
-      Manually {$groupByLCB setvalue @[lsearch -exact [$groupByLCB cget -values] \
-		[_m "Answer|Manually"]}
+      Class {$groupByLCB set [_m "Answer|Class"]}
+      Manually {$groupByLCB set [_m "Answer|Manually"]}
     }
     set lastclass 0
     foreach groupsClassHeadersOpt \
@@ -611,7 +667,7 @@ snit::type TimeTable::printConfigurationDialog {
     }
   }
   typemethod _LeaveGroups {} {
-    if {"[$groupByLCB cget -text]" eq [_m "Answer|Class"]} {
+    if {"[$groupByLCB get]" eq [_m "Answer|Class"]} {
       set _LocalPrintConfiguration(GroupBy) Class
     } else {
       set _LocalPrintConfiguration(GroupBy) Manually
@@ -867,17 +923,25 @@ snit::type TimeTable::printDialog {
     TimeTable CreateLaTeXTimetable "$latexfile"
     TimeTable::TtInfoMessage draw -message [_ "%s Generated." $latexfile]
     set latexcmd "[$printprogram cget -text] [file rootname $latexfile]"
-    if {$_Run3TimesFlag} {
-      TimeTable::RunSubprocess "$latexcmd"
-      TimeTable::RunSubprocess "$latexcmd"
-      TimeTable::RunSubprocess "$latexcmd"
+    if {"[$printprogram cget -text]" ne ""} {
+        if {$_Run3TimesFlag} {
+            TimeTable::RunSubprocess "$latexcmd"
+            TimeTable::RunSubprocess "$latexcmd"
+            TimeTable::RunSubprocess "$latexcmd"
+        } else {
+            TimeTable::RunSubprocess "$latexcmd"
+        }
+        TimeTable::TtInfoMessage draw -message [_ "Ran: %s" $latexcmd]
+        if {$_PostProcessCommandFlag} {
+            TimeTable::RunSubprocess "[$postprocesscommandLE cget -text]"
+            TimeTable::TtInfoMessage draw -message [_ "Ran: %s" [$postprocesscommandLE cget -text]]
+        }
     } else {
-      TimeTable::RunSubprocess "$latexcmd"
-    }
-    TimeTable::TtInfoMessage draw -message [_ "Ran: %s" $latexcmd]
-    if {$_PostProcessCommandFlag} {
-      TimeTable::RunSubprocess "[$postprocesscommandLE cget -text]"
-      TimeTable::TtInfoMessage draw -message [_ "Ran: %s" [$postprocesscommandLE cget -text]]
+        if {$_Run3TimesFlag} {
+            TimeTable::TtInfoMessage draw -message [_ "LaTeX source is in %s, you will need to run latex (or pdflatex) manually 3 times over this file." $latexfile]
+        } else {
+            TimeTable::TtInfoMessage draw -message [_ "LaTeX source is in %s, you will need to run latex (or pdflatex) manually over this file." $latexfile]
+        }
     }
     return [Dialog::enddialog $dialog print]
   }

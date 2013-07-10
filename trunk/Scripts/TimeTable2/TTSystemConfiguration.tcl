@@ -72,7 +72,12 @@ namespace eval TimeTable {
       global tcl_platform
       switch $tcl_platform(platform) {
         windows {
-	  set PDFLATEX "C:/Program Files/pdflatex.exe";# Guess
+            set PDFLATEX "C:/Program Files/pdflatex.exe"
+            puts stderr "*** TimeTableConfiguration::typeconstructor: PDFLATEX (1) is '$PDFLATEX'"
+            set PDFLATEX [file nativename $PDFLATEX]
+            puts stderr "*** TimeTableConfiguration::typeconstructor: PDFLATEX (2) is '$PDFLATEX'"
+            set PDFLATEX [auto_execok $PDFLATEX]
+            puts stderr "*** TimeTableConfiguration::typeconstructor: PDFLATEX (3) is '$PDFLATEX'"
         }
         macintosh -
         unix {
@@ -125,6 +130,7 @@ namespace eval TimeTable {
         set exeExtension {}
         set exeFiletypes {{{Executable Files} {}}}
       }
+      puts stderr "*** TimeTableConfiguration::createDialog: _Configuration(pdflatex) is '$_Configuration(pdflatex)'"
       set _PDFLaTeXFileEntry [FileEntry $frame.pdfLaTeXfile \
 		-labelwidth 21 \
 		-label "Path to pdflatex:" \

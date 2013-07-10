@@ -88,8 +88,8 @@ UniversalTest${EXEEXT}: UniversalTest.src $(UniversalTestSCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/UniversalTest.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap UniversalTest.kit
 	-rm -f  UniversalTest.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit UniversalTest \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d UniversalTest.vfs/lib \
+	        $(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit UniversalTest \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit UniversalTest \

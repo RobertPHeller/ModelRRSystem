@@ -118,8 +118,8 @@ CommonTests${EXEEXT}: CommonTests.tcl $(CommonScripts) DeepwoodsBanner.gif \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/CommonTests.tcl
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap CommonTests.kit
 	-rm -f CommonTests.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit CommonTests \
-		lib $(BWLIB)
+	$(UNZIP) -qq -d CommonTests.vfs/lib \
+	    $(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit CommonTests \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) CommonTests \

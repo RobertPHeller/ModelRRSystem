@@ -137,6 +137,8 @@ package require BWStdMenuBar
 package require HTMLHelp
 package require Splash
 
+#catch {console show}
+
 namespace eval TimeTable {
 
   variable ImageDir [file join [file dirname [file dirname [info script]]] \
