@@ -50,8 +50,11 @@
 
 # $Id$
 
-package require BWidget
-package require BWLabelSpinBox
+package require Tk
+package require tile
+package require Dialog
+package require LabelFrames
+package require HTMLHelp 2.0
 package require snit
 
 snit::type ManageOneTrainDialog {
@@ -72,32 +75,32 @@ snit::type ManageOneTrainDialog {
     set dialog {}
   }
   typemethod createDialog {} {
-    set dialog [Dialog::create .manageOneTrainDialog \
+    set dialog [Dialog .manageOneTrainDialog \
 	-bitmap questhead -default 0 \
 	-cancel 2 -modal local -transient yes -parent . \
 	-side bottom -title [_ "Train Management Dialog"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod  _OK]
-    $dialog add -name apply -text [_m "Button|Apply"] -command  [mytypemethod _Apply]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod  _OK]
+    $dialog add apply -text [_m "Button|Apply"] -command  [mytypemethod _Apply]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] \
-			-command  [list HTMLHelp::HTMLHelp help {Manage One Train Dialog}]
-    set frame [Dialog::getframe $dialog]
+    $dialog add help -text [_m "Button|Help"] \
+			-command  [list HTMLHelp help {Manage One Train Dialog}]
+    set frame [$dialog getframe]
     set lwidth [_mx "Label|Max Length:" "Label|Print Train?" \
 			"Label|Shift Number:"]
-    set printP [LabelFrame::create $frame.printP \
+    set printP [LabelFrame $frame.printP \
 		-text [_m "Label|Print Train?"] -width $lwidth]
     pack $printP -fill x
-    set ppframe [LabelFrame::getframe $printP]
+    set ppframe [$printP getframe]
     pack [radiobutton $ppframe.yes -text [_m "Answer|Yes"] -value 1 \
 	-variable [mytypevar printP_value]] -side left
     pack [radiobutton $ppframe.no -text [_m "Answer|No"] -value 0 \
 	-variable [mytypevar printP_value]] -side left
-    set maxLength [LabelSpinBox::create $frame.maxLength \
+    set maxLength [LabelSpinBox $frame.maxLength \
 				-label [_m "Label|Max Length:"] \
 				-labelwidth $lwidth -range {1 1000 1}]
     pack $maxLength -fill x
-    set shiftNo [LabelFrame::create $frame.shiftNo \
+    set shiftNo [LabelFrame $frame.shiftNo \
 			-text [_m "Label|Shift Number:"] -width $lwidth]
     pack $shiftNo -fill x
     set snframe [$shiftNo getframe]
@@ -137,16 +140,16 @@ snit::type ManageOneTrainDialog {
       $maxLength configure -text 1
     }
     wm transient [winfo toplevel $dialog] .
-    return [eval [list Dialog::draw $dialog]]
+    return [eval [list $dialog draw]]
   }
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [eval [list Dialog::enddialog $dialog] [list Cancel]]
+    $dialog withdraw
+    return [eval [list $dialog enddialog] [list Cancel]]
   }
   typemethod _OK {} {
     $type _Apply
-    Dialog::withdraw $dialog
-    return [eval [list Dialog::enddialog $dialog] [list OK]]
+    $dialog withdraw
+    return [eval [list $dialog enddialog] [list OK]]
   }
   typemethod _Apply {} {
     if {[llength [info commands TheSystem]] > 0 &&

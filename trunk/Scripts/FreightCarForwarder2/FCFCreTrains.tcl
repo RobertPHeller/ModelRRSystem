@@ -38,6 +38,13 @@
 
 # $Id$
 
+package require gettext
+package require Tk
+package require tile
+package require LabelFrames
+package require ScrollWindow
+package require ScrollableFrame
+
 namespace eval FCFCreTrains {
   variable TrainsPage
   variable TrainsPageFR
@@ -49,12 +56,13 @@ namespace eval FCFCreTrains {
 }
 
 proc FCFCreTrains::FCFCreTrains {notebook} {
-  variable TrainsPage [$notebook insert end trains \
-				-text [_m "Tab|Trains File"]]
-  set TrainsPageSW [ScrolledWindow::create $TrainsPage.sw \
+  variable TrainsPage [ttk::frame $notebook.trains]
+  $notebook insert end $TrainsPage \
+				-text [_m "Tab|Trains File"]
+  set TrainsPageSW [ScrolledWindow $TrainsPage.sw \
 				-auto vertical -scrollbar vertical]
   pack $TrainsPageSW -expand yes -fill both
-  variable TrainsPageFR  [ScrollableFrame::create $TrainsPageSW.fr \
+  variable TrainsPageFR  [ScrollableFrame $TrainsPageSW.fr \
 						-constrainedwidth yes]
   pack $TrainsPageFR -expand yes -fill both
   $TrainsPageSW setwidget $TrainsPageFR
@@ -63,71 +71,71 @@ proc FCFCreTrains::FCFCreTrains {notebook} {
   variable TrainsListFR [frame $frame.trainsListFR]
   pack $TrainsListFR -expand yes -fill both
   variable TrainsListIndex
-  grid [Label::create $TrainsListFR.numberHead -text {#}] \
+  grid [ttk::label $TrainsListFR.numberHead -text {#}] \
 	-row 0 -column 0 -sticky nw
-  grid [Label::create $TrainsListFR.commaAHead -text {,}] \
+  grid [ttk::label $TrainsListFR.commaAHead -text {,}] \
 	-row 0 -column 1 -sticky nw
-  grid [Label::create $TrainsListFR.typeHead -text [_m "Label|TYPE"]] \
+  grid [ttk::label $TrainsListFR.typeHead -text [_m "Label|TYPE"]] \
 	-row 0 -column 2 -sticky nw
-  grid [Label::create $TrainsListFR.commaBHead -text {,}] \
+  grid [ttk::label $TrainsListFR.commaBHead -text {,}] \
 	-row 0 -column 3 -sticky nw
-  grid [Label::create $TrainsListFR.shiftHead -text [_m "Label|SHIFT"]] \
+  grid [ttk::label $TrainsListFR.shiftHead -text [_m "Label|SHIFT"]] \
 	-row 0 -column 4 -sticky nw
-  grid [Label::create $TrainsListFR.commaCHead -text {,}] \
+  grid [ttk::label $TrainsListFR.commaCHead -text {,}] \
 	-row 0 -column 5 -sticky nw
-  grid [Label::create $TrainsListFR.doneHead -text [_m "Label|DONE"]] \
+  grid [ttk::label $TrainsListFR.doneHead -text [_m "Label|DONE"]] \
 	-row 0 -column 6 -sticky nw
-  grid [Label::create $TrainsListFR.commaDHead -text {,}] \
+  grid [ttk::label $TrainsListFR.commaDHead -text {,}] \
 	-row 0 -column 7 -sticky nw
-  grid [Label::create $TrainsListFR.nameHead -text [_m "Label|NAME"]] \
+  grid [ttk::label $TrainsListFR.nameHead -text [_m "Label|NAME"]] \
 	-row 0 -column 8 -sticky nw
-  grid [Label::create $TrainsListFR.commaEHead -text {,}] \
+  grid [ttk::label $TrainsListFR.commaEHead -text {,}] \
 	-row 0 -column 9 -sticky nw
-  grid [Label::create $TrainsListFR.maxcarsHead -text [_m "Label|MAXCARS"]] \
+  grid [ttk::label $TrainsListFR.maxcarsHead -text [_m "Label|MAXCARS"]] \
 	-row 0 -column 10 -sticky nw
-  grid [Label::create $TrainsListFR.commaFHead -text {,}] \
+  grid [ttk::label $TrainsListFR.commaFHead -text {,}] \
 	-row 0 -column 11 -sticky nw
-  grid [Label::create $TrainsListFR.divisionsHead -text [_m "Label|DIVISIONS"]] \
+  grid [ttk::label $TrainsListFR.divisionsHead -text [_m "Label|DIVISIONS"]] \
 	-row 0 -column 12 -sticky nw
-  grid [Label::create $TrainsListFR.commaGHead -text {,}] \
+  grid [ttk::label $TrainsListFR.commaGHead -text {,}] \
 	-row 0 -column 13 -sticky nw
-  grid [Label::create $TrainsListFR.stopsHead -text [_m "Label|STOPS"]] \
+  grid [ttk::label $TrainsListFR.stopsHead -text [_m "Label|STOPS"]] \
 	-row 0 -column 14 -sticky nws
   grid columnconfigure $TrainsListFR 14 -weight 1
 
-  grid [Label::create $TrainsListFR.padHead -text [_m "Label|PAD"]] \
+  grid [ttk::label $TrainsListFR.padHead -text [_m "Label|PAD"]] \
 	-row 1 -column 2 -sticky nw
-  grid [Label::create $TrainsListFR.commaIHead -text {,}] \
+  grid [ttk::label $TrainsListFR.commaIHead -text {,}] \
 	-row 1 -column 3 -sticky nw
-  grid [Label::create $TrainsListFR.ondutyHead -text [_m "Label|ONDUTY"]] \
+  grid [ttk::label $TrainsListFR.ondutyHead -text [_m "Label|ONDUTY"]] \
 	-row 1 -column 4 -sticky nw
-  grid [Label::create $TrainsListFR.commaJHead -text {,}] \
+  grid [ttk::label $TrainsListFR.commaJHead -text {,}] \
 	-row 1 -column 5 -sticky nw
-  grid [Label::create $TrainsListFR.printHead -text [_m "Label|PRINT"]] \
+  grid [ttk::label $TrainsListFR.printHead -text [_m "Label|PRINT"]] \
 	-row 1 -column 6 -sticky nw
-  grid [Label::create $TrainsListFR.commaKHead -text {,}] \
+  grid [ttk::label $TrainsListFR.commaKHead -text {,}] \
 	-row 1 -column 7 -sticky nw
-  grid [Label::create $TrainsListFR.mxclearHead -text [_m "Label|MXCLEAR"]] \
+  grid [ttk::label $TrainsListFR.mxclearHead -text [_m "Label|MXCLEAR"]] \
 	-row 1 -column 8 -sticky nw
-  grid [Label::create $TrainsListFR.commaLHead -text {,}] \
+  grid [ttk::label $TrainsListFR.commaLHead -text {,}] \
 	-row 1 -column 9 -sticky nw
-  grid [Label::create $TrainsListFR.mxweighHead -text [_m "Label|MXWEIGHT"]] \
+  grid [ttk::label $TrainsListFR.mxweighHead -text [_m "Label|MXWEIGHT"]] \
 	-row 1 -column 10 -sticky nw
-  grid [Label::create $TrainsListFR.commaMHead -text {,}] \
+  grid [ttk::label $TrainsListFR.commaMHead -text {,}] \
 	-row 1 -column 11 -sticky nw
-  grid [Label::create $TrainsListFR.typesHead -text [_m "Label|TYPES"]] \
+  grid [ttk::label $TrainsListFR.typesHead -text [_m "Label|TYPES"]] \
 	-row 1 -column 12 -sticky nws -columnspan 3
 
-  grid [Label::create $TrainsListFR.mxlenHead -text [_m "Label|MXLEN"]] \
+  grid [ttk::label $TrainsListFR.mxlenHead -text [_m "Label|MXLEN"]] \
 	-row 2 -column 2 -sticky nw
-  grid [Label::create $TrainsListFR.commaOHead -text {,}] \
+  grid [ttk::label $TrainsListFR.commaOHead -text {,}] \
 	-row 2 -column 3 -sticky nw
-  grid [Label::create $TrainsListFR.descHead -text [_m "Label|DESC"]] \
+  grid [ttk::label $TrainsListFR.descHead -text [_m "Label|DESC"]] \
 	-row 2 -column 4 -sticky nws -columnspan 11
-  grid [Label::create $TrainsListFR.deleteHead -text [_m "Label|Delete?"]] \
+  grid [ttk::label $TrainsListFR.deleteHead -text [_m "Label|Delete?"]] \
 	-row 2 -column 15 -sticky nw
 
-  pack [Button::create $frame.addTrain \
+  pack [ttk::button $frame.addTrain \
 			-text [_m "Button|Add Train"] \
 			-command FCFCreTrains::AddTrain] \
 	-anchor w
@@ -140,80 +148,80 @@ proc FCFCreTrains::AddTrain {} {
 
   set lastrow [lindex [grid size $TrainsListFR] 1]
 
-  grid [SpinBox::create $TrainsListFR.number$TrainsListIndex \
-				-range {1 1000 1} -width 4] \
+  grid [spinbox $TrainsListFR.number$TrainsListIndex \
+				-from 1 -to 1000 -increment 1 -width 4] \
 	-row $lastrow -column 0 -sticky nw
-  grid [Label::create $TrainsListFR.commaA$TrainsListIndex -text {,}] \
+  grid [ttk::label $TrainsListFR.commaA$TrainsListIndex -text {,}] \
 	-row $lastrow -column 1 -sticky nw
-  grid [ComboBox::create $TrainsListFR.type$TrainsListIndex -values {M W B} \
-						-editable no -width 2] \
+  grid [ttk::combobox $TrainsListFR.type$TrainsListIndex -values {M W B} \
+						-state readonly -width 2] \
 	-row $lastrow -column 2 -sticky nw
-  $TrainsListFR.type$TrainsListIndex setvalue first
-  grid [Label::create $TrainsListFR.commaB$TrainsListIndex -text {,}] \
+  $TrainsListFR.type$TrainsListIndex set [lindex [$TrainsListFR.type$TrainsListIndex cget -values] 0]
+  grid [ttk::label $TrainsListFR.commaB$TrainsListIndex -text {,}] \
 	-row $lastrow -column 3 -sticky nw
-  grid [ComboBox::create $TrainsListFR.shift$TrainsListIndex -values {1 2 3 0} \
-						-editable no -width 2] \
+  grid [ttk::combobox $TrainsListFR.shift$TrainsListIndex -values {1 2 3 0} \
+						-state readonly -width 2] \
 	-row $lastrow -column 4 -sticky nw
-  $TrainsListFR.shift$TrainsListIndex setvalue first
-  grid [Label::create $TrainsListFR.commaC$TrainsListIndex -text {,}] \
+  $TrainsListFR.shift$TrainsListIndex set [lindex [$TrainsListFR.shift$TrainsListIndex cget -values] 0]
+  grid [ttk::label $TrainsListFR.commaC$TrainsListIndex -text {,}] \
 	-row $lastrow -column 5 -sticky nw
-  grid [ComboBox::create $TrainsListFR.done$TrainsListIndex -values {N Y} \
-						-editable no -width 1] \
+  grid [ttk::combobox $TrainsListFR.done$TrainsListIndex -values {N Y} \
+						-state readonly -width 1] \
 	-row $lastrow -column 6 -sticky nw
-  $TrainsListFR.done$TrainsListIndex setvalue first
-  grid [Label::create $TrainsListFR.commaD$TrainsListIndex -text {,}] \
+  $TrainsListFR.done$TrainsListIndex set [lindex [$TrainsListFR.done$TrainsListIndex cget -values] 0]
+  grid [ttk::label $TrainsListFR.commaD$TrainsListIndex -text {,}] \
 	-row $lastrow -column 7 -sticky nw
-  grid [Entry::create $TrainsListFR.name$TrainsListIndex -width 6] \
+  grid [ttk::entry $TrainsListFR.name$TrainsListIndex -width 6] \
 	-row $lastrow -column 8 -sticky nw
-  grid [Label::create $TrainsListFR.commaE$TrainsListIndex -text {,}] \
+  grid [ttk::label $TrainsListFR.commaE$TrainsListIndex -text {,}] \
 	-row $lastrow -column 9 -sticky nw
-  grid [SpinBox::create $TrainsListFR.maxcars$TrainsListIndex \
-				-range {1 999 1} -width 3] \
+  grid [spinbox $TrainsListFR.maxcars$TrainsListIndex \
+				-from 1 -to 999 -increment 1 -width 3] \
 	-row $lastrow -column 10 -sticky nw
-  grid [Label::create $TrainsListFR.commaF$TrainsListIndex -text {,}] \
+  grid [ttk::label $TrainsListFR.commaF$TrainsListIndex -text {,}] \
 	-row $lastrow -column 11 -sticky nw
-  grid [Entry::create $TrainsListFR.divisions$TrainsListIndex -width 9] \
+  grid [ttk::entry $TrainsListFR.divisions$TrainsListIndex -width 9] \
 	-row $lastrow -column 12 -sticky nw
-  grid [Label::create $TrainsListFR.commaG$TrainsListIndex -text {,}] \
+  grid [ttk::label $TrainsListFR.commaG$TrainsListIndex -text {,}] \
 	-row $lastrow -column 13 -sticky nw
-  grid [Entry::create $TrainsListFR.stops$TrainsListIndex -text {}] \
+  grid [ttk::entry $TrainsListFR.stops$TrainsListIndex -text {}] \
 	-row $lastrow -column 14 -sticky new
 
-  grid [Label::create $TrainsListFR.pad$TrainsListIndex -text {0}] \
+  grid [ttk::label $TrainsListFR.pad$TrainsListIndex -text {0}] \
 	-row [expr {$lastrow + 1}] -column 2 -sticky nw
-  grid [Label::create $TrainsListFR.commaI$TrainsListIndex -text {,}] \
+  grid [ttk::label $TrainsListFR.commaI$TrainsListIndex -text {,}] \
 	-row [expr {$lastrow + 1}] -column 3 -sticky nw
-  grid [Entry::create $TrainsListFR.onduty$TrainsListIndex -width 4] \
+  grid [ttk::entry $TrainsListFR.onduty$TrainsListIndex -width 4] \
 	-row [expr {$lastrow + 1}] -column 4 -sticky nw
-  grid [Label::create $TrainsListFR.commaJ$TrainsListIndex -text {,}] \
+  grid [ttk::label $TrainsListFR.commaJ$TrainsListIndex -text {,}] \
 	-row [expr {$lastrow + 1}] -column 5 -sticky nw
-  grid [ComboBox::create $TrainsListFR.print$TrainsListIndex -values {N P} \
+  grid [ttk::combobox $TrainsListFR.print$TrainsListIndex -values {N P} \
 							-width 1] \
 	-row [expr {$lastrow + 1}] -column 6 -sticky nw
-  $TrainsListFR.print$TrainsListIndex setvalue first
-  grid [Label::create $TrainsListFR.commaK$TrainsListIndex -text {,}] \
+  $TrainsListFR.print$TrainsListIndex set [lindex [$TrainsListFR.print$TrainsListIndex cget -values] 0]
+  grid [ttk::label $TrainsListFR.commaK$TrainsListIndex -text {,}] \
 	-row [expr {$lastrow + 1}] -column 7 -sticky nw
-  grid [SpinBox::create $TrainsListFR.mxclear$TrainsListIndex -range {1 9 1} \
-						-width 1] \
+  grid [spinbox $TrainsListFR.mxclear$TrainsListIndex -from 1 -to 9 \
+        -increment 1 -width 1] \
 	-row [expr {$lastrow + 1}] -column 8 -sticky nw
-  grid [Label::create $TrainsListFR.commaL$TrainsListIndex -text {,}] \
+  grid [ttk::label $TrainsListFR.commaL$TrainsListIndex -text {,}] \
 	-row [expr {$lastrow + 1}] -column 9 -sticky nw
-  grid [SpinBox::create $TrainsListFR.mxweigh$TrainsListIndex -range {1 9 1} \
+  grid [spinbox $TrainsListFR.mxweigh$TrainsListIndex -from 1 -to 9 -increment 1 \
 						-width 1] \
 	-row [expr {$lastrow + 1}] -column 10 -sticky nw
-  grid [Label::create $TrainsListFR.commaM$TrainsListIndex -text {,}] \
+  grid [ttk::label $TrainsListFR.commaM$TrainsListIndex -text {,}] \
 	-row [expr {$lastrow + 1}] -column 11 -sticky nw
-  grid [Entry::create $TrainsListFR.types$TrainsListIndex -width 9] \
+  grid [ttk::entry $TrainsListFR.types$TrainsListIndex -width 9] \
 	-row [expr {$lastrow + 1}] -column 12 -sticky new -columnspan 3
 
-  grid [SpinBox::create $TrainsListFR.mxlen$TrainsListIndex \
-						-range {40 4000 40} -width 4] \
+  grid [spinbox $TrainsListFR.mxlen$TrainsListIndex \
+						-from 40 -to 4000 -increment 40 -width 4] \
 	-row [expr {$lastrow + 2}] -column 2 -sticky nw
-  grid [Label::create $TrainsListFR.commaO$TrainsListIndex -text {,}] \
+  grid [ttk::label $TrainsListFR.commaO$TrainsListIndex -text {,}] \
 	-row [expr {$lastrow + 2}] -column 3 -sticky nw
-  grid [Entry::create $TrainsListFR.desc$TrainsListIndex] \
+  grid [ttk::entry $TrainsListFR.desc$TrainsListIndex] \
 	-row [expr {$lastrow + 2}] -column 4 -sticky new -columnspan 11
-  grid [Button::create $TrainsListFR.delete$TrainsListIndex -text [_m "Button|Delete"] \
+  grid [ttk::button $TrainsListFR.delete$TrainsListIndex -text [_m "Button|Delete"] \
 			-command "FCFCreTrains::DeleteTrain $TrainsListIndex"] \
 	-row [expr {$lastrow + 2}] -column 15 -sticky nw
 

@@ -39,6 +39,13 @@
 
 # $Id$
 
+package require gettext
+package require Tk
+package require tile
+package require LabelFrames
+package require ScrollWindow
+package require ScrollableFrame
+
 namespace eval FCFCreOrders {
   variable OrdersPage
   variable OrdersPageFR
@@ -47,12 +54,12 @@ namespace eval FCFCreOrders {
 }
 
 proc FCFCreOrders::FCFCreOrders {notebook} {
-  variable OrdersPage [$notebook insert end orders \
-				-text [_m "Tab|Orders File"]]
-  set OrdersPageSW [ScrolledWindow::create $OrdersPage.sw \
+  variable OrdersPage [ttk::frame $notebook.orders]
+  $notebook insert end $OrdersPage -text [_m "Tab|Orders File"]
+  set OrdersPageSW [ScrolledWindow $OrdersPage.sw \
 				-auto vertical -scrollbar vertical]
   pack $OrdersPageSW -expand yes -fill both
-  variable OrdersPageFR  [ScrollableFrame::create $OrdersPageSW.fr \
+  variable OrdersPageFR  [ScrollableFrame $OrdersPageSW.fr \
 						-constrainedwidth yes]
   pack $OrdersPageFR -expand yes -fill both
   $OrdersPageSW setwidget $OrdersPageFR
@@ -61,17 +68,17 @@ proc FCFCreOrders::FCFCreOrders {notebook} {
   variable OrdersListFR [frame $frame.ordersListFR]
   pack $OrdersListFR -expand yes -fill both
   variable OrdersListIndex 0
-  grid [Label::create $OrdersListFR.trainHead -text [_m "Label|Train"]] \
+  grid [ttk::label $OrdersListFR.trainHead -text [_m "Label|Train"]] \
 	-row 0 -column 0 -sticky nw
   grid columnconfigure $OrdersListFR 0 -weight 1
-  grid [Label::create $OrdersListFR.commaAHead -text {,}] \
+  grid [ttk::label $OrdersListFR.commaAHead -text {,}] \
         -row 0 -column 1 -sticky nw
-  grid [Label::create $OrdersListFR.orderHead -text [_m "Label|Order"]] \
+  grid [ttk::label $OrdersListFR.orderHead -text [_m "Label|Order"]] \
 	-row 0 -column 2 -sticky nw
   grid columnconfigure $OrdersListFR 2 -weight 10
-  grid [Label::create $OrdersListFR.deleteHead -text [_m "Label|Delete?"]] \
+  grid [ttk::label $OrdersListFR.deleteHead -text [_m "Label|Delete?"]] \
 	-row 0 -column 3 -sticky nw
-  pack [Button::create $frame.addOrder -text [_m "Button|Add Order"] \
+  pack [ttk::button $frame.addOrder -text [_m "Button|Add Order"] \
 					-command FCFCreOrders::AddOrder] \
 	-anchor w
 }
@@ -81,13 +88,13 @@ proc FCFCreOrders::AddOrder {} {
   variable OrdersListIndex
 
   set lastrow [lindex [grid size $OrdersListFR] 1]
-  grid [Entry::create $OrdersListFR.train$OrdersListIndex -width 6] \
+  grid [ttk::entry $OrdersListFR.train$OrdersListIndex -width 6] \
 	-row $lastrow -column 0 -sticky new
-  grid [Label::create $OrdersListFR.commaA$OrdersListIndex -text {,}] \
+  grid [ttk::label $OrdersListFR.commaA$OrdersListIndex -text {,}] \
         -row $lastrow -column 1 -sticky nw
-  grid [Entry::create $OrdersListFR.order$OrdersListIndex] \
+  grid [ttk::entry $OrdersListFR.order$OrdersListIndex] \
 	-row $lastrow -column 2 -sticky new
-  grid [Button::create $OrdersListFR.delete$OrdersListIndex -text [_m "Button|Delete"]\
+  grid [ttk::button $OrdersListFR.delete$OrdersListIndex -text [_m "Button|Delete"]\
 			-command "FCFCreOrders::DeleteOrder $OrdersListIndex"] \
 	-row $lastrow -column 3 -sticky nw
   incr OrdersListIndex  

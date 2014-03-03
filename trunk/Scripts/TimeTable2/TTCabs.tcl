@@ -51,7 +51,14 @@ namespace eval TimeTable {}
 
 catch {TimeTable::SplashWorkMessage [_ "Loading Cab Code"] 66}
 
+package require gettext
+package require Tk
+package require tile
 package require snit
+package require Dialog
+package require LabelFrames
+package require ScrollWindow
+package require ListBox
 
 snit::type TimeTable::createAllCabsDialog {
   pragma -hastypedestroy no
@@ -67,68 +74,70 @@ snit::type TimeTable::createAllCabsDialog {
   typemethod createDialog {} {
     if {![string equal "$_MainDialog" {}] && 
 	[winfo exists $_MainDialog]} {return}
-    set _MainDialog [Dialog::create .createAllCabsDialog \
+    set _MainDialog [Dialog .createAllCabsDialog \
 			-bitmap questhead \
 			-title [_ "Create All Cabs"] \
 			-modal local \
 			-transient yes \
 			-default 0 -cancel 1 \
 			-parent . -side bottom]
-    $_MainDialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
-    $_MainDialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $_MainDialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $_MainDialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $_MainDialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $_MainDialog add -name help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Create All Cabs Dialog}]
+    $_MainDialog add help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Create All Cabs Dialog}]
     set frame [$_MainDialog getframe]
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
-    frame $headerframe -relief ridge -bd 5
+    ttk::frame $headerframe -relief ridge -borderwidth 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text {Create All Cabs}
     pack  $headerlabel -side right -anchor w -expand yes -fill x
-    set clScrollerFrame [LabelFrame::create $frame.clScrollerFrame \
-			-text [_m "Label|Cabs:"] -side top]
+    set clScrollerFrame [ttk::labelframe $frame.clScrollerFrame \
+			-text [_m "Label|Cabs:"] -labelanchor n]
     pack $clScrollerFrame -expand yes -fill both
-    set clScroller [ScrolledWindow::create \
-			[$clScrollerFrame getframe].clScroller \
+    set clScroller [ScrolledWindow \
+			$clScrollerFrame.clScroller \
 			-auto both -scrollbar both]
     pack $clScroller -expand yes -fill both
-    set _CabList [ListBox::create $clScroller.cabs]
+    set _CabList [ListBox $clScroller.cabs]
     pack $_CabList -expand yes -fill both
     $clScroller setwidget $_CabList
-    set add1CabFrame [LabelFrame::create $frame.add1CabFrame \
-				-text [_m "Label|Add Cab:"] -side top]
+    set add1CabFrame [ttk::labelframe $frame.add1CabFrame \
+				-text [_m "Label|Add Cab:"] -labelanchor n]
     pack $add1CabFrame -fill x
-    set _AddOneCab [$add1CabFrame getframe]
+    set _AddOneCab $add1CabFrame
     set lwidth [_mx "Label|Name:" "Label|Color:"]
-    pack [LabelEntry::create $_AddOneCab.name \
+    pack [LabelEntry $_AddOneCab.name \
 			-label [_m "Label|Name:"] -labelwidth $lwidth] -fill x
     $_AddOneCab.name bind <Return> "[list $_AddOneCab.addit invoke];break"
-    pack [LabelFrame::create $_AddOneCab.color \
+    pack [LabelFrame $_AddOneCab.color \
 			-text [_m "Label|Color:"] -width $lwidth] -fill x
     set f [$_AddOneCab.color getframe]
-    pack [Entry::create $f.e -text black] -expand yes -fill x -side left
+    pack [ttk::entry $f.e] -expand yes -fill x -side left
+    $f.e insert end black
     bind $f.e <Return> "[list $_AddOneCab.addit invoke];break"
-    pack [Button::create $f.b -text [_m "Button|Select"] \
+    pack [ttk::button $f.b -text [_m "Button|Select"] \
 			      -command [mytypemethod _SelectCabColor]] \
 	 -side right
-    pack [Button::create $_AddOneCab.addit \
+    pack [ttk::button $_AddOneCab.addit \
 			-text [_m "Button|Add"] -command [mytypemethod _AddOneCab]] \
 			-fill x
-    BWidget::focus set $_AddOneCab.name
+    focus -force $_AddOneCab.name
   }
   typemethod _SelectCabColor {} {
-    set newcolor [SelectColor $_AddOneCab.color.selectColor \
-			-color [[$_AddOneCab.color getframe].e cget -text]]
+    set newcolor [tk_chooseColor \
+                  -initialcolor [[$_AddOneCab.color getframe].e get]]
     if {[string equal "$newcolor" {}]} {return}
-    [$_AddOneCab.color getframe].e configure -text "$newcolor"
+    [$_AddOneCab.color getframe].e delete 0 end
+    [$_AddOneCab.color getframe].e insert end "$newcolor"
   }
   typemethod _AddOneCab {} {
     set name [$_AddOneCab.name cget -text]
-    set color [[$_AddOneCab.color getframe].e cget -text]
+    set color [[$_AddOneCab.color getframe].e get]
     if {[string equal "$name" {}] || [string equal "$color" {}]} {return}
     foreach e [$_CabList items] {
       set edata [$_CabList itemcget $e -data]
@@ -154,9 +163,10 @@ snit::type TimeTable::createAllCabsDialog {
     $type createDialog
     $_CabList delete [$_CabList items]
     $_AddOneCab.name configure -text {}
-    [$_AddOneCab.color getframe].e configure -text black
+    [$_AddOneCab.color getframe].e delete 0 end
+    [$_AddOneCab.color getframe].e insert end black
     wm transient [winfo toplevel $_MainDialog] [$_MainDialog cget -parent]
-    return [Dialog::draw $_MainDialog]
+    return [$_MainDialog draw]
   }
   typevariable _CabListing
   typemethod _OK {} {
@@ -164,13 +174,13 @@ snit::type TimeTable::createAllCabsDialog {
     foreach e [$_CabList items] {
       lappend _CabListing [$_CabList itemcget $e -data]
     }
-    Dialog::withdraw $_MainDialog
-    return [Dialog::enddialog $_MainDialog ok]
+    $_MainDialog withdraw
+    return [$_MainDialog enddialog ok]
   }
   typemethod _Cancel {} {
     set _CabListing {}
-    Dialog::withdraw $_MainDialog
-    return [Dialog::enddialog $_MainDialog cancel]
+    $_MainDialog withdraw
+    return [$_MainDialog enddialog cancel]
   }
   typemethod cablist {} {
     return $_CabListing
@@ -183,10 +193,10 @@ proc TimeTable::CreateAllCabs {} {
   switch -exact $what {
     ok {
       set cabs [createAllCabsDialog cablist]
-#      puts stderr "*** CreateAllCabs: cabs = $cabs"
+      puts stderr "*** CreateAllCabs: cabs = $cabs"
       foreach cab $cabs {
 	foreach {name color} $cab {
-#	  puts stderr "*** CreateAllCabs: name = $name, color = $color"
+	  puts stderr "*** CreateAllCabs: name = $name, color = $color"
 	  TimeTable AddCab "$name" "$color"
 	}
       }
@@ -211,63 +221,65 @@ snit::type TimeTable::addCabDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .addCabDialog \
+    set dialog [Dialog .addCabDialog \
 			-bitmap questhead \
 			-title [_ "Add A Cab"] \
 			-modal local \
 			-transient yes \
 			-default 0 -cancel 1 \
 			-parent . -side bottom]
-    $dialog add -name ok -text [_m "Button|OK|"] -command [mytypemethod _OK]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Add Cab Dialog}]
+    $dialog add help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Add Cab Dialog}]
     set frame [$dialog getframe]
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
-    frame $headerframe -relief ridge -bd 5
+    frame $headerframe -relief ridge -borderwidth 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "Add a Cab"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
     set lwidth [_mx "Label|Name:" "Label|Color:"]
-    set name [LabelEntry::create $frame.name -label [_m "Label|Name:"] -labelwidth $lwidth]
+    set name [LabelEntry $frame.name -label [_m "Label|Name:"] -labelwidth $lwidth]
     pack $name -fill x
-    pack [LabelFrame::create [set color $frame.color] \
+    pack [LabelFrame [set color $frame.color] \
 			-text [_m "Label|Color:"] -width $lwidth] -fill x
     set f [$color getframe]
-    pack [Entry::create $f.e -text black] -expand yes -fill x -side left
-    pack [Button::create $f.b -text [_m "Button|Select"] \
+    pack [ttk::entry $f.e] -expand yes -fill x -side left
+    $f.e insert end black
+    pack [ttk::button $f.b -text [_m "Button|Select"] \
 			      -command [mytypemethod _SelectCabColor]] \
 	 -side right
   }
   typemethod _SelectCabColor {} {
-    set newcolor [SelectColor $color.selectColor \
-			-color [[$color getframe].e cget -text]]
+    set newcolor [tk_chooseColor \
+			-initialcolor [[$color getframe].e get]]
     if {[string equal "$newcolor" {}]} {return}
-    [$color getframe].e configure -text "$newcolor"
+    [$color getframe].e delete 0 end
+    [$color getframe].e insert end "$newcolor"
   }
   typevariable _Name {}
   typevariable _Color {}
   typemethod _OK {} {
     set _Name "[$name cget -text]"
-    set _Color "[[$color getframe].e cget -text]"
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog ok]
+    set _Color "[[$color getframe].e get]"
+    $dialog withdraw
+    return [$dialog enddialog ok]
   }
   typemethod _Cancel {} {
     set _Name {}
     set _Color {}
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog cancel]
+    $dialog withdraw
+    return [$dialog enddialog cancel]
   }
   typemethod draw {args} {
     $type createDialog
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [Dialog::draw $dialog]
+    return [$dialog draw]
   }
   typemethod getname {} {
     return "$_Name"
@@ -300,9 +312,11 @@ catch {
 $TimeTable::Main menu add cabs command -label [_m "Menu|Cabs|Add A Cab"] \
 			      -command TimeTable::AddCab \
 			      -dynamichelp [_ "Add a cab"]
-$TimeTable::Main buttons add -name addACab -text [_m "Button|Add A Cab"] -anchor w \
-			      -command TimeTable::AddCab \
-			      -helptext [_ "Add a cab"] -state disabled
+$TimeTable::Main buttons add ttk::button addACab \
+      -text [_m "Button|Add A Cab"] \
+      -command TimeTable::AddCab \
+      -state disabled
+#      -helptext [_ "Add a cab"] 
 image create photo AddCabImage \
 			-file [file join $TimeTable::ImageDir addcab.gif]
 $TimeTable::Main toolbar addbutton tools addACab \

@@ -42,7 +42,11 @@
 package require gettext
 package require Tk
 package require snit
-package require BWidget
+package require tile
+package require Dialog
+package require LabelFrames
+package require HTMLHelp 2.0
+
 
 namespace eval CameraPrintDialog {
   snit::type PrintCanvasDialog {
@@ -86,117 +90,117 @@ namespace eval CameraPrintDialog {
     }
     typemethod createDialog {} {
       if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-      set dialog [Dialog::create .printCanvasDialog \
-			-class PrintCanvasDialog -bitmap questhead -default 0 \
-			-cancel 1 -modal local -parent . \
+      set dialog [Dialog .printCanvasDialog \
+			-class PrintCanvasDialog -bitmap questhead -default print \
+			-cancel cancel -modal local -parent . \
 			-side bottom -title [_ "Print Canvas"]]
-      $dialog add -name print -text [_m "Button|Print"] -command [mytypemethod _Print]
-      $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
-      $dialog add -name help -text [_m "Button|Help"] -command [list BWHelp::HelpTopic PrintCanvasDialog]
+      $dialog add print -text [_m "Button|Print"] -command [mytypemethod _Print]
+      $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+      $dialog add help -text [_m "Button|Help"] -command [list HTMLHelp help PrintCanvasDialog]
       set frame [$dialog getframe]
       set formLabel $frame.formLabel
-      pack [Label::create $formLabel -font {Helvetica -24 bold roman} \
+      pack [ttk::label $formLabel -font {Helvetica -24 bold roman} \
 				     -text [_ "Print Lens Diagram"]] -fill x
       set deviceSelect $frame.deviceSelect
-      pack [LabelFrame::create $deviceSelect -text [_m "Label|Print Device"] -side top \
+      pack [ttk::labelframe $deviceSelect -text [_m "Label|Print Device"] -labelanchor nw \
       					     -relief ridge -borderwidth 2] \
 	-expand yes -fill x
       pack $deviceSelect -expand yes -fill x
       set plw 8
-      set prframe [$deviceSelect getframe].prframe
-      pack [frame $prframe -borderwidth 0] -expand yes -fill x
+      set prframe $deviceSelect.prframe
+      pack [ttk::frame $prframe -borderwidth 0] -expand yes -fill x
       set rb1 $prframe.rb1
-      pack [radiobutton $rb1 -text [_m "Label|Printer:"] -width $plw -anchor w \
+      pack [ttk::radiobutton $rb1 -text [_m "Label|Printer:"] -width $plw \
 			     -value Printer \
 			     -command [mytypemethod _TogglePrintDev] \
 			     -variable [mytypevar _PrintCanvasOutputDevice]] \
 	-side left -expand yes -fill x
       set printE $prframe.entry
-      pack [Entry::create $printE] -side left -fill x
+      pack [ttk::entry $printE] -side left -fill x
       set printB $prframe.button
-      pack [Button::create $printB -text [_m "Button|Browse"] \
+      pack [ttk::button $printB -text [_m "Button|Browse"] \
 				   -command [mytypemethod _BrowsePrinters]] \
 		-side right
 
-      set fiframe [$deviceSelect getframe].f1frame
-      pack [frame $fiframe -borderwidth 0] -expand yes -fill x
+      set fiframe $deviceSelect.f1frame
+      pack [ttk::frame $fiframe -borderwidth 0] -expand yes -fill x
       set rb2 $fiframe.rb2
-      pack [radiobutton $rb2 -text [_m "Label|File:"] -width $plw -anchor w \
+      pack [ttk::radiobutton $rb2 -text [_m "Label|File:"] -width $plw  \
 			     -value File \
 			     -command [mytypemethod _TogglePrintDev] \
 			     -variable [mytypevar _PrintCanvasOutputDevice]] \
 	-side left -expand yes -fill x
       set fileE $fiframe.entry
-      pack [Entry::create $fileE -state disabled] -side left -fill x
+      pack [ttk::entry $fileE -state disabled] -side left -fill x
       set fileB $fiframe.button
-      pack [Button::create $fileB -text [_m "Button|Browse"] \
+      pack [ttk::button $fileB -text [_m "Button|Browse"] \
 				  -command [mytypemethod _BrowsePSFiles] \
 				  -state disabled] -side right
 
       set colorMode $frame.colorMode
-      LabelFrame::create $colorMode -text [_m "Label|Color Mode"] -side top \
+      ttk::labelframe $colorMode -text [_m "Label|Color Mode"] -labelanchor nw \
 				    -relief ridge -borderwidth 2
       pack $colorMode -expand yes -fill x
-      set cmFrame [$colorMode getframe] 
+      set cmFrame $colorMode
       set colormodeCB $cmFrame.comboBox
-      ComboBox::create $colormodeCB -values {color gray mono} -editable no
+      ttk::combobox $colormodeCB -values {color gray mono} -state readonly
       pack $colormodeCB -fill x
-      $colormodeCB setvalue first
+      $colormodeCB set color
 
       set canvasPos $frame.canvasPos
-      LabelFrame::create $canvasPos -text [_m "Label|Canvas Position"] -side top \
+      ttk::labelframe $canvasPos -text [_m "Label|Canvas Position"] -labelanchor nw \
 				    -relief ridge -borderwidth 2
       pack $canvasPos -expand yes -fill x
-      set cpFrame [$canvasPos getframe]
+      set cpFrame $canvasPos
       set canvasXLF $cpFrame.xLF
-      pack [LabelFrame::create $canvasXLF -text X:] -side left -fill x
+      pack [LabelFrame $canvasXLF -text X:] -side left -fill x
       set canvasXSB [$canvasXLF getframe].spinBox
-      pack [SpinBox::create $canvasXSB -range {-1000.0 1000.0 1} -width 5] -fill x
+      pack [spinbox $canvasXSB -from -1000.0 -to 1000.0 -increment 1 -width 5] -fill x
       set canvasYLF $cpFrame.yLF
-      pack [LabelFrame::create $canvasYLF -text Y:] -side left -fill x
+      pack [LabelFrame $canvasYLF -text Y:] -side left -fill x
       set canvasYSB [$canvasYLF getframe].spinBox
-      pack [SpinBox::create $canvasYSB -range {-1000.0 1000.0 1} -width 5] -fill x
+      pack [spinbox $canvasYSB -from -1000.0 -to 1000.0 -increment 1 -width 5] -fill x
       set canvasWidthLF $cpFrame.widthLF
-      pack [LabelFrame::create $canvasWidthLF -text [_m "Label|Width:"]] -side left -fill x
+      pack [LabelFrame $canvasWidthLF -text [_m "Label|Width:"]] -side left -fill x
       set canvasWidthSB [$canvasWidthLF getframe].spinBox
-      pack [SpinBox::create $canvasWidthSB -range {1 1000 1} -width 5] -fill x
+      pack [spinbox $canvasWidthSB -from 1 -to 1000 -increment 1 -width 5] -fill x
       set canvasHeightLF $cpFrame.heightLF
-      pack [LabelFrame::create $canvasHeightLF -text [_m "Label|Height:"]] -side left -fill x
+      pack [LabelFrame $canvasHeightLF -text [_m "Label|Height:"]] -side left -fill x
       set canvasHeightSB [$canvasHeightLF getframe].spinBox
-      pack [SpinBox::create $canvasHeightSB -range {1 1000 1} -width 5] -fill x
+      pack [spinbox $canvasHeightSB -from 1 -to 1000 -increment 1 -width 5] -fill x
 
       set pagePos $frame.pagePos
-      LabelFrame::create $pagePos -text "Page Position" -side top \
+      ttk::labelframe $pagePos -text "Page Position" -labelanchor nw \
                                     -relief ridge -borderwidth 2
       pack $pagePos -expand yes -fill x
-      set ppFrame [$pagePos getframe]
+      set ppFrame $pagePos
       set anchoringFrame $ppFrame.anchoring
-      pack [frame $anchoringFrame -borderwidth 0] -fill x -expand yes
-      grid [radiobutton $anchoringFrame.nw -text NW -value nw \
+      pack [ttk::frame $anchoringFrame -borderwidth 0] -fill x -expand yes
+      grid [ttk::radiobutton $anchoringFrame.nw -text NW -value nw \
 			-variable [mytypevar _PrintCanvasAnchor]] \
 		-row 0 -column 0 -sticky news
-      grid [radiobutton $anchoringFrame.n -text N -value n \
+      grid [ttk::radiobutton $anchoringFrame.n -text N -value n \
 			-variable [mytypevar _PrintCanvasAnchor]] \
 		-row 0 -column 1 -sticky news
-      grid [radiobutton $anchoringFrame.ne -text NE -value ne \
+      grid [ttk::radiobutton $anchoringFrame.ne -text NE -value ne \
 			-variable [mytypevar _PrintCanvasAnchor]] \
 		-row 0 -column 2 -sticky news
-      grid [radiobutton $anchoringFrame.w -text W -value w \
+      grid [ttk::radiobutton $anchoringFrame.w -text W -value w \
 			-variable [mytypevar _PrintCanvasAnchor]] \
 		-row 1 -column 0 -sticky news
-      grid [radiobutton $anchoringFrame.center -text C -value center \
+      grid [ttk::radiobutton $anchoringFrame.center -text C -value center \
 			-variable [mytypevar _PrintCanvasAnchor]] \
 		-row 1 -column 1 -sticky news
-      grid [radiobutton $anchoringFrame.e -text E -value e \
+      grid [ttk::radiobutton $anchoringFrame.e -text E -value e \
 			-variable [mytypevar _PrintCanvasAnchor]] \
 		-row 1 -column 2 -sticky news
-      grid [radiobutton $anchoringFrame.sw -text SW -value sw \
+      grid [ttk::radiobutton $anchoringFrame.sw -text SW -value sw \
 			-variable [mytypevar _PrintCanvasAnchor]] \
 		-row 2 -column 0 -sticky news
-      grid [radiobutton $anchoringFrame.s -text S -value s \
+      grid [ttk::radiobutton $anchoringFrame.s -text S -value s \
 			-variable [mytypevar _PrintCanvasAnchor]] \
 		-row 2 -column 1 -sticky news
-      grid [radiobutton $anchoringFrame.se -text SE -value se \
+      grid [ttk::radiobutton $anchoringFrame.se -text SE -value se \
 			-variable [mytypevar _PrintCanvasAnchor]] \
 		-row 2 -column 2 -sticky news
       grid rowconfigure $anchoringFrame 0 -uniform
@@ -207,42 +211,42 @@ namespace eval CameraPrintDialog {
       grid columnconfigure $anchoringFrame 2 -uniform
 
       set posFrame       $ppFrame.pos
-      pack [frame $posFrame -borderwidth 0] -fill x -expand yes
+      pack [ttk::frame $posFrame -borderwidth 0] -fill x -expand yes
       set pageXLF $posFrame.xLF
-      pack [LabelFrame::create $pageXLF -text X:] -side left -fill x
+      pack [LabelFrame $pageXLF -text X:] -side left -fill x
       set pageXSB [$pageXLF getframe].spinBox
-      pack [SpinBox::create $pageXSB -range {0.0 612.0 1} -width 5] -fill x
+      pack [spinbox $pageXSB -from 0.0 -to 612.0 -increment 1 -width 5] -fill x
       $pageXSB configure -text 36.0
       set pageYLF $posFrame.yLF
-      pack [LabelFrame::create $pageYLF -text Y:] -side left -fill x
+      pack [LabelFrame $pageYLF -text Y:] -side left -fill x
       set pageYSB [$pageYLF getframe].spinBox
-      pack [SpinBox::create $pageYSB -range {0.0 792.0 1} -width 5] -fill x
+      pack [spinbox $pageYSB -from 0.0 -to 792.0 -increment 1 -width 5] -fill x
       $pageYSB configure -text 36.0
       set pageWidthLF $posFrame.widthLF
-      pack [LabelFrame::create $pageWidthLF -text [_m "Label|Width:"]] -side left -fill x
+      pack [LabelFrame $pageWidthLF -text [_m "Label|Width:"]] -side left -fill x
       set pageWidthSB [$pageWidthLF getframe].spinBox
-      pack [SpinBox::create $pageWidthSB -range {1 612 1} -width 5 -text 612] -fill x
+      pack [spinbox $pageWidthSB -from 1 -to 612 -increment 1 -width 5 -text 612] -fill x
       $pageWidthSB configure -text [expr {612 - 72}]
       set pageHeightLF $posFrame.heightLF
-      pack [LabelFrame::create $pageHeightLF -text [_m "Label|Height:"]] -side left -fill x
+      pack [LabelFrame $pageHeightLF -text [_m "Label|Height:"]] -side left -fill x
       set pageHeightSB [$pageHeightLF getframe].spinBox
-      pack [SpinBox::create $pageHeightSB -range {1 792 1} -width 5 -text 792] -fill x
+      pack [spinbox $pageHeightSB -from 1 -to 792 -increment 1 -width 5 -text 792] -fill x
       $pageHeightSB configure -text [expr {792 - 72}]
     }
     typemethod createPrbDialog {} {
       if {![string equal "$prbdialog" {}] && [winfo exists $prbdialog]} {return}
-      set prbdialog [Dialog::create $dialog.browsePrintersDialog \
+      set prbdialog [Dialog $dialog.browsePrintersDialog \
 			-class BrowsePrintersDialog -bitmap questhead \
-			-default 0 -cancel 1 -modal local -parent $dialog \
+			-default ok -cancel cancel -modal local -parent $dialog \
 			-side bottom -title [_ "Select Printer"]]
-      $prbdialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _SelectPrinter]
-      $prbdialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _CancelBrowsePrinters]
-      $prbdialog add -name help -text [_m "Button|Help"] -command [list BWHelp::HelpTopic BrowsePrintersDialog]
+      $prbdialog add ok -text [_m "Button|OK"] -command [mytypemethod _SelectPrinter]
+      $prbdialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _CancelBrowsePrinters]
+      $prbdialog add help -text [_m "Button|Help"] -command [list HTMLHelp HelpTopic BrowsePrintersDialog]
       set frame [$prbdialog getframe]
       set printerLF $frame.printerLF
-      pack [LabelFrame::create $printerLF -text [_ "Printer:"]] -fill x
+      pack [LabelFrame $printerLF -text [_ "Printer:"]] -fill x
       set printerCB [$printerLF getframe].printerCB
-      pack [ComboBox::create $printerCB -editable no] -fill x
+      pack [ttk::combobox $printerCB -state readonly] -fill x
 
     }
     typemethod _SelectPrinter {} {
@@ -353,18 +357,22 @@ namespace eval CameraPrintDialog {
       set minY [lindex $sr 1]
       set maxY [lindex $sr 3]
       set maxHeight [expr {$maxY - $minY + 1}]
-      $canvasXSB configure -range [list $minX $maxX 1.0] -text $minX
-      $canvasYSB configure -range [list $minY $maxY 1.0] -text $minY
-      $canvasWidthSB configure -range [list 1 $maxWidth 1] -text $maxWidth
-      $canvasHeightSB configure -range [list 1 $maxHeight 1] -text $maxHeight
+      $canvasXSB configure -from $minX -to $maxX -increment 1.0
+      $canvasXSB set $minX
+      $canvasYSB configure -from $minY -to $maxY -increment 1.0
+      $canvasYSB set $minY
+      $canvasWidthSB configure -from 1 -to $maxWidth -increment 1
+      $canvasWidthSB set $maxWidth
+      $canvasHeightSB configure -from 1 -to $maxHeight -increment 1
+      $canvasHeightSB set $maxHeight
       set parent [from args -parent .]
       $dialog configure -parent $parent
       wm transient [winfo toplevel $dialog] $parent
-      return [Dialog::draw $dialog]
+      return [$dialog draw]
     }
     typemethod _Print {} {
-      Dialog::withdraw $dialog
-      set result [Dialog::enddialog $dialog print]
+      $dialog withdraw
+      set result [$dialog enddialog print]
       global tcl_platform
       switch $_PrintCanvasOutputDevice {
 	Printer {
@@ -407,8 +415,8 @@ namespace eval CameraPrintDialog {
       return $result
     }
     typemethod _Cancel {} {
-      Dialog::withdraw $dialog
-      return [Dialog::enddialog $dialog cancel]
+      $dialog withdraw
+      return [$dialog enddialog cancel]
     }
   }
 

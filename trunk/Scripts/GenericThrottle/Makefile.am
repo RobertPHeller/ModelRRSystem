@@ -60,15 +60,23 @@ GTLibFiles = $(GTScripts) $(GIFS)
 
 GTCommon = Common
 GTCommonFiles = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif \
-	$(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl \
-	$(top_srcdir)/Scripts/Common/CabWidgets.tcl \
-	$(top_srcdir)/Scripts/Common/labelcombobox.tcl \
-	$(top_srcdir)/Scripts/Common/labelspinbox.tcl \
+	$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+	$(top_srcdir)/Scripts/Common/snitCabWidgets.tcl \
+	$(top_srcdir)/Scripts/Common/snitLFs.tcl \
 	$(top_srcdir)/Scripts/Common/gettext.tcl \
-	$(top_srcdir)/Scripts/Common/HTMLHelp.tcl \
+	$(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
 	$(top_srcdir)/Scripts/Common/mainwindow.tcl \
 	$(top_srcdir)/Scripts/Common/splash.tcl \
-	$(top_srcdir)/Scripts/Common/panedw.tcl \
+	$(top_srcdir)/Scripts/Common/snitdialog.tcl \
+	$(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+	$(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+	$(top_srcdir)/Scripts/Common/questhead.xbm \
+	$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+	$(top_srcdir)/Scripts/Common/unknown.xpm \
+	$(top_srcdir)/Scripts/Common/openfold.png \
+	$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+	$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+	$(top_srcdir)/Scripts/Common/snitpagesmanager.tcl \
 	$(top_builddir)/Scripts/Common/Version.tcl
 
 CXXSupport = GTSupport
@@ -79,11 +87,11 @@ TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 BUILT_SOURCES = $(TCLKIT)
 
 GenericThrottle.pot: GenericThrottle.src $(GTScripts) \
-		$(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl
+		$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m -L Tcl \
 		$(addprefix $(subdir)/,GenericThrottle.src $(GTScripts)) \
-		Scripts/Common/BWStdMenuBar.tcl|\
+		Scripts/Common/snitStdMenuBar.tcl|\
 	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
 	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
 	    -e 's/FIRST AUTHOR <EMAIL@ADDRESS>,/Robert Heller <heller@deepsoft.com>/g' \
@@ -98,8 +106,6 @@ GenericThrottle$(EXEEXT) : GenericThrottle.src $(GTLibFiles) $(GTCommonFiles) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/GenericThrottle.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap GenericThrottle.kit
 	-rm -rf GenericThrottle.kit
-	$(UNZIP) -qq -d GenericThrottle.vfs/lib \
-		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit GenericThrottle \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) GenericThrottle \

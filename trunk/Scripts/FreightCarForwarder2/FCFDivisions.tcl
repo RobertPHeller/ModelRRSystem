@@ -56,7 +56,12 @@
 package require gettext
 package require snit
 package require Tk
-package require BWidget
+package require tile
+package require Dialog
+package require ScrollWindow
+package require ListBox
+package require HTMLHelp 2.0
+package require LabelFrames
 
 SplashWorkMessage [_ "Loading Division code"] 40
 
@@ -75,24 +80,24 @@ snit::type SelectADivisionDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .selectADivisionDialog \
+    set dialog [Dialog .selectADivisionDialog \
 		-bitmap questhead -default 0 \
 		-cancel 1 -modal local -transient yes -parent . \
 		-side bottom -title [_ "Select A Division"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] \
-			-command [list HTMLHelp::HTMLHelp help {Select A Division Dialog}]
-    set frame [Dialog::getframe $dialog]
-    set dlist [ScrolledWindow::create $dialog.dlist -scrollbar both -auto both]
+    $dialog add help -text [_m "Button|Help"] \
+			-command [list HTMLHelp help {Select A Division Dialog}]
+    set frame [$dialog getframe]
+    set dlist [ScrolledWindow $dialog.dlist -scrollbar both -auto both]
     pack $dlist -expand yes -fill both
-    set dlistlist [ListBox::create $dlist.list -selectmode single]
+    set dlistlist [ListBox $dlist.list -selectmode single]
     pack $dlistlist -expand yes -fill both
     $dlist setwidget $dlistlist
     $dlistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $dlistlist bindText <Double-1> [mytypemethod _SelectFromList]
-    set selent [LabelEntry::create $frame.selent \
+    set selent [LabelEntry $frame.selent \
 			-label [_m "Division Symbol Selection:"]]
     pack $selent -fill x
     $selent bind <Return> [mytypemethod _OK]
@@ -102,13 +107,13 @@ snit::type SelectADivisionDialog {
     $type createDialog
     $dialog configure -title [from args -title [_ "Select A Division"]]
     $type _fillList
-    BWidget::focus $selent 1
+    focus -force $selent
     wm transient [winfo toplevel $dialog] .
-    return [eval [list Dialog::draw $dialog]]
+    return [eval [list $dialog draw]]
   }
   typemethod _Cancel {} {
-    eval [list Dialog::withdraw $dialog]]
-    return [eval [list Dialog::enddialog $dialog] [list {NULL}]]
+    eval [list $dialog withdraw]]
+    return [eval [list $dialog enddialog] [list {NULL}]]
   }
   typemethod _OK {} {
     set selectedDivisionSymbol "[$selent cget -text]"
@@ -117,8 +122,8 @@ snit::type SelectADivisionDialog {
       tk_messageBox -icon warning -type ok -message [_ "No such division symbol %s" $data(selectedDivision)]
       return
     }
-    eval [list Dialog::withdraw $dialog]
-    return [eval [list Dialog::enddialog $dialog] [list "$selectedDivision"]]
+    eval [list $dialog withdraw]
+    return [eval [list $dialog enddialog] [list "$selectedDivision"]]
   }
   typemethod _SelectFromList { selectedItem } {
     set lb $dlistlist
@@ -129,8 +134,8 @@ snit::type SelectADivisionDialog {
       tk_messageBox -icon warning -type ok -message [_ "No such division symbol %s" $data(selectedDivision)]
       return
     }
-    eval [list Dialog::withdraw $dialog]
-    return [eval [list Dialog::enddialog $dialog] [list "$selectedDivision"]]
+    eval [list $dialog withdraw]
+    return [eval [list $dialog enddialog] [list "$selectedDivision"]]
   }
   typemethod _BrowseFromList { selectedItem } {
     set lb $dlistlist

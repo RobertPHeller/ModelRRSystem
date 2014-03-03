@@ -53,173 +53,113 @@
 # $Id$
 
 
-package require BWidget
+package require Tk
+package require tile
 package require snit
+package require Dialog
+package require LabelFrames
 
-namespace eval LabelYesNoTwice {
-  Widget::define LabelYesNoTwice FCFControlYardListsDialog LabelFrame Button
-
-  Widget::bwinclude LabelYesNoTwice LabelFrame .labf \
-	remove {-relief -borderwidth -focus} \
-	rename {-text -label} \
-	prefix {label -justify -width -anchor -height -font -textvariable}
-  Widget::bwinclude LabelYesNoTwice Button .yesno \
-	initialize {-text No}
-
-  Widget::tkinclude LabelYesNoTwice checkbutton .twice \
-	initialize {-text Twice -onvalue 1 -offvalue 0 -indicatoron yes}
-
-  ::bind BwLabelYesNoTwice <FocusIn> [list focus %W.labf]
-  ::bind BwLabelYesNoTwice <Destroy> [list LabelYesNoTwice::_destroy %W]
-  variable checkbuttons
-}
-
-proc LabelYesNoTwice::create { path args } {
-  array set maps [list LabelYesNoTwice {} :cmd {} .labf {} .yesno {} \
-		       .twice {}]
-  array set maps [Widget::parseArgs LabelYesNoTwice $args]
-  eval [list frame $path] $maps(:cmd) -class LabelYesNoTwice \
-	-relief flat -bd 0 -highlightthickness 0 -takefocus 0
-  Widget::initFromODB LabelYesNoTwice $path $maps(LabelYesNoTwice)
-  set labf [eval [list LabelFrame::create $path.labf] $maps(.labf) \
-		[list -relief flat -borderwidth 0 -focus $path.yes]]
-  set subf  [LabelFrame::getframe $labf]
-  set yesno [eval [list Button::create $path.yesno] $maps(.yesno) \
-		[list -command [list LabelYesNoTwice::_yesno $path]]]
-  pack $yesno -in $subf -side left
-  set twice [eval [list checkbutton $path.twice] $maps(.twice) \
-		[list -command [list LabelYesNoTwice::_twice $path] \
-		      -variable LabelYesNoTwice::checkbuttons($path)]]
-  set LabelYesNoTwice::checkbuttons($path) 0
-  pack $twice -in $subf -side left
-  pack $labf  -fill both -expand yes
-
-  Widget::getVariable $path value
-  set value {no}
-
-  bindtags $path [list $path BwLabelYesNoTwice [winfo toplevel $path] all]
-  return [Widget::create LabelYesNoTwice $path]
-}
-
-# ------------------------------------------------------------------------------
-#  Command LabelYesNoTwice::configure
-# ------------------------------------------------------------------------------
-proc LabelYesNoTwice::configure { path args } {
-    return [Widget::configure $path $args]
-}
-
-
-# ------------------------------------------------------------------------------
-#  Command LabelYesNoTwice::cget
-# ------------------------------------------------------------------------------
-proc LabelYesNoTwice::cget { path option } {
-    return [Widget::cget $path $option]
-}
-
-# ------------------------------------------------------------------------------
-#  Command LabelYesNoTwice::getvalue
-# ------------------------------------------------------------------------------
-proc LabelYesNoTwice::getvalue { path } {
-    Widget::getVariable $path value
-    return $value
-}
-
-# ------------------------------------------------------------------------------
-#  Command LabelYesNoTwice::setvalue
-# ------------------------------------------------------------------------------
-proc LabelYesNoTwice::setvalue { path valuelist } {
-    Widget::getVariable $path value
-    variable checkbuttons
-    set yescount 0
-    set nocount  0
-    set twicecount 0
-    set newvalue {}
-    foreach e $valuelist {
-      set el [string tolower "$e"]
-      if {[string equal "$el" "yes"]} {
-	incr yescount
-      } elseif {[string equal "$el" "no"]} {
-        incr nocount
-      } elseif {[string equal "$el" "twice"]} {
-	incr twicecount
-      } else {
-	error "Not a legal value element: $e in $value"
-      }
-      lappend newvalue $el
+snit::widget LabelYesNoTwice {
+    hulltype ttk::frame
+    widgetclass LabelYesNoTwice
+    option -style LabelYesNoTwice
+    typeconstructor {
+        ttk::style layout $type [ttk::style layout TLabelframe]
+        ttk::style layout $type.Label [ttk::style layout TLabelframe.Label]
     }
-    if {$yescount > 1} {
-      error "More than one yes in $valuelist"
+    component label
+    component yesno
+    component twice
+    variable checkbutton
+    variable value no
+    delegate option -label to label as -text
+    delegate option -labelwidth to label as -width
+    delegate option -labelimage to label as -image
+    delegate option -labelcompound to label as -compound
+    delegate option -labelanchor to label as -anchor
+    delegate option -labelfont to label as -font
+    delegate option -labeljustify to label as -justify
+    constructor {args} {
+        install label using ttk::label $win.label
+        pack $label -side left
+        install yesno using ttk::button $win.yesno \
+              -text [_m "Label|No"] -command [mymethod _yesno]
+        pack $yesno -side left
+        install twice using ttk::checkbutton $win.twice \
+              -command [mymethod _twice] \
+              -variable [myvar checkbutton] \
+              -text [_m "Label|Twice"]
+        pack $twice -side left
+        $self configurelist $args
     }
-    if {$nocount > 1} {
-      error "More than one no in $valuelist"
+    method getvalue {} {return $value}
+    method setvalue {valuelist} {
+        set yescount 0
+        set nocount  0
+        set twicecount 0
+        set newvalue {}
+        foreach e $valuelist {
+            set el [string tolower "$e"]
+            if {"$el" eq "yes"} {
+                incr yescount
+            } elseif {"$el" eq "no"} {
+                incr nocount
+            } elseif {"$el" eq "twice"} {
+                incr twicecount
+            } else {
+                error [_ "Not a legal value element: %s in %s" $e $value]
+            }
+            lappend newvalue $el
+        }
+        if {$yescount > 1} {
+            error [_ "More than one yes in %s" $valuelist]
+        }
+        if {$nocount > 1} {
+            error [_ "More than one no in %s" $valuelist]
+        }
+        if {$twicecount > 1} {
+            error [_ "More than one twice in %s" $valuelist]
+        }
+        if {$yescount > 0 && $nocount > 0} {
+            error [_ "Yes and no both specified in %s" $valuelist]
+        }
+        if {$yescount == 0 && $nocount == 0} {
+            error [_ "Neigher yes nor no specified in %s" $valuelist]
+        }
+        if {$twicecount == 0} {
+            set checkbutton 0
+        } else {
+            set checkbutton 1
+        }
+        if {$yescount > 0} {
+            $yesno configure -text [_m "Label|Yes"]
+        } else {
+            $yesno configure -text [_m "Label|No"]
+        }
+        set value $newvalue
     }
-    if {$twicecount > 1} {
-      error "More than one twice in $valuelist"
+    
+    method _yesno {} {
+        if {"[$yesno cget -text]" eq [_m "Label|Yes"]} {
+            set index [lsearch -exact $value yes]
+            $yesno configure -text [_m "Label|No"]
+            set value [lreplace $value $index $index no]
+        } else {
+            set index [lsearch -exact $value no]
+            $yesno configure -text [_m "Label|Yes"]
+            set value [lreplace $value $index $index yes]
+        }
     }
-    if {$yescount > 0 && $nocount > 0} {
-      error "Yes and no both specified in $valuelist"
-    }
-    if {$yescount == 0 && $nocount == 0} {
-      error "Neigher yes nor no specified in $valuelist"
-    }
-    if {$twicecount == 0} {
-      set checkbuttons($path) 0
-    } else {
-      set checkbuttons($path) 1
-    }
-    if {$yescount > 0} {
-      $path.yesno configure -text Yes
-    } else {
-      $path.yesno configure -text No
-    }
-    set value $newvalue
-}
-
-# ------------------------------------------------------------------------------
-#  Command LabelYesNoTwice::_yesno
-# ------------------------------------------------------------------------------
-proc LabelYesNoTwice::_yesno { path } {
-    Widget::getVariable $path value
-    if {[string equal [$path.yesno cget -text] "Yes"]} {
-      set index [lsearch -exact $value yes]
-      $path.yesno configure -text No
-      set value [lreplace $value $index $index no]
-    } else {
-      set index [lsearch -exact $value no]
-      $path.yesno configure -text Yes
-      set value [lreplace $value $index $index yes]
+    method _twice {} {
+        if {$checkbutton} {
+            lappend value twice
+        } else {
+            set index [lsearch -exact $value twice]
+            set value [lreplace $value $index $index]
+        }
     }
 }
 
-# ------------------------------------------------------------------------------
-#  Command LabelYesNoTwice::_twice
-# ------------------------------------------------------------------------------
-proc LabelYesNoTwice::_twice { path } {
-  variable checkbuttons
-  Widget::getVariable $path value
-  if {$checkbuttons($path)} {
-    lappend value twice
-  } else {
-    set index [lsearch -exact $value twice]
-    set value [lreplace $value $index $index]
-  }
-}
-
-# ------------------------------------------------------------------------------
-#  Command LabelYesNoTwice::_path_command
-# ------------------------------------------------------------------------------
-proc LabelYesNoTwice::_path_command { path cmd larg } {
-  if { [string equal $cmd "configure"] ||
-       [string equal $cmd "cget"] ||
-       [string equal $cmd "getvalue"] ||
-       [string equal $cmd "setvalue"]} {
-    return [eval [list LabelYesNoTwice::$cmd $path] $larg]
-  }
-}
-
-proc LabelYesNoTwice::_destroy { path } {
-  Widget::destroy $path
-}
 
 snit::type ControlYardListsDialog {
   pragma -hastypedestroy no
@@ -235,29 +175,29 @@ snit::type ControlYardListsDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .controlYardListsDialog \
+    set dialog [Dialog .controlYardListsDialog \
 		  -bitmap questhead -default 0 \
 		  -cancel 1 -modal local -transient yes -parent . \
 		  -side bottom -title [_ "Control Yard Lists"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Control Yard Lists Dialog}]
-    set frame [Dialog::getframe $dialog]
+    $dialog add help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Control Yard Lists Dialog}]
+    set frame [$dialog getframe]
     set lwidth [_mx "Label|Alphabetical Lists:" "Label|Train Lists:"]
-    set alphaLists [LabelYesNoTwice::create $frame.alphaLists \
+    set alphaLists [LabelYesNoTwice $frame.alphaLists \
 	-label [_m "Label|Alphabetical Lists:"] -labelwidth $lwidth]
     pack $alphaLists -fill x
-    set trainLists [LabelYesNoTwice::create $frame.trainLists \
+    set trainLists [LabelYesNoTwice $frame.trainLists \
 	-label [_m "Label|Train Lists:"] -labelwidth $lwidth]
     pack $trainLists -fill x
     wm transient [winfo toplevel $dialog] .
   }
 
   typemethod _OK {} {
-    Dialog::withdraw $dialog
-    set alphaValue [LabelYesNoTwice::getvalue $alphaLists]
-    set trainValue [LabelYesNoTwice::getvalue $trainLists]
+    $dialog withdraw
+    set alphaValue [$alphaLists getvalue]
+    set trainValue [$trainLists getvalue]
     if {[llength [info commands TheSystem]] > 0} {
       if {[lsearch $alphaValue yes] >= 0} {
 	::TheSystem SetPrintAlpha 1
@@ -280,17 +220,17 @@ snit::type ControlYardListsDialog {
 	::TheSystem SetPrintLtwice 0
       }
     }
-    return [eval [list Dialog::enddialog $dialog] [list OK]]
+    return [eval [list $dialog enddialog] [list OK]]
   }
 
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [eval [list Dialog::enddialog $dialog] [list Cancel]]
+    $dialog withdraw
+    return [eval [list $dialog enddialog] [list Cancel]]
   }
 
   typemethod draw {} {
     $type createDialog
-    BWidget::focus $alphaLists 1
+    focus -force $alphaLists
     if {[llength [info commands TheSystem]] > 0} {
       set pa  [::TheSystem PrintAlpha]
       set pa2 [::TheSystem PrintAtwice]
@@ -327,7 +267,7 @@ snit::type ControlYardListsDialog {
       $trainLists setvalue [list no]
     }
     wm transient [winfo toplevel $dialog] .
-    return [eval [list Dialog::draw $dialog]]
+    return [eval [list $dialog draw]]
   }
 }    
     

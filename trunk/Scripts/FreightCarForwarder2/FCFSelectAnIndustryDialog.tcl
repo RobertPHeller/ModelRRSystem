@@ -50,8 +50,13 @@
 
 # $Id$
 
-package require BWidget
+package require Tk
+package require tile
 package require snit
+package require Dialog
+package require LabelFrames
+package require ScrollWindow
+package require ListBox
 
 snit::type SelectAnIndustryDialog {
   pragma -hastypedestroy no
@@ -69,31 +74,31 @@ snit::type SelectAnIndustryDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .selectAnIndustryDialog \
+    set dialog [Dialog .selectAnIndustryDialog \
 		    -bitmap questhead -default 0 \
 		    -cancel 2 -modal local -transient yes -parent . \
 		    -side bottom -title [_ "Select An Industry"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
-    $dialog add -name filter -text [_m "Button|Filter"] -command [mytypemethod _Filter]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add filter -text [_m "Button|Filter"] -command [mytypemethod _Filter]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] \
+    $dialog add help -text [_m "Button|Help"] \
 		    -command [list HTMLHelp::HTMLHelp help {Select An Industry Dialog}]
-    set frame [Dialog::getframe $dialog]
+    set frame [$dialog getframe]
     set lwidth [_mx "Label|Industry Name Pattern:" "Label|Industry Name Selection:"]
-    set patent [LabelEntry::create $frame.patent \
+    set patent [LabelEntry $frame.patent \
 		    -label [_m "Label|Industry Name Pattern:"] \
 		    -labelwidth $lwidth -text {*}]
     $patent bind <Return> "[mytypemethod _Filter];break"
     pack $patent -fill x
-    set ilist [ScrolledWindow::create $frame.ilist -scrollbar both -auto both]
+    set ilist [ScrolledWindow $frame.ilist -scrollbar both -auto both]
     pack $ilist -expand yes -fill both
-    set ilistlist [ListBox::create $ilist.list -selectmode single]
+    set ilistlist [ListBox $ilist.list -selectmode single]
     pack $ilistlist -expand yes -fill both
     $ilist setwidget $ilistlist
     $ilistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $ilistlist bindText <Double-1> [mytypemethod _SelectFromList]
-    set selent [LabelEntry::create $frame.selent \
+    set selent [LabelEntry $frame.selent \
 		    -label [_m "Label|Industry Name Selection:"] \
 		    -labelwidth $lwidth]
     pack $selent -fill x
@@ -103,21 +108,21 @@ snit::type SelectAnIndustryDialog {
   typemethod draw {args} {
     $type createDialog
     $dialog configure -title [from args -title [_ "Select An Industry"]]
-    BWidget::focus $patent 1
+    focus -force $patent
     wm transient [winfo toplevel $dialog] .
     $type _Filter
-    return [Dialog::draw $dialog]
+    return [$dialog draw]
   }
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog NULL]
+    $dialog withdraw
+    return [$dialog enddialog NULL]
   }
   typemethod _OK {} {
     set selectedIndustryName "[$selent cget -text]"
     set selectedIndustry [::TheSystem FindIndustryByName \
 					"$selectedIndustryName"]
-    Dialog::withdraw $dialog]
-    return [Dialog::enddialog $dialog $selectedIndustry]
+    $dialog withdraw
+    return [ $dialog enddialog $selectedIndustry]
   }
   typemethod _Filter { } {
     set pattern "[$patent cget -text]"
@@ -138,8 +143,8 @@ snit::type SelectAnIndustryDialog {
     set lb $ilistlist
     set elt [$lb itemcget $selectedItem -data]
     set result [lindex $elt 0]
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog $result]
+    $dialog withdraw
+    return [$dialog enddialog $result]
   }
   typemethod _BrowseFromList { selectedItem } {
     set lb $ilistlist

@@ -111,9 +111,16 @@ namespace eval TimeTable {}
 
 catch {TimeTable::SplashWorkMessage [_ "Loading Print Code"] 88}
 
+package require gettext
+package require Tk
+package require tile
 package require snit
-
-package require BWFileEntry
+package require Dialog
+package require LabelFrames
+package require ScrollWindow
+package require ScrollableFrame
+package require ListBox
+package require ROText
 
 namespace eval TimeTable {
 
@@ -125,6 +132,99 @@ namespace eval TimeTable {
   }
 }
 
+snit::widgetadaptor NoteBook {
+    variable leavecmd -array {}
+    variable raisecmd -array {}
+    delegate option * to hull
+    delegate method * to hull except {add insert}
+    constructor {args} {
+        installhull using ttk::notebook -class NoteBook
+        $self configurelist $args
+    }
+    typeconstructor {
+        bind NoteBook <ButtonPress-1> [mytypemethod _Press %W %x %y]
+        bind NoteBook <Key-Right> "[mytypemethod _CycleTab %W  1]; break"
+        bind NoteBook <Key-Left>  "[mytypemethod _CycleTab %W -1]; break"
+        bind NoteBook <Control-Key-Tab> "[mytypemethod _CycleTab %W  1]; break"
+        bind NoteBook <Control-Shift-Key-Tab> "[mytypemethod _CycleTab %W -1]; break"
+        catch {
+            bind NoteBook <Control-ISO_Left_Tab> "[mytypemethod _CycleTab %W -1]; break"
+        }
+        ttk::style configure NoteBook.Tab \
+              -padding [ttk::style lookup TNotebook.Tab -padding] \
+              -background [ttk::style lookup TNotebook.Tab -background]
+        ttk::style layout NoteBook [ttk::style layout TNotebook]
+        ttk::style layout NoteBook.Tab [ttk::style layout TNotebook.Tab]
+    }
+    typemethod _Press {w x y} {
+        $w _Press_ $x $y
+    }
+    typemethod _CycleTab {w dir} {
+        $w _CycleTab_ $dir
+    }
+    method _Press_ {x y} {
+        set index [$hull index @$x,$y]
+        if {$index ne ""} {
+            $self _ActivateTab $index
+        }
+    }
+    method _CycleTab_ {dir} {
+        if {[$hull index end] != 0} {
+            set current [$hull index current]
+            set select [expr {($current + $dir) % [$hull index end]}]
+            while {[$hull tab $select -state] != "normal" && ($select != $current)} {
+                set select [expr {($select + $dir) % [$hull index end]}]
+            }
+            if {$select != $current} {
+                $self _ActivateTab $select
+            }
+        }
+    }
+    method _ActivateTab {tab} {
+        if {[$hull index $tab] eq [$hull index current]} {
+            if {[info exists raisecmd([$hull index current])]} {
+                uplevel #0 $raisecmd([$hull index current])
+            }
+            focus $win
+        } else {
+            set canleave yes
+            #puts stderr "*** $self _ActivateTab: leavecmd([$hull index current]) = $leavecmd([$hull index current])"
+            if {[info exists leavecmd([$hull index current])] &&
+                $leavecmd([$hull index current]) ne ""} {
+                set canleave [uplevel #0 $leavecmd([$hull index current])]
+            }
+            #puts stderr "*** $self _ActivateTab: canleave = $canleave"
+            if {!$canleave} {return}
+            $hull select $tab
+            #puts stderr "*** $self _ActivateTab: raisecmd([$hull index current]) = $raisecmd([$hull index current])"
+            if {[info exists raisecmd([$hull index current])]} {
+                uplevel #0 $raisecmd([$hull index current])
+            }
+            update ;# needed so focus logic sees correct mapped/unmapped states
+            if {[set f [ttk::focusFirst [$hull select]]] ne ""} {
+                tk::TabToWindow $f
+            }
+        }
+    }
+    method add {window args} {
+        set _raisecmd [from args -raisecmd]
+        set _leavecmd [from args -leavecmd]
+        eval [list $hull add $window] $args
+        set index [$hull index $window]
+        set raisecmd($index) $_raisecmd
+        set leavecmd($index) $_leavecmd
+    }
+    method insert {index window args} {
+        set _raisecmd [from args -raisecmd]
+        set _leavecmd [from args -leavecmd]
+        eval [list $hull insert $index $window] $args
+        set index [$hull index $window]
+        set raisecmd($index) $_raisecmd
+        set leavecmd($index) $_leavecmd
+    }
+}
+
+
 snit::type TimeTable::printConfigurationDialog {
   pragma -hastypedestroy no
   pragma -hasinstances no
@@ -134,48 +234,53 @@ snit::type TimeTable::printConfigurationDialog {
   typecomponent headerlabel
   typecomponent configurationnotebook
   typevariable _LocalPrintConfiguration -array {}
-
+  
+  typevariable general
+  typevariable groups
+  
   typeconstructor {
     set dialog {}
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .printConfigurationDialog \
+    set dialog [Dialog .printConfigurationDialog \
 			-image $TimeTable::LargePrinterImage \
 			-default 0 -cancel 2 -modal local -transient yes \
 			-parent . -side bottom -title [_ "Print Configuration"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
-    $dialog add -name apply -text [_m "Button|Apply"] -command [mytypemethod _Apply]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add apply -text [_m "Button|Apply"] -command [mytypemethod _Apply]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Print Configuration Dialog}]
+    $dialog add help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Print Configuration Dialog}]
     set frame [$dialog getframe]
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
-    frame $headerframe -relief ridge -bd 5
+    ttk::frame $headerframe -relief ridge -borderwidth 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "Print Configuration"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
     set configurationnotebook $frame.configurationnotebook
-    NoteBook::create $frame.configurationnotebook -homogeneous yes -side top
+    NoteBook $frame.configurationnotebook
     pack $configurationnotebook -expand yes -fill both
-    $type _BuildGeneral [NoteBook::insert $configurationnotebook end general \
-			-text [_m "Tab|General"] \
-			-leavecmd [mytypemethod _LeaveGeneral] \
-			-raisecmd [mytypemethod _RaiseGeneral]]
-    $type _BuildMulti [NoteBook::insert $configurationnotebook end multi \
-			-text [_m "Tab|Multi"] \
-			-leavecmd [mytypemethod _LeaveMulti] \
-			-raisecmd [mytypemethod _RaiseMulti]]
-    $type _BuildGroups [NoteBook::insert $configurationnotebook end groups \
-			-text [_m "Tab|Groups"] \
-			-leavecmd [mytypemethod _LeaveGroups] \
-			-raisecmd [mytypemethod _RaiseGroups]]
-    NoteBook::compute_size $configurationnotebook
+    set general [ttk::frame $configurationnotebook.general]
+    $configurationnotebook insert end $general -text [_m "Tab|General"] \
+          -leavecmd [mytypemethod _LeaveGeneral] \
+          -raisecmd [mytypemethod _RaiseGeneral]
+    $type _BuildGeneral $general
+    set multi [ttk::frame $configurationnotebook.multi]
+    $configurationnotebook insert end $multi -text [_m "Tab|Multi"] \
+          -leavecmd [mytypemethod _LeaveMulti] \
+          -raisecmd [mytypemethod _RaiseMulti]
+    $type _BuildMulti $multi
+    set groups [ttk::frame $configurationnotebook.groups]
+    $configurationnotebook insert end $groups -text [_m "Tab|Groups"] \
+          -leavecmd [mytypemethod _LeaveGroups] \
+          -raisecmd [mytypemethod _RaiseGroups]
+    $type _BuildGroups $groups
     update idle
     set fw 750
     set fh [expr int($fw*.75)]
@@ -202,19 +307,19 @@ snit::type TimeTable::printConfigurationDialog {
 		    "Label|Number of sides:" "Label|Time Format:" \
 		    "Label|AM/PM format:" "Label|Forward Direction is generally:" "Label|Station Column Width:" "Label|Time Column Width:"]
     set titleLE $frame.titleLE
-    pack [LabelEntry::create $titleLE \
-			     -side left -label [_m "Label|Title:"] \
+    pack [LabelEntry $titleLE \
+			     -label [_m "Label|Title:"] \
 			     -labelwidth $lwidth] -fill x
     set subtitleLE $frame.subtitleLE
-    pack [LabelEntry::create $subtitleLE \
-			     -side left -label [_m "Label|Sub Title:"] \
+    pack [LabelEntry $subtitleLE \
+			     -label [_m "Label|Sub Title:"] \
 			     -labelwidth $lwidth] -fill x
     set dateLE $frame.dateLE
-    pack [LabelEntry::create $dateLE \
-			     -side left -label [_m "Label|Date:"] \
+    pack [LabelEntry $dateLE \
+			     -label [_m "Label|Date:"] \
 			     -labelwidth $lwidth] -fill x
     set nSidesLF $frame.nSidesLF
-    pack [LabelFrame $nSidesLF -side left -text [_m "Label|Number of sides:"] \
+    pack [LabelFrame $nSidesLF -text [_m "Label|Number of sides:"] \
           -width $lwidth] -fill x
     set nSidesLCB [$nSidesLF getframe].nSidesLCB
     pack [spinbox $nSidesLCB -state readonly \
@@ -222,44 +327,44 @@ snit::type TimeTable::printConfigurationDialog {
           -fill x -side left -expand yes
     $nSidesLCB set [_m "Answer|single"]
     set timeformatLF $frame.timeformatLF
-    pack [LabelFrame::create $timeformatLF \
-			     -side left -text [_m "Label|Time Format:"] \
+    pack [LabelFrame $timeformatLF \
+			     -text [_m "Label|Time Format:"] \
 			     -width $lwidth] -fill x
-    set timeformatLF_frame [LabelFrame::getframe $timeformatLF]
-    pack [radiobutton $timeformatLF_frame.rb24 \
+    set timeformatLF_frame [$timeformatLF getframe]
+    pack [ttk::radiobutton $timeformatLF_frame.rb24 \
 			-text [_m "Label|24 Hour"] -value 24 \
 			-command [mytypemethod _Disable_AMPMFormat] \
 			-variable [mytypevar _TimeFormat] \
-			-indicatoron yes] -side left -expand yes -fill x
-    pack [radiobutton $timeformatLF_frame.rb12 \
+			] -side left -expand yes -fill x
+    pack [ttk::radiobutton $timeformatLF_frame.rb12 \
 			-text [_m "Label|12 Hour"] -value 12 \
 			-command [mytypemethod _Enable_AMPMFormat] \
 			-variable [mytypevar _TimeFormat] \
-			-indicatoron yes] -side left -expand yes -fill x
+			] -side left -expand yes -fill x
     set _TimeFormat 24
     set ampmLF $frame.ampmLF
-    pack [LabelFrame::create $ampmLF \
-			     -side left -text [_m "Label|AM/PM format:"] \
-			     -width $lwidth -state disabled] -fill x
-    set ampmLF_frame [LabelFrame::getframe $ampmLF]
-    pack [radiobutton $ampmLF_frame.rb_ap \
-    			-text [_m "Label|Small a or p"] -value a -anchor w \
+    pack [LabelFrame $ampmLF \
+			     -text [_m "Label|AM/PM format:"] \
+			     -width $lwidth] -fill x
+    set ampmLF_frame [$ampmLF getframe]
+    pack [ttk::radiobutton $ampmLF_frame.rb_ap \
+    			-text [_m "Label|Small a or p"] -value a \
 			-variable [mytypevar _AMPMFormat] \
-			-indicatoron yes -state disabled] -fill x
+			-state disabled] -fill x
     lappend ampmLF_RBS $ampmLF_frame.rb_ap
-    pack [radiobutton $ampmLF_frame.rb_AP \
-    			-text [_m "Label|Large AM or PM"] -value AP  -anchor w \
+    pack [ttk::radiobutton $ampmLF_frame.rb_AP \
+    			-text [_m "Label|Large AM or PM"] -value AP \
 			-variable [mytypevar _AMPMFormat] \
-			-indicatoron yes -state disabled] -fill x
+			-state disabled] -fill x
     lappend ampmLF_RBS $ampmLF_frame.rb_AP
-    pack [radiobutton $ampmLF_frame.rb_lB \
+    pack [ttk::radiobutton $ampmLF_frame.rb_lB \
     			-text [_m "Label|Light font for AM, bold font for PM"] -value lB \
-			-variable [mytypevar _AMPMFormat]  -anchor w \
-			-indicatoron yes -state disabled] -fill x
+			-variable [mytypevar _AMPMFormat] \
+			-state disabled] -fill x
     lappend ampmLF_RBS $ampmLF_frame.rb_lB
     set _AMPMFormat a
     set directionLF $frame.directionLF
-    pack [LabelFrame $directionLF -side left \
+    pack [LabelFrame $directionLF \
           -text [_m "Label|Forward Direction is generally:"] \
           -width $lwidth] -fill x
     set directionLCB [$directionLF getframe].directionLCB
@@ -269,7 +374,7 @@ snit::type TimeTable::printConfigurationDialog {
           -state readonly] -fill x -expand yes -side left
     $directionLCB set [_m "Answer|Northbound"]
     set stationcwLF $frame.stationcwLF
-    pack [LabelFrame $stationcwLF -side left \
+    pack [LabelFrame $stationcwLF \
           -text [_m "Label|Station Column Width:"] \
           -width $lwidth] -fill x
     set stationcwLSB [$stationcwLF getframe].stationcwLSB
@@ -277,7 +382,7 @@ snit::type TimeTable::printConfigurationDialog {
           -from .125 -to 2.5 -increment .125] -side left -fill x -expand yes
     $stationcwLSB set 1.5
     set timecwLF $frame.timecwLF
-    pack [LabelFrame $timecwLF -side left \
+    pack [LabelFrame $timecwLF \
           -text [_m "Label|Time Column Width:"] \
           -width $lwidth] -fill x
     set timecwLSB [$timecwLF getframe].timecwLSB
@@ -285,17 +390,17 @@ snit::type TimeTable::printConfigurationDialog {
           -from .125 -to 2.5 -increment .125] -side left  -fill x -expand yes
     $timecwLSB set .5
     set extraPreambleLF $frame.extraPreambleLF
-    pack [LabelFrame::create $extraPreambleLF \
-		-side top -text [_ "Additional LaTeX preamble code:"]] -fill both
-    set extraPreambleLF_frame [LabelFrame::getframe $extraPreambleLF]
+    pack [ttk::labelframe $extraPreambleLF \
+		-labelanchor n -text [_ "Additional LaTeX preamble code:"]] -fill both
+    set extraPreambleLF_frame $extraPreambleLF
     set extraPreambleLF_sw $extraPreambleLF_frame.sw
-    pack [ScrolledWindow::create $extraPreambleLF_sw -auto both \
+    pack [ScrolledWindow $extraPreambleLF_sw -auto both \
 						     -scrollbar both] \
 	-expand yes -fill both
     set extraPreambleText $extraPreambleLF_sw.text
     pack [text $extraPreambleText -wrap word -width 40 -height 5] \
 	-expand yes -fill both
-    ScrolledWindow::setwidget $extraPreambleLF_sw $extraPreambleText
+    $extraPreambleLF_sw setwidget $extraPreambleText
   }
   typemethod _LeaveGeneral {} {
     set _LocalPrintConfiguration(Title) "[$titleLE cget -text]"
@@ -405,7 +510,7 @@ snit::type TimeTable::printConfigurationDialog {
     set lwidth [_mx "Label|Create Table Of Contents?" \
                 "Label|Use multiple tables?" "Label|All Trains Header:"]
     set tocLF $frame.tocLF
-    pack [LabelFrame $tocLF -side left \
+    pack [LabelFrame $tocLF \
           -text [_m "Label|Create Table Of Contents?"] \
           -width $lwidth] -fill x
     set tocP [$tocLF getframe].tocP    
@@ -415,7 +520,7 @@ snit::type TimeTable::printConfigurationDialog {
           -fill x -expand yes -side left
     $tocP set [_m "Answer|Yes"]
     set useMultipleTablesLF $frame.useMultipleTablesLF
-    pack [LabelFrame $useMultipleTablesLF -side left \
+    pack [LabelFrame $useMultipleTablesLF \
           -text [_m "Label|Use multiple tables?"] \
           -width $lwidth] -fill x
     set useMultipleTablesP [$useMultipleTablesLF getframe].useMultipleTablesP
@@ -426,55 +531,55 @@ snit::type TimeTable::printConfigurationDialog {
 	-fill x
     $useMultipleTablesP set [_m "Answer|Yes"]
     set beforeTOCLF $frame.beforeTOCLF
-    pack [LabelFrame::create $beforeTOCLF \
-			-side top \
+    pack [ttk::labelframe $beforeTOCLF \
+			-labelanchor n \
 			-text [_ "LaTeX code before the Table of Contents:"]] \
 	 -fill both
-    set beforeTOCLF_frame [LabelFrame::getframe $beforeTOCLF]
+    set beforeTOCLF_frame $beforeTOCLF
     set beforeTOCLF_sw    $beforeTOCLF_frame.sw
-    pack [ScrolledWindow::create $beforeTOCLF_sw -auto both -scrollbar both] \
+    pack [ScrolledWindow $beforeTOCLF_sw -auto both -scrollbar both] \
 	-expand yes -fill both
     set beforeTOCText $beforeTOCLF_sw.text
     pack [text $beforeTOCText -wrap word -width 40 -height 5] \
 	-expand yes -fill both
-    ScrolledWindow::setwidget $beforeTOCLF_sw $beforeTOCText
+    $beforeTOCLF_sw setwidget $beforeTOCText
     set notesTOPLF $frame.notesTOPLF
-    pack [LabelFrame::create $notesTOPLF \
-			-side top \
+    pack [ttk::labelframe $notesTOPLF \
+			-labelanchor n \
 			-text [_ "LaTeX code at the beginning of the notes section:"]] \
 	 -fill both
-    set notesTOPLF_frame [LabelFrame::getframe $notesTOPLF]
+    set notesTOPLF_frame $notesTOPLF
     set notesTOPLF_sw    $notesTOPLF_frame.sw
-    pack [ScrolledWindow::create $notesTOPLF_sw -auto both -scrollbar both] \
+    pack [ScrolledWindow $notesTOPLF_sw -auto both -scrollbar both] \
 	-expand yes -fill both
     set notesTOPText $notesTOPLF_sw.text
     pack [text $notesTOPText -wrap word -width 40 -height 5] \
 	-expand yes -fill both
-    ScrolledWindow::setwidget $notesTOPLF_sw $notesTOPText
+    $notesTOPLF_sw setwidget $notesTOPText
     set allTrainsHeaderLE $frame.allTrainsHeaderLE
-    pack [LabelEntry::create $allTrainsHeaderLE \
-			     -side left -label [_m "Label|All Trains Header:"] \
+    pack [LabelEntry $allTrainsHeaderLE \
+			     -label [_m "Label|All Trains Header:"] \
 			     -labelwidth $lwidth] -fill x
     set allTrainsSectionTOPLF $frame.allTrainsSectionTOPLF
-    pack [LabelFrame::create $allTrainsSectionTOPLF \
-			-side top \
+    pack [ttk::labelframe $allTrainsSectionTOPLF \
+			-labelanchor n \
 			-text [_ "LaTeX code before the All Trains Section:"]] \
 	-fill both
-   set allTrainsSectionTOPLF_frame [LabelFrame::getframe $allTrainsSectionTOPLF]
+   set allTrainsSectionTOPLF_frame $allTrainsSectionTOPLF
    set allTrainsSectionTOPLF_sw $allTrainsSectionTOPLF_frame.sw
-   pack [ScrolledWindow::create $allTrainsSectionTOPLF_sw -auto both -scrollbar both] \
+   pack [ScrolledWindow $allTrainsSectionTOPLF_sw -auto both -scrollbar both] \
 	-expand yes -fill both
    set allTrainsSectionTOPText $allTrainsSectionTOPLF_sw.text
    pack [text $allTrainsSectionTOPText -wrap word -width 40 -height 5] \
 	-expand yes -fill both
-   ScrolledWindow::setwidget $allTrainsSectionTOPLF_sw $allTrainsSectionTOPText
+   $allTrainsSectionTOPLF_sw setwidget $allTrainsSectionTOPText
   }
   typemethod _SetGroupsState {} {
     set multiTablesP [$useMultipleTablesP get]
     if {$multiTablesP eq [_m "Answer|Yes"]} {
-      NoteBook::itemconfigure $configurationnotebook groups -state normal
+      $configurationnotebook tab $groups -state normal
     } else {
-      NoteBook::itemconfigure $configurationnotebook groups -state disabled
+      $configurationnotebook tab $groups -state disabled
     }
   }
   typemethod _RaiseMulti {} {
@@ -603,7 +708,7 @@ snit::type TimeTable::printConfigurationDialog {
     set groupItemsSF   $groupItemsSW.groupItemsSW
     set lwidth [_mx "Label|Group by:"]
     set groupByLF      $frame.groupByLF
-    pack [LabelFrame $groupByLF -side left -width $lwidth \
+    pack [LabelFrame $groupByLF -width $lwidth \
           -text [_m "Label|Group by:"]] -fill x
     set groupByLCB     [$groupByLF getframe].groupByLCB
     pack [spinbox $groupByLCB \
@@ -613,13 +718,13 @@ snit::type TimeTable::printConfigurationDialog {
           -command [mytypemethod _GroupByUpdated]] \
           -fill x -expand yes -side left
     $groupByLCB set [_m "Answer|Class"]
-    pack [Button::create $addgroupButton -text [_m "Button|Add group"] \
+    pack [ttk::button $addgroupButton -text [_m "Button|Add group"] \
 					 -command [mytypemethod _AddGroup]] \
 	-fill x
-    pack [ScrolledWindow::create $groupItemsSW -auto both -scrollbar both] \
+    pack [ScrolledWindow $groupItemsSW -auto both -scrollbar both] \
 	-expand yes -fill both
-    pack [ScrollableFrame::create $groupItemsSF] -expand yes -fill both
-    ScrolledWindow::setwidget $groupItemsSW $groupItemsSF
+    pack [ScrollableFrame $groupItemsSF] -expand yes -fill both
+    $groupItemsSW setwidget $groupItemsSF
   }
   typemethod _RaiseGroups {} {
     if {[catch {set _LocalPrintConfiguration(GroupBy)}]} {
@@ -657,7 +762,7 @@ snit::type TimeTable::printConfigurationDialog {
     }
     set last [lindex [lsort -integer [array names _GroupClassHeaders]] end]
     if {$last > $lastclass} {
-      set frame [ScrollableFrame::getframe $groupItemsSF]
+      set frame [$groupItemsSF getframe]
       for {set ll $last} {$ll > $lastclass} {incr ll -1} {
         catch "destroy $frame.group$ll"
 	catch "unset _GroupClassHeaders($ll)"
@@ -686,57 +791,56 @@ snit::type TimeTable::printConfigurationDialog {
     set last [lindex [lsort -integer [array names _GroupClassHeaders]] end]
     if {[string equal "$last" {}]} {set last 0}
     incr last
-    set frame [ScrollableFrame::getframe $groupItemsSF]
+    set frame [$groupItemsSF getframe]
     set grframe $frame.group$last
     pack [LabelFrame $grframe -text [format [_m "Label|Class %d:"] $last] \
-			      -side left -borderwidth 4 -relief ridge] \
+			      -borderwidth 4 -relief ridge] \
 	-expand yes -fill both
     update idle
 #    puts stderr "*** $type _AddGroup: built the base frame for class $last"
-    set f1 [LabelFrame::getframe $grframe]
+    set f1 [$grframe getframe]
     set _GroupClassHeaders($last) $f1.classHeader
     set lwidth [_mx "Label|Class Header:"]
     pack [LabelEntry $_GroupClassHeaders($last) \
-			-label [_m "Label|Class Header:"] -side left \
+			-label [_m "Label|Class Header:"] \
 			-labelwidth $lwidth] -fill x
 #    puts stderr "*** $type _AddGroup: built the header LE for class $last"
     set _GroupSectionTOPLFs($last)  $f1.sectionTOPLF
-    pack [LabelFrame $_GroupSectionTOPLFs($last) \
+    pack [ttk::labelframe $_GroupSectionTOPLFs($last) \
 			-text [_ "Class section LaTeX code:"] \
-			-side top] -expand yes -fill both
-    set _GroupSectionTOPLFs_frame [LabelFrame::getframe $_GroupSectionTOPLFs($last)]
+			-labelanchor n] -expand yes -fill both
+    set _GroupSectionTOPLFs_frame $_GroupSectionTOPLFs($last)
     set _GroupSectionTOPLFs_sw    $_GroupSectionTOPLFs_frame.sw
-    pack [ScrolledWindow::create $_GroupSectionTOPLFs_sw -auto both -scrollbar both] \
+    pack [ScrolledWindow $_GroupSectionTOPLFs_sw -auto both -scrollbar both] \
 	-expand yes -fill both
     set _GroupSectionTOPTexts($last) $_GroupSectionTOPLFs_sw.text
     pack [text $_GroupSectionTOPTexts($last) -wrap word -height 5] \
 	-expand yes -fill both
-    ScrolledWindow::setwidget $_GroupSectionTOPLFs_sw \
-			      $_GroupSectionTOPTexts($last)
+    $_GroupSectionTOPLFs_sw setwidget $_GroupSectionTOPTexts($last)
 #    puts stderr "*** $type _AddGroup: built the SectionTOP for class $last"
     set _GroupTrainsLFs($last)       $f1.trains
-    pack [LabelFrame::create $_GroupTrainsLFs($last) \
+    pack [ttk::labelframe $_GroupTrainsLFs($last) \
 			-text [_ "Label|Class trains:"] \
-			-side top] -expand yes -fill both
+			-labelanchor n] -expand yes -fill both
 #    puts stderr "*** $type _AddGroup: built (_GroupTrainsLFs($last)) $_GroupTrainsLFs($last)"
-    set _GroupTrainsLFs_frame [LabelFrame::getframe $_GroupTrainsLFs($last)]
+    set _GroupTrainsLFs_frame $_GroupTrainsLFs($last)
     set _GroupTrainsLFs_sw    $_GroupTrainsLFs_frame.sw
-    pack [ScrolledWindow::create $_GroupTrainsLFs_sw -auto both -scrollbar both] \
+    pack [ScrolledWindow $_GroupTrainsLFs_sw -auto both -scrollbar both] \
 	-expand yes -fill both
 #    puts stderr "*** $type _AddGroup: built (_GroupTrainsLFs_sw) $_GroupTrainsLFs_sw"
-    set _GroupTrainsLBs($last) [ScrolledWindow::getframe $_GroupTrainsLFs_sw].lb
-    pack [ListBox::create $_GroupTrainsLBs($last) -height 5] \
+    set _GroupTrainsLBs($last) [$_GroupTrainsLFs_sw getframe].lb
+    pack [ListBox $_GroupTrainsLBs($last) -height 5] \
 	-expand yes -fill both
 #    puts stderr "*** $type _AddGroup: built (_GroupTrainsLBs($last) $_GroupTrainsLBs($last)"
-    ScrolledWindow::setwidget $_GroupTrainsLFs_sw $_GroupTrainsLBs($last)
+    $_GroupTrainsLFs_sw setwidget $_GroupTrainsLBs($last)
 #    puts stderr "*** $type _AddGroup: built the TrainsLF for class $last"
     set _GroupAddTrainButtons($last) $f1.addTrain
-    pack [Button::create $_GroupAddTrainButtons($last) \
+    pack [ttk::button $_GroupAddTrainButtons($last) \
 		-text [_m "Button|Add Train To Group"] \
 		-command "[mytypemethod _AddTrainToGroup] $last"] -fill x
 #    puts stderr "*** $type _AddGroup: built the add train button for class $last"
     if {[string equal [$groupByLCB get] [_m "Answer|Class"]]} {
-      $_GroupTrainsLFs($last) configure -state disabled
+      #$_GroupTrainsLFs($last) configure -state disabled
       $_GroupAddTrainButtons($last) configure -state disabled
     }
 #    puts stderr "*** $type _AddGroup: $f1 completely built."
@@ -763,28 +867,29 @@ snit::type TimeTable::printConfigurationDialog {
     $type createDialog
     catch {array unset _LocalPrintConfiguration}
     ForEveryPrintOption [TimeTable cget -this] option {
-#      puts stderr "*** $type draw: ForEveryPrintOption: option = $option"
-      set _LocalPrintConfiguration($option) "[TimeTable GetPrintOption $option]"
-#      puts stderr "*** $type draw: _LocalPrintConfiguration($option) = '$_LocalPrintConfiguration($option)'"
+        #puts stderr "*** $type draw: ForEveryPrintOption: option = $option"
+        set _LocalPrintConfiguration($option) "[TimeTable GetPrintOption $option]"
+        #puts stderr "*** $type draw: _LocalPrintConfiguration($option) = '$_LocalPrintConfiguration($option)'"
     }
-    NoteBook::raise $configurationnotebook general
+    $type _RaiseGeneral
+    $configurationnotebook select $general
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [Dialog::draw $dialog]
+    return [$dialog draw]
   }
   typemethod _OK {} {
     if {![$type _Apply]} {return}
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog ok]
+    $dialog withdraw
+    return [$dialog enddialog ok]
   }
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog cancel]
+    $dialog withdraw
+    return [$dialog enddialog cancel]
   }
   typemethod _Apply {} {
-    switch -exact "[NoteBook::raise $configurationnotebook]" {
-      general {if {![$type _LeaveGeneral]} {return 0}}
-      multi   {if {![$type _LeaveMulti]} {return 0}}
-      groups  {if {![$type _LeaveGroups]} {return 0}}
+    switch -regexp "[$configurationnotebook select]" {
+      \.general$ {if {![$type _LeaveGeneral]} {return 0}}
+      \.multi$   {if {![$type _LeaveMulti]} {return 0}}
+      \.groups$  {if {![$type _LeaveGroups]} {return 0}}
     }
     foreach option [array names _LocalPrintConfiguration] {
 #      puts stderr "*** $type _Apply: option = $option"
@@ -821,23 +926,23 @@ snit::type TimeTable::printDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .printDialog -image $TimeTable::LargePrinterImage \
+    set dialog [Dialog .printDialog -image $TimeTable::LargePrinterImage \
 			-default 0 -cancel 2 -modal local -transient yes \
 			-parent . -side bottom -title [_ "Print Timetable"]]
-    $dialog add -name print -text [_m "Button|Print"] -command [mytypemethod _Print]
-    $dialog add -name config -text [_m "Button|Configure"] -command [mytypemethod _Configure]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add print -text [_m "Button|Print"] -command [mytypemethod _Print]
+    $dialog add config -text [_m "Button|Configure"] -command [mytypemethod _Configure]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Print Dialog}]
+    $dialog add help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Print Dialog}]
     set frame [$dialog getframe]
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
-    frame $headerframe -relief ridge -bd 5
+    ttk::frame $headerframe -relief ridge -borderwidth 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "Print Timetable"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
     set lwidth [_mx "Label|LaTeX file name:" "Label|LaTeX processing program:" \
@@ -845,9 +950,9 @@ snit::type TimeTable::printDialog {
 		    "Label|Post Process Command:" \
 		    "Label|Run post processing commands?"]
     set printfile $frame.printfile
-    pack [FileEntry::create $printfile \
+    pack [FileEntry $printfile \
 			-label [_m "Label|LaTeX file name:"] \
-			-labelwidth $lwidth -side left \
+			-labelwidth $lwidth \
 			-defaultextension .tex \
 			-filetypes { { {LaTeX files} {.tex .ltx} TEXT } } \
 			-filedialog save \
@@ -859,43 +964,43 @@ snit::type TimeTable::printDialog {
     } else {
       set exeext ""
     }
-    pack [FileEntry::create $printprogram \
+    pack [FileEntry $printprogram \
 			-label [_m "Label|LaTeX processing program:"] \
-			-labelwidth $lwidth -side left \
+			-labelwidth $lwidth \
 			-defaultextension "$exeext" \
 			-filedialog open \
 			-title {LaTeX processing program}] -fill x
     set run3timesPLF $frame.run3timesPLF
-    pack [LabelFrame::create $run3timesPLF \
+    pack [LabelFrame $run3timesPLF \
 			-text [_m "Label|Run three times? (for TOC)"] \
-			-width $lwidth -side left] -fill x
-    set run3timesPLF_frame [LabelFrame::getframe $run3timesPLF]
+			-width $lwidth] -fill x
+    set run3timesPLF_frame [$run3timesPLF getframe]
     set run3timesPLF_RByes $run3timesPLF_frame.yes
     set run3timesPLF_RBno  $run3timesPLF_frame.no
-    pack [radiobutton $run3timesPLF_RByes -text [_m "Answer|Yes"] \
+    pack [ttk::radiobutton $run3timesPLF_RByes -text [_m "Answer|Yes"] \
 					  -variable [mytypevar _Run3TimesFlag] \
 					  -value yes] -side left -fill x
-    pack [radiobutton $run3timesPLF_RBno -text [_m "Answer|No"] \
+    pack [ttk::radiobutton $run3timesPLF_RBno -text [_m "Answer|No"] \
 					  -variable [mytypevar _Run3TimesFlag] \
 					  -value no] -side left -fill x
     set _Run3TimesFlag yes
     set postprocesscommandLE $frame.postprocesscommandLE
-    pack [LabelEntry::create $postprocesscommandLE \
+    pack [LabelEntry $postprocesscommandLE \
 			-label [_m "Label|Post Process Command:"] -labelwidth $lwidth \
-			-side left] -fill x
+			] -fill x
 
     set postprocesscommandPLF $frame.postprocesscommandPLF
-    pack [LabelFrame::create $postprocesscommandPLF \
+    pack [LabelFrame $postprocesscommandPLF \
 			-text [_m "Label|Run post processing commands?"] \
-			-width $lwidth -side left] -fill x
-    set postprocesscommandPLF_frame [LabelFrame::getframe $postprocesscommandPLF]
+			-width $lwidth] -fill x
+    set postprocesscommandPLF_frame [$postprocesscommandPLF getframe]
     set postprocesscommandPLF_RByes $postprocesscommandPLF_frame.yes
     set postprocesscommandPLF_RBno  $postprocesscommandPLF_frame.no
-    pack [radiobutton $postprocesscommandPLF_RByes \
+    pack [ttk::radiobutton $postprocesscommandPLF_RByes \
 			-text [_m "Answer|Yes"] \
 			-variable [mytypevar _PostProcessCommandFlag] \
 			-value yes] -side left -fill x
-    pack [radiobutton $postprocesscommandPLF_RBno \
+    pack [ttk::radiobutton $postprocesscommandPLF_RBno \
 			-text [_m "Answer|No"] \
 			-variable [mytypevar _PostProcessCommandFlag] \
 			-value no] -side left -fill x
@@ -908,17 +1013,17 @@ snit::type TimeTable::printDialog {
     $printfile configure -text "[file rootname [file tail $currentfile]].tex"
     $printprogram configure -text "[TimeTable::TimeTableConfiguration getoption pdflatex]"
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [Dialog::draw $dialog]    
+    return [$dialog draw]    
   }
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog]
-    return [Dialog::enddialog $dialog cancel]
+    $dialog withdraw
+    return [$dialog enddialog cancel]
   }
   typemethod _Configure {} {
     TimeTable::PrintConfiguration
   }
   typemethod _Print {} {
-    Dialog::withdraw $dialog]
+    $dialog withdraw
     set latexfile "[$printfile cget -text]"
     TimeTable CreateLaTeXTimetable "$latexfile"
     TimeTable::TtInfoMessage draw -message [_ "%s Generated." $latexfile]
@@ -943,7 +1048,7 @@ snit::type TimeTable::printDialog {
             TimeTable::TtInfoMessage draw -message [_ "LaTeX source is in %s, you will need to run latex (or pdflatex) manually over this file." $latexfile]
         }
     }
-    return [Dialog::enddialog $dialog print]
+    return [$dialog enddialog print]
   }
 }
 
@@ -962,11 +1067,11 @@ snit::widget TimeTable::subprocess {
   }
   method constructtopframe {frame args} {
     set logwindowSW $frame.logwindowSW
-    pack [ScrolledWindow::create $logwindowSW -auto both -scrollbar both]\
+    pack [ScrolledWindow $logwindowSW -auto both -scrollbar both]\
 		-expand yes -fill both
     set logwindowText $logwindowSW.text
-    pack [text $logwindowText -wrap word] -expand yes -fill both
-    ScrolledWindow::setwidget $logwindowSW $logwindowText
+    pack [ROText $logwindowText -wrap word] -expand yes -fill both
+    $logwindowSW setwidget $logwindowText
   }
 
   variable _Pipe

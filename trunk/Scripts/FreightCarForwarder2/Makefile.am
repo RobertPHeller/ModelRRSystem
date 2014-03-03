@@ -130,16 +130,29 @@ FCFCommonFiles = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif \
 		 $(top_srcdir)/Scripts/Common/close.gif \
 		 $(top_srcdir)/Scripts/Common/save.gif \
 		 $(top_srcdir)/Scripts/Common/print.gif \
-		 $(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl \
-		 $(top_srcdir)/Scripts/Common/HTMLHelp.tcl \
-		 $(top_srcdir)/Scripts/Common/panedw.tcl \
+		 $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+		 $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
 		 $(top_srcdir)/Scripts/Common/splash.tcl \
 		 $(top_srcdir)/Scripts/Common/mainwindow.tcl \
-		 $(top_srcdir)/Scripts/Common/labelcombobox.tcl \
-		 $(top_srcdir)/Scripts/Common/labelspinbox.tcl \
-		 $(top_srcdir)/Scripts/Common/fileentry.tcl \
+                 $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+                 $(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+                 $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+                 $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+                 $(top_srcdir)/Scripts/Common/snitlistbox.tcl \
+                 $(top_srcdir)/Scripts/Common/snitrotext.tcl \
+                 $(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
+                 $(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+                 $(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+                 $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
 		 $(top_srcdir)/Scripts/Common/gettext.tcl \
-		 $(top_builddir)/Scripts/Common/Version.tcl
+		 $(top_builddir)/Scripts/Common/Version.tcl \
+		 $(top_srcdir)/Scripts/Common/gray50.xbm \
+		 $(top_srcdir)/Scripts/Common/info.xbm \
+		 $(top_srcdir)/Scripts/Common/questhead.xbm \
+		 $(top_srcdir)/Scripts/Common/openfold.png \
+		 $(top_srcdir)/Scripts/Common/palette.png \
+		 $(top_srcdir)/Scripts/Common/unknown.xpm \
+		 $(top_srcdir)/Scripts/Common/
 
 CXXSupport = FCFSupport
 CXXSupportFiles =  $(top_builddir)/C++/FCFSupport/.libs/libfcfclasses$(SHLIB_SUFFIX) \
@@ -147,11 +160,11 @@ CXXSupportFiles =  $(top_builddir)/C++/FCFSupport/.libs/libfcfclasses$(SHLIB_SUF
 
 FreightCarForwarder2.pot: FCFMain.src FCFCreate.src $(FCFScripts) \
 			$(FCFCreScripts)\
-			$(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl
+			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m -L Tcl \
 		$(addprefix $(subdir)/,FCFMain.src FCFCreate.src $(FCFScripts) $(FCFCreScripts)) \
-		Scripts/Common/BWStdMenuBar.tcl|\
+		Scripts/Common/snitStdMenuBar.tcl|\
 	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
 	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
 	    -e 's/FIRST AUTHOR <EMAIL@ADDRESS>,/Robert Heller <heller@deepsoft.com>/g' \
@@ -168,8 +181,6 @@ FCFMain${EXEEXT} : FCFMain.src $(FCFLibFiles) $(FCFCommonFiles) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/FCFMain.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap  FCFMain.kit
 	-rm -rf FCFMain.kit
-	$(UNZIP) -qq -d FCFMain.vfs/lib \
-		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit FCFMain \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) FCFMain \
@@ -199,8 +210,6 @@ FCFCreate$(EXEEXT) : FCFCreate.src $(FCFCreLibFiles) $(FCFCommonFiles) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap  $(srcdir)/FCFCreate.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap FCFCreate.kit
 	-rm -rf FCFCreate.kit
-	$(UNZIP) -qq -d FCFCreate.vfs/lib \
-		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit FCFCreate \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) FCFCreate \

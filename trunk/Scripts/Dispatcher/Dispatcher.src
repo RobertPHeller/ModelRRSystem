@@ -94,14 +94,14 @@ set MRRSystem::MRR_LoadedVersion [package require Mrr]
 
 package require gettext
 package require Tk
-package require BWidget
-package require BWStdMenuBar
-package require HTMLHelp
-package require DWpanedw
+package require tile
+package require snitStdMenuBar
+package require HTMLHelp 2.0
 package require snit
 package require Splash
 package require MainWindow
 package require ReadConfiguration
+package require LabelFrames
 
 global ImageDir 
 set ImageDir [file join [file dirname [file dirname [info script]]] \
@@ -298,19 +298,19 @@ proc Dispatcher::MainWindow {} {
   $Main menu delete help [_m "Menu|Help|Index..."]
   $Main menu add help command \
 	-label [_m "Menu|Help|Reference Manual"] \
-	-command "::HTMLHelp::HTMLHelp help {Dispatcher Reference}"
+	-command "HTMLHelp help {Dispatcher Reference}"
   $Main menu entryconfigure help [_m "Menu|Help|On Help..."] \
-	-command "::HTMLHelp::HTMLHelp help Help"
+	-command "HTMLHelp help Help"
   $Main menu entryconfigure help [_m "Menu|Help|Tutorial..."] \
-	-command "::HTMLHelp::HTMLHelp help {Dispatcher Tutorial}"
+	-command "HTMLHelp help {Dispatcher Tutorial}"
   $Main menu entryconfigure help [_m "Menu|Help|On Version"] \
-	-command "::HTMLHelp::HTMLHelp help Version"
+	-command "HTMLHelp help Version"
   $Main menu entryconfigure help [_m "Menu|Help|Copying"] \
-	-command "::HTMLHelp::HTMLHelp help Copying"
+	-command "HTMLHelp help Copying"
   $Main menu entryconfigure help [_m "Menu|Help|Warranty"] \
-	-command "::HTMLHelp::HTMLHelp help Warranty"
+	-command "HTMLHelp help Warranty"
 
-  ::HTMLHelp::HTMLHelp setDefaults "$::HelpDir" "Dispatcherli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "Dispatcherli1.html"
 }
 
 proc Dispatcher::AddToWindows {window name} {
@@ -325,7 +325,6 @@ proc Dispatcher::RemoveFromWindows {window name} {
   $Main menu delete windows "$name" "$name"
 }
 
-package require BWLabelSpinBox
 
 
 snit::macro Dispatcher::StdShell {dialogclass} {
@@ -341,69 +340,47 @@ snit::macro Dispatcher::StdShell {dialogclass} {
 #  option -title -default [_ "Dispatcher Dialog"] \
 #		-configuremethod _SetTitle
   option -title -configuremethod _SetTitle
-
+  option -style -default $dialogclass
   option -parent -default .
   method _SetTitle {option value} {
     wm title $win "$value"
     $headerlabel configure -text "$value"
     set options($option) "$value"
   }
-
-  option {-activebackground activeBackground Foreground} -default #ececec \
-		-configuremethod _SetWidgetOption
-  option {-activeforeground activeForeground Background} -default Black \
-		-configuremethod _SetWidgetOption
-  option {-anchor anchor Anchor} -default center \
-		-configuremethod _SetWidgetOption
-  option {-background background Background} -default #d9d9d9 \
-		-configuremethod _SetWidgetOption
-  option {-borderwidth borderWidth BorderWidth} -default 2 \
-		-configuremethod _SetWidgetOption
-  option {-cursor cursor Cursor} -default {} \
-		-configuremethod _SetWidgetOption
-  option {-disabledforeground disabledForeground DisabledForeground} -default #a3a3a3 \
-		-configuremethod _SetWidgetOption
-  option {-foreground foreground Foreground} -default Black \
-		-configuremethod _SetWidgetOption
-  option {-highlightbackground highlightBackground HighlightBackground} -default #d9d9d9 \
-		-configuremethod _SetWidgetOption
-  option {-highlightcolor highlightColor HighlightColor} -default Black \
-		-configuremethod _SetWidgetOption
-  option {-highlightthickness highlightThickness HighlightThickness} -default 0 \
-		-configuremethod _SetWidgetOption
-  option {-padx padX Pad} -default 1 \
-		-configuremethod _SetWidgetOption
-  option {-pady padY Pad} -default 1 \
-		-configuremethod _SetWidgetOption
-  option {-takefocus takeFocus TakeFocus} -default 0 \
-		-configuremethod _SetWidgetOption
-
-  method _SetWidgetOption {option value} {
-    catch [list $win configure $option "$value"]
-    catch [list $iconimage configure $option "$value"]
-    catch [list $headerlabel configure $option "$value"]
-    catch [list $self settopframeoption $userframe $option "$value"]
-    catch [list $dismisbutton configure $option "$value"]
-    set options($option) "$value"
+  
+  method _themeChanged {} {
+    foreach option {-activebackground -activeforeground -anchor -background 
+               -borderwidth -cursor -disabledforeground -foreground 
+               -highlightbackground -highlightcolor -highlightthickness 
+               -padx -pady -takefocus} {
+      set value [ttk::style lookup $options(-style) $option]
+      catch [list $win configure $option "$value"]    
+      catch [list $iconimage configure $option "$value"]
+      catch [list $headerlabel configure $option "$value"]
+      catch [list $dismisbutton configure $option "$value"]
+      catch [list $userframe configure $option "$value"]
+    }
   }
 
   constructor {args} {
     wm withdraw $win
-    install headerframe using frame $win.headerframe -relief ridge -bd 5
+    install headerframe using ttk::frame $win.headerframe -relief ridge \
+                    -borderwidth 5
     pack  $headerframe -fill x
-    install iconimage using label $headerframe.iconimage -image banner
+    install iconimage using ttk::label $headerframe.iconimage -image banner
     pack  $iconimage -side left
-    install headerlabel using label $headerframe.headerlabel -anchor w -font {Helvetica -24 bold}
+    install headerlabel using ttk::label $headerframe.headerlabel -anchor w -font {Helvetica -24 bold}
     pack  $headerlabel -side right -anchor w -expand yes -fill x
-    install userframe using frame $win.userframe -bd 0 -relief flat
+    install userframe using ttk::frame $win.userframe \
+                -borderwidth 0 -relief flat
     pack  $userframe -expand yes -fill both
-    install dismisbutton using Button::create $win.dismisbutton \
+    install dismisbutton using ttk::button $win.dismisbutton \
 	-default active \
 	-text [_m "Button|Dismis"] \
 	-command [mymethod _Dismis]
     pack $dismisbutton -expand yes -fill x
     if {[catch [list $self constructtopframe $userframe] message]} {
-#      puts stderr "*** ${self}::constructor: constructtopframe failed: $message"
+      puts stderr "*** ${self}::constructor: constructtopframe failed: $message"
     }
     $self configurelist $args
     wm transient $win [$self cget -parent]
@@ -411,6 +388,8 @@ snit::macro Dispatcher::StdShell {dialogclass} {
     bind <Return> $win [list $dismisbutton invoke]
     bind <Esc> $win [list $dismisbutton invoke]
     wm protocol $win WM_DELETE_WINDOW [list $dismisbutton invoke]
+    bind <<ThemeChanged>> $win [mymethod _themeChanged]
+    $self _themeChanged
   }
 
   method _Dismis {} {
@@ -536,11 +515,14 @@ proc Dispatcher::LoadLayout {{filename {}}} {
     TrackGraph::TrackGraph ClearGraph
     TrackGraph::TrackGraph LoadLayout "$filename"
     foreach edge [TrackGraph::TrackGraph PrimMinimumSpanningTree] {
+      #puts stderr "*** Dispatcher::LoadLayout: edge = $edge"
       $CanvasWindow create edge [lindex $edge 0] [lindex $edge 1]
     }
 #    puts stderr "*** Dispatcher::LoadLayout: TrackGraph::TrackGraph Roots = [TrackGraph::TrackGraph Roots]"
 #    puts stderr "*** Dispatcher::LoadLayout: TrackGraph::TrackGraph Heads = [TrackGraph::TrackGraph Heads]"
     foreach head [TrackGraph::TrackGraph Heads] {
+#      puts stderr "*** Dispatcher::LoadLayout: head = $head"
+#      puts stderr "*** Dispatcher::LoadLayout: \[$head TypeOfNode\] = [$head TypeOfNode]"
       switch [$head TypeOfNode] {
 	TrackGraph::Block {
 	  $CanvasWindow create block $head

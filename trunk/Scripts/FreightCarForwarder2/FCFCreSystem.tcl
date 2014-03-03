@@ -40,8 +40,10 @@
 
 package require gettext
 package require Tk
-package require BWidget
-package require BWLabelSpinBox
+package require tile
+package require LabelFrames
+package require ScrollWindow
+package require ScrollableFrame
 
 namespace eval FCFCreSystem {
   variable SystemPage
@@ -70,140 +72,141 @@ namespace eval FCFCreSystem {
 proc FCFCreSystem::FCFCreSystem {notebook} {
   variable StockDataDir
   variable TheNoteBook $notebook
-  variable SystemPage [$notebook insert end system -text [_m "Tab|System File"]]
-  set SystemPageSW [ScrolledWindow::create $SystemPage.sw -auto vertical \
+  variable SystemPage [ttk::frame $notebook.system]
+  $notebook insert end $SystemPage -text [_m "Tab|System File"]
+  set SystemPageSW [ScrolledWindow $SystemPage.sw -auto vertical \
 							-scrollbar vertical]
   pack $SystemPageSW -expand yes -fill both
-  variable SystemPageFR [ScrollableFrame::create $SystemPageSW.fr \
+  variable SystemPageFR [ScrollableFrame $SystemPageSW.fr \
 							-constrainedwidth yes]
   pack $SystemPageFR -expand yes -fill both
   $SystemPageSW setwidget $SystemPageFR
   set frame [$SystemPageFR getframe]
   
-  variable SystemNameLE [LabelEntry::create $frame.systemNameLE \
-				-label [_m "Label|System Name:"] -side top]
+  variable SystemNameLE [LabelEntry $frame.systemNameLE \
+				-label [_m "Label|System Name:"]]
   pack $SystemNameLE -fill x
-  set filesLF [LabelFrame::create $frame.filesTF -text [_m "Label|Files:"] -side top]
+  set filesLF [ttk::labelframe $frame.filesTF -text [_m "Label|Files:"] \
+               -labelanchor n]
   pack $filesLF -fill x
 
-  set filesLFfr [$filesLF getframe]
-  set industriesLF [LabelFrame::create $filesLFfr.industriesLF \
-						-text "indus.dat" -side left]
+  set filesLFfr $filesLF
+  set industriesLF [LabelFrame $filesLFfr.industriesLF \
+						-text "indus.dat"]
   pack $industriesLF -fill x
-  pack [Button::create [$industriesLF getframe].button \
-	-text [_m "Button|Create Industries"] -command "$notebook raise industries"] \
+  pack [ttk::button [$industriesLF getframe].button \
+	-text [_m "Button|Create Industries"] -command "$notebook select \$FCFCreIndustries::IndustriesPage"] \
 	-fill x
-  set trainsLF [LabelFrame::create $filesLFfr.trainsLF -text "trains.dat" \
-						-side left]
+  set trainsLF [LabelFrame $filesLFfr.trainsLF -text "trains.dat"]
   pack $trainsLF -fill x
-  pack [Button::create [$trainsLF getframe].button \
-	-text [_m "Button|Create Trains"] -command "$notebook raise trains"] \
+  pack [ttk::button [$trainsLF getframe].button \
+	-text [_m "Button|Create Trains"] -command "$notebook select \$FCFCreTrains::TrainsPage"] \
 	-fill x
-  set ordersLF [LabelFrame::create $filesLFfr.ordersLF -text "orders.dat" \
-						-side left]
+  set ordersLF [LabelFrame $filesLFfr.ordersLF -text "orders.dat"]
   pack $ordersLF -fill x
-  pack [Button::create [$ordersLF getframe].button \
-	-text [_m "Button|Create Orders"] -command "$notebook raise orders"] \
+  pack [ttk::button [$ordersLF getframe].button \
+	-text [_m "Button|Create Orders"] -command "$notebook select \$FCFCreOrders::OrdersPage"] \
 	-fill x
-  set ownersLF [LabelFrame::create $filesLFfr.ownersLF -text "owners.dat" \
-							-side left]
+  set ownersLF [LabelFrame $filesLFfr.ownersLF -text "owners.dat"]
   pack $ownersLF -fill x -expand yes
-  pack [Button::create [$ownersLF getframe].button \
-	-text [_m "Button|Create Owners"] -command "$notebook raise owners"] \
+  pack [ttk::button [$ownersLF getframe].button \
+	-text [_m "Button|Create Owners"] -command "$notebook select \$FCFCreOwners::OwnersPage"] \
 	-fill x
-  set cartypesLF [LabelFrame::create $filesLFfr.cartypesLF \
-					-text "cartypes.dat" -side left]
+  set cartypesLF [ttk::labelframe $filesLFfr.cartypesLF \
+					-text "cartypes.dat" -labelanchor n]
   pack $cartypesLF -fill x
-  set ctFrame [$cartypesLF getframe]
+  set ctFrame $cartypesLF
   variable CTFile stock
   variable CTDirectories [glob  -types d -directory $StockDataDir -tails *]
-  grid [radiobutton $ctFrame.stockRB -text [_m "Label|Stock"] -value stock \
+  grid [ttk::radiobutton $ctFrame.stockRB -text [_m "Label|Stock"] -value stock \
 				   -variable FCFCreSystem::CTFile \
 				   -command FCFCreSystem::ToggleCT] \
 	-row 0 -column 0 -sticky nw
-  grid [radiobutton $ctFrame.customRB -text [_m "Label|Custom"] -value custom \
+  grid [ttk::radiobutton $ctFrame.customRB -text [_m "Label|Custom"] -value custom \
 				   -variable FCFCreSystem::CTFile \
 				   -command FCFCreSystem::ToggleCT] \
 	-row 1 -column 0 -sticky nw
-  variable CTStockDirectoryCB [ComboBox::create $ctFrame.ctStockDirectoryCB \
-				-values $CTDirectories -editable no]
-  $CTStockDirectoryCB setvalue first
+  variable CTStockDirectoryCB [ttk::combobox $ctFrame.ctStockDirectoryCB \
+				-values $CTDirectories -state readonly]
+  $CTStockDirectoryCB set [lindex $CTDirectories 0]
   grid $CTStockDirectoryCB -row 0 -column 1 -sticky new
-  variable CtCreateCustom [Button::create $ctFrame.ctCreateCustom \
+  variable CtCreateCustom [ttk::button $ctFrame.ctCreateCustom \
 					-text [_m "Button|Create CarTypes"] \
-					-command "$notebook raise cartypes" \
+					-command "$notebook select \$FCFCreCars::CarTypesPage" \
 					-state disabled]
   grid  $CtCreateCustom -row 1 -column 1 -sticky neww
   grid columnconfigure $ctFrame 1 -weight 1
-  set carsLF [LabelFrame::create $filesLFfr.carsLF -text "cars.dat" -side left]
+  set carsLF [LabelFrame $filesLFfr.carsLF -text "cars.dat"]
   pack $carsLF -fill x
-  pack [Button::create [$carsLF getframe].button \
-	-text [_m "Button|Create Cars"] -command "$notebook raise cars"] \
+  pack [ttk::button [$carsLF getframe].button \
+	-text [_m "Button|Create Cars"] -command "$notebook select \$FCFCreCars::CarsPage"] \
 	-fill x
 
-  set divisionsLF [LabelFrame::create $frame.divisionsTF -text [_m "Label|Divisions:"] \
-							-side top]
+  set divisionsLF [ttk::labelframe $frame.divisionsTF \
+                   -text [_m "Label|Divisions:"] \
+                   -labelanchor n]
   pack $divisionsLF -fill x
-  set divisionsLFfr [$divisionsLF getframe]
+  set divisionsLFfr $divisionsLF
   variable DivisionsListFR [frame $divisionsLFfr.divisionsListFR]
   pack $DivisionsListFR -expand yes -fill both
   variable DivisionsListIndex 0
-  grid [Label::create $DivisionsListFR.numberHead -text {#   } -width 4] \
+  grid [ttk::label $DivisionsListFR.numberHead -text {#   } -width 4] \
 	-row 0 -column 0 -sticky nw
-  grid [Label::create $DivisionsListFR.commaAHead -text {,}] \
+  grid [ttk::label $DivisionsListFR.commaAHead -text {,}] \
 	-row 0 -column 1 -sticky nw
-  grid [Label::create $DivisionsListFR.symbolHead -text {S} -width 1] \
+  grid [ttk::label $DivisionsListFR.symbolHead -text {S} -width 1] \
 	-row 0 -column 2 -sticky nw
-  grid [Label::create $DivisionsListFR.commaBHead -text {,}] \
+  grid [ttk::label $DivisionsListFR.commaBHead -text {,}] \
 	-row 0 -column 3 -sticky nw
-  grid [Label::create $DivisionsListFR.homeHead \
+  grid [ttk::label $DivisionsListFR.homeHead \
 	-text  [_m "Label|Home"] -width 4] \
 	-row 0 -column 4 -sticky nw
-  grid [Label::create $DivisionsListFR.commaCHead -text {,}] \
+  grid [ttk::label $DivisionsListFR.commaCHead -text {,}] \
 	-row 0 -column 5 -sticky nw
-  grid [Label::create $DivisionsListFR.areaHead \
+  grid [ttk::label $DivisionsListFR.areaHead \
 		-text {A} -width 1] \
 	-row 0 -column 6 -sticky nw
-  grid [Label::create $DivisionsListFR.commaDHead -text {,}] \
+  grid [ttk::label $DivisionsListFR.commaDHead -text {,}] \
 	-row 0 -column 7 -sticky nw
-  grid [Label::create $DivisionsListFR.nameHead -text [_m "Label|Name"]] \
+  grid [ttk::label $DivisionsListFR.nameHead -text [_m "Label|Name"]] \
 	-row 0 -column 8 -sticky nw
   grid columnconfigure $DivisionsListFR 8 -weight 1
-  grid [Label::create $DivisionsListFR.deleteHead \
+  grid [ttk::label $DivisionsListFR.deleteHead \
 	-text [_m "Label|Delete?"]] \
 	-row 0 -column 9 -sticky nw
   
-  pack [Button::create $divisionsLFfr.addDivision \
+  pack [ttk::button $divisionsLFfr.addDivision \
 				-text [_m "Button|Add Division"] \
 				-command FCFCreSystem::AddDivision] \
 	-anchor w
-  set stationsLF [LabelFrame::create $frame.stationsTF -text [_m "Label|Stations:"] \
-								-side top]
+  set stationsLF [ttk::labelframe $frame.stationsTF \
+                  -text [_m "Label|Stations:"] \
+                  -labelanchor n]
   pack $stationsLF -fill x
-  set stationsLFfr [$stationsLF getframe]
+  set stationsLFfr $stationsLF
   variable StationsListFR [frame $stationsLFfr.stationsListFR]
   variable StationsListIndex 0
   pack $StationsListFR -expand yes -fill both
-  grid [Label::create $StationsListFR.numberHead -text {#   } -width 4] \
+  grid [ttk::label $StationsListFR.numberHead -text {#   } -width 4] \
 	-row 0 -column 0 -sticky nw
-  grid [Label::create $StationsListFR.commaAHead -text {,}] \
+  grid [ttk::label $StationsListFR.commaAHead -text {,}] \
 	-row 0 -column 1 -sticky nw
-  grid [Label::create $StationsListFR.nameHead -text [_m "Label|Name"]] \
+  grid [ttk::label $StationsListFR.nameHead -text [_m "Label|Name"]] \
 	-row 0 -column 2 -sticky nw
-  grid [Label::create $StationsListFR.commaBHead -text {,}] \
+  grid [ttk::label $StationsListFR.commaBHead -text {,}] \
 	-row 0 -column 3 -sticky nw
-  grid [Label::create $StationsListFR.divisionHead \
+  grid [ttk::label $StationsListFR.divisionHead \
 	-text  [_m "Label|Div"] -width 4] \
 	-row 0 -column 4 -sticky nw
-  grid [Label::create $StationsListFR.commaCHead -text {,}] \
+  grid [ttk::label $StationsListFR.commaCHead -text {,}] \
 	-row 0 -column 5 -sticky nw
-  grid [Label::create $StationsListFR.commentHead -text [_m "Label|Comment"]] \
+  grid [ttk::label $StationsListFR.commentHead -text [_m "Label|Comment"]] \
 	-row 0 -column 6 -sticky nw
   grid columnconfigure $StationsListFR 6 -weight 1
-  grid [Label::create $StationsListFR.deleteHead \
+  grid [ttk::label $StationsListFR.deleteHead \
 	-text [_m "Label|Delete?"] ] \
 	-row 0 -column 7 -sticky nw
-  pack [Button::create $stationsLFfr.addStation \
+  pack [ttk::button $stationsLFfr.addStation \
 				-text [_m "Button|Add Station"] \
 				-command FCFCreSystem::AddStation] \
 	-anchor w
@@ -215,31 +218,31 @@ proc FCFCreSystem::AddDivision {} {
   variable IsValidated no
 
   set lastrow [lindex [grid size $DivisionsListFR] 1]
-  grid [SpinBox::create $DivisionsListFR.number$DivisionsListIndex \
-	-range  {1 1000 1} -width 4] \
+  grid [spinbox $DivisionsListFR.number$DivisionsListIndex \
+	-from 1 -to 1000 -increment 1 -width 4] \
 	-row $lastrow -column 0 -sticky nw
-  grid [Label::create $DivisionsListFR.commaA$DivisionsListIndex -text {,}] \
+  grid [ttk::label $DivisionsListFR.commaA$DivisionsListIndex -text {,}] \
 	-row $lastrow -column 1 -sticky nw
-  grid [ComboBox::create $DivisionsListFR.symbol$DivisionsListIndex \
-		-values [::AllAlphaNums] -editable no -width 1] \
+  grid [ttk::combobox $DivisionsListFR.symbol$DivisionsListIndex \
+		-values [::AllAlphaNums] -state readonly -width 1] \
 	-row $lastrow -column 2 -sticky nw
-  $DivisionsListFR.symbol$DivisionsListIndex setvalue first
-  grid [Label::create $DivisionsListFR.commaB$DivisionsListIndex -text {,}] \
+  $DivisionsListFR.symbol$DivisionsListIndex set [lindex [$DivisionsListFR.symbol$DivisionsListIndex cget -values] 0]
+  grid [ttk::label $DivisionsListFR.commaB$DivisionsListIndex -text {,}] \
 	-row $lastrow -column 3 -sticky nw
-  grid [SpinBox::create $DivisionsListFR.home$DivisionsListIndex \
-	-range  {1 1000 1} -width 4] \
+  grid [spinbox $DivisionsListFR.home$DivisionsListIndex \
+	-from 1 -to 1000 -increment 1 -width 4] \
 	-row $lastrow -column 4 -sticky nw
-  grid [Label::create $DivisionsListFR.commaC$DivisionsListIndex -text {,}] \
+  grid [ttk::label $DivisionsListFR.commaC$DivisionsListIndex -text {,}] \
 	-row $lastrow -column 5 -sticky nw
-  grid [ComboBox::create $DivisionsListFR.area$DivisionsListIndex \
-		-values [::AllAlphaNums] -editable no -width 1] \
+  grid [ttk::combobox $DivisionsListFR.area$DivisionsListIndex \
+		-values [::AllAlphaNums] -state readonly -width 1] \
 	-row $lastrow -column 6 -sticky nw
-  $DivisionsListFR.area$DivisionsListIndex setvalue first
-  grid [Label::create $DivisionsListFR.commaD$DivisionsListIndex -text {,}] \
+  $DivisionsListFR.area$DivisionsListIndex set [lindex [$DivisionsListFR.area$DivisionsListIndex cget -values] 0]
+  grid [ttk::label $DivisionsListFR.commaD$DivisionsListIndex -text {,}] \
 	-row $lastrow -column 7 -sticky nw
-  grid [Entry::create $DivisionsListFR.name$DivisionsListIndex] \
+  grid [ttk::entry $DivisionsListFR.name$DivisionsListIndex] \
 	-row $lastrow -column 8 -sticky new
-  grid [Button::create $DivisionsListFR.delete$DivisionsListIndex \
+  grid [ttk::button $DivisionsListFR.delete$DivisionsListIndex \
 	-text [_m "Button|Delete"] \
 	-command "FCFCreSystem::DeleteDivision $DivisionsListIndex"] \
 	-row $lastrow -column 9 -sticky nw
@@ -273,23 +276,23 @@ proc FCFCreSystem::AddStation {} {
   variable IsValidated no
 
   set lastrow [lindex [grid size $StationsListFR] 1]
-  grid [SpinBox::create $StationsListFR.number$StationsListIndex \
-	-range  {2 1000 1} -width 4] \
+  grid [spinbox $StationsListFR.number$StationsListIndex \
+	-from  2 -to 1000 -increment 1 -width 4] \
 	-row $lastrow -column 0 -sticky nw
-  grid [Label::create $StationsListFR.commaA$StationsListIndex -text {,}] \
+  grid [ttk::label $StationsListFR.commaA$StationsListIndex -text {,}] \
 	-row $lastrow -column 1 -sticky nw
-  grid [Entry::create $StationsListFR.name$StationsListIndex] \
+  grid [ttk::entry $StationsListFR.name$StationsListIndex] \
 	-row $lastrow -column 2 -sticky nw
-  grid [Label::create $StationsListFR.commaB$StationsListIndex -text {,}] \
+  grid [ttk::label $StationsListFR.commaB$StationsListIndex -text {,}] \
 	-row $lastrow -column 3 -sticky nw
-  grid [SpinBox::create $StationsListFR.division$StationsListIndex \
-	-range  {1 1000 1} -width 4] \
+  grid [spinbox $StationsListFR.division$StationsListIndex \
+	-from 1 -to 1000 -increment 1 -width 4] \
 	-row $lastrow -column 4 -sticky nw
-  grid [Label::create $StationsListFR.commaC$StationsListIndex -text {,}] \
+  grid [ttk::label $StationsListFR.commaC$StationsListIndex -text {,}] \
 	-row $lastrow -column 5 -sticky nw
-  grid [Entry::create $StationsListFR.comment$StationsListIndex] \
+  grid [ttk::entry $StationsListFR.comment$StationsListIndex] \
 	-row $lastrow -column 6 -sticky new
-  grid [Button::create $StationsListFR.delete$StationsListIndex \
+  grid [ttk::button $StationsListFR.delete$StationsListIndex \
 	-text [_m "Button|Delete"] \
 	-command "FCFCreSystem::DeleteStation $StationsListIndex"] \
 	-row $lastrow -column 7 -sticky nw
@@ -441,7 +444,7 @@ proc FCFCreSystem::ResetForm {} {
   set CTFile stock
   ToggleCT
   variable CTStockDirectoryCB
-  $CTStockDirectoryCB setvalue first
+  $CTStockDirectoryCB set [lindex [$CTStockDirectoryCB cget -values] 0]
   variable DivisionsListIndex
   for {set dli 0} {$dli < $DivisionsListIndex} {incr dli} {
     DeleteDivision $dli
@@ -462,12 +465,12 @@ proc FCFCreSystem::ToggleCT {} {
 
   switch $CTFile {
     stock {
-      $TheNoteBook itemconfigure cartypes -state disabled
+      $TheNoteBook tab $FCFCreCars::CarTypesPage -state disabled
       $CtCreateCustom configure -state disabled
       $CTStockDirectoryCB configure -state normal
     }
     custom {
-      $TheNoteBook itemconfigure cartypes -state normal
+      $TheNoteBook tab $FCFCreCars::CarTypesPage -state normal
       $CtCreateCustom configure -state normal
       $CTStockDirectoryCB configure -state disabled
     }

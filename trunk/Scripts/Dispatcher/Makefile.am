@@ -61,17 +61,27 @@ CommonLibFiles = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif \
 		 $(top_srcdir)/Scripts/Common/close.gif \
 		 $(top_srcdir)/Scripts/Common/save.gif \
 		 $(top_srcdir)/Scripts/Common/print.gif \
-		 $(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl \
-		 $(top_srcdir)/Scripts/Common/HTMLHelp.tcl \
-		 $(top_srcdir)/Scripts/Common/panedw.tcl \
+		 $(top_srcdir)/Scripts/Common/unknown.xpm \
+		 $(top_srcdir)/Scripts/Common/openfold.png \
+		 $(top_srcdir)/Scripts/Common/palette.png \
+		 $(top_srcdir)/Scripts/Common/questhead.xbm \
+		 $(top_srcdir)/Scripts/Common/gray50.xbm \
+		 $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+		 $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
 		 $(top_srcdir)/Scripts/Common/splash.tcl \
+		 $(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+		 $(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+		 $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+		 $(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
+		 $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+		 $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+		 $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+		 $(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+		 $(top_srcdir)/Scripts/Common/snitrotext.tcl \
 		 $(top_srcdir)/Scripts/Common/mainwindow.tcl \
+		 $(top_srcdir)/Scripts/Common/snitlistbox.tcl \
 		 $(top_builddir)/Scripts/Common/Version.tcl \
 		 $(top_srcdir)/Scripts/GRSupport/grsupport2.tcl \
-		 $(top_srcdir)/Scripts/Common/labelspinbox.tcl \
-		 $(top_srcdir)/Scripts/Common/labelcombobox.tcl \
-		 $(top_srcdir)/Scripts/Common/labelselectcolor.tcl \
-		 $(top_srcdir)/Scripts/Common/fileentry.tcl \
 		 $(top_srcdir)/Scripts/Common/CTCPanel2.tcl \
 		 $(top_srcdir)/Scripts/Common/ReadConfiguration.tcl \
 		 $(top_srcdir)/Scripts/Common/gettext.tcl
@@ -113,11 +123,11 @@ TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 BUILT_SOURCES = $(TCLKIT)
 
 Dispatcher.pot: Dispatcher.src $(DispatcherScripts) \
-			$(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl
+			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m -L Tcl \
 		$(addprefix $(subdir)/,Dispatcher.src $(DispatcherScripts)) \
-		Scripts/Common/BWStdMenuBar.tcl|\
+		Scripts/Common/snitStdMenuBar.tcl|\
 	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
 	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
 	    -e 's/FIRST AUTHOR <EMAIL@ADDRESS>,/Robert Heller <heller@deepsoft.com>/g' \
@@ -137,8 +147,6 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/Dispatcher.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap  Dispatcher.kit
 	-rm -rf Dispatcher.kit
-        $(UNZIP) -qq -d Dispatcher.vfs/lib \
-            $(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit Dispatcher \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) Dispatcher \
@@ -189,6 +197,12 @@ $(top_builddir)/C++/ParserClasses/libMRRParserClasses.la : \
 	$(top_srcdir)/C++/ParserClasses/*.i \
 	$(top_srcdir)/C++/ParserClasses/MRRXtrkCad.y
 	$(MAKE) -C $(top_builddir)/C++/ParserClasses
+
+$(top_builddir)/C++/Azatrax/libazatrax.la : \
+	$(top_srcdir)/C++/Azatrax/*.cc \
+	$(top_srcdir)/C++/Azatrax/*.h \
+	$(top_srcdir)/C++/Azatrax/*.i
+	$(MAKE) -C $(top_builddir)/C++/Azatrax
 
 $(top_builddir)/Scripts/CMri/pkgIndex.tcl : $(top_srcdir)/Scripts/CMri/cmri.tcl
 	$(MAKE) -C $(top_builddir)/Scripts/CMri pkgIndex.tcl

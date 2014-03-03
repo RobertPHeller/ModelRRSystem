@@ -132,9 +132,9 @@ namespace eval MRRSystem {variable TTCLASSES_VERSION}
 set MRRSystem::TTCLASSES_VERSION [package require Ttclasses]
 package require gettext
 package require Tk
-package require BWidget
-package require BWStdMenuBar
-package require HTMLHelp
+package require tile
+package require snitStdMenuBar
+package require HTMLHelp 2.0
 package require Splash
 
 #catch {console show}
@@ -302,28 +302,33 @@ package require TTMainWindow
 TimeTable::MainWindow $TimeTable::IsSlave
 package require TTMenuSupport
 package require TTFileIO
-catch {package require TTTrains} error
-#puts stderr "*** {package require TTTrains} error = $error"
-#puts stderr "*** {package require TTTrains} errorInfo = $errorInfo"
-catch {package require TTStations} error
-#puts stderr "*** {package require TTStations} error = $error"
-#puts stderr "*** {package require TTStations} errorInfo = $errorInfo"
-catch {package require TTCabs} error
-#puts stderr "*** {package require TTCabs} error = $error"
-#puts stderr "*** {package require TTCabs} errorInfo = $errorInfo"
-catch {package require TTNotes} error
-#puts stderr "*** {package require TTNotes} error = $error"
-#puts stderr "*** {package require TTNotes} errorInfo = $errorInfo"
-catch {package require TTPrint} error
-#puts stderr "*** {package require TTPrint} error = $error"
-#puts stderr "*** {package require TTPrint} errorInfo = $errorInfo"
+if {[catch {package require TTTrains} error]} {
+#  puts stderr "*** {package require TTTrains} error = $error"
+#  puts stderr "*** {package require TTTrains} errorInfo = $errorInfo"
+}
+if {[catch {package require TTStations} error]} {
+  puts stderr "*** {package require TTStations} error = $error"
+  puts stderr "*** {package require TTStations} errorInfo = $errorInfo"
+}
+if {[catch {package require TTCabs} error]} {
+  puts stderr "*** {package require TTCabs} error = $error"
+  puts stderr "*** {package require TTCabs} errorInfo = $errorInfo"
+}
+if {[catch {package require TTNotes} error]} {
+  puts stderr "*** {package require TTNotes} error = $error"
+  puts stderr "*** {package require TTNotes} errorInfo = $errorInfo"
+}
+if {[catch {package require TTPrint} error]} {
+  puts stderr "*** {package require TTPrint} error = $error"
+  puts stderr "*** {package require TTPrint} errorInfo = $errorInfo"
+}
 
 $TimeTable::Main toolbar addbutton tools close -image CloseButtonImage \
 	-command TimeTable::CarefulExit \
 	-helptext [_ "Close the application"]
-$TimeTable::Main buttons add -name quit -anchor w -text [_m "Button|Quit -- Exit NOW Q"] \
-		      -command TimeTable::CarefulExit -underline 0 \
-		      -helptext [_ "Exit the application"]
+$TimeTable::Main buttons add ttk::button quit -text [_m "Button|Quit -- Exit NOW Q"] \
+		      -command TimeTable::CarefulExit -underline 0
+#		       -helptext [_ "Exit the application"]
 bind . <Q> "$TimeTable::Main buttons invoke quit"
 bind . <q> "$TimeTable::Main buttons invoke quit"
 

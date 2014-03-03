@@ -46,7 +46,8 @@
 #* 
 
 package require snit
-package require BWidget
+package require Tk
+package require tile
 
 ## @addtogroup TclCommon
 #  @{
@@ -60,7 +61,7 @@ snit::widget splash {
 #
 # @param path The widget path.
 # @param ... Options:
-# @arg -troughcolor Delegated to the ProgressBar widget.
+# @arg -style Style name, default is Splash.
 # @arg -titleforeground Delegated to the title widget as -forground.
 # @arg -statusforeground Delegated to the status widget as -forground.
 # @arg -background Background color.
@@ -78,7 +79,20 @@ snit::widget splash {
 #
 
   hulltype toplevel
-
+  widgetclass Splash
+  option -style -default Splash
+  typeconstructor {
+      ttk::style configure Splash -borderwidth 5 -relief ridge
+      bind Splash <<ThemeChanged>> [mytypemethod _ThemeChanged %W]
+  }
+  typemethod _ThemeChanged {w} {
+      $w _themeChanged
+  }
+  method _themeChanged {} {
+      $hull configure \
+            -borderwidth [ttk::style lookup $options(-style) -borderwidth] \
+            -relief [ttk::style lookup $options(-style) -relief]
+  }  
   component image
     ## @privatesection Image component.
   component progressBar
@@ -92,39 +106,26 @@ snit::widget splash {
   component header
     ## Header component.
 
-  delegate option -troughcolor to progressBar
-  delegate option {-titleforeground foreground Foreground} to title as -foreground
-  delegate option {-statusforeground foreground Foreground} to status as -foreground
   variable  currentProgress 0
   ## The current progress
-
-  option {-background background Background} \
-		-default #d9d9d9 \
-		-readonly yes \
-		-validatemethod CheckColor
+  
+  delegate option {-titleforeground foreground Foreground} to title as -foreground
+  delegate option {-statusforeground foreground Foreground} to status as -foreground
+  option -background -default #d9d9d9 -readonly yes -validatemethod CheckColor
   method CheckColor {option value} {
-  ## Method to validate a color option.
-  # @param option The option being set.
-  # @param value  The value it is being set to.
-
-    if {[catch [list winfo rgb $win $value] message]} {
-      error "Option $option must have a legal color value.  Got $value"
-    }
+      ## Method to validate a color option.
+      # @param option The option being set.
+      # @param value  The value it is being set to.
+      
+      if {[catch [list winfo rgb $win $value] message]} {
+          error "Option $option must have a legal color value.  Got $value"
+      }
   }
-
+  
   option {-progressbar progressBar ProgressBar} \
 		-default yes \
 		-readonly yes \
-		-validatemethod CheckBoolean
-  method CheckBoolean {option value} {
-  ## Method to validate a boolean option.
-  # @param option The option being set.
-  # @param value  The value it is being set to.
-
-    if {![string is boolean -strict $value]} {
-      error "Option $option must have a boolean value.  Got $value."
-    }
-  }
+		-type snit::boolean
   option {-image image Image} \
 	-default {} \
 	-readonly yes \
@@ -185,34 +186,50 @@ snit::widget splash {
     wm withdraw $win
     wm overrideredirect $win yes
     wm protocol $win WM_DELETE_WINDOW {break}
-
-    install header using frame $win.header -relief ridge -borderwidth 5
-    install icon using label $header.icon
+    
+    set options(-image) [from args -image]
+    if {$options(-image) eq ""} {
+        set imwidth 0
+    } else {
+        set imwidth [image width $options(-image)]
+    }
+    set options(-icon) [from args -icon]
+    if {$options(-icon) eq ""} {
+        set icowidth 0
+    } else {
+        set icowidth [image width $options(-icon)]
+    }
+    install header using frame $win.header \
+          -width $imwidth
+    install icon using ttk::label $header.icon -anchor nw 
+    set titlewidth [expr {$imwidth - $icowidth}]
+    if {$titlewidth < 0} {set titlewidth 0}
+    #puts stderr "*** $type create $win: imwidth = $imwidth, icowidth = $icowidth, titlewidth = $titlewidth"
     install title using message $header.title \
-		-aspect {800} \
-		-font {Times -10 roman}
-    install image using label $win.image
-    install progressBar using ProgressBar $win.progressBar \
-			-type normal \
-			-height 20 \
-			-maximum 100 \
-			-variable [myvar currentProgress]
+		-aspect {1000} \
+          -font {Times -10 roman} -width $titlewidth
+    install image using ttk::label $win.image \
+          -image $options(-image) -width $imwidth
+    install progressBar using ttk::progressbar $win.progressBar \
+          -orient horizontal \
+          -maximum 100 \
+          -variable [myvar currentProgress] \
+          -length $imwidth
     set currentProgress 0
     install status using message $win.status \
-	-aspect {800} \
-	-font   {Times -10 roman} \
-	-text	{} \
-	-background $options(-background) \
-	-width  [winfo reqwidth $image]
+          -aspect {700} \
+          -font   {Times -10 roman} \
+          -text	{} \
+          -width $imwidth  -borderwidth 0 -relief flat
     $self configurelist $args
-    foreach w [list $header $title $progressBar $status $image] {
+    foreach w [list $hull $header $title $progressBar $status $image $icon] {
       catch [list $w configure -background $options(-background)]
     }
     if {[string length "$options(-icon)"] || [string length "$options(-title)"]} {
       pack $header -fill x -expand yes
       if {[string length "$options(-icon)"]} {
 	$icon configure -image "$options(-icon)"
-	pack $icon -side left
+	pack $icon -side left -expand yes
       }
       if {[string length "$options(-title)"]} {
 	$title configure -text "$options(-title)"
@@ -220,16 +237,17 @@ snit::widget splash {
       }
     }
     if {[string length "$options(-image)"]} {
-      $image configure -image "$options(-image)" \
-		       -background $options(-background)
-      pack $image -fill x -expand yes
-    }
-    if {$options(-progressbar)} {
-      pack $progressBar -fill x
+      pack $image;# -fill x
     }
     update idle
-    $status configure -width [winfo reqwidth $image]
+    #puts stderr "*** $type create $win: reqwidth of $title is [winfo reqwidth $title]"
+    #puts stderr "*** $type create $win: reqwidth of $icon is [winfo reqwidth $icon]"
+    #puts stderr "*** $type create $win: reqwidth of $image is [winfo reqwidth $image]"
+    #puts stderr "*** $type create $win: reqwidth of $win is [winfo reqwidth $win]"
     pack $status -fill x
+    if {$options(-progressbar)} {
+        pack $progressBar -fill x
+    }
     update idle
     set w [winfo reqwidth $win]
     set h [winfo reqheight $win]
@@ -245,6 +263,8 @@ snit::widget splash {
     if {$yy < 0} {set yy 0}
     wm geom $win +$xx+$yy
     wm deiconify $win
+    $self _themeChanged
+    #puts stderr "*** $type create $win: bindtags are [bindtags $win]"
   }
 }
 

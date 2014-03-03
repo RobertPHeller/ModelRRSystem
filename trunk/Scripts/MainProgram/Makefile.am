@@ -58,9 +58,19 @@ CommonLibFiles = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif \
 		 $(top_srcdir)/Scripts/Common/close.gif \
 		 $(top_srcdir)/Scripts/Common/save.gif \
 		 $(top_srcdir)/Scripts/Common/print.gif \
-		 $(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl \
-		 $(top_srcdir)/Scripts/Common/HTMLHelp.tcl \
-		 $(top_srcdir)/Scripts/Common/panedw.tcl \
+		 $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+		 $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+		 $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+		 $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+		 $(top_srcdir)/Scripts/Common/questhead.xbm \
+		 $(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+		 $(top_srcdir)/Scripts/Common/unknown.xpm \
+		 $(top_srcdir)/Scripts/Common/openfold.png \
+		 $(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+		 $(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+		 $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
+		 $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+		 $(top_srcdir)/Scripts/Common/gettext.tcl \
 		 $(top_srcdir)/Scripts/Common/splash.tcl \
 		 $(top_srcdir)/Scripts/Common/mainwindow.tcl \
 		 $(top_builddir)/Scripts/Common/Version.tcl
@@ -84,8 +94,6 @@ ModelRRSystem$(EXEEXT) : ModelRRSystem.src $(ModelRRSystemLibFiles) $(CommonLibF
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/ModelRRSystem.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap  ModelRRSystem.kit
 	-rm -rf ModelRRSystem.kit
-	$(UNZIP) -qq -d ModelRRSystem.vfs/lib \
-		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit ModelRRSystem \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) ModelRRSystem \

@@ -38,12 +38,13 @@
 package require gettext
 package require snit
 package require Tk
-package require BWidget
+package require tile
 package require grsupport 2.0
-package require BWLabelSpinBox
+package require Dialog
+package require LabelFrames
 package require pdf4tcl
 package require PrintDialog 2.0
-
+package require ROText
 
 catch {Dispatcher::SplashWorkMessage "Loading Node Graph Display Code" 16}
 
@@ -65,15 +66,15 @@ namespace eval NodeGraphCanvas {
       install nodeMenu using menu $win.nodeMenu -tearoff no
       $nodeMenu add command -label [_m "Label|Node Info"] -command [mymethod MenuNodeInfo]
       $nodeMenu add command -label [_m "Label|Add To Panel"] -command [mymethod MenuAddToPanel]
-      install findDialog using Dialog::create $win.findNodeDialog \
-			-bitmap questhead -default 0 \
-			-cancel 1 -modal local -transient yes -parent . \
+      install findDialog using Dialog $win.findNodeDialog \
+			-bitmap questhead -default find \
+			-cancel cancel -modal local -transient yes -parent . \
 			-side bottom -title [_ "Find Node By ID"]
-      $findDialog add -name find -text [_m "Button|Find"] -command [mymethod _Find]
-      $findDialog add -name cancel -text [_m "Button|Cancel"] -command [mymethod _Cancel]
+      $findDialog add find -text [_m "Button|Find"] -command [mymethod _Find]
+      $findDialog add cancel -text [_m "Button|Cancel"] -command [mymethod _Cancel]
       wm protocol [winfo toplevel $findDialog] WM_DELETE_WINDOW [mymethod _Cancel]
-      $findDialog add -name help -text [_m "Button|Help"] -command {HTMLHelp::HTMLHelp help {Find Node Dialog}}
-      set frame [Dialog::getframe $findDialog]
+      $findDialog add help -text [_m "Button|Help"] -command {HTMLHelp::HTMLHelp help {Find Node Dialog}}
+      set frame [$findDialog getframe]
       install nodeIDLSP using LabelSpinBox $frame.nodeIDLSP -label [_m "Label|Node ID:"] \
 					-range {1 9999 1}
       pack $nodeIDLSP -fill x
@@ -138,16 +139,16 @@ namespace eval NodeGraphCanvas {
     variable blocknodes -array {}
     variable switchnodes -array {}
     method {create block} {node} {
-#      puts stderr "*** $self create block $node"
+      #puts stderr "*** $self create block $node"
       set TrkNID {}
       foreach tn [$node TrackList] {
-#	puts stderr "*** $self create block: tn = $tn"
+	#puts stderr "*** $self create block: tn = $tn"
 	set tracknode [[$node info type] FindNode $tn]
 	if {![$tracknode AmIACompressedNode]} {
 	  set tracknode [$tracknode ParentNode]
 	  set tn [$tracknode MyNID]
 	}
-#	puts stderr "*** $self create block: tn = $tn, tracknode = $tracknode"
+	#puts stderr "*** $self create block: tn = $tn, tracknode = $tracknode"
 	if {[llength [$hull find withtag T$tn]] > 0} {
 	  set TrkNID $tn
 	  break
@@ -161,13 +162,14 @@ namespace eval NodeGraphCanvas {
 			[expr {[lindex $coords 3] + 1}] \
 			-outline blue -fill {} -tag T$TrkNID
       lappend blocknodes($TrkNID) $node
+      #parray blocknodes
     }
     method {create switchmotor} {node} {
-#      puts stderr "*** $self create switchmotor $node"
+      #puts stderr "*** $self create switchmotor $node"
       set tn [$node TurnoutNumber]
-#      puts stderr "*** $self create switchmotor: tn = $tn"
+      #puts stderr "*** $self create switchmotor: tn = $tn"
       set tracknode [[$node info type] FindNode $tn]
-#      puts stderr "*** $self create switchmotor: tracknode = $tracknode"
+      #puts stderr "*** $self create switchmotor: tracknode = $tracknode"
       if {[llength [$hull find withtag T$tn]] > 0} {
 	set TrkNID $tn
       } else {
@@ -180,6 +182,7 @@ namespace eval NodeGraphCanvas {
 			[expr {[lindex $coords 3] + 1}] \
 			-outline orange -fill {} -tag T$TrkNID
       lappend switchnodes($TrkNID) $node
+      #parray switchnodes
     }
     method {create node} {node X Y args} {
 #      puts stderr "*** $self create node $X $Y $args"
@@ -278,6 +281,9 @@ namespace eval NodeGraphCanvas {
     method NodeInfo {node} {
       NodeGraphCanvas::displayNodeInfo draw -node $node -parent $win -title [_ "Node %s" $node]
       set TrkNID [$node MyNID]
+      #puts stderr "*** $self NodeInfo: TrkNID = $TrkNID"
+#      parray blocknodes
+#      parray switchnodes
       if {![catch {set blocknodes($TrkNID)} blocklist]} {
 #	puts stderr "*** $self NodeInfo: blocklist = $blocklist"
 	foreach b $blocklist {
@@ -318,6 +324,7 @@ namespace eval NodeGraphCanvas {
     method see {tagorid} {
       set bbox [$hull bbox $tagorid]
       set sr [$hull cget -scrollregion]
+      #puts stderr "*** $self see: sr = $sr"
       set leftedge   [lindex $sr 0]
       set rightedge  [lindex $sr 2]
       set topedge    [lindex $sr 1]
@@ -363,7 +370,7 @@ namespace eval NodeGraphCanvas {
       $hull itemconfigure T$NID -fill white
     }
     method _Find {} {
-      Dialog::withdraw $findDialog
+      $findDialog withdraw
       set nid [$nodeIDLSP cget -text]
 #      puts stderr "*** $type _Find: \[RawNodeGraph::RawNode RawNodeObject $nid\] = [RawNodeGraph::RawNode RawNodeObject $nid]"
       set node [TrackGraph::TrackGraph FindNode $nid]
@@ -372,11 +379,11 @@ namespace eval NodeGraphCanvas {
 	return
       }
       $self HighLightNode $node
-      return [eval [list Dialog::enddialog $findDialog] [list Find]]
+      return [eval [list $findDialog enddialog] [list Find]]
     }
     method _Cancel {} {
       Dialog::withdraw $findDialog
-      return [eval [list Dialog::enddialog $findDialog] [list Cancel]]
+      return [eval [list $findDialo enddialog] [list Cancel]]
     }
     method searchbyid {} {
       if {[llength [$hull find all]] < 1} {
@@ -384,7 +391,7 @@ namespace eval NodeGraphCanvas {
 			-message [_ "Load a track graph first!"]
 	return
       }
-      return [Dialog::draw $findDialog]
+      return [$findDialog draw]
     }
     method print {} {
       if {[llength [$hull find all]] < 1} {
@@ -401,261 +408,6 @@ namespace eval NodeGraphCanvas {
       $pdfobj destroy
     }
   }
-  catch {
-  # Standard Motif bindings:
-
-    bind ROText <1> {
-      tk::TextButton1 %W %x %y
-      %W tag remove sel 0.0 end
-    }
-    bind ROText <B1-Motion> {
-      set tk::Priv(x) %x
-      set tk::Priv(y) %y
-      tk::TextSelectTo %W %x %y
-    }
-    bind ROText <Double-1> {
-      set tk::Priv(selectMode) word
-      tk::TextSelectTo %W %x %y
-      catch {%W mark set insert sel.last}
-      catch {%W mark set anchor sel.first}
-    }
-    bind ROText <Triple-1> {
-      set tk::Priv(selectMode) line
-      tk::TextSelectTo %W %x %y
-      catch {%W mark set insert sel.last}
-      catch {%W mark set anchor sel.first}
-    }
-    bind ROText <Shift-1> {
-      tk::TextResetAnchor %W @%x,%y
-      set tk::Priv(selectMode) char
-      tk::TextSelectTo %W %x %y
-    }
-    bind ROText <Double-Shift-1>	{
-      set tk::Priv(selectMode) word
-      tk::TextSelectTo %W %x %y 1
-    }
-    bind ROText <Triple-Shift-1>	{
-      set tk::Priv(selectMode) line
-      tk::TextSelectTo %W %x %y
-    }
-    bind ROText <B1-Leave> {
-      set tk::Priv(x) %x
-      set tk::Priv(y) %y
-      tk::TextAutoScan %W
-    }
-    bind ROText <B1-Enter> {
-      tk::CancelRepeat
-    }
-    bind ROText <ButtonRelease-1> {
-      tk::CancelRepeat
-    }
-    bind ROText <Control-1> {
-      %W mark set insert @%x,%y
-    }
-    bind ROText <Left> {
-      tk::TextSetCursor %W insert-1c
-    }
-    bind ROText <Right> {
-      tk::TextSetCursor %W insert+1c
-    }
-    bind ROText <Up> {
-      tk::TextSetCursor %W [tk::TextUpDownLine %W -1]
-    }
-    bind ROText <Down> {
-      tk::TextSetCursor %W [tk::TextUpDownLine %W 1]
-    }
-    bind ROText <Shift-Left> {
-      tk::TextKeySelect %W [%W index {insert - 1c}]
-    }
-    bind ROText <Shift-Right> {
-      tk::TextKeySelect %W [%W index {insert + 1c}]
-    }
-    bind ROText <Shift-Up> {
-      tk::TextKeySelect %W [tk::TextUpDownLine %W -1]
-    }
-    bind ROText <Shift-Down> {
-      tk::TextKeySelect %W [tk::TextUpDownLine %W 1]
-    }
-    bind ROText <Control-Left> {
-      tk::TextSetCursor %W [tk::TextPrevPos %W insert tcl_startOfPreviousWord]
-    }
-    bind ROText <Control-Right> {
-      tk::TextSetCursor %W [tk::TextNextWord %W insert]
-    }
-    bind ROText <Control-Up> {
-      tk::TextSetCursor %W [tk::TextPrevPara %W insert]
-    }
-    bind ROText <Control-Down> {
-      tk::TextSetCursor %W [tk::TextNextPara %W insert]
-    }
-    bind ROText <Shift-Control-Left> {
-      tk::TextKeySelect %W [tk::TextPrevPos %W insert tcl_startOfPreviousWord]
-    }
-    bind ROText <Shift-Control-Right> {
-      tk::TextKeySelect %W [tk::TextNextWord %W insert]
-    }
-    bind ROText <Shift-Control-Up> {
-      tk::TextKeySelect %W [tk::TextPrevPara %W insert]
-    }
-    bind ROText <Shift-Control-Down> {
-      tk::TextKeySelect %W [tk::TextNextPara %W insert]
-    }
-    bind ROText <Prior> {
-      tk::TextSetCursor %W [tk::TextScrollPages %W -1]
-    }
-    bind ROText <Shift-Prior> {
-      tk::TextKeySelect %W [tk::TextScrollPages %W -1]
-    }
-    bind ROText <Next> {
-      tk::TextSetCursor %W [tk::TextScrollPages %W 1]
-    }
-    bind ROText <Shift-Next> {
-      tk::TextKeySelect %W [tk::TextScrollPages %W 1]
-    }
-    bind ROText <Control-Prior> {
-      %W xview scroll -1 page
-    }
-    bind ROText <Control-Next> {
-      %W xview scroll 1 page
-    }
-    
-    bind ROText <Home> {
-      tk::TextSetCursor %W {insert linestart}
-    }
-    bind ROText <Shift-Home> {
-      tk::TextKeySelect %W {insert linestart}
-    }
-    bind ROText <End> {
-      tk::TextSetCursor %W {insert lineend}
-    }
-    bind ROText <Shift-End> {
-      tk::TextKeySelect %W {insert lineend}
-    }
-    bind ROText <Control-Home> {
-      tk::TextSetCursor %W 1.0
-    }
-    bind ROText <Control-Shift-Home> {
-      tk::TextKeySelect %W 1.0
-    }
-    bind ROText <Control-End> {
-      tk::TextSetCursor %W {end - 1 char}
-    }
-    bind ROText <Control-Shift-End> {
-      tk::TextKeySelect %W {end - 1 char}
-    }
-  
-    bind ROText <Control-Tab> {
-      focus [tk_focusNext %W]
-    }
-    bind ROText <Control-Shift-Tab> {
-      focus [tk_focusPrev %W]
-    }
-    bind ROText <Select> {
-      %W mark set anchor insert
-    }
-    bind ROText <<Copy>> {
-      tk_textCopy %W
-    }
-    # Additional emacs-like bindings:
-  
-    bind ROText <Control-a> {
-        if {!$tk_strictMotif} {
-  	tk::TextSetCursor %W {insert linestart}
-      }
-    }
-    bind ROText <Control-b> {
-      if {!$tk_strictMotif} {
-  	tk::TextSetCursor %W insert-1c
-      }
-    }
-    bind ROText <Control-e> {
-      if {!$tk_strictMotif} {
-  	tk::TextSetCursor %W {insert lineend}
-      }
-    }
-    bind ROText <Control-f> {
-      if {!$tk_strictMotif} {
-  	tk::TextSetCursor %W insert+1c
-      }
-    }
-    bind ROText <Control-n> {
-      if {!$tk_strictMotif} {
-  	tk::TextSetCursor %W [tk::TextUpDownLine %W 1]
-      }
-    }
-    bind ROText <Control-p> {
-      if {!$tk_strictMotif} {
-  	tk::TextSetCursor %W [tk::TextUpDownLine %W -1]
-      }
-    }
-    if {[string compare $tcl_platform(platform) "windows"]} {
-      bind ROText <Control-v> {
-        if {!$tk_strictMotif} {
-	  tk::TextScrollPages %W 1
-        }
-      }
-    }
-  
-    bind ROText <Meta-b> {
-      if {!$tk_strictMotif} {
-  	tk::TextSetCursor %W [tk::TextPrevPos %W insert tcl_startOfPreviousWord]
-      }
-    }
-    bind ROText <Meta-f> {
-      if {!$tk_strictMotif} {
-  	tk::TextSetCursor %W [tk::TextNextWord %W insert]
-      }
-    }
-    bind ROText <Meta-less> {
-      if {!$tk_strictMotif} {
-  	tk::TextSetCursor %W 1.0
-      }
-    }
-    bind ROText <Meta-greater> {
-      if {!$tk_strictMotif} {
-  	tk::TextSetCursor %W end-1c
-      }
-    }
-    # Macintosh only bindings:
-  
-    # if text black & highlight black -> text white, other text the same
-    if {[string equal $tcl_platform(platform) "macintosh"]} {
-      bind ROText <FocusIn> {
-        %W tag configure sel -borderwidth 0
-        %W configure -selectbackground systemHighlight -selectforeground systemHighlightText
-      }
-      bind ROText <FocusOut> {
-        %W tag configure sel -borderwidth 1
-        %W configure -selectbackground white -selectforeground black
-      }
-      bind ROText <Option-Left> {
-        tk::TextSetCursor %W [tk::TextPrevPos %W insert tcl_startOfPreviousWord]
-      }
-      bind ROText <Option-Right> {
-        tk::TextSetCursor %W [tk::TextNextWord %W insert]
-      }
-      bind ROText <Option-Up> {
-        tk::TextSetCursor %W [tk::TextPrevPara %W insert]
-      }
-      bind ROText <Option-Down> {
-        tk::TextSetCursor %W [tk::TextNextPara %W insert]
-      }
-      bind ROText <Shift-Option-Left> {
-        tk::TextKeySelect %W [tk::TextPrevPos %W insert tcl_startOfPreviousWord]
-      }
-      bind ROText <Shift-Option-Right> {
-        tk::TextKeySelect %W [tk::TextNextWord %W insert]
-      }
-      bind ROText <Shift-Option-Up> {
-        tk::TextKeySelect %W [tk::TextPrevPara %W insert]
-      }
-      bind ROText <Shift-Option-Down> {
-        tk::TextKeySelect %W [tk::TextNextPara %W insert]
-      }
-  
-      # End of Mac only bindings
-    }
-  }
   snit::widget displayBlockInfo {
     Dispatcher::StdShell DisplayBlockInfo
 
@@ -670,31 +422,21 @@ namespace eval NodeGraphCanvas {
     option -title -default {Displaying Block Info} -configuremethod _SetTitle
     option -node -default {} -validatemethod _CheckNode
     method _CheckNode {option value} {
-#      puts stderr "*** $self _CheckNode $option $value"
+      #puts stderr "*** $self _CheckNode $option $value"
       if {[catch {$value info type} typename]} {
-#        puts stderr "*** $self _CheckNode: Expected a TrackGraph, got $value"
+        #puts stderr "*** $self _CheckNode: Expected a TrackGraph, got $value"
 	error "Expected a TrackGraph, got $value"
       } elseif {[namespace tail "$typename"] ne "TrackGraph"} {
-#	puts stderr "*** $self _CheckNode: Expected a TrackGraph, got $value ($typename)"
+	#puts stderr "*** $self _CheckNode: Expected a TrackGraph, got $value ($typename)"
 	error "Expected a TrackGraph, got $value ($typename)"
       } else {
 	if {[$value TypeOfNode] ne "TrackGraph::Block"} {
-#	  puts stderr "*** $self _CheckNode: Expected a Block, got $value ([$value TypeOfNode])"
+	  #puts stderr "*** $self _CheckNode: Expected a Block, got $value ([$value TypeOfNode])"
 	  error "Expected a Block, got $value ([$value TypeOfNode])"
 	}
         return $value
       }
     }
-    method settopframeoption {frame option value} {
-      catch [list $nodeID configure $option "$value"]
-      catch [list $trackListLF configure $option "$value"]
-      catch [list $trackListE configure $option "$value"]
-      catch [list $trackListS configure $option "$value"]
-      catch [list $senseScriptLF configure $option "$value"]
-      catch [list $senseScriptSW configure $option "$value"]
-      catch [list $senseScriptT configure $option "$value"]
-    }
-
     method constructtopframe {frame args} {
       set lwidth [expr {1+[_mx "Label|Block:" "Label|Track List:" \
 					   "Label|Sense Script:"]}]
@@ -706,10 +448,10 @@ namespace eval NodeGraphCanvas {
 						    -text [_m "Label|Track List:"] \
 						    -width $lwidth
       pack $trackListLF -fill x
-      install trackListE using Entry [$trackListLF getframe].e \
-						    -editable no
+      install trackListE using ttk::entry [$trackListLF getframe].e \
+						    -state readonly
       pack $trackListE -expand yes -fill x
-      install trackListS using scrollbar [$trackListLF getframe].s \
+      install trackListS using ttk::scrollbar [$trackListLF getframe].s \
 						    -orient horizontal \
 						    -command "$trackListE xview"
       $trackListE configure -xscrollcommand [mymethod _trackListS]
@@ -720,11 +462,10 @@ namespace eval NodeGraphCanvas {
       install senseScriptSW using ScrolledWindow [$senseScriptLF getframe].sw \
 					-scrollbar both -auto both
       pack $senseScriptSW -expand yes -fill both
-      install senseScriptT using text [$senseScriptSW getframe].t \
+      install senseScriptT using ROText [$senseScriptSW getframe].t \
 					-height 4 -width 40
       pack $senseScriptT -expand yes -fill both
       $senseScriptSW setwidget $senseScriptT
-      bindtags $senseScriptT [list $senseScriptT ROText . all]
     }
     method _trackListS {s e} {
       if {$s == 0 && $e == 1} {
@@ -739,7 +480,12 @@ namespace eval NodeGraphCanvas {
       set node [$self cget -node]
       if {[string length "$node"] == 0} {return}
       $nodeID configure -text [$node NameOfNode]
-      $trackListE configure -text [$node TrackList]
+      #puts stderr "*** $self initializetopframe: node = $node, \[$node TrackList\] is [$node TrackList]"
+      set state [$trackListE cget -state]
+      $trackListE configure -state normal
+      $trackListE delete 0 end
+      $trackListE insert end "[$node TrackList]"
+      $trackListE configure -state $state
       $senseScriptT delete 1.0 end
       $senseScriptT insert end "[$node SenseScript]"
     }
@@ -774,19 +520,6 @@ namespace eval NodeGraphCanvas {
         return $value
       }
     }
-    method settopframeoption {frame option value} {
-      catch [list $nodeID configure $option "$value"]
-      catch [list $turnoutNumber configure $option "$value"]
-      catch [list $normalActionScriptLF configure $option "$value"]
-      catch [list $normalActionScriptSW
-      catch [list $normalActionScriptT configure $option "$value"]
-      catch [list $reverseActionScriptLF configure $option "$value"]
-      catch [list $reverseActionScriptSW
-      catch [list $reverseActionScriptT configure $option "$value"]
-      catch [list $senseScriptLF configure $option "$value"]
-      catch [list $senseScriptSW configure $option "$value"]
-      catch [list $senseScriptT configure $option "$value"]
-    }
 
     method constructtopframe {frame args} {
       set lwidth [expr {1+[_mx "Label|Switch Motor:" \
@@ -808,11 +541,10 @@ namespace eval NodeGraphCanvas {
       install normalActionScriptSW using ScrolledWindow [$normalActionScriptLF getframe].sw \
 					-scrollbar both -auto both
       pack $normalActionScriptSW -expand yes -fill both
-      install normalActionScriptT using text [$normalActionScriptSW getframe].t \
+      install normalActionScriptT using ROText [$normalActionScriptSW getframe].t \
 					-height 4 -width 40
       pack $normalActionScriptT -expand yes -fill both
       $normalActionScriptSW setwidget $normalActionScriptT
-      bindtags $normalActionScriptT [list $normalActionScriptT ROText . all]
       install reverseActionScriptLF using LabelFrame $frame.reverseActionScriptLF \
 						    -text [_m "Label|Reverse Action Script:"] \
 						    -width $lwidth
@@ -820,11 +552,10 @@ namespace eval NodeGraphCanvas {
       install reverseActionScriptSW using ScrolledWindow [$reverseActionScriptLF getframe].sw \
 					-scrollbar both -auto both
       pack $reverseActionScriptSW -expand yes -fill both
-      install reverseActionScriptT using text [$reverseActionScriptSW getframe].t \
+      install reverseActionScriptT using ROText [$reverseActionScriptSW getframe].t \
 					-height 4 -width 40
       pack $reverseActionScriptT -expand yes -fill both
       $reverseActionScriptSW setwidget $reverseActionScriptT
-      bindtags $reverseActionScriptT [list $reverseActionScriptT ROText . all]
       install senseScriptLF using LabelFrame $frame.senseScriptLF \
 						    -text [_m "Label|Sense Script:"] \
 						    -width $lwidth
@@ -832,11 +563,10 @@ namespace eval NodeGraphCanvas {
       install senseScriptSW using ScrolledWindow [$senseScriptLF getframe].sw \
 					-scrollbar both -auto both
       pack $senseScriptSW -expand yes -fill both
-      install senseScriptT using text [$senseScriptSW getframe].t \
+      install senseScriptT using ROText [$senseScriptSW getframe].t \
 					-height 4 -width 40
       pack $senseScriptT -expand yes -fill both
       $senseScriptSW setwidget $senseScriptT
-      bindtags $senseScriptT [list $senseScriptT ROText . all]
     }
     method initializetopframe {frame args} {
       $self configurelist $args
@@ -891,30 +621,30 @@ namespace eval NodeGraphCanvas {
     }
 
     method constructtopframe {frame args} {
-      set hframe [frame $frame.hframe -relief flat -borderwidth 0]
+      set hframe [ttk::frame $frame.hframe -relief flat -borderwidth 0]
       pack $hframe -expand yes -fill x
-      pack [Label $hframe.l1 -text [_m "Label|Node "]] -side left
-      install nodeID using Label $hframe.nodeID
+      pack [ttk::label $hframe.l1 -text [_m "Label|Node "]] -side left
+      install nodeID using ttk::label $hframe.nodeID
       pack $nodeID -side left
-      pack [Label $hframe.l2 -text " ("] -side left
-      install nodeType using Label $hframe.nodeType
+      pack [ttk::label $hframe.l2 -text " ("] -side left
+      install nodeType using ttk::label $hframe.nodeType
       pack $nodeType -side left
-      pack [Label $hframe.l3 -text ", "] -side left
-      install nodeLength using Label $hframe.nodeLength
+      pack [ttk::label $hframe.l3 -text ", "] -side left
+      install nodeLength using ttk::label $hframe.nodeLength
       pack $nodeLength -side left
-      pack [Label $hframe.l4 -text [_m "Label| long), "]] -side left
-      install nodeNumEdges using Label $hframe.nodeNumEdges
+      pack [ttk::label $hframe.l4 -text [_m "Label| long), "]] -side left
+      install nodeNumEdges using ttk::label $hframe.nodeNumEdges
       pack $nodeNumEdges -side left
-      pack [Label $hframe.l5 -text [_m "Label| edges:"]] -side left -anchor w -fill x
-      install infoFrameSW using ScrolledWindow::create $frame.infoFrameSW \
+      pack [ttk::label $hframe.l5 -text [_m "Label| edges:"]] -side left -anchor w -fill x
+      install infoFrameSW using ScrolledWindow $frame.infoFrameSW \
 				-scrollbar both -auto both
       pack $infoFrameSW -expand yes -fill both
-      install infoFrame using ScrollableFrame::create \
+      install infoFrame using ScrollableFrame \
 			[$infoFrameSW getframe].infoFrame
       pack $infoFrame -expand yes -fill both
       $infoFrameSW setwidget $infoFrame
-      install segmentList using LabelEntry::create $frame.segmentList \
-	-editable no -relief flat -label [_m "Label|Segments List:"]
+      install segmentList using LabelEntry $frame.segmentList \
+	-editable no -label [_m "Label|Segments List:"]
     }
     method initializetopframe {frame args} {
 #      puts stderr "*** $self initializetopframe $frame $args"
@@ -942,13 +672,13 @@ namespace eval NodeGraphCanvas {
 	  set NNID [$nextNode MyNID]
 	}
 	if {![winfo exists $infoFrame.nid$ie]} {
-	  Label $infoFrame.nid$ie -anchor e
-	  Label $infoFrame.l1$ie -anchor w -text {: }
-	  Label $infoFrame.x$ie -anchor e
-	  Label $infoFrame.l2$ie -anchor w -text {, }
-	  Label $infoFrame.y$ie -anchor e
-	  Label $infoFrame.l4$ie -anchor w -text {, }
-	  Label $infoFrame.a$ie -anchor e
+	  ttk::label $infoFrame.nid$ie -anchor e
+	  ttk::label $infoFrame.l1$ie -anchor w -text {: }
+	  ttk::label $infoFrame.x$ie -anchor e
+	  ttk::label $infoFrame.l2$ie -anchor w -text {, }
+	  ttk::label $infoFrame.y$ie -anchor e
+	  ttk::label $infoFrame.l4$ie -anchor w -text {, }
+	  ttk::label $infoFrame.a$ie -anchor e
 	}
         $infoFrame.nid$ie configure -text "$NNID"
 	$infoFrame.x$ie   configure -text $edgeX
@@ -991,32 +721,25 @@ namespace eval NodeGraphCanvas {
     option -edge -default 0 -validatemethod _VerifyInteger
     GRSupport::VerifyIntegerMethod
 
-    method settopframeoption {frame option value} {
-      catch [list $node1ID configure $option "$value"]
-      catch [list $node2ID configure $option "$value"]
-      catch [list $edgeX configure $option "$value"]
-      catch [list $edgeY configure $option "$value"]
-      catch [list $edgeA configure $option "$value"]
-    }
     method constructtopframe {frame args} {
 #      puts stderr "*** $self constructtopframe $frame $args"
       set lwidth [expr {1+[_mx "Label|Node:" "Label|Edge Node:" \
 					   "Label|Edge X:" "Label|Edge Y:" \
 					   "Label|Edge Angle:"]}]
-      install node1ID using LabelEntry::create $frame.node1ID \
-	-editable no -relief flat -label [_m "Label|Node:"] -labelwidth $lwidth
+      install node1ID using LabelEntry $frame.node1ID \
+	-editable no flat -label [_m "Label|Node:"] -labelwidth $lwidth
       pack $node1ID -fill x
-      install node2ID using LabelEntry::create $frame.node2ID \
-	-editable no -relief flat -label [_m "Label|Edge Node:"] -labelwidth $lwidth
+      install node2ID using LabelEntry $frame.node2ID \
+	-editable no flat -label [_m "Label|Edge Node:"] -labelwidth $lwidth
       pack $node2ID -fill x
-      install edgeX using LabelEntry::create $frame.edgeX \
-	-editable no -relief flat -label [_m "Label|Edge X:"] -labelwidth $lwidth
+      install edgeX using LabelEntry $frame.edgeX \
+	-editable no flat -label [_m "Label|Edge X:"] -labelwidth $lwidth
       pack $edgeX -fill x
-      install edgeY using LabelEntry::create $frame.edgeY \
-	-editable no -relief flat -label [_m "Label|Edge Y:"] -labelwidth $lwidth
+      install edgeY using LabelEntry $frame.edgeY \
+	-editable no flat -label [_m "Label|Edge Y:"] -labelwidth $lwidth
       pack $edgeY -fill x
-      install edgeA using LabelEntry::create $frame.edgeA \
-	-editable no -relief flat -label [_m "Label|Edge Angle:"] -labelwidth $lwidth
+      install edgeA using LabelEntry $frame.edgeA \
+	-editable no flat -label [_m "Label|Edge Angle:"] -labelwidth $lwidth
       pack $edgeA -fill x
     }
     method initializetopframe {frame args} {

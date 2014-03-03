@@ -35,6 +35,12 @@
 
 catch {ModelRRSystem::SplashWorkMessage "Loading Icon Frame Code" 50}
 
+package require gettext
+package require Tk
+package require tile
+package require snit
+package require IconImage
+
 namespace eval ModelRRSystem {
   snit::widgetadaptor IconFrame {
     option -logtext -default {}
@@ -61,7 +67,7 @@ namespace eval ModelRRSystem {
 				 -command [mymethod runprogram "$pPath" "$pBitmap" "$pFlags"]
         if {[string length "$options(-toolbaradd)"] > 0} {
 	  set name [$self titletoname "$pTitle"]
-	  eval $options(-toolbaradd) [list $name -bitmap "$pBitmap" \
+	  eval $options(-toolbaradd) [list $name -image [IconImage image "$pBitmap" -filetype xbm -icondir $::ImageDir] \
 		-command  [mymethod runprogram "$pPath" "$pBitmap" "$pFlags"]]
 	}
       }
@@ -176,7 +182,7 @@ namespace eval ModelRRSystem {
       }
       incr IconCounter
       if {[string length "$bm"] > 0} {
-        $hull create bitmap [expr {$x + ($dx / 2.0)}] $y -anchor n -bitmap "$bm" -tag I$IconCounter
+        $hull create bitmap [expr {$x + ($dx / 2.0)}] $y -anchor n -bitmap [IconBitmap insert "$bm" -icondir $::ImageDir] -tag I$IconCounter
 	incr y 68
       }
       $hull create text [expr {$x  + ($dx / 2.0)}] $y -anchor n -text "$text" -tag I$IconCounter
@@ -445,7 +451,7 @@ namespace eval ModelRRSystem {
       set xtrkcadExe [auto_execok xtrkcad$exeext]
       if {"$xtrkcadExe" ne {}} {
         set "DefaultPrograms(MRR CAD)" [list [auto_execok xtrkcad$exeext] \
-					  @[file join $::ImageDir xtc64.xbm] \
+					  xtc64 \
 					  {Foreign}]
       
 #        puts stderr "*** IconFrame::typeconstructor: DefaultPrograms(MRR CAD) = $DefaultPrograms(MRR CAD)"
@@ -475,13 +481,13 @@ namespace eval ModelRRSystem {
 		     {CATD Panel Builder}} \
 	      pProg {TimeTable AnyDistance Closest Resistor FCFMain
 		     FCFCreate Dispatcher} \
-	      pBitmap {TimeTable.xbm AnyDistance.xbm Closest.xbm 
-		       resistor.xbm FCF.xbm FCFCre.xbm Dispatcher.xbm} {
+	      pBitmap {TimeTable AnyDistance Closest 
+		       resistor FCF FCFCre Dispatcher} {
 	set progExe [auto_execok $pProg$exeext]
 #	puts stderr "*** IconFrame::typeconstructor: (bare) progExe = $progExe"
 	if {"$progExe" eq {}} {continue}
 	set "DefaultPrograms($pName)" [list $progExe \
-					    @[file join $::ImageDir $pBitmap] \
+					    $pBitmap \
 					    {MrrTcl}]
 #	puts stderr "*** IconFrame::typeconstructor: DefaultPrograms($pName) = $DefaultPrograms($pName)"
       }

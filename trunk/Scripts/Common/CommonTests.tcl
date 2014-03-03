@@ -38,12 +38,12 @@
 
 # Include all of the base level packages.
 package require Tk
-package require BWidget
+package require tile
 package require snit
-package require BWStdMenuBar   
-package require DWpanedw
+package require snitStdMenuBar   
 package require Splash
 package require MainWindow
+package require LabelFrames
 
 # Set the help directory path
 global HelpDir
@@ -76,7 +76,7 @@ proc SplashScreen {} {
   splash .mrrSplash \
 	-title {Model Railroad Freight Car Common Scripts Test Program, Copyright (C) 2006 Robert Heller D/B/A Deepwoods Software Model Railroad Freight Car Forwarder comes with ABSOLUTELY NO WARRANTY; for details select 'Warranty...' under the Help menu.  This is free software, and you are welcome to redistribute it under certain conditions; select 'Copying...' under the Help menu.} \
 	-image DeepwoodsBanner -background {#2ba2bf} \
-	-titleforeground white -statusforeground {black}
+        -titleforeground white -statusforeground {black}
 }
 
 # Splash window message updater.
@@ -178,7 +178,7 @@ proc CTCPanelWindow {} {
   # With a toolbar
   set panelToolbar [$panelMain addtoolbar]
   # Close button
-  pack [Button $panelToolbar.close -image CloseButtonImage \
+  pack [ttk::button $panelToolbar.close -image CloseButtonImage \
 				   -command "wm withdraw $Main.ctcpanel"] \
 	-side  right
   pack $panelMain -fill both -expand yes
@@ -318,34 +318,32 @@ CTCPanelWindow
 
 SplashWorkMessage "Building slidout" 66
 
-package require BWFileEntry
-package require BWLabelComboBox
-package require BWLabelSpinBox
-package require LabelSelectColor
+package require LabelFrames
 
 proc TestSlidout {} {
   global Main
 
   set theframe [$Main slideout add testSlideout]
-  pack [FileEntry::create $theframe.oldfile -label "Old file:" -labelwidth 20\
+  pack [FileEntry $theframe.oldfile -label "Old file:" -labelwidth 20\
 		-filedialog open -defaultextension .text \
 		-filetypes { 
 			{{Text Files}       {.text .txt}    TEXT}
 			{{All Files}        *               }}] -fill x
-  pack [FileEntry::create $theframe.newfile -label "New file:" -labelwidth 20\
+  pack [FileEntry $theframe.newfile -label "New file:" -labelwidth 20\
 		-filedialog save -defaultextension .text \
 		-filetypes { 
 			{{Text Files}       {.text .txt}    TEXT}
 			{{All Files}        *               }}] -fill x
-  pack [FileEntry::create $theframe.directory -label "Directory:" \
+  pack [FileEntry $theframe.directory -label "Directory:" \
 		-labelwidth 20\
 		-filedialog directory] -fill x
-  pack [LabelComboBox::create $theframe.combo -label "Pick one:" -labelwidth 20\
-		-values {A B C D}] -fill x
-  pack [LabelSpinBox::create $theframe.spin -label "Pick a value:" \
+  pack [LabelComboBox $theframe.combo -label "Pick one:" -labelwidth 20\
+        -values {A B C D}] -fill x
+  $theframe.combo set A
+  pack [LabelSpinBox $theframe.spin -label "Pick a value:" \
 		-labelwidth 20\
 		-range {1 10 1}] -fill x
-  pack [LabelSelectColor::create $theframe.color -label "Choose a color:"\
+  pack [LabelSelectColor $theframe.color -label "Choose a color:"\
   		-labelwidth 20] -fill x
 }
 

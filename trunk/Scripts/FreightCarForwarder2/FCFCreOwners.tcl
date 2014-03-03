@@ -38,6 +38,13 @@
 
 # $Id$
 
+package require gettext
+package require Tk
+package require tile
+package require LabelFrames
+package require ScrollWindow
+package require ScrollableFrame
+
 namespace eval FCFCreOwners {
   variable OwnersPage
   variable OwnersPageFR
@@ -49,12 +56,12 @@ namespace eval FCFCreOwners {
 }
 
 proc FCFCreOwners::FCFCreOwners {notebook} {
-  variable OwnersPage [$notebook insert end owners \
-				-text [_m "Tab|Owners File"]]
-  set OwnersPageSW [ScrolledWindow::create $OwnersPage.sw \
+  variable OwnersPage [ttk::frame $notebook.owners]
+  $notebook insert end $OwnersPage -text [_m "Tab|Owners File"]
+  set OwnersPageSW [ScrolledWindow $OwnersPage.sw \
 				-auto vertical -scrollbar vertical]
   pack $OwnersPageSW -expand yes -fill both
-  variable OwnersPageFR  [ScrollableFrame::create $OwnersPageSW.fr \
+  variable OwnersPageFR  [ScrollableFrame $OwnersPageSW.fr \
 						-constrainedwidth yes]
   pack $OwnersPageFR -expand yes -fill both
   $OwnersPageSW setwidget $OwnersPageFR
@@ -63,21 +70,21 @@ proc FCFCreOwners::FCFCreOwners {notebook} {
   variable OwnersListFR [frame $frame.ownersListFR]
   pack $OwnersListFR -expand yes -fill both
   variable OwnersListIndex 0
-  grid [Label::create $OwnersListFR.initialsHead -text [_m "Label|Initials"]] \
+  grid [ttk::label $OwnersListFR.initialsHead -text [_m "Label|Initials"]] \
 	-row 0 -column 0 -sticky nw
-  grid [Label::create $OwnersListFR.commaAHead -text {,}] \
+  grid [ttk::label $OwnersListFR.commaAHead -text {,}] \
 	-row 0 -column 1 -sticky nw
-  grid [Label::create $OwnersListFR.nameHead -text [_m "Label|Name"]] \
+  grid [ttk::label $OwnersListFR.nameHead -text [_m "Label|Name"]] \
 	-row 0 -column 2 -sticky nws
   grid columnconfigure $OwnersListFR 2 -weight 1
-  grid [Label::create $OwnersListFR.commaBHead -text {,}] \
+  grid [ttk::label $OwnersListFR.commaBHead -text {,}] \
 	-row 0 -column 3 -sticky nw
-  grid [Label::create $OwnersListFR.descrHead -text [_m "Label|Description"]] \
+  grid [ttk::label $OwnersListFR.descrHead -text [_m "Label|Description"]] \
 	-row 0 -column 4 -sticky nws
   grid columnconfigure $OwnersListFR 4 -weight 2
-  grid [Label::create $OwnersListFR.deleteHead -text [_m "Label|Delete?"]] \
+  grid [ttk::label $OwnersListFR.deleteHead -text [_m "Label|Delete?"]] \
 	-row 0 -column 5 -sticky nw
-  pack [Button::create $frame.addOwner -text [_m "Button|Add Owner"] \
+  pack [ttk::button $frame.addOwner -text [_m "Button|Add Owner"] \
 					-command FCFCreOwners::AddOwner] \
 	-anchor w
 }
@@ -88,17 +95,17 @@ proc FCFCreOwners::AddOwner {} {
   variable IsValidated 0
 
   set lastrow [lindex [grid size $OwnersListFR] 1]
-  grid [Entry::create $OwnersListFR.initials$OwnersListIndex -width 3] \
+  grid [ttk::entry $OwnersListFR.initials$OwnersListIndex -width 3] \
 	-row $lastrow -column 0 -sticky nw
-  grid [Label::create $OwnersListFR.commaA$OwnersListIndex -text {,}] \
+  grid [ttk::label $OwnersListFR.commaA$OwnersListIndex -text {,}] \
 	-row $lastrow -column 1 -sticky nw
-  grid [Entry::create $OwnersListFR.name$OwnersListIndex] \
+  grid [ttk::entry $OwnersListFR.name$OwnersListIndex] \
 	-row $lastrow -column 2 -sticky new
-  grid [Label::create $OwnersListFR.commaB$OwnersListIndex -text {,}] \
+  grid [ttk::label $OwnersListFR.commaB$OwnersListIndex -text {,}] \
 	-row $lastrow -column 3 -sticky nw
-  grid [Entry::create $OwnersListFR.descr$OwnersListIndex] \
+  grid [ttk::entry $OwnersListFR.descr$OwnersListIndex] \
 	-row $lastrow -column 4 -sticky new
-  grid [Button::create $OwnersListFR.delete$OwnersListIndex -text [_m "Button|Delete"] \
+  grid [ttk::button $OwnersListFR.delete$OwnersListIndex -text [_m "Button|Delete"] \
 			-command "FCFCreOwners::DeleteOwner $OwnersListIndex"] \
 	-row $lastrow -column 5 -sticky nw
   incr OwnersListIndex

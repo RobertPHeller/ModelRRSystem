@@ -58,11 +58,12 @@
 
 package require gettext
 package require Tk
-package require BWidget
-package require BWFileEntry
-package require BWLabelSpinBox
-package require BWLabelComboBox
+package require tile
+package require LabelFrames
+package require HTMLHelp 2.0
+package require Dialog
 package require snit
+
 
 SplashWorkMessage "Loading Printer code" 60
 
@@ -81,18 +82,18 @@ snit::type OpenPrinterDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .openPrinterDialog \
+    set dialog [Dialog .openPrinterDialog \
 		-bitmap questhead -default 0 \
 		-cancel 1 -modal local -transient yes -parent . \
 		-side bottom -title [_ "Open Printer"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _Openit]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancelit]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _Openit]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancelit]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancelit]
-    $dialog add -name help -text [_m "Button|Help"] \
-		-command [list HTMLHelp::HTMLHelp help {Open Printer Dialog}]
-    set frame [Dialog::getframe $dialog]
+    $dialog add help -text [_m "Button|Help"] \
+		-command [list HTMLHelp help {Open Printer Dialog}]
+    set frame [$dialog getframe]
     set lwidth [_mx "Label|Print file:" "Label|Type of printer:"]
-    set pfile [FileEntry::create $frame.pfile \
+    set pfile [FileEntry $frame.pfile \
 		-label [_m "Label|Print file:"] -labelwidth $lwidth -filedialog save \
 		-title [_ "File to send printout to"]]
     pack $pfile -fill x
@@ -104,7 +105,7 @@ snit::type OpenPrinterDialog {
       if {[string equal "$name" {}]} {continue}
       lappend printerTypes $name
     }
-    set ptype [LabelComboBox::create $frame.ptype \
+    set ptype [LabelComboBox $frame.ptype \
 		-label [_m "Label|Type of printer:"] -labelwidth $lwidth \
 		-values $printerTypes]
     pack $ptype -fill x
@@ -112,16 +113,16 @@ snit::type OpenPrinterDialog {
   }
   typemethod draw {} {
     $type createDialog
-    BWidget::focus $pfile 1
+    focus -force $pfile
     wm transient [winfo toplevel $dialog] .
-    return [eval [list Dialog::draw $dialog]]
+    return [eval [list $dialog draw]]
   }
   typemethod _Cancelit {} {
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog Cancel]
+    $dialog withdraw
+    return [$dialog enddialog Cancel]
   }
   typemethod _Openit {} {
-    Dialog::withdraw $dialog
+    $dialog withdraw
     set prfile [$pfile cget -text]
     set printer [$ptype cget -text]
     set printerCommand "${printer}PrinterDevice"
@@ -134,7 +135,7 @@ snit::type OpenPrinterDialog {
     $printerCommand Printer "$prfile" "$title"
     global PrinterIndicator
     $PrinterIndicator configure -image PrintImage
-    return [Dialog::enddialog $dialog OK]
+    return [$dialog enddialog OK]
   }
 }
 

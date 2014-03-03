@@ -57,12 +57,10 @@ set argv0 [file join  [file dirname [info nameofexecutable]]  LocoPull]
 # Load required packages
 package require gettext
 package require Tk
-package require BWidget
-package require HTMLHelp
-package require BWStdMenuBar
-package require BWLabelComboBox
-package require BWLabelSpinBox
-package require MainWindow
+package require HTMLHelp 2.0
+package require snitStdMenuBar
+package require LabelFrames
+package require MainFrame
 package require Version
 
 # Set Help directory
@@ -131,11 +129,11 @@ namespace eval LocoPull {
 	-values [lsort -dictionary [array names ScaleTranslationTable]] \
 	-editable no -textvariable [myvar thescale]
       pack $scale -fill x
-      $scale setvalue first
-      install locoInfo using TitleFrame $win.locoInfo \
-				-text [_ "Locomotive Information"] -side left
+      $scale set [lindex [$scale cget -values] 0]
+      install locoInfo using ttk::labelframe $win.locoInfo \
+				-text [_ "Locomotive Information"] -labelanchor nw
       pack $locoInfo -fill x
-      set frame [$locoInfo getframe]
+      set frame $locoInfo
       install muCount using ::LabelSpinBox $frame.muCount \
 		-label [_m "Label|MU Count:"] -labelwidth $LabelWidth \
 		-range {1 5 1} -textvariable [myvar themuCount]
@@ -164,10 +162,10 @@ namespace eval LocoPull {
 		-editable no \
 		-textvariable [myvar thenetTractiveEffort]
       pack $netTractiveEffort -fill x
-      install consitInfo using TitleFrame $win.consitInfo \
-				-text [_ "Consist Information"] -side left
+      install consitInfo using ttk::labelframe $win.consitInfo \
+				-text [_ "Consist Information"] -labelanchor nw
       pack $consitInfo -fill x
-      set frame [$consitInfo getframe]
+      set frame $consitInfo
       install averageCarWeight using LabelSpinBox $frame.averageCarWeight \
 				-label [_m "Label|Average Car Weight (Oz.)"] \
 				-labelwidth $LabelWidth \
@@ -194,10 +192,10 @@ namespace eval LocoPull {
 				-editable no \
 				-textvariable [myvar thezeroGradeCapacity]
       pack $zeroGradeCapacity -fill x
-      install gradeInfo using TitleFrame $win.gradeInfo \
-				-text [_ "Grade Information"] -side left
+      install gradeInfo using ttk::labelframe $win.gradeInfo \
+				-text [_ "Grade Information"] -labelanchor nw
       pack $gradeInfo -fill x
-      set frame [$gradeInfo getframe]
+      set frame $gradeInfo
       install grade using LabelSpinBox $frame.grade \
 			-label [_m "Label|Grade (%):"]  -labelwidth $LabelWidth \
 			-range {1 100 1} \
@@ -224,10 +222,10 @@ namespace eval LocoPull {
 				-editable no \
 				-textvariable [myvar theaddedResistancePerUnit]
       pack $addedResistancePerUnit -fill x
-      install curveInfo using TitleFrame $win.curveInfo \
-				-text [_ "Curve Information"] -side left
+      install curveInfo using ttk::labelframe $win.curveInfo \
+				-text [_ "Curve Information"] -labelanchor nw
       pack $curveInfo -fill x
-      set frame [$curveInfo getframe]
+      set frame $curveInfo
       install radius using LabelSpinBox $frame.radius \
 				-label [_m "Label|Radius (in):"] -labelwidth $LabelWidth \
 				-range {6 48 2} -textvariable [myvar theradius]
@@ -252,10 +250,10 @@ namespace eval LocoPull {
 				-editable no \
 				-textvariable [myvar thecapacityAtGradeAndCurve]
       pack $capacityAtGradeAndCurve -fill x
-      install calculateButton using Button $win.calculateButton \
+      install calculateButton using ttk::button $win.calculateButton \
 				-text [_m "Button|Calculate"] \
 				-command [mymethod calculate]
-      pack $calculateButton -expand yes -fill x
+      pack $calculateButton -fill x
       #$self configurelist $args
       $self reset
       $self calculate
@@ -324,7 +322,7 @@ namespace eval LocoPull {
   variable Calculator
 
   # Create menubar
-  set menubar [StdMenuBar::MakeMenu \
+  set menubar [StdMenuBar MakeMenu \
 	-file [list [_m "Menu|&File"] {file} {file} 0 [list \
 	     [list command [_m "Menu|File|&New"] {file:new} [_ "Reset Values"]  {Ctrl n} -command {$LocoPull::Calculator reset}] \
 	     [list command [_m "Menu|File|&Open..."] {file:open} "" {} -state disabled] \
@@ -333,26 +331,21 @@ namespace eval LocoPull {
 	     [list command [_m "Menu|File|E&xit"] {file:exit} [_ "Close the application"] {Ctrl q} -command {LocoPull::CareFulExit}] \
 	] \
     ] -help [list [_m "Menu|&Help"] {help} {help} 0 [list \
-		[list command [_m "Menu|Help|On &Help..."] {help:help} [_ "Help on help"] {} -command "HTMLHelp::HTMLHelp help Help"] \
-		[list command [_m "Menu|Help|On &Version"] {help:version} [_ "Version"] {} -command "HTMLHelp::HTMLHelp help Version"] \
-		[list command [_m "Menu|Help|Warranty"] {help:warranty} [_ "Warranty"] {} -command "HTMLHelp::HTMLHelp help Warranty"] \
-		[list command [_m "Menu|Help|Copying"] {help:copying} [_ "Copying"] {} -command "HTMLHelp::HTMLHelp help Copying"] \
-		[list command [_m "Menu|Help|Reference Manual"] {help:reference} [_ "Reference Manual"] {} -command {HTMLHelp::HTMLHelp help "LocoPull Program Reference"}] \
+		[list command [_m "Menu|Help|On &Help..."] {help:help} [_ "Help on help"] {} -command "HTMLHelp help Help"] \
+		[list command [_m "Menu|Help|On &Version"] {help:version} [_ "Version"] {} -command "HTMLHelp help Version"] \
+		[list command [_m "Menu|Help|Warranty"] {help:warranty} [_ "Warranty"] {} -command "HTMLHelp help Warranty"] \
+		[list command [_m "Menu|Help|Copying"] {help:copying} [_ "Copying"] {} -command "HTMLHelp help Copying"] \
+		[list command [_m "Menu|Help|Reference Manual"] {help:reference} [_ "Reference Manual"] {} -command {HTMLHelp help "LocoPull Program Reference"}] \
 	] \
     ]]
   # Create main frame
-  set Main [mainwindow .main -menu $menubar]
+  wm withdraw .
+  set Main [MainFrame .main -menu $menubar]
   pack $Main -expand yes -fill both
-  set sframe [ScrollableFrame [$Main scrollwindow getframe].sframe \
-						-constrainedwidth yes \
-						-constrainedheight yes \
-						-width 400 -height 510]
-  pack $sframe -expand yes -fill both
-  $Main scrollwindow setwidget $sframe
-  set Calculator [LocoPullCalculator [$sframe getframe].calculator]
+  set Calculator [LocoPullCalculator [$Main getframe].calculator]
   pack $Calculator -expand yes -fill both
 
-  HTMLHelp::HTMLHelp setDefaults "$::HelpDir" "Calcli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "Calcli1.html"
 }
 
 proc LocoPull::CareFulExit {{answer no}} {
@@ -405,14 +398,17 @@ for {set ia 0} {$ia < $argc} {incr ia} {
 global IsSlave
 if {!$IsSlave} {
   set w .
-  wm withdraw $w
   update idletasks
   set x [expr {[winfo screenwidth $w]/2 - [winfo reqwidth $w]/2 \
             - [winfo vrootx $w]}]
   set y [expr {[winfo screenheight $w]/2 - [winfo reqheight $w]/2 \
             - [winfo vrooty $w]}]
   wm geom $w +$x+$y
-  wm deiconify .
 }
 
-$::LocoPull::Main showit
+update idle
+set minwidth [winfo reqwidth .]
+set minheight [winfo reqheight .]
+wm minsize . $minwidth [expr {$minheight + 30}]
+wm geometry . =[expr {$minheight + 30}]x$minwidth
+wm deiconify .

@@ -102,21 +102,33 @@ namespace eval WrapIt {
   variable CodeLibrary [file join [file dirname [file dirname [file dirname [info script]]]] CodeLibrary]
 #  puts stderr "*** WrapIt::CodeLibrary = $CodeLibrary"
   variable CopyLibDirs [list \
-    [glob -nocomplain [file join $Lib bwidget*]] \
-    [glob -nocomplain [file join $Lib snit*]] \
-  ]
+                        [glob -nocomplain [file join $Lib Img*]] \
+                        [glob -nocomplain [file join $Lib snit*]] \
+                        ]
 #  puts stderr "*** WrapIt::CopyLibDirs = $CopyLibDirs"
   variable CMriLibDir [glob -nocomplain [file join $CodeLibrary CMri]]
 #  puts stderr "*** WrapIt::CMriLibDir = $CMriLibDir"
   variable AzatraxLibDir [glob -nocomplain [file join $CodeLibrary Azatrax]]
 #  puts stderr "*** WrapIt::AzatraxLibDir = $AzatraxLibDir"
   variable CopyCommonLibFiles [list \
-    [file join $Lib Common BWStdMenuBar.tcl] \
+    [file join $Lib Common snitStdMenuBar.tcl] \
     [file join $Lib Common mainwindow.tcl] \
+    [file join $Lib Common snitmainframe.tcl] \
+    [file join $Lib Common DynamicHelp.tcl] \
+    [file join $Lib Common snitbuttonbox.tcl] \
+    [file join $Lib Common snitHTMLHelp.tcl] \
+    [file join $Lib Common IconsAndImages.tcl] \
+    [file join $Lib Common snitscrollw.tcl] \
+    [file join $Lib Common snitscrollableframe.tcl] \
     [file join $Lib Common CTCPanel2.tcl] \
     [file join $Lib Common grsupport2.tcl] \
-    [file join $Lib Common panedw.tcl] \
+    [file join $Lib Common snitLFs.tcl] \
     [file join $Lib Common gettext.tcl] \
+    [file join $Lib Common unknown.xpm] \
+    [file join $Lib Common openfold.png] \
+    [file join $Lib Common palette.png] \
+    [file join $Lib Common questhead.xbm] \
+    [file join $Lib Common gray50.xbm] \
   ]
 #  puts stderr "*** WrapIt::CopyCommonLibFiles = $CopyCommonLibFiles"
   proc WrapIt {filename writeprogfun {needcmri no} {needazatrax no} {additionalPackages {}}} {
@@ -125,7 +137,17 @@ namespace eval WrapIt {
     set compress 1
     set ropts -readonly
     file copy $TclKit $filename
-    vfs::mk4::Mount $filename $filename
+    if {![catch { package require Mk4tcl }]} {
+        vfs::mk4::Mount $filename $filename
+    } elseif {![catch { package require vlerq }]} {
+        package require vfs::m2m 1.8
+        vfs::m2m::Mount $filename $filename
+    } else {
+        tk_messageBox \
+              -type ok -icon error \
+              -message [_ "Cannot find required packages (Mk4tcl or Vlerq)"]
+        return
+    }
     set module [file rootname [file tail $filename]]
     set fp [open [file join $filename main.tcl] w]
     puts $fp "
@@ -135,9 +157,10 @@ namespace eval WrapIt {
 "
     close $fp
     variable CopyLibDirs
+    puts stderr "*** WrapIt::WrapIt: CopyLibDirs = $CopyLibDirs"
     foreach ld $CopyLibDirs {
-#      puts stderr "*** WrapIt::WrapIt: ld = $ld"
-#      puts stderr "*** WrapIt::WrapIt: file copy $ld [file join $filename lib [file tail $ld]]"
+      puts stderr "*** WrapIt::WrapIt: ld = $ld"
+      puts stderr "*** WrapIt::WrapIt: file copy $ld [file join $filename lib [file tail $ld]]"
       file copy $ld [file join $filename lib [file tail $ld]]
     }
     variable CopyCommonLibFiles

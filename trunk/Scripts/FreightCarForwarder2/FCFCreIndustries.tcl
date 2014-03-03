@@ -38,7 +38,13 @@
 
 # $Id$
 
-package require BWidget
+package require gettext
+package require Tk
+package require tile
+package require LabelFrames
+package require ScrollWindow
+package require ScrollableFrame
+
 
 namespace eval FCFCreIndustries {
   variable IndustriesPage
@@ -51,12 +57,12 @@ namespace eval FCFCreIndustries {
 }
 
 proc FCFCreIndustries::FCFCreIndustries {notebook} {
-  variable IndustriesPage [$notebook insert end industries \
-						-text [_m "Tab|Industries File"]]
-  set IndustriesPageSW [ScrolledWindow::create $IndustriesPage.sw \
+  variable IndustriesPage [ttk::frame $notebook.industries]
+  $notebook insert end $IndustriesPage -text [_m "Tab|Industries File"]
+  set IndustriesPageSW [ScrolledWindow $IndustriesPage.sw \
 					-auto vertical -scrollbar vertical]
   pack $IndustriesPageSW -expand yes -fill both
-  variable IndustriesPageFR [ScrollableFrame::create $IndustriesPageSW.fr \
+  variable IndustriesPageFR [ScrollableFrame $IndustriesPageSW.fr \
 							-constrainedwidth yes]
   pack $IndustriesPageFR -expand yes -fill both
   $IndustriesPageSW setwidget $IndustriesPageFR
@@ -65,138 +71,138 @@ proc FCFCreIndustries::FCFCreIndustries {notebook} {
   variable IndustriesListFR [frame $frame.industriesListFR]
   pack $IndustriesListFR -expand yes -fill both
   variable IndustriesListIndex
-  grid [Label::create $IndustriesListFR.numberHead -text [_m "Label|ID  "] -width 4] \
+  grid [ttk::label $IndustriesListFR.numberHead -text [_m "Label|ID  "] -width 4] \
 	-row 0 -column 0 -sticky nw
-  grid [Label::create $IndustriesListFR.commaAHead -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaAHead -text {,}] \
 	-row 0 -column 1 -sticky nw
-  grid [Label::create $IndustriesListFR.typeHead -text {T}] \
+  grid [ttk::label $IndustriesListFR.typeHead -text {T}] \
 	-row 0 -column 2 -sticky nw
-  grid [Label::create $IndustriesListFR.commaBHead -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaBHead -text {,}] \
 	-row 0 -column 3 -sticky nw
-  grid [Label::create $IndustriesListFR.stationHead -text [_m "Label|STA "] -width 4] \
+  grid [ttk::label $IndustriesListFR.stationHead -text [_m "Label|STA "] -width 4] \
 	-row 0 -column 4 -sticky nw
-  grid [Label::create $IndustriesListFR.commaCHead -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaCHead -text {,}] \
 	-row 0 -column 5 -sticky nw
-  grid [Label::create $IndustriesListFR.nameHead -text [_m "Label|NAME"]] \
+  grid [ttk::label $IndustriesListFR.nameHead -text [_m "Label|NAME"]] \
 	-row 0 -column 6 -sticky nw
   grid columnconfigure $IndustriesListFR 6 -weight 1
-  grid [Label::create $IndustriesListFR.commaDHead -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaDHead -text {,}] \
 	-row 0 -column 7 -sticky nw
-  grid [Label::create $IndustriesListFR.tlenHead -text [_m "Label|TLEN"]] \
+  grid [ttk::label $IndustriesListFR.tlenHead -text [_m "Label|TLEN"]] \
 	-row 0 -column 8 -sticky nw
-  grid [Label::create $IndustriesListFR.commaEHead -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaEHead -text {,}] \
 	-row 0 -column 9 -sticky nw
-  grid [Label::create $IndustriesListFR.alenHead -text [_m "Label|ALEN"]] \
+  grid [ttk::label $IndustriesListFR.alenHead -text [_m "Label|ALEN"]] \
 	-row 0 -column 10 -sticky nw
-  grid [Label::create $IndustriesListFR.commaFHead -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaFHead -text {,}] \
 	-row 0 -column 11 -sticky nw
-  grid [Label::create $IndustriesListFR.priorityHead -text [_m "Label|P"] -width 1] \
+  grid [ttk::label $IndustriesListFR.priorityHead -text [_m "Label|P"] -width 1] \
 	-row 0 -column 12 -sticky nw
-  grid [Label::create $IndustriesListFR.commaGHead -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaGHead -text {,}] \
 	-row 0 -column 13 -sticky nw
-  grid [Label::create $IndustriesListFR.reloadsHead -text [_m "Label|R"] -width 1] \
+  grid [ttk::label $IndustriesListFR.reloadsHead -text [_m "Label|R"] -width 1] \
 	-row 0 -column 14 -sticky nw
-  grid [Label::create $IndustriesListFR.commaHHead -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaHHead -text {,}] \
 	-row 0 -column 15 -sticky nw
-  grid [Label::create $IndustriesListFR.hazardHead -text [_m "Label|H"] -width 1] \
+  grid [ttk::label $IndustriesListFR.hazardHead -text [_m "Label|H"] -width 1] \
 	-row 0 -column 16 -sticky nw
-  grid [Label::create $IndustriesListFR.commaIHead -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaIHead -text {,}] \
 	-row 0 -column 17 -sticky nw
-  grid [Label::create $IndustriesListFR.mirrorHead -text [_m "Label|MIR "] -width 4] \
+  grid [ttk::label $IndustriesListFR.mirrorHead -text [_m "Label|MIR "] -width 4] \
 	-row 0 -column 18 -sticky nw
-  grid [Label::create $IndustriesListFR.commaJHead -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaJHead -text {,}] \
 	-row 0 -column 19 -sticky nw
-  grid [Label::create $IndustriesListFR.plateHead -text [_m "Label|C"] -width 1] \
+  grid [ttk::label $IndustriesListFR.plateHead -text [_m "Label|C"] -width 1] \
 	-row 0 -column 20 -sticky nw
-  grid [Label::create $IndustriesListFR.commaKHead -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaKHead -text {,}] \
 	-row 0 -column 21 -sticky nw
-  grid [Label::create $IndustriesListFR.weightHead -text [_m "Label|W"] -width 1] \
+  grid [ttk::label $IndustriesListFR.weightHead -text [_m "Label|W"] -width 1] \
 	-row 0 -column 22 -sticky nw
-  grid [Label::create $IndustriesListFR.commaLHead -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaLHead -text {,}] \
 	-row 0 -column 23 -sticky nw
-  grid [Label::create $IndustriesListFR.dclHead -text [_m "Label|DCL"]] \
+  grid [ttk::label $IndustriesListFR.dclHead -text [_m "Label|DCL"]] \
 	-row 0 -column 24 -sticky nw
-  grid [Label::create $IndustriesListFR.commaMHead -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaMHead -text {,}] \
 	-row 0 -column 25 -sticky nw
-  grid [Label::create $IndustriesListFR.maxHead -text [_m "Label|MAX"] -width 4] \
+  grid [ttk::label $IndustriesListFR.maxHead -text [_m "Label|MAX"] -width 4] \
 	-row 0 -column 26 -sticky nw
-  grid [Label::create $IndustriesListFR.commaNHead -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaNHead -text {,}] \
 	-row 0 -column 27 -sticky nw
-  grid [Label::create $IndustriesListFR.ldHead -text [_m "Label|LD"] -width 4] \
+  grid [ttk::label $IndustriesListFR.ldHead -text [_m "Label|LD"] -width 4] \
 	-row 0 -column 28 -sticky nw
-  grid [Label::create $IndustriesListFR.commaOHead -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaOHead -text {,}] \
 	-row 0 -column 29 -sticky nw
-  grid [Label::create $IndustriesListFR.emHead -text [_m "Label|EM"] -width 4] \
+  grid [ttk::label $IndustriesListFR.emHead -text [_m "Label|EM"] -width 4] \
 	-row 0 -column 30 -sticky nw
-  grid [Label::create $IndustriesListFR.deleteHead -text [_m "Label|Delete?"]] \
+  grid [ttk::label $IndustriesListFR.deleteHead -text [_m "Label|Delete?"]] \
 	-row 0 -column 31 -sticky nw
   # Workbench
-  grid [Label::create $IndustriesListFR.number0 -text {0} -width 4] \
+  grid [ttk::label $IndustriesListFR.number0 -text {0} -width 4] \
 	-row 1 -column 0 -sticky nw
-  grid [Label::create $IndustriesListFR.commaA0 -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaA0 -text {,}] \
 	-row 1 -column 1 -sticky nw
-  grid [Label::create $IndustriesListFR.type0 -text {I}] \
+  grid [ttk::label $IndustriesListFR.type0 -text {I}] \
 	-row 1 -column 2 -sticky nw
-  grid [Label::create $IndustriesListFR.commaB0 -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaB0 -text {,}] \
 	-row 1 -column 3 -sticky nw
-  grid [Label::create $IndustriesListFR.station0 -text {1} -width 4] \
+  grid [ttk::label $IndustriesListFR.station0 -text {1} -width 4] \
 	-row 1 -column 4 -sticky nw
-  grid [Label::create $IndustriesListFR.commaC0 -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaC0 -text {,}] \
 	-row 1 -column 5 -sticky nw
-  grid [Label::create $IndustriesListFR.name0 -text [_ "REPAIR YARD"]] \
+  grid [ttk::label $IndustriesListFR.name0 -text [_ "REPAIR YARD"]] \
 	-row 1 -column 6 -sticky nw
-  grid [Label::create $IndustriesListFR.commaD0 -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaD0 -text {,}] \
 	-row 1 -column 7 -sticky nw
-  grid [Label::create $IndustriesListFR.tlen0 -text {0}] \
+  grid [ttk::label $IndustriesListFR.tlen0 -text {0}] \
 	-row 1 -column 8 -sticky nw
-  grid [Label::create $IndustriesListFR.commaE0 -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaE0 -text {,}] \
 	-row 1 -column 9 -sticky nw
-  grid [Label::create $IndustriesListFR.alen0 -text {0}] \
+  grid [ttk::label $IndustriesListFR.alen0 -text {0}] \
 	-row 1 -column 10 -sticky nw
-  grid [Label::create $IndustriesListFR.commaF0 -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaF0 -text {,}] \
 	-row 1 -column 11 -sticky nw
-  grid [Label::create $IndustriesListFR.priority0 -text {9} -width 1] \
+  grid [ttk::label $IndustriesListFR.priority0 -text {9} -width 1] \
 	-row 1 -column 12 -sticky nw
-  grid [Label::create $IndustriesListFR.commaG0 -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaG0 -text {,}] \
 	-row 1 -column 13 -sticky nw
-  grid [Label::create $IndustriesListFR.reloads0 -text {N} -width 1] \
+  grid [ttk::label $IndustriesListFR.reloads0 -text {N} -width 1] \
 	-row 1 -column 14 -sticky nw
-  grid [Label::create $IndustriesListFR.commaH0 -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaH0 -text {,}] \
 	-row 1 -column 15 -sticky nw
-  grid [Label::create $IndustriesListFR.hazard0 -text {} -width 1] \
+  grid [ttk::label $IndustriesListFR.hazard0 -text {} -width 1] \
 	-row 1 -column 16 -sticky nw
-  grid [Label::create $IndustriesListFR.commaI0 -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaI0 -text {,}] \
 	-row 1 -column 17 -sticky nw
-  grid [Label::create $IndustriesListFR.mirror0 -text {0} -width 4] \
+  grid [ttk::label $IndustriesListFR.mirror0 -text {0} -width 4] \
 	-row 1 -column 18 -sticky nw
-  grid [Label::create $IndustriesListFR.commaJ0 -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaJ0 -text {,}] \
 	-row 1 -column 19 -sticky nw
-  grid [Label::create $IndustriesListFR.plate0 -text {0} -width 1] \
+  grid [ttk::label $IndustriesListFR.plate0 -text {0} -width 1] \
 	-row 1 -column 20 -sticky nw
-  grid [Label::create $IndustriesListFR.commaK0 -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaK0 -text {,}] \
 	-row 1 -column 21 -sticky nw
-  grid [Label::create $IndustriesListFR.weight0 -text {0} -width 1] \
+  grid [ttk::label $IndustriesListFR.weight0 -text {0} -width 1] \
 	-row 1 -column 22 -sticky nw
-  grid [Label::create $IndustriesListFR.commaL0 -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaL0 -text {,}] \
 	-row 1 -column 23 -sticky nw
-  grid [Label::create $IndustriesListFR.dcl0 -text {}] \
+  grid [ttk::label $IndustriesListFR.dcl0 -text {}] \
 	-row 1 -column 24 -sticky nw
-  grid [Label::create $IndustriesListFR.commaM0 -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaM0 -text {,}] \
 	-row 1 -column 25 -sticky nw
-  grid [Label::create $IndustriesListFR.max0 -text {999} -width 4] \
+  grid [ttk::label $IndustriesListFR.max0 -text {999} -width 4] \
 	-row 1 -column 26 -sticky nw
-  grid [Label::create $IndustriesListFR.commaN0 -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaN0 -text {,}] \
 	-row 1 -column 27 -sticky nw
-  grid [Label::create $IndustriesListFR.ld0 -text {} -width 4] \
+  grid [ttk::label $IndustriesListFR.ld0 -text {} -width 4] \
 	-row 1 -column 28 -sticky nw
-  grid [Label::create $IndustriesListFR.commaO0 -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaO0 -text {,}] \
 	-row 1 -column 29 -sticky nw
-  grid [Label::create $IndustriesListFR.em0 -text {} -width 4] \
+  grid [ttk::label $IndustriesListFR.em0 -text {} -width 4] \
 	-row 1 -column 30 -sticky nw
-  grid [Label::create $IndustriesListFR.delete0 -text {}] \
+  grid [ttk::label $IndustriesListFR.delete0 -text {}] \
 	-row 1 -column 31 -sticky nw
   
-  pack [Button::create $frame.addIndustry \
+  pack [ttk::button $frame.addIndustry \
 			-text [_m  "Button|Add Industry"] \
 			-command FCFCreIndustries::AddIndustry] \
 	-anchor w
@@ -208,84 +214,84 @@ proc FCFCreIndustries::AddIndustry {} {
   variable IsValidated no
 
   set lastrow [lindex [grid size $IndustriesListFR] 1]
-  grid [SpinBox::create $IndustriesListFR.number$IndustriesListIndex \
-				-range {1 1000 1} -width 4] \
+  grid [spinbox $IndustriesListFR.number$IndustriesListIndex \
+				-from 1 -to 1000 -increment 1 -width 4] \
 	-row $lastrow -column 0 -sticky nw
-  grid [Label::create $IndustriesListFR.commaA$IndustriesListIndex -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaA$IndustriesListIndex -text {,}] \
 	-row $lastrow -column 1 -sticky nw
-  grid [ComboBox::create $IndustriesListFR.type$IndustriesListIndex \
-	-values {I O Y} -editable no -width 1] \
+  grid [ttk::combobox $IndustriesListFR.type$IndustriesListIndex \
+	-values {I O Y} -state readonly -width 1] \
 	-row $lastrow -column 2 -sticky nw
-  $IndustriesListFR.type$IndustriesListIndex setvalue first
-  grid [Label::create $IndustriesListFR.commaB$IndustriesListIndex -text {,}] \
+  $IndustriesListFR.type$IndustriesListIndex set [lindex [$IndustriesListFR.type$IndustriesListIndex cget -values]  0]
+  grid [ttk::label $IndustriesListFR.commaB$IndustriesListIndex -text {,}] \
 	-row $lastrow -column 3 -sticky nw
-  grid [SpinBox::create $IndustriesListFR.station$IndustriesListIndex \
-				-range {0 1000 1} -width 4] \
+  grid [spinbox $IndustriesListFR.station$IndustriesListIndex \
+				-from 0 -to 1000 -increment 1 -width 4] \
 	-row $lastrow -column 4 -sticky nw
-  grid [Label::create $IndustriesListFR.commaC$IndustriesListIndex -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaC$IndustriesListIndex -text {,}] \
 	-row $lastrow -column 5 -sticky nw
-  grid [Entry::create $IndustriesListFR.name$IndustriesListIndex] \
+  grid [ttk::entry $IndustriesListFR.name$IndustriesListIndex] \
 	-row $lastrow -column 6 -sticky new
-  grid [Label::create $IndustriesListFR.commaD$IndustriesListIndex -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaD$IndustriesListIndex -text {,}] \
 	-row $lastrow -column 7 -sticky nw
-  grid [SpinBox::create $IndustriesListFR.tlen$IndustriesListIndex \
-				-range {0 999 1} -width 4] \
+  grid [spinbox $IndustriesListFR.tlen$IndustriesListIndex \
+				-from 0 -to 999 -increment 1 -width 4] \
 	-row $lastrow -column 8 -sticky nw
-  grid [Label::create $IndustriesListFR.commaE$IndustriesListIndex -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaE$IndustriesListIndex -text {,}] \
 	-row $lastrow -column 9 -sticky nw
-  grid [SpinBox::create $IndustriesListFR.alen$IndustriesListIndex \
-				-range {0 999 1} -width 4] \
+  grid [spinbox $IndustriesListFR.alen$IndustriesListIndex \
+        -from 0 -to 999 -increment 1 -width 4] \
 	-row $lastrow -column 10 -sticky nw
-  grid [Label::create $IndustriesListFR.commaF$IndustriesListIndex -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaF$IndustriesListIndex -text {,}] \
 	-row $lastrow -column 11 -sticky nw
-  grid [SpinBox::create $IndustriesListFR.priority$IndustriesListIndex \
-				-range {1 9 1} -width 1] \
+  grid [spinbox $IndustriesListFR.priority$IndustriesListIndex \
+				-from 1 -to 9 -increment 1 -width 1] \
 	-row $lastrow -column 12 -sticky nw
-  grid [Label::create $IndustriesListFR.commaG$IndustriesListIndex -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaG$IndustriesListIndex -text {,}] \
 	-row $lastrow -column 13 -sticky nw
-  grid [ComboBox::create $IndustriesListFR.reloads$IndustriesListIndex \
+  grid [ttk::combobox $IndustriesListFR.reloads$IndustriesListIndex \
 			-values {N Y} -width 1] \
 	-row $lastrow -column 14 -sticky nw
-  $IndustriesListFR.reloads$IndustriesListIndex setvalue first
-  grid [Label::create $IndustriesListFR.commaH$IndustriesListIndex -text {,}] \
+  $IndustriesListFR.reloads$IndustriesListIndex set [lindex [$IndustriesListFR.reloads$IndustriesListIndex cget -values] 0]
+  grid [ttk::label $IndustriesListFR.commaH$IndustriesListIndex -text {,}] \
 	-row $lastrow -column 15 -sticky nw
-  grid [ComboBox::create $IndustriesListFR.hazard$IndustriesListIndex \
+  grid [ttk::combobox $IndustriesListFR.hazard$IndustriesListIndex \
 			-values {{} 1 2 3 4 5 6 7 8 9} -width 1] \
 	-row $lastrow -column 16 -sticky nw
-  $IndustriesListFR.hazard$IndustriesListIndex setvalue first
-  grid [Label::create $IndustriesListFR.commaI$IndustriesListIndex -text {,}] \
+  $IndustriesListFR.hazard$IndustriesListIndex set [lindex [$IndustriesListFR.hazard$IndustriesListIndex cget -values] 0]
+  grid [ttk::label $IndustriesListFR.commaI$IndustriesListIndex -text {,}] \
 	-row $lastrow -column 17 -sticky nw
-  grid [SpinBox::create $IndustriesListFR.mirror$IndustriesListIndex \
-			-range {0 1000 1} -width 4] \
+  grid [spinbox $IndustriesListFR.mirror$IndustriesListIndex \
+			-from 0 -to 1000 -increment 1 -width 4] \
 	-row $lastrow -column 18 -sticky nw
-  grid [Label::create $IndustriesListFR.commaJ$IndustriesListIndex -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaJ$IndustriesListIndex -text {,}] \
 	-row $lastrow -column 19 -sticky nw
-  grid [SpinBox::create $IndustriesListFR.plate$IndustriesListIndex \
-			-range {1 9 1} -width 1] \
+  grid [spinbox $IndustriesListFR.plate$IndustriesListIndex \
+			-from 1 -to 9 -increment 1 -width 1] \
 	-row $lastrow -column 20 -sticky nw
-  grid [Label::create $IndustriesListFR.commaK$IndustriesListIndex -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaK$IndustriesListIndex -text {,}] \
 	-row $lastrow -column 21 -sticky nw
-  grid [SpinBox::create $IndustriesListFR.weight$IndustriesListIndex \
-			-range {1 9 1} -width 1] \
+  grid [spinbox $IndustriesListFR.weight$IndustriesListIndex \
+			-from 1 -to 9 -increment 1 -width 1] \
 	-row $lastrow -column 22 -sticky nw
-  grid [Label::create $IndustriesListFR.commaL$IndustriesListIndex -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaL$IndustriesListIndex -text {,}] \
 	-row $lastrow -column 23 -sticky nw
-  grid [Entry::create $IndustriesListFR.dcl$IndustriesListIndex -width 4] \
+  grid [ttk::entry $IndustriesListFR.dcl$IndustriesListIndex -width 4] \
 	-row $lastrow -column 24 -sticky nw
-  grid [Label::create $IndustriesListFR.commaM$IndustriesListIndex -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaM$IndustriesListIndex -text {,}] \
 	-row $lastrow -column 25 -sticky nw
-  grid [SpinBox::create $IndustriesListFR.max$IndustriesListIndex \
-			-range {0 999 10} -width 3] \
+  grid [spinbox $IndustriesListFR.max$IndustriesListIndex \
+			-from 0 -to 999 -increment 10 -width 3] \
 	-row $lastrow -column 26 -sticky nw
-  grid [Label::create $IndustriesListFR.commaN$IndustriesListIndex -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaN$IndustriesListIndex -text {,}] \
 	-row $lastrow -column 27 -sticky nw
-  grid [Entry::create $IndustriesListFR.ld$IndustriesListIndex -width 4] \
+  grid [ttk::entry $IndustriesListFR.ld$IndustriesListIndex -width 4] \
 	-row $lastrow -column 28 -sticky nw
-  grid [Label::create $IndustriesListFR.commaO$IndustriesListIndex -text {,}] \
+  grid [ttk::label $IndustriesListFR.commaO$IndustriesListIndex -text {,}] \
 	-row $lastrow -column 29 -sticky nw
-  grid [Entry::create $IndustriesListFR.em$IndustriesListIndex -width 4] \
+  grid [ttk::entry $IndustriesListFR.em$IndustriesListIndex -width 4] \
 	-row $lastrow -column 30 -sticky nw
-  grid [Button::create $IndustriesListFR.delete$IndustriesListIndex \
+  grid [ttk::button $IndustriesListFR.delete$IndustriesListIndex \
 	-text [_m "Button|Delete"] \
 	-command "FCFCreIndustries::DeleteIndustry $IndustriesListIndex"] \
 	-row $lastrow -column 31 -sticky nw

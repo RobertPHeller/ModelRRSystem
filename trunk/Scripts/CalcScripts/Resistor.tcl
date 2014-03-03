@@ -84,9 +84,10 @@ set argv0 [file join  [file dirname [info nameofexecutable]] Resistor]
 # Load required packages
 package require gettext
 package require Tk
-package require BWidget
-package require HTMLHelp
-package require BWStdMenuBar
+package require HTMLHelp 2.0
+package require snitStdMenuBar
+package require LabelFrames
+package require MainFrame
 package require Version
 
 # Set Help directory
@@ -109,7 +110,7 @@ namespace eval Resistor {
   wm title . [_ "Calculate Load Resistor Value"]
 
   # Create menubar
-  set menubar [StdMenuBar::MakeMenu \
+  set menubar [StdMenuBar MakeMenu \
 	-file [list [_m "Menu|&File"] {file} {file} 0 [list \
 	     [list command [_m "Menu|&File|&New"] {file:new} [_ "Reset Values"]  {Ctrl n} -command {Resistor::ResetValues}] \
 	     [list command [_m "Menu|&File|&Open..."] {file:open} "" {} -state disabled] \
@@ -119,84 +120,84 @@ namespace eval Resistor {
 	     [list command [_m "Menu|&File|E&xit"] {file:exit} [_ "Close the application"] {Ctrl q} -command {::CareFulExit}] \
 	]\
     ] -help [list [_m "Menu|&Help"] {help} {help} 0 [list \
-		[list command [_m "Menu|Help|On &Help..."] {help:help} [_ "Help on help"] {} -command "HTMLHelp::HTMLHelp help Help"] \
-		[list command [_m "Menu|Help|On &Version"] {help:version} [_ "Version"] {} -command "HTMLHelp::HTMLHelp help Version"] \
-		[list command [_m "Menu|Help|Warranty"] {help:warranty} [_ "Warranty"] {} -command "HTMLHelp::HTMLHelp help Warranty"] \
-		[list command [_m "Menu|Help|Copying"] {help:copying} [_ "Copying"] {} -command "HTMLHelp::HTMLHelp help Copying"] \
-		[list command [_m "Menu|Help|Reference Manual"] {help:reference} [_ "Reference Manual"] {} -command {HTMLHelp::HTMLHelp help "Resistor Program Reference"}] \
+		[list command [_m "Menu|Help|On &Help..."] {help:help} [_ "Help on help"] {} -command "HTMLHelp help Help"] \
+		[list command [_m "Menu|Help|On &Version"] {help:version} [_ "Version"] {} -command "HTMLHelp help Version"] \
+		[list command [_m "Menu|Help|Warranty"] {help:warranty} [_ "Warranty"] {} -command "HTMLHelp help Warranty"] \
+		[list command [_m "Menu|Help|Copying"] {help:copying} [_ "Copying"] {} -command "HTMLHelp help Copying"] \
+		[list command [_m "Menu|Help|Reference Manual"] {help:reference} [_ "Reference Manual"] {} -command {HTMLHelp help "Resistor Program Reference"}] \
 	]\
     ]]
 
 
   # Create main frame
-  pack [MainFrame::create .main -menu $menubar -textvariable Status] -expand yes -fill both
+  pack [MainFrame .main -menu $menubar -textvariable Status] -expand yes -fill both
   .main showstatusbar status
 
-  HTMLHelp::HTMLHelp setDefaults "$::HelpDir" "Calcli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "Calcli1.html"
 
   # Get frame
   set frame [.main getframe]
   # Heading
-  pack [Label::create $frame.hlabel \
+  pack [ttk::label $frame.hlabel \
 	-font {Helvetica -24 bold} -text [_ "Calculate Load Resistor Value"] \
 	-anchor c] -expand yes -fill x
 
   # Supply voltage frame
   set lw 15
-  pack [LabelFrame::create $frame.vSupplyLF -text [_m "Label|Supply Voltage:"] -width $lw] \
+  pack [LabelFrame $frame.vSupplyLF -text [_m "Label|Supply Voltage:"] -width $lw] \
 	-fill x
-  variable VSupplyValue [SpinBox::create [$frame.vSupplyLF getframe].volts \
-		-range {1.0 48.0 .25}]
+  variable VSupplyValue [spinbox [$frame.vSupplyLF getframe].volts \
+		-from 1.0 -to 48.0 -increment .25]
   pack $VSupplyValue -side left -expand yes -fill x
-  variable VSupplyUnits [ComboBox::create [$frame.vSupplyLF getframe].units \
-		-editable no -values {Volts MiliVolts KiloVolts}]
+  variable VSupplyUnits [ttk::combobox [$frame.vSupplyLF getframe].units \
+		-state readonly -values {Volts MiliVolts KiloVolts}]
   pack $VSupplyUnits -side right
-  $VSupplyUnits setvalue first
+  $VSupplyUnits set Volts
 
   # Load voltage frame
-  pack [LabelFrame::create $frame.vLoadLF -text [_m "Label|Load Voltage:"] -width $lw] \
+  pack [LabelFrame $frame.vLoadLF -text [_m "Label|Load Voltage:"] -width $lw] \
 	-fill x
-  variable VLoadValue [SpinBox::create [$frame.vLoadLF getframe].volts \
-		-range {1.0 48.0 .25}]
+  variable VLoadValue [spinbox [$frame.vLoadLF getframe].volts \
+		-from 1.0 -to 48.0 -increment .25]
   pack $VLoadValue -side left -expand yes -fill x
-  variable VLoadUnits [ComboBox::create [$frame.vLoadLF getframe].units \
-		-editable no -values {Volts MiliVolts KiloVolts}]
+  variable VLoadUnits [ttk::combobox [$frame.vLoadLF getframe].units \
+		-state readonly -values {Volts MiliVolts KiloVolts}]
   pack $VLoadUnits -side right
-  $VLoadUnits setvalue first
+  $VLoadUnits set Volts
 
   # Load current frame
-  pack [LabelFrame::create $frame.iLoadLF -text [_m "Label|Load Current:"] -width $lw] \
+  pack [LabelFrame $frame.iLoadLF -text [_m "Label|Load Current:"] -width $lw] \
 	-fill x 
-  variable ILoadValue [SpinBox::create [$frame.iLoadLF getframe].amps \
-		-range {.001 1000.0 .01}]
+  variable ILoadValue [spinbox [$frame.iLoadLF getframe].amps \
+		-from .001 -to 1000.0 -increment .01]
   pack $ILoadValue -side left -expand yes -fill x
-  variable ILoadUnits [ComboBox::create [$frame.iLoadLF getframe].units \
-		-editable no -values {Amps MiliAmps KiloAmps}]
+  variable ILoadUnits [ttk::combobox [$frame.iLoadLF getframe].units \
+		-state readonly -values {Amps MiliAmps KiloAmps}]
   pack $ILoadUnits -side right
-  $ILoadUnits setvalue first
+  $ILoadUnits set Amps
 
   # Resistor value frame
-  pack [LabelFrame::create $frame.resistorValue \
+  pack [LabelFrame $frame.resistorValue \
 			-text [_m "Label|Resistor Values:"] -width $lw] -fill x
-  variable CalcValue [LabelEntry::create [$frame.resistorValue getframe].calcV \
+  variable CalcValue [LabelEntry [$frame.resistorValue getframe].calcV \
 			-label [_m "Label|Calculated:"] -editable no -text 0]
   pack $CalcValue -side left -fill x
-  variable AvailValue [LabelEntry::create [$frame.resistorValue getframe].availV \
+  variable AvailValue [LabelEntry [$frame.resistorValue getframe].availV \
 			-label [_m "Label|Available:"] -editable no -text 0]
   pack $AvailValue -side left -fill x
 
   # Calculate button	  
-  pack [Button::create $frame.calc \
+  pack [ttk::button $frame.calc \
 		-text [_m "Button|Calculate"] \
 		-command {Resistor::CalculateValue}] -fill x
 
   # Power rating and band display frame
   pack [frame $frame.resistor2 -borderwidth {2}] -fill x
-  variable PowerRating [LabelEntry::create $frame.resistor2.pow \
+  variable PowerRating [LabelEntry $frame.resistor2.pow \
 			-label [_m "Label|Minimum Power Rating:"] \
 			-editable no -text 0]
   pack $PowerRating -side left -fill x
-  set lfTemp [LabelFrame::create $frame.resistor2.bands -text {Bands:}]
+  set lfTemp [LabelFrame $frame.resistor2.bands -text {Bands:}]
   pack $lfTemp -side left -fill x
   variable BandDisplay [canvas [$lfTemp getframe].c \
 			-borderwidth {2} \
@@ -265,17 +266,20 @@ proc Resistor::ResetValues {} {
 # [index] Resistor::ResetValues!procedure
 
   variable VSupplyValue
-  $VSupplyValue configure -text 12.0
+  $VSupplyValue delete 0 end
+  $VSupplyValue insert end 12.0
   variable VSupplyUnits
-  $VSupplyUnits setvalue first
+  $VSupplyUnits set Volts
   variable VLoadValue
-  $VLoadValue configure -text 2.0
+  $VLoadValue delete 0 end
+  $VLoadValue insert end 2.0
   variable VLoadUnits
-  $VLoadUnits setvalue first
+  $VLoadUnits set Volts
   variable ILoadValue
-  $ILoadValue configure -text 0.02
+  $ILoadValue delete 0 end
+  $ILoadValue insert end 0.02
   variable ILoadUnits
-  $ILoadUnits setvalue first
+  $ILoadUnits set Amps
   CalculateValue
 
 }
@@ -296,34 +300,34 @@ proc Resistor::CalculateValue {} {
   variable BandDisplay
 
   # Fetch and validate values from GUI
-  set vp "[$VSupplyValue cget -text]"
+  set vp "[$VSupplyValue get]"
   if {![string is double "$vp"]} {
     tk_messageBox -type ok -icon error -message [format [_ "Not a number (Supply Voltage): %s"] $vp]
     return
   }
-  set lv "[$VLoadValue cget -text]"
+  set lv "[$VLoadValue get]"
   if {![string is double "$lv"]} {
     tk_messageBox -type ok -icon error -message [format [_ "Not a number (Voltage Across Load): %s"] $lv]
     return
   }
-  set lc "[$ILoadValue cget -text]"
+  set lc "[$ILoadValue get]"
   if {![string is double "$lc"]} {
     tk_messageBox -type ok -icon error -message [format [_ "Not a number Load Current Draw): %s"] $lc]
     return
   }
   # Adjust for units
   variable Resistor
-  switch -exact -- "[$VSupplyUnits cget -text]" {
+  switch -exact -- "[$VSupplyUnits get]" {
     Volts {set  Resistor(vPlus) $vp}
     MiliVolts {set Resistor(vPlus) [expr {$vp / 1000.0}]}
     KiloVolts {set Resistor(vPlus) [expr {$vp * 1000.0}]}
   }
-  switch -exact -- "[$VLoadUnits cget -text]" {
+  switch -exact -- "[$VLoadUnits get]" {
     Volts {set Resistor(lVolts) $lv}
     MiliVolts {set Resistor(lVolts) [expr {$lv / 1000.0}]}
     KiloVolts {set Resistor(lVolts) [expr {$lv * 1000.0}]}
   }
-  switch -exact -- "[$ILoadUnits cget -text]" {
+  switch -exact -- "[$ILoadUnits get]" {
     Amps {set Resistor(lCurrent) $lc}
     MiliAmps {set Resistor(lCurrent) [expr {$lc / 1000.0}]}
     KiloAmps {set Resistor(lCurrent) [expr {$lc * 1000.0}]}
@@ -618,7 +622,7 @@ if {!$IsSlave} {
   wm deiconify .
 }
 
-Resistor::CalculateValue
+Resistor::ResetValues
 
 if {$IsSlave} {
   fileevent stdin readable {

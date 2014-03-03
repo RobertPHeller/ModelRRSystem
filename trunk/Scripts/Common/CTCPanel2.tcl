@@ -45,7 +45,8 @@
 #*  $Id$
 #* 
 
-package require BWidget
+package require Tk
+package require tile
 package require snit
 
 ## @addtogroup TclCommon
@@ -55,7 +56,7 @@ namespace eval CTCPanel {
 ##
 # @brief CTC Panel code, Version 2.
 #
-# This version of the CTC Panel code uses BWidget and snit to implement CTC
+# This version of the CTC Panel code uses tile and snit to implement CTC
 # panels and the gadgets that populate CTC panels.
 # The CTC Panel code is contained in this namespace.
 #
@@ -89,7 +90,7 @@ snit::widget CTCPanel {
 #
 
   widgetclass CTCPanel
-  hulltype frame
+  hulltype ttk::frame
 
   component schematic
     ## @privatesection The schematic component.
@@ -154,14 +155,14 @@ snit::widget CTCPanel {
     pack $schematic -expand yes -fill both -side left
     bind $schematic <Configure> [mymethod updateSR %W %h %w]
 
-    install schematicYscroll using scrollbar $win.schematic.yscroll \
+    install schematicYscroll using ttk::scrollbar $win.schematic.yscroll \
 		-command [list $schematic yview]
     
     pack $schematicYscroll -expand yes -fill y
 
     pack [frame $win.middle -borderwidth 2] -fill x
 
-    install xscroll using scrollbar $win.middle.xscroll \
+    install xscroll using ttk::scrollbar $win.middle.xscroll \
 			     -command [mymethod _CtcMainHScroll2] \
 			     -orient {horizontal}
     pack $xscroll -expand yes -fill x -side left
@@ -177,7 +178,7 @@ snit::widget CTCPanel {
 		-scrollregion [list 0 0 $options(-width) $canvasHeight]
     pack $controls -expand yes -fill both -side left
     bind $controls <Configure> [mymethod updateSR %W %h %w]
-    install controlsYscroll using scrollbar $win.controls.yscroll \
+    install controlsYscroll using ttk::scrollbar $win.controls.yscroll \
 		-command [list $controls yview]
     pack $controlsYscroll -expand yes -fill y
     $self configurelist $args

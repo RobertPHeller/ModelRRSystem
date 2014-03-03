@@ -1,3 +1,5 @@
+#ifndef _MAINWINDOW.TC_H_
+#define _MAINWINDOW.TC_H_
 #* 
 #* ------------------------------------------------------------------
 #* mainwindow.tcl - General purpose main window
@@ -43,9 +45,13 @@
 #* 
 
 package require snit
-package require BWidget
-package require BWStdMenuBar
-package require DWpanedw
+package require Tk
+package require tile
+package require gettext
+package require MainFrame
+package require snitStdMenuBar
+package require ScrollWindow
+package require ButtonBox
 
 ## @addtogroup TclCommon
 # @{
@@ -69,6 +75,7 @@ snit::widgetadaptor mainwindow {
 #		widget.
 # @arg -dontwithdraw Boolean to suppress withdrawing the toplevel while
 #		it is being built.
+# @arg -scrolling Boolean to enable the scrollwindow.
 #
 # @author Robert Heller \<heller\@deepsoft.com\>
 #
@@ -91,10 +98,10 @@ snit::widgetadaptor mainwindow {
 	    }
 	    "&Edit" {edit:menu} {edit} 0 {
 		{command "&Undo" {edit:undo} "Undo last change" {Ctrl z}}
-		{command "Cu&t" {edit:cut edit:havesel} "Cut selection to the paste buffer" {Ctrl x} -command StdMenuBar::EditCut}
-		{command "&Copy" {edit:copy edit:havesel} "Copy selection to the paste buffer" {Ctrl c} -command StdMenuBar::EditCopy}
-		{command "&Paste" {edit:paste edit:havesel} "Paste in the paste buffer" {Ctrl v} -command StdMenuBar::EditPaste}
-		{command "C&lear" {edit:clear edit:havesel} "Clear selection" {} -command StdMenuBar::EditClear}
+		{command "Cu&t" {edit:cut edit:havesel} "Cut selection to the paste buffer" {Ctrl x} -command {StdMenuBar EditCut}}
+		{command "&Copy" {edit:copy edit:havesel} "Copy selection to the paste buffer" {Ctrl c} -command {StdMenuBar EditCopy}}
+		{command "&Paste" {edit:paste edit:havesel} "Paste in the paste buffer" {Ctrl v} -command {StdMenuBar EditPaste}}
+		{command "C&lear" {edit:clear edit:havesel} "Clear selection" {} -command {StdMenuBar EditClear}}
 		{command "&Delete" {edit:delete edit:havesel} "Delete selection" {Ctrl d}}
 		{separator}
 		{command "Select All" {edit:selectall} "Select everything" {}}
@@ -121,6 +128,7 @@ snit::widgetadaptor mainwindow {
   delegate option -width  to hull
   option -separator -default both
   option {-dontwithdraw dontWithdraw DontWithdraw} -readonly yes -default 0
+  option -scrolling -readonly yes -default yes -type snit::boolean
   delegate method {mainframe *} to hull except {getframe addtoobar gettoolbar 
 						showtoolbar}
   component scrollwindow
@@ -129,9 +137,7 @@ snit::widgetadaptor mainwindow {
   component wipmessage
   ## Work-In-Progress message component.
   delegate method {wipmessage *} to wipmessage
-  component right
-  ## Holds the widgets on the right, including the right button column and
-  # the slideouts, if any.
+  component main
   component buttons
   ## Right button box.
 
@@ -162,11 +168,11 @@ snit::widgetadaptor mainwindow {
 		   -helpvar [myvar status]
     }
     set res [eval [list $buttons add] $args]
-    set width 0
-    foreach s [pack slaves $right] {
-      incr width [winfo reqwidth $s]
-    }
-    $panewindow paneconfigure right -minsize $width
+    #set width 0
+    #foreach s [pack slaves $right] {
+    #  incr width [winfo reqwidth $s]
+    #}
+    #$panewindow paneconfigure right -minsize $width
     return $res
   }
 
@@ -176,11 +182,11 @@ snit::widgetadaptor mainwindow {
   # @param index Passed to the ButtonBox delete method.
 
     set res [eval [list $buttons delete $index]]
-    set width 0
-    foreach s [pack slaves $right] {
-      incr width [winfo reqwidth $s]
-    }
-    $panewindow paneconfigure right -minsize $width
+    #set width 0
+    #foreach s [pack slaves $right] {
+    #  incr width [winfo reqwidth $s]
+    #}
+    #$panewindow paneconfigure right -minsize $width
     return $res
   }
 
@@ -197,11 +203,11 @@ snit::widgetadaptor mainwindow {
 		   -helpvar [myvar status]
     }
     set res [eval [list $buttons insert $index] $args]
-    set width 0
-    foreach s [pack slaves $right] {
-      incr width [winfo reqwidth $s]
-    }
-    $panewindow paneconfigure right -minsize $width
+    #set width 0
+    #foreach s [pack slaves $right] {
+    #  incr width [winfo reqwidth $s]
+    #}
+    #$panewindow paneconfigure right -minsize $width
     return $res
   }
 
@@ -219,13 +225,28 @@ snit::widgetadaptor mainwindow {
 		   -helpvar [myvar status]
     }
     set res [eval [list $buttons itemconfigure $index] $args]
-    set width 0
-    foreach s [pack slaves $right] {
-      incr width [winfo reqwidth $s]
-    }
-    $panewindow paneconfigure right -minsize $width
+    #set width 0
+    #foreach s [pack slaves $right] {
+    #  incr width [winfo reqwidth $s]
+    #}
+    #$panewindow paneconfigure right -minsize $width
     return $res
   }
+  
+  
+  method {buttons hide} {} {
+    ## Method to hide the button menu.
+    $panewindow forget $buttons      
+  }
+  method {buttons show} {} {
+    ## Method to show the button menu.
+    if {[llength [$panewindow panes]] == 1} {
+        $panewindow add $buttons -weight 0
+    } else {
+        $panewindow insert 1 $buttons -weight 0
+    }
+  }
+
 
   method {slideout add} {name} {
   ## Method to add a new slideout frame to the main window.  A slide out frame
@@ -236,7 +257,7 @@ snit::widgetadaptor mainwindow {
     if {![catch [list set slideouts($name)] frame]} {
       error "$name already exists, cannot add again!"
     }
-    set frame $right.[string tolower $name]
+    set frame $panewindow.[string tolower $name]
     if {[winfo exists $frame]} {
       error "$name already exists, cannot add again!"
     }
@@ -250,13 +271,14 @@ snit::widgetadaptor mainwindow {
 
     if {[catch [list set slideouts($name)] frame]} {
       error "$name does not exist!"
-    } else {
-      pack $frame -side right -expand yes -fill both
-      set width 0
-      foreach s [pack slaves $right] {
-	incr width [winfo reqwidth $s]
-      }
-      $panewindow paneconfigure right -minsize $width
+    } elseif {[catch [list $panewindow pane $frame]]} {
+      #pack $frame -side right -expand yes -fill both
+      $panewindow add $frame -weight 0
+      #set width 0
+      #foreach s [pack slaves $right] {
+      #	incr width [winfo reqwidth $s]
+      #}
+      #$panewindow paneconfigure right -minsize $width
       return $frame
     }
   }
@@ -267,12 +289,12 @@ snit::widgetadaptor mainwindow {
     if {[catch [list set slideouts($name)] frame]} {
       error "$name does not exist!"
     } else {
-      pack forget $frame
-      set width 0
-      foreach s [pack slaves $right] {
-	incr width [winfo reqwidth $s]
-      }
-      $panewindow paneconfigure right -minsize $width
+      $panewindow forget $frame
+      #set width 0
+      #foreach s [pack slaves $right] {
+	#incr width [winfo reqwidth $s]
+      #}
+      #$panewindow paneconfigure right -minsize $width
       return $frame
     }
   }
@@ -292,7 +314,7 @@ snit::widgetadaptor mainwindow {
 
     if {[catch [list set slideouts($name)] frame]} {
       error "$name does not exist!"
-    } elseif {[catch [list pack info $frame]]} {
+    } elseif {[catch [list $panewindow pane $frame]]} {
       return 0
     } else {
       return 1
@@ -376,10 +398,10 @@ snit::widgetadaptor mainwindow {
       set helptype [from args -helptype]
       set helpvar  [from args -helpvar]
       if {[string length "$helptext"]} {
-        lappend args -helptext "$helptext" -helptype variable \
-			-helpvar [myvar status]
+          #lappend args -helptext "$helptext" -helptype variable \
+          #-helpvar [myvar status]
       }
-      pack [eval [list Button $frame.$bname] $args] -side left
+      pack [eval [list ttk::button $frame.$bname] $args] -side left
     }
   }
 
@@ -437,7 +459,7 @@ snit::widgetadaptor mainwindow {
 #    puts stderr "*** ${type}::menu add (after from): args = $args, dynhelp = $dynhelp"
     set res [eval [list $menu add $entrytype] $args]
     if {[string length "$dynhelp"]} {
-      DynamicHelp::add $menu -index [$menu index end] \
+      DynamicHelp add $menu -index [$menu index end] \
 			     -variable [myvar status] \
 			     -text "$dynhelp"
     }
@@ -473,7 +495,7 @@ snit::widgetadaptor mainwindow {
     set menu [$hull getmenu $menuid]
     set dynhelp [from args -dynamichelp]
     if {[string length "$dynhelp"]} {
-      DynamicHelp::add $menu -index [$menu index $index] \
+      DynamicHelp add $menu -index [$menu index $index] \
 			     -variable [myvar status] \
 			     -text "$dynhelp"
     }
@@ -485,7 +507,7 @@ snit::widgetadaptor mainwindow {
   # @param menuid Menu id.
 
     set menu [$hull getmenu $menuid]
-    DynamicHelp::add $menu -variable [myvar status]
+    DynamicHelp add $menu -variable [myvar status]
   }
 
   method {menu index} {menuid index} {
@@ -509,7 +531,7 @@ snit::widgetadaptor mainwindow {
     set index [$menu index $index]
     set res [eval [list $menu insert $index $entrytype] $args]
     if {[string length "$dynhelp"]} {
-      DynamicHelp::add $menu -index $index \
+      DynamicHelp add $menu -index $index \
 			     -variable [myvar status] \
 			     -text "$dynhelp"
     }
@@ -602,20 +624,20 @@ snit::widgetadaptor mainwindow {
 #    puts stderr "*** ${type}::constructor: wm state $toplevel = [wm state $toplevel]"
     if {!$options(-dontwithdraw)} {wm withdraw $toplevel}
     set frame [$hull getframe]
-    install panewindow using PanedWindow $frame.panewindow -side top
+    install panewindow using ttk::panedwindow $frame.panewindow -orient horizontal
     pack $panewindow -expand yes -fill both
-    set main [$panewindow  add -weight 1]
+    install main using ttk::frame $panewindow.main
+    $panewindow add $main -weight 3
+    set options(-scrolling) [from args -scrolling]
     install scrollwindow using ScrolledWindow $main.scrollwindow \
-						-scrollbar both -auto both
+              -scrollbar both -auto both -managed $options(-scrolling)
     pack $scrollwindow -fill both -expand yes
     install wipmessage using message $main.wipmessage \
 		-aspect 1500 -anchor w -justify left
     pack $wipmessage -fill x -anchor w
-    set right [$panewindow  add -weight 0 -name right]
-    install buttons using ButtonBox $right.buttons \
-		-orient vertical -pady 0 -padx 0 -spacing 0
-    pack $buttons -fill y -side left
-    $panewindow paneconfigure right -minsize [winfo reqwidth $buttons]
+    install buttons using ButtonBox $panewindow.buttons -orient vertical 
+    $panewindow add $buttons -weight 0
+    #$panewindow paneconfigure right -minsize [winfo reqwidth $buttons]
     $self configurelist $args
 #    update
   }
@@ -626,3 +648,5 @@ snit::widgetadaptor mainwindow {
 ## @}
 
 package provide MainWindow 1.0
+#endif /* _MAINWINDOW.TC_H_ */
+

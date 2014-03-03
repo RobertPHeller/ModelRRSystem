@@ -39,8 +39,11 @@
 #*  
 #* 
 
+package require gettext
+package require Tk
+package require tile
 package require snit
-package require BWidget
+package require Dialog
 
 namespace eval GetLensSpecDialog {
   snit::type GetLensSpecDialog {
@@ -60,43 +63,43 @@ namespace eval GetLensSpecDialog {
     }
     method createDialog {} {
       if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-      set dialog [Dialog::create .getLensSpecDialog \
+      set dialog [Dialog .getLensSpecDialog \
 			-class GetLensSpecDialog -bitmap questhead -default 0 \
 			-cancel 1 -modal local -transient yes -parent . \
 			-side bottom -title {Lens Specification}]
-      $dialog add -name ok -text OK -command [mytypemethod _OK]
-      $dialog add -name cancel -text Cancel -command [mytypemethod _Cancel]
-      $dialog add -name help -text Help \
-		  -command [list BWHelp::HelpTopic GetLensSpecDialog]
-      set frame [Dialog::getframe $dialog]
+      $dialog add ok -text OK -command [mytypemethod _OK]
+      $dialog add cancel -text Cancel -command [mytypemethod _Cancel]
+      $dialog add help -text Help \
+		  -command [list HTMLHelp help GetLensSpecDialog]
+      set frame [$dialog getframe]
       set lw 21
-      set lensLabelLE [LabelEntry::create $frame.lensLabelLE \
+      set lensLabelLE [LabelEntry $frame.lensLabelLE \
 				-label "Lens Name:" -labelwidth $lw]
       pack $lensLabelLE -fill x
-      set minFocusLF [LabelFrame::create $frame.minFocusLF \
+      set minFocusLF [LabelFrame $frame.minFocusLF \
 				-text "Minimum Focus (feet):" -width $lw]
       pack $minFocusLF -fill x
-      set minFocusSB [SpinBox::create [$minFocusLF getframe].sb \
-			-range {.1 10.0 .1}]
+      set minFocusSB [spinbox [$minFocusLF getframe].sb \
+			-from .1 -to 10.0 -increment .1]
       pack $minFocusSB -fill x
-      set angleViewLF [LabelFrame::create $frame.angleViewLF \
+      set angleViewLF [LabelFrame $frame.angleViewLF \
 				-text "View Angle (degrees):" -width $lw]
       pack $angleViewLF -fill x
-      set angleViewSB [SpinBox::create [$angleViewLF getframe].sb \
-			-range {0.0 180.0 1.0}]
+      set angleViewSB [spinbox [$angleViewLF getframe].sb \
+			-from 0.0 -to 180.0 -increment 1.0]
       pack $angleViewSB -fill x
     }
     typemethod _OK {} {
-      Dialog::withdraw $dialog
-      return [Dialog::enddialog $dialog ok]
+      $dialog withdraw
+      return [$dialog enddialog ok]
     }
     typemethod _Cancel {} {
-      Dialog::withdraw $dialog
-      return [Dialog::enddialog $dialog cancel]
+      $dialog withdraw
+      return [$dialog enddialog cancel]
     }
     typemethod draw {args} {
       $type createDialog
-      switch [Dialog::draw $dialog] {
+      switch [$dialog draw] {
 	cancel {return {}}
 	ok {
 	  return [list \

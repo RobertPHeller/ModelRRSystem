@@ -51,9 +51,9 @@ SplashWorkMessage "Loading Car code" 10
 
 package require gettext
 package require Tk
-package require BWidget
-package require BWLabelSpinBox
-package require BWLabelComboBox
+package require tile
+package require snit
+package require LabelFrames
 
 proc SaveCars {} {
   if {[llength [info commands TheSystem]] == 0} {
@@ -512,57 +512,57 @@ proc CreateCarDisplay {} {
   frame $theframe.values -borderwidth 0
   pack $theframe.values -expand yes -fill both
   LabelEntry $theframe.values.rr \
-	-label [_m "Label|Railroad:"] -side left -editable no -entrybg white
+	-label [_m "Label|Railroad:"] -editable no
   pack $theframe.values.rr -fill x
   LabelEntry $theframe.values.number \
-	-label [_m "Label|Car Number:"] -side left -editable no -entrybg white
+	-label [_m "Label|Car Number:"] -editable no
   pack $theframe.values.number -fill x
   LabelEntry $theframe.values.hdiv \
-	-label [_m "Label|Home Divisions:"] -side left -editable no -entrybg white
+	-label [_m "Label|Home Divisions:"] -editable no
   pack $theframe.values.hdiv -fill x
   LabelEntry $theframe.values.length \
-	-label [_m "Label|Car Length"] -side left  -editable no -entrybg white
+	-label [_m "Label|Car Length"] -editable no
   pack $theframe.values.length -fill x
   LabelEntry $theframe.values.type \
-	-label [_m "Label|Type:"] -side left -editable no -entrybg white
+	-label [_m "Label|Type:"] -editable no
   pack $theframe.values.type -fill x
   LabelEntry $theframe.values.plate \
-	-label [_m "Label|Clearance"] -side left -editable no -entrybg white
+	-label [_m "Label|Clearance"] -editable no
   pack  $theframe.values.plate -fill x
   LabelEntry $theframe.values.class \
-	-label [_m "Label|Weight Class"] -side left -editable no -entrybg white
+	-label [_m "Label|Weight Class"] -editable no
   pack  $theframe.values.class -fill x
   LabelEntry $theframe.values.ltwt \
-	-label [_m "Label|Empty Weight"] -side left -editable no -entrybg white
+	-label [_m "Label|Empty Weight"] -editable no
   pack  $theframe.values.ltwt -fill x
   LabelEntry $theframe.values.ldlmt \
-	-label [_m "Label|Loaded Weight"] -side left -editable no -entrybg white
+	-label [_m "Label|Loaded Weight"] -editable no
   pack  $theframe.values.ldlmt -fill x
   LabelEntry $theframe.values.status \
-	-label [_m "Label|Car is:"] -side left -editable no -entrybg white
+	-label [_m "Label|Car is:"] -editable no
   pack $theframe.values.status -fill x
   LabelEntry $theframe.values.assigns \
-	-label [_m "Label|Assignments"] -side left -editable no -entrybg white
+	-label [_m "Label|Assignments"] -editable no
   pack $theframe.values.assigns -fill x
   LabelEntry $theframe.values.fixedP \
-	-label [_m "Label|Fixed Route"] -side left -editable no -entrybg white
+	-label [_m "Label|Fixed Route"] -editable no
   pack $theframe.values.fixedP -fill x
   LabelEntry $theframe.values.mirrorP \
-	-label [_m "Label|Ok to Mirror"] -side left -editable no -entrybg white
+	-label [_m "Label|Ok to Mirror"] -editable no
   pack $theframe.values.mirrorP -fill x
   LabelEntry $theframe.values.owner \
-	-label [_m "Label|Owner initials"] -side left -editable no -entrybg white
+	-label [_m "Label|Owner initials"] -editable no
   pack $theframe.values.owner -fill x
   LabelEntry $theframe.values.dest \
-	-label [_m "Label|Destination"] -side left -editable no -entrybg white
+	-label [_m "Label|Destination"] -editable no
   pack $theframe.values.dest  -fill x
   LabelEntry $theframe.values.loc \
-	-label [_m "Label|Location"] -side left -editable no -entrybg white
+	-label [_m "Label|Location"] -editable no
   pack $theframe.values.loc -fill x
   ButtonBox $theframe.buttons -orient horizontal
   pack $theframe.buttons -expand yes -fill both
-  $theframe.buttons add -name action -text [_m "Button|Action"]
-  $theframe.buttons add -name cancel -text [_m "Button|Cancel"]\
+  $theframe.buttons add ttk::button action -text [_m "Button|Action"]
+  $theframe.buttons add ttk::button cancel -text [_m "Button|Cancel"]\
 	-command {
 		global Main
 		$Main slideout hide ViewCarDisplay
@@ -577,59 +577,59 @@ proc CreateCarDisplay {} {
   frame $theframe.values -borderwidth 0
   pack $theframe.values -expand yes -fill both
   LabelEntry $theframe.values.rr \
-	-label [_m "Label|Railroad:"] -side left 
+	-label [_m "Label|Railroad:"]
   pack $theframe.values.rr -fill x
   LabelEntry $theframe.values.number \
-	-label [_m "Label|Car Number:"] -side left
+	-label [_m "Label|Car Number:"]
   pack $theframe.values.number -fill x
   LabelEntry $theframe.values.hdiv \
-	-label [_m "Label|Home Divisions:"] -side left
+	-label [_m "Label|Home Divisions:"]
   pack $theframe.values.hdiv -fill x
   LabelSpinBox $theframe.values.length \
-	-label [_m "Label|Car Length"] -side left \
+	-label [_m "Label|Car Length"] \
 	-range [list 20 1000 10]
   pack $theframe.values.length -fill x
   LabelComboBox $theframe.values.type \
-	-label [_m "Label|Type:"] -side left -editable no -bwlistbox yes
+	-label [_m "Label|Type:"] -editable no
   pack $theframe.values.type -fill x
   LabelSpinBox $theframe.values.plate \
-	-label [_m "Label|Clearance"] -side left \
+	-label [_m "Label|Clearance"] \
 	-range [list 1 10 1]
   pack  $theframe.values.plate -fill x
   LabelSpinBox $theframe.values.class \
-	-label [_m "Label|Weight Class"] -side left \
+	-label [_m "Label|Weight Class"] \
 	-range [list 1 10 1]
   pack  $theframe.values.class -fill x
   LabelSpinBox $theframe.values.ltwt \
-	-label [_m "Label|Empty Weight"] -side left \
+	-label [_m "Label|Empty Weight"] \
 	-range [list 20 100 20]
   pack  $theframe.values.ltwt -fill x
   LabelSpinBox $theframe.values.ldlmt \
-	-label [_m "Label|Loaded Weight"] -side left \
+	-label [_m "Label|Loaded Weight"] \
 	-range [list 20 1000 20]
   pack  $theframe.values.ldlmt -fill x
   LabelComboBox $theframe.values.status -editable no \
-	-label [_m "Label|Car is:"] -side left -values [list [_m "Answer|Empty"] [_m "Answer|Loaded"]]
+	-label [_m "Label|Car is:"] -values [list [_m "Answer|Empty"] [_m "Answer|Loaded"]]
   pack $theframe.values.status -fill x
   LabelComboBox $theframe.values.fixedP -editable no \
-	-label [_m "Label|Fixed Route"] -side left -values [list [_m "Answer|Yes"] [_m "Answer|No"]]
+	-label [_m "Label|Fixed Route"] -values [list [_m "Answer|Yes"] [_m "Answer|No"]]
   pack $theframe.values.fixedP -fill x
   LabelComboBox $theframe.values.mirrorP -editable no \
-	-label [_m "Label|Ok to Mirror"] -side left -values [list [_m "Answer|Yes"] [_m "Answer|No"]]
+	-label [_m "Label|Ok to Mirror"] -values [list [_m "Answer|Yes"] [_m "Answer|No"]]
   pack $theframe.values.mirrorP -fill x
   LabelEntry $theframe.values.owner \
-	-label [_m "Label|Owner initials"] -side left
+	-label [_m "Label|Owner initials"]
   pack $theframe.values.owner -fill x
   LabelComboBox $theframe.values.dest \
-	-label [_m "Label|Destination"] -side left -editable no -bwlistbox yes
+	-label [_m "Label|Destination"] -editable no
   pack $theframe.values.dest  -fill x
   LabelComboBox $theframe.values.loc \
-	-label [_m "Label|Location"] -side left -editable no -bwlistbox yes
+	-label [_m "Label|Location"] -editable no
   pack $theframe.values.loc -fill x
   ButtonBox $theframe.buttons -orient horizontal
   pack $theframe.buttons -expand yes -fill both
-  $theframe.buttons add -name action -text [_m "Button|Action"]
-  $theframe.buttons add -name cancel -text [_m "Button|Cancel"]\
+  $theframe.buttons add ttk::button action -text [_m "Button|Action"]
+  $theframe.buttons add ttk::button cancel -text [_m "Button|Cancel"]\
 	-command {
 		global Main
 		$Main slideout hide EditCarDisplay

@@ -44,18 +44,37 @@
 
 EXTRA_DIST = Resistor.tcl LocoPull.tcl
 bin_SCRIPTS =  Resistor${EXEEXT} LocoPull${EXEEXT}
-ResistorSCRIPTS = $(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl \
-                $(top_srcdir)/Scripts/Common/HTMLHelp.tcl \
+ResistorSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+                $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
+                $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+                $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+                $(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+                $(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+                $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+                $(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
 		$(top_builddir)/Scripts/Common/Version.tcl \
-		$(top_srcdir)/Scripts/Common/gettext.tcl
-LocoPullSCRIPTS = $(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl \
-                $(top_srcdir)/Scripts/Common/HTMLHelp.tcl \
+		$(top_srcdir)/Scripts/Common/gettext.tcl \
+		$(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+		$(top_srcdir)/Scripts/Common/unknown.xpm \
+		$(top_srcdir)/Scripts/Common/questhead.xbm \
+		$(top_srcdir)/Scripts/Common/info.xbm
+LocoPullSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+                $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
+                $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+                $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+                $(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+                $(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+                $(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+                $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+                $(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
 		$(top_builddir)/Scripts/Common/Version.tcl \
-		$(top_srcdir)/Scripts/Common/labelcombobox.tcl \
-		$(top_srcdir)/Scripts/Common/labelspinbox.tcl \
-		$(top_srcdir)/Scripts/Common/panedw.tcl \
 		$(top_srcdir)/Scripts/Common/mainwindow.tcl \
-		$(top_srcdir)/Scripts/Common/gettext.tcl
+		$(top_srcdir)/Scripts/Common/gettext.tcl \
+		$(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+		$(top_srcdir)/Scripts/Common/unknown.xpm \
+		$(top_srcdir)/Scripts/Common/questhead.xbm \
+		$(top_srcdir)/Scripts/Common/info.xbm
+		
 CLEANFILES = Resistor.kit LocoPull.kit $(bin_SCRIPTS) CalcScripts.pot
 EXTRA_DIST += Resistor.png Resistor.desktop LocoPull.png LocoPull.desktop 
 EXTRA_DIST += Doxyfile.in
@@ -76,10 +95,10 @@ TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 BUILT_SOURCES = $(TCLKIT)
 
 CalcScripts.pot: Resistor.tcl LocoPull.tcl \
-	 	 $(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl 
+	 	 $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl 
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m -L Tcl $(addprefix $(subdir)/,Resistor.tcl LocoPull.tcl) \
-		Scripts/Common/BWStdMenuBar.tcl|\
+		Scripts/Common/snitStdMenuBar.tcl|\
 	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
 	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
 	    -e 's/FIRST AUTHOR <EMAIL@ADDRESS>,/Robert Heller <heller@deepsoft.com>/g' \
@@ -94,8 +113,6 @@ Resistor${EXEEXT}: Resistor.tcl $(ResistorSCRIPTS) \
 	-rm -rf Resistor.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/Resistor.tcl
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap Resistor.kit
-	$(UNZIP) -qq -d Resistor.vfs/lib \
-		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit Resistor \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Resistor \
@@ -118,8 +135,6 @@ LocoPull${EXEEXT}: LocoPull.tcl $(LocoPullSCRIPTS) \
 	-rm -rf LocoPull.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/LocoPull.tcl
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap LocoPull.kit
-	$(UNZIP) -qq -d LocoPull.vfs/lib \
-		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit LocoPull \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit LocoPull \

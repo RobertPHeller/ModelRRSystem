@@ -42,11 +42,11 @@ namespace eval MRRSystem {variable MRR_LoadedVersion}
 set MRRSystem::MRR_LoadedVersion [package require Mrr]
 
 package require Tk
-package require BWidget
-package require BWStdMenuBar
-package require HTMLHelp
-package require DWpanedw
+package require tile
 package require snit
+package require snitStdMenuBar
+package require HTMLHelp 2.0
+package require LabelFrames
 package require Splash
 package require MainWindow
 
@@ -152,19 +152,19 @@ proc ModelRRSystem::MainWindow {} {
   $Main menu delete help "Index..."
 #  $Main menu add help command \
 #	-label "Reference Manual" \
-#	-command "::HTMLHelp::HTMLHelp help {Main Program Reference Manual}
+#	-command "HTMLHelp help {Main Program Reference Manual}
   $Main menu entryconfigure help "On Help..." \
-	-command "::HTMLHelp::HTMLHelp help Help"
+	-command "HTMLHelp help Help"
 #  $Main menu entryconfigure help "Tutorial..." \
-#	-command "::HTMLHelp::HTMLHelp help {Main Program Tutorial}"
+#	-command "HTMLHelp help {Main Program Tutorial}"
   $Main menu entryconfigure help "On Version" \
-	-command "::HTMLHelp::HTMLHelp help Version"
+	-command "HTMLHelp help Version"
   $Main menu entryconfigure help "Copying" \
-	-command "::HTMLHelp::HTMLHelp help Copying"
+	-command "HTMLHelp help Copying"
   $Main menu entryconfigure help "Warranty" \
-	-command "::HTMLHelp::HTMLHelp help Warranty"
+	-command "HTMLHelp help Warranty"
 
-  ::HTMLHelp::HTMLHelp setDefaults "$::HelpDir" "MainProgramli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "MainProgramli1.html"
 }
   
 

@@ -60,9 +60,17 @@ namespace eval TimeTable {}
 
 catch {TimeTable::SplashWorkMessage [_ "Loading Train Code"] 44}
 
+package require gettext
+package require Tk
+package require tile
 package require snit
-package require BWLabelSpinBox
-package require BWLabelComboBox
+package require Dialog
+package require LabelFrames
+package require ScrollWindow
+package require ListBox
+package require ScrollableFrame
+package require PagesManager
+package require ButtonBox
 
 snit::type TimeTable::SelectOneTrainDialog {
   pragma -hastypedestroy no
@@ -80,45 +88,45 @@ snit::type TimeTable::SelectOneTrainDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .selectOneTrainDialog \
+    set dialog [Dialog .selectOneTrainDialog \
 			-bitmap questhead \
 			-default 0 -cancel 1 -modal local -transient yes \
 			-parent . -side bottom -title [_ "Select one train"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Select One Train Dialog}]
+    $dialog add help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Select One Train Dialog}]
     set frame [$dialog getframe] 
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
     frame $headerframe -relief ridge -bd 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "Select one train"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
-    set tlist [eval [list ScrolledWindow::create $frame.tlist] -scrollbar both -auto both]
+    set tlist [eval [list ScrolledWindow $frame.tlist] -scrollbar both -auto both]
     pack $tlist -expand yes -fill both
-    set tlistlist [eval [list ListBox::create $frame.tlist.list] -selectmode single]
+    set tlistlist [eval [list ListBox $frame.tlist.list] -selectmode single]
     pack $tlistlist -expand yes -fill both
     $tlist setwidget $tlistlist
     $tlistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $tlistlist bindText <Double-1> [mytypemethod _SelectFromList]
-    set number [LabelEntry::create $frame.number -label [_m "Label|Train Number Selection:"]]
+    set number [LabelEntry $frame.number -label [_m "Label|Train Number Selection:"]]
     pack $number -fill x
     $number bind <Return> [mytypemethod _OK]
   }
 
   typemethod _OK {} {
-    Dialog::withdraw $dialog
+    $dialog withdraw
     set result "[$number cget -text]"
-    return [eval [list Dialog::enddialog $dialog] [list "$result"]]
+    return [eval [list $dialog enddialog] [list "$result"]]
   }
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [eval [list Dialog::enddialog $dialog] [list {}]]
+    $dialog withdraw
+    return [eval [list $dialog enddialog] [list {}]]
   }
 
   typemethod draw {args} {
@@ -138,16 +146,16 @@ snit::type TimeTable::SelectOneTrainDialog {
 		-data [list "$_number" "$_name"] \
 		-text [format {%-5s %-15s} "$_number" "$_name"]
     }
-    BWidget::focus set $number 
+    focus -force $number 
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [eval [list Dialog::draw $dialog]]
+    return [eval [list $dialog draw]]
   }
 
   typemethod _SelectFromList {selectedItem} {
     set elt [$tlistlist itemcget $selectedItem -data]
     set result [lindex $elt 0]
-    eval [list Dialog::withdraw $dialog]
-    return [eval [list Dialog::enddialog $dialog] \
+    eval [list $dialog withdraw]
+    return [eval [list $dialog enddialog] \
 		[list $result]]
   }
 
@@ -157,8 +165,6 @@ snit::type TimeTable::SelectOneTrainDialog {
     $number configure -text "$value"
   }
 }
-
-package require DWpanedw
 
 snit::widget TimeTable::displayOneTrain {
   TimeTable::TtStdShell DisplayOneTrain
@@ -232,15 +238,17 @@ snit::widget TimeTable::displayOneTrain {
     set notesLabel [Label $header.notes -relief sunken]
     pack $notesLabel -side right
 
-    set snPane [eval [list PanedWindow::create $frame.schedNotes] -side right]
+    set snPane [eval [list ttk::panedwindow $frame.schedNotes] -side right]
     pack $snPane -expand yes -fill both
-    set schedPane [$snPane add -name sched]
-    set notesPane [$snPane add -name notes]
+    set schedPane [ttk::frame $snPane.sched]
+    $snPane add $schedPane
+    set notesPane [ttk::frame $snPane.notes]
+    $snPane add $notesPane
 
-    set schedSWindow [eval [list ScrolledWindow::create $frame.schedscroll] -scrollbar both -auto both]
+    set schedSWindow [eval [list ScrolledWindow $frame.schedscroll] -scrollbar both -auto both]
     pack $schedSWindow -in $schedPane -expand yes -fill both
 
-    set schedFrame [eval [list ScrollableFrame::create $frame.schedscroll.sched] -width 300 -height 150  ]
+    set schedFrame [eval [list ScrollableFrame $frame.schedscroll.sched] -width 300 -height 150  ]
     pack $schedFrame -expand yes -fill both
     $schedSWindow setwidget $schedFrame
     Label $schedFrame.mile0 -text [_m "Label|Mile"] -anchor e
@@ -256,7 +264,7 @@ snit::widget TimeTable::displayOneTrain {
     	-column $c -row 0 -sticky $sk
     }
 
-    set notesSWindow [eval [list ScrolledWindow::create $frame.notescroll] -scrollbar both -auto both]
+    set notesSWindow [eval [list ScrolledWindow $frame.notescroll] -scrollbar both -auto both]
     pack $notesSWindow -in $notesPane -expand yes -fill both
 
     set notesText [eval [list text $frame.notescroll.notes] -height 8 -width 24]
@@ -412,11 +420,11 @@ snit::type TimeTable::viewAllTrainsDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .viewAllTrainsDialog \
+    set dialog [Dialog .viewAllTrainsDialog \
 			-bitmap info \
 			-default 0 -cancel 0 -modal none -transient yes \
 			-parent . -side bottom -title [_ "All Available Trains"]]
-    $dialog add -name dismis -text [_m "Button|Dismis"] -command [mytypemethod _Dismis]
+    $dialog add dismis -text [_m "Button|Dismis"] -command [mytypemethod _Dismis]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Dismis]
     set mainframe [$dialog getframe]
     set headerframe $mainframe.headerframe
@@ -425,25 +433,25 @@ snit::type TimeTable::viewAllTrainsDialog {
     set scheduleSWindow $mainframe.scheduleSWindow
     frame $headerframe -relief ridge -bd 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "All Available Trains"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
-    ScrolledWindow::create $scheduleSWindow \
+    ScrolledWindow $scheduleSWindow \
 		-auto vertical -scrollbar vertical
     pack $scheduleSWindow -expand yes -fill both
-    set scheduleSFrame [ScrollableFrame::create $scheduleSWindow.scheduleSFrame]
+    set scheduleSFrame [ScrollableFrame $scheduleSWindow.scheduleSFrame]
     pack $scheduleSFrame -expand yes -fill both
     $scheduleSWindow setwidget $scheduleSFrame
     set scheduleFrame [$scheduleSFrame getframe]
-    Label::create $scheduleFrame.number0 -text [_m "Label|Number"] -anchor e
-    Label::create $scheduleFrame.name0 -text [_m "Label|Name"] -anchor w
-    Label::create $scheduleFrame.speed0 -text [_m "Label|Speed"] -anchor e    
-    Label::create $scheduleFrame.orig0 -text [_m "Label|Origin"] -anchor w
-    Label::create $scheduleFrame.dest0 -text [_m "Label|Destination"] -anchor w
-    Label::create $scheduleFrame.length0 -text [_m "Label|Miles"] -anchor e
-    Label::create $scheduleFrame.time0 -text [_m "Label|Running Time"]  -anchor e
+    ttk::label $scheduleFrame.number0 -text [_m "Label|Number"] -anchor e
+    ttk::label $scheduleFrame.name0 -text [_m "Label|Name"] -anchor w
+    ttk::label $scheduleFrame.speed0 -text [_m "Label|Speed"] -anchor e    
+    ttk::label $scheduleFrame.orig0 -text [_m "Label|Origin"] -anchor w
+    ttk::label $scheduleFrame.dest0 -text [_m "Label|Destination"] -anchor w
+    ttk::label $scheduleFrame.length0 -text [_m "Label|Miles"] -anchor e
+    ttk::label $scheduleFrame.time0 -text [_m "Label|Running Time"]  -anchor e
     foreach w  {number name speed orig dest length time} \
 	    c  {0      1    2     3    4    5      6} \
 	    sk {e      w    e     w    w    e      e} {
@@ -451,8 +459,8 @@ snit::type TimeTable::viewAllTrainsDialog {
     }
   }
   typemethod _Dismis {} {
-    Dialog::withdraw $dialog
-    return [eval [list Dialog::enddialog $dialog] [list {}]]
+    $dialog withdraw
+    return [eval [list $dialog enddialog] [list {}]]
   }
 
   typevariable _NumberOfTrainsInDialog 0
@@ -463,13 +471,13 @@ snit::type TimeTable::viewAllTrainsDialog {
       incr tindex
 #      puts stderr "*** viewAllTrainsDialog::draw: tindex = $tindex, train = $train, _NumberOfTrainsInDialog = $_NumberOfTrainsInDialog"
       if {$tindex > $_NumberOfTrainsInDialog} {
-	Button::create $scheduleFrame.number$tindex -anchor e
-	Label::create  $scheduleFrame.name$tindex   -anchor w
-	Label::create  $scheduleFrame.speed$tindex  -anchor e    
-	Label::create  $scheduleFrame.orig$tindex   -anchor w
-	Label::create  $scheduleFrame.dest$tindex   -anchor w
-	Label::create  $scheduleFrame.length$tindex -anchor e
-	Label::create  $scheduleFrame.time$tindex   -anchor e
+	ttk::button $scheduleFrame.number$tindex
+	ttk::label  $scheduleFrame.name$tindex   -anchor w
+	ttk::label  $scheduleFrame.speed$tindex  -anchor e    
+	ttk::label  $scheduleFrame.orig$tindex   -anchor w
+	ttk::label  $scheduleFrame.dest$tindex   -anchor w
+	ttk::label  $scheduleFrame.length$tindex -anchor e
+	ttk::label  $scheduleFrame.time$tindex   -anchor e
 	foreach w  {number name speed orig dest length time} \
 		c  {0      1    2     3    4    5      6} \
 		sk {e      w    e     w    w    e      e} {
@@ -537,7 +545,7 @@ snit::type TimeTable::viewAllTrainsDialog {
     $dialog configure -geometry "$geo"    
     set _NumberOfTrainsInDialog $tindex
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [eval [list Dialog::draw $dialog]]
+    return [eval [list $dialog draw]]
   }
   
 }
@@ -592,121 +600,122 @@ snit::type TimeTable::editTrainDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .editTrainDialog \
+    set dialog [Dialog .editTrainDialog \
 			-bitmap questhead \
 			-default 0 -cancel 1 -modal local -transient yes \
 			-parent . -side bottom -title [_ "Edit Train"]]
-    $dialog add -name done -text [_m "Button|Done"] -command [mytypemethod _Done]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add done -text [_m "Button|Done"] -command [mytypemethod _Done]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Edit Train Dialog}]
+    $dialog add help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Edit Train Dialog}]
     set frame [$dialog getframe] 
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
     frame $headerframe -relief ridge -bd 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "Edit Train"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
-    set editpages [PagesManager::create $frame.editpages]
+    set editpages [PagesManager $frame.editpages]
     pack $editpages -expand yes -fill both
     set basicpageframe [$editpages add basicpage]
     set lwidth [_mx "Label|Name:"  "Label|Number:" "Label|Class:" \
 		    "Label|Speed:" "Label|Origin:" "Label|Termination:" \
 		    "Label|Departure:"]
-    set name	[LabelEntry::create $basicpageframe.name \
+    set name	[LabelEntry $basicpageframe.name \
 			-label [_m "Label|Name:"] -labelwidth $lwidth]
     pack $name -fill x
-    set number	[LabelEntry::create $basicpageframe.number \
+    set number	[LabelEntry $basicpageframe.number \
 			-label [_m "Label|Number:"] -labelwidth $lwidth]
     pack $number -fill x
-    set class	[LabelComboBox::create $basicpageframe.class \
+    set class	[LabelComboBox $basicpageframe.class \
 			-label [_m "Label|Class:"] -labelwidth $lwidth \
 			-values {1 2 3 4 5 6 7 8 9 10} -editable no]
     pack $class -fill x
-    set speed	[LabelSpinBox::create $basicpageframe.speed \
+    set speed	[LabelSpinBox $basicpageframe.speed \
     			-label [_m "Label|Speed:"] -labelwidth $lwidth \
 			-range {10 150 5}]
     pack $speed	-fill x
-    set  departure [LabelFrame::create $basicpageframe.departure \
+    set  departure [LabelFrame $basicpageframe.departure \
 			-text [_m "Label|Departure:"] -width $lwidth]
     pack $departure -fill x
     set departureFrame [$departure getframe]
-    set  departureHours [SpinBox::create $departureFrame.departureHours \
-				-width 2 -range {0 23 1} -justify r]
+    set  departureHours [spinbox $departureFrame.departureHours \
+                         -width 2 -from 0 -to 23 -increment 1 \
+                         -justify r]
     pack $departureHours -side left
-    pack [Label::create $departureFrame.colon -text {:}] -side left
-    set departureMinutes [SpinBox::create $departureFrame.departureMinutes \
-				-width 2 -range {0 59 1} -justify r \
-	-modifycmd \
-	"[mytypemethod _FormatMinutes] $departureFrame.departureMinutes"]
+    pack [ttk::label $departureFrame.colon -text {:}] -side left
+    set departureMinutes [spinbox $departureFrame.departureMinutes \
+                          -width 2 -from 0 -to 59 -increment 1 \
+                          -justify r \
+                          -command [mytypemethod _FormatMinutes %W]]
     pack $departureMinutes -side left
     pack [frame $departureFrame.filler -bd 0 -relief flat] -side right -fill x
-    set firststation  [LabelComboBox::create $basicpageframe.firststation \
+    set firststation  [LabelComboBox $basicpageframe.firststation \
 			-label [_m "Label|Origin:"] -labelwidth $lwidth -editable no]
     pack $firststation -fill x
-    set laststation  [LabelComboBox::create $basicpageframe.laststation \
+    set laststation  [LabelComboBox $basicpageframe.laststation \
 			-label [_m "Label|Termination:"] -labelwidth $lwidth -editable no]
     pack $laststation -fill x
-    set basicpagebuttons [ButtonBox::create $basicpageframe.basicpagebuttons \
+    set basicpagebuttons [ButtonBox $basicpageframe.basicpagebuttons \
 				-orient horizontal]
     pack $basicpagebuttons -fill x
-    $basicpagebuttons add -name next -text [_m "Button|Schedule"] \
+    $basicpagebuttons add ttk::button next -text [_m "Button|Schedule"] \
 			  -command [mytypemethod _GotoSchedulePage]
-    $basicpagebuttons add -name reset -text [_m "Button|Reset Information"] \
+    $basicpagebuttons add ttk::button reset -text [_m "Button|Reset Information"] \
 			  -command [mytypemethod _ResetBasicPage]
     set scheduleframe  [$editpages add schedule]
-    set schedscroll    [ScrolledWindow::create $scheduleframe.schedscroll \
+    set schedscroll    [ScrolledWindow $scheduleframe.schedscroll \
 				-auto both -scrollbar both]
     pack $schedscroll -expand yes -fill both
-    set schedscrollframe [ScrollableFrame::create $schedscroll.schedscrollframe]
+    set schedscrollframe [ScrollableFrame $schedscroll.schedscrollframe]
     pack $schedscrollframe -expand yes -fill both
     $schedscroll setwidget $schedscrollframe
     set schedule [$schedscrollframe getframe]
-    Label::create $schedule.mile0 -text [_m "Label|Smile"]
-    Label::create $schedule.arrive0 -text [_m "Label|Arrival"]
-    Label::create $schedule.station0 -text [_m "Label|Station Name"]
-    Label::create $schedule.layover0 -text [_m "Label|Layover"]
-    Label::create $schedule.depart0 -text [_m "Label|Departure"]
-    Label::create $schedule.cab0 -text [_m "Label|Cab"]
-    Label::create $schedule.update0
+    ttk::label $schedule.mile0 -text [_m "Label|Smile"]
+    ttk::label $schedule.arrive0 -text [_m "Label|Arrival"]
+    ttk::label $schedule.station0 -text [_m "Label|Station Name"]
+    ttk::label $schedule.layover0 -text [_m "Label|Layover"]
+    ttk::label $schedule.depart0 -text [_m "Label|Departure"]
+    ttk::label $schedule.cab0 -text [_m "Label|Cab"]
+    ttk::label $schedule.update0
     foreach wid    {mile arrive station layover depart cab update} \
 	    col    {0    1      2       3       4      5   6} \
 	    sticky {e    e      w       e       e      w   w} {
       grid configure $schedule.${wid}0 -column $col -row 0 -sticky $sticky
     }
-    set schedulebuttons  [ButtonBox::create $scheduleframe.buttons \
+    set schedulebuttons  [ButtonBox $scheduleframe.buttons \
 					-orient horizontal]
     pack $schedulebuttons -fill x
-    $schedulebuttons add -name next -text [_m "Button|Storage"] \
+    $schedulebuttons add ttk::button next -text [_m "Button|Storage"] \
 			 -command [mytypemethod _GotoStoragePage]
-    $schedulebuttons add -name reset -text [_m "Button|Reset Schedule"] \
+    $schedulebuttons add ttk::button reset -text [_m "Button|Reset Schedule"] \
 			 -command [mytypemethod _ResetSchedule]
     set storageframe   [$editpages add storage]
-    set storagescroll [ScrolledWindow::create $storageframe.storagescroll \
+    set storagescroll [ScrolledWindow $storageframe.storagescroll \
 				-auto both -scrollbar both]
     pack $storagescroll -expand yes -fill both
-    set storagescrollframe [ScrollableFrame::create $storagescroll.storagescrollframe]
+    set storagescrollframe [ScrollableFrame $storagescroll.storagescrollframe]
     pack $storagescrollframe -expand yes -fill both
     $storagescroll setwidget $storagescrollframe
     set storage [$storagescrollframe getframe]
-    Label::create $storage.mile0 -text [_m "Label|Smile"]
-    Label::create $storage.arrive0 -text [_m "Label|Arrival"]
-    Label::create $storage.station0 -text [_m "Label|Station Name"]
-    Label::create $storage.track0 -text [_m "Label|Storage Track"]
-    Label::create $storage.depart0 -text [_m "Label|Departure"]
+    ttk::label $storage.mile0 -text [_m "Label|Smile"]
+    ttk::label $storage.arrive0 -text [_m "Label|Arrival"]
+    ttk::label $storage.station0 -text [_m "Label|Station Name"]
+    ttk::label $storage.track0 -text [_m "Label|Storage Track"]
+    ttk::label $storage.depart0 -text [_m "Label|Departure"]
     foreach wid    {mile arrive station track depart} \
 	    col    {0    1      2       3     4} \
 	    sticky {e    e      w       w     e} {
       grid configure $storage.${wid}0 -column $col -row 0 -sticky $sticky
     }
-    set storagebuttons [ButtonBox::create $storageframe.buttons \
+    set storagebuttons [ButtonBox $storageframe.buttons \
 					-orient horizontal]
     pack $storagebuttons -fill x
-    $storagebuttons add -name reset -text [_m "Button|Reset Storage"] \
+    $storagebuttons add ttk::button reset -text [_m "Button|Reset Storage"] \
 			-command [mytypemethod _ResetStorage]
     $editpages compute_size
   }
@@ -765,6 +774,7 @@ snit::type TimeTable::editTrainDialog {
     }
   }
   typevariable _EditFlag
+  
   typemethod draw {args} {
     $type createDialog
     set title [from args -title]
@@ -806,14 +816,16 @@ snit::type TimeTable::editTrainDialog {
     $type _ResetBasicPage
     $editpages raise basicpage
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [Dialog::draw $dialog]
+    return [$dialog draw]
   }
+  
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog cancel]
+    $dialog withdraw
+    return [$dialog enddialog cancel]
   }
+  
   typemethod _Done {} {
-    Dialog::withdraw $dialog
+    $dialog withdraw
     foreach stop [array names _StopStorageTrack] {
       set storage_row $_StopStorageTrack($stop)
       if {$storage_row < 0} {
@@ -822,8 +834,9 @@ snit::type TimeTable::editTrainDialog {
 	set _StopStorageTrack($stop) "[$storage.track$_StopStorageTrack($stop) cget -text]"
       }
     }
-    return [Dialog::enddialog $dialog done]
+    return [$dialog enddialog done]
   }
+  
   typemethod _GotoSchedulePage {} {
     set _Name "[$name cget -text]"
     set _Number "[$number cget -text]"
@@ -838,268 +851,287 @@ snit::type TimeTable::editTrainDialog {
     $type _ResetSchedule
     $editpages raise schedule
   }
+  
   typemethod _AddOrUpdateScheduleRow {row smile stationName arrival depart \
 				      layover cabName} {
-    if {$row >= $_NumberOfScheduleRows} {
-      Label::create $schedule.mile$_NumberOfScheduleRows
-      Entry::create $schedule.arrive$_NumberOfScheduleRows -editable no -width 6
-      Label::create $schedule.station$_NumberOfScheduleRows
-      SpinBox::create $schedule.layover$_NumberOfScheduleRows \
-		-range {0 999 1} -width 6
-      Entry::create $schedule.depart$_NumberOfScheduleRows -editable no -width 9
-      ComboBox::create $schedule.cab$_NumberOfScheduleRows \
+      if {$row >= $_NumberOfScheduleRows} {
+          ttk::label $schedule.mile$_NumberOfScheduleRows
+          ttk::entry $schedule.arrive$_NumberOfScheduleRows -state readonly -width 6
+          ttk::label $schedule.station$_NumberOfScheduleRows
+          spinbox $schedule.layover$_NumberOfScheduleRows \
+		-from 0 -to 999 -increment 1 -width 6
+          ttk::entry $schedule.depart$_NumberOfScheduleRows -state readonly -width 9
+          ttk::combobox $schedule.cab$_NumberOfScheduleRows \
 		-values [TimeTable CabNameList] -width 6
-      Button::create $schedule.update$_NumberOfScheduleRows \
+          ttk::button $schedule.update$_NumberOfScheduleRows \
 		-text Update \
 		-command "[mytypemethod _UpdateScheduleRow] [expr {$_NumberOfScheduleRows - 1}]"
-      foreach wid    {mile arrive station layover depart cab update} \
-	      col    {0    1      2       3       4      5   6} \
-	      sticky {e    e      w       e       e      w   w} {
-	grid configure $schedule.${wid}$_NumberOfScheduleRows \
-		-column $col -row $_NumberOfScheduleRows -sticky $sticky
+          foreach wid    {mile arrive station layover depart cab update} \
+                col    {0    1      2       3       4      5   6} \
+                sticky {e    e      w       e       e      w   w} {
+              grid configure $schedule.${wid}$_NumberOfScheduleRows \
+                    -column $col -row $_NumberOfScheduleRows -sticky $sticky
+          }
+          incr _NumberOfScheduleRows
       }
-      incr _NumberOfScheduleRows
-    }
-    $schedule.layover$row configure -editable yes
-    $schedule.update$row configure -state normal
-    $schedule.cab$row configure -state normal
-    $schedule.mile$row configure -text $smile
-    if {$arrival < 0} {
-      $schedule.arrive$row configure -text {Origin}
-      $schedule.layover$row configure -editable no
-    } else {
-      $schedule.arrive$row configure \
-	-text [format {%2d:%02d} [expr {int($arrival) / 60}] \
-				 [expr {int($arrival) % 60}]]
-    }
-    $schedule.station$row configure -text "$stationName"
-    $schedule.layover$row configure -text $layover
-    if {$depart < 0} {
-      $schedule.depart$row configure -text {Terminate}
-      $schedule.layover$row configure -editable no
-      $schedule.update$row configure -state disabled
-      $schedule.cab$row configure -state disabled
-    } else {
-      $schedule.depart$row configure \
-	-text [format {%2d:%02d} [expr {int($depart) / 60}] \
-				 [expr {int($depart) % 60}]]
-      
-    }
-    $schedule.cab$row setvalue first
-    if {[string length "$cabName"]} {
-      set index [lsearch [$schedule.cab$row cget -values] "$cabName"]
-      if {$index >= 0} {$schedule.cab$row setvalue @$index}
-    }
+      $schedule.layover$row configure -state normal
+      $schedule.update$row configure -state normal
+      $schedule.cab$row configure -state normal
+      $schedule.mile$row configure -text $smile
+      if {$arrival < 0} {
+          $schedule.arrive$row configure -state normal
+          $schedule.arrive$row delete 0 end
+          $schedule.arrive$row insert end {Origin}
+          $schedule.arrive$row configure -state readonly
+          $schedule.layover$row configure -state readonly
+      } else {
+          $schedule.arrive$row configure -state normal
+          $schedule.arrive$row delete 0 end
+          $schedule.arrive$row insert end \
+                [format {%2d:%02d} [expr {int($arrival) / 60}] \
+                 [expr {int($arrival) % 60}]]
+          $schedule.arrive$row configure -state readonly
+      }
+      $schedule.station$row configure -text "$stationName"
+      $schedule.layover$row configure -text $layover
+      if {$depart < 0} {
+          $schedule.depart$row configure -state normal
+          $schedule.depart$row delete 0 end
+          $schedule.depart$row insert end {Terminate}
+          $schedule.depart$row configure -state readonly
+          $schedule.layover$row configure -state readonly
+          $schedule.update$row configure -state disabled
+          $schedule.cab$row configure -state disabled
+      } else {
+          $schedule.depart$row configure -state normal
+          $schedule.depart$row delete 0 end
+          $schedule.depart$row insert end \
+                [format {%2d:%02d} [expr {int($depart) / 60}] \
+                 [expr {int($depart) % 60}]]
+          $schedule.depart$row configure -state readonly
+          
+      }
+      $schedule.cab$row set [lindex [$schedule.cab$row cget -values] 0]
+      if {[string length "$cabName"]} {
+          set index [lsearch [$schedule.cab$row cget -values] "$cabName"]
+          if {$index >= 0} {$schedule.cab$row set "$cabName"}
+      }
   }
+  
   typemethod _UpdateScheduleRow {stopNumber} {
-    set rowNumber [expr {$stopNumber + 1}]
-    set _StopLayover($stopNumber) [$schedule.layover$rowNumber cget -text]
-    set _StopCab($stopNumber) "[$schedule.cab$rowNumber cget -text]"
-    if {$stopNumber > 0} {
-      scan [$schedule.arrive$rowNumber cget -text] {%2d:%02d} h m
-      set arrival [expr {($h * 60) + $m}]
-      scan [$schedule.depart$rowNumber cget -text] {%2d:%02d} h m
-      set olddepart [expr {($h * 60) + $m}]
-      set newdepart [expr {$arrival + $_StopLayover($stopNumber)}]
-      set diff [expr {$newdepart - $olddepart}]
-    } else {
-      set diff 0
-    }
-    for {set row $rowNumber} {$row < $_NumberOfScheduleRows} {incr row} {
-      if {$diff > 0} {
-	scan [$schedule.arrive$row cget -text] {%2d:%02d} h m
-	set arrival [expr {($h * 60) + $m}]
-	if {$row > $rowNumber} {
-	  set arrival [expr {$arrival + $diff}]
-	  $schedule.arrive$row configure \
-		-text [format {%2d:%02d} [expr {int($arrival) / 60}] \
-					 [expr {int($arrival) % 60}]]
-	}
-	if {![string equal [$schedule.depart$row cget -text] {Terminate}]} {
-	  scan [$schedule.depart$row cget -text] {%2d:%02d} h m
-	  set depart [expr {($h * 60) + $m}]
-	  set depart [expr {$depart + $diff}]
-	  $schedule.depart$row configure \
-	    -text [format {%2d:%02d} [expr {int($depart) / 60}] \
-				     [expr {int($depart) % 60}]]
-	}
+      set rowNumber [expr {$stopNumber + 1}]
+      set _StopLayover($stopNumber) [$schedule.layover$rowNumber cget -text]
+      set _StopCab($stopNumber) "[$schedule.cab$rowNumber cget -text]"
+      if {$stopNumber > 0} {
+          scan [$schedule.arrive$rowNumber get] {%2d:%02d} h m
+          set arrival [expr {($h * 60) + $m}]
+          scan [$schedule.depart$rowNumber get] {%2d:%02d} h m
+          set olddepart [expr {($h * 60) + $m}]
+          set newdepart [expr {$arrival + $_StopLayover($stopNumber)}]
+          set diff [expr {$newdepart - $olddepart}]
+      } else {
+          set diff 0
       }
-      set index [lsearch [$schedule.cab$row cget -values] "$_StopCab($stopNumber)"]
-      if {$index >= 0} {$schedule.cab$row setvalue @$index}
-    }
+      for {set row $rowNumber} {$row < $_NumberOfScheduleRows} {incr row} {
+          if {$diff > 0} {
+              scan [$schedule.arrive$row get] {%2d:%02d} h m
+              set arrival [expr {($h * 60) + $m}]
+              if {$row > $rowNumber} {
+                  set arrival [expr {$arrival + $diff}]
+                  $schedule.arrive$row configure -state normal
+                  $schedule.arrive$row delete 0 end
+                  $schedule.arrive$row insert end \
+                        [format {%2d:%02d} [expr {int($arrival) / 60}] \
+                         [expr {int($arrival) % 60}]]
+                  $schedule.arrive$row configure -state readonly
+              }
+              if {![string equal [$schedule.depart$row get] {Terminate}]} {
+                  scan [$schedule.depart$row get -text] {%2d:%02d} h m
+                  set depart [expr {($h * 60) + $m}]
+                  set depart [expr {$depart + $diff}]
+                  $schedule.depart$row configure -state normal
+                  $schedule.depart$row delete 0 end
+                  $schedule.depart$row insert end \
+                        [format {%2d:%02d} [expr {int($depart) / 60}] \
+                         [expr {int($depart) % 60}]]
+                  $schedule.depart$row configure -state readonly
+              }
+          }
+          set index [lsearch [$schedule.cab$row cget -values] "$_StopCab($stopNumber)"]
+          if {$index >= 0} {$schedule.cab$row set "$_StopCab($stopNumber)"}
+      }
+      
   }
   typemethod _DeleteLastScheduleRow {} {
-    incr _NumberOfScheduleRows -1
-    set i $_NumberOfScheduleRows
-    foreach w {mile arrive station layover depart cab update} {
-      destroy $schedule.${w}${i}
-    }
+      incr _NumberOfScheduleRows -1
+      set i $_NumberOfScheduleRows
+      foreach w {mile arrive station layover depart cab update} {
+          destroy $schedule.${w}${i}
+      }
   }
   typemethod _ResetBasicPage {} {
-    $name configure -text "$_Name"
-    $number configure -text "$_Number"
-    $class configure -text $_Class
-    $speed configure -text $_Speed
-    $firststation setvalue @[lsearch [$firststation cget -values] "[Station_Name [TimeTable IthStation $_First]]"]
-    $laststation  setvalue @[lsearch [$laststation  cget -values] "[Station_Name [TimeTable IthStation $_Last]]"]
-    set dHours [expr {int($_Departure) / 60}]
-    set dMinutes [expr {int($_Departure) % 60}]
-    $departureHours configure -text $dHours
-    $departureMinutes configure -text [format {%02d} $dMinutes]
+      $name configure -text "$_Name"
+      $number configure -text "$_Number"
+      $class configure -text $_Class
+      $speed configure -text $_Speed
+      $firststation configure -text "[Station_Name [TimeTable IthStation $_First]]"
+      $laststation  configure -text "[Station_Name [TimeTable IthStation $_Last]]"
+      set dHours [expr {int($_Departure) / 60}]
+      set dMinutes [expr {int($_Departure) % 60}]
+      $departureHours configure -text $dHours
+      $departureMinutes configure -text [format {%02d} $dMinutes]
   }
   typemethod _GotoStoragePage {} {
-    foreach stop [array names _StopLayover] {
-      set sched_row [expr {$stop + 1}]
-      set _StopLayover($stop) [$schedule.layover$sched_row cget -text]
-      set _StopCab($stop)     "[$schedule.cab$sched_row cget -text]"
-      if {$sched_row > 1} {
-	scan [$schedule.arrive$sched_row cget -text] {%2d:%02d} h m
-	set _StopArrival($stop) [expr {($h * 60) + $m}]
+      foreach stop [array names _StopLayover] {
+          set sched_row [expr {$stop + 1}]
+          set _StopLayover($stop) [$schedule.layover$sched_row cget -text]
+          set _StopCab($stop)     "[$schedule.cab$sched_row cget -text]"
+          if {$sched_row > 1} {
+              scan [$schedule.arrive$sched_row get] {%2d:%02d} h m
+              set _StopArrival($stop) [expr {($h * 60) + $m}]
+          }
       }
-    }
-    if {[$type _ResetStorage]} {
-      $editpages raise storage
-    } else {
-      $type _Done
-    }
+      if {[$type _ResetStorage]} {
+          $editpages raise storage
+      } else {
+          $type _Done
+      }
+      
   }
   typemethod _ResetSchedule {} {
-    set numberOfStops [expr {abs($_Last - $_First) + 1}]
-    set depart $_Departure
-    set lastsmile -1
-    array unset _StopLayover
-    array unset _StopCab
-    for {set stop 0} {$stop < $numberOfStops} {incr stop} {
-#      puts stderr  "*** $type _ResetSchedule: stop = $stop, _First = $_First"
-      if {$_Last > $_First} {
-	set station [TimeTable IthStation [expr {$_First + $stop}]]
-      } else {
-	set station [TimeTable IthStation [expr {$_First - $stop}]]
+      set numberOfStops [expr {abs($_Last - $_First) + 1}]
+      set depart $_Departure
+      set lastsmile -1
+      array unset _StopLayover
+      array unset _StopCab
+      for {set stop 0} {$stop < $numberOfStops} {incr stop} {
+          #      puts stderr  "*** $type _ResetSchedule: stop = $stop, _First = $_First"
+          if {$_Last > $_First} {
+              set station [TimeTable IthStation [expr {$_First + $stop}]]
+          } else {
+              set station [TimeTable IthStation [expr {$_First - $stop}]]
+          }
+          #      puts stderr  "*** $type _ResetSchedule: station = $station"
+          set smile [Station_SMile $station]
+          #      puts stderr  "*** $type _ResetSchedule: smile =  $smile"
+          if {$stop == 0} {
+              set layover -
+              set arrival -1
+          } else {
+              if {$_EditFlag} {
+                  set layover [Stop_Layover [Train_StopI $_Train $stop]]
+              } else {
+                  set layover 0
+              }
+              set arrival [expr {$depart + ((double($_Speed) / 60.0) * \
+                                            abs($smile - $lastsmile))}]
+          }
+          #      puts stderr  "*** $type _ResetSchedule: layover = $layover"
+          #      puts stderr  "*** $type _ResetSchedule: arrival = $arrival"
+          set cabName {}
+          if {$_EditFlag} {
+              set cab [Stop_TheCab [Train_StopI $_Train $stop]]
+              if {![string equal $cab NULL]} {
+                  set cabName [Cab_Name $cab]
+              }
+          }
+          #      puts stderr  "*** $type _ResetSchedule: cabName = $cabName"
+          if {[expr {$stop + 1}] == $numberOfStops} {
+              set depart -1
+              set layover -
+          } elseif {$stop != 0} {
+              set depart [expr {$arrival + $layover}]
+          }
+          #      puts stderr  "*** $type _ResetSchedule: depart = $depart"
+          set _StopLayover($stop) $layover
+          set _StopCab($stop) "$cabName"
+          $type _AddOrUpdateScheduleRow [expr {$stop + 1}] $smile [Station_Name $station] \
+                $arrival $depart $layover "$cabName"
+          set lastsmile $smile
+          
       }
-#      puts stderr  "*** $type _ResetSchedule: station = $station"
-      set smile [Station_SMile $station]
-#      puts stderr  "*** $type _ResetSchedule: smile =  $smile"
-      if {$stop == 0} {
-	set layover -
-	set arrival -1
-      } else {
-	if {$_EditFlag} {
-	  set layover [Stop_Layover [Train_StopI $_Train $stop]]
-	} else {
-	  set layover 0
-	}
-	set arrival [expr {$depart + ((double($_Speed) / 60.0) * \
-				     abs($smile - $lastsmile))}]
+      set lastrow [expr {$stop + 1}]
+      while {$lastrow < $_NumberOfScheduleRows} {
+          $type _DeleteLastScheduleRow
       }
-#      puts stderr  "*** $type _ResetSchedule: layover = $layover"
-#      puts stderr  "*** $type _ResetSchedule: arrival = $arrival"
-      set cabName {}
-      if {$_EditFlag} {
-	set cab [Stop_TheCab [Train_StopI $_Train $stop]]
-        if {![string equal $cab NULL]} {
-	  set cabName [Cab_Name $cab]
-	}
-      }
-#      puts stderr  "*** $type _ResetSchedule: cabName = $cabName"
-      if {[expr {$stop + 1}] == $numberOfStops} {
-	set depart -1
-	set layover -
-      } elseif {$stop != 0} {
-	set depart [expr {$arrival + $layover}]
-      }
-#      puts stderr  "*** $type _ResetSchedule: depart = $depart"
-      set _StopLayover($stop) $layover
-      set _StopCab($stop) "$cabName"
-      $type _AddOrUpdateScheduleRow [expr {$stop + 1}] $smile [Station_Name $station] \
-				    $arrival $depart $layover "$cabName"
-      set lastsmile $smile
-      
-    }
-    set lastrow [expr {$stop + 1}]
-    while {$lastrow < $_NumberOfScheduleRows} {
-      $type _DeleteLastScheduleRow
-    }
-#    puts stderr "*** ${type} _ResetSchedule: lastrow = $lastrow, _NumberOfScheduleRows = $_NumberOfScheduleRows"
-    $editpages compute_size
+      #    puts stderr "*** ${type} _ResetSchedule: lastrow = $lastrow, _NumberOfScheduleRows = $_NumberOfScheduleRows"
+      $editpages compute_size
   }
   typemethod _ResetStorage {} {
-    set storage_row 0
-    array unset _StopStorageTrack
-    set hasStorageTracks no
-    foreach stop [lsort -integer [array names _StopLayover]] {
-      if {$_First < $_Last} {
-	set station [TimeTable IthStation [expr {$_First + $stop}]]
-      } else {
-	set station [TimeTable IthStation [expr {$_First - $stop}]]
+      set storage_row 0
+      array unset _StopStorageTrack
+      set hasStorageTracks no
+      foreach stop [lsort -integer [array names _StopLayover]] {
+          if {$_First < $_Last} {
+              set station [TimeTable IthStation [expr {$_First + $stop}]]
+          } else {
+              set station [TimeTable IthStation [expr {$_First - $stop}]]
+          }
+          #      puts stderr "*** $type _ResetStorage: station = $station"
+          set sched_row [expr {$stop + 1}]
+          set arrival [$schedule.arrive$sched_row get]
+          set depart  [$schedule.depart$sched_row get]
+          set layover $_StopLayover($stop)
+          set numtracks [Station_NumberOfStorageTracks $station]
+          #      puts stderr "*** $type _ResetStorage: stop = $stop, station = $station, sched_row = $sched_row, arrival = $arrival, depart = $depart, layover = $layover, numtracks = $numtracks"
+          if {([string equal "$layover" {-}] || $layover > 0) && $numtracks > 0} {
+              incr storage_row
+              if {$_EditFlag} {
+                  set storageTrackName "[Stop_StorageTrackName [Train_StopI $_Train $stop]]"
+              } else {
+                  set storageTrackName {}
+              }
+              $type _AddOrUpdateStorageRow $storage_row $arrival $station \
+                    "$storageTrackName" $depart
+              set _StopStorageTrack($stop) $storage_row
+              set hasStorageTracks yes
+          } else {
+              set _StopStorageTrack($stop) -1
+          }
       }
-#      puts stderr "*** $type _ResetStorage: station = $station"
-      set sched_row [expr {$stop + 1}]
-      set arrival [$schedule.arrive$sched_row cget -text]
-      set depart  [$schedule.depart$sched_row cget -text]
-      set layover $_StopLayover($stop)
-      set numtracks [Station_NumberOfStorageTracks $station]
-#      puts stderr "*** $type _ResetStorage: stop = $stop, station = $station, sched_row = $sched_row, arrival = $arrival, depart = $depart, layover = $layover, numtracks = $numtracks"
-      if {([string equal "$layover" {-}] || $layover > 0) && $numtracks > 0} {
-	incr storage_row
-	if {$_EditFlag} {
-	  set storageTrackName "[Stop_StorageTrackName [Train_StopI $_Train $stop]]"
-	} else {
-	  set storageTrackName {}
-	}
-	$type _AddOrUpdateStorageRow $storage_row $arrival $station \
-				     "$storageTrackName" $depart
-	set _StopStorageTrack($stop) $storage_row
-	set hasStorageTracks yes
-      } else {
-	set _StopStorageTrack($stop) -1
+      incr storage_row
+      while {$storage_row < $_NumberOfStorageRows} {
+          $type _DeleteLastStorageRow
       }
-    }
-    incr storage_row
-    while {$storage_row < $_NumberOfStorageRows} {
-      $type _DeleteLastStorageRow
-    }
-    $editpages compute_size
-#    puts stderr "*** $type _ResetStorage: hasStorageTracks = $hasStorageTracks"
-    return $hasStorageTracks
+      $editpages compute_size
+      #    puts stderr "*** $type _ResetStorage: hasStorageTracks = $hasStorageTracks"
+      return $hasStorageTracks
   }
+
   typemethod _AddOrUpdateStorageRow {row arrival station storageTrack depart} {
-    if {$row >= $_NumberOfStorageRows} {
-      Label::create $storage.mile$_NumberOfStorageRows
-      Label::create $storage.arrive$_NumberOfStorageRows
-      Label::create $storage.station$_NumberOfStorageRows
-      ComboBox::create $storage.track$_NumberOfStorageRows -editable no
-      Label::create $storage.depart$_NumberOfStorageRows
-      foreach wid    {mile arrive station track depart} \
-	      col    {0    1      2       3     4} \
-	      sticky {e    e      w       w     e} {
-	grid configure $storage.${wid}${_NumberOfStorageRows} \
-		-column $col -row $_NumberOfStorageRows -sticky $sticky
+      if {$row >= $_NumberOfStorageRows} {
+          ttk::label $storage.mile$_NumberOfStorageRows
+          ttk::label $storage.arrive$_NumberOfStorageRows
+          ttk::label $storage.station$_NumberOfStorageRows
+          ttk::combobox $storage.track$_NumberOfStorageRows -state readonly
+          ttk::label $storage.depart$_NumberOfStorageRows
+          foreach wid    {mile arrive station track depart} \
+                col    {0    1      2       3     4} \
+                sticky {e    e      w       w     e} {
+              grid configure $storage.${wid}${_NumberOfStorageRows} \
+                    -column $col -row $_NumberOfStorageRows -sticky $sticky
+          }
+          incr _NumberOfStorageRows
       }
-      incr _NumberOfStorageRows
-    }
-    $storage.mile$row configure -text [Station_SMile $station]
-    $storage.arrive$row configure -text "$arrival"
-# if arrival == Origin # - from train, time
-    $storage.station$row configure -text "[Station_Name $station]"
-    set tracks [Station_StorageTrackNameList $station]
-    lappend tracks {}
-    $storage.track$row configure -values $tracks
-    set index [lsearch $tracks "$storageTrack"]
-    if {$index >= 0} {
-      $storage.track$row setvalue @$index
-    } else {
-      $storage.track$row configure -text "$storageTrack"
-    }
-    $storage.depart$row configure -text "$depart"
-# if depart == Terminate # - to train, time
+      $storage.mile$row configure -text [Station_SMile $station]
+      $storage.arrive$row configure -text "$arrival"
+      # if arrival == Origin # - from train, time
+      $storage.station$row configure -text "[Station_Name $station]"
+      set tracks [Station_StorageTrackNameList $station]
+      lappend tracks {}
+      $storage.track$row configure -values $tracks
+      $storage.track$row set "$storageTrack"
+      $storage.depart$row configure -text "$depart"
+      # if depart == Terminate # - to train, time
   }
   typemethod _DeleteLastStorageRow {} {
-    incr _NumberOfStorageRows -1
-    set i $_NumberOfStorageRows
-    foreach w {mile arrive station track depart} {
-      destroy $storage.${w}${i}
-    }
+      incr _NumberOfStorageRows -1
+      set i $_NumberOfStorageRows
+      foreach w {mile arrive station track depart} {
+          destroy $storage.${w}${i}
+      }
   }
+  
 }
 
 proc TimeTable::AddTrain {} {
@@ -1180,15 +1212,17 @@ $TimeTable::Main menu add trains command -label [_m "Menu|Trains|Add Train"] -co
 #			-dynamichelp [_ "Edit a train"]
 $TimeTable::Main menu add trains command -label [_m "Menu|Trains|Delete Train"] -command TimeTable::DeleteTrain \
 			-dynamichelp [_ "Delete a train"]
-$TimeTable::Main buttons add -name addTrain -anchor w \
-	-text [_m "Button|Add a new train"] -command TimeTable::AddTrain \
-	-helptext [_ "Add a new train"] -state disabled
-#$TimeTable::Main buttons add -name editTrain -anchor w \
+$TimeTable::Main buttons add ttk::button addTrain \
+	-text [_m "Button|Add a new train"] -command TimeTable::AddTrain -state disabled
+#	-helptext [_ "Add a new train"] 
+#$TimeTable::Main buttons add ttk::button editTrain \
 #	-text [_m "Button|Edit an existing train"] -command TimeTable::EditTrain \
 #	-helptext [_ "Edit an existin train"] -state disabled
-$TimeTable::Main buttons add -name deleteTrain -anchor w \
-	-text [_m "Button|Delete an existing train"] -command TimeTable::DeleteTrain \
-	-helptext [_ "Delete an existing train"] -state disabled
+$TimeTable::Main buttons add ttk::button deleteTrain \
+      -text [_m "Button|Delete an existing train"] \
+      -command TimeTable::DeleteTrain \
+      -state disabled
+#	-helptext [_ "Delete an existing train"] 
 image create photo AddTrainButtonImage -file [file join $TimeTable::ImageDir addtrain.gif]
 $TimeTable::Main toolbar addbutton tools addtrain -image AddTrainButtonImage \
 			-command TimeTable::AddTrain \

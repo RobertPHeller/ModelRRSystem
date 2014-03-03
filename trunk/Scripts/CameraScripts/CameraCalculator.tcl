@@ -42,11 +42,14 @@
 # Load support packages.
 package require gettext
 package require Tk
-package require BWidget
-package require BWStdMenuBar
-package require HTMLHelp
+package require tile
+package require snitStdMenuBar
+package require HTMLHelp 2.0
 package require Lens
 package require CameraPrintDialog
+package require MainFrame
+package require ScrollWindow
+package require LabelFrames
 package require Version
 
 # Set help directory.
@@ -149,7 +152,7 @@ proc CameraCalculator::CameraCalculator {anyDistanceP} {
   variable FilmNames
 
   # Construct menubar.
-  set menubar [StdMenuBar::MakeMenu \
+  set menubar [StdMenuBar MakeMenu \
 	-file [list [_m "Menu|&File"] {file} {file} 0 [list \
 	[list command [_m "Menu|File|&New"] {file:new} [_ "New Lens"] {Ctrl n} \
 					-command {CameraCalculator::GetNewLensSpec}] \
@@ -167,64 +170,61 @@ proc CameraCalculator::CameraCalculator {anyDistanceP} {
 					-command {CameraCalculator::CarefulExit}] \
 	] \
     ] -help [list [_m "Menu|&Help"] {help} {help} 0 [list \
-		[list command [_m "Menu|Help|On &Help..."] {help:help} [_ "Help on help"] {} -command "HTMLHelp::HTMLHelp help Help"] \
-		[list command [_m "Menu|Help|On &Version"] {help:version} [_ "Version"] {} -command "HTMLHelp::HTMLHelp help Version"] \
-		[list command [_m "Menu|Help|Warranty"] {help:warranty} [_ "Warranty"] {} -command "HTMLHelp::HTMLHelp help Warranty"] \
-		[list command [_m "Menu|Help|Copying"] {help:copying} [_ "Copying"] {} -command "HTMLHelp::HTMLHelp help Copying"] \
-		[list command [_m "Menu|Help|Reference Manual"] {help:reference} [_ "Reference Manual"] {} -command {HTMLHelp::HTMLHelp help "Camera Programs Reference"}] \
+		[list command [_m "Menu|Help|On &Help..."] {help:help} [_ "Help on help"] {} -command "HTMLHelp help Help"] \
+		[list command [_m "Menu|Help|On &Version"] {help:version} [_ "Version"] {} -command "HTMLHelp help Version"] \
+		[list command [_m "Menu|Help|Warranty"] {help:warranty} [_ "Warranty"] {} -command "HTMLHelp help Warranty"] \
+		[list command [_m "Menu|Help|Copying"] {help:copying} [_ "Copying"] {} -command "HTMLHelp help Copying"] \
+		[list command [_m "Menu|Help|Reference Manual"] {help:reference} [_ "Reference Manual"] {} -command {HTMLHelp help "Camera Programs Reference"}] \
 	] \
     ]]
 
   # Construct the main frame.
   variable Status {}
-  pack [MainFrame::create .main -menu $menubar -textvariable CameraCalculator::Status] \
+  pack [MainFrame .main -menu $menubar -textvariable CameraCalculator::Status] \
 	-expand yes -fill both
   .main showstatusbar status
-  HTMLHelp::HTMLHelp setDefaults "$::HelpDir" "Camerali1.html"
+  HTMLHelp setDefaults "$::HelpDir" "Camerali1.html"
   set frame [.main getframe]
   # Create a scrolled canvas.
-  set sw [ScrolledWindow::create $frame.canvasSW -scrollbar both -auto both]
+  set sw [ScrolledWindow $frame.canvasSW -scrollbar both -auto both]
   pack $sw -expand yes -fill both
   variable LensCanvas [canvas $sw.lensCanvas]
   pack $LensCanvas -expand yes -fill both
   $sw setwidget $LensCanvas
   # Construct command button box along the bottom.
   set bottom $frame.bottom
-  pack [frame $bottom -borderwidth 0] -fill x
+  pack [ttk::frame $bottom -borderwidth 0] -fill x
   if {$anyDistanceP} {
-    set distanceLF [LabelFrame::create $bottom.distanceLF \
-					-text [_m "Label|Distance (inches):"] -side left]
+    set distanceLF [LabelFrame $bottom.distanceLF \
+                    -text [_m "Label|Distance (inches):"]]
     pack $distanceLF -side left -fill x -expand yes
-    variable DistanceSB [SpinBox::create [$distanceLF getframe].spinBox \
-				-range {1.0 1000000.0 1.0} -width 5]
+    variable DistanceSB [spinbox [$distanceLF getframe].spinBox \
+				-from 1.0 -to 1000000.0 -increment 1.0 -width 5]
     pack $DistanceSB -fill x -expand yes
   } else {
     variable DistanceSB {}
   }
-  set lensLF [LabelFrame::create $bottom.lensLF \
-					-text [_m "Label|Lens:"] -side left]
+  set lensLF [LabelFrame $bottom.lensLF -text [_m "Label|Lens:"]]
   pack $lensLF -side left -fill x -expand yes
   variable LensCB [Lens::LensComboBox create [$lensLF getframe].comboBox]
-  pack $LensCB -fill x -expand yes
-  $LensCB setvalue first
-  set scaleLF [LabelFrame::create $bottom.scale2LF \
-					-text [_m "Label|Scale:"] -side left]
+  pack $LensCB -side left -fill x -expand yes
+  set scaleLF [LabelFrame $bottom.scale2LF -text [_m "Label|Scale:"]]
   pack $scaleLF -side left -fill x -expand yes
-  variable ScaleCB [ComboBox::create [$scaleLF getframe].comboBox \
-  				-editable no -values $ScaleNames \
+  variable ScaleCB [ttk::combobox [$scaleLF getframe].comboBox \
+  				-state readonly -values $ScaleNames \
 				-width [MaxLength $ScaleNames]]
-  $ScaleCB setvalue @[lsearch $ScaleNames H0]
+  $ScaleCB set H0
   pack  $ScaleCB -fill x -expand yes
-  set filmSizeLF [LabelFrame::create $bottom.filmSizeLF \
-					-text [_m "Label|Film Image Size:"] -side left]
+  set filmSizeLF [LabelFrame $bottom.filmSizeLF \
+                  -text [_m "Label|Film Image Size:"]]
   pack $filmSizeLF -side left -fill x -expand yes
-  variable FilmSizeCB [ComboBox::create [$filmSizeLF getframe].comboBox \
-  				-editable no -values $FilmNames \
+  variable FilmSizeCB [ttk::combobox [$filmSizeLF getframe].comboBox \
+  				-state readonly -values $FilmNames \
 				-width [MaxLength $FilmNames]]
-  $FilmSizeCB setvalue @[lsearch $FilmNames 35mm]
+  $FilmSizeCB set 35mm
   pack  $FilmSizeCB -fill x -expand yes
 
-  pack [Button::create $bottom.compute -text [_m "Button|Compute"] \
+  pack [ttk::button $bottom.compute -text [_m "Button|Compute"] \
 				-command CameraCalculator::Compute] -side right
   
   wm withdraw .
@@ -316,7 +316,7 @@ proc CameraCalculator::Compute {} {
     set distance $minfocus;# Closest.
   } else {
     # Any distance.
-    set distanceIn [$DistanceSB cget -text]
+    set distanceIn [$DistanceSB get]
     if {![string is double -strict "$distanceIn"]} {
       tk_messageBox -type ok -icon error -message [_ "Please enter a number for distance!"]
       return

@@ -55,23 +55,31 @@ pkgIndex.tcl : cmri.tcl
 	echo "pkg_mkIndex . $(notdir $^)" | $(TCLKIT)
 	
 
-UniversalTestSCRIPTS = $(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl \
-                $(top_srcdir)/Scripts/Common/HTMLHelp.tcl \
-                $(top_srcdir)/Scripts/Common/labelcombobox.tcl \
-                $(top_srcdir)/Scripts/Common/labelspinbox.tcl \
+UniversalTestSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+                $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
+                $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+                $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+                $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
 		$(top_srcdir)/Scripts/Common/gettext.tcl \
+		$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+		$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+		$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+                $(top_srcdir)/Scripts/Common/snitLFs.tcl \
 		$(top_srcdir)/Scripts/CMri/cmri.tcl \
-		$(top_builddir)/Scripts/Common/Version.tcl
+		$(top_builddir)/Scripts/Common/Version.tcl \
+		$(top_srcdir)/Scripts/Common/questhead.xbm \
+		$(top_srcdir)/Scripts/Common/unknown.xpm
+
 
 EXTRA_DIST = UniversalTest.src cmri.tcl UniversalTest.desktop UniversalTest.png \
 	     Doxyfile.in
 
 
 UniversalTest.pot: UniversalTest.src cmri.tcl \
-			$(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl 
+			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl 
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m -L Tcl $(addprefix $(subdir)/,UniversalTest.src cmri.tcl) \
-		Scripts/Common/BWStdMenuBar.tcl|\
+		Scripts/Common/snitStdMenuBar.tcl|\
 	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
 	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
 	    -e 's/FIRST AUTHOR <EMAIL@ADDRESS>,/Robert Heller <heller@deepsoft.com>/g' \

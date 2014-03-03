@@ -70,7 +70,12 @@ CommonScripts = CTCPanel.tcl ReadConfiguration.tcl \
 		BWStdMenuBar.tcl CTCPanel2.tcl labelselectcolor.tcl \
 		fileentry.tcl labelcombobox.tcl labelspinbox.tcl \
 		panedw.tcl CabWidgets.tcl \
-		splash.tcl mainwindow.tcl HTMLHelp.tcl gettext.tcl
+		splash.tcl mainwindow.tcl HTMLHelp.tcl gettext.tcl \
+		DynamicHelp.tcl IconsAndImages.tcl snitbuttonbox.tcl \
+		snitdialog.tcl snitHTMLHelp.tcl snitLFs.tcl snitmainframe.tcl \
+		snitscrollableframe.tcl snitscrollw.tcl snitStdMenuBar.tcl \
+		snitrotext.tcl snitlistbox.tcl snitpagesmanager.tcl \
+		snittree.tcl snitCabWidgets.tcl
 
 pkgdatadir = $(datadir)/$(PACKAGE)/Common
 pkgdata_DATA = $(CommonScripts) pkgIndex.tcl \
@@ -82,8 +87,9 @@ noinst_DATA = Version.tcl
 
 EXTRA_DIST = $(CommonScripts) \
 	     Finn.tex FinnFigure1.pdf FinnFigure2a.pdf FinnFigure2b.pdf \
-	     DeepwoodsBanner.gif new.gif open.gif save.gif print.gif close.gif \
-	     CommonTests.tcl CommonTclGroup.h
+	     DeepwoodsBanner.gif new.gif open.gif save.gif print.gif \
+	     close.gif CommonTests.tcl CommonTclGroup.h gray50.xbm info.xbm \
+	     questhead.xbm unknown.xpm openfold.png palette.png
 
 XXX_TESTS = CommonTests${EXEEXT}
 
@@ -112,19 +118,22 @@ Version.tcl : $(top_builddir)/config.status
 
 
 CommonTests${EXEEXT}: CommonTests.tcl $(CommonScripts) DeepwoodsBanner.gif \
-		new.gif open.gif save.gif print.gif close.gif
+		new.gif open.gif save.gif print.gif close.gif gray50.xbm \
+		info.xbm questhead.xbm unknown.xpm openfold.png palette.png
 	-rm -f CommonTests.kit
 	-rm -rf CommonTests.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/CommonTests.tcl
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap CommonTests.kit
 	-rm -f CommonTests.kit
 	$(UNZIP) -qq -d CommonTests.vfs/lib \
-	    $(top_srcdir)/BuildData/bwidget-1.9.6.zip
+	    $(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit CommonTests \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) CommonTests \
 		lib/Common $(CommonScripts) DeepwoodsBanner.gif new.gif \
-			   open.gif save.gif print.gif close.gif
+			   open.gif save.gif print.gif close.gif gray50.xbm \
+			   info.xbm questhead.xbm unknown.xpm openfold.png \
+			   palette.png
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit CommonTests \
 		Common
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap CommonTests${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)

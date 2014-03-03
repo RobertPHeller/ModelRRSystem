@@ -46,9 +46,41 @@
 
 package require gettext
 package require Tk
-package require BWidget
+package require tile
 
 SplashWorkMessage "Loading Train code" 20
+
+snit::widget LabelROScale {
+    hulltype ttk::frame
+    widgetclass LabelROScale
+    option -style LabelROScale
+    typeconstructor {
+        ttk::style layout $type [ttk::style layout TLabelframe]
+        ttk::style layout $type.Label [ttk::style layout TLabelframe.Label]
+    }
+    component label
+    component scale
+    delegate option -from to scale
+    delegate option -to   to scale
+    delegate option -label to label as -text
+    delegate option -labelwidth to label as -width
+    delegate option -labelimage to label as -image
+    delegate option -labelcompound to label as -compound
+    delegate option -labelanchor to label as -anchor
+    delegate option -labelfont to label as -font
+    delegate option -labeljustify to label as -justify
+    delegate method set to scale
+    constructor {args} {
+        install label using ttk::label $win.label
+        pack $label -side left
+        install scale using ttk::scale $win.scale \
+              -takefocus no -orient {horizontal}
+        pack $scale -expand yes -fill x
+        bindtags $scale [list $scale ROScale . all]
+        $self configurelist $args
+    }
+}
+
 
 proc CreateTrainDisplay {} {
   
@@ -60,54 +92,42 @@ proc CreateTrainDisplay {} {
 			-image TrainDisplayImage]
   bind $theframe <Map> [list $trainLabel configure -relief raised]
   bind $theframe <Unmap> [list $trainLabel configure -relief sunken]
-  label $theframe.title -relief flat -text {}
+  ttk::label $theframe.title -relief flat -text {}
   pack $theframe.title -fill x;# -expand yes
   LabelEntry $theframe.currentStop \
-	-label [_m "Label|Currently at:"] -side left -text {} -editable no
+	-label [_m "Label|Currently at:"] -text {} -editable no
   pack $theframe.currentStop -fill x
   LabelEntry $theframe.length \
-	-label [_m "Label|Train Length:"] -side left -text {0} -editable no
+	-label [_m "Label|Train Length:"]  -text {0} -editable no
   pack $theframe.length -fill x
   LabelEntry $theframe.numCars \
-	-label [_m "Label|Number of Cars:"] -side left -text {0} -editable no
+	-label [_m "Label|Number of Cars:"] -text {0} -editable no
   pack $theframe.numCars -fill x
   LabelEntry $theframe.numTons \
-	-label [_m "Label|Train Tons:"] -side left -text {0} -editable no
+	-label [_m "Label|Train Tons:"] -text {0} -editable no
   pack $theframe.numTons -fill x
   LabelEntry $theframe.numLoads \
-  	-label [_m "Label|Train Loads:"] -side left -text {0} -editable no
+  	-label [_m "Label|Train Loads:"]  -text {0} -editable no
   pack $theframe.numLoads -fill x
   LabelEntry $theframe.numEmpties \
-  	-label [_m "Label|Train Empties:"] -side left -text {0} -editable no
+  	-label [_m "Label|Train Empties:"]  -text {0} -editable no
   pack $theframe.numEmpties -fill x
   LabelEntry $theframe.longest \
-  	-label [_m "Label|Train Longest:"] -side left -text {0} -editable no
+  	-label [_m "Label|Train Longest:"]  -text {0} -editable no
   pack $theframe.longest -fill x
-  scale $theframe.stopScale \
+  LabelROScale $theframe.stopScale \
 	-label [_m "Label|Stop:"] \
-    -takefocus no\
-    -orient {horizontal} \
-    -showvalue no \
-    -from 1 -to 1
+        -from 1 -to 1
   pack $theframe.stopScale -fill x
-  bindtags $theframe.stopScale "$theframe.stopScale ROScale . all"
-  scale $theframe.lengthScale \
+  LabelROScale $theframe.lengthScale \
 	-label [_m "Label|Current Length:"] \
-    -takefocus no\
-    -orient {horizontal} \
-    -showvalue no \
-    -from 0 -to 0
+        -from 0 -to 0
   pack $theframe.lengthScale -fill x
-  bindtags $theframe.lengthScale "$theframe.lengthScale ROScale . all"
-  scale $theframe.carScale \
+  LabelROScale $theframe.carScale \
 	-label [_m "Label|Current Number of cars:"] \
-    -takefocus no\
-    -orient {horizontal} \
-    -showvalue no \
-    -from 0 -to 0
+        -from 0 -to 0
   pack $theframe.carScale -fill x
-  bindtags $theframe.carScale "$theframe.carScale ROScale . all"
-  Button $theframe.close -text [_m "Button|Close"] \
+  ttk::button $theframe.close -text [_m "Button|Close"] \
 	-command closeTrainDisplay
   pack $theframe.close -expand yes -fill x
 #  bind $theframe <C> "$theframe.close invoke"

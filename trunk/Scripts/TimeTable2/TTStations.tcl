@@ -51,9 +51,14 @@ namespace eval TimeTable {}
 
 catch {TimeTable::SplashWorkMessage [_ "Loading Station Code"] 55}
 
+package require gettext
+package require Tk
+package require tile
 package require snit
-package require BWidget
-package require BWLabelSpinBox
+package require Dialog
+package require LabelFrames
+package require Tree
+package require ListBox
 
 snit::type TimeTable::createAllStationsDialog {
   pragma -hastypedestroy no
@@ -75,73 +80,73 @@ snit::type TimeTable::createAllStationsDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$_MainDialog" {}] && [winfo exists $_MainDialog]} {return}
-    set _MainDialog [Dialog::create .createAllStationsDialog \
+    set _MainDialog [Dialog .createAllStationsDialog \
 			-bitmap questhead \
 			-title [_ "Create All Stations"] \
 			-modal local \
 			-transient yes \
 			-default 0 -cancel 1 \
 			-parent . -side bottom]
-    $_MainDialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
-    $_MainDialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $_MainDialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $_MainDialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $_MainDialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $_MainDialog add -name help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Create All Stations Dialog}]
+    $_MainDialog add help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Create All Stations Dialog}]
     set frame [$_MainDialog getframe]
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
-    frame $headerframe -relief ridge -bd 5
+    ttk::frame $headerframe -relief ridge -borderwidth 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_m "Label|Create All Stations"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
-    set slScrollerFrame [LabelFrame::create $frame.slScrollerFrame \
-				-text [_m "Label|Stations:"] -side top]
+    set slScrollerFrame [ttk::labelframe $frame.slScrollerFrame \
+				-text [_m "Label|Stations:"] -labelanchor n]
     pack $slScrollerFrame -expand yes -fill both
-    set slScroller [ScrolledWindow::create \
-			[$slScrollerFrame getframe].slScroller \
+    set slScroller [ScrolledWindow \
+			$slScrollerFrame.slScroller \
 			-auto both -scrollbar both]
     pack $slScroller -expand yes -fill both
-    set _StationList [Tree::create $slScroller.stations]
+    set _StationList [Tree $slScroller.stations]
     pack $_StationList -expand yes -fill both
     $_StationList bindImage <1> [mytypemethod _SelectStation]
     $_StationList bindText  <1> [mytypemethod _SelectStation]
     $slScroller setwidget $_StationList
-    set add1StationFrame [LabelFrame::create $frame.add1StationFrame \
-				-text [_m "Label|Add Station:"] -side top]
+    set add1StationFrame [ttk::labelframe $frame.add1StationFrame \
+				-text [_m "Label|Add Station:"] -labelanchor n]
     pack $add1StationFrame -fill x
-    set _AddOneStation [$add1StationFrame getframe]
+    set _AddOneStation $add1StationFrame
     set lwidth [_mx "Label|Name:" "Label|SMiles:" "Label|Station:" "Label|Track Name:"]
-    pack [LabelEntry::create $_AddOneStation.name \
+    pack [LabelEntry $_AddOneStation.name \
 			-label [_m "Label|Name:"] -labelwidth $lwidth] -fill x
     $_AddOneStation.name bind <Return> "[list $_AddOneStation.addit invoke];break"
-    pack [LabelSpinBox::create $_AddOneStation.smiles \
+    pack [LabelSpinBox $_AddOneStation.smiles \
 			-label [_m "Label|SMiles:"] -labelwidth $lwidth \
 			-range [list 0.0 3e6 .1]] -fill x
     $_AddOneStation.smiles bind <Return> "[list $_AddOneStation.addit invoke];break"
 #    puts stderr "*** ${type}::typeconstructor: $_AddOneStation.smiles bind = [$_AddOneStation.smiles bind]"
 #    puts stderr "*** ${type}::typeconstructor: $_AddOneStation.smiles bind <Return> = [$_AddOneStation.smiles bind <Return>]"
-    pack [Button::create $_AddOneStation.addit \
+    pack [ttk::button $_AddOneStation.addit \
 			-text [_m "Button|Add"] -command [mytypemethod _AddOneStation]] \
 			-fill x
-    set add1StorageTrack [LabelFrame::create $frame.add1StorageTrack \
-    				-text [_m "Label|Add Storage Track:"] -side top]
+    set add1StorageTrack [ttk::labelframe $frame.add1StorageTrack \
+    				-text [_m "Label|Add Storage Track:"] -labelanchor n]
     pack $add1StorageTrack -fill x
-    set _AddOneStorageTrack [$add1StorageTrack getframe]
-    pack [LabelEntry::create $_AddOneStorageTrack.station \
+    set _AddOneStorageTrack $add1StorageTrack
+    pack [LabelEntry $_AddOneStorageTrack.station \
 			-label [_m "Label|Station:"] -labelwidth $lwidth \
 			-editable no] -fill x
-    pack [LabelEntry::create $_AddOneStorageTrack.trackname \
+    pack [LabelEntry $_AddOneStorageTrack.trackname \
 			-label [_m "Label|Track Name:"] -labelwidth $lwidth \
 			-state disabled] -fill x
     $_AddOneStorageTrack.trackname bind <Return> \
 		"[list $_AddOneStorageTrack.addit invoke];break"
-    pack [Button::create $_AddOneStorageTrack.addit \
+    pack [ttk::button $_AddOneStorageTrack.addit \
 			-text [_m "Button|Add"] -command [mytypemethod _AddStorageTrack] \
 			-state disabled] -fill x
-    BWidget::focus set $_AddOneStation.name
+    focus -force $_AddOneStation.name
   }
   typemethod _SelectStation {node} {
     set nodeData [$_StationList itemcget $node -data]
@@ -189,7 +194,7 @@ snit::type TimeTable::createAllStationsDialog {
     $_AddOneStorageTrack.addit configure -state disabled
     catch ".mrrSplash hide"
     wm transient [winfo toplevel $_MainDialog] [$_MainDialog cget -parent]
-    set result [Dialog::draw $_MainDialog]
+    set result [$_MainDialog draw]
     catch ".mrrSplash show"
     return $result
   }
@@ -210,13 +215,13 @@ snit::type TimeTable::createAllStationsDialog {
       lappend _StationAndTrackTree $ndata
     }
 #    puts stderr "*** ${type}::_OK: _StationAndTrackTree = $_StationAndTrackTree"
-    Dialog::withdraw $_MainDialog
-    return [Dialog::enddialog $_MainDialog ok]
+    $_MainDialog withdraw
+    return [$_MainDialog enddialog ok]
   }
   typemethod _Cancel {} {
     set _StationAndTrackTree {}
-    Dialog::withdraw $_MainDialog
-    return [Dialog::enddialog $_MainDialog cancel]
+    $_MainDialog withdraw
+    return [$_MainDialog enddialog cancel]
   }
   typemethod stationTree {} {
     return $_StationAndTrackTree
@@ -267,44 +272,44 @@ snit::type TimeTable::SelectOneStationDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .selectOneStationDialog \
+    set dialog [Dialog .selectOneStationDialog \
 			-bitmap questhead \
 			-default 0 -cancel 1 -modal local -transient yes \
 			-parent . -side bottom -title [_ "Select one station"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Select One Station Dialog}]
+    $dialog add help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Select One Station Dialog}]
     set frame [$dialog getframe] 
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
     frame $headerframe -relief ridge -bd 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "Select one station"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
-    set slist [eval [list ScrolledWindow::create $frame.slist] -scrollbar both -auto both]
+    set slist [eval [list ScrolledWindow $frame.slist] -scrollbar both -auto both]
     pack $slist -expand yes -fill both
-    set slistlist [eval [list ListBox::create $frame.slist.list] -selectmode single]
+    set slistlist [eval [list ListBox $frame.slist.list] -selectmode single]
     pack $slistlist -expand yes -fill both
     $slist setwidget $slistlist
     $slistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $slistlist bindText <Double-1> [mytypemethod _SelectFromList]
-    set name [LabelEntry::create $frame.name -label {Station Name Selection:}]
+    set name [LabelEntry $frame.name -label {Station Name Selection:}]
     pack $name -fill x
     $name bind <Return> [mytypemethod _OK]
   }
   typemethod _OK {} {
-    Dialog::withdraw $dialog
+    $dialog withdraw
     set result "[$name cget -text]"
-    return [eval [list Dialog::enddialog $dialog] [list "$result"]]
+    return [eval [list $dialog enddialog] [list "$result"]]
   }
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [eval [list Dialog::enddialog $dialog] [list {}]]
+    $dialog withdraw
+    return [eval [list $dialog enddialog] [list {}]]
   }
 
   typemethod draw {args} {
@@ -321,16 +326,16 @@ snit::type TimeTable::SelectOneStationDialog {
 		-data [list "$_name" $_smile] \
 		-text [format {%-15s %-6.2f} "$_name" $_smile]
     }
-    BWidget::focus set $name
+    focus -force $name
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [eval [list Dialog::draw $dialog]]
+    return [eval [list $dialog draw]]
   }
 
   typemethod _SelectFromList {selectedItem} {
     set elt [$slistlist itemcget $selectedItem -data]
     set result [lindex $elt 0]
-    eval [list Dialog::withdraw $dialog]
-    return [eval [list Dialog::enddialog $dialog] \
+    eval [list $dialog withdraw]
+    return [eval [list $dialog enddialog] \
 		[list $result]]
   }
 
@@ -340,8 +345,6 @@ snit::type TimeTable::SelectOneStationDialog {
     $name configure -text "$value"
   }
 }
-
-package require DWpanedw
 
 snit::widget TimeTable::displayOneStation {
   TimeTable::TtStdShell DisplayOneStation
@@ -384,10 +387,10 @@ snit::widget TimeTable::displayOneStation {
     set smileLabel [Label $header.smile -relief sunken]
     pack $smileLabel -side left -fill x
     set duplicateLabel [LabelEntry $header.duplicate -label [_m "Label|Duplicate Station:"] -editable no]
-    set storageScroll [ScrolledWindow::create $frame.storageScroll \
+    set storageScroll [ScrolledWindow $frame.storageScroll \
 				-scrollbar both -auto both]
     pack $storageScroll -expand yes -fill both
-    set storageList [ListBox::create $storageScroll.storageList]
+    set storageList [ListBox $storageScroll.storageList]
     pack $storageList -expand yes -fill both
     $storageScroll setwidget $storageList
   }
@@ -463,32 +466,32 @@ snit::type TimeTable::viewAllStationsDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .viewAllStationsDialog \
+    set dialog [Dialog .viewAllStationsDialog \
 			-bitmap info \
 			-default 0 -cancel 0 -modal none -transient yes \
 			-parent . -side bottom -title [_ "All Available Stations"]]
-    $dialog add -name dismis -text [_m "Button|Dismis"] -command [mytypemethod _Dismis]
+    $dialog add dismis -text [_m "Button|Dismis"] -command [mytypemethod _Dismis]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Dismis]
     set mainframe [$dialog getframe]
     set headerframe $mainframe.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
     set scheduleSWindow $mainframe.scheduleSWindow
-    frame $headerframe -relief ridge -bd 5
+    ttk::frame $headerframe -relief ridge -borderwidth 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "All Available Stations"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
-    set slist [eval [list ScrolledWindow::create $mainframe.slist] -scrollbar both -auto both]
+    set slist [eval [list ScrolledWindow $mainframe.slist] -scrollbar both -auto both]
     pack $slist -expand yes -fill both
-    set slistlist [eval [list ScrollableFrame::create $mainframe.slist.list]]
+    set slistlist [eval [list ScrollableFrame $mainframe.slist.list]]
     pack $slistlist -expand yes -fill both
     $slist setwidget $slistlist
     set stations [$slistlist getframe]
-    Label::create $stations.name0 -text [_m "Label|Name"] -anchor w
-    Label::create $stations.smile0 -text [_m "Scale Mile"] -anchor e
+    ttk::label $stations.name0 -text [_m "Label|Name"] -anchor w
+    ttk::label $stations.smile0 -text [_m "Scale Mile"] -anchor e
     foreach w  {name smile} \
 	    c  {0    1} \
 	    sk {w    e} {
@@ -496,8 +499,8 @@ snit::type TimeTable::viewAllStationsDialog {
     }
   }
   typemethod _Dismis {} {
-    Dialog::withdraw $dialog
-    return [eval [list Dialog::enddialog $dialog] [list {}]]
+    $dialog withdraw
+    return [eval [list $dialog enddialog] [list {}]]
   }
   typevariable _NumberOfStationsInDialog 0
   typemethod draw {args} {
@@ -506,8 +509,8 @@ snit::type TimeTable::viewAllStationsDialog {
     ForEveryStation [TimeTable cget -this] station {
       incr sindex
       if {$sindex > $_NumberOfStationsInDialog} {
-	Button::create $stations.name$sindex  -anchor w
-	Label::create  $stations.smile$sindex -anchor e
+	ttk::button $stations.name$sindex
+	ttk::label  $stations.smile$sindex -anchor e
         foreach w  {name smile} \
 		c  {0    1} \
 		sk {w    e} {
@@ -535,7 +538,7 @@ snit::type TimeTable::viewAllStationsDialog {
     $dialog configure -geometry "$geo"
     set _NumberOfStationsInDialog $sindex
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [eval [list Dialog::draw $dialog]]
+    return [eval [list $dialog draw]]
   }
 }
 
@@ -582,46 +585,46 @@ snit::type TimeTable::SelectAStorageTrackName {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .selectAStorageTrackName \
+    set dialog [Dialog .selectAStorageTrackName \
 			-bitmap questhead \
 			-default 0 -cancel 1 -modal local -transient yes \
 			-parent . -side bottom \
 			-title [_ "Select a storage track name"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Select A Storage Track Name}]
+    $dialog add help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Select A Storage Track Name}]
     set frame [$dialog getframe] 
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
-    frame $headerframe -relief ridge -bd 5
+    ttk::frame $headerframe -relief ridge -borderwidth 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "Select a storage track name"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
-    set name [LabelEntry::create $frame.name -label [_m "Label|Storage Track Name:"]]
+    set name [LabelEntry $frame.name -label [_m "Label|Storage Track Name:"]]
     pack $name -fill x
     $name bind <Return> [mytypemethod _OK]
   }
   typemethod _OK {} {
-    Dialog::withdraw $dialog
+    $dialog withdraw
     set result "[$name cget -text]"
-    return [eval [list Dialog::enddialog $dialog] [list "$result"]]
+    return [eval [list $dialog enddialog] [list "$result"]]
   }
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [eval [list Dialog::enddialog $dialog] [list {}]]
+    $dialog withdraw
+    return [eval [list $dialog enddialog] [list {}]]
   }
   typemethod draw {args} {
     $type createDialog
     set title [from args -title]
     if {[string length "$title"]} {$dialog configure -title "$title"}
-    BWidget::focus set $name
+    focus -force $name
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [eval [list Dialog::draw $dialog]]
+    return [eval [list $dialog draw]]
   }
 }
 
@@ -660,18 +663,21 @@ $TimeTable::Main menu add stations command -label [_m "Menu|Stations|Clear Dupli
 $TimeTable::Main menu add stations command -label [_m "Menu|Stations|Add Storage Track"] \
 				  -command TimeTable::AddStorageTrack \
 				  -dynamichelp [_ "Add Storage Track"]
-$TimeTable::Main buttons add -name setDuplicateStationIndex -anchor w \
+$TimeTable::Main buttons add ttk::button setDuplicateStationIndex  \
 		    -text [_m "Button|Set Duplicate Station"] \
-		    -command TimeTable::SetDuplicateStationIndex \
-		    -helptext [_ "Set Duplicate Station"] -state disabled
-$TimeTable::Main buttons add -name clearDuplicateStationIndex -anchor w \
+      -command TimeTable::SetDuplicateStationIndex \
+      -state disabled
+#		    -helptext [_ "Set Duplicate Station"] 
+$TimeTable::Main buttons add ttk::button clearDuplicateStationIndex \
 		    -text [_m "Button|Clear Duplicate Station"] \
 		    -command TimeTable::ClearDuplicateStationIndex \
-		    -helptext [_ "Clear Duplicate Station"] -state disabled
-$TimeTable::Main buttons add -name addStorageTrack -anchor w \
+      -state disabled
+#                   -helptext [_ "Clear Duplicate Station"]
+$TimeTable::Main buttons add ttk::button addStorageTrack \
 		    -text [_m "Button|Add Storage Track"] \
 		    -command TimeTable::AddStorageTrack \
-		    -helptext [_ "Add Storage Track"] -state disabled
+      -state disabled
+#-helptext [_ "Add Storage Track"] 
 image create photo SetDuplicateStationIndexImage \
 			-file [file join $TimeTable::ImageDir setdupstation.gif]
 $TimeTable::Main toolbar addbutton tools setDuplicateStationIndex \
@@ -690,7 +696,8 @@ $TimeTable::Main toolbar addbutton tools addStorageTrack \
 			-image AddStorageTrackImage \
 			-command TimeTable::AddStorageTrack \
 			-helptext [_ "Add Storage Track"] -state disabled
-}
+} error
+#puts stderr "*** TTStations: error = $error, errorInfo = $::errorInfo"
 
 proc TimeTable::EnableStationCommands {} {
   variable Main

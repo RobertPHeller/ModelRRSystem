@@ -51,10 +51,12 @@ namespace eval TimeTable {}
 
 catch {TimeTable::SplashWorkMessage [_ "Loading Notes Code"] 77}
 
+package require gettext
+package require Tk
+package require tile
 package require snit
-package require BWidget
-package require BWLabelSpinBox
-package require BWLabelComboBox
+package require Dialog
+package require LabelFrames
 
 snit::type TimeTable::viewAllNotesDialog {
   pragma -hastypedestroy no
@@ -75,33 +77,33 @@ snit::type TimeTable::viewAllNotesDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .viewAllNotesDialog \
+    set dialog [Dialog .viewAllNotesDialog \
 			-bitmap info \
 			-default 0 -cancel 0 -modal none -transient yes \
 			-parent . -side bottom -title [_ "All Available Notes"]]
-    $dialog add -name dismis -text [_m "Button|Dismis"] -command [mytypemethod _Dismis]
+    $dialog add dismis -text [_m "Button|Dismis"] -command [mytypemethod _Dismis]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Dismis]
     set mainframe [$dialog getframe]
     set headerframe $mainframe.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
     set notesSWindow $mainframe.notesSWindow
-    frame $headerframe -relief ridge -bd 5
+    ttk::frame $headerframe -relief ridge -borderwidth 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "All Available Notes"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
-    ScrolledWindow::create $notesSWindow \
+    ScrolledWindow $notesSWindow \
 		-auto vertical -scrollbar vertical
     pack $notesSWindow -expand yes -fill both
-    set notesSFrame [ScrollableFrame::create $notesSWindow.notesSFrame]
+    set notesSFrame [ScrollableFrame $notesSWindow.notesSFrame]
     pack $notesSFrame -expand yes -fill both
     $notesSWindow setwidget $notesSFrame
     set notesFrame [$notesSFrame getframe]
-    Label::create $notesFrame.number0 -text [_m "Label|Number"] -anchor e
-    Label::create $notesFrame.text0   -text [_m "Label|Begining text"] -anchor w
+    ttk::label $notesFrame.number0 -text [_m "Label|Number"] -anchor e
+    ttk::label $notesFrame.text0   -text [_m "Label|Begining text"] -anchor w
     foreach w  {number text} \
 	    c  {0      1} \
 	    sk {e      w} {
@@ -109,8 +111,8 @@ snit::type TimeTable::viewAllNotesDialog {
     }
   }
   typemethod _Dismis {} {
-    Dialog::withdraw $dialog
-    return [eval [list Dialog::enddialog $dialog] [list {}]]
+    $dialog withdraw
+    return [eval [list $dialog enddialog] [list {}]]
   }
 
   typevariable _NumberOfNotesInDialog 0
@@ -118,8 +120,8 @@ snit::type TimeTable::viewAllNotesDialog {
     $type createDialog
     for {set inote 1} {$inote <= [TimeTable NumberOfNotes]} {incr inote} {
       if {$inote > $_NumberOfNotesInDialog} {
-	Button::create $notesFrame.number$inote -anchor e
-	Label::create  $notesFrame.text$inote   -anchor w
+	ttk::button $notesFrame.number$inote
+	ttk::label  $notesFrame.text$inote   -anchor w
 	foreach w  {number text} \
 		c  {0      1} \
 		sk {e      w} {
@@ -147,7 +149,7 @@ snit::type TimeTable::viewAllNotesDialog {
     $dialog configure -geometry "$geo"
     set _NumberOfNotesInDialog $inote
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [eval [list Dialog::draw $dialog]]      
+    return [eval [list $dialog draw]]      
   }
 }
 
@@ -171,45 +173,45 @@ snit::type TimeTable::selectOneNoteDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .selectOneNoteDialog \
+    set dialog [Dialog .selectOneNoteDialog \
 			-bitmap questhead \
 			-default 0 -cancel 1 -modal local -transient yes \
 			-parent . -side bottom -title [_ "Select one note"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Select One Note Dialog}]
+    $dialog add help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Select One Note Dialog}]
     set frame [$dialog getframe] 
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
-    frame $headerframe -relief ridge -bd 5
+    ttk::frame $headerframe -relief ridge -borderwidth 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "Select one note"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
-    set nlist [eval [list ScrolledWindow::create $frame.nlist] -scrollbar both -auto both]
+    set nlist [eval [list ScrolledWindow $frame.nlist] -scrollbar both -auto both]
     pack $nlist -expand yes -fill both
-    set nlistlist [eval [list ListBox::create $frame.nlist.list] -selectmode single]
+    set nlistlist [eval [list ListBox $frame.nlist.list] -selectmode single]
     pack $nlistlist -expand yes -fill both
     $nlist setwidget $nlistlist
     $nlistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $nlistlist bindText <Double-1> [mytypemethod _SelectFromList]
-    set number [LabelEntry::create $frame.number -label [_m "Label|Note Number Selection:"]]
+    set number [LabelEntry $frame.number -label [_m "Label|Note Number Selection:"]]
     pack $number -fill x
     $number bind <Return> [mytypemethod _OK]
   }
 
   typemethod _OK {} {
-    Dialog::withdraw $dialog
+    $dialog withdraw
     set result "[$number cget -text]"
-    return [eval [list Dialog::enddialog $dialog] [list "$result"]]
+    return [eval [list $dialog enddialog] [list "$result"]]
   }
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [eval [list Dialog::enddialog $dialog] [list {}]]
+    $dialog withdraw
+    return [eval [list $dialog enddialog] [list {}]]
   }
 
   typemethod draw {args} {
@@ -233,16 +235,16 @@ snit::type TimeTable::selectOneNoteDialog {
 		-data [list $_number "$_text"] \
 		-text [format {%-5d %-15s} "$_number" "$_text"]
     }
-    BWidget::focus set $number 
+    focus -force $number 
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [eval [list Dialog::draw $dialog]]
+    return [eval [list $dialog draw]]
   }
 
   typemethod _SelectFromList {selectedItem} {
     set elt [$nlistlist itemcget $selectedItem -data]
     set result [lindex $elt 0]
-    eval [list Dialog::withdraw $dialog]
-    return [eval [list Dialog::enddialog $dialog] \
+    eval [list $dialog withdraw]
+    return [eval [list $dialog enddialog] \
 		[list $result]]
   }
 
@@ -281,7 +283,7 @@ snit::widget TimeTable::displayOneNote {
   }
 
   method constructtopframe {frame args} {
-    set theTextSW [ScrolledWindow::create $frame.theTextSW \
+    set theTextSW [ScrolledWindow $frame.theTextSW \
 			-auto vertical -scrollbar vertical]
     pack $theTextSW -expand yes -fill both
     set theText [text $theTextSW.theText -wrap word -state disabled \
@@ -333,26 +335,26 @@ snit::type TimeTable::editNoteDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .editNoteDialog \
+    set dialog [Dialog .editNoteDialog \
 			-bitmap questhead \
 			-default 0 -cancel 1 -modal local -transient yes \
 			-parent . -side bottom -title [_ "Editing note NNNNN"]]
-    $dialog add -name save -text [_m "Button|Save"] -command [mytypemethod _Save]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add save -text [_m "Button|Save"] -command [mytypemethod _Save]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Edit Note Dialog}]
+    $dialog add help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Edit Note Dialog}]
     set frame [$dialog getframe] 
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
-    frame $headerframe -relief ridge -bd 5
+    ttk::frame $headerframe -relief ridge -borderwidth 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "Editing note NNNNN"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
-    set theTextSW [ScrolledWindow::create $frame.theTextSW \
+    set theTextSW [ScrolledWindow $frame.theTextSW \
 			-auto vertical -scrollbar vertical]
     pack $theTextSW -expand yes -fill both
     set theText [text $theTextSW.theText -wrap word -takefocus no]
@@ -363,7 +365,7 @@ snit::type TimeTable::editNoteDialog {
   }
   typevariable _Note
   typemethod _Save {} {
-    Dialog::withdraw $dialog
+    $dialog withdraw
     set text "[$theText get 1.0 end]"
     if {$_Note < 1} {
       set result [TimeTable AddNote "$text"]
@@ -372,11 +374,11 @@ snit::type TimeTable::editNoteDialog {
     } else {
       set result 0
     }      
-    return [eval [list Dialog::enddialog $dialog] [list "$result"]]
+    return [eval [list $dialog enddialog] [list "$result"]]
   }
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [eval [list Dialog::enddialog $dialog] [list 0]]
+    $dialog withdraw
+    return [eval [list $dialog enddialog] [list 0]]
   }
   typemethod draw {args} {
     $type createDialog
@@ -392,7 +394,7 @@ snit::type TimeTable::editNoteDialog {
       $theText insert end "[TimeTable Note $_Note]"
     }
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [Dialog::draw $dialog]
+    return [$dialog draw]
   }
 }
 
@@ -440,39 +442,39 @@ snit::type TimeTable::addRemoveNoteDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .addRemoveNoteDialog  \
+    set dialog [Dialog .addRemoveNoteDialog  \
 			-bitmap questhead -default 0 -cancel 1 -modal local \
 			-transient yes -parent . -side bottom \
-			-title [_ "Add/Remove note to/from train [at station]"]]
-    $dialog add -name addremove -text [_m "Button|Add/Remove"] -command [mytypemethod _Update]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+			-title [_ "Add/Remove note to/from train (at station)"]]
+    $dialog add addremove -text [_m "Button|Add/Remove"] -command [mytypemethod _Update]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] \
+    $dialog add help -text [_m "Button|Help"] \
 		-command [list HTMLHelp::HTMLHelp help {Add Remove Note Dialog}]
     set frame [$dialog getframe]
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
-    frame $headerframe -relief ridge -bd 5
+    ttk::frame $headerframe -relief ridge -borderwidth 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
-		-text [_ "Add/Remove note to/from train [at station]"]
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
+		-text [_ "Add/Remove note to/from train (at station)"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
     set lwidth [_mx "Label|Train:" "Label|Note Number:" "Label|At Station:"]
-    set trainNumber [LabelComboBox::create $frame.trainNumber \
+    set trainNumber [LabelComboBox $frame.trainNumber \
 				-label [_m "Label|Train:"] \
 				-labelwidth $lwidth \
 				-editable no \
 				-modifycmd [mytypemethod _TrainNumberUpdated]]
     pack $trainNumber -fill x
-    set noteNumber [LabelSpinBox::create $frame.noteNumber \
+    set noteNumber [LabelSpinBox $frame.noteNumber \
 				-label [_m "Label|Note Number:"] \
 				-labelwidth $lwidth \
 				-editable no]
     pack $noteNumber -fill x
-    set stationStop [LabelComboBox::create $frame.stationStop \
+    set stationStop [LabelComboBox $frame.stationStop \
 				-label [_m "Label|At Station:"] \
 				-labelwidth $lwidth \
 				-editable no \
@@ -489,12 +491,12 @@ snit::type TimeTable::addRemoveNoteDialog {
 	lappend stationList "$_sname"
       }
       $stationStop configure -values $stationList
-      $stationStop setvalue first
+      $stationStop set [lindex $stationList 0]
     }
     if {[string equal "$_Mode" "remove"]} {
       set notes {}
       if {$_AtStation} {
-      	set stopIndex [$stationStop getvalue]
+      	set stopIndex [lsearch [$stationStop cget -values] [$stationStop get]]
       	set stop [Train_StopI $train $stopIndex]
 	for {set i 0} {$i < [Stop_NumberOfNotes $stop]} {incr i} {
 	  lappend notes [Stop_Note $stop $i]
@@ -511,7 +513,7 @@ snit::type TimeTable::addRemoveNoteDialog {
     set train [TimeTable FindTrainByNumber "[$trainNumber cget -text]"]
     if {[string equal "$_Mode" "remove"]} {
       set notes {}
-      set stopIndex [$stationStop getvalue]
+      set stopIndex [lsearch [$stationStop cget -values] [$stationStop get]]
       set stop [Train_StopI $train $stopIndex]
       for {set i 0} {$i < [Stop_NumberOfNotes $stop]} {incr i} {
 	lappend notes [Stop_Note $stop $i]
@@ -520,10 +522,10 @@ snit::type TimeTable::addRemoveNoteDialog {
     }
   }
   typemethod _Update {} {
-    Dialog::withdraw $dialog
+    $dialog withdraw
     set train [TimeTable FindTrainByNumber "[$trainNumber cget -text]"]
     if {$_AtStation} {
-      set stopIndex [$stationStop getvalue]
+      set stopIndex [lsearch [$stationStop cget -values] [$stationStop get]]
     } else {
       set stopIndex -1
     }
@@ -545,11 +547,11 @@ snit::type TimeTable::addRemoveNoteDialog {
       }
     }
     set result [list $train $note $stopIndex]
-    return [Dialog::enddialog $dialog $result]
+    return [$dialog enddialog $result]
   }
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog {}]
+    $dialog withdraw
+    return [$dialog enddialog {}]
   }
   typemethod draw {args} {
     $type createDialog
@@ -567,7 +569,7 @@ snit::type TimeTable::addRemoveNoteDialog {
       lappend trains "$_number"
     }
     $trainNumber configure -values $trains
-    $trainNumber setvalue first
+    $trainNumber set [lindex $trains 0]
     set train [TimeTable FindTrainByNumber "[$trainNumber cget -text]"]
     $stationStop configure -text {}
     if {$_AtStation} {
@@ -578,7 +580,7 @@ snit::type TimeTable::addRemoveNoteDialog {
 	lappend stationList "$_sname"
       }
       $stationStop configure -values $stationList
-      $stationStop setvalue first
+      $stationStop set [lindex $stationList 0]
     } else {
       $stationStop configure -state disabled
     }
@@ -601,7 +603,8 @@ snit::type TimeTable::addRemoveNoteDialog {
 	$dialog itemconfigure addremove -text [_m "Button|Remove"]
 	set notes {}
 	if {$_AtStation} {
-	  set stopIndex [$stationStop getvalue]
+          set stopIndex [lsearch [$stationStop cget -values] [$stationStop get]]
+          #puts stderr "*** $type draw (remove): stopIndex = '$stopIndex'"
 	  set stop [Train_StopI $train $stopIndex]
 	  for {set i 0} {$i < [Stop_NumberOfNotes $stop]} {incr i} {
 	    lappend notes [Stop_Note $stop $i]
@@ -618,7 +621,7 @@ snit::type TimeTable::addRemoveNoteDialog {
     $dialog configure -title "$title"
     $headerlabel configure -text "$title"
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [Dialog::draw $dialog]
+    return [$dialog draw]
   }
 }
 
@@ -673,21 +676,25 @@ $TimeTable::Main menu add view command -label [_m "Menu|View|View All Notes"] \
 $TimeTable::Main menu add notes command -label [_m "Menu|Notes|Create New Note"] \
 			       -command TimeTable::CreateNewNote \
 			       -dynamichelp [_ "Create new note"]
-$TimeTable::Main buttons add -name createNote -text [_m "Button|Create New Note"] -anchor w \
-				-command TimeTable::CreateNewNote \
-				-helptext [_ "Create new note"] -state disabled
+$TimeTable::Main buttons add ttk::button createNote \
+      -text [_m "Button|Create New Note"] \
+      -command TimeTable::CreateNewNote \
+      -state disabled
+#				-helptext [_ "Create new note"] 
 image create photo CreateNoteImage -file [file join $TimeTable::ImageDir createnote.gif]
 $TimeTable::Main toolbar addbutton tools createNote \
 				-image CreateNoteImage \
-				-command TimeTable::CreateNewNote \
-				-helptext [_ "Create new note"] -state disabled
+      -command TimeTable::CreateNewNote \
+      -state disabled \
+      -helptext [_ "Create new note"] 
 
 $TimeTable::Main menu add notes command -label [_m "Menu|Notes|Edit Existing Note"] \
 			       -command TimeTable::EditExistingNote \
 			       -dynamichelp [_ "Edit existing note"]
-$TimeTable::Main buttons add -name editNote -text [_m "Button|Edit Existing Note"] -anchor w \
-				-command TimeTable::EditExistingNote \
-				-helptext [_ "Edit existing note"] -state disabled
+$TimeTable::Main buttons add ttk::button editNote -text [_m "Button|Edit Existing Note"] \
+      -command TimeTable::EditExistingNote \
+      -state disabled
+#				-helptext [_ "Edit existing note"] 
 image create photo EditNoteImage -file [file join $TimeTable::ImageDir editnote.gif]
 $TimeTable::Main toolbar addbutton tools editNote \
 				-image EditNoteImage \
@@ -698,9 +705,10 @@ $TimeTable::Main menu add notes separator
 $TimeTable::Main menu add notes command -label [_m "Menu|Notes|Add note to train"] \
 			       -command TimeTable::AddNoteToTrain \
 			       -dynamichelp [_ "Add note to train"]
-$TimeTable::Main buttons add -name addNoteToTrain -text [_m "Button|Add note to train"] -anchor w \
-				-command TimeTable::AddNoteToTrain \
-				-helptext [_ "Add note to train"] -state disabled
+$TimeTable::Main buttons add ttk::button addNoteToTrain -text [_m "Button|Add note to train"] \
+      -command TimeTable::AddNoteToTrain \
+       -state disabled
+#				-helptext [_ "Add note to train"]
 image create photo AddNoteToTrainImage \
 				-file [file join $TimeTable::ImageDir addnotetotrain.gif]
 $TimeTable::Main toolbar addbutton tools addNoteToTrain \
@@ -712,12 +720,12 @@ $TimeTable::Main menu add notes command -label [_m "Menu|Notes|Add note to train
 			       -command TimeTable::AddNoteToTrainAtStation \
 			       -dynamichelp [_ "Add note to train at station stop"]
 
-$TimeTable::Main buttons add -name addNoteToTrainAtStation \
+$TimeTable::Main buttons add ttk::button addNoteToTrainAtStation \
 				 -text [_m "Button|Add note to train at station stop"] \
-				-anchor w \
-				-command TimeTable::AddNoteToTrainAtStation \
-				-helptext [_ "Add note to train at station stop"] \
-				-state disabled
+      -command TimeTable::AddNoteToTrainAtStation \
+      -state disabled
+#				-helptext [_ "Add note to train at station stop"] 
+				
 image create photo AddNoteToTrainAtStationImage \
 			-file [file join $TimeTable::ImageDir addnotetotrainatstation.gif]
 $TimeTable::Main toolbar addbutton tools addNoteToTrainAtStation \
@@ -730,10 +738,10 @@ $TimeTable::Main menu add notes separator
 $TimeTable::Main menu add notes command -label [_m "Menu|Notes|Remove note from train"] \
 			       -command TimeTable::RemoveNoteFromTrain \
 			       -dynamichelp [_ "Remove note from train"]
-$TimeTable::Main buttons add -name removeNoteFromTrain -text [_m "Button|Remove note from train"] \
-				-anchor w \
-				-command TimeTable::RemoveNoteFromTrain\
-				-helptext [_ "Remove note from train"] -state disabled
+$TimeTable::Main buttons add ttk::button removeNoteFromTrain -text [_m "Button|Remove note from train"] \
+      -command TimeTable::RemoveNoteFromTrain\
+       -state disabled
+#				-helptext [_ "Remove note from train"]
 image create photo RemoveNoteFromTrainImage \
 				-file [file join $TimeTable::ImageDir removenotefromtrain.gif]
 $TimeTable::Main toolbar addbutton tools removeNoteFromTrain \
@@ -744,11 +752,11 @@ $TimeTable::Main toolbar addbutton tools removeNoteFromTrain \
 $TimeTable::Main menu add notes command -label [_m "Menu|Notes|Remove note from train at station stop"] \
 			       -command TimeTable::RemoveNoteFromTrainAtStation \
 			       -dynamichelp [_ "Remove note from train at station stop"]
-$TimeTable::Main buttons add -name removeNoteFromTrainAtStation \
+$TimeTable::Main buttons add ttk::button removeNoteFromTrainAtStation \
 				-text [_m "Button|Remove note from train at station stop"] \
-				-anchor w \
-				-command TimeTable::RemoveNoteFromTrainAtStation\
-				-helptext [_ "Remove note from train at station stop"] -state disabled
+      -command TimeTable::RemoveNoteFromTrainAtStation\
+      -state disabled
+#				-helptext [_ "Remove note from train at station stop"] 
 image create photo RemoveNoteFromTrainAtStationImage \
 				-file [file join $TimeTable::ImageDir removenotefromtrainatstation.gif]
 $TimeTable::Main toolbar addbutton tools removeNoteFromTrainAtStation \

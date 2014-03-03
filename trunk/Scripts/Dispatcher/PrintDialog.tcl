@@ -38,10 +38,10 @@
 
 package require gettext
 package require Tk
-package require BWidget
+package require tile
 package require snit
-package require BWLabelComboBox
-package require BWFileEntry
+package require LabelFrames
+package require Dialog
 package require pdf4tcl
 
 

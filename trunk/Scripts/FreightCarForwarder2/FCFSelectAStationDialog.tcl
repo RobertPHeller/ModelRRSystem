@@ -38,8 +38,14 @@
 
 # $Id$
 
-package require BWidget
+package require Tk
+package require tile
+package require Dialog
 package require snit
+package require HTMLHelp 2.0
+package require ScrollWindow
+package require ListBox
+package require LabelFrames
 
 # SelectAStationDialog
 
@@ -58,25 +64,25 @@ snit::type SelectAStationDialog  {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .selectAStationDialog \
+    set dialog [Dialog .selectAStationDialog \
 		    -bitmap questhead -default 0 \
 		    -cancel 1 -modal local -transient yes -parent . \
 		    -side bottom -title [_ "Select A Station"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] \
-			-command [list HTMLHelp::HTMLHelp help {Select A Station Dialog}]
-    set frame [Dialog::getframe $dialog]
-    set slist [ScrolledWindow::create $frame.slist \
+    $dialog add help -text [_m "Button|Help"] \
+			-command [list HTMLHelp help {Select A Station Dialog}]
+    set frame [$dialog getframe]
+    set slist [ScrolledWindow $frame.slist \
 			-scrollbar both -auto both]
     pack $slist -expand yes -fill both
-    set slistlist [ListBox::create $slist.list -selectmode single]
+    set slistlist [ListBox $slist.list -selectmode single]
     pack $slistlist -expand yes -fill both
     $slist setwidget $slistlist
     $slistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $slistlist bindText <Double-1> [mytypemethod _SelectFromList]
-    set selent [LabelEntry::create $frame.selent \
+    set selent [LabelEntry $frame.selent \
 			-label [_m "Label|Station Name Selection:"]]
     pack $selent -fill x
     $selent bind <Return> [mytypemethod _OK]
@@ -96,11 +102,11 @@ snit::type SelectAStationDialog  {
       $slistlist insert end $Sx \
 	-text "$NC" -data [list $station "$NC"]
     }
-    return [Dialog::draw $dialog]
+    return [$dialog draw]
   }
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog NULL]
+    $dialog withdraw
+    return [$dialog enddialog NULL]
   }
   typemethod _OK {} {
     set selectedStationNC "[$selent cget -text]"
@@ -111,15 +117,15 @@ snit::type SelectAStationDialog  {
     set selectedStationName [string trim "$selectedStationName"]
     set selectedStationComment [string trim "$selectedStationComment"]
     set selectedStation [::TheSystem FindStationByName "$selectedStationName" "$selectedStationComment"]
-    Dialog::withdraw $dialog]
-    return [Dialog::enddialog $dialog "$selectedStation"]
+    $dialog withdraw]
+    return [$dialog enddialog "$selectedStation"]
   }
   typemethod _SelectFromList { selectedItem } {
     set lb $slistlist
     set elt [$lb itemcget $selectedItem -data]
     set result [lindex $elt 0]
-    eval Dialog::withdraw $dialog]
-    return [Dialog::enddialog $dialog "$result"]
+    eval $dialog withdraw]
+    return [$dialog enddialog "$result"]
   }
   typemethod _BrowseFromList { selectedItem } {
     set lb $slistlist

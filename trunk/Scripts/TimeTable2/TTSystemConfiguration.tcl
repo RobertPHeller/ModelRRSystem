@@ -50,11 +50,13 @@
 
 # $Id$
 
+package require gettext
+package require Tk
+package require tile
 package require snit
+package require Dialog
 package require ReadConfiguration
-package require BWidget
-package require BWFileEntry
-package require BWLabelSpinBox
+package require LabelFrames
 
 namespace eval TimeTable {
   snit::type TimeTableConfiguration {
@@ -73,11 +75,11 @@ namespace eval TimeTable {
       switch $tcl_platform(platform) {
         windows {
             set PDFLATEX "C:/Program Files/pdflatex.exe"
-            puts stderr "*** TimeTableConfiguration::typeconstructor: PDFLATEX (1) is '$PDFLATEX'"
+            #puts stderr "*** TimeTableConfiguration::typeconstructor: PDFLATEX (1) is '$PDFLATEX'"
             set PDFLATEX [file nativename $PDFLATEX]
-            puts stderr "*** TimeTableConfiguration::typeconstructor: PDFLATEX (2) is '$PDFLATEX'"
+            #puts stderr "*** TimeTableConfiguration::typeconstructor: PDFLATEX (2) is '$PDFLATEX'"
             set PDFLATEX [auto_execok $PDFLATEX]
-            puts stderr "*** TimeTableConfiguration::typeconstructor: PDFLATEX (3) is '$PDFLATEX'"
+            #puts stderr "*** TimeTableConfiguration::typeconstructor: PDFLATEX (3) is '$PDFLATEX'"
         }
         macintosh -
         unix {
@@ -99,27 +101,27 @@ namespace eval TimeTable {
     typemethod createDialog {} {
       if {![string equal "$_EditDialog" {}] && 
 	  [winfo exists $_EditDialog]} {return}
-      set _EditDialog [Dialog::create .editSystemConfiguration \
+      set _EditDialog [Dialog .editSystemConfiguration \
 				-bitmap questhead \
 				-title "Edit System Configuration" \
 				-modal local \
 				-transient yes \
 				-default 0 -cancel 2 \
 				-parent . -side bottom]
-      $_EditDialog add -name ok -text OK -command [mytypemethod _OK]
-      $_EditDialog add -name apply -text Apply -command [mytypemethod _Apply]
-      $_EditDialog add -name cancel -text Cancel -command [mytypemethod _Cancel]
+      $_EditDialog add ok -text OK -command [mytypemethod _OK]
+      $_EditDialog add apply -text Apply -command [mytypemethod _Apply]
+      $_EditDialog add cancel -text Cancel -command [mytypemethod _Cancel]
       wm protocol [winfo toplevel $_EditDialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-      $_EditDialog add -name help -text Help -command [list HTMLHelp::HTMLHelp help {Edit System Configuration}]
+      $_EditDialog add help -text Help -command [list HTMLHelp::HTMLHelp help {Edit System Configuration}]
       set frame [$_EditDialog  getframe]
       set headerframe $frame.headerframe
       set iconimage $headerframe.iconimage
       set headerlabel $headerframe.headerlabel
-      frame $headerframe -relief ridge -bd 5
+      ttk::frame $headerframe -relief ridge -borderwidth 5
       pack  $headerframe -fill x
-      Label::create $iconimage -image banner
+      ttk::label $iconimage -image banner
       pack  $iconimage -side left
-      Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+      ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text {Edit System Configuration}
       pack  $headerlabel -side right -anchor w -expand yes -fill x
       global tcl_platform
@@ -130,7 +132,7 @@ namespace eval TimeTable {
         set exeExtension {}
         set exeFiletypes {{{Executable Files} {}}}
       }
-      puts stderr "*** TimeTableConfiguration::createDialog: _Configuration(pdflatex) is '$_Configuration(pdflatex)'"
+      #puts stderr "*** TimeTableConfiguration::createDialog: _Configuration(pdflatex) is '$_Configuration(pdflatex)'"
       set _PDFLaTeXFileEntry [FileEntry $frame.pdfLaTeXfile \
 		-labelwidth 21 \
 		-label "Path to pdflatex:" \
@@ -172,7 +174,7 @@ namespace eval TimeTable {
       $type createDialog
       $type _UpdateDialog
       wm transient [winfo toplevel $_EditDialog] [$_EditDialog cget -parent]
-      return [Dialog::draw $_EditDialog]
+      return [$_EditDialog draw]
     }
     typemethod _UpdateDialog {} {
       $_PDFLaTeXFileEntry configure -text "$_Configuration(pdflatex)"
@@ -182,8 +184,8 @@ namespace eval TimeTable {
     }
     typemethod _OK {} {
       $type _Apply
-      Dialog::withdraw $_EditDialog
-      return [Dialog::enddialog $_EditDialog ok]
+      $_EditDialog withdraw
+      return [$_EditDialog enddialog ok]
     }
     typemethod _Apply {} {
       set _Configuration(pdflatex)         "[$_PDFLaTeXFileEntry cget -text]"
@@ -192,8 +194,8 @@ namespace eval TimeTable {
       set _Configuration(mainwindow:width)  [$_MainWindowWidth cget -text]
     }
     typemethod _Cancel {} {
-      Dialog::withdraw $_EditDialog
-      return [Dialog::enddialog $_EditDialog cancel]
+      $_EditDialog withdraw
+      return [$_EditDialog enddialog cancel]
     }
     typemethod getkeyoption {name key} {
       if {[info exists _Configuration(${name}:${key})]} {

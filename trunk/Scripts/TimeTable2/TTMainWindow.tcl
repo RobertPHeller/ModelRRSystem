@@ -56,862 +56,853 @@
 
 # $Id$
 
-package require BWidget
-package require BWStdMenuBar
-package require DWpanedw
-package require HTMLHelp
+package require gettext
+package require Tk
+package require tile
+package require snit
+package require snitStdMenuBar
+package require HTMLHelp 2.0
 package require MainWindow
 
 catch {TimeTable::SplashWorkMessage [_ "Creating Main Window"]	 11}
 
-namespace eval ChartDisplay {
-  Widget::define ChartDisplay TTMainWindow
-
-  Widget::declare ChartDisplay {
-        {-width             Int        0  0 {%d > 0}}
-        {-height            Int        0  0 {%d > 0}}
-        {-xscrollcommand    TkResource "" 0 canvas}
-        {-yscrollcommand    TkResource "" 0 canvas}
-        {-xscrollincrement  TkResource "" 0 canvas}
-        {-yscrollincrement  TkResource "" 0 canvas}
-	{-timescale         Int        1440 0 {%d >= 60 && %d <= 1440}}
-	{-timeinterval	    Int	       15   0 {%d >= 1  && %d <= 60}}
-	{-labelsize 	    Int	       100  0 {%d > 0}}
-   }
-
-    Widget::addmap ChartDisplay "" :cmd {
-        -width {} -height {} 
-        -xscrollcommand {} -yscrollcommand {}
-        -xscrollincrement {} -yscrollincrement {}
+snit::widgetadaptor ChartDisplay {
+    delegate option * to hull \
+          except {-background -borderwidth 
+        -highlightthickness -relief 
+        -scrollregion}
+    delegate method xview to hull
+    delegate method yview to hull
+    option -timescale -readonly yes -type {snit::integer -min 50 -max 1440} \
+          -default 1440
+    option -timeinterval -readonly yes -type {snit::integer -min 1 -max 60} \
+          -default 15
+    option -labelsize -readonly yes -type {snit::integer -min 0} -default 100
+    
+    variable lheight
+    variable topofcabs
+    variable cabheight
+    variable bottomofcabs
+    variable numberofcabs
+    variable cabarray -array {}
+    variable topofchart
+    variable chartheight
+    variable bottomofchart
+    variable totallength
+    variable chartstationoffset
+    variable topofstorage
+    variable storagetrackheight
+    variable bottomofstorage
+    variable numberofstoragetracks
+    variable storageoffset
+    variable totallength
+    variable stationarray -array {}
+    variable storagearray -array {}
+    variable totalLength
+    
+    constructor {args} {
+        installhull using canvas -background white -borderwidth 0 -highlightthickness 0 -relief flat
+        $self configurelist $args
+        set timescale $options(-timescale)
+        set timeinterval $options(-timeinterval)
+        set numIncrs [expr {int((double($timescale)+($timeinterval-1)) / double($timeinterval))}]
+        set cwidth [expr {($numIncrs * 20) + $options(-labelsize) + 20}]
+        set canvas $hull
+        set lab [$canvas create text 0 0 -text "T"]
+        set lheight [expr {1.5 * [lindex [$canvas bbox $lab] 3]}]
+        $hull delete $lab
     }
-
-    bind BwChartDisplay <Destroy>   [list Widget::destroy %W]
-}
-
-proc ChartDisplay::create { path args } {
-  Widget::init ChartDisplay $path $args
-
-  Widget::getVariable $path data
-  set timescale [Widget::getoption $path -timescale]
-  set timeinterval [Widget::getoption $path -timeinterval]
-  set numIncrs [expr {int((double($timescale)+($timeinterval-1)) / double($timeinterval))}]
-  set cwidth [expr {($numIncrs * 20) + [Widget::getoption $path -labelsize] + 20}]
-  set canvas [eval [list canvas $path] [Widget::subcget $path :cmd] \
-	-background white -borderwidth 0 -highlightthickness 0 -relief flat]
-  $canvas configure -scrollregion [list 0 0 $cwidth 20]
-  set lab [$canvas create text 0 0 -text "T"]
-  set data(lheight) [expr {1.5 * [lindex [$canvas bbox $lab] 3]}]
-  $canvas delete $lab
-
-  bindtags $path [list $path BwChartDisplay [winfo toplevel $path] all]
-  return [Widget::create ChartDisplay $path]
-}
-
-proc ChartDisplay::configure { path args } {
-  return [Widget::configure $path $args]
-}
-
-proc ChartDisplay::cget { path option } {
-  return [Widget::cget $path $option]
-}
-
-# ----------------------------------------------------------------------------
-#  Command ChartDisplay::xview
-# ----------------------------------------------------------------------------
-proc ChartDisplay::xview { path args } {
-    return [eval [list $path:cmd xview] $args]
-}
-
-
-# ----------------------------------------------------------------------------
-#  Command ChartDisplay::yview
-# ----------------------------------------------------------------------------
-proc ChartDisplay::yview { path args } {
-    return [eval [list $path:cmd yview] $args]
-}
-
-proc ChartDisplay::deleteWholeChart { path } {
-  $path:cmd delete all
-  Widget::getVariable $path data
-  set lheight $data(lheight)
-  array unset data
-  set data(lheight) $lheight
-}
-
-proc ChartDisplay::_buildTimeLine { path } {
-  Widget::getVariable $path data
-
-  set timescale [Widget::getoption $path -timescale]
-  set timeinterval [Widget::getoption $path -timeinterval]
-  set numIncrs [expr {int((double($timescale)+($timeinterval-1)) / double($timeinterval))}]
-  set cwidth [expr {($numIncrs * 20) + [Widget::getoption $path -labelsize] + 20}]
-  set scrollWidth $cwidth
-  set canvas $path:cmd
-  set topOff 0
-  set labelsize [Widget::getoption $path -labelsize]
-  for {set m 0} {$m <= $timescale} {incr m 60} { 
-    set mx [expr {$labelsize + (((double($m) / double($timeinterval)) * 20.0)) + 4}]
-    $canvas create text $mx 0 -anchor n \
-	-text [format {%2d} [expr {$m / 60}]] -tag TimeLine
-  }
-  set scrollHeight [lindex [$canvas bbox TimeLine] 3]
-  $canvas configure -scrollregion [list 0 0 $scrollWidth $scrollHeight]  
-}
-
-proc ChartDisplay::_buildCabs { path } {
-  Widget::getVariable $path data
-  set canvas $path:cmd
-  $canvas delete Cabs
-  set topOff [lindex [$canvas bbox TimeLine] 3]
-  set data(topofcabs) [expr {$topOff + 10}]
-  set data(cabheight) 0
-  set data(topofcabs) [expr {$topOff + 10}]
-  set data(bottomofcabs) $data(topofcabs)
-  set data(numberofcabs) 0
-  set timescale [Widget::getoption $path -timescale]
-  set timeinterval [Widget::getoption $path -timeinterval]
-  set labelsize [Widget::getoption $path -labelsize]
-  for {set m 0} {$m <= $timescale} {incr m $timeinterval} {
-    set mx [expr {$labelsize + (((double($m) / double($timeinterval)) * 20.0))}]
-    set lw 1
-    if {[expr {$m % 60}] == 0} {set lw 2}
-    $canvas create line $mx $data(topofcabs) $mx $data(bottomofcabs) -width $lw -tag [list Cabs Cabs:Tick]
-  }
-  set r [expr {$labelsize + (((double($timescale) / double($timeinterval)) * 20.0))}]
-  $canvas create line $labelsize $data(topofcabs) $r $data(topofcabs) -width 2 -tag [list Cabs Cabs:Hline]
-  $canvas create line $labelsize $data(bottomofcabs) $r $data(bottomofcabs) -width 2 -tag [list Cabs Cabs:Bline]
-  array unset data "cab,*,y"
-}
-	
-
-proc ChartDisplay::addACab { path cab } {
-  Widget::getVariable $path data
-  set canvas $path:cmd
-  if {$data(numberofcabs) == 0} {
-    set data(numberofcabs) 1
-    set data(cabheight) [expr {(2 * $data(lheight)) + 20}]
-    set data(bottomofcabs) [expr {$data(topofcabs) + $data(cabheight)}]
-    set cabyoff [expr {$data(lheight) * 1.75}]
-  } else {
-    incr data(numberofcabs)
-    set data(cabheight) [expr {$data(cabheight) + $data(lheight)}]
-    set data(bottomofcabs) [expr {$data(bottomofcabs) + $data(lheight)}]
-    set cabyoff [expr {$data(lheight) * ($data(numberofcabs) + .75)}]
-  }
-  _updateChart $path
-  _updateStorageTracks $path
-  _updateCabs $path
-  set cabName [Cab_Name $cab]
-  set cabColor [Cab_Color $cab]
-  $canvas create text 0 [expr {$cabyoff + $data(topofcabs)}] -text "$cabName" -fill "$cabColor" -tag [list Cabs "Cabs:Name:$cabName"] -anchor w
-  set data("cab,$cabName,y") [expr {$cabyoff + $data(topofcabs)}]
-  set timescale [Widget::getoption $path -timescale]
-  set timeinterval [Widget::getoption $path -timeinterval]
-  set labelsize [Widget::getoption $path -labelsize]
-  set r [expr {$labelsize + (((double($timescale) / double($timeinterval)) * 20.0))}]
-  $canvas create line $labelsize $data("cab,$cabName,y") $r $data("cab,$cabName,y")  -tag [list Cabs "Cabs:Line:$cabName"] -width 4 -fill "$cabColor" -stipple gray50
-}
-
-proc ChartDisplay::_buildChart { path } {
-  Widget::getVariable $path data
-  set canvas $path:cmd
-  set timescale [Widget::getoption $path -timescale]
-  set timeinterval [Widget::getoption $path -timeinterval]
-  set labelsize [Widget::getoption $path -labelsize]
-
-  $canvas delete Chart
-  set topOff [lindex [$canvas bbox Cabs] 3]
-  set data(topofchart) [expr {$topOff + 10}]
-  set data(chartheight) 0
-  set data(bottomofchart) $data(topofchart)
-  set data(totallength) 0
-#  puts stderr "*** chartDisplay:buildChart: data(topofchart) = $data(topofchart)"
-  for {set m 0} {$m <= $timescale} {incr m $timeinterval} {
-    set mx [expr {$labelsize + (((double($m) / double($timeinterval)) * 20.0))}]
-    set lw 1
-    if {[expr {$m % 60}] == 0} {set lw 2}
-    $canvas create line $mx $data(topofchart) $mx $data(bottomofchart) -width $lw -tag [list Chart Chart:Tick]
-  }
-  set r [expr {$labelsize + (((double($timescale) / double($timeinterval)) * 20.0))}]
-  $canvas create line $labelsize $data(topofchart) $r $data(topofchart) -width 2 -tag [list Chart Chart:Hline]
-  $canvas create line $labelsize $data(bottomofchart) $r $data(bottomofchart) -width 2 -tag [list Chart Chart:Bline]
-  set data(chartstationoffset) $data(topofchart)
-}
-
-proc ChartDisplay::_buildStorageTracks { path } {
-  Widget::getVariable $path data
-  set canvas $path:cmd
-  set timescale [Widget::getoption $path -timescale]
-  set timeinterval [Widget::getoption $path -timeinterval]
-  set labelsize [Widget::getoption $path -labelsize]
-
-  $canvas delete Storage
-  set topOff [lindex [$canvas bbox Chart] 3]
-  set data(topofstorage) [expr {$topOff + 10}]
-  set data(storagetrackheight) 0
-  set data(bottomofstorage) $data(topofstorage)
-  set data(numberofstoragetracks) 0
-#  puts stderr "*** chartDisplay:buildStorageTracks: data(topofstorage) = $data(topofstorage)"
-  for {set m 0} {$m <= $timescale} {incr m $timeinterval} {
-    set mx [expr {$labelsize + (((double($m) / double($timeinterval)) * 20.0))}]
-    set lw 1
-    if {[expr {$m % 60}] == 0} {set lw 2}
-    $canvas create line $mx $data(topofstorage) $mx $data(bottomofstorage) -width $lw -tag [list Storage Storage:Tick]
-  }
-  set r [expr {$labelsize + (((double($timescale) / double($timeinterval)) * 20.0))}]
-  $canvas create line $labelsize $data(topofstorage) $r $data(topofstorage) -width 2 -tag [list Storage Storage:Hline]
-  $canvas create line $labelsize $data(bottomofstorage) $r $data(bottomofstorage) -width 2 -tag [list Storage Storage:Bline]
-  array unset data "storage,*:*,y"
-  set data(storageoffset) $data(topofstorage)
-}
-
-proc ChartDisplay::addAStation { path station sindex } {
-  Widget::getVariable $path data
-  set canvas $path:cmd
-  set timescale [Widget::getoption $path -timescale]
-  set timeinterval [Widget::getoption $path -timeinterval]
-  set labelsize [Widget::getoption $path -labelsize]
-
-  set name  [Station_Name  $station]
-#  puts stderr "*** ChartDisplay::addAStation: station = $station, sindex = $sindex"
-  set smile [Station_SMile $station]
-  if {$smile > $data(totallength)} {
-    set data(totallength) $smile
-  }
-  _updateChart $path
-  _updateStorageTracks $path
-#  puts stderr "*** chartDisplay:addAStation: data(topofchart) = $data(topofchart)"
-  set offset [expr {$data(topofchart) + 20.0}]
-  set data(station,$sindex,y) [expr {$offset + ($smile * 20)}]
-  set data(station,$sindex,smile) $smile
-  set sl [$canvas create text 0 $data(station,$sindex,y) -text "$name" -tag [list Chart Station Station:$sindex] -anchor w]
-  while {[expr {[lindex [$canvas bbox $sl] 2] + 5}] > $labelsize} {
-#    puts stderr "*** chartDisplay:addAStation: name = $name, $canvas bbox $sl = [$canvas bbox $sl]"
-    $canvas delete $sl
-    set name [string range "$name" 0 [expr {[string length "$name"] - 2}]]
-    set sl [$canvas create text 0 $data(station,$sindex,y) -text "$name" -tag [list Chart Station Station:$sindex] -anchor w]
-  }
-  $canvas create rect [$canvas bbox Station:$sindex] -fill white -outline black -tag [list Chart Station Station:namebox:$sindex]
-  $canvas lower Station:namebox:$sindex Station:$sindex
-  set r [expr {$labelsize + (((double($timescale) / double($timeinterval)) * 20.0))}]
-  $canvas create line $labelsize $data(station,$sindex,y) $r $data(station,$sindex,y)  -tag [list Chart Station Station:Line:$sindex] -width 2 -fill gray50
-  $canvas bind Station:namebox:$sindex <1> [list displayOneStation draw -station $station]
-  $canvas bind Station:line:$sindex <1> [list displayOneStation draw -station $station]
-  $canvas bind Station:$sindex <1> [list displayOneStation draw -station $station]
-  ForEveryStorageTrack $station storage {
-    addAStorageTrack $path $station $storage
-  }
-}
-
-proc ChartDisplay::addAStorageTrack { path station track } {
-  Widget::getVariable $path data
-  set canvas $path:cmd
-  set timescale [Widget::getoption $path -timescale]
-  set timeinterval [Widget::getoption $path -timeinterval]
-  set labelsize [Widget::getoption $path -labelsize]
-
-  set topOff [lindex [$canvas bbox Chart] 3]
-  set data(topofstorage) [expr {$topOff + 10}]
-  if {$data(numberofstoragetracks) == 0} {
-    set data(numberofstoragetracks) 1
-    set data(storagetrackheight) [expr {(2 * $data(lheight)) + 20}]
-    set data(bottomofstorage) [expr {$data(topofstorage) + $data(storagetrackheight)}]
-    set storageyoff [expr {$data(lheight) * 1.75}]
-  } else {
-    incr data(numberofstoragetracks)
-    set data(storagetrackheight) [expr {$data(storagetrackheight) + $data(lheight)}]
-    set data(bottomofstorage) [expr {$data(bottomofstorage) + $data(lheight)}]
-    set storageyoff [expr {$data(lheight) * ($data(numberofstoragetracks) + .75)}]
-  }
-  _updateStorageTracks $path
-  set stationName [Station_Name $station]
-  set trackName   [StorageTrack_Name $track]
-  set nameOnChart [_formNameOnChart $path "$stationName" "$trackName"]
-  set data("storage,${stationName}:${trackName},y") [expr {$storageyoff + $data(topofstorage)}]
-  $canvas create text 0 $data("storage,${stationName}:${trackName},y") -text "$nameOnChart" -tag [list Storage Storage:track "Storage:${stationName}:${trackName}"] -anchor w
-  set timescale [Widget::getoption $path -timescale]
-  set timeinterval [Widget::getoption $path -timeinterval]
-  set labelsize [Widget::getoption $path -labelsize]
-  set r [expr {$labelsize + (((double($timescale) / double($timeinterval)) * 20.0))}]
-  $canvas create line $labelsize $data("storage,${stationName}:${trackName},y") $r $data("storage,${stationName}:${trackName},y")  -tag [list Storage Storage:track "Storage:${stationName}:${trackName}"] -width 4 -stipple gray50
-}
-
-proc ChartDisplay::_formNameOnChart {path sn tn} {
-#  puts stderr "*** ChartDisplay::_formNameOnChart $path $sn $tn"
-  Widget::getVariable $path data
-  set canvas $path:cmd
-  set labelsize [Widget::getoption $path -labelsize]
-#  puts stderr "*** ChartDisplay::_formNameOnChart: labelsize = $labelsize"
-
-  set i [$canvas create text 0 0 -anchor w -text "${sn}:${tn}"]
-  set l1 [lindex [$canvas bbox $i] 2]
-  $canvas delete $i
-#  puts stderr "*** ChartDisplay::_formNameOnChart: l1 = $l1 (${sn}:${tn})"
-  set i [$canvas create text 0 0 -anchor w -text "${sn}:"]
-  set l2 [lindex [$canvas bbox $i] 2]
-  $canvas delete $i
-#  puts stderr "*** ChartDisplay::_formNameOnChart: l2 = $l2 (${sn}:)"
-  set i [$canvas create text 0 0 -anchor w -text "$tn"]
-  set l3 [lindex [$canvas bbox $i] 2]
-#  puts stderr "*** ChartDisplay::_formNameOnChart: l3 = $l3 ($tn)"
-  $canvas delete $i
-  while {$l1 > $labelsize && $l2 > [expr {$labelsize / 2.0}]} {
-    set sn [string trim [string range "$sn" 0 "end-1"]]
-    set i [$canvas create text 0 0 -anchor w -text "${sn}:${tn}"]
-    set l1 [lindex [$canvas bbox $i] 2]
-    $canvas delete $i
-#    puts stderr "*** ChartDisplay::_formNameOnChart: l1 = $l1 (${sn}:${tn})"
-    set i [$canvas create text 0 0 -anchor w -text "${sn}:"] 
-    set l2 [lindex [$canvas bbox $i] 2]
-    $canvas delete $i
-#    puts stderr "*** ChartDisplay::_formNameOnChart: l2 = $l2 (${sn}:)"
-  }
-  while {$l1 > $labelsize} {
-    set tn [string trim [string range "$tn" 0 "end-1"]]
-    set i [$canvas create text 0 0 -anchor w -text "${sn}:${tn}"]
-    set l1 [lindex [$canvas bbox $i] 2]
-    $canvas delete $i
-#    puts stderr "*** ChartDisplay::_formNameOnChart: l1 = $l1 (${sn}:${tn})"
-  }
-  return "${sn}:${tn}"
-}
-
-proc ChartDisplay::addATrain { path timetable train} {
-  Widget::getVariable $path data
-  set canvas $path:cmd
-  set timescale [Widget::getoption $path -timescale]
-  set timeinterval [Widget::getoption $path -timeinterval]
-  set labelsize [Widget::getoption $path -labelsize]
-  set lastX  [expr {$labelsize + ((double($timescale) / double($timeinterval) * 20.0)) + 4}]
-  set firstX [expr {$labelsize + 4}]
-
-  set timeX -1
-  set stationY -1
-  set rStationY -1
-  set color {}
-  set cabName {}
-  set departure [Train_Departure $train]
-  set oldDepart -1
-  set oldSmile -1
-  set speed  [Train_Speed $train]
-  set trtags [list Chart Chart:Train "Chart:Train:[Train_Number $train]" "Train:[Train_Number $train]"]
-  set cabtags [list Cabs Cabs:Train "Cabs:Train:[Train_Number $train]" "Train:[Train_Number $train]"]
-  set stortags [list Storage Storage:track Storage:Train "Storage:Train:[Train_Number $train]" "Train:[Train_Number $train]"]
-  ForEveryStop $train stop {
-    set sindex [Stop_StationIndex $stop]
-    set station [TimeTableSystem_IthStation $timetable $sindex]
-    set smile [Station_SMile $station]
-    set rSindex [Station_DuplicateStationIndex $station]
-    if {$rSindex < 0} {
-      set rStation NULL
-      set rsmile -1
-      set newRStationY -1
-    } else {
-      set rStation [TimeTableSystem_IthStation $timetable $rSindex]
-      set rsmile [Station_SMile $rStation]
-      set newRStationY $data(station,$rSindex,y)
-    }
-    set departcab [Stop_TheCab $stop]
-#    puts stderr "*** chartDisplay:addATrain: departcab = $departcab"
-    if {![string equal $departcab NULL]} {
-      set newColor "[Cab_Color $departcab]"
-      set newCabName "[Cab_Name $departcab]"
-    } else {
-      set newColor black
-      set newCabName {}
-    }
-    set newStationY $data(station,$sindex,y)
-    if {$oldDepart >= 0} {
-#      puts stderr "*** chartDisplay:addATrain: smile = $smile, oldSmile = $oldSmile, abs($smile - $oldSmile) = [expr {abs($smile - $oldSmile)}], speed = $speed, speed/60 = [expr {double($speed) / 60.0}]"
-      set arrival [expr {$oldDepart + (abs($smile - $oldSmile) * (double($speed) / 60.0))}]
-    } else {
-      set arrival $departure
-    }
-#    puts stderr "*** ChartDisplay::addATrain: ------------------------------------------"
-#    puts stderr "*** ChartDisplay::addATrain: Station is [Station_Name $station], Train is [Train_Number $train]"
-    switch -exact -- [Stop_Flag $stop] {
-      Origin {
-	set storage [Station_FindTrackTrainIsStoredOn $station \
-					"[Train_Number $train]" \
-					$departure $departure]
-        if {![string equal $rStation NULL]} {
-	  set rstorage [Station_FindTrackTrainIsStoredOn $rStation \
-					"[Train_Number $train]" \
-					$departure $departure]
-	} else {set rstorage NULL}
-      }
-      Terminate {
-	set storage [Station_FindTrackTrainIsStoredOn $station \
-					"[Train_Number $train]" \
-					$arrival $arrival]
-        if {![string equal $rStation NULL]} {
-	  set rstorage [Station_FindTrackTrainIsStoredOn $rStation \
-					"[Train_Number $train]" \
-					$arrival $arrival]
-	} else {set rstorage NULL}
-      }
-      Transit {
-	set storage NULL
-	set rstorage NULL
-      }
-    }
-#    puts stderr "*** chartDisplay::addATrain: storage = $storage, rstorage = $rstorage"
-    if {![string equal "$storage" NULL]} {
-      set stationName "[Station_Name $station]"
-      set trackName "[StorageTrack_Name $storage]"
-      set sy $data("storage,${stationName}:${trackName},y")
-      set occupiedA [StorageTrack_IncludesTime $storage $arrival]
-      set occupiedD [StorageTrack_IncludesTime $storage $departure]
-#      puts stderr "*** chartDisplay::addATrain: occupiedA = $occupiedA, occupiedD = $occupiedD"
-#      if {![string equal $occupiedA NULL]} {
-#	puts stderr "*** chartDisplay::addATrain: \[Occupied_TrainNum \$occupiedA\] = [Occupied_TrainNum $occupiedA]"
-#	puts stderr "*** chartDisplay::addATrain: \[Occupied_From \$occupiedA\] = [Occupied_From $occupiedA]"
-#	puts stderr "*** chartDisplay::addATrain: \[Occupied_Until \$occupiedA\] = [Occupied_Until $occupiedA]"
-#	puts stderr "*** chartDisplay::addATrain: \[Occupied_TrainNum2 \$occupiedA\] = [Occupied_TrainNum2 $occupiedA]"
-#      }
-      if {![string equal $occupiedA NULL] &&
-	  [string equal "[Occupied_TrainNum $occupiedA]" "[Train_Number $train]"]} {
-#	puts stderr "*** chartDisplay::addATrain: using $occupiedA"
-	set from [Occupied_From  $occupiedA]
-	set to   [Occupied_Until $occupiedA]
-	set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
-	set toX   [expr {$labelsize + ((double($to)   / double($timeinterval) * 20.0)) + 4}]
-	if {$toX > $fromX} {
-	  $canvas create line $fromX $sy $toX $sy \
-		-fill $newColor   -width 8 -tags $stortags
-	} else {
-	  $canvas create line $fromX $sy $lastX $sy \
-		-fill $newColor   -width 8 -tags $stortags
-	  $canvas create line $firstX $sy $toX $sy \
-		-fill $newColor   -width 8 -tags $stortags
-	}
-      }
-#      if {![string equal $occupiedD NULL]} {
-#	puts stderr "*** chartDisplay::addATrain: \[Occupied_TrainNum \$occupiedD\] = [Occupied_TrainNum $occupiedD]"
-#	puts stderr "*** chartDisplay::addATrain: \[Occupied_From \$occupiedD\] = [Occupied_From $occupiedD]"
-#	puts stderr "*** chartDisplay::addATrain: \[Occupied_Until \$occupiedD\] = [Occupied_Until $occupiedD]"
-#	puts stderr "*** chartDisplay::addATrain: \[Occupied_TrainNum2 \$occupiedD\] = [Occupied_TrainNum2 $occupiedD]"
-#      }
-      if {![string equal $occupiedD NULL] &&
-	  [string equal "[Occupied_TrainNum2 $occupiedD]" "[Train_Number $train]"]} {
-#	puts stderr "*** chartDisplay::addATrain: using $occupiedD"
-	set from [Occupied_From  $occupiedD]
-	set to   [Occupied_Until $occupiedD]
-	set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
-	set toX   [expr {$labelsize + ((double($to)   / double($timeinterval) * 20.0)) + 4}]
-	if {$toX > $fromX} {
-	  $canvas create line $fromX $sy $toX $sy \
-		-fill $newColor   -width 8 -tags $stortags
-	} else {
-	  $canvas create line $fromX $sy $lastX $sy \
-		-fill $newColor   -width 8 -tags $stortags
-	  $canvas create line $firstX $sy $toX $sy \
-		-fill $newColor   -width 8 -tags $stortags
-	}
-      }
-    }
-    if {![string equal "$rstorage" NULL]} {
-      set stationName "[Station_Name $rStation]"
-      set trackName "[StorageTrack_Name $rstorage]"
-      set sy $data("storage,${stationName}:${trackName},y")
-      set occupiedA [StorageTrack_IncludesTime $rstorage $arrival]
-      set occupiedD [StorageTrack_IncludesTime $rstorage $departure]
-      if {![string equal $occupiedA NULL] &&
-	  [string equal "[Occupied_TrainNum $occupiedA]" "[Train_Number $train]"]} {
-	set from [Occupied_From  $occupiedA]
-	set to   [Occupied_Until $occupiedA]
-	set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
-	set toX   [expr {$labelsize + ((double($to)   / double($timeinterval) * 20.0)) + 4}]
-	if {$toX > $fromX} {
-	  $canvas create line $fromX $sy $toX $sy \
-		-fill $newColor   -width 8 -tags $stortags
-	} else {
-	  $canvas create line $fromX $sy $lastX $sy \
-		-fill $newColor   -width 8 -tags $stortags
-	  $canvas create line $firstX $sy $toX $sy \
-		-fill $newColor   -width 8 -tags $stortags
-	}
-      }
-      if {![string equal $occupiedD NULL] &&
-	  [string equal "[Occupied_TrainNum2 $occupiedD]" "[Train_Number $train]"]} {
-	set from [Occupied_From  $occupiedD]
-	set to   [Occupied_Until $occupiedD]
-	set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
-	set toX   [expr {$labelsize + ((double($to)   / double($timeinterval) * 20.0)) + 4}]
-	if {$toX > $fromX} {
-	  $canvas create line $fromX $sy $toX $sy \
-		-fill $newColor   -width 8 -tags $stortags
-	} else {
-	  $canvas create line $fromX $sy $lastX $sy \
-		-fill $newColor   -width 8 -tags $stortags
-	  $canvas create line $firstX $sy $toX $sy \
-		-fill $newColor   -width 8 -tags $stortags
-	}
-      }
-    }
-#    puts stderr "*** ChartDisplay::addATrain: ------------------------------------------"
-    set newTimeX [expr {$labelsize + ((double($arrival) / double($timeinterval) * 20.0)) + 4}]
-    if {$timeX >= 0} {
-      if {$newTimeX > $timeX} {
-        $canvas create line $timeX $stationY $newTimeX $newStationY \
-	  -fill $color -width 4 -tags $trtags
-        if {$rStationY >= 0 && $newRStationY >= 0} {
-	  $canvas create line $timeX $rStationY $newTimeX $newRStationY \
-	    -fill $color -width 4 -tags $trtags
+    method deleteWholeChart {} {
+        $hull delete all
+        catch {
+            unset topofcabs
+            unset cabheight
+            unset bottomofcabs
+            unset numberofcabs
+            unset cabarray
+            unset topofchart
+            unset chartheight
+            unset bottomofchart
+            unset totallength
+            unset chartstationoffset
+            unset topofstorage
+            unset storagetrackheight
+            unset bottomofstorage
+            unset numberofstoragetracks
+            unset storageoffset
+            unset totallength
+            unset stationarray
+            unset storagearray
+            unset totalLength
         }
-        if {![catch {set data("cab,$cabName,y")} cy]} {
-          $canvas create line $timeX $cy $newTimeX $cy \
-	     -fill $color   -width 8 -tags $cabtags
-	}
-      } else {
-	set unwrapNX [expr {$newTimeX + $lastX}]
-	set slope [expr {double($newStationY - $stationY) / double($unwrapNX - $timeX)}]
-	set midY  [expr {$stationY + ($slope * ($lastX - $timeX))}]
-	$canvas create line $timeX $stationY $lastX $midY \
-	  -fill $color -width 4 -tags $trtags
-	$canvas create line $firstX $midY $newTimeX $newStationY \
-	  -fill $color -width 4 -tags $trtags
-	if {$rStationY >= 0 && $newRStationY >= 0} {
-	  set slope [expr {double($newRStationY - $rStationY) / double($unwrapNX - $timeX)}]
-	  set midY  [expr {$rStationY + ($slope * ($lastX - $timeX))}]
-	  $canvas create line $timeX $rStationY $lastX $midY \
-	    -fill $color -width 4 -tags $trtags
-	  $canvas create line $firstX $midY $newTimeX $newRStationY \
-	    -fill $color -width 4 -tags $trtags
-	}
-	if {![catch {set data("cab,$cabName,y")} cy]} {
-	  $canvas create line $timeX $cy $lastX $cy \
-	    -fill $color   -width 8 -tags $cabtags
-	  $canvas create line $firstX $cy $newTimeX $cy \
-	    -fill $color   -width 8 -tags $cabtags
-	}
-      }
     }
-    set timeX $newTimeX
-    set cabName "$newCabName"
-    set color "$newColor"
-    set stationY $newStationY
-    set rStationY $newRStationY
-    set depart [Stop_Departure $stop $arrival]
-    if {$depart > $arrival} {
-      set dontdrawcab [catch {set data("cab,$cabName,y")} cy]
-      set newTimeX [expr {$labelsize + ((double($depart) / double($timeinterval) * 20.0)) + 4}]
-      if {$newTimeX > $timeX} {
-	$canvas create line $timeX $stationY $newTimeX $stationY \
-	  -fill $color -width 4 -tags $trtags
-	if {$rStationY >= 0} {
-	  $canvas create line $timeX $rStationY $newTimeX $rStationY \
-	    -fill $color -width 4 -tags $trtags
-	
-	}
-	if {!$dontdrawcab} {
-	  $canvas create line $timeX $cy $newTimeX $cy \
-	    -fill $color   -width 8 -tags $cabtags
-	}
-      } else {
-	$canvas create line $timeX $stationY $lastX $stationY \
-	  -fill $color -width 4 -tags $trtags
-	$canvas create line $firstX $stationY $newTimeX $stationY \
-	  -fill $color -width 4 -tags $trtags
-	if {$rStationY >= 0} {
-	  $canvas create line $timeX $rStationY $lastX $rStationY \
-	    -fill $color -width 4 -tags $trtags
-	  $canvas create line $firstX $rStationY $newTimeX $rStationY \
-	    -fill $color -width 4 -tags $trtags
-	}
-	if {!$dontdrawcab} {
-	  $canvas create line $timeX $cy $lastX $cy \
-	    -fill $color   -width 8 -tags $cabtags
-	  $canvas create line $firstX $cy $newTimeX $cy \
-	    -fill $color   -width 8 -tags $cabtags
-	}
-      }
-#      puts stderr "*** ChartDisplay::addATrain: Station is [Station_Name $station], Train is [Train_Number $train]"
-      set storage [Station_FindTrackTrainIsStoredOn $station \
-			"[Train_Number $train]" $arrival $depart]
-#      puts stderr "*** ChartDisplay::addATrain: storage = $storage"
-      if {![string equal "$storage" NULL]} {
-        set stationName "[Station_Name $station]"
-	set trackName "[StorageTrack_Name $storage]"	
-	set sy $data("storage,${stationName}:${trackName},y")
-	set occupiedA [StorageTrack_IncludesTime $storage $arrival]
-	set occupiedD [StorageTrack_IncludesTime $storage $depart]
-	if {![string equal $occupiedA NULL] &&
-	    [string equal "[Occupied_TrainNum $occupiedA]" "[Train_Number $train]"]} {
-	  set from [Occupied_From  $occupiedA]
-	  set to   [Occupied_Until $occupiedA]
-	  set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
-	  set toX   [expr {$labelsize + ((double($to)   / double($timeinterval) * 20.0)) + 4}]
-	  if {$toX > $fromX} {
-	    $canvas create line $fromX $sy $toX $sy \
-		-fill $color   -width 8 -tags $stortags
-	  } else {
-	    $canvas create line $fromX $sy $lastX $sy \
-		-fill $color   -width 8 -tags $stortags
-	    $canvas create line $firstX $sy $toX $sy \
-		-fill $color   -width 8 -tags $stortags
-	  }
-	}
-	if {![string equal "$occupiedA" "$occupiedD"] &&
-	    ![string equal $occupiedD NULL] &&
-	    [string equal "[Occupied_TrainNum $occupiedD]" "[Train_Number $train]"]} {
-	  set from [Occupied_From  $occupiedD]
-	  set to   [Occupied_Until $occupiedD]
-	  set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
-	  set toX   [expr {$labelsize + ((double($to)   / double($timeinterval) * 20.0)) + 4}]
-	  if {$toX > $fromX} {
-	    $canvas create line $fromX $sy $toX $sy \
-		-fill $color   -width 8 -tags $stortags
-	  } else {
-	    $canvas create line $fromX $sy $lastX $sy \
-		-fill $color   -width 8 -tags $stortags
-	    $canvas create line $firstX $sy $toX $sy \
-		-fill $color   -width 8 -tags $stortags
-	  }
-	}
-      }
-      if {![string equal "$rStation" NULL]} {
-        set storage [Station_FindTrackTrainIsStoredOn $rStation \
-			"[Train_Number $train]" $arrival $depart]
-        if {![string equal "$storage" NULL]} {
-          set stationName "[Station_Name $rstation]"
-	  set trackName "[StorageTrack_Name $storage]"
-	  set sy $data("storage,${stationName}:${trackName},y")
-	  set occupiedA [StorageTrack_IncludesTime $storage $arrival]
-	  set occupiedD [StorageTrack_IncludesTime $storage $depart]
-	  if {![string equal $occupiedA NULL] &&
-	      [string equal "[Occupied_TrainNum $occupiedA]" \
-			  "[Train_Number $train]"]} {
-	    set from [Occupied_From  $occupiedA]
-	    set to   [Occupied_Until $occupiedA]
-	    set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
-	    set toX   [expr {$labelsize + ((double($to)   / double($timeinterval) * 20.0)) + 4}]
-	    if {$toX > $fromX} {
-	      $canvas create line $fromX $sy $toX $sy \
-		-fill $color   -width 8 -tags $stortags
-	    } else {
-	      $canvas create line $fromX $sy $lastX $sy \
-		-fill $color   -width 8 -tags $stortags
-	      $canvas create line $firstX $sy $toX $sy \
-		-fill $color   -width 8 -tags $stortags
-	    }
-	  }
-	  if {![string equal "$occupiedA" "$occupiedD"] &&
-	      ![string equal $occupiedD NULL] &&
-	      [string equal "[Occupied_TrainNum $occupiedD]" \
-			  "[Train_Number $train]"]} {
-	    set from [Occupied_From  $occupiedD]
-	    set to   [Occupied_Until $occupiedD]
-	    set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
-	    set toX   [expr {$labelsize + ((double($to)   / double($timeinterval) * 20.0)) + 4}]
-	    if {$toX > $fromX} {
-	      $canvas create line $fromX $sy $toX $sy \
-		-fill $color   -width 8 -tags $stortags
-	    } else {
-	      $canvas create line $fromX $sy $lastX $sy \
-		-fill $color   -width 8 -tags $stortags
-	      $canvas create line $firstX $sy $toX $sy \
-		-fill $color   -width 8 -tags $stortags
-	    }
-	  }
-	}
-      }
-      set timeX $newTimeX
+    method _buildTimeLine {} {
+        set timescale $options(-timescale)
+        set timeinterval $options(-timeinterval)
+        set numIncrs [expr {int((double($timescale)+($timeinterval-1)) / double($timeinterval))}]
+        set cwidth [expr {($numIncrs * 20) + $options(-labelsize) + 20}]
+        set scrollWidth $cwidth
+        set canvas $hull
+        set topOff 0
+        set labelsize $options(-labelsize)
+        for {set m 0} {$m <= $timescale} {incr m 60} { 
+            set mx [expr {$labelsize + (((double($m) / double($timeinterval)) * 20.0)) + 4}]
+            $canvas create text $mx 0 -anchor n \
+                  -text [format {%2d} [expr {$m / 60}]] -tag TimeLine
+        }
+        set scrollHeight [lindex [$canvas bbox TimeLine] 3]
+        $canvas configure -scrollregion [list 0 0 $scrollWidth $scrollHeight]
     }
-    set oldDepart $depart
-    set oldSmile  $smile
-  }
-  set script "displayOneTrain draw -train $train -minutes \[ChartDisplay::mx2minutes $path %x\]"
-#  puts stderr "*** ChartDisplay::addATrain: script = $script"
-  $canvas bind "Train:[Train_Number $train]" <1> "$script"
-}
+    method _buildCabs {} {
+        set canvas $hull
+        $canvas delete Cabs
+        set topOff [lindex [$canvas bbox TimeLine] 3]
+        set topofcabs [expr {$topOff + 10}]
+        set cabheight 0
+        set topofcabs [expr {$topOff + 10}]
+        set bottomofcabs $topofcabs
+        set numberofcabs 0
+        set timescale $options(-timescale)
+        set timeinterval $options(-timeinterval)
+        set labelsize $options(-labelsize)
+        for {set m 0} {$m <= $timescale} {incr m $timeinterval} {
+            set mx [expr {$labelsize + (((double($m) / double($timeinterval)) * 20.0))}]
+            set lw 1
+            if {[expr {$m % 60}] == 0} {set lw 2}
+            $canvas create line $mx $topofcabs $mx $bottomofcabs -width $lw -tag [list Cabs Cabs:Tick]
+        }
+        set r [expr {$labelsize + (((double($timescale) / double($timeinterval)) * 20.0))}]
+        $canvas create line $labelsize $topofcabs $r $topofcabs -width 2 -tag [list Cabs Cabs:Hline]
+        $canvas create line $labelsize $bottomofcabs $r $bottomofcabs -width 2 -tag [list Cabs Cabs:Bline]
+        array unset cab "*,y"
+    }
+    method addACab {cab} {
+        set canvas $hull
+        if {$numberofcabs == 0} {
+            set numberofcabs 1
+            set cabheight [expr {(2 * $lheight) + 20}]
+            set bottomofcabs [expr {$topofcabs + $cabheight}]
+            set cabyoff [expr {$lheight * 1.75}]
+        } else {
+            incr numberofcabs
+            set cabheight [expr {$cabheight + $lheight}]
+            set bottomofcabs [expr {$bottomofcabs + $lheight}]
+            set cabyoff [expr {$lheight * ($numberofcabs + .75)}]
+        }
+        $self _updateChart
+        $self _updateStorageTracks
+        $self _updateCabs
+        set cabName [Cab_Name $cab]
+        set cabColor [Cab_Color $cab]
+        $canvas create text 0 [expr {$cabyoff + $topofcabs}] -text "$cabName" -fill "$cabColor" -tag [list Cabs "Cabs:Name:$cabName"] -anchor w
+        set cabarray("$cabName,y") [expr {$cabyoff + $topofcabs}]
+        set timescale $options(-timescale)
+        set timeinterval $options(-timeinterval)
+        set labelsize $options(-labelsize)
+        set r [expr {$labelsize + (((double($timescale) / double($timeinterval)) * 20.0))}]
+        $canvas create line $labelsize $cabarray("$cabName,y") $r $cabarray("$cabName,y")  -tag [list Cabs "Cabs:Line:$cabName"] -width 4 -fill "$cabColor" -stipple gray50
+    }      
+    method _buildChart {} {
+        set canvas $hull
+        set timescale $options(-timescale)
+        set timeinterval $options(-timeinterval)
+        set labelsize $options(-labelsize)
 
-proc ChartDisplay::mx2minutes { path mx } {
-  Widget::getVariable $path data
-  set canvas $path:cmd
-  set timeinterval [Widget::getoption $path -timeinterval]
-  set labelsize [Widget::getoption $path -labelsize]
+        $canvas delete Chart
+        set topOff [lindex [$canvas bbox Cabs] 3]
+        set topofchart [expr {$topOff + 10}]
+        set chartheight 0
+        set bottomofchart $topofchart
+        set totallength 0
+        #  puts stderr "*** chartDisplay:buildChart: topofchart = $topofchart"
+        for {set m 0} {$m <= $timescale} {incr m $timeinterval} {
+            set mx [expr {$labelsize + (((double($m) / double($timeinterval)) * 20.0))}]
+            set lw 1
+            if {[expr {$m % 60}] == 0} {set lw 2}
+            $canvas create line $mx $topofchart $mx $bottomofchart -width $lw -tag [list Chart Chart:Tick]
+        }
+        set r [expr {$labelsize + (((double($timescale) / double($timeinterval)) * 20.0))}]
+        $canvas create line $labelsize $topofchart $r $topofchart -width 2 -tag [list Chart Chart:Hline]
+        $canvas create line $labelsize $bottomofchart $r $bottomofchart -width 2 -tag [list Chart Chart:Bline]
+        set chartstationoffset $topofchart
+    }
+
+    method _buildStorageTracks {} {
+        set canvas $hull
+        set timescale $options(-timescale)
+        set timeinterval $options(-timeinterval)
+        set labelsize $options(-labelsize)
+        
+        $canvas delete Storage
+        set topOff [lindex [$canvas bbox Chart] 3]
+        set topofstorage [expr {$topOff + 10}]
+        set storagetrackheight 0
+        set bottomofstorage $topofstorage
+        set numberofstoragetracks 0
+        #puts stderr "*** chartDisplay:buildStorageTracks: topofstorage = $topofstorage"
+        for {set m 0} {$m <= $timescale} {incr m $timeinterval} {
+            set mx [expr {$labelsize + (((double($m) / double($timeinterval)) * 20.0))}]
+            set lw 1
+            if {[expr {$m % 60}] == 0} {set lw 2}
+            $canvas create line $mx $topofstorage $mx $bottomofstorage -width $lw -tag [list Storage Storage:Tick]
+        }
+        set r [expr {$labelsize + (((double($timescale) / double($timeinterval)) * 20.0))}]
+        $canvas create line $labelsize $topofstorage $r $topofstorage -width 2 -tag [list Storage Storage:Hline]
+        $canvas create line $labelsize $bottomofstorage $r $bottomofstorage -width 2 -tag [list Storage Storage:Bline]
+        array unset storage "*:*,y"
+        set storageoffset $topofstorage
+    }
+
+    method addAStation { station sindex } {
+        set canvas $hull
+        set timescale $options(-timescale)
+        set timeinterval $options(-timeinterval)
+        set labelsize $options(-labelsize)
+        
+        set name  [Station_Name  $station]
+        #  puts stderr "*** ChartDisplay::addAStation: station = $station, sindex = $sindex"
+        set smile [Station_SMile $station]
+        if {$smile > $totallength} {
+            set totallength $smile
+        }
+        $self _updateChart
+        $self _updateStorageTracks
+        #  puts stderr "*** chartDisplay:addAStation: topofchart = $topofchart"
+        set offset [expr {$topofchart + 20.0}]
+        set stationarray($sindex,y) [expr {$offset + ($smile * 20)}]
+        set stationarray($sindex,smile) $smile
+        set sl [$canvas create text 0 $stationarray($sindex,y) -text "$name" -tag [list Chart Station Station:$sindex] -anchor w]
+        while {[expr {[lindex [$canvas bbox $sl] 2] + 5}] > $labelsize} {
+            #    puts stderr "*** chartDisplay:addAStation: name = $name, $canvas bbox $sl = [$canvas bbox $sl]"
+            $canvas delete $sl
+            set name [string range "$name" 0 [expr {[string length "$name"] - 2}]]
+            set sl [$canvas create text 0 $stationarray($sindex,y) -text "$name" -tag [list Chart Station Station:$sindex] -anchor w]
+        }
+        $canvas create rect [$canvas bbox Station:$sindex] -fill white -outline black -tag [list Chart Station Station:namebox:$sindex]
+        $canvas lower Station:namebox:$sindex Station:$sindex
+        set r [expr {$labelsize + (((double($timescale) / double($timeinterval)) * 20.0))}]
+        $canvas create line $labelsize $stationarray($sindex,y) $r $stationarray($sindex,y)  -tag [list Chart Station Station:Line:$sindex] -width 2 -fill gray50
+        $canvas bind Station:namebox:$sindex <1> [list displayOneStation draw -station $station]
+        $canvas bind Station:line:$sindex <1> [list displayOneStation draw -station $station]
+        $canvas bind Station:$sindex <1> [list displayOneStation draw -station $station]
+        ForEveryStorageTrack $station storage {
+            $self addAStorageTrack $station $storage
+        }
+    }
+
+    method addAStorageTrack { station track } {
+        set canvas $hull
+        set timescale $options(-timescale)
+        set timeinterval $options(-timeinterval)
+        set labelsize $options(-labelsize)
+
+        set topOff [lindex [$canvas bbox Chart] 3]
+        set topofstorage [expr {$topOff + 10}]
+        if {$numberofstoragetracks == 0} {
+            set numberofstoragetracks 1
+            set storagetrackheight [expr {(2 * $lheight) + 20}]
+            set bottomofstorage [expr {$topofstorage + $storagetrackheight}]
+            set storageyoff [expr {$lheight * 1.75}]
+        } else {
+            incr numberofstoragetracks
+            set storagetrackheight [expr {$storagetrackheight + $lheight}]
+            set bottomofstorage [expr {$bottomofstorage + $lheight}]
+            set storageyoff [expr {$lheight * ($numberofstoragetracks + .75)}]
+        }
+        $self _updateStorageTracks
+        set stationName [Station_Name $station]
+        set trackName   [StorageTrack_Name $track]
+        set nameOnChart [_formNameOnChart $path "$stationName" "$trackName"]
+        set storagearray("${stationName}:${trackName},y") [expr {$storageyoff + $topofstorage}]
+        $canvas create text 0 $storagearray("${stationName}:${trackName},y") -text "$nameOnChart" -tag [list Storage Storage:track "Storage:${stationName}:${trackName}"] -anchor w
+        set timescale $options(-timescale)
+        set timeinterval $options(-timeinterval)
+        set labelsize $options(-labelsize)
+        set r [expr {$labelsize + (((double($timescale) / double($timeinterval)) * 20.0))}]
+        $canvas create line $labelsize $storagearray("${stationName}:${trackName},y") $r $storagearray("${stationName}:${trackName},y")  -tag [list Storage Storage:track "Storage:${stationName}:${trackName}"] -width 4 -stipple gray50
+    }
+
+    method _formNameOnChart {sn tn} {
+        #  puts stderr "*** ChartDisplay::_formNameOnChart $path $sn $tn"
+        set canvas $hull
+        set labelsize $options(-labelsize)
+        #  puts stderr "*** ChartDisplay::_formNameOnChart: labelsize = $labelsize"
+        
+        set i [$canvas create text 0 0 -anchor w -text "${sn}:${tn}"]
+        set l1 [lindex [$canvas bbox $i] 2]
+        $canvas delete $i
+        #  puts stderr "*** ChartDisplay::_formNameOnChart: l1 = $l1 (${sn}:${tn})"
+        set i [$canvas create text 0 0 -anchor w -text "${sn}:"]
+        set l2 [lindex [$canvas bbox $i] 2]
+        $canvas delete $i
+        #  puts stderr "*** ChartDisplay::_formNameOnChart: l2 = $l2 (${sn}:)"
+        set i [$canvas create text 0 0 -anchor w -text "$tn"]
+        set l3 [lindex [$canvas bbox $i] 2]
+        #  puts stderr "*** ChartDisplay::_formNameOnChart: l3 = $l3 ($tn)"
+        $canvas delete $i
+        while {$l1 > $labelsize && $l2 > [expr {$labelsize / 2.0}]} {
+            set sn [string trim [string range "$sn" 0 "end-1"]]
+            set i [$canvas create text 0 0 -anchor w -text "${sn}:${tn}"]
+            set l1 [lindex [$canvas bbox $i] 2]
+            $canvas delete $i
+            #    puts stderr "*** ChartDisplay::_formNameOnChart: l1 = $l1 (${sn}:${tn})"
+            set i [$canvas create text 0 0 -anchor w -text "${sn}:"] 
+            set l2 [lindex [$canvas bbox $i] 2]
+            $canvas delete $i
+            #    puts stderr "*** ChartDisplay::_formNameOnChart: l2 = $l2 (${sn}:)"
+        }
+        while {$l1 > $labelsize} {
+            set tn [string trim [string range "$tn" 0 "end-1"]]
+            set i [$canvas create text 0 0 -anchor w -text "${sn}:${tn}"]
+            set l1 [lindex [$canvas bbox $i] 2]
+            $canvas delete $i
+            #    puts stderr "*** ChartDisplay::_formNameOnChart: l1 = $l1 (${sn}:${tn})"
+        }
+        return "${sn}:${tn}"
+    }
+
+    method addATrain { timetable train} {
+        set canvas $hull
+        set timescale $options(-timescale)
+        set timeinterval $options(-timeinterval)
+        set labelsize $options(-labelsize)
+        set lastX  [expr {$labelsize + ((double($timescale) / double($timeinterval) * 20.0)) + 4}]
+        set firstX [expr {$labelsize + 4}]
+
+        set timeX -1
+        set stationY -1
+        set rStationY -1
+        set color {}
+        set cabName {}
+        set departure [Train_Departure $train]
+        set oldDepart -1
+        set oldSmile -1
+        set speed  [Train_Speed $train]
+        set trtags [list Chart Chart:Train "Chart:Train:[Train_Number $train]" "Train:[Train_Number $train]"]
+        set cabtags [list Cabs Cabs:Train "Cabs:Train:[Train_Number $train]" "Train:[Train_Number $train]"]
+        set stortags [list Storage Storage:track Storage:Train "Storage:Train:[Train_Number $train]" "Train:[Train_Number $train]"]
+        ForEveryStop $train stop {
+            set sindex [Stop_StationIndex $stop]
+            set station [TimeTableSystem_IthStation $timetable $sindex]
+            set smile [Station_SMile $station]
+            set rSindex [Station_DuplicateStationIndex $station]
+            if {$rSindex < 0} {
+                set rStation NULL
+                set rsmile -1
+                set newRStationY -1
+            } else {
+                set rStation [TimeTableSystem_IthStation $timetable $rSindex]
+                set rsmile [Station_SMile $rStation]
+                set newRStationY $stationarray($rSindex,y)
+            }
+            set departcab [Stop_TheCab $stop]
+            #    puts stderr "*** chartDisplay:addATrain: departcab = $departcab"
+            if {![string equal $departcab NULL]} {
+                set newColor "[Cab_Color $departcab]"
+                set newCabName "[Cab_Name $departcab]"
+            } else {
+                set newColor black
+                set newCabName {}
+            }
+            set newStationY $stationarray($sindex,y)
+            if {$oldDepart >= 0} {
+                #      puts stderr "*** chartDisplay:addATrain: smile = $smile, oldSmile = $oldSmile, abs($smile - $oldSmile) = [expr {abs($smile - $oldSmile)}], speed = $speed, speed/60 = [expr {double($speed) / 60.0}]"
+                set arrival [expr {$oldDepart + (abs($smile - $oldSmile) * (double($speed) / 60.0))}]
+            } else {
+                set arrival $departure
+            }
+            #    puts stderr "*** ChartDisplay::addATrain: ------------------------------------------"
+            #    puts stderr "*** ChartDisplay::addATrain: Station is [Station_Name $station], Train is [Train_Number $train]"
+            switch -exact -- [Stop_Flag $stop] {
+                Origin {
+                    set storage [Station_FindTrackTrainIsStoredOn $station \
+                                 "[Train_Number $train]" \
+                                 $departure $departure]
+                    if {![string equal $rStation NULL]} {
+                        set rstorage [Station_FindTrackTrainIsStoredOn $rStation \
+                                      "[Train_Number $train]" \
+                                      $departure $departure]
+                    } else {set rstorage NULL}
+                    }
+                Terminate {
+                    set storage [Station_FindTrackTrainIsStoredOn $station \
+                                 "[Train_Number $train]" \
+                                 $arrival $arrival]
+                    if {![string equal $rStation NULL]} {
+                        set rstorage [Station_FindTrackTrainIsStoredOn $rStation \
+                                      "[Train_Number $train]" \
+                                      $arrival $arrival]
+                    } else {set rstorage NULL}
+                    }
+                Transit {
+                    set storage NULL
+                    set rstorage NULL
+                }
+            }
+            #    puts stderr "*** chartDisplay::addATrain: storage = $storage, rstorage = $rstorage"
+            if {![string equal "$storage" NULL]} {
+                set stationName "[Station_Name $station]"
+                set trackName "[StorageTrack_Name $storage]"
+                set sy $storagearray("${stationName}:${trackName},y")
+                set occupiedA [StorageTrack_IncludesTime $storage $arrival]
+                set occupiedD [StorageTrack_IncludesTime $storage $departure]
+                #      puts stderr "*** chartDisplay::addATrain: occupiedA = $occupiedA, occupiedD = $occupiedD"
+                #      if {![string equal $occupiedA NULL]} {
+                #	puts stderr "*** chartDisplay::addATrain: \[Occupied_TrainNum \$occupiedA\] = [Occupied_TrainNum $occupiedA]"
+                #	puts stderr "*** chartDisplay::addATrain: \[Occupied_From \$occupiedA\] = [Occupied_From $occupiedA]"
+                #	puts stderr "*** chartDisplay::addATrain: \[Occupied_Until \$occupiedA\] = [Occupied_Until $occupiedA]"
+                #	puts stderr "*** chartDisplay::addATrain: \[Occupied_TrainNum2 \$occupiedA\] = [Occupied_TrainNum2 $occupiedA]"
+                #      }
+                if {![string equal $occupiedA NULL] &&
+                    [string equal "[Occupied_TrainNum $occupiedA]" "[Train_Number $train]"]} {
+                    #	puts stderr "*** chartDisplay::addATrain: using $occupiedA"
+                    set from [Occupied_From  $occupiedA]
+                    set to   [Occupied_Until $occupiedA]
+                    set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
+                    set toX   [expr {$labelsize + ((double($to)   / double($timeinterval) * 20.0)) + 4}]
+                    if {$toX > $fromX} {
+                        $canvas create line $fromX $sy $toX $sy \
+                              -fill $newColor   -width 8 -tags $stortags
+                    } else {
+                        $canvas create line $fromX $sy $lastX $sy \
+                              -fill $newColor   -width 8 -tags $stortags
+                        $canvas create line $firstX $sy $toX $sy \
+                              -fill $newColor   -width 8 -tags $stortags
+                    }
+                }
+                #      if {![string equal $occupiedD NULL]} {
+                #	puts stderr "*** chartDisplay::addATrain: \[Occupied_TrainNum \$occupiedD\] = [Occupied_TrainNum $occupiedD]"
+                #	puts stderr "*** chartDisplay::addATrain: \[Occupied_From \$occupiedD\] = [Occupied_From $occupiedD]"
+                #	puts stderr "*** chartDisplay::addATrain: \[Occupied_Until \$occupiedD\] = [Occupied_Until $occupiedD]"
+                #	puts stderr "*** chartDisplay::addATrain: \[Occupied_TrainNum2 \$occupiedD\] = [Occupied_TrainNum2 $occupiedD]"
+                #      }
+                if {![string equal $occupiedD NULL] &&
+                    [string equal "[Occupied_TrainNum2 $occupiedD]" "[Train_Number $train]"]} {
+                    #	puts stderr "*** chartDisplay::addATrain: using $occupiedD"
+                    set from [Occupied_From  $occupiedD]
+                    set to   [Occupied_Until $occupiedD]
+                    set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
+                    set toX   [expr {$labelsize + ((double($to)   / double($timeinterval) * 20.0)) + 4}]
+                    if {$toX > $fromX} {
+                        $canvas create line $fromX $sy $toX $sy \
+                              -fill $newColor   -width 8 -tags $stortags
+                    } else {
+                        $canvas create line $fromX $sy $lastX $sy \
+                              -fill $newColor   -width 8 -tags $stortags
+                        $canvas create line $firstX $sy $toX $sy \
+                              -fill $newColor   -width 8 -tags $stortags
+                    }
+                }
+            }
+            if {![string equal "$rstorage" NULL]} {
+                set stationName "[Station_Name $rStation]"
+                set trackName "[StorageTrack_Name $rstorage]"
+                set sy $storagearray("${stationName}:${trackName},y")
+                set occupiedA [StorageTrack_IncludesTime $rstorage $arrival]
+                set occupiedD [StorageTrack_IncludesTime $rstorage $departure]
+                if {![string equal $occupiedA NULL] &&
+                    [string equal "[Occupied_TrainNum $occupiedA]" "[Train_Number $train]"]} {
+                    set from [Occupied_From  $occupiedA]
+                    set to   [Occupied_Until $occupiedA]
+                    set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
+                    set toX   [expr {$labelsize + ((double($to)   / double($timeinterval) * 20.0)) + 4}]
+                    if {$toX > $fromX} {
+                        $canvas create line $fromX $sy $toX $sy \
+                              -fill $newColor   -width 8 -tags $stortags
+                    } else {
+                        $canvas create line $fromX $sy $lastX $sy \
+                              -fill $newColor   -width 8 -tags $stortags
+                        $canvas create line $firstX $sy $toX $sy \
+                              -fill $newColor   -width 8 -tags $stortags
+                    }
+                }
+                if {![string equal $occupiedD NULL] &&
+                    [string equal "[Occupied_TrainNum2 $occupiedD]" "[Train_Number $train]"]} {
+                    set from [Occupied_From  $occupiedD]
+                    set to   [Occupied_Until $occupiedD]
+                    set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
+                    set toX   [expr {$labelsize + ((double($to)   / double($timeinterval) * 20.0)) + 4}]
+                    if {$toX > $fromX} {
+                        $canvas create line $fromX $sy $toX $sy \
+                              -fill $newColor   -width 8 -tags $stortags
+                    } else {
+                        $canvas create line $fromX $sy $lastX $sy \
+                              -fill $newColor   -width 8 -tags $stortags
+                        $canvas create line $firstX $sy $toX $sy \
+                              -fill $newColor   -width 8 -tags $stortags
+                    }
+                }
+            }
+            #    puts stderr "*** ChartDisplay::addATrain: ------------------------------------------"
+            set newTimeX [expr {$labelsize + ((double($arrival) / double($timeinterval) * 20.0)) + 4}]
+            if {$timeX >= 0} {
+                if {$newTimeX > $timeX} {
+                    $canvas create line $timeX $stationY $newTimeX $newStationY \
+                          -fill $color -width 4 -tags $trtags
+                    if {$rStationY >= 0 && $newRStationY >= 0} {
+                        $canvas create line $timeX $rStationY $newTimeX $newRStationY \
+                              -fill $color -width 4 -tags $trtags
+                    }
+                    if {![catch {set cabarray("$cabName,y")} cy]} {
+                        $canvas create line $timeX $cy $newTimeX $cy \
+                              -fill $color   -width 8 -tags $cabtags
+                    }
+                } else {
+                    set unwrapNX [expr {$newTimeX + $lastX}]
+                    set slope [expr {double($newStationY - $stationY) / double($unwrapNX - $timeX)}]
+                    set midY  [expr {$stationY + ($slope * ($lastX - $timeX))}]
+                    $canvas create line $timeX $stationY $lastX $midY \
+                          -fill $color -width 4 -tags $trtags
+                    $canvas create line $firstX $midY $newTimeX $newStationY \
+                          -fill $color -width 4 -tags $trtags
+                    if {$rStationY >= 0 && $newRStationY >= 0} {
+                        set slope [expr {double($newRStationY - $rStationY) / double($unwrapNX - $timeX)}]
+                        set midY  [expr {$rStationY + ($slope * ($lastX - $timeX))}]
+                        $canvas create line $timeX $rStationY $lastX $midY \
+                              -fill $color -width 4 -tags $trtags
+                        $canvas create line $firstX $midY $newTimeX $newRStationY \
+                              -fill $color -width 4 -tags $trtags
+                    }
+                    if {![catch {set cabarray("$cabName,y")} cy]} {
+                        $canvas create line $timeX $cy $lastX $cy \
+                              -fill $color   -width 8 -tags $cabtags
+                        $canvas create line $firstX $cy $newTimeX $cy \
+                              -fill $color   -width 8 -tags $cabtags
+                    }
+                }
+            }
+            set timeX $newTimeX
+            set cabName "$newCabName"
+            set color "$newColor"
+            set stationY $newStationY
+            set rStationY $newRStationY
+            set depart [Stop_Departure $stop $arrival]
+            if {$depart > $arrival} {
+                set dontdrawcab [catch {set cabarray("$cabName,y")} cy]
+                set newTimeX [expr {$labelsize + ((double($depart) / double($timeinterval) * 20.0)) + 4}]
+                if {$newTimeX > $timeX} {
+                    $canvas create line $timeX $stationY $newTimeX $stationY \
+                          -fill $color -width 4 -tags $trtags
+                    if {$rStationY >= 0} {
+                        $canvas create line $timeX $rStationY $newTimeX $rStationY \
+                              -fill $color -width 4 -tags $trtags
+                        
+                    }
+                    if {!$dontdrawcab} {
+                        $canvas create line $timeX $cy $newTimeX $cy \
+                              -fill $color   -width 8 -tags $cabtags
+                    }
+                } else {
+                    $canvas create line $timeX $stationY $lastX $stationY \
+                          -fill $color -width 4 -tags $trtags
+                    $canvas create line $firstX $stationY $newTimeX $stationY \
+                          -fill $color -width 4 -tags $trtags
+                    if {$rStationY >= 0} {
+                        $canvas create line $timeX $rStationY $lastX $rStationY \
+                              -fill $color -width 4 -tags $trtags
+                        $canvas create line $firstX $rStationY $newTimeX $rStationY \
+                              -fill $color -width 4 -tags $trtags
+                    }
+                    if {!$dontdrawcab} {
+                        $canvas create line $timeX $cy $lastX $cy \
+                              -fill $color   -width 8 -tags $cabtags
+                        $canvas create line $firstX $cy $newTimeX $cy \
+                              -fill $color   -width 8 -tags $cabtags
+                    }
+                }
+                #      puts stderr "*** ChartDisplay::addATrain: Station is [Station_Name $station], Train is [Train_Number $train]"
+                set storage [Station_FindTrackTrainIsStoredOn $station \
+                             "[Train_Number $train]" $arrival $depart]
+                #      puts stderr "*** ChartDisplay::addATrain: storage = $storage"
+                if {![string equal "$storage" NULL]} {
+                    set stationName "[Station_Name $station]"
+                    set trackName "[StorageTrack_Name $storage]"	
+                    set sy $storagearray("${stationName}:${trackName},y")
+                    set occupiedA [StorageTrack_IncludesTime $storage $arrival]
+                    set occupiedD [StorageTrack_IncludesTime $storage $depart]
+                    if {![string equal $occupiedA NULL] &&
+                        [string equal "[Occupied_TrainNum $occupiedA]" "[Train_Number $train]"]} {
+                        set from [Occupied_From  $occupiedA]
+                        set to   [Occupied_Until $occupiedA]
+                        set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
+                        set toX   [expr {$labelsize + ((double($to)   / double($timeinterval) * 20.0)) + 4}]
+                        if {$toX > $fromX} {
+                            $canvas create line $fromX $sy $toX $sy \
+                                  -fill $color   -width 8 -tags $stortags
+                        } else {
+                            $canvas create line $fromX $sy $lastX $sy \
+                                  -fill $color   -width 8 -tags $stortags
+                            $canvas create line $firstX $sy $toX $sy \
+                                  -fill $color   -width 8 -tags $stortags
+                        }
+                    }
+                    if {![string equal "$occupiedA" "$occupiedD"] &&
+                        ![string equal $occupiedD NULL] &&
+                        [string equal "[Occupied_TrainNum $occupiedD]" "[Train_Number $train]"]} {
+                        set from [Occupied_From  $occupiedD]
+                        set to   [Occupied_Until $occupiedD]
+                        set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
+                        set toX   [expr {$labelsize + ((double($to)   / double($timeinterval) * 20.0)) + 4}]
+                        if {$toX > $fromX} {
+                            $canvas create line $fromX $sy $toX $sy \
+                                  -fill $color   -width 8 -tags $stortags
+                        } else {
+                            $canvas create line $fromX $sy $lastX $sy \
+                                  -fill $color   -width 8 -tags $stortags
+                            $canvas create line $firstX $sy $toX $sy \
+                                  -fill $color   -width 8 -tags $stortags
+                        }
+                    }
+                }
+                if {![string equal "$rStation" NULL]} {
+                    set storage [Station_FindTrackTrainIsStoredOn $rStation \
+                                 "[Train_Number $train]" $arrival $depart]
+                    if {![string equal "$storage" NULL]} {
+                        set stationName "[Station_Name $rstation]"
+                        set trackName "[StorageTrack_Name $storage]"
+                        set sy $storagearray("${stationName}:${trackName},y")
+                        set occupiedA [StorageTrack_IncludesTime $storage $arrival]
+                        set occupiedD [StorageTrack_IncludesTime $storage $depart]
+                        if {![string equal $occupiedA NULL] &&
+                            [string equal "[Occupied_TrainNum $occupiedA]" \
+                             "[Train_Number $train]"]} {
+                            set from [Occupied_From  $occupiedA]
+                            set to   [Occupied_Until $occupiedA]
+                            set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
+                            set toX   [expr {$labelsize + ((double($to)   / double($timeinterval) * 20.0)) + 4}]
+                            if {$toX > $fromX} {
+                                $canvas create line $fromX $sy $toX $sy \
+                                      -fill $color   -width 8 -tags $stortags
+                            } else {
+                                $canvas create line $fromX $sy $lastX $sy \
+                                      -fill $color   -width 8 -tags $stortags
+                                $canvas create line $firstX $sy $toX $sy \
+                                      -fill $color   -width 8 -tags $stortags
+                            }
+                        }
+                        if {![string equal "$occupiedA" "$occupiedD"] &&
+                            ![string equal $occupiedD NULL] &&
+                            [string equal "[Occupied_TrainNum $occupiedD]" \
+                             "[Train_Number $train]"]} {
+                            set from [Occupied_From  $occupiedD]
+                            set to   [Occupied_Until $occupiedD]
+                            set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
+                            set toX   [expr {$labelsize + ((double($to)   / double($timeinterval) * 20.0)) + 4}]
+                            if {$toX > $fromX} {
+                                $canvas create line $fromX $sy $toX $sy \
+                                      -fill $color   -width 8 -tags $stortags
+                            } else {
+                                $canvas create line $fromX $sy $lastX $sy \
+                                      -fill $color   -width 8 -tags $stortags
+                                $canvas create line $firstX $sy $toX $sy \
+                                      -fill $color   -width 8 -tags $stortags
+                            }
+                        }
+                    }
+                }
+                set timeX $newTimeX
+            }
+            set oldDepart $depart
+            set oldSmile  $smile
+        }
+        set script "displayOneTrain draw -train $train -minutes [mymethod mx2minutes %x]"
+        #  puts stderr "*** ChartDisplay::addATrain: script = $script"
+        $canvas bind "Train:[Train_Number $train]" <1> "$script"
+    }
+
+    method mx2minutes { mx } {
+        set canvas $hull
+        set timeinterval $options(-timeinterval)
+        set labelsize $options(-labelsize)
   
-  set cx [$canvas canvasx $mx]
-  set time [expr {(double($cx - $labelsize - 4) / 20.0) * $timeinterval}]
-  return $time
-}
-
-proc ChartDisplay::deleteTrain { path trainnumber} {
-  Widget::getVariable $path data
-  set canvas $path:cmd
-
-  $canvas delete "Train:$trainnumber"  
-}
-
-proc ChartDisplay::_updateChart { path} {
-  Widget::getVariable $path data
-  set canvas $path:cmd
-
-  set timescale [Widget::getoption $path -timescale]
-  set timeinterval [Widget::getoption $path -timeinterval]
-  set labelsize [Widget::getoption $path -labelsize]
-
-  set topOff [lindex [$canvas bbox Cabs] 3]
-  set data(topofchart) [expr {$topOff + 10}]
-  if {$data(totallength) == 0} {
-    set data(bottomofchart) $data(topofchart)
-    set ty $data(topofchart)
-    set by $data(bottomofchart)
-    set data(chartheight) 0
-  } else {
-    set data(chartheight) [expr {($data(totallength) * 20) + 20}]
-    set data(bottomofchart) [expr {$data(topofchart) + $data(chartheight) + 20}]
-    set ty [expr {$data(topofchart) + 10}]
-    set by [expr {$data(bottomofchart) - 10}]
-  }
-  foreach tick [$canvas find withtag Chart:Tick] {
-    set coords [$canvas coords $tick]
-    $canvas coords $tick [lindex $coords 0] $ty [lindex $coords 2] $by
-  }
-  set coords [$canvas coords Chart:Hline]
-  $canvas coords Chart:Hline [lindex $coords 0] $ty [lindex $coords 2] $ty
-  set coords [$canvas coords Chart:Bline]
-  $canvas coords Chart:Bline [lindex $coords 0] $by [lindex $coords 2] $by
-  set offset [expr {$data(topofchart) + 20.0}]
-  foreach stationIndex [array names data station,*,y] {
-    regexp {station,(.*),y} "$stationIndex" -> sindex
-    set smile $data(station,$sindex,smile)
-    set data($stationIndex) [expr {$offset + ($smile * 20)}]
-    set coords [$canvas coords Station:$sindex]
-    $canvas coords Station:$sindex [lindex $coords 0] $data($stationIndex)
-    set coords [$canvas coords Station:Line:$sindex]
-    $canvas coords Station:Line:$sindex [lindex $coords 0] $data($stationIndex) [lindex $coords 2] $data($stationIndex)
-    $canvas coords Station:namebox:$sindex [$canvas bbox Station:$sindex]
-  }
-  set ymove [expr {$offset - $data(chartstationoffset)}]
-  $canvas move Chart:Train 0 $ymove
-  set data(chartstationoffset) $offset
-  set totalheight [lindex [$canvas bbox all] 3]
-  if {[string equal "$totalheight" {}]} {set totalheight 0}
-  set sr [$canvas cget -scrollregion]
-  if {$totalheight > [lindex $sr 3]} {
-    $canvas configure -scrollregion [lreplace $sr 3 3 $totalheight]
-  }
-}
-
-proc ChartDisplay::_updateStorageTracks { path} {
-  Widget::getVariable $path data
-  set canvas $path:cmd
-
-  set timescale [Widget::getoption $path -timescale]
-  set timeinterval [Widget::getoption $path -timeinterval]
-  set labelsize [Widget::getoption $path -labelsize]
-
-  set topOff [lindex [$canvas bbox Chart] 3]
-  set data(topofstorage) [expr {$topOff + 10}]
-  set data(bottomofstorage) [expr {$data(topofstorage) + $data(storagetrackheight)}]
-  if {$data(numberofstoragetracks) == 0} {
-    set ty $data(topofstorage)
-    set by $data(bottomofstorage)
-  } else {
-    set ty [expr {$data(topofstorage) + 10}]
-    set by [expr {$data(bottomofstorage) - 10}]
-  }
-  foreach tick [$canvas find withtag Storage:Tick] {
-    set coords [$canvas coords $tick]
-    $canvas coords $tick [lindex $coords 0] $ty [lindex $coords 2] $by
-  }
-  set coords [$canvas coords Storage:Hline]
-  $canvas coords Storage:Hline [lindex $coords 0] $ty [lindex $coords 2] $ty
-  set coords [$canvas coords Storage:Bline]
-  $canvas coords Storage:Bline [lindex $coords 0] $by [lindex $coords 2] $by
-  if {$data(numberofstoragetracks) == 0} {return}
-  set offset [expr {$data(topofstorage) + 20.0}]
-  set ymove [expr {$offset - $data(storageoffset)}]
-  $canvas move Storage:track 0 $ymove
-  foreach item [$canvas find withtag Storage:track] {
-    if {[string equal [$canvas type $item] text]} {
-      set sy [lindex [$canvas coords $item] 1]
-      foreach t [$canvas itemcget $item -tags] {
-	if {[regexp {^Storage:([^:]*):([^:]*)$} "$t" -> stationName trackName] > 0} {
-	  set data("storage,${stationName}:${trackName},y") $sy
-	}
-      }
+        set cx [$canvas canvasx $mx]
+        set time [expr {(double($cx - $labelsize - 4) / 20.0) * $timeinterval}]
+        return $time
     }
-  }
-  set data(storageoffset) $offset
-  set totalheight [lindex [$canvas bbox all] 3]
-  if {[string equal "$totalheight" {}]} {set totalheight 0}
-  set sr [$canvas cget -scrollregion]
-  if {$totalheight > [lindex $sr 3]} {
-    $canvas configure -scrollregion [lreplace $sr 3 3 $totalheight]
-  }
-}
 
-proc ChartDisplay::_updateCabs { path} {
-  Widget::getVariable $path data
-  set canvas $path:cmd
+    method deleteTrain { trainnumber} {
+        Widget::getVariable $path data
+        set canvas $hull
 
-  set timescale [Widget::getoption $path -timescale]
-  set timeinterval [Widget::getoption $path -timeinterval]
-  set labelsize [Widget::getoption $path -labelsize]
+        $canvas delete "Train:$trainnumber"  
+    }
 
-  if {$data(numberofcabs) == 0} {
-    set ty $data(topofcabs)
-    set by $data(bottomofcabs)
-  } else {
-    set ty [expr {$data(topofcabs) + 10}]
-    set by [expr {$data(bottomofcabs) - 10}]
-  }
-  foreach tick [$canvas find withtag Cabs:Tick] {
-    set coords [$canvas coords $tick]
-    $canvas coords $tick [lindex $coords 0] $ty [lindex $coords 2] $by
-  }
-  set coords [$canvas coords Cabs:Hline]
-  $canvas coords Cabs:Hline [lindex $coords 0] $ty [lindex $coords 2] $ty
-  set coords [$canvas coords Cabs:Bline]
-  $canvas coords Cabs:Bline [lindex $coords 0] $by [lindex $coords 2] $by
-  set totalheight [lindex [$canvas bbox all] 3]
-  if {[string equal "$totalheight" {}]} {set totalheight 0}
-  set sr [$canvas cget -scrollregion]
-  if {$totalheight > [lindex $sr 3]} {
-    $canvas configure -scrollregion [lreplace $sr 3 3 $totalheight]
-  }
-}
+    method _updateChart {} {
+        set canvas $hull
 
-proc ChartDisplay::buildWholeChart { path timetable} {
-  Widget::getVariable $path data
-  set canvas $path:cmd
+        set timescale $options(-timescale)
+        set timeinterval $options(-timeinterval)
+        set labelsize $options(-labelsize)
 
-  set timescale [Widget::getoption $path -timescale]
-  set timeinterval [Widget::getoption $path -timeinterval]
-  set labelsize [Widget::getoption $path -labelsize]
+        set topOff [lindex [$canvas bbox Cabs] 3]
+        set topofchart [expr {$topOff + 10}]
+        if {$totallength == 0} {
+            set bottomofchart $topofchart
+            set ty $topofchart
+            set by $bottomofchart
+            set chartheight 0
+        } else {
+            set chartheight [expr {($totallength * 20) + 20}]
+            set bottomofchart [expr {$topofchart + $chartheight + 20}]
+            set ty [expr {$topofchart + 10}]
+            set by [expr {$bottomofchart - 10}]
+        }
+        foreach tick [$canvas find withtag Chart:Tick] {
+            set coords [$canvas coords $tick]
+            $canvas coords $tick [lindex $coords 0] $ty [lindex $coords 2] $by
+        }
+        set coords [$canvas coords Chart:Hline]
+        $canvas coords Chart:Hline [lindex $coords 0] $ty [lindex $coords 2] $ty
+        set coords [$canvas coords Chart:Bline]
+        $canvas coords Chart:Bline [lindex $coords 0] $by [lindex $coords 2] $by
+        set offset [expr {$topofchart + 20.0}]
+        foreach stationIndex [array names station *,y] {
+            regexp {(.*),y} "$stationIndex" -> sindex
+            set smile $stationarray($sindex,smile)
+            set stationarray($stationIndex) [expr {$offset + ($smile * 20)}]
+            set coords [$canvas coords Station:$sindex]
+            $canvas coords Station:$sindex [lindex $coords 0] $stationarray($stationIndex)
+            set coords [$canvas coords Station:Line:$sindex]
+            $canvas coords Station:Line:$sindex [lindex $coords 0] $stationarray($stationIndex) [lindex $coords 2] $stationarray($stationIndex)
+            $canvas coords Station:namebox:$sindex [$canvas bbox Station:$sindex]
+        }
+        set ymove [expr {$offset - $chartstationoffset}]
+        $canvas move Chart:Train 0 $ymove
+        set chartstationoffset $offset
+        set totalheight [lindex [$canvas bbox all] 3]
+        if {[string equal "$totalheight" {}]} {set totalheight 0}
+        set sr [$canvas cget -scrollregion]
+        if {$totalheight > [lindex $sr 3]} {
+            $canvas configure -scrollregion [lreplace $sr 3 3 $totalheight]
+        }
+    }
 
-  $canvas delete all
-  set lheight $data(lheight)
-  array unset data
-  set data(lheight) $lheight
+    method _updateStorageTracks {} {
+        set canvas $hull
 
-  Widget::setoption $path -timescale [TimeTableSystem_TimeScale $timetable]
-  set timescale [Widget::getoption $path -timescale]
-  Widget::setoption $path -timeinterval [TimeTableSystem_TimeInterval $timetable]
-  set timeinterval [Widget::getoption $path -timeinterval]
+        set timescale $options(-timescale)
+        set timeinterval $options(-timeinterval)
+        set labelsize $options(-labelsize)
 
-  set data(totalLength) [TimeTableSystem_TotalLength $timetable]
-  set data(chartheight) [expr {($data(totalLength) * 20) + 20}]
+        set topOff [lindex [$canvas bbox Chart] 3]
+        set topofstorage [expr {$topOff + 10}]
+        set bottomofstorage [expr {$topofstorage + $storagetrackheight}]
+        if {$numberofstoragetracks == 0} {
+            set ty $topofstorage
+            set by $bottomofstorage
+        } else {
+            set ty [expr {$topofstorage + 10}]
+            set by [expr {$bottomofstorage - 10}]
+        }
+        foreach tick [$canvas find withtag Storage:Tick] {
+            set coords [$canvas coords $tick]
+            $canvas coords $tick [lindex $coords 0] $ty [lindex $coords 2] $by
+        }
+        set coords [$canvas coords Storage:Hline]
+        $canvas coords Storage:Hline [lindex $coords 0] $ty [lindex $coords 2] $ty
+        set coords [$canvas coords Storage:Bline]
+        $canvas coords Storage:Bline [lindex $coords 0] $by [lindex $coords 2] $by
+        if {$numberofstoragetracks == 0} {return}
+        set offset [expr {$topofstorage + 20.0}]
+        set ymove [expr {$offset - $storageoffset}]
+        $canvas move Storage:track 0 $ymove
+        foreach item [$canvas find withtag Storage:track] {
+            if {[string equal [$canvas type $item] text]} {
+                set sy [lindex [$canvas coords $item] 1]
+                foreach t [$canvas itemcget $item -tags] {
+                    if {[regexp {^Storage:([^:]*):([^:]*)$} "$t" -> stationName trackName] > 0} {
+                        set storagearray("${stationName}:${trackName},y") $sy
+                    }
+                }
+            }
+        }
+        set storageoffset $offset
+        set totalheight [lindex [$canvas bbox all] 3]
+        if {[string equal "$totalheight" {}]} {set totalheight 0}
+        set sr [$canvas cget -scrollregion]
+        if {$totalheight > [lindex $sr 3]} {
+            $canvas configure -scrollregion [lreplace $sr 3 3 $totalheight]
+        }
+    }
 
-  _buildTimeLine $path
-  _buildCabs $path
-  _buildChart $path
-  _buildStorageTracks $path
-  ForEveryCab $timetable cab {
-    $path addACab $cab
-  }
-  set sindex 0
-  ForEveryStation $timetable station {
-    $path addAStation $station $sindex
-    incr sindex
-  }
-  ForEveryTrain $timetable train {
-    $path addATrain $timetable $train
-  }
+    method _updateCabs {} {
+        set canvas $hull
 
+        set timescale $options(-timescale)
+        set timeinterval $options(-timeinterval)
+        set labelsize $options(-labelsize)
+
+        if {$numberofcabs == 0} {
+            set ty $topofcabs
+            set by $bottomofcabs
+        } else {
+            set ty [expr {$topofcabs + 10}]
+            set by [expr {$bottomofcabs - 10}]
+        }
+        foreach tick [$canvas find withtag Cabs:Tick] {
+            set coords [$canvas coords $tick]
+            $canvas coords $tick [lindex $coords 0] $ty [lindex $coords 2] $by
+        }
+        set coords [$canvas coords Cabs:Hline]
+        $canvas coords Cabs:Hline [lindex $coords 0] $ty [lindex $coords 2] $ty
+        set coords [$canvas coords Cabs:Bline]
+        $canvas coords Cabs:Bline [lindex $coords 0] $by [lindex $coords 2] $by
+        set totalheight [lindex [$canvas bbox all] 3]
+        if {[string equal "$totalheight" {}]} {set totalheight 0}
+        set sr [$canvas cget -scrollregion]
+        if {$totalheight > [lindex $sr 3]} {
+            $canvas configure -scrollregion [lreplace $sr 3 3 $totalheight]
+        }
+    }
+
+    method buildWholeChart {timetable} {
+        #puts stderr "*** $self buildWholeChart $timetable"
+        set canvas $hull
+
+        set timescale $options(-timescale)
+        set timeinterval $options(-timeinterval)
+        set labelsize $options(-labelsize)
+
+        $self deleteWholeChart
+        #puts stderr "*** $self buildWholeChart: chart deleted"
+        set options(-timescale) [TimeTableSystem_TimeScale $timetable]
+        set timescale $options(-timescale)
+        #puts stderr "*** $self buildWholeChart: timescale is $timescale:"
+        set options(-timeinterval) [TimeTableSystem_TimeInterval $timetable]
+        set timeinterval $options(-timeinterval)
+        #puts stderr "*** $self buildWholeChart: timeinterval is $timeinterval"
+
+        set totalLength [TimeTableSystem_TotalLength $timetable]
+        set chartheight [expr {($totalLength * 20) + 20}]
+        #puts stderr "*** $self buildWholeChart: totalLength = $totalLength, chartheight = $chartheight"
+
+        #puts stderr "*** $self buildWholeChart: building time line..."
+        $self _buildTimeLine
+        #puts stderr "*** $self buildWholeChart: building cabs..."
+        $self _buildCabs
+        #puts stderr "*** $self buildWholeChart: building chart..."
+        $self _buildChart
+        #puts stderr "*** $self buildWholeChart: building storage tracks..."
+        $self _buildStorageTracks
+        #puts stderr "*** $self buildWholeChart: Adding cabs ([$timetable NumberOfCabs])..."
+        ForEveryCab $timetable cab {
+            #puts stderr "*** $self buildWholeChart: adding cab $cab..."
+            $self addACab $cab
+        }
+        set sindex 0
+        #puts stderr "*** $self buildWholeChart: Adding stations([$timetable NumberOfStations])..."
+        ForEveryStation $timetable station {
+            #puts stderr "*** $self buildWholeChart: adding station $station ($sindex)..."
+            $self addAStation $station $sindex
+            incr sindex
+        }
+        #puts stderr "*** $self buildWholeChart: Adding trains ([$timetable NumberOfTrains])..."
+        ForEveryTrain $timetable train {
+            #puts stderr "*** $self buildWholeChart: adding adding train $train..."
+            $self addATrain $timetable $train
+        }
+        
+    }
 }
 
 namespace eval TimeTable {
@@ -978,21 +969,21 @@ proc TimeTable::MainWindow {dontWithdraw} {
   $Main menu delete help "Index..."
   $Main menu add help command \
 	-label "Reference Manual" \
-	-command "::HTMLHelp::HTMLHelp help {Time Table (V2) Reference}"
+	-command "HTMLHelp help {Time Table (V2) Reference}"
   $Main menu entryconfigure help "On Help..." \
-	-command "::HTMLHelp::HTMLHelp help Help"
+	-command "HTMLHelp help Help"
   $Main menu entryconfigure help "Tutorial..." \
-	-command "::HTMLHelp::HTMLHelp help {Time Table (V2) Tutorial}"
+	-command "HTMLHelp help {Time Table (V2) Tutorial}"
   $Main menu entryconfigure help "On Version" \
-	-command "::HTMLHelp::HTMLHelp help Version"
+	-command "HTMLHelp help Version"
   $Main menu entryconfigure help "Copying" \
-	-command "::HTMLHelp::HTMLHelp help Copying"
+	-command "HTMLHelp help Copying"
   $Main menu entryconfigure help "Warranty" \
-	-command "::HTMLHelp::HTMLHelp help Warranty"
+	-command "HTMLHelp help Warranty"
 
   variable HelpDir
 
-  ::HTMLHelp::HTMLHelp setDefaults "$HelpDir" "TimeTableli1.html"
+  HTMLHelp setDefaults "$HelpDir" "TimeTableli1.html"
 }
 
 
@@ -1072,21 +1063,21 @@ snit::type TimeTable::TtYesNo {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .ttYesNo -bitmap questhead \
+    set dialog [Dialog .ttYesNo -bitmap questhead \
 			-default 0 -cancel 1 -modal local -transient yes \
 			-parent . -side bottom -title [_ "Yes or No Question"]]
-    $dialog add -name yes -text [_m "Button|Yes"] -command [mytypemethod _Yes]
-    $dialog add -name no  -text [_m "Button|No"]  -command [mytypemethod _No]
+    $dialog add yes -text [_m "Button|Yes"] -command [mytypemethod _Yes]
+    $dialog add no  -text [_m "Button|No"]  -command [mytypemethod _No]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _No]
-    set frame [Dialog::getframe $dialog]
+    set frame [$dialog getframe]
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
-    frame $headerframe -relief ridge -bd 5
+    ttk::frame $headerframe -relief ridge -borderwidth 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "Yes or No Question"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
     option add *TtYesNo.msg.wrapLength 3i widgetDefault
@@ -1096,16 +1087,16 @@ snit::type TimeTable::TtYesNo {
     } else {
       option add *TtYesNo.msg.font {Times 18} widgetDefault
     }
-    set message [label $frame.message -text {}]
+    set message [ttk::label $frame.message -text {}]
     pack $message -expand yes -fill both
   }
   typemethod _Yes {} {
-    Dialog::withdraw $dialog
-    return [eval [list Dialog::enddialog $dialog] [list 1]]
+    $dialog withdraw
+    return [eval [list $dialog enddialog] [list 1]]
   }
   typemethod _No {} {
-    Dialog::withdraw $dialog   
-    return [eval [list Dialog::enddialog $dialog] [list 0]]
+    $dialog withdraw   
+    return [eval [list $dialog enddialog] [list 0]]
   }
   typemethod draw {args} {
     $type createDialog
@@ -1114,7 +1105,7 @@ snit::type TimeTable::TtYesNo {
     $dialog      configure -title "$title"
     $message     configure -text "[from args -message]"
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [eval [list Dialog::draw $dialog]]
+    return [eval [list $dialog draw]]
   }
 }
 
@@ -1132,21 +1123,21 @@ snit::type TimeTable::TtErrorMessage {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .ttErrorMessage \
+    set dialog [Dialog .ttErrorMessage \
 			-bitmap error -default 0 -cancel 0 -modal local \
 			-transient yes -parent . -side bottom \
 			-title [_ "Error Message"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _OK]
-    set frame [Dialog::getframe $dialog]
+    set frame [$dialog getframe]
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
-    frame $headerframe -relief ridge -bd 5
+    frame $headerframe -relief ridge -borderwidth 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "Error Message"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
     global tcl_platform
@@ -1156,18 +1147,18 @@ snit::type TimeTable::TtErrorMessage {
     } else {
       option add *TtErrorMessage.msg.font {Times 18} widgetDefault
     }
-    set message [label $frame.message -text {}]
+    set message [ttk::label $frame.message -text {}]
     pack $message -expand yes -fill both
   }
   typemethod _OK {} {
-    Dialog::withdraw $dialog
-    return [eval [list Dialog::enddialog $dialog] [list 1]]
+    $dialog withdraw
+    return [eval [list $dialog enddialog] [list 1]]
   }
   typemethod draw {args} {
     $type createDialog
     $message     configure -text "[from args -message]"
     wm transient [winfo toplevel $dialog]  [$dialog cget -parent]
-    return [eval [list Dialog::draw $dialog]]
+    return [eval [list $dialog draw]]
   }
 }
 
@@ -1185,21 +1176,21 @@ snit::type TimeTable::TtWarningMessage {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .ttWarningMessage  \
+    set dialog [Dialog .ttWarningMessage  \
 			-bitmap warning -default 0 -cancel 0 -modal local \
 			-transient yes -parent . -side bottom \
 			-title [_ "Warning Message"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _OK]
-    set frame [Dialog::getframe $dialog]
+    set frame [$dialog getframe]
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
-    frame $headerframe -relief ridge -bd 5
+    ttk::frame $headerframe -relief ridge -borderwidth 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "Warning Message"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
     option add *TtWarningMessage.msg.wrapLength 3i widgetDefault
@@ -1209,18 +1200,18 @@ snit::type TimeTable::TtWarningMessage {
     } else {
       option add *TtWarningMessage.msg.font {Times 18} widgetDefault
     }
-    set message [label $frame.message -text {}]
+    set message [ttk::label $frame.message -text {}]
     pack $message -expand yes -fill both
   }
   typemethod _OK {} {
-    Dialog::withdraw $dialog
-    return [eval [list Dialog::enddialog $dialog] [list 1]]
+    $dialog withdraw
+    return [eval [list $dialog enddialog] [list 1]]
   }
   typemethod draw {args} {
     $type createDialog
     $message     configure -text "[from args -message]"
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [eval [list Dialog::draw $dialog]]
+    return [eval [list $dialog draw]]
   }
 }
 
@@ -1238,21 +1229,21 @@ snit::type TimeTable::TtInfoMessage {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .ttInfoMessage  \
+    set dialog [Dialog .ttInfoMessage  \
 			-bitmap info -default 0 -cancel 0 -modal local \
 			-transient yes -parent . -side bottom \
 			-title [_ "Informational Message"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _OK]
-    set frame [Dialog::getframe $dialog]
+    set frame [$dialog getframe]
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
-    frame $headerframe -relief ridge -bd 5
+    ttk::frame $headerframe -relief ridge -borderwidth 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "Informational Message"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
     option add *TtInfoMessage.msg.wrapLength 3i widgetDefault
@@ -1262,18 +1253,18 @@ snit::type TimeTable::TtInfoMessage {
     } else {
       option add *TtInfoMessage.msg.font {Times 18} widgetDefault
     }
-    set message [label $frame.message -text {}]
+    set message [ttk::label $frame.message -text {}]
     pack $message -expand yes -fill both
   }
   typemethod _OK {} {
-    Dialog::withdraw $dialog
-    return [eval [list Dialog::enddialog $dialog] [list 1]]
+    $dialog withdraw
+    return [eval [list $dialog enddialog] [list 1]]
   }
   typemethod draw {args} {
     $type createDialog
     $message     configure -text "[from args -message]"
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [eval [list Dialog::draw $dialog]]
+    return [eval [list $dialog draw]]
   }
 }
 
@@ -1369,15 +1360,15 @@ snit::macro TimeTable::TtStdShell {dialogclass} {
     set headerlabel $headerframe.headerlabel
     set userframe $win.userframe
     set dismisbutton $win.dismisbutton
-    frame $headerframe -relief ridge -bd 5
+    ttk::frame $headerframe -relief ridge -borderwidth 5
     pack  $headerframe -fill x
-    label $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    label $headerlabel -anchor w -font {Helvetica -24 bold}
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold}
     pack  $headerlabel -side right -anchor w -expand yes -fill x
-    frame $userframe -bd 0 -relief flat
+    ttk::frame $userframe -borderwidth 0 -relief flat
     pack  $userframe -expand yes -fill both
-    Button::create $dismisbutton \
+    ttk::button $dismisbutton \
 	-default active \
 	-text [_m "Button|Dismis"] \
 	-command [mymethod _Dismis]

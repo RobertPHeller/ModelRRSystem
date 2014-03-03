@@ -50,8 +50,14 @@
 
 # $Id$
 
-package require BWidget
+package require Tk
+package require tile
 package require snit
+package require Dialog
+package require ScrollWindow
+package require ListBox
+package require LabelFrames
+package require HTMLHelp 2.0
 
 # SelectATrainDialog
 
@@ -71,30 +77,30 @@ snit::type SelectATrainDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .selectATrainDialog \
+    set dialog [Dialog .selectATrainDialog \
 		    -bitmap questhead -default 0 \
 		    -cancel 2 -modal local -transient yes -parent . \
 		    -side bottom -title [_ "Select A Train"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
-    $dialog add -name filter -text [_m "Button|Filter"] -command [mytypemethod _Filter]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add filter -text [_m "Button|Filter"] -command [mytypemethod _Filter]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] \
-			-command [list HTMLHelp::HTMLHelp help {Select A Train Dialog}]
-    set frame [Dialog::getframe $dialog]
+    $dialog add help -text [_m "Button|Help"] \
+			-command [list HTMLHelp help {Select A Train Dialog}]
+    set frame [$dialog getframe]
     set lwidth [_mx "Label|Train Name Pattern:" "Label|Train Name Selection:"]
-    set patent [LabelEntry::create $frame.patent \
+    set patent [LabelEntry $frame.patent \
 			-label [_m "Label|Train Name Pattern:"] -labelwidth $lwidth -text {*}]
     pack $patent -fill x
-    set tlist [ScrolledWindow::create $frame.tlist \
+    set tlist [ScrolledWindow $frame.tlist \
 			-scrollbar both -auto both]
     pack $tlist -expand yes -fill both
-    set tlistlist [ListBox::create $tlist.list -selectmode single]
+    set tlistlist [ListBox $tlist.list -selectmode single]
     pack $tlistlist -expand yes -fill both
     $tlist setwidget $tlistlist
     $tlistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $tlistlist bindText <Double-1> [mytypemethod _SelectFromList]
-    set selent [LabelEntry::create $frame.selent \
+    set selent [LabelEntry $frame.selent \
 			-label [_m "Label|Train Name Selection:"] -labelwidth $lwidth]
     pack $selent -fill x
     $selent bind <Return> [mytypemethod _OK]
@@ -104,20 +110,20 @@ snit::type SelectATrainDialog {
   typemethod draw {args} {
     $type createDialog
     $dialog configure -title [from args -title [_ "Select A Train"]]
-    BWidget::focus $patent 1
+    focus -force $patent
     wm transient [winfo toplevel $dialog] .
     $type _Filter
-    return [Dialog::draw $dialog]
+    return [$dialog draw]
   }
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog NULL]
+    $dialog withdraw
+    return [$dialog enddialog NULL]
   }
   typemethod _OK {} {
     set selectedTrainName "[$selent cget -text]"
     set selectedTrain [::TheSystem FindTrainByName "$selectedTrainName"]
-    Dialog::withdraw $dialog]
-    return [Dialog::enddialog $dialog] $selectedTrain]
+    $dialog withdraw]
+    return [$dialog enddialog] $selectedTrain]
   }
   typemethod _Filter {} {
     set pattern "[$patent cget -text]"
@@ -138,15 +144,15 @@ snit::type SelectATrainDialog {
   typemethod _OK {} {
     set selectedTrainName "[$selent cget -text]"
     set selectedTrain [::TheSystem FindTrainByName "$selectedTrainName"]
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog $selectedTrain]
+    $dialog withdraw
+    return [$dialog enddialog $selectedTrain]
   }
   typemethod _SelectFromList { selectedItem } {
     set lb $tlistlist
     set elt [$lb itemcget $selectedItem -data]
     set result [lindex $elt 0]
-    eval Dialog::withdraw $dialog]
-    return [Dialog::enddialog $dialog $result]
+    eval $dialog withdraw]
+    return [$dialog enddialog $result]
   }
   typemethod _BrowseFromList { selectedItem } {
     set lb $tlistlist

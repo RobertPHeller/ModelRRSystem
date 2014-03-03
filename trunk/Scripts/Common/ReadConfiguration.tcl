@@ -56,11 +56,10 @@
 #
 
 package require snit;#			Load the Snit package.
-package require BWidget;#		Load the BWidget code
-package require BWFileEntry;#		Load File Entry code
-package require BWLabelComboBox;#	Load Label Combo Box code
-package require BWLabelSpinBox;#	Load Label Spinbox code
-package require LabelSelectColor;#	Load Label Select Color code
+package require Tk
+package require tile
+package require LabelFrames
+package require Dialog
 
 namespace eval ReadConfiguration {
 ## The Read Configuration File code is contained in this namespace.

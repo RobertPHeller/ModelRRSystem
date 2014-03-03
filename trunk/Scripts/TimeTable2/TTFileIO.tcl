@@ -56,6 +56,15 @@
 
 # $Id$
 
+package require gettext
+package require Tk
+package require tile
+package require snit
+package require Dialog
+package require LabelFrames
+package require TTMainWindow
+
+
 namespace eval TimeTable {}
 
 catch {SplashWorkMessage [_ "Loading File I/O Support"] 33}
@@ -95,9 +104,6 @@ proc TimeTable::LoadTimeTable {{filename {}}} {
   EnablePrintCommands
 }
 
-package require BWLabelSpinBox
-package require snit
-
 snit::type TimeTable::CreateANewTimeTableDialog {
   pragma -hastypedestroy no
   pragma -hasinstances no
@@ -116,7 +122,7 @@ snit::type TimeTable::CreateANewTimeTableDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .createANewTimeTableDialog \
+    set dialog [Dialog .createANewTimeTableDialog \
 			-bitmap questhead \
 			-default 0 \
 			-cancel 1 \
@@ -125,52 +131,52 @@ snit::type TimeTable::CreateANewTimeTableDialog {
 			-parent . \
 			-side bottom \
 			-title [_ "Create A New Time Table"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Create A New Time Table Dialog}]
-    set frame [Dialog::getframe $dialog]
+    $dialog add help -text [_m "Button|Help"] -command [list HTMLHelp::HTMLHelp help {Create A New Time Table Dialog}]
+    set frame [$dialog getframe]
     set headerframe $frame.headerframe
     set iconimage $headerframe.iconimage
     set headerlabel $headerframe.headerlabel
     frame $headerframe -relief ridge -bd 5
     pack  $headerframe -fill x
-    Label::create $iconimage -image banner
+    ttk::label $iconimage -image banner
     pack  $iconimage -side left
-    Label::create $headerlabel -anchor w -font {Helvetica -24 bold} \
+    ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "Create a New Time Table"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
     set lwidth [_mx "Label|Name of Time Table:" "Label|Total Time:" \
 			"Label|Time Interval for ticks:"]
-    set name [LabelEntry::create $frame.name \
+    set name [LabelEntry $frame.name \
 			-label [_m "Label|Name of Time Table:"] \
 			-labelwidth $lwidth]
     pack $name -fill x
-    set totalTime [LabelSpinBox::create $frame.totalTime \
+    set totalTime [LabelSpinBox $frame.totalTime \
 			-label [_m "Label|Total Time:"] \
 			-labelwidth $lwidth \
 			-range {60 1440 1}]
     $totalTime bind <Return> [mytypemethod _OK]
     pack $totalTime -fill x
-    set timeInterval [LabelSpinBox::create $frame.timeInterval \
+    set timeInterval [LabelSpinBox $frame.timeInterval \
 			-label [_m "Label|Time Interval for ticks:"] \
 			-labelwidth $lwidth \
 			-range {1 60 1}]
     $timeInterval bind <Return> [mytypemethod _OK]
     pack $timeInterval -fill x
-    BWidget::focus set $frame.name
+    focus -force $frame.name
   }
 
   typemethod _OK {} {
-    Dialog::withdraw $dialog
+    $dialog withdraw
     set nameValue "[$name cget -text]"
     set totalTimeValue [$totalTime cget -text]
     set timeIntervalValue [$timeInterval cget -text]
-    return [eval [list Dialog::enddialog $dialog] [list OK]]
+    return [eval [list $dialog enddialog] [list OK]]
   }
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [eval [list Dialog::enddialog $dialog] [list Cancel]]
+    $dialog withdraw
+    return [eval [list $dialog enddialog] [list Cancel]]
   }
 
   typemethod draw {args} {
@@ -178,9 +184,9 @@ snit::type TimeTable::CreateANewTimeTableDialog {
     $name configure -text "[from args -name]"
     $totalTime configure -text [from args -totaltime]
     $timeInterval configure -text [from args -timeinterval]
-    BWidget::focus $name 1
+    focus -force $name
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [eval [list Dialog::draw $dialog]]
+    return [eval [list $dialog draw]]
   }
 
   typemethod cget {option} {

@@ -56,9 +56,11 @@
 package require gettext
 package require snit
 package require Tk
-package require BWidget
+package require tile
 package require FCFSelectAStationDialog
-
+package require Dialog
+package require HTMLHelp 2.0
+package require LabelFrames
 
 SplashWorkMessage [_ "Loading Report code"] 50
 
@@ -163,17 +165,17 @@ snit::type SelectCarType {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .selectCarTypeDialog \
+    set dialog [Dialog .selectCarTypeDialog \
 		    -bitmap questhead \
 		    -default 0 -cancel 1 -modal local -transient yes -parent . \
 		    -side bottom -title [_ "Select Car Type"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
-    $dialog add -name cancel -text [_m "Button|Cancel" -command [mytypemethod _Cancel]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add cancel -text [_m "Button|Cancel" -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] \
-		-command [list HTMLHelp::HTMLHelp help {Select Car Type}]
+    $dialog add help -text [_m "Button|Help"] \
+		-command [list HTMLHelp help {Select Car Type}]
     set frame [$dialog getframe]
-    set ctLC [LabelComboBox::create $frame.ctLC -label [_m "Label|Car Type:"] -editable no]
+    set ctLC [LabelComboBox $frame.ctLC -label [_m "Label|Car Type:"] -editable no]
     pack $ctLC  -fill x
     wm transient [winfo toplevel $dialog] .
   }
@@ -193,17 +195,17 @@ snit::type SelectCarType {
     $ctLC configure -values $carTypeNames
     $ctLC setvalue first
     wm transient [winfo toplevel $dialog] .
-    return [Dialog::draw $dialog]
+    return [$dialog draw]
   }
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog {}]
+    $dialog withdraw
+    return [$dialog enddialog {}]
   }
   typemethod _OK {} {
     set elt "[$ctLC getvalue]"
     set result "[lindex $carTypeIndexes $elt]"
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog "$result"]
+    $dialog withdraw
+    return [$dialog enddialog "$result"]
   }
 }
 
@@ -272,17 +274,17 @@ snit::type EnterOwnerInitialsDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .enterOwnerInitialsDialog \
+    set dialog [Dialog .enterOwnerInitialsDialog \
 		    -bitmap questhead \
 		    -default 0 -cancel 1 -modal local -transient yes -parent . \
 		    -side bottom -title [_ "Enter Owner's Initials"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] \
-		-command [list HTMLHelp::HTMLHelp help {Enter Owner Initials Dialog}]
+    $dialog add help -text [_m "Button|Help"] \
+		-command [list HTMLHelp help {Enter Owner Initials Dialog}]
     set frame [$dialog getframe]
-    set ownerinitials [LabelEntry::create $frame.ownerinitials \
+    set ownerinitials [LabelEntry $frame.ownerinitials \
 		-label [_m "Label|Owner Initials:"]]
     pack $ownerinitials -fill x
     $ownerinitials bind <Return> [mytypemethod _OK]
@@ -291,18 +293,18 @@ snit::type EnterOwnerInitialsDialog {
   typemethod draw {args} {
     $type createDialog
     $dialog configure -title [from args -title [_ "Enter Owner's Initials"]]
-    BWidget::focus $ownerinitials 1
+    focus -force $ownerinitials
     wm transient [winfo toplevel $dialog] .
-    return [Dialog::draw $dialog]
+    return [$dialog draw]
   }
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog {}]
+    $dialog withdraw
+    return [$dialog enddialog {}]
   }
   typemethod _OK {} {
     set result "[$ownerinitials cget -text]"
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog "$result"]
+    $dialog withdraw
+    return [$dialog enddialog "$result"]
   }
 }
 

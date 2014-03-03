@@ -55,8 +55,13 @@
 
 package require gettext
 package require Tk
-package require BWidget
+package require tile
 package require snit
+package require Dialog
+package require ScrollWindow
+package require ListBox
+package require LabelFrames
+package require HTMLHelp 2.0
 
 snit::type SearchForCarsDialog {
   pragma -hastypedestroy no
@@ -74,30 +79,30 @@ snit::type SearchForCarsDialog {
   }
   typemethod createDialog {} {
     if {![string equal "$dialog" {}] && [winfo exists $dialog]} {return}
-    set dialog [Dialog::create .searchForCarsDialog \
+    set dialog [Dialog .searchForCarsDialog \
 		    -bitmap questhead -default 0 \
 		    -cancel 2 -modal local -transient yes -parent . \
 		    -side bottom -title [_ "Search For Cars"]]
-    $dialog add -name ok -text [_m "Button|OK"] -command [mytypemethod _OK]
-    $dialog add -name filter -text [_m "Button|Filter"] -command [mytypemethod _Filter]
-    $dialog add -name cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
+    $dialog add ok -text [_m "Button|OK"] -command [mytypemethod _OK]
+    $dialog add filter -text [_m "Button|Filter"] -command [mytypemethod _Filter]
+    $dialog add cancel -text [_m "Button|Cancel"] -command [mytypemethod _Cancel]
     wm protocol [winfo toplevel $dialog] WM_DELETE_WINDOW [mytypemethod _Cancel]
-    $dialog add -name help -text [_m "Button|Help"] \
-			-command [list HTMLHelp::HTMLHelp help {Search For Cars Dialog}]
-    set frame [Dialog::getframe $dialog]
+    $dialog add help -text [_m "Button|Help"] \
+			-command [list HTMLHelp help {Search For Cars Dialog}]
+    set frame [$dialog getframe]
     set lwidth [_mx "Label|Car Number Pattern:" "Label|Car Number Selection:"]
-    set patent [LabelEntry::create $frame.patent \
+    set patent [LabelEntry $frame.patent \
 			-label [_m "Label|Car Number Pattern:"] -labelwidth $lwidth]
     pack $patent -fill x
-    set clist [ScrolledWindow::create $frame.clist \
+    set clist [ScrolledWindow $frame.clist \
 			-scrollbar both -auto both]
     pack $clist -expand yes -fill both
-    set clistlist [ListBox::create $clist.list -selectmode single]
+    set clistlist [ListBox $clist.list -selectmode single]
     pack $clistlist -expand yes -fill both
     $clist setwidget $clistlist
     $clistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $clistlist bindText <Double-1> [mytypemethod _SelectFromList]
-    set selent [LabelEntry::create $frame.selent \
+    set selent [LabelEntry $frame.selent \
 			-label [_m "Label|Car Number Selection:"] -labelwidth $lwidth]
     pack $selent -fill x
     $selent bind <Return> [mytypemethod _OK]
@@ -106,14 +111,14 @@ snit::type SearchForCarsDialog {
   }
   typemethod draw {} {
     $type createDialog
-    BWidget::focus $patent 1
+    focus -force $patent
     wm transient [winfo toplevel $dialog] .
     $type _Filter
-    return [Dialog::draw $dialog]
+    return [$dialog draw]
   }
   typemethod _Cancel {} {
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog -1]
+    $dialog withdraw
+    return [$dialog enddialog -1]
   }
   typemethod _OK {} {
     set selectedNumber "[$selent cget -text]"
@@ -136,8 +141,8 @@ snit::type SearchForCarsDialog {
       set item [lindex [$lb items] 0]
       set result [lindex [$lb itemcget $item -data] 0]
 #      puts stderr "*** $type _OK: result = $result"
-      Dialog::withdraw $dialog
-      return [Dialog::enddialog $dialog "$result"]
+      $dialog withdraw
+      return [$dialog enddialog "$result"]
     }
   }
   typemethod _Filter {} {
@@ -165,8 +170,8 @@ snit::type SearchForCarsDialog {
     set lb $clistlist
     set elt [$lb itemcget $selectedItem -data]
     set result [lindex $elt 0]
-    Dialog::withdraw $dialog
-    return [Dialog::enddialog $dialog "$result"]
+    $dialog withdraw
+    return [$dialog enddialog "$result"]
   }
   typemethod _BrowseFromList { selectedItem } {
     set lb $clistlist

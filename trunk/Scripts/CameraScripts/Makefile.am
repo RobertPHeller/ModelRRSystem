@@ -51,10 +51,20 @@
 bin_SCRIPTS = AnyDistance${EXEEXT} Closest${EXEEXT}
 EXTRA_DIST  = AnyDistance.src Closest.src
 CLEANFILES = AnyDistance.kit Closest.kit $(bin_SCRIPTS) CameraScripts.pot
-CameraSCRIPTS = $(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl \
-			$(top_srcdir)/Scripts/Common/HTMLHelp.tcl \
+CameraSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+			$(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
 			$(top_builddir)/Scripts/Common/Version.tcl \
 			$(top_srcdir)/Scripts/Common/gettext.tcl \
+			$(top_srcdir)/Scripts/Common/snitLFs.tcl \
+			$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+			$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+			$(top_srcdir)/Scripts/Common/snitdialog.tcl \
+			$(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+			$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+			$(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+			$(top_srcdir)/Scripts/Common/questhead.xbm \
+			$(top_srcdir)/Scripts/Common/unknown.xpm \
+			$(top_srcdir)/Scripts/Common/info.xbm \
 		Lens.tcl CameraCalculator.tcl CameraPrintDialog.tcl
 EXTRA_DIST += Lens.tcl CameraCalculator.tcl CameraPrintDialog.tcl
 EXTRA_DIST += AnyDistance.png Closest.png AnyDistance.desktop Closest.desktop
@@ -76,10 +86,10 @@ TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 BUILT_SOURCES = $(TCLKIT)
 
 CameraScripts.pot: Lens.tcl CameraCalculator.tcl CameraPrintDialog.tcl \
-			$(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl
+			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m -L Tcl $(addprefix $(subdir)/,Lens.tcl CameraCalculator.tcl CameraPrintDialog.tcl) \
-		Scripts/Common/BWStdMenuBar.tcl|\
+		Scripts/Common/snitStdMenuBar.tcl|\
 	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
 	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
 	    -e 's/FIRST AUTHOR <EMAIL@ADDRESS>,/Robert Heller <heller@deepsoft.com>/g' \
@@ -93,8 +103,6 @@ AnyDistance${EXEEXT} : AnyDistance.src $(CameraSCRIPTS) \
 	-rm -rf AnyDistance.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap  $(srcdir)/AnyDistance.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap  AnyDistance.kit
-	$(UNZIP) -qq -d AnyDistance.vfs/lib \
-	        $(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit AnyDistance \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) AnyDistance \
@@ -118,8 +126,6 @@ Closest${EXEEXT} : Closest.src $(CameraSCRIPTS) \
 	-rm -rf Closest.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap  $(srcdir)/Closest.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap  Closest.kit
-	$(UNZIP) -qq -d Closest.vfs/lib \
-		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit Closest \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) Closest \
