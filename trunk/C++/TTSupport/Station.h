@@ -428,7 +428,7 @@ private:
 
 #ifdef SWIG
 
-%apply int MyTcl_Result { int ForEveryOccupied };
+%apply int Tcl_Result { int TTSupport::ForEveryOccupied };
 
 
 /** Tcl looping construct for trains occupying a storage track.
@@ -479,15 +479,15 @@ int ForEveryOccupied(Tcl_Interp *interp,StorageTrack *storageTrack,Tcl_Obj *vari
 	  	return TCL_ERROR;
 	  }
 	  // Set loop variable
-	  varValuePtr = Tcl_ObjSetVar2(interp,variableName,NULL,valuePtr,0);
+          varValuePtr = Tcl_ObjSetVar2(interp,variableName,NULL,valuePtr,
+                                       TCL_LEAVE_ERR_MSG);
 	  if (varValuePtr == NULL) {
-	    Tcl_DecrRefCount(valuePtr);
-	    Tcl_ResetResult(interp);
+	    //Tcl_DecrRefCount(valuePtr);
+	    //Tcl_ResetResult(interp);
 	    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
-	    	_("couldn't set loop variable: '"),
+	    	_(": couldn't set loop variable: '"),
 		Tcl_GetString(variableName),"'", (char *) NULL);
-	    result = TCL_ERROR;
-	    break;
+	    return TCL_ERROR;
 	  }
 	  // Evaluate the body script.
 	  result = Tcl_EvalObjEx(interp, bodyPtr, 0);
@@ -733,15 +733,15 @@ int ForEveryStorageTrack(Tcl_Interp *interp,Station *station,Tcl_Obj *variableNa
 	for (Sx = station->FirstStorageTrack();Sx != station->LastStorageTrack(); Sx++) {
 	  Tcl_Obj *valuePtr, *varValuePtr;
 	  valuePtr = SWIG_NewInstanceObj((void *) &(Sx->second),SWIGTYPE_p_TTSupport__StorageTrack,0);
-	  varValuePtr = Tcl_ObjSetVar2(interp,variableName,NULL,valuePtr,0);
+          varValuePtr = Tcl_ObjSetVar2(interp,variableName,NULL,valuePtr,
+                                       TCL_LEAVE_ERR_MSG);
 	  if (varValuePtr == NULL) {
-	    Tcl_DecrRefCount(valuePtr);
-	    Tcl_ResetResult(interp);
+	    //Tcl_DecrRefCount(valuePtr);
+	    //Tcl_ResetResult(interp);
 	    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
-	    	_("couldn't set loop variable: '"),
+	    	_(": couldn't set loop variable: '"),
 		Tcl_GetString(variableName),"'", (char *) NULL);
-	    result = TCL_ERROR;
-	    break;
+	    return TCL_ERROR;
 	  }
 	  result = Tcl_EvalObjEx(interp, bodyPtr, 0);
 	  if (result != TCL_OK) {

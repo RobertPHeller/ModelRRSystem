@@ -117,7 +117,7 @@ struct eqstr
 {
 	bool operator()(const char* s1, const char* s2) const
 	{
-		return strcmp(s1, s2) == 0;
+            return strcmp(s1, s2) == 0;
 	}
 };
 #endif
@@ -130,7 +130,36 @@ struct eqstr
 #ifdef USE_HASH_MAP
 typedef __gnu_cxx::hash_map<const char*, string, __gnu_cxx::hash<const char*>, eqstr> OptionHashMap;
 #else
-typedef std::tr1::unordered_map<const char*, std::string> OptionHashMap;
+struct hash {
+    std::size_t 
+    operator()(const char* s) const
+    {
+#ifdef DEBUG
+        fprintf(stderr,"*** hash::operator()(\"%s\")\n",s);
+#endif
+        std::size_t h = std::tr1::Fnv_hash<>::hash(s,strlen(s));
+#ifdef DEBUG
+        fprintf(stderr,"*** hash::operator(): h = %u\n",h);
+#endif
+        return h;
+    }
+};
+
+struct eqstr
+{
+	bool operator()(const char* s1, const char* s2) const
+        {
+#ifdef DEBUG
+            fprintf(stderr,"*** eqstr::operator()(\"%s\",\"%s\")\n",s1,s2);
+#endif
+            int eq = strcmp(s1, s2);
+#ifdef DEBUG
+            fprintf(stderr,"*** eqstr::operator(): eq = %d\n",eq);
+#endif
+            return eq == 0;
+	}
+};
+typedef std::tr1::unordered_map<const char*, std::string, hash, eqstr> OptionHashMap;
 #endif
 
 /** @brief List of trains.
@@ -788,9 +817,6 @@ public:
 	const char *GetPrintOption(const char *key) const
 	{
 		OptionHashMap::const_iterator element = printOptions.find(key);
-#ifdef DEBUG
-		fprintf(stderr,"*** TimeTableSystem::GetPrintOption: element->first is '%s'.\n",(element->first));
-#endif
 		if (element == printOptions.end()) {
 #ifdef DEBUG
 		  fprintf(stderr,"*** TimeTableSystem::GetPrintOption: %s not in table, returning empty string.\n",key);

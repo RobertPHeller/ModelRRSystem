@@ -481,7 +481,7 @@ private:
 
 #ifdef SWIG
 
-%apply int MyTcl_Result { int ForEveryStop };
+%apply int Tcl_Result { int TTSupport::ForEveryStop };
 
 /** @name ForEveryStop
   * @args train variable body
@@ -516,15 +516,15 @@ int ForEveryStop (Tcl_Interp *interp,Train *train,Tcl_Obj *variableName,Tcl_Obj 
 	  cerr << "*** ForEveryStop(): valuePtr is {" << Tcl_GetString(valuePtr) << "}" << endl;
 	  cerr << "*** ForEveryStop(): variableName is {" << Tcl_GetString(variableName) << "}" << endl;
 #endif
-	  varValuePtr = Tcl_ObjSetVar2(interp,variableName,NULL,valuePtr,0);
+          varValuePtr = Tcl_ObjSetVar2(interp,variableName,NULL,valuePtr,
+                                       TCL_LEAVE_ERR_MSG);
 	  if (varValuePtr == NULL) {
-	    Tcl_DecrRefCount(valuePtr);
-	    Tcl_ResetResult(interp);
+	    //Tcl_DecrRefCount(valuePtr);
+	    //Tcl_ResetResult(interp);
 	    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
-	    	_("couldn't set loop variable: '"),
+	    	_(": couldn't set loop variable: '"),
 		Tcl_GetString(variableName),"'", (char *) NULL);
-	    result = TCL_ERROR;
-	    break;
+	    return TCL_ERROR;
 	  }
 #ifdef DEBUG
 	  cerr << "*** ForEveryStop(): varValuePtr is {" << Tcl_GetString(varValuePtr) << "}" << endl;

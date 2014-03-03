@@ -37,13 +37,13 @@ TimeTableSystem *NewCreateTimeTable(const char *name,int timescale,int timeinter
   */
 TimeTableSystem *OldCreateTimeTable(const char *filename,char **outmessage);
 
-%apply int MyTcl_Result { int ForEveryStation };
-%apply int MyTcl_Result { int ForEveryCab };
-%apply int MyTcl_Result { int ForEveryTrain };
-%apply int MyTcl_Result { int ForEveryNote };
-%apply int MyTcl_Result { int ForEveryPrintOption };
-%apply int MyTcl_Result { int TT_StringListToList }
-%apply int MyTcl_Result { int TT_ListToStringListString };
+%apply int Tcl_Result { int TTSupport::ForEveryStation };
+%apply int Tcl_Result { int TTSupport::ForEveryCab };
+%apply int Tcl_Result { int TTSupport::ForEveryTrain };
+%apply int Tcl_Result { int TTSupport::ForEveryNote };
+%apply int Tcl_Result { int TTSupport::ForEveryPrintOption };
+%apply int Tcl_Result { int TTSupport::TT_StringListToList }
+%apply int Tcl_Result { int TTSupport::TT_ListToStringListString };
 
 /** @brief Tcl looping construct for Stations.
   *
@@ -137,15 +137,15 @@ static int ForEveryStation(Tcl_Interp *interp,TimeTableSystem *timetable,Tcl_Obj
 	  Tcl_Obj *valuePtr, *varValuePtr;
 	  valuePtr = SWIG_NewInstanceObj((void *) timetable->IthStation(istation),
 					SWIGTYPE_p_TTSupport__Station,0);
-	  varValuePtr = Tcl_ObjSetVar2(interp,variableName,NULL,valuePtr,0);
+          varValuePtr = Tcl_ObjSetVar2(interp,variableName,NULL,valuePtr,
+                                       TCL_LEAVE_ERR_MSG);
 	  if (varValuePtr == NULL) {
-	    Tcl_DecrRefCount(valuePtr);
-	    Tcl_ResetResult(interp);
+	    //Tcl_DecrRefCount(valuePtr);
+	    //Tcl_ResetResult(interp);
 	    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
-	    	"couldn't set loop variable: \"",
-		Tcl_GetString(variableName),"\"", (char *) NULL);
-	    result = TCL_ERROR;
-	    break;
+	    	_(": couldn't set loop variable: '"),
+		Tcl_GetString(variableName),"'", (char *) NULL);
+	    return TCL_ERROR;
 	  }
 	  result = Tcl_EvalObjEx(interp, bodyPtr, 0);
 	  if (result != TCL_OK) {
@@ -180,18 +180,36 @@ static int ForEveryCab(Tcl_Interp *interp,TimeTableSystem *timetable,Tcl_Obj *va
 	for (Cx = timetable->FirstCab();Cx != timetable->LastCab(); Cx++) {
 	  Tcl_Obj *valuePtr, *varValuePtr;
 	  valuePtr = SWIG_NewInstanceObj((void *) Cx->second, SWIGTYPE_p_TTSupport__Cab,0);
-	  varValuePtr = Tcl_ObjSetVar2(interp,variableName,NULL,valuePtr,0);
-	  if (varValuePtr == NULL) {
-	    Tcl_DecrRefCount(valuePtr);
-	    Tcl_ResetResult(interp);
+#ifdef DEBUG
+          fprintf(stderr,"*** ForEveryCab: valuePtr = %p\n",valuePtr);
+          fprintf(stderr,"*** ForEveryCab: Tcl_GetString(valuePtr) = '%s'\n",Tcl_GetString(valuePtr));  
+#endif
+          varValuePtr = Tcl_ObjSetVar2(interp,variableName,NULL,valuePtr,
+                                       TCL_LEAVE_ERR_MSG);
+#ifdef DEBUG
+          fprintf(stderr,"*** ForEveryCab: variableName = %p\n",variableName);
+          fprintf(stderr,"*** ForEveryCab: Tcl_GetString(variableName) = '%s'\n",Tcl_GetString(variableName));
+          fprintf(stderr,"*** ForEveryCab: varValuePtr = %p\n",varValuePtr);
+#endif
+          if (varValuePtr == NULL) {
+#ifdef DEBUG
+            fprintf(stderr,"*** ForEveryCab: Tcl_GetString(Tcl_GetObjResult(interp)) = %s\n",Tcl_GetString(Tcl_GetObjResult(interp)));
+#endif
+            //Tcl_DecrRefCount(valuePtr);
+	    //Tcl_ResetResult(interp);
 	    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
-	    	"couldn't set loop variable: \"",
-		Tcl_GetString(variableName),"\"", (char *) NULL);
-	    result = TCL_ERROR;
-	    break;
+	    	_(": couldn't set loop variable: '"),
+		Tcl_GetString(variableName),"'", (char *) NULL);
+	    return TCL_ERROR;
 	  }
-	  result = Tcl_EvalObjEx(interp, bodyPtr, 0);
-	  if (result != TCL_OK) {
+#ifdef DEBUG
+          fprintf(stderr,"*** ForEveryCab: bodyPtr = %p\n",bodyPtr);  
+#endif
+          result = Tcl_EvalObjEx(interp, bodyPtr, 0);
+#ifdef DEBUG
+          fprintf(stderr,"*** ForEveryCab: result = %d\n",result);
+#endif
+          if (result != TCL_OK) {
 	    if (result == TCL_CONTINUE) {
 	      result = TCL_OK;
 	    } else if (result == TCL_BREAK) {
@@ -230,15 +248,14 @@ static int ForEveryTrain(Tcl_Interp *interp,TimeTableSystem *timetable,Tcl_Obj *
 	  cerr << "*** ForEveryTrain(): valuePtr is {" << Tcl_GetString(valuePtr) << "}" << endl;
 	  cerr << "*** ForEveryTrain(): variableName is {" << Tcl_GetString(variableName) << "}" << endl;
 #endif
-	  varValuePtr = Tcl_ObjSetVar2(interp,variableName,NULL,valuePtr,0);
+	  varValuePtr = Tcl_ObjSetVar2(interp,variableName,NULL,valuePtr,TCL_LEAVE_ERR_MSG);
 	  if (varValuePtr == NULL) {
-	    Tcl_DecrRefCount(valuePtr);
-	    Tcl_ResetResult(interp);
+	    //Tcl_DecrRefCount(valuePtr);
+	    //Tcl_ResetResult(interp);
 	    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
-	    	"couldn't set loop variable: \"",
-		Tcl_GetString(variableName),"\"", (char *) NULL);
-	    result = TCL_ERROR;
-	    break;
+	    	_(": couldn't set loop variable: '"),
+		Tcl_GetString(variableName),"'", (char *) NULL);
+	    return TCL_ERROR;
 	  }
 #ifdef DEBUG
 	  cerr << "*** ForEveryTrain(): varValuePtr is {" << Tcl_GetString(varValuePtr) << "}" << endl;
@@ -284,15 +301,15 @@ static int ForEveryNote(Tcl_Interp *interp,TimeTableSystem *timetable,Tcl_Obj *v
 	for (inote = 1; inote <= timetable->NumberOfNotes(); inote++) {
 	  Tcl_Obj *valuePtr, *varValuePtr;
 	  valuePtr = Tcl_NewStringObj(timetable->Note(inote),-1);
-	  varValuePtr = Tcl_ObjSetVar2(interp,variableName,NULL,valuePtr,0);
+          varValuePtr = Tcl_ObjSetVar2(interp,variableName,NULL,valuePtr,
+                                       TCL_LEAVE_ERR_MSG);
 	  if (varValuePtr == NULL) {
-	    Tcl_DecrRefCount(valuePtr);
-	    Tcl_ResetResult(interp);
+	    //Tcl_DecrRefCount(valuePtr);
+	    //Tcl_ResetResult(interp);
 	    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
-	    	"couldn't set loop variable: \"",
-		Tcl_GetString(variableName),"\"", (char *) NULL);
-	    result = TCL_ERROR;
-	    break;
+	    	_(": couldn't set loop variable: '"),
+		Tcl_GetString(variableName),"'", (char *) NULL);
+	    return TCL_ERROR;
 	  }
 	  result = Tcl_EvalObjEx(interp, bodyPtr, 0);
 	  if (result != TCL_OK) {
@@ -331,15 +348,15 @@ static int ForEveryPrintOption(Tcl_Interp *interp,TimeTableSystem *timetable,
 #endif
 	  Tcl_Obj *valuePtr, *varValuePtr;
 	  valuePtr = Tcl_NewStringObj(Ox->first,-1);
-	  varValuePtr = Tcl_ObjSetVar2(interp,variableName,NULL,valuePtr,0);
+          varValuePtr = Tcl_ObjSetVar2(interp,variableName,NULL,valuePtr,
+                                       TCL_LEAVE_ERR_MSG);
 	  if (varValuePtr == NULL) {
-	    Tcl_DecrRefCount(valuePtr);
-	    Tcl_ResetResult(interp);
+	    //Tcl_DecrRefCount(valuePtr);
+	    //Tcl_ResetResult(interp);
 	    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
-	    	"couldn't set loop variable: \"",
-		Tcl_GetString(variableName),"\"", (char *) NULL);
-	    result = TCL_ERROR;
-	    break;
+	    	_(": couldn't set loop variable: '"),
+		Tcl_GetString(variableName),"'", (char *) NULL);
+	    return TCL_ERROR;
 	  }
 	  result = Tcl_EvalObjEx(interp, bodyPtr, 0);
 	  if (result != TCL_OK) {
