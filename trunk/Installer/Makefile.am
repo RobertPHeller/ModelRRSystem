@@ -52,7 +52,16 @@ diskfree_la_LDFLAGS = $(NOUNDEFINED) -g -module -avoid-version
 diskfree_la_LIBADD = $(TCL_STUB_LIB_SPEC)
 diskfree_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES)
 setupSCRIPTS = $(top_builddir)/Scripts/Common/Version.tcl \
-		$(top_srcdir)/Scripts/Common/fileentry.tcl
+		$(top_srcdir)/Scripts/Common/snitpagesmanager.tcl \
+		$(top_srcdir)/Scripts/Common/snitrotext.tcl \
+		$(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+		$(top_srcdir)/Scripts/Common/unknown.xpm \
+		$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+		$(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
+		$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+		$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+		$(top_srcdir)/Scripts/Common/openfold.png \
+		$(top_srcdir)/Scripts/Common/snitLFs.tcl
 setupIMAGES = 
 setupLIBIMAGES = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif
 EXTRA_DIST = diskfree.i setup.tcl $(setupIMAGES)
@@ -85,11 +94,13 @@ setup${EXEEXT}: setup.tcl $(setupSCRIPTS) $(setupIMAGES) $(setupLIBIMAGES) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/setup.tcl
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap setup.kit
 	-rm -f  setup.kit
-	$(UNZIP) -qq -d setup.vfs/lib $(top_srcdir)/BuildData/bwidget-1.9.6.zip
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit setup \
+		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit setup \
 		lib/Diskfree .libs/diskfree$(SHLIB_SUFFIX) pkgIndex.tcl
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit setup \
 		lib/Images $(setupIMAGES) $(setupLIBIMAGES)
+	$(UNZIP) -qq -d setup.vfs/lib $(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit setup lib/Common \
 		$(setupSCRIPTS)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit setup Common

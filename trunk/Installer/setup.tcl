@@ -18,10 +18,16 @@ set argv0 [file join  [file dirname [info nameofexecutable]] setup]
 
 package require Diskfree
 package require Tk
-package require BWidget
+package require tile
+package require snit
 package require Version
-package require BWFileEntry
-#package require HTMLHelp
+package require LabelFrames
+package require PagesManager
+package require ROText
+package require MainFrame
+package require ScrollWindow
+package require ScrollableFrame
+#package require HTMLHelp 2.0
 if {[string equal $::tcl_platform(platform) windows]} {
   package require vfs::zip
   package require registry
@@ -162,12 +168,12 @@ proc AdditionalArchives::CheckAndPopulate {} {
     incr count
     set checkedArchives($a) no
     set destdirs($a) "$::env(HOME)"
-    set archiveTF [TitleFrame $pframe.archiveTF$archiveIndex -text "$a" \
-							     -side left]
+    set archiveTF [ttk::labelframe $pframe.archiveTF$archiveIndex -text "$a" \
+                   -labelanchor nw]
     incr archiveIndex
     pack $archiveTF -expand yes -fill x
-    set archiveTFframe [$archiveTF getframe]
-    pack [Label $archiveTFframe.descr -text "$descr"] -expand yes -fill x -anchor w
+    set archiveTFframe $archiveTF
+    pack [ttk::label $archiveTFframe.descr -text "$descr"] -expand yes -fill x -anchor w
     pack [LabelEntry $archiveTFframe.size \
 			-label "Size:" -labelwidth 15 \
 			-text "[HumanReadableNumber $archiveSizes($a)]" \
@@ -177,7 +183,7 @@ proc AdditionalArchives::CheckAndPopulate {} {
 			-textvariable ::AdditionalArchives::destdirs($a) \
 			-filedialog directory] \
 	-expand yes -fill x
-    pack [checkbutton $archiveTFframe.installP -text "Install? " \
+    pack [ttk::checkbutton $archiveTFframe.installP -text "Install? " \
 			-onvalue yes -offvalue no \
 			-variable ::AdditionalArchives::checkedArchives($a)] \
 	-fill x -anchor w
@@ -465,9 +471,9 @@ proc MainWindow {} {
 				     -file [file join $::ImageDir \
 						      DeepwoodsBanner.gif]
   set header [$::Main getframe].header]
-  pack [frame $header]  -fill x
-  pack [Label $header.banner -image DeepwoodsBanner -borderwidth 0]
-  pack [Label $header.headtext -font {Times -32 bold} \
+  pack [ttk::frame $header]  -fill x
+  pack [ttk::label $header.banner -image DeepwoodsBanner -borderwidth 0]
+  pack [ttk::label $header.headtext -font {Times -32 bold} \
 				-text "Model Railroad System Installer"] \
 	-anchor c -expand yes -fill x
   set ::Pages [PagesManager [$::Main getframe].pages]
@@ -487,45 +493,45 @@ proc MainWindow {} {
 		variable docs {}
 		variable docsSize "[HumanReadableNumber 0]"
 	}
-	pack [TitleFrame $page.progressFrame -text "Finding Archives..." \
-					     -font {Helvetica -24 bold}] \
+	pack [ttk::labelframe $page.progressFrame -labelanchor nw -text "Finding Archives..." \
+					     ] \
 			-expand yes -fill both
-	set progress [ProgressBar \
-				[$page.progressFrame getframe].progress \
-				-type normal -maximum 100 \
+	set progress [ttk::progressbar \
+				$page.progressFrame.progress \
+				-orient horizontal -maximum 100 \
 				-variable Startup::progress]
         pack $progress -fill x
 	set binaryLF [LabelFrame \
-			[$page.progressFrame getframe].binaryLF \
+			$page.progressFrame.binaryLF \
 				-text "Binary Archive:" -width 16]
 	pack $binaryLF -expand yes -fill x
-	pack [Entry [$binaryLF getframe].name -editable no \
+	pack [ttk::entry [$binaryLF getframe].name -state readonly \
 					      -textvariable ::Startup::binary] \
 		-side left -expand yes -fill x
-	pack [Entry [$binaryLF getframe].size -editable no -width 6 \
+	pack [ttk::entry [$binaryLF getframe].size -state readonly -width 6 \
 					      -textvariable ::Startup::binarySize] \
 		-side left
 	set develLF [LabelFrame \
-			[$page.progressFrame getframe].develLF \
+			$page.progressFrame.develLF \
 				-text "Devel Archive:" -width 16]
 	pack $develLF -expand yes -fill x
-	pack [Entry [$develLF getframe].name -editable no \
+	pack [ttk::entry [$develLF getframe].name -state readonly \
 					      -textvariable ::Startup::devel] \
 		-side left -expand yes -fill x
-	pack [Entry [$develLF getframe].size -editable no -width 6\
+	pack [ttk::entry [$develLF getframe].size -state readonly -width 6\
 					      -textvariable ::Startup::develSize] \
 		-side left
 	set docsLF [LabelFrame \
-			[$page.progressFrame getframe].docsLF \
+			$page.progressFrame.docsLF \
 				-text "Docs Archive:" -width 16]
 	pack $docsLF -expand yes -fill x
-	pack [Entry [$docsLF getframe].name -editable no \
+	pack [ttk::entry [$docsLF getframe].name -state readonly \
 					      -textvariable ::Startup::docs] \
 		-side left -expand yes -fill x
-	pack [Entry [$docsLF getframe].size -editable no -width 6\
+	pack [ttk::entry [$docsLF getframe].size -state readonly -width 6\
 					      -textvariable ::Startup::docsSize] \
 		-side left
-	pack [Button $page.next -text "Next ==>" -command {set ::State Copyright}\
+	pack [ttk::button $page.next -text "Next ==>" -command {set ::State Copyright}\
 				-state disabled] \
 		-side bottom -anchor e
       }
@@ -533,18 +539,17 @@ proc MainWindow {} {
 	namespace eval Copyright {
 		variable copyrightText {}
 	}
-	pack [TitleFrame $page.progressFrame -text "Copyright" \
-					     -font {Helvetica -24 bold}] \
+	pack [ttk::labelframe $page.progressFrame -text "Copyright" \
+				-labelanchor nw] \
 			-expand yes -fill both
-	set pframe [$page.progressFrame getframe]
+	set pframe $page.progressFrame
 	set sw [ScrolledWindow $pframe.scroll -auto vertical -scrollbar vertical]
 	pack $sw -expand yes -fill both
-	set ::Copyright::copyrightText [text [$sw getframe].copyrightText -wrap char \
+	set ::Copyright::copyrightText [ROText [$sw getframe].copyrightText -wrap char \
 							-height 8 -width 40]
-	SetROTags $::Copyright::copyrightText
 	pack $::Copyright::copyrightText -expand yes -fill both
 	$sw setwidget $::Copyright::copyrightText
-	pack [Button $page.next -text "Next ==>" \
+	pack [ttk::button $page.next -text "Next ==>" \
 				-command {set ::State Readme}] \
 		-side bottom -anchor e
 	
@@ -553,18 +558,17 @@ proc MainWindow {} {
 	namespace eval Readme {
 		variable readmeText {}
 	}
-	pack [TitleFrame $page.progressFrame -text "Copyright" \
-					     -font {Helvetica -24 bold}] \
+	pack [ttk::labelframe $page.progressFrame -text "Copyright" \
+				-labelanchor nw] \
 			-expand yes -fill both
-	set pframe [$page.progressFrame getframe]
+	set pframe $page.progressFrame
 	set sw [ScrolledWindow $pframe.scroll -auto vertical -scrollbar vertical]
 	pack $sw -expand yes -fill both
-	set ::Readme::readmeText [text [$sw getframe].readmeText -wrap char \
+	set ::Readme::readmeText [ROText [$sw getframe].readmeText -wrap char \
 							-height 8 -width 40]
-	SetROTags $::Readme::readmeText
 	pack $::Readme::readmeText -expand yes -fill both
 	$sw setwidget $::Readme::readmeText
-	pack [Button $page.next -text "Next ==>" \
+	pack [ttk::button $page.next -text "Next ==>" \
 				-command {set ::State InstallArchives}] \
 		-side bottom -anchor e
 	
@@ -575,15 +579,15 @@ proc MainWindow {} {
 		variable installBinary yes
 		variable installDocs yes
 	}
-	pack [TitleFrame $page.progressFrame -text "Selecting Archives to install..." \
-					     -font {Helvetica -24 bold}] \
+	pack [ttk::labelframe $page.progressFrame -text "Selecting Archives to install..." \
+				-labelanchor nw] \
 			-expand yes -fill both
-	set pframe [$page.progressFrame getframe]
+	set pframe $page.progressFrame
 	set binaryLF [LabelFrame \
 			$pframe.binaryLF \
 			-text "Binary Archive:" -width 16]
 	pack $binaryLF -expand yes -fill x
-	pack [checkbutton [$binaryLF getframe].check \
+	pack [ttk::checkbutton [$binaryLF getframe].check \
 				-text "Install?" \
 				-offvalue no -onvalue yes \
 				-variable ::InstallArchives::installBinary] \
@@ -592,7 +596,7 @@ proc MainWindow {} {
 			$pframe.develLF \
 			-text "Devel Archive:" -width 16]
 	pack $develLF -expand yes -fill x
-	pack [checkbutton [$develLF getframe].check \
+	pack [ttk::checkbutton [$develLF getframe].check \
 				-text "Install?" \
 				-offvalue no -onvalue yes \
 				-variable ::InstallArchives::installDevel] \
@@ -601,21 +605,21 @@ proc MainWindow {} {
 			$pframe.docLF \
 			-text "Docs Archive:" -width 16]
 	pack $docLF -expand yes -fill x
-	pack [checkbutton [$docLF getframe].check \
+	pack [ttk::checkbutton [$docLF getframe].check \
 				-text "Install?" \
 				-offvalue no -onvalue yes \
 				-variable ::InstallArchives::installDocs] \
 		-side left -expand yes -fill x
-	pack [Button $page.next -text "Next ==>" -command {set ::State DestDisk}\
+	pack [ttk::button $page.next -text "Next ==>" -command {set ::State DestDisk}\
 				-state normal] \
 		-side bottom -anchor e
       }
       DestDisk {
-	pack [TitleFrame $page.progressFrame -text "Selecting Destination directory..." \
-					     -font {Helvetica -24 bold}] \
+	pack [ttk::labelframe $page.progressFrame -text "Selecting Destination directory..." \
+				-labelanchor nw] \
 			-expand yes -fill both
 
-	set pframe [$page.progressFrame getframe]
+	set pframe $page.progressFrame
 	namespace eval DestDisk {
 		variable spaceneeded {}
 		variable destdir {}
@@ -633,47 +637,46 @@ proc MainWindow {} {
 	pack [FileEntry $pframe.destdirLE -label "Destination Folder:" \
 						-labelwidth 20 \
 						-textvariable ::DestDisk::destdir \
-						-command CheckFreeSpace \
 						-filedialog directory] \
-		-expand yes -fill x
-	pack [frame $page.np -borderwidth 0] -side bottom -fill x -expand yes
-	pack [Button $page.np.prev -text "<== Back" -command {set ::State InstallArchives}\
+              -expand yes -fill x
+        $pframe.destdirLE bind <Return> CheckFreeSpace
+	pack [ttk::frame $page.np -borderwidth 0] -side bottom -fill x -expand yes
+	pack [ttk::button $page.np.prev -text "<== Back" -command {set ::State InstallArchives}\
 				-state normal] \
 		-side left
-	pack [Button $page.np.next -text "Next ==>" -command {if {[CheckFreeSpace]} {set ::State Installing}}\
+	pack [ttk::button $page.np.next -text "Next ==>" -command {if {[CheckFreeSpace]} {set ::State Installing}}\
 				-state normal] \
 		-side right
       }
       Installing {
-	pack [TitleFrame $page.progressFrame -text "Installing..." \
-					     -font {Helvetica -24 bold}] \
+	pack [ttk::labelframe $page.progressFrame -text "Installing..." \
+				-labelanchor nw] \
 			-expand yes -fill both
-	set pframe [$page.progressFrame getframe]
+	set pframe $page.progressFrame
 	namespace eval Installing {
 		variable progress 0
 		variable logstatus {}
 		variable logtext {}
 	}
-	set progress [ProgressBar $pframe.progress -type normal -maximum 100 \
+	set progress [ttk::progressbar $pframe.progress -orient horizontal -maximum 100 \
 				-variable ::Installing::progress]
 	pack $progress -fill x
-	pack [Label $pframe.logstatus -textvariable ::Installing::logstatus] \
+	pack [ttk::label $pframe.logstatus -textvariable ::Installing::logstatus] \
 		-expand yes -fill x -anchor w
 	set sw [ScrolledWindow $pframe.scroll -auto vertical -scrollbar vertical]
 	pack $sw -expand yes -fill both
-	set Installing::logtext [text [$sw getframe].logtext -wrap char \
+	set Installing::logtext [ROText [$sw getframe].logtext -wrap char \
 							-height 8 -width 40]
-	SetROTags $Installing::logtext
 	pack $Installing::logtext -expand yes -fill both
 	$sw setwidget $Installing::logtext
-	pack [Button $page.next -text "Next ==>" \
+	pack [ttk::button $page.next -text "Next ==>" \
 				-command {set ::State AdditionalArchives} \
 				-state disabled] \
 		-side bottom -anchor e
       }
       AdditionalArchives {
-	pack [TitleFrame $page.progressFrame -text "Selecting additional Archives to install..." \
-					     -font {Helvetica -24 bold}] \
+	pack [ttk::labelframe $page.progressFrame -text "Selecting additional Archives to install..." \
+				-labelanchor nw] \
 			-expand yes -fill both
 	namespace eval AdditionalArchives {
 		variable archiveList
@@ -696,48 +699,47 @@ proc MainWindow {} {
 		variable pframe {}
 		variable populated no
 	}
-	set pframe [$page.progressFrame getframe]
+	set pframe $page.progressFrame
 	set sw  [ScrolledWindow  $pframe.sw -scrollbar vertical -auto vertical]
 	pack $sw -expand yes -fill both
         set scf [ScrollableFrame [$sw getframe].scf -constrainedwidth yes -height 150]
 	pack $scf -expand yes -fill both
 	$sw setwidget $scf	
         set AdditionalArchives::pframe [$scf getframe]
-	pack [Button $page.next -text "Next ==>" -command {if {[CheckFreeSpace2]} {set ::State Installing2}}\
+	pack [ttk::button $page.next -text "Next ==>" -command {if {[CheckFreeSpace2]} {set ::State Installing2}}\
 				-state normal] \
 		-side bottom -anchor e
       }
       Installing2 {
-	pack [TitleFrame $page.progressFrame -text "Installing additional Archives..." \
-					     -font {Helvetica -24 bold}] \
+	pack [ttk::labelframe $page.progressFrame -text "Installing additional Archives..." \
+				-labelanchor nw] \
 			-expand yes -fill both
-	set pframe [$page.progressFrame getframe]
+	set pframe $page.progressFrame
 	namespace eval Installing2 {
 		variable progress 0
 		variable logstatus {}
 		variable logtext {}
 	}
-	set progress [ProgressBar $pframe.progress -type normal -maximum 100 \
+	set progress [ttk::progressbar $pframe.progress -orient horizontal -maximum 100 \
 				-variable ::Installing2::progress]
 	pack $progress -fill x
-	pack [Label $pframe.logstatus -textvariable ::Installing2::logstatus] \
+	pack [ttk::label $pframe.logstatus -textvariable ::Installing2::logstatus] \
 		-expand yes -fill x -anchor w
 	set sw [ScrolledWindow $pframe.scroll -auto vertical -scrollbar vertical]
 	pack $sw -expand yes -fill both
-	set Installing2::logtext [text [$sw getframe].logtext -wrap char \
+	set Installing2::logtext [ROText [$sw getframe].logtext -wrap char \
 							-height 8 -width 40]
-	SetROTags $Installing2::logtext
 	pack $Installing2::logtext -expand yes -fill both
 	$sw setwidget $Installing2::logtext
-	pack [Button $page.next -text "Next ==>" -command {set ::State Done}\
+	pack [ttk::button $page.next -text "Next ==>" -command {set ::State Done}\
 				-state disabled] \
 		-side bottom -anchor e
       }
       Done {
-	pack [Label $page.message -font {Times -32 bold} \
+	pack [ttk::label $page.message -font {Times -32 bold} \
 				  -text {Install Complete!}] \
 		-anchor c -expand yes -fill x
-	pack [Button $page.exit -text "Exit ==>" -command {exit}] \
+	pack [ttk::button $page.exit -text "Exit ==>" -command {exit}] \
 		-side bottom -anchor e
       }
     }

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Jul 10 16:07:16 2013
-#  Last Modified : <140227.1122>
+#  Last Modified : <140303.1344>
 #
 #  Description	
 #
@@ -329,6 +329,9 @@ snit::widget FileEntry {
                 }
             }
         }
+    }
+    method bind {sequence script} {
+        bind $entry $sequence $script
     }
 }
 
