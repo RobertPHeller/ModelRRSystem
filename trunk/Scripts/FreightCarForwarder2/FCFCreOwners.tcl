@@ -63,7 +63,6 @@ proc FCFCreOwners::FCFCreOwners {notebook} {
   pack $OwnersPageSW -expand yes -fill both
   variable OwnersPageFR  [ScrollableFrame $OwnersPageSW.fr \
 						-constrainedwidth yes]
-  pack $OwnersPageFR -expand yes -fill both
   $OwnersPageSW setwidget $OwnersPageFR
   set frame [$OwnersPageFR getframe]
 

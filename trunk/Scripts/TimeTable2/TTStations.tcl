@@ -110,7 +110,6 @@ snit::type TimeTable::createAllStationsDialog {
 			-auto both -scrollbar both]
     pack $slScroller -expand yes -fill both
     set _StationList [Tree $slScroller.stations]
-    pack $_StationList -expand yes -fill both
     $_StationList bindImage <1> [mytypemethod _SelectStation]
     $_StationList bindText  <1> [mytypemethod _SelectStation]
     $slScroller setwidget $_StationList
@@ -294,7 +293,6 @@ snit::type TimeTable::SelectOneStationDialog {
     set slist [eval [list ScrolledWindow $frame.slist] -scrollbar both -auto both]
     pack $slist -expand yes -fill both
     set slistlist [eval [list ListBox $frame.slist.list] -selectmode single]
-    pack $slistlist -expand yes -fill both
     $slist setwidget $slistlist
     $slistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $slistlist bindText <Double-1> [mytypemethod _SelectFromList]
@@ -391,7 +389,6 @@ snit::widget TimeTable::displayOneStation {
 				-scrollbar both -auto both]
     pack $storageScroll -expand yes -fill both
     set storageList [ListBox $storageScroll.storageList]
-    pack $storageList -expand yes -fill both
     $storageScroll setwidget $storageList
   }
   method initializetopframe {frame args} {
@@ -487,7 +484,6 @@ snit::type TimeTable::viewAllStationsDialog {
     set slist [eval [list ScrolledWindow $mainframe.slist] -scrollbar both -auto both]
     pack $slist -expand yes -fill both
     set slistlist [eval [list ScrollableFrame $mainframe.slist.list]]
-    pack $slistlist -expand yes -fill both
     $slist setwidget $slistlist
     set stations [$slistlist getframe]
     ttk::label $stations.name0 -text [_m "Label|Name"] -anchor w

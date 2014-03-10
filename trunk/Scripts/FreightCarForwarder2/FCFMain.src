@@ -250,7 +250,7 @@ proc MainWindow {} {
   $Main menu entryconfigure file [_m "Menu|File|Exit"] -command {CarefulExit}
   set MainWindow [$Main scrollwindow getframe]
 # Need Read-Only Text...
-  pack [set LogWindow [ROText $MainWindow.text]] -fill both -expand yes
+  set LogWindow [ROText $MainWindow.text]
   $Main scrollwindow setwidget $LogWindow
 
   $Main menu delete help [_m "Menu|Help|On Keys..."]

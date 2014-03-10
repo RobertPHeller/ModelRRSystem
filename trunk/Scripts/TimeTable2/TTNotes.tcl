@@ -99,7 +99,6 @@ snit::type TimeTable::viewAllNotesDialog {
 		-auto vertical -scrollbar vertical
     pack $notesSWindow -expand yes -fill both
     set notesSFrame [ScrollableFrame $notesSWindow.notesSFrame]
-    pack $notesSFrame -expand yes -fill both
     $notesSWindow setwidget $notesSFrame
     set notesFrame [$notesSFrame getframe]
     ttk::label $notesFrame.number0 -text [_m "Label|Number"] -anchor e
@@ -195,7 +194,6 @@ snit::type TimeTable::selectOneNoteDialog {
     set nlist [eval [list ScrolledWindow $frame.nlist] -scrollbar both -auto both]
     pack $nlist -expand yes -fill both
     set nlistlist [eval [list ListBox $frame.nlist.list] -selectmode single]
-    pack $nlistlist -expand yes -fill both
     $nlist setwidget $nlistlist
     $nlistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $nlistlist bindText <Double-1> [mytypemethod _SelectFromList]
@@ -288,7 +286,6 @@ snit::widget TimeTable::displayOneNote {
     pack $theTextSW -expand yes -fill both
     set theText [text $theTextSW.theText -wrap word -state disabled \
 			-takefocus no]
-    pack $theText -expand yes -fill both
     $theTextSW setwidget $theText
   }
 
@@ -358,7 +355,6 @@ snit::type TimeTable::editNoteDialog {
 			-auto vertical -scrollbar vertical]
     pack $theTextSW -expand yes -fill both
     set theText [text $theTextSW.theText -wrap word -takefocus no]
-    pack $theText -expand yes -fill both
     $theTextSW setwidget $theText
     bind $theText <Return> "[bind Text <Return>];break"
 

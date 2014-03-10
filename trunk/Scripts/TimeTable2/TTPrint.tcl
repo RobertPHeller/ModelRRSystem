@@ -398,8 +398,7 @@ snit::type TimeTable::printConfigurationDialog {
 						     -scrollbar both] \
 	-expand yes -fill both
     set extraPreambleText $extraPreambleLF_sw.text
-    pack [text $extraPreambleText -wrap word -width 40 -height 5] \
-	-expand yes -fill both
+    text $extraPreambleText -wrap word -width 40 -height 5
     $extraPreambleLF_sw setwidget $extraPreambleText
   }
   typemethod _LeaveGeneral {} {
@@ -540,8 +539,7 @@ snit::type TimeTable::printConfigurationDialog {
     pack [ScrolledWindow $beforeTOCLF_sw -auto both -scrollbar both] \
 	-expand yes -fill both
     set beforeTOCText $beforeTOCLF_sw.text
-    pack [text $beforeTOCText -wrap word -width 40 -height 5] \
-	-expand yes -fill both
+    text $beforeTOCText -wrap word -width 40 -height 5
     $beforeTOCLF_sw setwidget $beforeTOCText
     set notesTOPLF $frame.notesTOPLF
     pack [ttk::labelframe $notesTOPLF \
@@ -553,8 +551,7 @@ snit::type TimeTable::printConfigurationDialog {
     pack [ScrolledWindow $notesTOPLF_sw -auto both -scrollbar both] \
 	-expand yes -fill both
     set notesTOPText $notesTOPLF_sw.text
-    pack [text $notesTOPText -wrap word -width 40 -height 5] \
-	-expand yes -fill both
+    text $notesTOPText -wrap word -width 40 -height 5
     $notesTOPLF_sw setwidget $notesTOPText
     set allTrainsHeaderLE $frame.allTrainsHeaderLE
     pack [LabelEntry $allTrainsHeaderLE \
@@ -570,8 +567,7 @@ snit::type TimeTable::printConfigurationDialog {
    pack [ScrolledWindow $allTrainsSectionTOPLF_sw -auto both -scrollbar both] \
 	-expand yes -fill both
    set allTrainsSectionTOPText $allTrainsSectionTOPLF_sw.text
-   pack [text $allTrainsSectionTOPText -wrap word -width 40 -height 5] \
-	-expand yes -fill both
+   text $allTrainsSectionTOPText -wrap word -width 40 -height 5
    $allTrainsSectionTOPLF_sw setwidget $allTrainsSectionTOPText
   }
   typemethod _SetGroupsState {} {
@@ -723,7 +719,7 @@ snit::type TimeTable::printConfigurationDialog {
 	-fill x
     pack [ScrolledWindow $groupItemsSW -auto both -scrollbar both] \
 	-expand yes -fill both
-    pack [ScrollableFrame $groupItemsSF] -expand yes -fill both
+    ScrollableFrame $groupItemsSF
     $groupItemsSW setwidget $groupItemsSF
   }
   typemethod _RaiseGroups {} {
@@ -814,8 +810,7 @@ snit::type TimeTable::printConfigurationDialog {
     pack [ScrolledWindow $_GroupSectionTOPLFs_sw -auto both -scrollbar both] \
 	-expand yes -fill both
     set _GroupSectionTOPTexts($last) $_GroupSectionTOPLFs_sw.text
-    pack [text $_GroupSectionTOPTexts($last) -wrap word -height 5] \
-	-expand yes -fill both
+    text $_GroupSectionTOPTexts($last) -wrap word -height 5
     $_GroupSectionTOPLFs_sw setwidget $_GroupSectionTOPTexts($last)
 #    puts stderr "*** $type _AddGroup: built the SectionTOP for class $last"
     set _GroupTrainsLFs($last)       $f1.trains
@@ -829,8 +824,7 @@ snit::type TimeTable::printConfigurationDialog {
 	-expand yes -fill both
 #    puts stderr "*** $type _AddGroup: built (_GroupTrainsLFs_sw) $_GroupTrainsLFs_sw"
     set _GroupTrainsLBs($last) [$_GroupTrainsLFs_sw getframe].lb
-    pack [ListBox $_GroupTrainsLBs($last) -height 5] \
-	-expand yes -fill both
+    ListBox $_GroupTrainsLBs($last) -height 5
 #    puts stderr "*** $type _AddGroup: built (_GroupTrainsLBs($last) $_GroupTrainsLBs($last)"
     $_GroupTrainsLFs_sw setwidget $_GroupTrainsLBs($last)
 #    puts stderr "*** $type _AddGroup: built the TrainsLF for class $last"
@@ -1070,7 +1064,7 @@ snit::widget TimeTable::subprocess {
     pack [ScrolledWindow $logwindowSW -auto both -scrollbar both]\
 		-expand yes -fill both
     set logwindowText $logwindowSW.text
-    pack [ROText $logwindowText -wrap word] -expand yes -fill both
+    ROText $logwindowText -wrap word
     $logwindowSW setwidget $logwindowText
   }
 

@@ -98,7 +98,6 @@ snit::type SearchForCarsDialog {
 			-scrollbar both -auto both]
     pack $clist -expand yes -fill both
     set clistlist [ListBox $clist.list -selectmode single]
-    pack $clistlist -expand yes -fill both
     $clist setwidget $clistlist
     $clistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $clistlist bindText <Double-1> [mytypemethod _SelectFromList]

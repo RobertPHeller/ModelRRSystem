@@ -189,7 +189,6 @@ proc CameraCalculator::CameraCalculator {anyDistanceP} {
   set sw [ScrolledWindow $frame.canvasSW -scrollbar both -auto both]
   pack $sw -expand yes -fill both
   variable LensCanvas [canvas $sw.lensCanvas]
-  pack $LensCanvas -expand yes -fill both
   $sw setwidget $LensCanvas
   # Construct command button box along the bottom.
   set bottom $frame.bottom

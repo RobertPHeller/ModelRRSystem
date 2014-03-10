@@ -64,7 +64,6 @@ proc FCFCreTrains::FCFCreTrains {notebook} {
   pack $TrainsPageSW -expand yes -fill both
   variable TrainsPageFR  [ScrollableFrame $TrainsPageSW.fr \
 						-constrainedwidth yes]
-  pack $TrainsPageFR -expand yes -fill both
   $TrainsPageSW setwidget $TrainsPageFR
   set frame [$TrainsPageFR getframe]
 

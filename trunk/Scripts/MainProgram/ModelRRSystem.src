@@ -135,7 +135,6 @@ proc ModelRRSystem::MainWindow {} {
   $Main toolbar show tools
   variable IconFrame [IconFrame $MainWindow.iconFrame -width 300 -height 400 \
 	-toolbaradd [list $Main toolbar addbutton tools]]
-  pack $IconFrame -expand yes -fill both
   $Main scrollwindow setwidget $IconFrame
   $Main menu insert file Close \
 	command -label {Run Program} -command "$IconFrame runaprogram" \
@@ -145,7 +144,6 @@ proc ModelRRSystem::MainWindow {} {
   set rlsw [ScrolledWindow $rl.rlsw -scrollbar both -auto both]
   pack $rlsw -expand yes -fill both
   variable LogWindow [text [$rlsw getframe].logWindow -width 40 -wrap word]
-  pack $LogWindow -expand yes -fill both
   $rlsw setwidget $LogWindow
   $IconFrame configure -logtext $LogWindow
   $Main menu delete help "On Keys..."

@@ -96,7 +96,6 @@ snit::type SelectATrainDialog {
 			-scrollbar both -auto both]
     pack $tlist -expand yes -fill both
     set tlistlist [ListBox $tlist.list -selectmode single]
-    pack $tlistlist -expand yes -fill both
     $tlist setwidget $tlistlist
     $tlistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $tlistlist bindText <Double-1> [mytypemethod _SelectFromList]

@@ -78,7 +78,6 @@ snit::type SelectAStationDialog  {
 			-scrollbar both -auto both]
     pack $slist -expand yes -fill both
     set slistlist [ListBox $slist.list -selectmode single]
-    pack $slistlist -expand yes -fill both
     $slist setwidget $slistlist
     $slistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $slistlist bindText <Double-1> [mytypemethod _SelectFromList]

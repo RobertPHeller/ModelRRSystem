@@ -66,7 +66,6 @@ snit::type MainWindow {
     set swframe [ScrollableFrame $frame.swframe \
 			-constrainedheight yes -constrainedwidth yes \
 			-width [expr {$width + 15}] -height $height]
-    pack $swframe -expand yes -fill both
     $main scrollwindow setwidget $swframe
     set ctcpanel [::CTCPanel::CTCPanel [$swframe getframe].ctcpanel \
 			-width $width -height $height]

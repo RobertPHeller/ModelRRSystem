@@ -962,7 +962,6 @@ proc TimeTable::MainWindow {dontWithdraw} {
   set MainWindow [$Main scrollwindow getframe]
   set ChartDisplay [ChartDisplay $MainWindow.chart \
 	-labelsize [TimeTable::TimeTableConfiguration getkeyoption chart labelwidth]]
-  pack $ChartDisplay -expand yes -fill both
   $Main scrollwindow setwidget $ChartDisplay
 
   $Main menu delete help "On Keys..."

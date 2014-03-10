@@ -93,7 +93,6 @@ snit::type SelectADivisionDialog {
     set dlist [ScrolledWindow $dialog.dlist -scrollbar both -auto both]
     pack $dlist -expand yes -fill both
     set dlistlist [ListBox $dlist.list -selectmode single]
-    pack $dlistlist -expand yes -fill both
     $dlist setwidget $dlistlist
     $dlistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $dlistlist bindText <Double-1> [mytypemethod _SelectFromList]

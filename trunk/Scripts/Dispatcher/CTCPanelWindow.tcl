@@ -370,7 +370,6 @@ namespace eval CTCPanelWindow {
       set frame [$main scrollwindow getframe]
       install swframe using ScrollableFrame $frame.swframe \
 			-constrainedheight yes -constrainedwidth yes
-      pack $swframe -expand yes -fill both
       $main scrollwindow setwidget $swframe
       install ctcpanel using ::CTCPanel::CTCPanel [$swframe getframe].ctcpanel
       pack $ctcpanel -fill both -expand yes
@@ -1826,7 +1825,6 @@ namespace eval CTCPanelWindow {
 				[$graphicSW getframe].graphicCanvas \
 				-scrollregion {0 0 0 0} \
 				-height 100 -width 100
-      pack $graphicCanvas -expand yes -fill both
       $graphicSW setwidget $graphicCanvas
       bind $graphicCanvas <Configure> [mymethod updateSR %W %h %w]
       install controlPointLCB using LabelComboBox $frame.controlPointLCB \
@@ -1955,7 +1953,6 @@ namespace eval CTCPanelWindow {
 			[$occupiedcommandSW getframe].occupiedcommandText \
 			-wrap none -width 40 -height 5
       bindtags $occupiedcommandText [list $occupiedcommandText Text]
-      pack $occupiedcommandText -expand yes -fill both
       $occupiedcommandSW setwidget $occupiedcommandText
       install statecommandLF using LabelFrame $optionsFrame.statecommandLF \
 						-text [_m "Label|State Script:"] \
@@ -1968,7 +1965,6 @@ namespace eval CTCPanelWindow {
 			[$statecommandSW getframe].statecommandText \
 			-wrap none -width 40 -height 5
       bindtags $statecommandText [list $statecommandText Text]
-      pack $statecommandText -expand yes -fill both
       $statecommandSW setwidget $statecommandText
       install normalcommandLF using LabelFrame $optionsFrame.normalcommandLF \
 						-text [_m "Label|Normal Script:"] \
@@ -1981,7 +1977,6 @@ namespace eval CTCPanelWindow {
 			[$normalcommandSW getframe].normalcommandText \
 			-wrap none -width 40 -height 5
       bindtags $normalcommandText [list $normalcommandText Text]
-      pack $normalcommandText -expand yes -fill both
       $normalcommandSW setwidget $normalcommandText
       install reversecommandLF using LabelFrame $optionsFrame.reversecommandLF \
 						-text [_m "Label|Reverse Script:"] \
@@ -1994,7 +1989,6 @@ namespace eval CTCPanelWindow {
 			[$reversecommandSW getframe].reversecommandText \
 			-wrap none -width 40 -height 5
       bindtags $reversecommandText [list $reversecommandText Text]
-      pack $reversecommandText -expand yes -fill both
       $reversecommandSW setwidget $reversecommandText
       install leftcommandLF using LabelFrame $optionsFrame.leftcommandLF \
 						-text [_m "Label|Left Script:"] \
@@ -2007,7 +2001,6 @@ namespace eval CTCPanelWindow {
 			[$leftcommandSW getframe].leftcommandText \
 			-wrap none -width 40 -height 5
       bindtags $leftcommandText [list $leftcommandText Text]
-      pack $leftcommandText -expand yes -fill both
       $leftcommandSW setwidget $leftcommandText
       install centercommandLF using LabelFrame $optionsFrame.centercommandLF \
 						-text [_m "Label|Center Script:"] \
@@ -2020,7 +2013,6 @@ namespace eval CTCPanelWindow {
 			[$centercommandSW getframe].centercommandText \
 			-wrap none -width 40 -height 5
       bindtags $centercommandText [list $centercommandText Text]
-      pack $centercommandText -expand yes -fill both
       $centercommandSW setwidget $centercommandText
       install rightcommandLF using LabelFrame $optionsFrame.rightcommandLF \
 						-text [_m "Label|Right Script:"] \
@@ -2033,7 +2025,6 @@ namespace eval CTCPanelWindow {
 			[$rightcommandSW getframe].rightcommandText \
 			-wrap none -width 40 -height 5
       bindtags $rightcommandText [list $rightcommandText Text]
-      pack $rightcommandText -expand yes -fill both
       $rightcommandSW setwidget $rightcommandText
       install commandLF using LabelFrame $optionsFrame.commandLF \
 						-text [_m "Label|Action Script:"] \
@@ -2046,7 +2037,6 @@ namespace eval CTCPanelWindow {
 			[$commandSW getframe].commandText \
 			-wrap none -width 40 -height 5
       bindtags $commandText [list $commandText Text]
-      pack $commandText -expand yes -fill both
       $commandSW setwidget $commandText
       $self configurelist $args
       bind $win <<ComboboxSelected>> [mymethod redrawgraphic]
@@ -2792,7 +2782,6 @@ namespace eval CTCPanelWindow {
       pack $nameListSW -expand yes -fill both
       install nameList using ListBox [$nameListSW getframe].nameList \
 			-selectmode single
-      pack $nameList -expand yes -fill both
       $nameListSW setwidget $nameList
       $nameList bindText <1> [mymethod _ListSelect]
       $nameList bindText <Double-1> [mymethod _ListSelectAnd_Select]
@@ -3180,7 +3169,6 @@ namespace eval CTCPanelWindow {
       pack $nameListSW -expand yes -fill both
       install nameList using ListBox [$nameListSW getframe].nameList \
 			-selectmode single
-      pack $nameList -expand yes -fill both
       $nameListSW setwidget $nameList
       $nameList bindText <1> [mymethod _ListSelect]
       $nameList bindText <Double-1> [mymethod _ListSelectAnd_Select]
@@ -3357,7 +3345,6 @@ namespace eval CTCPanelWindow {
       pack $nameListSW -expand yes -fill both
       install nameList using ListBox [$nameListSW getframe].nameList \
 			-selectmode single
-      pack $nameList -expand yes -fill both
       $nameListSW setwidget $nameList
       $nameList bindText <1> [mymethod _ListSelect]
       $nameList bindText <Double-1> [mymethod _ListSelectAnd_Select]
@@ -3428,7 +3415,6 @@ namespace eval CTCPanelWindow {
       install codeText using text [$codeTextSW getframe].codeText \
 		-wrap none
       bindtags $codeText [list $codeText Text]
-      pack $codeText -expand yes -fill both
       $codeTextSW setwidget $codeText
       $self configurelist $args
     }

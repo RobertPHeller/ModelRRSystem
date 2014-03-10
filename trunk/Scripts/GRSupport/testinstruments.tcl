@@ -27,7 +27,6 @@ namespace eval TestInstruments {
   set sw [ScrolledWindow::create $frame.canvasSW -scrollbar both -auto both]
   pack $sw -expand yes -fill both
   variable Canvas [canvas $sw.canvas]
-  pack $Canvas -expand yes -fill both
   $sw setwidget $Canvas
 
   variable SpeedOdometer [Instruments::DialInstrument create spedo $Canvas -x 20 -y 50 -size 80 -label {Speed}]

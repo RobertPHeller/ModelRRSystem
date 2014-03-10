@@ -61,7 +61,6 @@ proc FCFCreOrders::FCFCreOrders {notebook} {
   pack $OrdersPageSW -expand yes -fill both
   variable OrdersPageFR  [ScrollableFrame $OrdersPageSW.fr \
 						-constrainedwidth yes]
-  pack $OrdersPageFR -expand yes -fill both
   $OrdersPageSW setwidget $OrdersPageFR
   set frame [$OrdersPageFR getframe]
 

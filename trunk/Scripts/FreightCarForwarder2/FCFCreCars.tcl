@@ -88,7 +88,6 @@ proc FCFCreCars::FCFCreCars {notebook} {
   pack $CarsPageSW -expand yes -fill both
   variable CarsPageFR  [ScrollableFrame $CarsPageSW.fr \
 						-constrainedwidth yes]
-  pack $CarsPageFR -expand yes -fill both
   $CarsPageSW setwidget $CarsPageFR
   set frame [$CarsPageFR getframe]
   variable CarsListFR [frame $frame.carsListFR]
@@ -360,7 +359,6 @@ proc FCFCreCars::FCFCreCarTypes {notebook} {
   pack $CarTypesPageSW -expand yes -fill both
   variable CarTypesPageFR  [ScrollableFrame $CarTypesPageSW.fr \
 						-constrainedwidth yes]
-  pack $CarTypesPageFR -expand yes -fill both
   $CarTypesPageSW setwidget $CarTypesPageFR
   set frame [$CarTypesPageFR getframe]
 

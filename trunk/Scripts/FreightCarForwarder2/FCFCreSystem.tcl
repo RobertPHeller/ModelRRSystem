@@ -79,7 +79,6 @@ proc FCFCreSystem::FCFCreSystem {notebook} {
   pack $SystemPageSW -expand yes -fill both
   variable SystemPageFR [ScrollableFrame $SystemPageSW.fr \
 							-constrainedwidth yes]
-  pack $SystemPageFR -expand yes -fill both
   $SystemPageSW setwidget $SystemPageFR
   set frame [$SystemPageFR getframe]
   

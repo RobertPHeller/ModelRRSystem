@@ -94,7 +94,6 @@ snit::type SelectAnIndustryDialog {
     set ilist [ScrolledWindow $frame.ilist -scrollbar both -auto both]
     pack $ilist -expand yes -fill both
     set ilistlist [ListBox $ilist.list -selectmode single]
-    pack $ilistlist -expand yes -fill both
     $ilist setwidget $ilistlist
     $ilistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $ilistlist bindText <Double-1> [mytypemethod _SelectFromList]

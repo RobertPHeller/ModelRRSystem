@@ -133,7 +133,7 @@ proc MainWindow {} {
   $Main toolbar addbutton tools close -image  CloseButtonImage -command CarefulExit
   set MainWindow [$Main scrollwindow getframe]
   # Create a Log window (text area) and put some text there.
-  pack [set LogWindow [text $MainWindow.text]] -fill both -expand yes
+  set LogWindow [text $MainWindow.text]
   $Main scrollwindow setwidget $LogWindow
   $LogWindow insert end {
 Click on the Open button on the toolbar (or select the Open item on the file

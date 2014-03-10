@@ -464,7 +464,6 @@ namespace eval NodeGraphCanvas {
       pack $senseScriptSW -expand yes -fill both
       install senseScriptT using ROText [$senseScriptSW getframe].t \
 					-height 4 -width 40
-      pack $senseScriptT -expand yes -fill both
       $senseScriptSW setwidget $senseScriptT
     }
     method _trackListS {s e} {
@@ -543,7 +542,6 @@ namespace eval NodeGraphCanvas {
       pack $normalActionScriptSW -expand yes -fill both
       install normalActionScriptT using ROText [$normalActionScriptSW getframe].t \
 					-height 4 -width 40
-      pack $normalActionScriptT -expand yes -fill both
       $normalActionScriptSW setwidget $normalActionScriptT
       install reverseActionScriptLF using LabelFrame $frame.reverseActionScriptLF \
 						    -text [_m "Label|Reverse Action Script:"] \
@@ -554,7 +552,6 @@ namespace eval NodeGraphCanvas {
       pack $reverseActionScriptSW -expand yes -fill both
       install reverseActionScriptT using ROText [$reverseActionScriptSW getframe].t \
 					-height 4 -width 40
-      pack $reverseActionScriptT -expand yes -fill both
       $reverseActionScriptSW setwidget $reverseActionScriptT
       install senseScriptLF using LabelFrame $frame.senseScriptLF \
 						    -text [_m "Label|Sense Script:"] \
@@ -565,7 +562,6 @@ namespace eval NodeGraphCanvas {
       pack $senseScriptSW -expand yes -fill both
       install senseScriptT using ROText [$senseScriptSW getframe].t \
 					-height 4 -width 40
-      pack $senseScriptT -expand yes -fill both
       $senseScriptSW setwidget $senseScriptT
     }
     method initializetopframe {frame args} {
@@ -638,10 +634,8 @@ namespace eval NodeGraphCanvas {
       pack [ttk::label $hframe.l5 -text [_m "Label| edges:"]] -side left -anchor w -fill x
       install infoFrameSW using ScrolledWindow $frame.infoFrameSW \
 				-scrollbar both -auto both
-      pack $infoFrameSW -expand yes -fill both
       install infoFrame using ScrollableFrame \
 			[$infoFrameSW getframe].infoFrame
-      pack $infoFrame -expand yes -fill both
       $infoFrameSW setwidget $infoFrame
       install segmentList using LabelEntry $frame.segmentList \
 	-editable no -label [_m "Label|Segments List:"]

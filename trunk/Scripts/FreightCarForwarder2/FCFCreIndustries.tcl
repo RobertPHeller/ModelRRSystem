@@ -64,7 +64,6 @@ proc FCFCreIndustries::FCFCreIndustries {notebook} {
   pack $IndustriesPageSW -expand yes -fill both
   variable IndustriesPageFR [ScrollableFrame $IndustriesPageSW.fr \
 							-constrainedwidth yes]
-  pack $IndustriesPageFR -expand yes -fill both
   $IndustriesPageSW setwidget $IndustriesPageFR
   set frame [$IndustriesPageFR getframe]
 

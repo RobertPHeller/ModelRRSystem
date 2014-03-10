@@ -104,7 +104,6 @@ snit::type TimeTable::createAllCabsDialog {
 			-auto both -scrollbar both]
     pack $clScroller -expand yes -fill both
     set _CabList [ListBox $clScroller.cabs]
-    pack $_CabList -expand yes -fill both
     $clScroller setwidget $_CabList
     set add1CabFrame [ttk::labelframe $frame.add1CabFrame \
 				-text [_m "Label|Add Cab:"] -labelanchor n]

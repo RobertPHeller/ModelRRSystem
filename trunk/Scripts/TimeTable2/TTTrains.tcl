@@ -110,7 +110,6 @@ snit::type TimeTable::SelectOneTrainDialog {
     set tlist [eval [list ScrolledWindow $frame.tlist] -scrollbar both -auto both]
     pack $tlist -expand yes -fill both
     set tlistlist [eval [list ListBox $frame.tlist.list] -selectmode single]
-    pack $tlistlist -expand yes -fill both
     $tlist setwidget $tlistlist
     $tlistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $tlistlist bindText <Double-1> [mytypemethod _SelectFromList]
@@ -249,7 +248,6 @@ snit::widget TimeTable::displayOneTrain {
     pack $schedSWindow -in $schedPane -expand yes -fill both
 
     set schedFrame [eval [list ScrollableFrame $frame.schedscroll.sched] -width 300 -height 150  ]
-    pack $schedFrame -expand yes -fill both
     $schedSWindow setwidget $schedFrame
     Label $schedFrame.mile0 -text [_m "Label|Mile"] -anchor e
     Label $schedFrame.arrival0 -text [_m "Label|Arival"] -anchor w
@@ -268,7 +266,6 @@ snit::widget TimeTable::displayOneTrain {
     pack $notesSWindow -in $notesPane -expand yes -fill both
 
     set notesText [eval [list text $frame.notescroll.notes] -height 8 -width 24]
-    pack $notesText -expand yes -fill both
     $notesSWindow setwidget $notesText
   }
 
@@ -442,7 +439,6 @@ snit::type TimeTable::viewAllTrainsDialog {
 		-auto vertical -scrollbar vertical
     pack $scheduleSWindow -expand yes -fill both
     set scheduleSFrame [ScrollableFrame $scheduleSWindow.scheduleSFrame]
-    pack $scheduleSFrame -expand yes -fill both
     $scheduleSWindow setwidget $scheduleSFrame
     set scheduleFrame [$scheduleSFrame getframe]
     ttk::label $scheduleFrame.number0 -text [_m "Label|Number"] -anchor e
@@ -672,7 +668,6 @@ snit::type TimeTable::editTrainDialog {
 				-auto both -scrollbar both]
     pack $schedscroll -expand yes -fill both
     set schedscrollframe [ScrollableFrame $schedscroll.schedscrollframe]
-    pack $schedscrollframe -expand yes -fill both
     $schedscroll setwidget $schedscrollframe
     set schedule [$schedscrollframe getframe]
     ttk::label $schedule.mile0 -text [_m "Label|Smile"]
@@ -699,7 +694,6 @@ snit::type TimeTable::editTrainDialog {
 				-auto both -scrollbar both]
     pack $storagescroll -expand yes -fill both
     set storagescrollframe [ScrollableFrame $storagescroll.storagescrollframe]
-    pack $storagescrollframe -expand yes -fill both
     $storagescroll setwidget $storagescrollframe
     set storage [$storagescrollframe getframe]
     ttk::label $storage.mile0 -text [_m "Label|Smile"]
