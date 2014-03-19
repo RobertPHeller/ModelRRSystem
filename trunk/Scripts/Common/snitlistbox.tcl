@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jul 13 13:24:49 2013
-#  Last Modified : <140224.1426>
+#  Last Modified : <140319.1235>
 #
 #  Description	
 #
@@ -207,7 +207,7 @@ snit::widget ListBox {
             set   {$treeview selection set $args}
             add   {$treeview selection add $args}
             remove {$treeview selection remove $args}
-            get   {[return $treeview selection]}
+            get   {return [$treeview selection]}
         }
     }
 }
