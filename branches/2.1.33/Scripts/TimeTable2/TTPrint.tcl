@@ -151,8 +151,8 @@ snit::widgetadaptor NoteBook {
             bind NoteBook <Control-ISO_Left_Tab> "[mytypemethod _CycleTab %W -1]; break"
         }
         ttk::style configure NoteBook.Tab \
-              -padding [ttk::style lookup TNotebook.Tab -padding] \
-              -background [ttk::style lookup TNotebook.Tab -background]
+              -padding [ttk::style lookup TNotebook.Tab -padding {} {4 2}] \
+              -background [ttk::style lookup TNotebook.Tab -background {} #c3c3c3]
         ttk::style layout NoteBook [ttk::style layout TNotebook]
         ttk::style layout NoteBook.Tab [ttk::style layout TNotebook.Tab]
     }

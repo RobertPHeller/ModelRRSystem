@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon May 27 10:14:03 2013
-#  Last Modified : <130710.1438>
+#  Last Modified : <140327.1426>
 #
 #  Description	
 #
@@ -1355,7 +1355,7 @@ snit::widgetadaptor HTMLHelp {
             label $label 
 	}
         
-	$label configure -relief ridge -fg orange -text $alt
+	$label configure -relief ridge -foreground orange -text $alt
 	catch {$label configure -bd $border}
 	$win window create $var(S_insert) -align $align -window $item -pady 2 -padx 2
         
@@ -1929,7 +1929,7 @@ snit::widgetadaptor HTMLHelp {
 	set value submit
 	HMextract_param $param value
 	set item $win.input_submit,$var(tags)
-	button $item -text [HMmap_esc $value] -fg blue
+	button $item -text [HMmap_esc $value] -foreground blue
 	HMwin_install $win $item
 	lappend form(submit_button) $item
 	# need to tie the "name=value" to this button

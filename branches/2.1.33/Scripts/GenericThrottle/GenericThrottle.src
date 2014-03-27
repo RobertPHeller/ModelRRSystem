@@ -318,12 +318,12 @@ namespace eval GenericThrottle {
 
       if {$_functions($i,value) == 1} {
 	set _functions($i,value) 0
-	$_functions($i,button) configure -fg black
-	$_functions($i,button) configure -activeforeground black
+	#$_functions($i,button) configure -foreground black
+	#$_functions($i,button) configure -activeforeground black
       } else {
 	set _functions($i,value) 1
-	$_functions($i,button) configure -fg red
-	$_functions($i,button) configure -activeforeground red
+	#$_functions($i,button) configure -foreground red
+	#$_functions($i,button) configure -activeforeground red
       }
       set cmd [list $commandstation]
       switch $group {
@@ -340,11 +340,11 @@ namespace eval GenericThrottle {
     method _updateButtonColors {} {
       for {set i 0} {$i < 13} {incr i} {
         if {$_functions($i,value) == 1} {
-	  $_functions($i,button) configure -fg red
-	  $_functions($i,button) configure -activeforeground red
+	  #$_functions($i,button) configure -foreground red
+	  #$_functions($i,button) configure -activeforeground red
 	} else {
-	  $_functions($i,button) configure -fg black
-	  $_functions($i,button) configure -activeforeground black
+	  #$_functions($i,button) configure -foreground black
+	  #$_functions($i,button) configure -activeforeground black
 	}
       }
     }

@@ -764,11 +764,11 @@ proc XPressNetThrottle::UpdateButtonColors {} {
   variable Functions
   for {set i 0} {$i < 13} {incr i} {
     if {$Functions($i,value) == 1} {
-      $Functions($i,button) configure -fg red
-      $Functions($i,button) configure -activeforeground red
+      #$Functions($i,button) configure -foreground red
+      #$Functions($i,button) configure -activeforeground red
     } else {
-      $Functions($i,button) configure -fg black
-      $Functions($i,button) configure -activeforeground black
+      #$Functions($i,button) configure -foreground black
+      #$Functions($i,button) configure -activeforeground black
     }
   }
 }
@@ -782,12 +782,12 @@ proc XPressNetThrottle::toggleButton {i} {
 
   if {$Functions($i,value) == 1} {
     set Functions($i,value) 0
-    $Functions($i,button) configure -fg black
-    $Functions($i,button) configure -activeforeground black
+    #$Functions($i,button) configure -foreground black
+    #$Functions($i,button) configure -activeforeground black
   } else {
     set Functions($i,value) 1
-    $Functions($i,button) configure -fg red
-    $Functions($i,button) configure -activeforeground red
+    #$Functions($i,button) configure -foreground red
+    #$Functions($i,button) configure -activeforeground red
   }
 
   set cmd [list XPressNetThrottle::QueueInstruction XPressNetThrottle::XPressNetBus]
