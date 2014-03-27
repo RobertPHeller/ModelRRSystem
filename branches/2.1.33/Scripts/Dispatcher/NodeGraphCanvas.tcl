@@ -634,11 +634,13 @@ namespace eval NodeGraphCanvas {
       pack [ttk::label $hframe.l5 -text [_m "Label| edges:"]] -side left -anchor w -fill x
       install infoFrameSW using ScrolledWindow $frame.infoFrameSW \
 				-scrollbar both -auto both
+      pack $infoFrameSW -expand yes -fill both
       install infoFrame using ScrollableFrame \
 			[$infoFrameSW getframe].infoFrame
       $infoFrameSW setwidget $infoFrame
       install segmentList using LabelEntry $frame.segmentList \
-	-editable no -label [_m "Label|Segments List:"]
+            -editable no -label [_m "Label|Segments List:"]
+      
     }
     method initializetopframe {frame args} {
 #      puts stderr "*** $self initializetopframe $frame $args"
@@ -721,19 +723,19 @@ namespace eval NodeGraphCanvas {
 					   "Label|Edge X:" "Label|Edge Y:" \
 					   "Label|Edge Angle:"]}]
       install node1ID using LabelEntry $frame.node1ID \
-	-editable no flat -label [_m "Label|Node:"] -labelwidth $lwidth
+	-editable no -label [_m "Label|Node:"] -labelwidth $lwidth
       pack $node1ID -fill x
       install node2ID using LabelEntry $frame.node2ID \
-	-editable no flat -label [_m "Label|Edge Node:"] -labelwidth $lwidth
+	-editable no -label [_m "Label|Edge Node:"] -labelwidth $lwidth
       pack $node2ID -fill x
       install edgeX using LabelEntry $frame.edgeX \
-	-editable no flat -label [_m "Label|Edge X:"] -labelwidth $lwidth
+	-editable no -label [_m "Label|Edge X:"] -labelwidth $lwidth
       pack $edgeX -fill x
       install edgeY using LabelEntry $frame.edgeY \
-	-editable no flat -label [_m "Label|Edge Y:"] -labelwidth $lwidth
+	-editable no -label [_m "Label|Edge Y:"] -labelwidth $lwidth
       pack $edgeY -fill x
       install edgeA using LabelEntry $frame.edgeA \
-	-editable no flat -label [_m "Label|Edge Angle:"] -labelwidth $lwidth
+	-editable no -label [_m "Label|Edge Angle:"] -labelwidth $lwidth
       pack $edgeA -fill x
     }
     method initializetopframe {frame args} {

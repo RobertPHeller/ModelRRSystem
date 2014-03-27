@@ -71,6 +71,7 @@ package require ListBox
 package require ScrollableFrame
 package require PagesManager
 package require ButtonBox
+package require ROText
 
 snit::type TimeTable::SelectOneTrainDialog {
   pragma -hastypedestroy no
@@ -107,9 +108,9 @@ snit::type TimeTable::SelectOneTrainDialog {
     ttk::label $headerlabel -anchor w -font {Helvetica -24 bold} \
 		-text [_ "Select one train"]
     pack  $headerlabel -side right -anchor w -expand yes -fill x
-    set tlist [eval [list ScrolledWindow $frame.tlist] -scrollbar both -auto both]
+    set tlist [ScrolledWindow $frame.tlist -scrollbar both -auto both]
     pack $tlist -expand yes -fill both
-    set tlistlist [eval [list ListBox $frame.tlist.list] -selectmode single]
+    set tlistlist [ListBox $frame.tlist.list -selectmode single]
     $tlist setwidget $tlistlist
     $tlistlist bindText <ButtonPress-1> [mytypemethod _BrowseFromList]
     $tlistlist bindText <Double-1> [mytypemethod _SelectFromList]
@@ -121,11 +122,11 @@ snit::type TimeTable::SelectOneTrainDialog {
   typemethod _OK {} {
     $dialog withdraw
     set result "[$number cget -text]"
-    return [eval [list $dialog enddialog] [list "$result"]]
+    return [$dialog enddialog "$result"]
   }
   typemethod _Cancel {} {
     $dialog withdraw
-    return [eval [list $dialog enddialog] [list {}]]
+    return [$dialog enddialog {}]
   }
 
   typemethod draw {args} {
@@ -147,15 +148,14 @@ snit::type TimeTable::SelectOneTrainDialog {
     }
     focus -force $number 
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [eval [list $dialog draw]]
+    return [$dialog draw]
   }
 
   typemethod _SelectFromList {selectedItem} {
     set elt [$tlistlist itemcget $selectedItem -data]
     set result [lindex $elt 0]
     eval [list $dialog withdraw]
-    return [eval [list $dialog enddialog] \
-		[list $result]]
+    return [$dialog enddialog $result]
   }
 
   typemethod _BrowseFromList {selectedItem} {
@@ -223,37 +223,47 @@ snit::widget TimeTable::displayOneTrain {
   method constructtopframe {frame args} {
     set header [frame $frame.header]
     pack $header -fill x
-    set numberLabel [Label $header.number -relief sunken]
+    set numberLabel [ttk::label $header.number -relief sunken]
     pack $numberLabel -side left
-    set nameLabel [Label $header.name -relief sunken]
+    #puts stderr "*** $self constructtopframe: numberLabel = $numberLabel"
+    set nameLabel [ttk::label $header.name -relief sunken]
     pack $nameLabel -side left -expand yes -fill x
-    pack [label $header.l1 -text [_m "Label|Class: "]] -side left
-    set classLabel [Label $header.class -relief sunken]
+    #puts stderr "*** $self constructtopframe: nameLabel = $nameLabel"
+    pack [ttk::label $header.l1 -text [_m "Label|Class: "]] -side left
+    set classLabel [ttk::label $header.class -relief sunken]
     pack $classLabel -side left
-    pack [label $header.l2 -text [_m "Label|Speed: "]] -side left
-    set speedLabel [Label $header.speed -relief sunken]
+    #puts stderr "*** $self constructtopframe: classLabel = $classLabel"
+    pack [ttk::label $header.l2 -text [_m "Label|Speed: "]] -side left
+    set speedLabel [ttk::label $header.speed -relief sunken]
     pack $speedLabel -side left
-    pack [label $header.l3 -text [_m "Label|Notes: "]] -side left
-    set notesLabel [Label $header.notes -relief sunken]
+    #puts stderr "*** $self constructtopframe: speedLabel = $speedLabel"
+    pack [ttk::label $header.l3 -text [_m "Label|Notes: "]] -side left
+    set notesLabel [ttk::label $header.notes -relief sunken]
     pack $notesLabel -side right
+    #puts stderr "*** $self constructtopframe: notesLabel = $notesLabel"
 
-    set snPane [eval [list ttk::panedwindow $frame.schedNotes] -side right]
+    set snPane [ttk::panedwindow $frame.schedNotes -orient vertical]
     pack $snPane -expand yes -fill both
+    #puts stderr "*** $self constructtopframe: snPane = $snPane"
     set schedPane [ttk::frame $snPane.sched]
     $snPane add $schedPane
+    #puts stderr "*** $self constructtopframe: schedPane = $schedPane"
     set notesPane [ttk::frame $snPane.notes]
     $snPane add $notesPane
+    #puts stderr "*** $self constructtopframe: notesPane = $notesPane"
 
-    set schedSWindow [eval [list ScrolledWindow $frame.schedscroll] -scrollbar both -auto both]
+    set schedSWindow [ScrolledWindow $frame.schedscroll -scrollbar both -auto both]
     pack $schedSWindow -in $schedPane -expand yes -fill both
+    #puts stderr "*** $self constructtopframe: schedSWindow is $schedSWindow"
 
-    set schedFrame [eval [list ScrollableFrame $frame.schedscroll.sched] -width 300 -height 150  ]
+    set schedFrame [ScrollableFrame $frame.schedscroll.sched -width 300 -height 150  ]
     $schedSWindow setwidget $schedFrame
-    Label $schedFrame.mile0 -text [_m "Label|Mile"] -anchor e
-    Label $schedFrame.arrival0 -text [_m "Label|Arival"] -anchor w
-    Label $schedFrame.station0 -text [_m "Label|Station"] -anchor w
-    Label $schedFrame.depart0  -text [_m "Label|Depart"] -anchor e
-    Label $schedFrame.notes0 -text [_m "Label|Notes"] -anchor w
+    #puts stderr "*** $self constructtopframe: schedFrame is $schedFrame"
+    ttk::label $schedFrame.mile0 -text [_m "Label|Mile"] -anchor e
+    ttk::label $schedFrame.arrival0 -text [_m "Label|Arival"] -anchor w
+    ttk::label $schedFrame.station0 -text [_m "Label|Station"] -anchor w
+    ttk::label $schedFrame.depart0  -text [_m "Label|Depart"] -anchor e
+    ttk::label $schedFrame.notes0 -text [_m "Label|Notes"] -anchor w
 
     foreach wid  {mile arrival station depart notes} \
 	    c    {0    1       2       3      4} \
@@ -262,16 +272,20 @@ snit::widget TimeTable::displayOneTrain {
     	-column $c -row 0 -sticky $sk
     }
 
-    set notesSWindow [eval [list ScrolledWindow $frame.notescroll] -scrollbar both -auto both]
+    set notesSWindow [ScrolledWindow $frame.notescroll -scrollbar both -auto both]
     pack $notesSWindow -in $notesPane -expand yes -fill both
-
-    set notesText [eval [list text $frame.notescroll.notes] -height 8 -width 24]
+    #puts stderr "*** $self constructtopframe: notesSWindow is $notesSWindow"
+    
+    set notesText [ROText $frame.notescroll.notes -height 8 -width 24]
     $notesSWindow setwidget $notesText
+    #puts stderr "*** $self constructtopframe: notesText is $notesText"
   }
 
   method initializetopframe {frame args} {
+    #puts stderr "*** $self initializetopframe $frame $args"
     $self configure -minutes -1
     $self configurelist $args
+    
     if {"$options(-title)" eq {}} {
       $self configure -title [_ "Displaying one train"]
     }
@@ -341,11 +355,11 @@ snit::widget TimeTable::displayOneTrain {
 #        puts stderr "*** displayOneTrain:resetTrainValues: ir = $ir"
 #        puts stderr "*** displayOneTrain:resetTrainValues: winfo exists $schedFrame.mile$ir = [winfo exists $schedFrame.mile$ir]"
         if {![winfo exists $schedFrame.mile$ir]} {
-	  Label $schedFrame.mile$ir -anchor e
-	  Label $schedFrame.arrival$ir -anchor w
-	  Label $schedFrame.station$ir -anchor w
-	  Label $schedFrame.depart$ir -anchor e
-	  Label $schedFrame.notes$ir -anchor w
+	  ttk::label $schedFrame.mile$ir -anchor e
+	  ttk::label $schedFrame.arrival$ir -anchor w
+	  ttk::label $schedFrame.station$ir -anchor w
+	  ttk::label $schedFrame.depart$ir -anchor e
+	  ttk::label $schedFrame.notes$ir -anchor w
         }
         switch [Stop_Flag $stop] {
 	  Origin {
@@ -456,7 +470,7 @@ snit::type TimeTable::viewAllTrainsDialog {
   }
   typemethod _Dismis {} {
     $dialog withdraw
-    return [eval [list $dialog enddialog] [list {}]]
+    return [$dialog enddialog {}]
   }
 
   typevariable _NumberOfTrainsInDialog 0
@@ -541,7 +555,7 @@ snit::type TimeTable::viewAllTrainsDialog {
     $dialog configure -geometry "$geo"    
     set _NumberOfTrainsInDialog $tindex
     wm transient [winfo toplevel $dialog] [$dialog cget -parent]
-    return [eval [list $dialog draw]]
+    return [$dialog draw]
   }
   
 }

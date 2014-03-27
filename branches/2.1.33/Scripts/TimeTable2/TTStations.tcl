@@ -379,12 +379,16 @@ snit::widget TimeTable::displayOneStation {
   method constructtopframe {frame args} {
     set header [frame $frame.header]
     pack $header -fill x -expand yes 
-    set nameLabel [Label $header.name -relief sunken]
+    set nameLabel [ttk::label $header.name -relief sunken]
+    #puts stderr "*** $self constructtopframe: nameLabel is $nameLabel"
     pack $nameLabel -side left -expand yes -fill x
-    pack [Label $header.at -text [_" at scale mile "]] -fill x -side left
-    set smileLabel [Label $header.smile -relief sunken]
+    pack [ttk::label $header.at -text [_ " at scale mile "]] -fill x -side left
+    set smileLabel [ttk::label $header.smile -relief sunken]
+    #puts stderr "*** $self constructtopframe: smileLabel is $smileLabel"
     pack $smileLabel -side left -fill x
-    set duplicateLabel [LabelEntry $header.duplicate -label [_m "Label|Duplicate Station:"] -editable no]
+    set duplicateLabel [LabelEntry $header.duplicate \
+                        -label [_m "Label|Duplicate Station:"] -editable no]
+    #puts stderr "*** $self constructtopframe: duplicateLabel is $duplicateLabel"
     set storageScroll [ScrolledWindow $frame.storageScroll \
 				-scrollbar both -auto both]
     pack $storageScroll -expand yes -fill both
@@ -392,11 +396,11 @@ snit::widget TimeTable::displayOneStation {
     $storageScroll setwidget $storageList
   }
   method initializetopframe {frame args} {
-#    puts stderr "*** ${self}::initializetopframe $frame $args"
+    #puts stderr "*** ${self}::initializetopframe $frame $args"
     $self configurelist $args
     if {"$options(-title)" eq ""} {$self configure -title [_ "Displaying one station"]}
     set station [$self cget -station]
-#    puts stderr "*** ${self}::initializetopframe: station = $station"
+    #puts stderr "*** ${self}::initializetopframe: station = $station"
     if {[string equal $station NULL]} {
       $nameLabel configure -text {}
       $smileLabel configure -text {}
@@ -404,9 +408,9 @@ snit::widget TimeTable::displayOneStation {
       catch {pack forget $duplicateLabel}
       $self configure -title {}
     } else {
-#      puts stderr "*** ${self}::initializetopframe: \[Station_Name $station\] = [Station_Name $station]"
+      #puts stderr "*** ${self}::initializetopframe: \[Station_Name $station\] = [Station_Name $station]"
       $nameLabel configure -text "[Station_Name $station]"
-#      puts stderr "*** ${self}::initializetopframe: \[Station_SMile $station\] = [Station_SMile $station]"
+      #puts stderr "*** ${self}::initializetopframe: \[Station_SMile $station\] = [Station_SMile $station]"
       $smileLabel configure -text "[format {%6.2f} [Station_SMile $station]]"
       set duplIndex [Station_DuplicateStationIndex $station]
       if {$duplIndex < 0} {

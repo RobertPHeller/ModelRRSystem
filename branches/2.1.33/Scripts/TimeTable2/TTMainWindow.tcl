@@ -282,15 +282,17 @@ snit::widgetadaptor ChartDisplay {
         $canvas lower Station:namebox:$sindex Station:$sindex
         set r [expr {$labelsize + (((double($timescale) / double($timeinterval)) * 20.0))}]
         $canvas create line $labelsize $stationarray($sindex,y) $r $stationarray($sindex,y)  -tag [list Chart Station Station:Line:$sindex] -width 2 -fill gray50
-        $canvas bind Station:namebox:$sindex <1> [list displayOneStation draw -station $station]
-        $canvas bind Station:line:$sindex <1> [list displayOneStation draw -station $station]
-        $canvas bind Station:$sindex <1> [list displayOneStation draw -station $station]
+        $canvas bind Station:namebox:$sindex <1> [list TimeTable::displayOneStation draw -station $station]
+        $canvas bind Station:line:$sindex <1> [list TimeTable::displayOneStation draw -station $station]
+        $canvas bind Station:$sindex <1> [list TimeTable::displayOneStation draw -station $station]
+        #puts stderr "*** $self addAStation: Adding Storage Tracks"
         ForEveryStorageTrack $station storage {
             $self addAStorageTrack $station $storage
         }
     }
 
     method addAStorageTrack { station track } {
+        #puts stderr "*** $self addAStorageTrack $station $track"
         set canvas $hull
         set timescale $options(-timescale)
         set timeinterval $options(-timeinterval)
@@ -309,54 +311,65 @@ snit::widgetadaptor ChartDisplay {
             set bottomofstorage [expr {$bottomofstorage + $lheight}]
             set storageyoff [expr {$lheight * ($numberofstoragetracks + .75)}]
         }
+        #puts stderr "*** $self addAStorageTrack: numberofstoragetracks = $numberofstoragetracks"
+        #puts stderr "*** $self addAStorageTrack: storagetrackheight = $storagetrackheight"
+        #puts stderr "*** $self addAStorageTrack: bottomofstorage = $bottomofstorage"
+        #puts stderr "*** $self addAStorageTrack: storageyoff = $storageyoff"
+        #puts stderr "*** $self addAStorageTrack: updating StorageTracks"
         $self _updateStorageTracks
+        #puts stderr "*** $self addAStorageTrack: StorageTracks updated"
         set stationName [Station_Name $station]
+        #puts stderr "*** $self addAStorageTrack: stationName is $stationName"
         set trackName   [StorageTrack_Name $track]
-        set nameOnChart [_formNameOnChart $path "$stationName" "$trackName"]
-        set storagearray("${stationName}:${trackName},y") [expr {$storageyoff + $topofstorage}]
-        $canvas create text 0 $storagearray("${stationName}:${trackName},y") -text "$nameOnChart" -tag [list Storage Storage:track "Storage:${stationName}:${trackName}"] -anchor w
+        #puts stderr "*** $self addAStorageTrack: trackName is $trackName"
+        #set nameOnChart "${stationName}:${trackName}"
+        set nameOnChart [$self _formNameOnChart $stationName $trackName]
+        #puts stderr "*** $self addAStorageTrack: nameOnChart is $nameOnChart"
+        set storagearray(${stationName}:${trackName},y) [expr {$storageyoff + $topofstorage}]
+        #puts stderr "*** $self addAStorageTrack: storagearray(${stationName}:${trackName},y) = $storagearray(${stationName}:${trackName},y)"
+        $canvas create text 0 $storagearray(${stationName}:${trackName},y) -text "$nameOnChart" -tag [list Storage Storage:track "Storage:${stationName}:${trackName}"] -anchor w
         set timescale $options(-timescale)
         set timeinterval $options(-timeinterval)
         set labelsize $options(-labelsize)
         set r [expr {$labelsize + (((double($timescale) / double($timeinterval)) * 20.0))}]
-        $canvas create line $labelsize $storagearray("${stationName}:${trackName},y") $r $storagearray("${stationName}:${trackName},y")  -tag [list Storage Storage:track "Storage:${stationName}:${trackName}"] -width 4 -stipple gray50
+        $canvas create line $labelsize $storagearray(${stationName}:${trackName},y) $r $storagearray(${stationName}:${trackName},y)  -tag [list Storage Storage:track "Storage:${stationName}:${trackName}"] -width 4 -stipple gray50
     }
 
     method _formNameOnChart {sn tn} {
-        #  puts stderr "*** ChartDisplay::_formNameOnChart $path $sn $tn"
+        #puts stderr "*** $self _formNameOnChart $sn $tn"
         set canvas $hull
         set labelsize $options(-labelsize)
-        #  puts stderr "*** ChartDisplay::_formNameOnChart: labelsize = $labelsize"
+        #puts stderr "*** $self _formNameOnChart: labelsize = $labelsize"
         
         set i [$canvas create text 0 0 -anchor w -text "${sn}:${tn}"]
         set l1 [lindex [$canvas bbox $i] 2]
         $canvas delete $i
-        #  puts stderr "*** ChartDisplay::_formNameOnChart: l1 = $l1 (${sn}:${tn})"
+        #puts stderr "*** $self _formNameOnChart: l1 = $l1 (${sn}:${tn})"
         set i [$canvas create text 0 0 -anchor w -text "${sn}:"]
         set l2 [lindex [$canvas bbox $i] 2]
         $canvas delete $i
-        #  puts stderr "*** ChartDisplay::_formNameOnChart: l2 = $l2 (${sn}:)"
+        #puts stderr "*** $self _formNameOnChart: l2 = $l2 (${sn}:)"
         set i [$canvas create text 0 0 -anchor w -text "$tn"]
         set l3 [lindex [$canvas bbox $i] 2]
-        #  puts stderr "*** ChartDisplay::_formNameOnChart: l3 = $l3 ($tn)"
+        #puts stderr "*** $self _formNameOnChart: l3 = $l3 ($tn)"
         $canvas delete $i
         while {$l1 > $labelsize && $l2 > [expr {$labelsize / 2.0}]} {
             set sn [string trim [string range "$sn" 0 "end-1"]]
             set i [$canvas create text 0 0 -anchor w -text "${sn}:${tn}"]
             set l1 [lindex [$canvas bbox $i] 2]
             $canvas delete $i
-            #    puts stderr "*** ChartDisplay::_formNameOnChart: l1 = $l1 (${sn}:${tn})"
+            #puts stderr "*** $self _formNameOnChart: l1 = $l1 (${sn}:${tn})"
             set i [$canvas create text 0 0 -anchor w -text "${sn}:"] 
             set l2 [lindex [$canvas bbox $i] 2]
             $canvas delete $i
-            #    puts stderr "*** ChartDisplay::_formNameOnChart: l2 = $l2 (${sn}:)"
+            #puts stderr "*** $self _formNameOnChart: l2 = $l2 (${sn}:)"
         }
         while {$l1 > $labelsize} {
             set tn [string trim [string range "$tn" 0 "end-1"]]
             set i [$canvas create text 0 0 -anchor w -text "${sn}:${tn}"]
             set l1 [lindex [$canvas bbox $i] 2]
             $canvas delete $i
-            #    puts stderr "*** ChartDisplay::_formNameOnChart: l1 = $l1 (${sn}:${tn})"
+            #puts stderr "*** $self _formNameOnChart: l1 = $l1 (${sn}:${tn})"
         }
         return "${sn}:${tn}"
     }
@@ -411,8 +424,8 @@ snit::widgetadaptor ChartDisplay {
             } else {
                 set arrival $departure
             }
-            #    puts stderr "*** ChartDisplay::addATrain: ------------------------------------------"
-            #    puts stderr "*** ChartDisplay::addATrain: Station is [Station_Name $station], Train is [Train_Number $train]"
+            #    puts stderr "*** $self addATrain: ------------------------------------------"
+            #    puts stderr "*** $self addATrain: Station is [Station_Name $station], Train is [Train_Number $train]"
             switch -exact -- [Stop_Flag $stop] {
                 Origin {
                     set storage [Station_FindTrackTrainIsStoredOn $station \
@@ -439,23 +452,23 @@ snit::widgetadaptor ChartDisplay {
                     set rstorage NULL
                 }
             }
-            #    puts stderr "*** chartDisplay::addATrain: storage = $storage, rstorage = $rstorage"
+            #    puts stderr "*** $self addATrain: storage = $storage, rstorage = $rstorage"
             if {![string equal "$storage" NULL]} {
                 set stationName "[Station_Name $station]"
                 set trackName "[StorageTrack_Name $storage]"
-                set sy $storagearray("${stationName}:${trackName},y")
+                set sy $storagearray(${stationName}:${trackName},y)
                 set occupiedA [StorageTrack_IncludesTime $storage $arrival]
                 set occupiedD [StorageTrack_IncludesTime $storage $departure]
-                #      puts stderr "*** chartDisplay::addATrain: occupiedA = $occupiedA, occupiedD = $occupiedD"
+                #      puts stderr "*** $self addATrain: occupiedA = $occupiedA, occupiedD = $occupiedD"
                 #      if {![string equal $occupiedA NULL]} {
-                #	puts stderr "*** chartDisplay::addATrain: \[Occupied_TrainNum \$occupiedA\] = [Occupied_TrainNum $occupiedA]"
-                #	puts stderr "*** chartDisplay::addATrain: \[Occupied_From \$occupiedA\] = [Occupied_From $occupiedA]"
-                #	puts stderr "*** chartDisplay::addATrain: \[Occupied_Until \$occupiedA\] = [Occupied_Until $occupiedA]"
-                #	puts stderr "*** chartDisplay::addATrain: \[Occupied_TrainNum2 \$occupiedA\] = [Occupied_TrainNum2 $occupiedA]"
+                #	puts stderr "*** $self addATrain: \[Occupied_TrainNum \$occupiedA\] = [Occupied_TrainNum $occupiedA]"
+                #	puts stderr "*** $self addATrain: \[Occupied_From \$occupiedA\] = [Occupied_From $occupiedA]"
+                #	puts stderr "*** $self addATrain: \[Occupied_Until \$occupiedA\] = [Occupied_Until $occupiedA]"
+                #	puts stderr "*** $self addATrain: \[Occupied_TrainNum2 \$occupiedA\] = [Occupied_TrainNum2 $occupiedA]"
                 #      }
                 if {![string equal $occupiedA NULL] &&
                     [string equal "[Occupied_TrainNum $occupiedA]" "[Train_Number $train]"]} {
-                    #	puts stderr "*** chartDisplay::addATrain: using $occupiedA"
+                    #	puts stderr "*** $self addATrain: using $occupiedA"
                     set from [Occupied_From  $occupiedA]
                     set to   [Occupied_Until $occupiedA]
                     set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
@@ -471,14 +484,14 @@ snit::widgetadaptor ChartDisplay {
                     }
                 }
                 #      if {![string equal $occupiedD NULL]} {
-                #	puts stderr "*** chartDisplay::addATrain: \[Occupied_TrainNum \$occupiedD\] = [Occupied_TrainNum $occupiedD]"
-                #	puts stderr "*** chartDisplay::addATrain: \[Occupied_From \$occupiedD\] = [Occupied_From $occupiedD]"
-                #	puts stderr "*** chartDisplay::addATrain: \[Occupied_Until \$occupiedD\] = [Occupied_Until $occupiedD]"
-                #	puts stderr "*** chartDisplay::addATrain: \[Occupied_TrainNum2 \$occupiedD\] = [Occupied_TrainNum2 $occupiedD]"
+                #	puts stderr "*** $self addATrain: \[Occupied_TrainNum \$occupiedD\] = [Occupied_TrainNum $occupiedD]"
+                #	puts stderr "*** $self addATrain: \[Occupied_From \$occupiedD\] = [Occupied_From $occupiedD]"
+                #	puts stderr "*** $self addATrain: \[Occupied_Until \$occupiedD\] = [Occupied_Until $occupiedD]"
+                #	puts stderr "*** $self addATrain: \[Occupied_TrainNum2 \$occupiedD\] = [Occupied_TrainNum2 $occupiedD]"
                 #      }
                 if {![string equal $occupiedD NULL] &&
                     [string equal "[Occupied_TrainNum2 $occupiedD]" "[Train_Number $train]"]} {
-                    #	puts stderr "*** chartDisplay::addATrain: using $occupiedD"
+                    #	puts stderr "*** $self addATrain: using $occupiedD"
                     set from [Occupied_From  $occupiedD]
                     set to   [Occupied_Until $occupiedD]
                     set fromX [expr {$labelsize + ((double($from) / double($timeinterval) * 20.0)) + 4}]
@@ -497,7 +510,7 @@ snit::widgetadaptor ChartDisplay {
             if {![string equal "$rstorage" NULL]} {
                 set stationName "[Station_Name $rStation]"
                 set trackName "[StorageTrack_Name $rstorage]"
-                set sy $storagearray("${stationName}:${trackName},y")
+                set sy $storagearray(${stationName}:${trackName},y)
                 set occupiedA [StorageTrack_IncludesTime $rstorage $arrival]
                 set occupiedD [StorageTrack_IncludesTime $rstorage $departure]
                 if {![string equal $occupiedA NULL] &&
@@ -533,7 +546,7 @@ snit::widgetadaptor ChartDisplay {
                     }
                 }
             }
-            #    puts stderr "*** ChartDisplay::addATrain: ------------------------------------------"
+            #    puts stderr "*** $self addATrain: ------------------------------------------"
             set newTimeX [expr {$labelsize + ((double($arrival) / double($timeinterval) * 20.0)) + 4}]
             if {$timeX >= 0} {
                 if {$newTimeX > $timeX} {
@@ -610,14 +623,14 @@ snit::widgetadaptor ChartDisplay {
                               -fill $color   -width 8 -tags $cabtags
                     }
                 }
-                #      puts stderr "*** ChartDisplay::addATrain: Station is [Station_Name $station], Train is [Train_Number $train]"
+                #      puts stderr "*** $self addATrain: Station is [Station_Name $station], Train is [Train_Number $train]"
                 set storage [Station_FindTrackTrainIsStoredOn $station \
                              "[Train_Number $train]" $arrival $depart]
-                #      puts stderr "*** ChartDisplay::addATrain: storage = $storage"
+                #      puts stderr "*** $self addATrain: storage = $storage"
                 if {![string equal "$storage" NULL]} {
                     set stationName "[Station_Name $station]"
                     set trackName "[StorageTrack_Name $storage]"	
-                    set sy $storagearray("${stationName}:${trackName},y")
+                    set sy $storagearray(${stationName}:${trackName},y)
                     set occupiedA [StorageTrack_IncludesTime $storage $arrival]
                     set occupiedD [StorageTrack_IncludesTime $storage $depart]
                     if {![string equal $occupiedA NULL] &&
@@ -660,7 +673,7 @@ snit::widgetadaptor ChartDisplay {
                     if {![string equal "$storage" NULL]} {
                         set stationName "[Station_Name $rstation]"
                         set trackName "[StorageTrack_Name $storage]"
-                        set sy $storagearray("${stationName}:${trackName},y")
+                        set sy $storagearray(${stationName}:${trackName},y)
                         set occupiedA [StorageTrack_IncludesTime $storage $arrival]
                         set occupiedD [StorageTrack_IncludesTime $storage $depart]
                         if {![string equal $occupiedA NULL] &&
@@ -705,8 +718,8 @@ snit::widgetadaptor ChartDisplay {
             set oldDepart $depart
             set oldSmile  $smile
         }
-        set script "displayOneTrain draw -train $train -minutes [mymethod mx2minutes %x]"
-        #  puts stderr "*** ChartDisplay::addATrain: script = $script"
+        set script "TimeTable::displayOneTrain draw -train $train -minutes \[[mymethod mx2minutes %x]\]"
+        #puts stderr "*** $self addATrain: script = $script"
         $canvas bind "Train:[Train_Number $train]" <1> "$script"
     }
 
@@ -811,7 +824,7 @@ snit::widgetadaptor ChartDisplay {
                 set sy [lindex [$canvas coords $item] 1]
                 foreach t [$canvas itemcget $item -tags] {
                     if {[regexp {^Storage:([^:]*):([^:]*)$} "$t" -> stationName trackName] > 0} {
-                        set storagearray("${stationName}:${trackName},y") $sy
+                        set storagearray(${stationName}:${trackName},y) $sy
                     }
                 }
             }
@@ -1373,7 +1386,7 @@ snit::macro TimeTable::TtStdShell {dialogclass} {
 	-command [mymethod _Dismis]
     pack $dismisbutton -expand yes -fill x
     if {[catch [list $self constructtopframe $userframe] message]} {
-#      puts stderr "*** ${self}::constructor: constructtopframe failed: $message"
+      puts stderr "*** ${self}::constructor: constructtopframe failed: $message"
     }
     $self configurelist $args
     $type push availlist $self
