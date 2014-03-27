@@ -1,0 +1,80 @@
+\chapter{HTMLHelp}
+
+\section{About}
+
+The HTMLHelp widget is a help dialog that display program documentation
+coded in a simple subset of HTML.  There is limited support for
+Cascading Style Sheets.  There is a support for searching and there is a
+simple history stack.
+
+\section{Using the HTMLHelp widget}
+
+The HTMLHelp is a SNIT widgetadaptor based on the BWidget Dialog widget.
+It takes these options:
+
+\begin{description}
+\item[-textwidth] The width of the help text component (see -width of
+the text widget).
+\item[-width] The width of the HTMLHelp (see -width of the Dialog
+widget).
+\item[-height] The height of the HTMLHelp (see -height of the Dialog
+widget).
+\item[-side] The side to place the pane slider button.  Can be top (the
+default) or bottom (see -side of the PanedWindow widget). This is a read
+only option.
+\item[-helpdirectory] The name of the directory where the HTML code
+lives. This is a read only option.  There is no default value and this
+option must be specified. (But see below for the typemethod
+setDefaults.)
+\item[-tableofcontents] The name of the HTML file in the help directory
+that contains the Table Of Contents.  This is a read only option. 
+There is no default value and this option must be specified. (But see
+below for the typemethod setDefaults.)
+\end{description}
+
+There is one public method available:
+
+\begin{verbatim}
+$HTMLHelpObject helptopic topicstring
+\end{verbatim}
+
+This method searches the table of contents for a hyperlink with the
+specified help topic string as the link text (case folded search) and
+opens the HTMLHelp dialog with the page specified by the link
+associated with this text.
+
+There are two public typemethods available:
+
+\begin{verbatim}
+HTMLHelp::HTMLHelp setDefaults helpdir tocfile
+\end{verbatim}
+
+This method sets the default values for the \verb=-helpdirectory= and
+\verb=-tableofcontents= options.
+
+\begin{verbatim}
+HTMLHelp::HTMLHelp help topicstring
+\end{verbatim}
+
+This typemethod just calls the \verb=helptopic= method for a default help
+dialog object.  If a default help does not exist, it is created, using
+the default values set by the \verb=setDefaults= typemethod.
+
+\section{Creating Help text with \LaTeX\  and tex4ht}
+
+Help text HTML files can be generated using \LaTeX\  and tex4ht.  You
+need be sure you include a table of contents (\verb=\tableofcontents=)
+and use the htlatex command with \verb=html,4,info= as its second
+parameter. The former creates the index for the left column and the
+latter breaks the file up into one file for each section.  Be sure to
+include a chapter or section titled ``Help''\footnote{A sample chapter
+is included with the development code as Help.tex.}, since this is used
+as the topic text for the HTMLHelp dialog itself.  Generally you would
+write a chapter, section or subsection for each help topic you expect
+to have for your application -- that is for all of the Help buttons on
+dialogs and Help menu items on main windows\footnote{See SampleCode.tex
+for a sample documentation \LaTeX\  source file.}.
+
+
+
+
