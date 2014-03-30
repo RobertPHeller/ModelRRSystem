@@ -134,10 +134,13 @@ struct hash {
     std::size_t 
     operator()(const char* s) const
     {
+        const char *p;
+        std::size_t h = 0;
 #ifdef DEBUG
         fprintf(stderr,"*** hash::operator()(\"%s\")\n",s);
 #endif
-        std::size_t h = std::tr1::Fnv_hash<>::hash(s,strlen(s));
+        for (p = s; *p != '\0'; p++) 
+            h = (h * 131) + *p;
 #ifdef DEBUG
         fprintf(stderr,"*** hash::operator(): h = %u\n",h);
 #endif
