@@ -61,9 +61,14 @@ package require Azatrax
 
 package require gettext
 package require Tk
-package require BWidget
-package require BWStdMenuBar
-package require HTMLHelp
+package require tile
+package require snit
+package require snitStdMenuBar
+package require HTMLHelp 2.0
+package require Dialog
+package require MainFrame
+package require LabelFrames
+package require ButtonBox
 package require struct::matrix
 package require csv
 
@@ -107,20 +112,20 @@ snit::widget DeviceMap {
 						  -text "Serial Number:"
     pack $snFrame -fill x
     set snframe [$snFrame getframe]
-    install serialNumberCB using ComboBox $snframe.serialNumberCB \
-					-editable yes \
+    install serialNumberCB using ttk::combobox $snframe.serialNumberCB \
+					-state normal \
 					-values [Azatrax_AllConnectedDevices]
     pack $serialNumberCB -side left -fill x -expand yes
-    $serialNumberCB bind <Return> [mymethod _serialNumberLookup]
-    install lookupButton using Button $snframe.lookupButton \
+    bind $serialNumberCB <Return> [mymethod _serialNumberLookup]
+    install lookupButton using ttk::button $snframe.lookupButton \
 			-text "Lookup" \
 			-command [mymethod _serialNumberLookup]
     pack $lookupButton -side left
-    install rescanButton using Button $snframe.rescanButton \
+    install rescanButton using ttk::button $snframe.rescanButton \
 			-text "Rescan" \
 			-command [mymethod _rescanSerialNumbers]
     pack $rescanButton -side right
-    install flashLEDsButton using Button $win.flashLEDsButton \
+    install flashLEDsButton using ttk::button $win.flashLEDsButton \
     			-text "Flash LEDs" \
 			-command [mymethod _flashLEDs]
     pack $flashLEDsButton -fill x -expand yes
@@ -141,8 +146,8 @@ snit::widget DeviceMap {
 
     install buttons using ButtonBox $win.buttons -orient horizontal
     pack $buttons -fill x
-    $buttons add -name add -text Update -command [mymethod _update_row]
-    $buttons add -name delete -text Delete -command [mymethod _delete_row]
+    $buttons add ttk::button add -text Update -command [mymethod _update_row]
+    $buttons add ttk::button delete -text Delete -command [mymethod _delete_row]
 
 #    puts stderr "*** $type create $self $args"
     $self configurelist $args
@@ -365,7 +370,7 @@ proc MainWindow {{filename {}}} {
   wm protocol . WM_DELETE_WINDOW {CareFulExit}
   wm title . [_ "MRD Device Mapping program"]
 
-  set menubar [StdMenuBar::MakeMenu \
+  set menubar [StdMenuBar MakeMenu \
 	-file [list [_m "Menu|&File"] {file} {file} 0 [list \
 	        [list command [_m "Menu|File|&New"]     {file:new} [_ "New Map"]     {Ctrl n} ]\
 	        [list command [_m "Menu|File|&Open..."] {file:open} [_ "Open Old Map"] {Ctrl o}]\
@@ -375,11 +380,11 @@ proc MainWindow {{filename {}}} {
 	        [list command [_m "Menu|File|E&xit"] {file:exit} [_ "Exit the application"] {} -command {CareFulExit}]\
 	     ] \
 	] -help [list [_m "Menu|&Help"] {help} {help} 0 [list \
-		[list command [_m "Menu|Help|On &Help..."] {help:help} [_ "Help on help"] {} -command "HTMLHelp::HTMLHelp help Help"]\
-		[list command [_m "Menu|Help|On &Version"] {help:version} [_ "Version"] {} -command "HTMLHelp::HTMLHelp help Version"]\
-		[list command [_m "Menu|Help|Warranty"] {help:warranty} [_ "Warranty"] {} -command "HTMLHelp::HTMLHelp help Warranty"]\
-		[list command [_m "Menu|Help|Copying"] {help:copying} [_ "Copying"] {} -command "HTMLHelp::HTMLHelp help Copying"]\
-		[list command [_m "Menu|Help|Reference Manual"] {help:reference} [_ "Reference Manual"] {} -command {HTMLHelp::HTMLHelp help "Azatrax Device Map Reference"}]\
+		[list command [_m "Menu|Help|On &Help..."] {help:help} [_ "Help on help"] {} -command "HTMLHelp help Help"]\
+		[list command [_m "Menu|Help|On &Version"] {help:version} [_ "Version"] {} -command "HTMLHelp help Version"]\
+		[list command [_m "Menu|Help|Warranty"] {help:warranty} [_ "Warranty"] {} -command "HTMLHelp help Warranty"]\
+		[list command [_m "Menu|Help|Copying"] {help:copying} [_ "Copying"] {} -command "HTMLHelp help Copying"]\
+		[list command [_m "Menu|Help|Reference Manual"] {help:reference} [_ "Reference Manual"] {} -command {HTMLHelp help "Azatrax Device Map Reference"}]\
 		] \
         ]]
 #  puts stderr "*** MainWindow: menubar = $menubar"
@@ -393,11 +398,16 @@ proc MainWindow {{filename {}}} {
 	-separator both]
   pack $::Main -expand yes -fill both
   $::Main showstatusbar progression  
-  set ::DirtyInd [$::Main addindicator -bitmap gray50]
+  set ::DirtyInd [$::Main addindicator -background black \
+                    -image [IconImage image gray50 \
+                            -filetype xbm \
+                            -foreground [ttk::style lookup . \
+                                            -background {} #d9d9d9] \
+                            -background {}]]
 
   set ::MainFrame [$::Main getframe]
 
-  HTMLHelp::HTMLHelp setDefaults "$::HelpDir" "AzatraxProgli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "AzatraxProgli1.html"
 
   DeviceMap $::MainFrame.deviceMap -filename $filename -dirtycallback ::DirtyCallBack
   pack $::MainFrame.deviceMap -expand yes -fill both

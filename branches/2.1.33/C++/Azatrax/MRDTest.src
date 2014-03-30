@@ -60,9 +60,14 @@ package require Azatrax
 
 package require gettext
 package require Tk
-package require BWidget
-package require BWStdMenuBar
-package require HTMLHelp
+package require tile
+package require snit
+package require snitStdMenuBar
+package require HTMLHelp 2.0
+package require Dialog
+package require MainFrame
+package require LabelFrames
+package require ButtonBox
 
 #puts stderr "*** class of . is [. cget -class]"
 
@@ -74,41 +79,21 @@ set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirn
 							[info script]]]] Messages]]
 #puts stderr "*** msgfiles = $msgfiles"
 
-if {[tk windowingsystem] eq "classic" || [tk windowingsystem] eq "aqua"} {
-    bind Radiobutton_RO <Enter> {
-	tk::ButtonEnter %W
-    }
-    bind Checkbutton_RO <Enter> {
-	tk::ButtonEnter %W
-    }
-}
-if {"windows" eq $tcl_platform(platform)} {
-    bind Checkbutton_RO <Enter> {
-	tk::CheckRadioEnter %W
-    }
-
-    bind Radiobutton_RO <Enter> {
-	tk::CheckRadioEnter %W
-    }
-}
-if {"x11" eq [tk windowingsystem]} {
-    bind Checkbutton_RO <Enter> {
-	tk::ButtonEnter %W
-    }
-    bind Radiobutton_RO <Enter> {
-	tk::ButtonEnter %W
-    }
-}
-
-bind Checkbutton_RO <FocusIn> {}
-bind Checkbutton_RO <Leave> {
-    tk::ButtonLeave %W
-}
-
-bind Radiobutton_RO <FocusIn> {}
-bind Radiobutton_RO <Leave> {
-    tk::ButtonLeave %W
-}
+## Make RO bindings tags for ttk::radiobutton and ttk::checkbutton
+ttk::copyBindings TRadiobutton TRadiobutton_RO
+ttk::copyBindings TCheckbutton TCheckbutton_RO
+bind TRadiobutton_RO <Key-space> {}
+bind TCheckbutton_RO <Key-space> {}
+bind TRadiobutton_RO <<Invoke>> {}
+bind TCheckbutton_RO <<Invoke>> {}
+bind TRadiobutton_RO <ButtonPress-1> {}
+bind TCheckbutton_RO <ButtonPress-1> {}
+bind TRadiobutton_RO <ButtonRelease-1> {}
+bind TCheckbutton_RO <ButtonRelease-1> {}
+bind TRadiobutton_RO <Button1-Leave> {}
+bind TCheckbutton_RO <Button1-Leave> {}
+bind TRadiobutton_RO <Button1-Enter> {}
+bind TCheckbutton_RO <Button1-Enter> {}
 
 
 
@@ -119,7 +104,7 @@ proc MainWindow {} {
   wm protocol . WM_DELETE_WINDOW {CareFulExit}
   wm title . [_ "MRD Test Program for MRD Units"]
 
-  set menubar [StdMenuBar::MakeMenu \
+  set menubar [StdMenuBar MakeMenu \
 	-file [list [_m "Menu|&File"] {file} {file} 0 [list \
 	        [list command [_m "Menu|File|&New"]     {file:new} ""     {Ctrl n} -state disabled]\
 	        [list command [_m "Menu|File|&Open..."] {file:open} [_ "Open Unit"] {Ctrl o} -command {OpenUnit}]\
@@ -129,11 +114,11 @@ proc MainWindow {} {
 	        [list command [_m "Menu|File|E&xit"] {file:exit} [_ "Exit the application"] {} -command {CareFulExit}]\
 	     ] \
 	] -help [list [_m "Menu|&Help"] {help} {help} 0 [list \
-		[list command [_m "Menu|Help|On &Help..."] {help:help} [_ "Help on help"] {} -command "HTMLHelp::HTMLHelp help Help"]\
-		[list command [_m "Menu|Help|On &Version"] {help:version} [_ "Version"] {} -command "HTMLHelp::HTMLHelp help Version"]\
-		[list command [_m "Menu|Help|Warranty"] {help:warranty} [_ "Warranty"] {} -command "HTMLHelp::HTMLHelp help Warranty"]\
-		[list command [_m "Menu|Help|Copying"] {help:copying} [_ "Copying"] {} -command "HTMLHelp::HTMLHelp help Copying"]\
-		[list command [_m "Menu|Help|Reference Manual"] {help:reference} [_ "Reference Manual"] {} -command {HTMLHelp::HTMLHelp help "MRD Test Program Reference"}]\
+		[list command [_m "Menu|Help|On &Help..."] {help:help} [_ "Help on help"] {} -command "HTMLHelp help Help"]\
+		[list command [_m "Menu|Help|On &Version"] {help:version} [_ "Version"] {} -command "HTMLHelp help Version"]\
+		[list command [_m "Menu|Help|Warranty"] {help:warranty} [_ "Warranty"] {} -command "HTMLHelp help Warranty"]\
+		[list command [_m "Menu|Help|Copying"] {help:copying} [_ "Copying"] {} -command "HTMLHelp help Copying"]\
+		[list command [_m "Menu|Help|Reference Manual"] {help:reference} [_ "Reference Manual"] {} -command {HTMLHelp help "MRD Test Program Reference"}]\
 		] \
         ]]
 #  puts stderr "*** MainWindow: menubar = $menubar"
@@ -150,36 +135,34 @@ proc MainWindow {} {
 
   set ::MainFrame [$::Main getframe]
 
-  HTMLHelp::HTMLHelp setDefaults "$::HelpDir" "AzatraxProgli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "AzatraxProgli1.html"
 
   LabelFrame $::MainFrame.snframe -width 22 -text "Serial Number To open:"
   pack $::MainFrame.snframe -fill x
   set snframe [$::MainFrame.snframe getframe]
-  set ::SerialNumber [ComboBox $snframe.serialNumber \
-				-editable yes \
+  set ::SerialNumber [ttk::combobox $snframe.serialNumber \
+				-state normal \
 				-values [Azatrax_AllConnectedDevices]]
   pack $::SerialNumber -side left -fill x -expand yes
-  $::SerialNumber bind <Return> {OpenUnit}
-  set rescan [Button $snframe.rescan -text "Rescan" \
+  bind $::SerialNumber <Return> {OpenUnit}
+  set rescan [ttk::button $snframe.rescan -text "Rescan" \
 			-command {$::SerialNumber configure -values [Azatrax_AllConnectedDevices]}]
   pack $rescan -side right
 
   # build widget $::MainFrame.commands
-  labelframe $::MainFrame.commands \
-    -borderwidth {4} \
-    -relief {ridge} \
-    -text {Commands}
+  ttk::labelframe $::MainFrame.commands \
+    -text {Commands} -labelanchor nw
 
   pack configure $::MainFrame.commands -fill x
 
   # Row 1
-  button $::MainFrame.commands.setchan1 \
+  ttk::button $::MainFrame.commands.setchan1 \
 	-text "Set Channel 1" \
 	-command {catch {mrdunit SetChan1} ::status} \
 	-state disabled
   grid configure $::MainFrame.commands.setchan1 -column 0  -row 0 -sticky we
   lappend ::CommandButtons $::MainFrame.commands.setchan1
-  button $::MainFrame.commands.setchan2 \
+  ttk::button $::MainFrame.commands.setchan2 \
 	-text "Set Channel 2" \
 	-command {catch {mrdunit SetChan2} ::status} \
 	-state disabled
@@ -187,7 +170,7 @@ proc MainWindow {} {
   lappend ::CommandButtons $::MainFrame.commands.setchan2
 
   # Row 2
-  button $::MainFrame.commands.clearExternallyChanged \
+  ttk::button $::MainFrame.commands.clearExternallyChanged \
 	-text "Clear Externally Changed" \
 	-command {catch {mrdunit ClearExternallyChanged} ::status} \
 	-state disabled
@@ -195,13 +178,13 @@ proc MainWindow {} {
   lappend ::CommandButtons $::MainFrame.commands.clearExternallyChanged
 
   # Row 3
-  button $::MainFrame.commands.disableExternal \
+  ttk::button $::MainFrame.commands.disableExternal \
 	-text "Disable External" \
 	-command {catch {mrdunit DisableExternal} ::status} \
 	-state disabled
   grid configure $::MainFrame.commands.disableExternal -column 0  -row 2 -sticky we
   lappend ::CommandButtons $::MainFrame.commands.disableExternal
-  button $::MainFrame.commands.enableExternal \
+  ttk::button $::MainFrame.commands.enableExternal \
 	-text "Enable External" \
 	-command {catch {mrdunit EnableExternal} ::status} \
 	-state disabled
@@ -209,25 +192,25 @@ proc MainWindow {} {
   lappend ::CommandButtons $::MainFrame.commands.enableExternal
 
   # Row 4
-  button $::MainFrame.commands.restoreLEDs \
+  ttk::button $::MainFrame.commands.restoreLEDs \
 	-text "Restore LEDs" \
 	-command {catch {mrdunit RestoreLEDFunction} ::status} \
 	-state disabled
   grid configure $::MainFrame.commands.restoreLEDs -column 0 -row 3 -sticky we
   lappend ::CommandButtons $::MainFrame.commands.restoreLEDs
-  button $::MainFrame.commands.id1 \
+  ttk::button $::MainFrame.commands.id1 \
 	-text "Identify 1" \
 	-command {catch {mrdunit Identify_1} ::status} \
 	-state disabled
   grid configure $::MainFrame.commands.id1 -column 1 -row 3 -sticky we
   lappend ::CommandButtons $::MainFrame.commands.id1
-  button $::MainFrame.commands.id2 \
+  ttk::button $::MainFrame.commands.id2 \
 	-text "Identify 2" \
 	-command {catch {mrdunit Identify_2} ::status} \
 	-state disabled
   grid configure $::MainFrame.commands.id2 -column 2 -row 3 -sticky we
   lappend ::CommandButtons $::MainFrame.commands.id2
-  button $::MainFrame.commands.idBoth \
+  ttk::button $::MainFrame.commands.idBoth \
 	-text "Identify Both" \
 	-command {catch {mrdunit Identify_1_2} ::status} \
 	-state disabled
@@ -235,7 +218,7 @@ proc MainWindow {} {
   lappend ::CommandButtons $::MainFrame.commands.idBoth
 
   # Row 5
-  button $::MainFrame.commands.resetStopwatch \
+  ttk::button $::MainFrame.commands.resetStopwatch \
 	-text "Reset Stopwatch" \
 	-command {catch {mrdunit ResetStopwatch} ::status} \
 	-state disabled
@@ -243,7 +226,7 @@ proc MainWindow {} {
   lappend ::CommandButtons $::MainFrame.commands.resetStopwatch
 
   # Row 6
-  button $::MainFrame.commands.getStateData \
+  ttk::button $::MainFrame.commands.getStateData \
 	-text "Get Sense Data" \
 	-command {if {![catch {mrdunit GetStateData} ::status]} {UpdateSenseData}} \
 	-state disabled
@@ -251,10 +234,8 @@ proc MainWindow {} {
   lappend ::CommandButtons $::MainFrame.commands.getStateData
 
   # build widget $::MainFrame.sensedata
-  labelframe $::MainFrame.sensedata \
-    -borderwidth {4} \
-    -relief {ridge} \
-    -text {Sense Data}
+  ttk::labelframe $::MainFrame.sensedata \
+    -text {Sense Data} -labelanchor nw
 
   pack configure $::MainFrame.sensedata -fill x
 
@@ -271,13 +252,13 @@ proc MainWindow {} {
 	  rbLab {{Sense 1} {Sense 2} {Latch 1} {Latch 2}} \
 	  rbVar {senseLatch(sense,1) senseLatch(sense,2)
 		 senseLatch(latch,1) senseLatch(latch,2)} {
-    set b [radiobutton $slframe.$rb -variable $rbVar -text $rbLab -value 1 \
-			-relief flat]
+    set b [ttk::radiobutton $slframe.$rb -variable $rbVar -text $rbLab \
+                        -value 1]
     pack $b -side left
     set tags [bindtags $b]
-    set i [lsearch -exact $tags Radiobutton]
+    set i [lsearch -exact $tags TRadiobutton]
     if {$i >= 0} {
-      bindtags $b [lreplace $tags $i $i Radiobutton_RO]
+      bindtags $b [lreplace $tags $i $i TRadiobutton_RO]
     }
   }
   LabelFrame $::MainFrame.sensedata.hasRelays \
@@ -285,13 +266,13 @@ proc MainWindow {} {
   pack $::MainFrame.sensedata.hasRelays -fill x
   set hrframe [$::MainFrame.sensedata.hasRelays getframe]
   foreach rb    {yes no} rbLab {Yes No} rbVal {1 0} {
-    set b [radiobutton $hrframe.$rb -variable HasRelays -text $rbLab \
-		-value $rbVal -relief flat]
+    set b [ttk::radiobutton $hrframe.$rb -variable HasRelays -text $rbLab \
+		-value $rbVal]
     pack $b -side left
     set tags [bindtags $b]
-    set i [lsearch -exact $tags Radiobutton]
+    set i [lsearch -exact $tags TRadiobutton]
     if {$i >= 0} {
-      bindtags $b [lreplace $tags $i $i Radiobutton_RO]
+      bindtags $b [lreplace $tags $i $i TRadiobutton_RO]
     }
   }
   LabelFrame $::MainFrame.sensedata.resetStatus \
@@ -299,13 +280,13 @@ proc MainWindow {} {
   pack $::MainFrame.sensedata.resetStatus -fill x
   set rsframe [$::MainFrame.sensedata.resetStatus getframe]
   foreach rb    {yes no} rbLab {Yes No} rbVal {1 0} {
-    set b [radiobutton $rsframe.$rb -variable ResetStatus -text $rbLab \
-		-value $rbVal -relief flat]
+    set b [ttk::radiobutton $rsframe.$rb -variable ResetStatus -text $rbLab \
+		-value $rbVal]
     pack $b -side left
     set tags [bindtags $b]
-    set i [lsearch -exact $tags Radiobutton]
+    set i [lsearch -exact $tags TRadiobutton]
     if {$i >= 0} {
-      bindtags $b [lreplace $tags $i $i Radiobutton_RO]
+      bindtags $b [lreplace $tags $i $i TRadiobutton_RO]
     }
   }
   LabelFrame $::MainFrame.sensedata.stopwatchTicking \
@@ -313,13 +294,13 @@ proc MainWindow {} {
   pack $::MainFrame.sensedata.stopwatchTicking -fill x
   set stframe [$::MainFrame.sensedata.stopwatchTicking getframe]
   foreach rb    {yes no} rbLab {Yes No} rbVal {1 0} {
-    set b [radiobutton $stframe.$rb -variable StopwatchTicking -text $rbLab \
-		-value $rbVal -relief flat]
+    set b [ttk::radiobutton $stframe.$rb -variable StopwatchTicking -text $rbLab \
+		-value $rbVal]
     pack $b -side left
     set tags [bindtags $b]
-    set i [lsearch -exact $tags Radiobutton]
+    set i [lsearch -exact $tags TRadiobutton]
     if {$i >= 0} {
-      bindtags $b [lreplace $tags $i $i Radiobutton_RO]
+      bindtags $b [lreplace $tags $i $i TRadiobutton_RO]
     }
   }
   LabelFrame $::MainFrame.sensedata.externallyChanged \
@@ -327,13 +308,13 @@ proc MainWindow {} {
   pack $::MainFrame.sensedata.externallyChanged -fill x
   set ecframe [$::MainFrame.sensedata.externallyChanged getframe]
   foreach rb    {yes no} rbLab {Yes No} rbVal {1 0} {
-    set b [radiobutton $ecframe.$rb -variable ExternallyChanged -text $rbLab \
-		-value $rbVal -relief flat]
+    set b [ttk::radiobutton $ecframe.$rb -variable ExternallyChanged -text $rbLab \
+		-value $rbVal]
     pack $b -side left
     set tags [bindtags $b]
-    set i [lsearch -exact $tags Radiobutton]
+    set i [lsearch -exact $tags TRadiobutton]
     if {$i >= 0} {
-      bindtags $b [lreplace $tags $i $i Radiobutton_RO]
+      bindtags $b [lreplace $tags $i $i TRadiobutton_RO]
     }
   }
   LabelFrame $::MainFrame.sensedata.allowExternalChanges \
@@ -341,13 +322,13 @@ proc MainWindow {} {
   pack $::MainFrame.sensedata.allowExternalChanges -fill x
   set aecframe [$::MainFrame.sensedata.allowExternalChanges getframe]
   foreach rb    {yes no} rbLab {Yes No} rbVal {1 0} {
-    set b [radiobutton $aecframe.$rb -variable AllowExternalChanges -text $rbLab \
-		-value $rbVal -relief flat]
+    set b [ttk::radiobutton $aecframe.$rb -variable AllowExternalChanges -text $rbLab \
+		-value $rbVal]
     pack $b -side left
     set tags [bindtags $b]
-    set i [lsearch -exact $tags Radiobutton]
+    set i [lsearch -exact $tags TRadiobutton]
     if {$i >= 0} {
-      bindtags $b [lreplace $tags $i $i Radiobutton_RO]
+      bindtags $b [lreplace $tags $i $i TRadiobutton_RO]
     }
   }
   LabelEntry $::MainFrame.sensedata.stopwatch \

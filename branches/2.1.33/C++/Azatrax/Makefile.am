@@ -84,29 +84,89 @@ pixmap_DATA = MRDTest.png MRDSensorLoop.png AzatraxDeviceMap.png \
 man_MANS = man1/MRDTest.1 man1/MRDSensorLoop.1 man1/AzatraxDeviceMap.1 \
 		man1/SL2Test.1 man1/SR4Test.1
 
-MRDTestSCRIPTS = $(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl \
-		$(top_srcdir)/Scripts/Common/HTMLHelp.tcl \
+MRDTestSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+		$(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
 		$(top_srcdir)/Scripts/Common/gettext.tcl \
+		$(top_srcdir)/Scripts/Common/snitdialog.tcl \
+                $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+		$(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+		$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+		$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+		$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+		$(top_srcdir)/Scripts/Common/snitLFs.tcl \
+                $(top_srcdir)/Scripts/Common/unknown.xpm \
+                $(top_srcdir)/Scripts/Common/openfold.png \
+                $(top_srcdir)/Scripts/Common/info.xbm \
+                $(top_srcdir)/Scripts/Common/questhead.xbm \
+                $(top_srcdir)/Scripts/Common/gray50.xbm \
 		$(top_builddir)/Scripts/Common/Version.tcl
 
-MRDSensorLoopSCRIPTS = $(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl \
-			$(top_srcdir)/Scripts/Common/HTMLHelp.tcl \
+MRDSensorLoopSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+			$(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
 			$(top_srcdir)/Scripts/Common/gettext.tcl \
+		        $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+                        $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+		        $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+        		$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+        		$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+		        $(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+		        $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+                        $(top_srcdir)/Scripts/Common/unknown.xpm \
+                        $(top_srcdir)/Scripts/Common/openfold.png \
+                        $(top_srcdir)/Scripts/Common/info.xbm \
+                        $(top_srcdir)/Scripts/Common/questhead.xbm \
+                        $(top_srcdir)/Scripts/Common/gray50.xbm \
 			$(top_builddir)/Scripts/Common/Version.tcl
 
-AzatraxDeviceMapSCRIPTS = $(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl \
-			$(top_srcdir)/Scripts/Common/HTMLHelp.tcl \
+AzatraxDeviceMapSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+			$(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
 			$(top_srcdir)/Scripts/Common/gettext.tcl \
+		        $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+	                $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+        	        $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+        		$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+        		$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+		        $(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+		        $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+                        $(top_srcdir)/Scripts/Common/unknown.xpm \
+                        $(top_srcdir)/Scripts/Common/openfold.png \
+                        $(top_srcdir)/Scripts/Common/info.xbm \
+                        $(top_srcdir)/Scripts/Common/questhead.xbm \
+                        $(top_srcdir)/Scripts/Common/gray50.xbm \
 			$(top_builddir)/Scripts/Common/Version.tcl
 
-SL2TestSCRIPTS = $(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl \
-		$(top_srcdir)/Scripts/Common/HTMLHelp.tcl \
+SL2TestSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+		$(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
 		$(top_srcdir)/Scripts/Common/gettext.tcl \
+		$(top_srcdir)/Scripts/Common/snitdialog.tcl \
+                $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+		$(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+		$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+		$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+		$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+		$(top_srcdir)/Scripts/Common/snitLFs.tcl \
+                $(top_srcdir)/Scripts/Common/unknown.xpm \
+                $(top_srcdir)/Scripts/Common/openfold.png \
+                $(top_srcdir)/Scripts/Common/info.xbm \
+                $(top_srcdir)/Scripts/Common/questhead.xbm \
+                $(top_srcdir)/Scripts/Common/gray50.xbm \
 		$(top_builddir)/Scripts/Common/Version.tcl
 
-SR4TestSCRIPTS = $(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl \
-		$(top_srcdir)/Scripts/Common/HTMLHelp.tcl \
+SR4TestSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+		$(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
 		$(top_srcdir)/Scripts/Common/gettext.tcl \
+		$(top_srcdir)/Scripts/Common/snitdialog.tcl \
+		$(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+		$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+                $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+       		$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+		$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+		$(top_srcdir)/Scripts/Common/snitLFs.tcl \
+                $(top_srcdir)/Scripts/Common/unknown.xpm \
+                $(top_srcdir)/Scripts/Common/openfold.png \
+                $(top_srcdir)/Scripts/Common/info.xbm \
+                $(top_srcdir)/Scripts/Common/questhead.xbm \
+                $(top_srcdir)/Scripts/Common/gray50.xbm \
 		$(top_builddir)/Scripts/Common/Version.tcl
 
 EXTRA_DIST = MRDTest.src azatrax.i MRDTest.desktop MRDTest.png Doxyfile.in \
@@ -132,12 +192,12 @@ azatrax.potlist: $(libazatrax_la_XGETTEXTFILES)
 
 AzatraxProg.pot: MRDTest.src MRDSensorLoop.src AzatraxDeviceMap.src \
 		SL2Test.src SR4Test.src \
-		$(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl
+		$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m -L Tcl $(addprefix $(subdir)/,MRDTest.src \
 				MRDSensorLoop.src AzatraxDeviceMap.src \
 				SL2Test.src SR4Test.src) \
-		Scripts/Common/BWStdMenuBar.tcl|\
+		Scripts/Common/snitStdMenuBar.tcl|\
 	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
 	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
 	    -e 's/FIRST AUTHOR <EMAIL@ADDRESS>,/Robert Heller <heller@deepsoft.com>/g' \
@@ -157,8 +217,6 @@ MRDTest${EXEEXT}: MRDTest.src libazatrax.la $(MRDTestSCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/MRDTest.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap MRDTest.kit
 	-rm -f  MRDTest.kit
-	$(UNZIP) -qq -d MRDTest.vfs/lib \
-		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit MRDTest \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit MRDTest \
@@ -185,8 +243,6 @@ SL2Test${EXEEXT}: SL2Test.src libazatrax.la $(SL2TestSCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/SL2Test.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap SL2Test.kit
 	-rm -f  SL2Test.kit
-	$(UNZIP) -qq -d SL2Test.vfs/lib \
-		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit SL2Test \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SL2Test \
@@ -213,8 +269,6 @@ SR4Test${EXEEXT}: SR4Test.src libazatrax.la $(SR4TestSCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/SR4Test.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap SR4Test.kit
 	-rm -f  SR4Test.kit
-	$(UNZIP) -qq -d SR4Test.vfs/lib \
-		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit SR4Test \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SR4Test \
@@ -241,8 +295,6 @@ MRDSensorLoop${EXEEXT}: MRDSensorLoop.src libazatrax.la $(MRDSensorLoopSCRIPTS) 
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/MRDSensorLoop.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap MRDSensorLoop.kit
 	-rm -f  MRDSensorLoop.kit
-	$(UNZIP) -qq -d MRDSensorLoop.vfs/lib \
-		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit MRDSensorLoop \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit MRDSensorLoop \
@@ -269,8 +321,6 @@ AzatraxDeviceMap${EXEEXT}: AzatraxDeviceMap.src libazatrax.la $(AzatraxDeviceMap
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/AzatraxDeviceMap.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap AzatraxDeviceMap.kit
 	-rm -f  AzatraxDeviceMap.kit
-	$(UNZIP) -qq -d AzatraxDeviceMap.vfs/lib \
-		$(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit AzatraxDeviceMap \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit AzatraxDeviceMap \
