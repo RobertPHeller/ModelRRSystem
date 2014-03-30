@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri May 24 09:50:47 2013
-#  Last Modified : <140327.1406>
+#  Last Modified : <140330.0920>
 #
 #  Description	
 #
@@ -188,10 +188,10 @@ snit::widgetadaptor Dialog {
               -relief [ttk::style lookup $options(-style) -framerelief] \
               -borderwidth [ttk::style lookup $options(-style) -frameborderwidth]
         set background [ttk::style lookup $options(-style) -background]
-        puts stderr "*** $type create $self: background is $background"
-        puts stderr "*** $type create $self: hull is $hull"
+        #puts stderr "*** $type create $self: background is $background"
+        #puts stderr "*** $type create $self: hull is $hull"
         $hull configure -background $background
-        puts stderr "*** $type create $self: frame is $frame"
+        #puts stderr "*** $type create $self: frame is $frame"
         #$frame configure -background $background
         set options(-bitmap) [from args -bitmap]
         set options(-image) [from args -image]
