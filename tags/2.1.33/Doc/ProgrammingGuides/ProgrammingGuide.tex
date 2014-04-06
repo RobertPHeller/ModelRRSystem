@@ -1,0 +1,102 @@
+%* 
+%* ------------------------------------------------------------------
+%* ProgrammingGuide.tex - Programming Guides
+%* Created by Robert Heller on Thu Apr 19 14:21:46 2007
+%* ------------------------------------------------------------------
+%* Modification History: $Log$
+%* Modification History: Revision 1.3  2007/11/30 13:56:50  heller
+%* Modification History: Novemeber 30, 2007 lockdown.
+%* Modification History:
+%* Modification History: Revision 1.2  2007/10/22 17:17:27  heller
+%* Modification History: 10222007
+%* Modification History:
+%* Modification History: Revision 1.1  2007/05/06 12:49:39  heller
+%* Modification History: Lock down  for 2.1.8 release candidate 1
+%* Modification History:
+%* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+%* Modification History: Add it copyright notice headers
+%* Modification History:
+%* ------------------------------------------------------------------
+%* Contents:
+%* ------------------------------------------------------------------
+%*  
+%*     Model RR System, Version 2
+%*     Copyright (C) 1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software
+%* 			51 Locke Hill Road
+%* 			Wendell, MA 01379-9728
+%* 
+%*     This program is free software; you can redistribute it and/or modify
+%*     it under the terms of the GNU General Public License as published by
+%*     the Free Software Foundation; either version 2 of the License, or
+%*     (at your option) any later version.
+%* 
+%*     This program is distributed in the hope that it will be useful,
+%*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%*     GNU General Public License for more details.
+%* 
+%*     You should have received a copy of the GNU General Public License
+%*     along with this program; if not, write to the Free Software
+%*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+%* 
+%*  
+%* 
+\documentclass[12pt,notitlepage,twoside]{book}
+\usepackage{graphicx}
+\usepackage{mathptm}
+\usepackage{times}
+\usepackage{makeidx}
+\usepackage{MyTitlepage}
+\usepackage{MyBibIndex}
+\usepackage{url}
+\usepackage{listings}
+\pagestyle{headings}
+\makeindex
+\emergencystretch=50pt
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
+\begin{document}
+\lstset{language=Tcl,basicstyle=\footnotesize,numbers=left,stepnumber=5}% Most examples will be in Tcl
+\typeout{$Id$}
+\newcommand{\MRRSubTitle}{Programming Guides}
+\include{titlepage}
+\pagenumbering{roman}
+\tableofcontents
+\lstlistoflistings
+\listoffigures
+\listoftables
+\cleardoublepage
+%       
+\cleardoublepage
+\pagenumbering{arabic}
+%
+\include{Introduction}
+\part{Raildriver Programming (From C++ and Tcl)}
+\include{RaildriverIOLib}
+\include{RaildriverServer}
+\part{Azatrax (From C++ and Tcl)}
+\include{AzatraxProgramming}
+\part{Tcl Script Programming}
+\include{CMRIProgramming}
+\include{XPressNetProgramming}
+\include{SplashWindows}
+\include{MainWindows}
+\include{LabelFrameWidgets}
+\include{HTMLHelp}
+\include{CTCPanels}
+\include{ReadConfiguration}
+\include{GraphicsSupport}
+\include{PanelInstruments}
+\include{OvalWidgets}
+\include{LCARSWidgets}
+\include{StarKitsStarPacks}
+%
+\cleardoublepage
+\bibliography{MRR}
+\bibliographystyle{plain}
+\cleardoublepage
+\printindex
+\end{document}
+
+
+
