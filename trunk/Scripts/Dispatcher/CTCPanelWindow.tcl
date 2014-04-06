@@ -377,7 +377,7 @@ namespace eval CTCPanelWindow {
                  -image [IconImage image gray50 \
                          -filetype xbm \
                          -foreground [ttk::style lookup . \
-                                      -background] \
+                                      -background {} #d9d9d9] \
                          -background {}]]
 
       $self configurelist $args

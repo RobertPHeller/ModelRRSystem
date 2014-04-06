@@ -1,3 +1,13 @@
+Thr Mar 27 13:14:33 2014
+
+  2.1.33 Release Candidate:
+  
+    Updated the tclkits to 8.5.8.
+    Convert all GUI code to use themed (tile) widgets and removed all 
+        references to BWidget widgets.  Wrote replacement snit/ttk widgets
+        as drop in (more or less) replacements for some BWidget widgets.
+    Fixed some bugs in the C++ code (SWIG interface problems).
+
 Mon Apr  1 09:30:36 2013
 
   2.1.32 Released:

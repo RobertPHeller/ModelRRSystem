@@ -188,8 +188,6 @@ TimeTable$(EXEEXT) : TimeTable.src $(TTLibFiles) $(TTCommonFiles) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/TimeTable.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap  TimeTable.kit
 	-rm -rf TimeTable.kit
-	$(UNZIP) -qq -d TimeTable.vfs/lib \
-	    $(top_srcdir)/BuildData/bwidget-1.9.6.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit TimeTable \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) TimeTable \

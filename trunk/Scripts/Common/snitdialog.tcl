@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri May 24 09:50:47 2013
-#  Last Modified : <140224.1255>
+#  Last Modified : <140330.0920>
 #
 #  Description	
 #
@@ -80,7 +80,7 @@ snit::widgetadaptor Dialog {
             Dialog.label -side left -sticky nw
         }
         ttk::style configure Dialog \
-              -borderwidth [ttk::style lookup "." -borderwidth] \
+              -borderwidth [ttk::style lookup "." -borderwidth {} 1] \
               -background [ttk::style lookup "." -background] \
               -relief raised \
               -framerelief flat \
@@ -149,6 +149,7 @@ snit::widgetadaptor Dialog {
         #puts stderr "*** $type create $self $args"
         set options(-style) [from args -style]
         set options(-class) [from args -class]
+        #parray options
         installhull using tk::toplevel -class $options(-class) \
               -relief [ttk::style lookup $options(-style) -relief] \
               -borderwidth [ttk::style lookup $options(-style) -borderwidth]
@@ -185,8 +186,7 @@ snit::widgetadaptor Dialog {
         install bbox using ButtonBox $win.bbox -orient $orient
         install frame using ttk::frame $win.frame \
               -relief [ttk::style lookup $options(-style) -framerelief] \
-              -borderwidth [ttk::style lookup $options(-style) \
-                            -frameborderwidth]
+              -borderwidth [ttk::style lookup $options(-style) -frameborderwidth]
         set background [ttk::style lookup $options(-style) -background]
         #puts stderr "*** $type create $self: background is $background"
         #puts stderr "*** $type create $self: hull is $hull"
