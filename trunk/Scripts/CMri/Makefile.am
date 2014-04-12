@@ -89,7 +89,7 @@ UniversalTest.pot: UniversalTest.src cmri.tcl \
 
 
 UniversalTest${EXEEXT}: UniversalTest.src $(UniversalTestSCRIPTS) \
-		$(top_builddir)/Doc/User/UniversalTest/UniversalTest.html \
+		$(top_builddir)/Doc/User/UniversalTest/index.html \
 		$(top_builddir)/po/UniversalTest/msgfiles
 	-rm -f  UniversalTest.kit
 	-rm -rf UniversalTest.vfs
@@ -113,8 +113,8 @@ UniversalTest${EXEEXT}: UniversalTest.src $(UniversalTestSCRIPTS) \
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
 
-$(top_builddir)/Doc/User/UniversalTest/UniversalTest.html: FORCE
-	$(MAKE) -C $(top_builddir)/Doc/User UniversalTest/UniversalTest.html
+$(top_builddir)/Doc/User/UniversalTest/index.html: FORCE
+	$(MAKE) -C $(top_builddir)/Doc/User UniversalTest/index.html
 
 $(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
 	$(MAKE) -C $(top_builddir)/BuildData tclkit${BEXEEXT}

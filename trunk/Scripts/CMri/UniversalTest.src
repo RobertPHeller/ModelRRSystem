@@ -164,7 +164,7 @@ proc MainWindow {} {
 
   set ::MainFrame [$::Main getframe]
 
-  HTMLHelp setDefaults "$::HelpDir" "UniversalTestli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
 
   # build widget $::MainFrame.status
   frame $::MainFrame.status \

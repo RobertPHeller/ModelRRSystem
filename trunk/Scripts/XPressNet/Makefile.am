@@ -67,7 +67,7 @@ XPressNetThrottle.pot: XPressNetThrottle.src \
 
 XPressNetThrottle${EXEEXT}: XPressNetThrottle.src \
 		$(XPressNetThrottleSCRIPTS) \
-		$(top_builddir)/Doc/User/XPressNetThrottle/XPressNetThrottle.html \
+		$(top_builddir)/Doc/User/XPressNetThrottle/index.html \
 		$(top_builddir)/po/XPressNetThrottle/msgfiles
 	-rm -f  XPressNetThrottle.kit
 	-rm -rf XPressNetThrottle.vfs
@@ -93,8 +93,8 @@ XPressNetThrottle${EXEEXT}: XPressNetThrottle.src \
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
 
-$(top_builddir)/Doc/User/XPressNetThrottle/XPressNetThrottle.html: FORCE
-	$(MAKE) -C $(top_builddir)/Doc/User XPressNetThrottle/XPressNetThrottle.html
+$(top_builddir)/Doc/User/XPressNetThrottle/index.html: FORCE
+	$(MAKE) -C $(top_builddir)/Doc/User XPressNetThrottle/index.html
 
 $(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
 	$(MAKE) -C $(top_builddir)/BuildData tclkit${BEXEEXT}

@@ -287,7 +287,7 @@ proc XPressNetThrottle::MainWindow {} {
 
   variable MainFrame [$Main getframe]
 
-  HTMLHelp setDefaults "$::HelpDir" "XPressNetThrottleli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
   set tf [ttk::labelframe $MainFrame.tf -labelanchor nw -text [_ "Communications Log:"]]
   pack $tf -expand yes -fill both
   pack [ScrolledWindow $tf.sw -auto both -scrollbar both] \
