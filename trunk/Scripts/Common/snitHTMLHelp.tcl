@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon May 27 10:14:03 2013
-#  Last Modified : <140327.1426>
+#  Last Modified : <140410.1254>
 #
 #  Description	
 #
@@ -521,7 +521,10 @@ snit::widgetadaptor HTMLHelp {
         if {{} == "$options(-tableofcontents)"} {
             error "Missing value for -tableofcontents, it is a required option!"
         }
-        set tocfile [file join "$options(-helpdirectory)" "$options(-tableofcontents)"]
+        if {[regexp {([^#]*)#(.+)} $options(-tableofcontents) -> basetocfile fragment] < 1} {
+            set basetocfile $options(-tableofcontents)
+        }
+        set tocfile [file join "$options(-helpdirectory)" $basetocfile]
         if {![file exists "$tocfile"] &&
             ![file readable "$tocfile"]} {
             error "Not a readable file, $options(-tableofcontents) (in $options(-helpdirectory)), for -tableofcontents!"
@@ -596,7 +599,7 @@ snit::widgetadaptor HTMLHelp {
         HMset_state $helptext -size 4
         HMset_indent $toc 1.2
         HMset_indent $helptext 1.2
-        render $selfns $toc $tocfile
+        render $selfns $toc $options(-tableofcontents)
     }
     variable Url
     variable savedgrab

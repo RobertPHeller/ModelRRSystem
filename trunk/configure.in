@@ -664,6 +664,18 @@ AC_CONFIG_FILES([config_tcl.sed \
 	  Doc/Makefile \
 		Doc/Support/Makefile \
 		Doc/User/Makefile \
+                Doc/User/Doxyfile.UserManual \
+                Doc/User/Makefile.UserManual \
+                Doc/User/Doxyfile.TimeTable \
+                Doc/User/Doxyfile.FCF \
+                Doc/User/Doxyfile.Calc \
+                Doc/User/Doxyfile.Camera \
+                Doc/User/Doxyfile.Dispatcher \
+                Doc/User/Doxyfile.AzatraxProg \
+                Doc/User/Doxyfile.GenericThrottle \
+                Doc/User/Doxyfile.MainProgram \
+                Doc/User/Doxyfile.UniversalTest \
+                Doc/User/Doxyfile.XPressNetThrottle \
 		Doc/doxygen/Makefile \
 		Doc/doxygen/Doxyfile \
 		Doc/doxygen/tcldoxyfilter.sh \

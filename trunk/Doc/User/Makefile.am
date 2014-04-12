@@ -55,45 +55,45 @@
 #* 
 
 SUFFIXES	= .tcl .sty
-DVIPSFLAGS	= -t letter
-#GUPDVIPSFLAGS   = -P GUP -x 823 -t GUP
-ODDPAGES = 2:0
-EVENPAGES = 2:-1
 
-USERMAN_AZATRAX_PROG_PART = AzatraxProgPart.tex AzatraxProgReference.tex
-AZATRAX_PROG_TEXS = AzatraxProg.tex AzatraxProgReference.tex
+USERMAN_AZATRAX_PROG_PART = AzatraxProgReference.h
+AZATRAX_PROG_HS = AzatraxProg.h AzatraxProgReference.h
 AZATRAX_PROG = AzatraxProg
 AZATRAX_PROGHBase = AzatraxProg
-AZATRAX_PROG_HTML = $(AZATRAX_PROGHBase)/$(AZATRAX_PROG).html
+AZATRAX_PROG_HTML = $(AZATRAX_PROGHBase)/index.html
 USERMAN_AZATRAX_PROG_FIGS =
+DOXYFILES = Doxyfile.$(AZATRAX_PROG).in
 
-USERMAN_UNIVERSALTEST_PART = UniversalTestPart.tex UniversalTestReference.tex
-UNIVERSALTEST_TEXS = UniversalTest.tex UniversalTestReference.tex
+USERMAN_UNIVERSALTEST_PART = UniversalTestReference.h
+UNIVERSALTEST_HS = UniversalTest.h UniversalTestReference.h
 UNIVERSALTEST = UniversalTest
 UNIVERSALTESTHBase = UniversalTest
-UNIVERSALTEST_HTML = $(UNIVERSALTESTHBase)/$(UNIVERSALTEST).html
+UNIVERSALTEST_HTML = $(UNIVERSALTESTHBase)/index.html
 USERMAN_UNIVERSALTEST_FIGS = UTMain.png UTNewCard.png UTOutputTest.png \
-		UTWrapAround.png
+		UTWrapAround.png UTOutputTestSmall.png
+DOXYFILES += Doxyfile.$(UNIVERSALTEST).in
 
-USERMAN_XPRESSNETTHROTTLE_PART = XPressNetThrottlePart.tex XPressNetThrottleReference.tex
-XPRESSNETTHROTTLE_TEXS = XPressNetThrottle.tex  XPressNetThrottleReference.tex
+USERMAN_XPRESSNETTHROTTLE_PART = XPressNetThrottleReference.h
+XPRESSNETTHROTTLE_HS = XPressNetThrottle.h  XPressNetThrottleReference.h
 XPRESSNETTHROTTLE = XPressNetThrottle
 XPRESSNETTHROTTLEHBase = XPressNetThrottle
-XPRESSNETTHROTTLE_HTML = $(XPRESSNETTHROTTLEHBase)/$(XPRESSNETTHROTTLE).html
+XPRESSNETTHROTTLE_HTML = $(XPRESSNETTHROTTLEHBase)/index.html
 USERMAN_XPRESSNETTHROTTLE_FIGS =
+DOXYFILES += Doxyfile.$(XPRESSNETTHROTTLE).in
 
-USERMAN_GENERICTHROTTLE_PART = GenericThrottlePart.tex GenericThrottleReference.tex
-GENERICTHROTTLE_TEXS = GenericThrottle.tex  GenericThrottleReference.tex
+USERMAN_GENERICTHROTTLE_PART = GenericThrottleReference.h
+GENERICTHROTTLE_HS = GenericThrottle.h  GenericThrottleReference.h
 GENERICTHROTTLE = GenericThrottle
 GENERICTHROTTLEHBase = GenericThrottle
-GENERICTHROTTLE_HTML = $(GENERICTHROTTLEHBase)/$(GENERICTHROTTLE).html
+GENERICTHROTTLE_HTML = $(GENERICTHROTTLEHBase)/index.html
 USERMAN_GENERICTHROTTLE_FIGS =
+DOXYFILES += Doxyfile.$(GENERICTHROTTLE).in
 
-USERMAN_TIMETABLE_PART = TimeTablePart.tex TTTutorial.tex TTReference.tex
-TIMETABLE_TEXS = TimeTable.tex TTTutorial.tex TTReference.tex
+USERMAN_TIMETABLE_PART =  TTTutorial.h TTReference.h
+TIMETABLE_HS = TimeTable.h TTTutorial.h TTReference.h
 TIMETABLE = TimeTable
 TIMETABLEHBase = TimeTable
-TIMETABLE_HTML = $(TIMETABLEHBase)/$(TIMETABLE).html
+TIMETABLE_HTML = $(TIMETABLEHBase)/index.html
 USERMAN_TIMETABLE_FIGS = TTaddtrain.png TTprintTool.png TTNewTool.png \
 	TTMainGUIBlank.png TTMainGUIToolBar.png TTMainGUIButtonMenu.png \
 	TTCreateNewTT.png TTCreateAllStations.png TTCreateAllCabs.png \
@@ -106,11 +106,13 @@ USERMAN_TIMETABLE_FIGS = TTaddtrain.png TTprintTool.png TTNewTool.png \
 	TTremovenotefromtrain.png TTPrintTimetableDialog.png \
 	TTPrintConfigurationDialog1.png TTPrintConfigurationDialog2.png \
 	TTPrintConfigurationDialog3.png TTCloseTool.png TTSelectOneTrain.png
-USERMAN_FCF_PART = FCFPart.tex  FCFTutorial.tex FCFReference.tex
-FCF_TEXS = FCF.tex FCFTutorial.tex FCFReference.tex
+DOXYFILES += Doxyfile.$(TIMETABLE).in
+
+USERMAN_FCF_PART = FCFTutorial.h FCFReference.h
+FCF_HS = FCF.h FCFTutorial.h FCFReference.h
 FCF = FCF
 FCFHBase = FCF
-FCF_HTML = $(FCFHBase)/$(FCF).html
+FCF_HTML = $(FCFHBase)/index.html
 USERMAN_FCF_FIGS = FCFMain.png FCFMainButtonMenu.png FCFMainIndicators.png \
 	FCFMainToolbar.png FCFLoadTool.png FCFLoadCarsTool.png \
 	FCFSaveCarsTool.png FCFManageTrainsTool.png FCFViewCarTool.png \
@@ -125,25 +127,31 @@ USERMAN_FCF_FIGS = FCFMain.png FCFMainButtonMenu.png FCFMainIndicators.png \
 	FCFEditCarSlideout.png FCFTrainStatusSlideout.png  \
 	FCFOpenPrinterDialog.png FCFShowCarsMenu.png FCFSelectATrainDialog.png \
 	FCFSelectACarDialog.png FCFReportsMenu.png
-USERMAN_CALC_PART = CalcPart.tex  ResistorManual.tex LocoPullManual.tex
-CALC_TEXS = Calc.tex ResistorManual.tex LocoPullManual.tex
+DOXYFILES += Doxyfile.$(FCF).in
+
+USERMAN_CALC_PART = ResistorManual.h LocoPullManual.h
+CALC_HS = Calc.h ResistorManual.h LocoPullManual.h
 CALC = Calc
 CALCHBase = Calc
-CALC_HTML = $(CALCHBase)/$(CALC).html
+CALC_HTML = $(CALCHBase)/index.html
 USERMAN_CALC_FIGS = RestMain.png LocoPullMain.png
-USERMAN_CAMERA_PART = CameraPart.tex  CameraManual.tex
-CAMERA_TEXS = Camera.tex CameraManual.tex
+DOXYFILES += Doxyfile.$(CALC).in
+
+USERMAN_CAMERA_PART = CameraManual.h
+CAMERA_HS = Camera.h CameraManual.h
 CAMERA = Camera
 CAMERAHBase = Camera
-CAMERA_HTML = $(CAMERAHBase)/$(CAMERA).html
+CAMERA_HTML = $(CAMERAHBase)/index.html
 USERMAN_CAMERA_FIGS = CameraAnyDist.png
-USERMAN_DISPATCHER_PART = DispatcherPart.tex DispatcherTutorial.tex \
-	DispatcherReference.tex DispatcherExamples.tex
-DISPATCHER_TEXS = Dispatcher.tex DispatcherTutorial.tex \
-	DispatcherReference.tex DispatcherExamples.tex
+DOXYFILES += Doxyfile.$(CAMERA).in
+
+USERMAN_DISPATCHER_PART = DispatcherTutorial.h \
+	DispatcherReference.h DispatcherExamples.h
+DISPATCHER_HS = Dispatcher.h DispatcherTutorial.h \
+	DispatcherReference.h DispatcherExamples.h
 DISPATCHER = Dispatcher
 DISPATCHERHBase = Dispatcher
-DISPATCHER_HTML = $(DISPATCHERHBase)/$(DISPATCHER).html
+DISPATCHER_HTML = $(DISPATCHERHBase)/index.html
 USERMAN_DISPATCHER_FIGS = DISPNewCTCPanel.png DISPEmptyCTCPanel.png \
 	DISPMainGUI.png DISPEditPanelOptions.png DISPExample1.png \
 	DISPExample2.png DISPExample3.png DISPExample4.png \
@@ -156,23 +164,26 @@ USERMAN_DISPATCHER_FIGS = DISPNewCTCPanel.png DISPEmptyCTCPanel.png \
 	DISPSimpleTutCB1.png DISPSimpleTutPanel3.png DISPSimpleTutPanel4.png \
 	DISPAddEditPanelObject.png DISPEditUserCode.png DISPFindNodeDialog.png \
 	DISPSelectPanelObject.png DISPPrintDialog.png DISPSelectCTCPanel.png
+USERMAN_DISPATCHER_DEPS = $(srcdir)/../../Scripts/Dispatcher/example*.tcl \
+			  $(srcdir)/../../Scripts/Dispatcher/example*.iow
+DOXYFILES += Doxyfile.$(DISPATCHER).in
 
-USERMAN_DISPATCHER_DEPS = example1.tcl example1.iow example2.tcl example2.iow \
-	example3.tcl example3.iow example4.tcl example4.iow 
-USERMAN_MAINPROGRAM_PART = #MainProgramPart.tex
-MAINPROGRAM_TEXS = MainProgram.tex 
+
+USERMAN_MAINPROGRAM_PART = #
+MAINPROGRAM_HS = MainProgram.h 
 MAINPROGRAM = MainProgram
 MAINPROGRAMHBase = MainProgram
-MAINPROGRAM_HTML = $(MAINPROGRAMHBase)/$(MAINPROGRAM).html
+MAINPROGRAM_HTML = $(MAINPROGRAMHBase)/index.html
 USERMAN_MAINPROGRAM_FIGS =
+DOXYFILES += Doxyfile.$(MAINPROGRAM).in
 
-USERMAN_TEXS = UserManual.tex Preface.tex Introduction.tex \
+USERMAN_HS = Preface.h Introduction.h \
 	$(USERMAN_UNIVERSALTEST_PART)  \
 	$(USERMAN_XPRESSNETTHROTTLE_PART) $(USERMAN_GENERICTHROTTLE_PART) \
 	$(USERMAN_TIMETABLE_PART) $(USERMAN_FCF_PART) $(USERMAN_CALC_PART) \
 	$(USERMAN_CAMERA_PART) $(USERMAN_DISPATCHER_PART) \
 	$(USERMAN_MAINPROGRAM_PART) $(USERMAN_AZATRAX_PROG_PART) \
-	$(USERMAN_XPRESSNETTHROTTLE_PART) Help.tex
+	Help.h
 USERMAN_FIGS = $(USERMAN_TIMETABLE_FIGS) $(USERMAN_FCF_FIGS) \
 	$(USERMAN_CALC_FIGS) $(USERMAN_CAMERA_FIGS) $(USERMAN_DISPATCHER_FIGS) \
 	$(USERMAN_MAINPROGRAM_FIGS) $(USERMAN_DISPATCHER_DEPS) \
@@ -181,466 +192,166 @@ USERMAN_FIGS = $(USERMAN_TIMETABLE_FIGS) $(USERMAN_FCF_FIGS) \
 USERMAN = UserManual
 USERMAN_PDF = $(USERMAN).pdf
 USERMANHBase = UserManual
-USERMAN_HTML = $(USERMANHBase)/$(USERMAN).html
+USERMAN_HTML = $(USERMANHBase)/index.html
+DOXYFILES += Doxyfile.$(USERMAN).in
 
 BIBLIO = ../MRR.bib
 
-EXTRA_DIST = $(USERMAN_TEXS) $(USERMAN_FIGS) $(TIMETABLE).tex $(FCF).tex \
-	     $(CALC).tex $(CAMERA).tex $(DISPATCHER).tex COPYING.tex \
-	     $(UNIVERSALTEST).tex $(MAINPROGRAM).tex $(AZATRAX_PROG).tex \
-	     $(XPRESSNETTHROTTLE_TEXS) $(GENERICTHROTTLE_TEXS)
+EXTRA_DIST = $(USERMAN_HS) $(USERMAN_FIGS) $(TIMETABLE_HS) $(FCF_HS) \
+	     $(CALC_HS) $(CAMERA_HS) $(DISPATCHER_HS) COPYING.h \
+	     $(UNIVERSALTEST_HS) $(MAINPROGRAM_HS) $(AZATRAX_PROG_HS) \
+	     $(XPRESSNETTHROTTLE_HS) $(GENERICTHROTTLE_HS) footer.tex
+	     $(DOXYFILES) Makefile.UserManual.in
 
 pkgdatadir = $(datadir)/$(PACKAGE)/Doc
 
-pkgdata_DATA = $(USERMAN_PDF) Help.tex
+pkgdata_DATA = $(USERMAN_PDF) Help.h
 noinst_DATA  = $(USERMAN_HTML) $(TIMETABLE_HTML) $(FCF_HTML) $(CALC_HTML) \
 	       $(CAMERA_HTML) $(DISPATCHER_HTML) $(UNIVERSALTEST_HTML) \
-	       $(AZATRAX_PROG_HTML)
+	       $(AZATRAX_PROG_HTML) $(MAINPROGRAM_HTML) \
+	       $(XPRESSNETTHROTTLE_HTML) $(GENERICTHROTTLE_HTML)
 
 
-CLEANFILES = *_Version.tex $(USERMAN_PDF) $(AZATRAX_PROG).pdf $(UNIVERSALTEST).pdf \
-		$(XPRESSNETTHROTTLE).pdf $(GENERICTHROTTLE).pdf \
-		$(TIMETABLE).pdf $(FCF).pdf $(CALC).pdf $(CAMERA).pdf \
-		$(DISPATCHER).pdf $(MAINPROGRAM).pdf *.aux *.bbl *.blg \
-		*.idx *.ilg *.ind *.lof *.lot *.lol *.toc *.css *.log 
+CLEANFILES = *_Version.h $(USERMAN_PDF) 
 
 clean-local:
 	-rm -rf $(AZATRAX_PROGHBase) $(UNIVERSALTESTHBase) \
 		$(XPRESSNETTHROTTLEHBase) $(GENERICTHROTTLEHBase) \
 		$(TIMETABLEHBase) $(FCFHBase) $(CALCHBase) \
 		$(CAMERAHBase) $(DISPATCHERHBase) $(MAINPROGRAMHBase) \
-		$(USERMANHBase)
+		$(USERMANHBase) latex
 
-%.pdf: %.ps
-	$(PS2PDF) $< $@
-
-titlepage.tex : ../titlepage.tex
-	-ln -sf $(srcdir)/../titlepage.tex ./titlepage.tex
-
-example1.tcl example1.iow example2.tcl example2.iow \
-	example3.tcl example3.iow example4.tcl example4.iow : $(srcdir)/../../Scripts/Dispatcher/example[1234].tcl $(srcdir)/../../Scripts/Dispatcher/example[1234].iow
-	for f in $(?F); do \
-		if test -f "./$$f"; then continue; else ln -s $(srcdir)/../../Scripts/Dispatcher/$$f ./; fi; \
-	done
-
-$(USERMAN)_Version.tex : $(top_builddir)/config.status
-	echo '\chapter*{Version}'               >$(USERMAN)_Version.tex
-	echo '\addcontentsline{toc}{chapter}{Version}' \
-						>>$(USERMAN)_Version.tex
-	echo '\markboth{Version}{Version}' 	>>$(USERMAN)_Version.tex
-	echo "TT Support Library version is $(TTCLASSES_VERSIONLIB).\\\\" >>$(USERMAN)_Version.tex
-	echo "FCF Support Library version is $(FCFCLASSES_VERSIONLIB).\\\\" >>$(USERMAN)_Version.tex
-	echo "CMri Library version is $(CMRI_VERSIONLIB).\\\\" >>$(USERMAN)_Version.tex
-	echo "System patch level is $(MRR_PATCH_LEVEL).\\\\" >>$(USERMAN)_Version.tex
+$(USERMAN)_Version.h : $(top_builddir)/config.status
+	echo '/** @page Version Version' >$(USERMAN)_Version.h
+	echo "  * TT Support Library version is $(TTCLASSES_VERSIONLIB)." >>$(USERMAN)_Version.h
+	echo "  * FCF Support Library version is $(FCFCLASSES_VERSIONLIB)." >>$(USERMAN)_Version.h
+	echo "  * CMri Library version is $(CMRI_VERSIONLIB)." >>$(USERMAN)_Version.h
+	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(USERMAN)_Version.h
+	echo "  * Azatrax Library version is $(AZATRAX_VERSIONLIB)." >>$(USERMAN)_Version.h
+	echo "  */" >>$(USERMAN)_Version.h
 
 
-$(USERMAN_PDF) : $(USERMAN_TEXS) $(USERMAN_FIGS) $(BIBLIO) \
-	$(USERMAN)_Version.tex ../MyTitlepage.sty ../MyBibIndex.sty \
-	../tips.sty \
-	titlepage.tex COPYING.tex # ../Cover1.ps
-	for f in $(USERMAN_TEXS) $(USERMAN_FIGS); do \
-	    if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi; \
-	done
-	-ln -s $(srcdir)/$(BIBLIO) ./
-	-ln -s $(srcdir)/COPYING.tex ./
-	-ln -s $(srcdir)/../MyTitlepage.sty ./
-	-ln -s $(srcdir)/../MyBibIndex.sty ./
-	-ln -s $(srcdir)/../tips.sty ./
-	$(PDFLATEX) $(USERMAN)
-	-$(BIBTEX) $(USERMAN)
-	echo '\begin{theindex}' > $(USERMAN).ind
-	echo '\item Dummy, 0' >> $(USERMAN).ind
-	echo '\end{theindex}' >> $(USERMAN).ind
-	$(PDFLATEX) $(USERMAN)
-	$(MAKEINDEX) $(USERMAN).idx
-	$(PDFLATEX) $(USERMAN)
-
-$(USERMAN_HTML) : $(USERMAN_PDF)
-	-rm -rf $(USERMANHBase)
-	-mkdir $(USERMANHBase)
-	$(HTLATEX) $(USERMAN) "html,2,info" "" "-d$(USERMANHBase)/"
-	for f in $(USERMAN_FIGS); do \
-	  if test -f "$(USERMANHBase)/$$f"; then continue; else (cd $(USERMANHBase)&&ln -s ../$$f ./); fi; \
-	done
-	-rm -f zz$(USERMAN).p* $(USERMAN).4ct $(USERMAN).xref \
-		 $(USERMAN).4tc tex4ht.fls $(USERMAN).tmp $(USERMAN).lg \
-		 $(USERMAN).idv $(USERMAN).dvi $(USERMAN)*.html
-
-$(AZATRAX_PROG)_Version.tex : $(top_builddir)/config.status 
-	echo '\chapter*{Version}'               >$(AZATRAX_PROG)_Version.tex
-	echo '\addcontentsline{toc}{chapter}{Version}' \
-						>>$(AZATRAX_PROG)_Version.tex
-	echo '\markboth{Version}{Version}' 	>>$(AZATRAX_PROG)_Version.tex
-	echo "Azatrax Library version is $(AZATRAX_VERSIONLIB).\\\\" >>$(AZATRAX_PROG)_Version.tex
-	echo "System patch level is $(MRR_PATCH_LEVEL).\\\\" >>$(AZATRAX_PROG)_Version.tex
-
-$(AZATRAX_PROG).pdf : COPYING.tex $(AZATRAX_PROG_TEXS) \
-	$(USERMAN_AZATRAX_PROG_FIGS) $(BIBLIO) \
-	../MyTitlepage.sty titlepage.tex \
-	$(AZATRAX_PROG)_Version.tex Help.tex
-	for f in $(AZATRAX_PROG_TEXS) $(USERMAN_AZATRAX_PROG_FIGS); do \
-	    if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi; \
-	done
-	-ln -s $(srcdir)/COPYING.tex ./
-	-ln -s $(srcdir)/$(BIBLIO) ./
-	-ln -s $(srcdir)/../MyTitlepage.sty ./
-	$(PDFLATEX) $(AZATRAX_PROG)
-	-$(BIBTEX) $(AZATRAX_PROG)
-	echo '\begin{theindex}' > $(AZATRAX_PROG).ind
-	echo '\item Dummy, 0' >> $(AZATRAX_PROG).ind
-	echo '\end{theindex}' >> $(AZATRAX_PROG).ind
-	$(PDFLATEX) $(AZATRAX_PROG)
-	$(MAKEINDEX) $(AZATRAX_PROG).idx
-	$(PDFLATEX) $(AZATRAX_PROG)
-
-$(AZATRAX_PROG_HTML) : $(AZATRAX_PROG).pdf
-	-rm -rf $(AZATRAX_PROGHBase)
-	-mkdir $(AZATRAX_PROGHBase)
-	$(HTLATEX) $(AZATRAX_PROG) "html,4,info" "" "-d$(AZATRAX_PROGHBase)/"
-	for f in $(USERMAN_AZATRAX_PROG_FIGS); do \
-	    if test -f "$(AZATRAX_PROGHBase)/$$f"; then continue; else (cd $(AZATRAX_PROGHBase)&&ln -s ../$$f ./); fi; \
-	done
-	-rm -f zz$(AZATRAX_PROG).p* $(AZATRAX_PROG).4ct $(AZATRAX_PROG).xref \
-		 $(AZATRAX_PROG).4tc tex4ht.fls $(AZATRAX_PROG).tmp $(AZATRAX_PROG).lg \
-		 $(AZATRAX_PROG).idv $(AZATRAX_PROG).dvi $(AZATRAX_PROG)*.html
-	
-
-$(UNIVERSALTEST)_Version.tex : $(top_builddir)/config.status
-	echo '\chapter*{Version}'               >$(UNIVERSALTEST)_Version.tex
-	echo '\addcontentsline{toc}{chapter}{Version}' \
-						>>$(UNIVERSALTEST)_Version.tex
-	echo '\markboth{Version}{Version}' 	>>$(UNIVERSALTEST)_Version.tex
-	echo "CMri Library version is $(CMRI_VERSIONLIB).\\\\" >>$(UNIVERSALTEST)_Version.tex
-	echo "System patch level is $(MRR_PATCH_LEVEL).\\\\" >>$(UNIVERSALTEST)_Version.tex
-
-$(UNIVERSALTEST).pdf : COPYING.tex $(UNIVERSALTEST_TEXS) \
-		    $(USERMAN_UNIVERSALTEST_FIGS) $(BIBLIO) \
-		    ../MyTitlepage.sty titlepage.tex \
-		    $(UNIVERSALTEST)_Version.tex Help.tex
-	for f in $(UNIVERSALTEST_TEXS) $(USERMAN_UNIVERSALTEST_FIGS); do \
-	    if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi; \
-	done
-	-ln -s $(srcdir)/COPYING.tex ./
-	-ln -s $(srcdir)/$(BIBLIO) ./
-	-ln -s $(srcdir)/../MyTitlepage.sty ./
-	$(PDFLATEX) $(UNIVERSALTEST)
-	-$(BIBTEX) $(UNIVERSALTEST)
-	echo '\begin{theindex}' > $(UNIVERSALTEST).ind
-	echo '\item Dummy, 0' >> $(UNIVERSALTEST).ind
-	echo '\end{theindex}' >> $(UNIVERSALTEST).ind
-	$(PDFLATEX) $(UNIVERSALTEST)
-	$(MAKEINDEX) $(UNIVERSALTEST).idx
-	$(PDFLATEX) $(UNIVERSALTEST)
-
-$(UNIVERSALTEST_HTML) : $(UNIVERSALTEST).pdf
-	-rm -rf $(UNIVERSALTESTHBase)
-	-mkdir $(UNIVERSALTESTHBase)
-	$(HTLATEX) $(UNIVERSALTEST) "html,4,info" "" "-d$(UNIVERSALTESTHBase)/"
-	for f in $(USERMAN_UNIVERSALTEST_FIGS); do \
-	  if test -f "$(UNIVERSALTESTHBase)/$$f"; then continue; else (cd $(UNIVERSALTESTHBase)&&ln -s ../$$f ./); fi; \
-	done
-	-rm -f zz$(UNIVERSALTEST).p* $(UNIVERSALTEST).4ct $(UNIVERSALTEST).xref \
-		 $(UNIVERSALTEST).4tc tex4ht.fls $(UNIVERSALTEST).tmp $(UNIVERSALTEST).lg \
-		 $(UNIVERSALTEST).idv $(UNIVERSALTEST).dvi $(UNIVERSALTEST)*.html
-
-$(XPRESSNETTHROTTLE)_Version.tex : $(top_builddir)/config.status
-	echo '\chapter*{Version}'               >$(XPRESSNETTHROTTLE)_Version.tex
-	echo '\addcontentsline{toc}{chapter}{Version}' \
-						>>$(XPRESSNETTHROTTLE)_Version.tex
-	echo '\markboth{Version}{Version}' 	>>$(XPRESSNETTHROTTLE)_Version.tex
-	echo "XPressNet Library version is $(XPRESSNET_VERSIONLIB).\\\\" >>$(XPRESSNETTHROTTLE)_Version.tex
-	echo "System patch level is $(MRR_PATCH_LEVEL).\\\\" >>$(XPRESSNETTHROTTLE)_Version.tex
-
-$(XPRESSNETTHROTTLE).pdf : COPYING.tex $(XPRESSNETTHROTTLE_TEXS) \
-		    $(USERMAN_XPRESSNETTHROTTLE_FIGS) $(BIBLIO) \
-		    ../MyTitlepage.sty titlepage.tex \
-		    $(XPRESSNETTHROTTLE)_Version.tex Help.tex
-	for f in $(XPRESSNETTHROTTLE_TEXS) $(USERMAN_XPRESSNETTHROTTLE_FIGS); do \
-	    if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi; \
-	done
-	-ln -s $(srcdir)/COPYING.tex ./
-	-ln -s $(srcdir)/$(BIBLIO) ./
-	-ln -s $(srcdir)/../MyTitlepage.sty ./
-	$(PDFLATEX) $(XPRESSNETTHROTTLE)
-	-$(BIBTEX) $(XPRESSNETTHROTTLE)
-	echo '\begin{theindex}' > $(XPRESSNETTHROTTLE).ind
-	echo '\item Dummy, 0' >> $(XPRESSNETTHROTTLE).ind
-	echo '\end{theindex}' >> $(XPRESSNETTHROTTLE).ind
-	$(PDFLATEX) $(XPRESSNETTHROTTLE)
-	$(MAKEINDEX) $(XPRESSNETTHROTTLE).idx
-	$(PDFLATEX) $(XPRESSNETTHROTTLE)
-
-$(XPRESSNETTHROTTLE_HTML) : $(XPRESSNETTHROTTLE).pdf
-	-rm -rf $(XPRESSNETTHROTTLEHBase)
-	-mkdir $(XPRESSNETTHROTTLEHBase)
-	$(HTLATEX) $(XPRESSNETTHROTTLE) "html,4,info" "" "-d$(XPRESSNETTHROTTLEHBase)/"
-	for f in $(USERMAN_XPRESSNETTHROTTLE_FIGS); do \
-	  if test -f "$(XPRESSNETTHROTTLEHBase)/$$f"; then continue; else (cd $(XPRESSNETTHROTTLEHBase)&&ln -s ../$$f ./); fi; \
-	done
-	-rm -f zz$(XPRESSNETTHROTTLE).p* $(XPRESSNETTHROTTLE).4ct $(XPRESSNETTHROTTLE).xref \
-		 $(XPRESSNETTHROTTLE).4tc tex4ht.fls $(XPRESSNETTHROTTLE).tmp $(XPRESSNETTHROTTLE).lg \
-		 $(XPRESSNETTHROTTLE).idv $(XPRESSNETTHROTTLE).dvi $(XPRESSNETTHROTTLE)*.html
-
-$(GENERICTHROTTLE)_Version.tex : $(top_builddir)/config.status
-	echo '\chapter*{Version}'               >$(GENERICTHROTTLE)_Version.tex
-	echo '\addcontentsline{toc}{chapter}{Version}' \
-						>>$(GENERICTHROTTLE)_Version.tex
-	echo '\markboth{Version}{Version}' 	>>$(GENERICTHROTTLE)_Version.tex
-	echo "XPressNet Library version is $(XPRESSNET_VERSIONLIB).\\\\" >>$(GENERICTHROTTLE)_Version.tex
-	echo "System patch level is $(MRR_PATCH_LEVEL).\\\\" >>$(GENERICTHROTTLE)_Version.tex
-
-$(GENERICTHROTTLE).pdf : COPYING.tex $(GENERICTHROTTLE_TEXS) \
-		    $(USERMAN_GENERICTHROTTLE_FIGS) $(BIBLIO) \
-		    ../MyTitlepage.sty titlepage.tex \
-		    $(GENERICTHROTTLE)_Version.tex Help.tex
-	for f in $(GENERICTHROTTLE_TEXS) $(USERMAN_GENERICTHROTTLE_FIGS); do \
-	    if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi; \
-	done
-	-ln -s $(srcdir)/COPYING.tex ./
-	-ln -s $(srcdir)/$(BIBLIO) ./
-	-ln -s $(srcdir)/../MyTitlepage.sty ./
-	$(PDFLATEX) $(GENERICTHROTTLE)
-	-$(BIBTEX) $(GENERICTHROTTLE)
-	echo '\begin{theindex}' > $(GENERICTHROTTLE).ind
-	echo '\item Dummy, 0' >> $(GENERICTHROTTLE).ind
-	echo '\end{theindex}' >> $(GENERICTHROTTLE).ind
-	$(PDFLATEX) $(GENERICTHROTTLE)
-	$(MAKEINDEX) $(GENERICTHROTTLE).idx
-	$(PDFLATEX) $(GENERICTHROTTLE)
-
-$(GENERICTHROTTLE_HTML) : $(GENERICTHROTTLE).pdf
-	-rm -rf $(GENERICTHROTTLEHBase)
-	-mkdir $(GENERICTHROTTLEHBase)
-	$(HTLATEX) $(GENERICTHROTTLE) "html,4,info" "" "-d$(GENERICTHROTTLEHBase)/"
-	for f in $(USERMAN_GENERICTHROTTLE_FIGS); do \
-	  if test -f "$(GENERICTHROTTLEHBase)/$$f"; then continue; else (cd $(GENERICTHROTTLEHBase)&&ln -s ../$$f ./); fi; \
-	done
-	-rm -f zz$(GENERICTHROTTLE).p* $(GENERICTHROTTLE).4ct $(GENERICTHROTTLE).xref \
-		 $(GENERICTHROTTLE).4tc tex4ht.fls $(GENERICTHROTTLE).tmp $(GENERICTHROTTLE).lg \
-		 $(GENERICTHROTTLE).idv $(GENERICTHROTTLE).dvi $(GENERICTHROTTLE)*.html
-
-$(TIMETABLE)_Version.tex : $(top_builddir)/config.status
-	echo '\chapter*{Version}'               >$(TIMETABLE)_Version.tex
-	echo '\addcontentsline{toc}{chapter}{Version}' \
-						>>$(TIMETABLE)_Version.tex
-	echo '\markboth{Version}{Version}' 	>>$(TIMETABLE)_Version.tex
-	echo "TT Support Library version is $(TTCLASSES_VERSIONLIB).\\\\" >>$(TIMETABLE)_Version.tex
-	echo "System patch level is $(MRR_PATCH_LEVEL).\\\\" >>$(TIMETABLE)_Version.tex
 
 
-$(TIMETABLE).pdf : COPYING.tex $(TIMETABLE_TEXS) $(TIMETABLE)_Version.tex \
-		    $(USERMAN_TIMETABLE_FIGS) $(BIBLIO) \
-		    ../MyTitlepage.sty titlepage.tex Help.tex
-	for f in $(TIMETABLE_TEXS) $(USERMAN_TIMETABLE_FIGS); do \
-	    if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi; \
-	done
-	-ln -s $(srcdir)/COPYING.tex ./
-	-ln -s $(srcdir)/$(BIBLIO) ./
-	-ln -s $(srcdir)/../MyTitlepage.sty ./
-	$(PDFLATEX) $(TIMETABLE)
-	-$(BIBTEX) $(TIMETABLE)
-	echo '\begin{theindex}' > $(TIMETABLE).ind
-	echo '\item Dummy, 0' >> $(TIMETABLE).ind
-	echo '\end{theindex}' >> $(TIMETABLE).ind
-	$(PDFLATEX) $(TIMETABLE)
-	$(MAKEINDEX) $(TIMETABLE).idx
-	$(PDFLATEX) $(TIMETABLE)
-
-$(TIMETABLE_HTML) : $(TIMETABLE).pdf
-	-rm -rf $(TIMETABLEHBase)
-	-mkdir $(TIMETABLEHBase)
-	$(HTLATEX) $(TIMETABLE) "html,4,info" "" "-d$(TIMETABLEHBase)/"
-	for f in $(USERMAN_TIMETABLE_FIGS); do \
-	  if test -f "$(TIMETABLEHBase)/$$f"; then continue; else (cd $(TIMETABLEHBase)&&ln -s ../$$f ./); fi; \
-	done
-	-rm -f zz$(TIMETABLE).p* $(TIMETABLE).4ct $(TIMETABLE).xref \
-		 $(TIMETABLE).4tc tex4ht.fls $(TIMETABLE).tmp $(TIMETABLE).lg \
-		 $(TIMETABLE).idv $(TIMETABLE).dvi $(TIMETABLE)*.html
-
-$(FCF)_Version.tex : $(top_builddir)/config.status
-	echo '\chapter*{Version}'               >$(FCF)_Version.tex
-	echo '\addcontentsline{toc}{chapter}{Version}' \
-						>>$(FCF)_Version.tex
-	echo '\markboth{Version}{Version}' 	>>$(FCF)_Version.tex
-	echo "FCF Support Library version is $(FCFCLASSES_VERSIONLIB).\\\\" >>$(FCF)_Version.tex
-	echo "System patch level is $(MRR_PATCH_LEVEL).\\\\" >>$(FCF)_Version.tex
+$(USERMAN_HTML) $(USERMAN_PDF) : $(USERMAN_HS) $(USERMAN_FIGS) $(BIBLIO) \
+	footer.tex $(USERMAN)_Version.h COPYING.h Doxyfile.$(USERMAN)
+	$(DOXYGEN) Doxyfile.UserManual
+	cp $(srcdir)/$(BIBLIO) latex/
+	cp Makefile.UserManual latex/Makefile
+	make -C latex pdf
+	mv latex/refman.pdf ./$(USERMAN_PDF)
 
 
-$(FCF).pdf : COPYING.tex $(FCF_TEXS) $(USERMAN_FCF_FIGS) $(BIBLIO) \
-		    ../MyTitlepage.sty titlepage.tex  \
-		    $(FCF)_Version.tex Help.tex
-	for f in $(FCF_TEXS) $(USERMAN_FCF_FIGS); do \
-	    if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi; \
-	done
-	-ln -s $(srcdir)/COPYING.tex ./
-	-ln -s $(srcdir)/$(BIBLIO) ./
-	-ln -s $(srcdir)/../MyTitlepage.sty ./
-	$(PDFLATEX) $(FCF)
-	-$(BIBTEX) $(FCF)
-	echo '\begin{theindex}' > $(FCF).ind
-	echo '\item Dummy, 0' >> $(FCF).ind
-	echo '\end{theindex}' >> $(FCF).ind
-	$(PDFLATEX) $(FCF)
-	$(MAKEINDEX) $(FCF).idx
-	$(PDFLATEX) $(FCF)
+$(AZATRAX_PROG)_Version.h : $(top_builddir)/config.status
+	echo '/** @page Version Version' >$(AZATRAX_PROG)_Version.h
+	echo "  * Azatrax Library version is $(AZATRAX_VERSIONLIB)." >>$(AZATRAX_PROG)_Version.h
+	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(AZATRAX_PROG)_Version.h
+	echo "  */" >>$(AZATRAX_PROG)_Version.h
 
-$(FCF_HTML) : $(FCF).pdf
-	-rm -rf $(FCFHBase)
-	-mkdir $(FCFHBase)
-	$(HTLATEX) $(FCF) "html,4,info" "" "-d$(FCFHBase)/"
-	for f in $(USERMAN_FCF_FIGS); do \
-	  if test -f "$(FCFHBase)/$$f"; then continue; else (cd $(FCFHBase)&&ln -s ../$$f ./); fi; \
-	done
-	-rm -f zz$(FCF).p* $(FCF).4ct $(FCF).xref \
-		 $(FCF).4tc tex4ht.fls $(FCF).tmp $(FCF).lg \
-		 $(FCF).idv $(FCF).dvi $(FCF)*.html
+$(AZATRAX_PROG_HTML) : COPYING.h Help.h $(AZATRAX_PROG_HS) \
+	$(USERMAN_AZATRAX_PROG_FIGS) $(AZATRAX_PROG)_Version.h \
+	Doxyfile.$(AZATRAX_PROG)
+	$(DOXYGEN) Doxyfile.$(AZATRAX_PROG)
 
-$(CALC)_Version.tex : $(top_builddir)/config.status
-	echo '\chapter*{Version}'               >$(CALC)_Version.tex
-	echo '\addcontentsline{toc}{chapter}{Version}' \
-						>>$(CALC)_Version.tex
-	echo '\markboth{Version}{Version}' 	>>$(CALC)_Version.tex
-	echo "System patch level is $(MRR_PATCH_LEVEL).\\\\" >>$(CALC)_Version.tex
+$(UNIVERSALTEST)_Version.h : $(top_builddir)/config.status
+	echo '/** @page Version Version'               >$(UNIVERSALTEST)_Version.h
+	echo "  * CMri Library version is $(CMRI_VERSIONLIB)." >>$(UNIVERSALTEST)_Version.h
+	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(UNIVERSALTEST)_Version.h
+	echo "  */" >>$(UNIVERSALTEST)_Version.h
+
+$(UNIVERSALTEST_HTML) : COPYING.h Help.h $(UNIVERSALTEST_HS) \
+		$(USERMAN_UNIVERSALTEST_FIGS) $(UNIVERSALTEST)_Version.h \
+		Doxyfile.$(UNIVERSALTEST)
+	$(DOXYGEN) Doxyfile.$(UNIVERSALTEST)
+
+$(XPRESSNETTHROTTLE)_Version.h : $(top_builddir)/config.status
+	echo '/** @page Version Version'               >$(XPRESSNETTHROTTLE)_Version.h
+	echo "  * XPressNet Library version is $(XPRESSNET_VERSIONLIB)." >>$(XPRESSNETTHROTTLE)_Version.h
+	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(XPRESSNETTHROTTLE)_Version.h
+	echo "  */"  >>$(XPRESSNETTHROTTLE)_Version.h
+
+$(XPRESSNETTHROTTLE_HTML) :  COPYING.h $(XPRESSNETTHROTTLE_HS) \
+		    $(USERMAN_XPRESSNETTHROTTLE_FIGS) \
+		    $(XPRESSNETTHROTTLE)_Version.h Help.h \
+		    Doxyfile.$(XPRESSNETTHROTTLE)
+	$(DOXYGEN) Doxyfile.$(XPRESSNETTHROTTLE)
+
+$(GENERICTHROTTLE)_Version.h : $(top_builddir)/config.status
+	echo '/** @page Version Version'               >$(GENERICTHROTTLE)_Version.h
+	echo "  * XPressNet Library version is $(XPRESSNET_VERSIONLIB)." >>$(GENERICTHROTTLE)_Version.h
+	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(GENERICTHROTTLE)_Version.h
+	echo "  */" >>$(GENERICTHROTTLE)_Version.h
+
+$(GENERICTHROTTLE_HTML) : COPYING.h $(GENERICTHROTTLE_HS) \
+		    $(USERMAN_GENERICTHROTTLE_FIGS) \
+		    $(GENERICTHROTTLE)_Version.h Help.h \
+		    Doxyfile.$(GENERICTHROTTLE)
+	$(DOXYGEN) Doxyfile.$(GENERICTHROTTLE)
+
+$(TIMETABLE)_Version.h : $(top_builddir)/config.status
+	echo '/** @page Version Version'               >$(TIMETABLE)_Version.h
+	echo "  * TT Support Library version is $(TTCLASSES_VERSIONLIB)." >>$(TIMETABLE)_Version.h
+	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(TIMETABLE)_Version.h
+	echo "  */" >>$(TIMETABLE)_Version.h
 
 
-$(CALC).pdf : COPYING.tex $(CALC_TEXS) $(USERMAN_CALC_FIGS) \
-		$(BIBLIO) ../MyTitlepage.sty titlepage.tex \
-		$(CALC)_Version.tex Help.tex
-	for f in $(CALC_TEXS) $(USERMAN_CALC_FIGS); do \
-	    if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi; \
-	done
-	-ln -s $(srcdir)/COPYING.tex ./
-	-ln -s $(srcdir)/$(BIBLIO) ./
-	-ln -s $(srcdir)/../MyTitlepage.sty ./
-	$(PDFLATEX) $(CALC)
-	-$(BIBTEX) $(CALC)
-	echo '\begin{theindex}' > $(CALC).ind
-	echo '\item Dummy, 0' >> $(CALC).ind
-	echo '\end{theindex}' >> $(CALC).ind
-	$(PDFLATEX) $(CALC)
-	$(MAKEINDEX) $(CALC).idx
-	$(PDFLATEX) $(CALC)
+$(TIMETABLE_HTML) : COPYING.h $(TIMETABLE_HS) $(TIMETABLE)_Version.h \
+		    $(USERMAN_TIMETABLE_FIGS) Help.h \
+		    Doxyfile.$(TIMETABLE)
+	$(DOXYGEN) Doxyfile.$(TIMETABLE)
 
-$(CALC_HTML) : $(CALC).pdf
-	-rm -rf $(CALCHBase)
-	-mkdir $(CALCHBase)
-	$(HTLATEX) $(CALC) "html,4,info" "" "-d$(CALCHBase)/"
-	for f in $(USERMAN_CALC_FIGS); do \
-	  if test -f "$(CALCHBase)/$$f"; then continue; else (cd $(CALCHBase)&&ln -s ../$$f ./); fi; \
-	done
-	-rm -f zz$(CALC).p* $(CALC).4ct $(CALC).xref \
-		 $(CALC).4tc tex4ht.fls $(CALC).tmp $(CALC).lg \
-		 $(CALC).idv $(CALC).dvi $(CALC)*.html
+$(FCF)_Version.h : $(top_builddir)/config.status
+	echo '/** @page Version Version'               >$(FCF)_Version.h
+	echo "  * FCF Support Library version is $(FCFCLASSES_VERSIONLIB)." >>$(FCF)_Version.h
+	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(FCF)_Version.h
+	echo "  */" >>$(FCF)_Version.h
 
-$(CAMERA)_Version.tex : $(top_builddir)/config.status
-	echo '\chapter*{Version}'               >$(CAMERA)_Version.tex
-	echo '\addcontentsline{toc}{chapter}{Version}' \
-						>>$(CAMERA)_Version.tex
-	echo '\markboth{Version}{Version}' 	>>$(CAMERA)_Version.tex
-	echo "System patch level is $(MRR_PATCH_LEVEL).\\\\" >>$(CAMERA)_Version.tex
+$(FCF_HTML) : COPYING.h $(FCF_HS) $(USERMAN_FCF_FIGS) \
+		    $(FCF)_Version.h Help.h \
+		    Doxyfile.$(FCF)
+	$(DOXYGEN) Doxyfile.$(FCF)
 
-$(CAMERA).pdf : COPYING.tex $(CAMERA_TEXS) $(CAMERA)_Version.tex \
-		$(USERMAN_CAMERA_FIGS) $(BIBLIO) ../MyTitlepage.sty \
-		titlepage.tex Help.tex
-	for f in $(CAMERA_TEXS) $(USERMAN_CAMERA_FIGS); do \
-	    if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi; \
-	done
-	-ln -s $(srcdir)/COPYING.tex ./
-	-ln -s $(srcdir)/$(BIBLIO) ./
-	-ln -s $(srcdir)/../MyTitlepage.sty ./
-	$(PDFLATEX) $(CAMERA)
-	-$(BIBTEX) $(CAMERA)
-	echo '\begin{theindex}' > $(CAMERA).ind
-	echo '\item Dummy, 0' >> $(CAMERA).ind
-	echo '\end{theindex}' >> $(CAMERA).ind
-	$(PDFLATEX) $(CAMERA)
-	$(MAKEINDEX) $(CAMERA).idx
-	$(PDFLATEX) $(CAMERA)
+$(CALC)_Version.h : $(top_builddir)/config.status
+	echo '/** @page Version Version'               >$(CALC)_Version.h
+	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(CALC)_Version.h
+	echo "  */" >>$(CALC)_Version.h
 
-$(CAMERA_HTML) : $(CAMERA).pdf
-	-rm -rf $(CAMERAHBase)
-	-mkdir $(CAMERAHBase)
-	$(HTLATEX) $(CAMERA) "html,4,info" "" "-d$(CAMERAHBase)/"
-	for f in $(USERMAN_CAMERA_FIGS); do \
-	  if test -f "$(CAMERAHBase)/$$f"; then continue; else (cd $(CAMERAHBase)&&ln -s ../$$f ./); fi; \
-	done
-	-rm -f zz$(CAMERA).p* $(CAMERA).4ct $(CAMERA).xref \
-		 $(CAMERA).4tc tex4ht.fls $(CAMERA).tmp $(CAMERA).lg \
-		 $(CAMERA).idv $(CAMERA).dvi $(CAMERA)*.html
 
-$(DISPATCHER)_Version.tex : $(top_builddir)/config.status
-	echo '\chapter*{Version}'               >$(DISPATCHER)_Version.tex
-	echo '\addcontentsline{toc}{chapter}{Version}' \
-						>>$(DISPATCHER)_Version.tex
-	echo '\markboth{Version}{Version}' 	>>$(DISPATCHER)_Version.tex
-	echo "System patch level is $(MRR_PATCH_LEVEL).\\\\" >>$(DISPATCHER)_Version.tex
+$(CALC_HTML) : COPYING.h $(CALC_HS) $(USERMAN_CALC_FIGS) \
+		$(CALC)_Version.h Help.h \
+		Doxyfile.$(CALC)
+	$(DOXYGEN) Doxyfile.$(CALC)
 
-$(DISPATCHER).pdf : COPYING.tex $(DISPATCHER_TEXS) $(DISPATCHER)_Version.tex \
-			$(USERMAN_DISPATCHER_FIGS) $(BIBLIO) \
-			../MyTitlepage.sty ../tips.sty titlepage.tex \
-			$(USERMAN_DISPATCHER_DEPS) Help.tex
-	for f in $(DISPATCHER_TEXS) $(USERMAN_DISPATCHER_FIGS); do \
-	    if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi; \
-	done
-	-ln -s $(srcdir)/COPYING.tex ./
-	-ln -s $(srcdir)/$(BIBLIO) ./
-	-ln -s $(srcdir)/../MyTitlepage.sty ./
-	-ln -s $(srcdir)/../tips.sty ./
-	$(PDFLATEX) $(DISPATCHER)
-	-$(BIBTEX) $(DISPATCHER)
-	echo '\begin{theindex}' > $(DISPATCHER).ind
-	echo '\item Dummy, 0' >> $(DISPATCHER).ind
-	echo '\end{theindex}' >> $(DISPATCHER).ind
-	$(PDFLATEX) $(DISPATCHER)
-	$(MAKEINDEX) $(DISPATCHER).idx
-	$(PDFLATEX) $(DISPATCHER)
+$(CAMERA)_Version.h : $(top_builddir)/config.status
+	echo '/** @page Version Version'               >$(CAMERA)_Version.h
+	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(CAMERA)_Version.h
+	echo "  */" >>$(CAMERA)_Version.h
 
-$(DISPATCHER_HTML) : $(DISPATCHER).pdf 
-	-rm -rf $(DISPATCHERHBase)
-	-mkdir $(DISPATCHERHBase)
-	$(HTLATEX) $(DISPATCHER) "html,4,info" "" "-d$(DISPATCHERHBase)/"
-	for f in $(USERMAN_DISPATCHER_FIGS); do \
-	  if test -f "$(DISPATCHERHBase)/$$f"; then continue; else (cd $(DISPATCHERHBase)&&ln -s ../$$f ./); fi; \
-	done
-	-rm -f zz$(DISPATCHER).p* $(DISPATCHER).4ct $(DISPATCHER).xref \
-		 $(DISPATCHER).4tc tex4ht.fls $(DISPATCHER).tmp $(DISPATCHER).lg \
-		 $(DISPATCHER).idv $(DISPATCHER).dvi $(DISPATCHER)*.html
+$(CAMERA_HTML) : COPYING.h $(CAMERA_HS) $(CAMERA)_Version.h \
+		$(USERMAN_CAMERA_FIGS) Help.h \
+		Doxyfile.$(CAMERA)
+	$(DOXYGEN) Doxyfile.$(CAMERA)
 
-$(MAINPROGRAM)_Version.tex : $(top_builddir)/config.status
-	echo '\chapter*{Version}'               >$(MAINPROGRAM)_Version.tex
-	echo '\addcontentsline{toc}{chapter}{Version}' \
-						>>$(MAINPROGRAM)_Version.tex
-	echo '\markboth{Version}{Version}' 	>>$(MAINPROGRAM)_Version.tex
-	echo "System patch level is $(MRR_PATCH_LEVEL).\\\\" >>$(MAINPROGRAM)_Version.tex
+$(DISPATCHER)_Version.h : $(top_builddir)/config.status
+	echo '/** @page Version Version'               >$(DISPATCHER)_Version.h
+	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(DISPATCHER)_Version.h
+	echo "  */" >>$(DISPATCHER)_Version.h
 
-$(MAINPROGRAM).pdf : COPYING.tex $(MAINPROGRAM_TEXS) $(MAINPROGRAM)_Version.tex \
-			$(USERMAN_MAINPROGRAM_FIGS) $(BIBLIO) \
-		    ../MyTitlepage.sty titlepage.tex Help.tex
-	for f in $(MAINPROGRAM_TEXS) $(USERMAN_MAINPROGRAM_FIGS); do \
-	    if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi; \
-	done
-	-ln -s $(srcdir)/COPYING.tex ./
-	-ln -s $(srcdir)/$(BIBLIO) ./
-	-ln -s $(srcdir)/../MyTitlepage.sty ./
-	$(PDFLATEX) $(MAINPROGRAM)
-	-$(BIBTEX) $(MAINPROGRAM)
-	echo '\begin{theindex}' > $(MAINPROGRAM).ind
-	echo '\item Dummy, 0' >> $(MAINPROGRAM).ind
-	echo '\end{theindex}' >> $(MAINPROGRAM).ind
-	$(PDFLATEX) $(MAINPROGRAM)
-	$(MAKEINDEX) $(MAINPROGRAM).idx
-	$(PDFLATEX) $(MAINPROGRAM)
+$(DISPATCHER_HTML) : COPYING.h $(DISPATCHER_HS) $(DISPATCHER)_Version.h \
+			$(USERMAN_DISPATCHER_FIGS) \
+			$(USERMAN_DISPATCHER_DEPS) Help.h \
+			Doxyfile.$(DISPATCHER)
+	$(DOXYGEN) Doxyfile.$(DISPATCHER)
 
-$(MAINPROGRAM_HTML) : $(MAINPROGRAM).pdf
-	-rm -rf $(MAINPROGRAMHBase)
-	-mkdir $(MAINPROGRAMHBase)
-	$(HTLATEX) $(MAINPROGRAM) "html,4,info" "" "-d$(MAINPROGRAMHBase)/"
-	for f in $(USERMAN_MAINPROGRAM_FIGS); do \
-	  if test -f "$(MAINPROGRAMHBase)/$$f"; then continue; else (cd $(MAINPROGRAMHBase)&&ln -s ../$$f ./); fi; \
-	done
-	-rm -f zz$(MAINPROGRAM).p* $(MAINPROGRAM).4ct $(MAINPROGRAM).xref \
-		 $(MAINPROGRAM).4tc tex4ht.fls $(MAINPROGRAM).tmp $(MAINPROGRAM).lg \
-		 $(MAINPROGRAM).idv $(MAINPROGRAM).dvi $(MAINPROGRAM)*.html
+$(MAINPROGRAM)_Version.h : $(top_builddir)/config.status
+	echo '/** @page Version Version'               >$(MAINPROGRAM)_Version.h
+	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(MAINPROGRAM)_Version.h
+	echo "  */" >>$(MAINPROGRAM)_Version.h
+
+$(MAINPROGRAM_HTML) : COPYING.h $(MAINPROGRAM_HS) $(MAINPROGRAM)_Version.h \
+			$(USERMAN_MAINPROGRAM_FIGS) Help.h \
+			Doxyfile.$(MAINPROGRAM)
+	$(DOXYGEN) Doxyfile.$(MAINPROGRAM)
 
 install-data-hook: $(USERMAN_HTML)
 	$(INSTALL) -d $(DESTDIR)$(pkgdatadir)/$(USERMANHBase)
