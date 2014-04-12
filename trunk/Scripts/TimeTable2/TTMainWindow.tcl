@@ -995,7 +995,7 @@ proc TimeTable::MainWindow {dontWithdraw} {
 
   variable HelpDir
 
-  HTMLHelp setDefaults "$HelpDir" "TimeTableli1.html"
+  HTMLHelp setDefaults "$HelpDir" "index.html#toc"
 }
 
 

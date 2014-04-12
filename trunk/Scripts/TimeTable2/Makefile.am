@@ -180,7 +180,7 @@ TTChart2TT2$(EXEEXT) : TTChart2TT2.src ReadOldTT.tcl \
 	
 
 TimeTable$(EXEEXT) : TimeTable.src $(TTLibFiles) $(TTCommonFiles) \
-		$(top_builddir)/Doc/User/TimeTable/TimeTable.html \
+		$(top_builddir)/Doc/User/TimeTable/index.html \
 		$(top_builddir)/C++/TTSupport/libttclasses.la \
 		$(top_builddir)/C++/TTSupport/pkgIndex.tcl \
 			$(top_builddir)/po/TimeTable2/msgfiles
@@ -222,8 +222,8 @@ $(top_builddir)/C++/TTSupport/pkgIndex.tcl : \
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
 
-$(top_builddir)/Doc/User/TimeTable/TimeTable.html: FORCE
-	$(MAKE) -C $(top_builddir)/Doc/User TimeTable/TimeTable.html
+$(top_builddir)/Doc/User/TimeTable/index.html: FORCE
+	$(MAKE) -C $(top_builddir)/Doc/User TimeTable/index.html
 
 $(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
 	$(MAKE) -C $(top_builddir)/BuildData tclkit${BEXEEXT}
