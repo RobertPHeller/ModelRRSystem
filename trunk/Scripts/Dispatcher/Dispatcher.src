@@ -310,7 +310,7 @@ proc Dispatcher::MainWindow {} {
   $Main menu entryconfigure help [_m "Menu|Help|Warranty"] \
 	-command "HTMLHelp help Warranty"
 
-  HTMLHelp setDefaults "$::HelpDir" "Dispatcherli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
 }
 
 proc Dispatcher::AddToWindows {window name} {

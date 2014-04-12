@@ -139,7 +139,7 @@ Dispatcher.pot: Dispatcher.src $(DispatcherScripts) \
 Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 		      $(CodeLibraryFiles) \
 		      $(top_builddir)/po/Dispatcher/msgfiles \
-		      $(top_builddir)/Doc/User/Dispatcher/Dispatcher.html \
+		      $(top_builddir)/Doc/User/Dispatcher/index.html \
 		      $(CMriDependFiles)  $(AzatraxDependFiles) \
 		      $(top_builddir)/C++/ParserClasses/libMRRParserClasses.la \
 		      $(top_builddir)/C++/ParserClasses/pkgIndex.tcl
@@ -176,8 +176,8 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap Dispatcher${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf Dispatcher.vfs Dispatcher.kit
 
-$(top_builddir)/Doc/User/Dispatcher/Dispatcher.html : FORCE
-	$(MAKE) -C $(top_builddir)/Doc/User Dispatcher/Dispatcher.html
+$(top_builddir)/Doc/User/Dispatcher/index.html : FORCE
+	$(MAKE) -C $(top_builddir)/Doc/User Dispatcher/index.html
 
 $(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
 	$(MAKE) -C $(top_builddir)/BuildData tclkit${BEXEEXT}
