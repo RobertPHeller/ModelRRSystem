@@ -99,7 +99,7 @@ CameraScripts.pot: Lens.tcl CameraCalculator.tcl CameraPrintDialog.tcl \
 
 AnyDistance${EXEEXT} : AnyDistance.src $(CameraSCRIPTS) \
 		     $(top_builddir)/po/CameraScripts/msgfiles \
-		     $(top_builddir)/Doc/User/Camera/Camera.html
+		     $(top_builddir)/Doc/User/Camera/index.html
 	-rm -rf AnyDistance.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap  $(srcdir)/AnyDistance.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap  AnyDistance.kit
@@ -122,7 +122,7 @@ AnyDistance${EXEEXT} : AnyDistance.src $(CameraSCRIPTS) \
 
 Closest${EXEEXT} : Closest.src $(CameraSCRIPTS) \
 		     $(top_builddir)/po/CameraScripts/msgfiles \
-		     $(top_builddir)/Doc/User/Camera/Camera.html
+		     $(top_builddir)/Doc/User/Camera/index.html
 	-rm -rf Closest.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap  $(srcdir)/Closest.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap  Closest.kit
@@ -147,8 +147,8 @@ Closest${EXEEXT} : Closest.src $(CameraSCRIPTS) \
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
 
-$(top_builddir)/Doc/User/Camera/Camera.html: FORCE
-	$(MAKE) -C $(top_builddir)/Doc/User Camera/Camera.html
+$(top_builddir)/Doc/User/Camera/index.html: FORCE
+	$(MAKE) -C $(top_builddir)/Doc/User Camera/index.html
 
 $(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
 	$(MAKE) -C $(top_builddir)/BuildData tclkit${BEXEEXT}

@@ -183,7 +183,7 @@ proc CameraCalculator::CameraCalculator {anyDistanceP} {
   pack [MainFrame .main -menu $menubar -textvariable CameraCalculator::Status] \
 	-expand yes -fill both
   .main showstatusbar status
-  HTMLHelp setDefaults "$::HelpDir" "Camerali1.html"
+  HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
   set frame [.main getframe]
   # Create a scrolled canvas.
   set sw [ScrolledWindow $frame.canvasSW -scrollbar both -auto both]
