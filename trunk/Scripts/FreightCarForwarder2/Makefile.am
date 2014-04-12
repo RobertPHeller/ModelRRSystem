@@ -173,7 +173,7 @@ FreightCarForwarder2.pot: FCFMain.src FCFCreate.src $(FCFScripts) \
 	    -e 's/CHARSET/ascii/g' >FreightCarForwarder2.pot
 
 FCFMain${EXEEXT} : FCFMain.src $(FCFLibFiles) $(FCFCommonFiles) \
-		$(top_builddir)/Doc/User/FCF/FCF.html \
+		$(top_builddir)/Doc/User/FCF/index.html \
 		$(top_builddir)/po/FreightCarForwarder2/msgfiles \
 		$(top_builddir)/C++/FCFSupport/libfcfclasses.la \
 		$(top_builddir)/C++/FCFSupport/pkgIndex.tcl
@@ -204,7 +204,7 @@ FCFMain${EXEEXT} : FCFMain.src $(FCFLibFiles) $(FCFCommonFiles) \
 
 FCFCreate$(EXEEXT) : FCFCreate.src $(FCFCreLibFiles) $(FCFCommonFiles) \
 		$(top_builddir)/po/FreightCarForwarder2/msgfiles \
-		$(top_builddir)/Doc/User/FCF/FCF.html \
+		$(top_builddir)/Doc/User/FCF/index.html \
 		$(srcdir)/*/*.dat
 	-rm -rf FCFCreate.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap  $(srcdir)/FCFCreate.src
@@ -233,8 +233,8 @@ FCFCreate$(EXEEXT) : FCFCreate.src $(FCFCreLibFiles) $(FCFCommonFiles) \
 	-rm -rf FCFCreate.vfs FCFCreate.kit
 
 
-$(top_builddir)/Doc/User/FCF/FCF.html : FORCE
-	$(MAKE) -C $(top_builddir)/Doc/User FCF/FCF.html
+$(top_builddir)/Doc/User/FCF/index.html : FORCE
+	$(MAKE) -C $(top_builddir)/Doc/User FCF/index.html
 
 $(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
 	$(MAKE) -C $(top_builddir)/BuildData tclkit${BEXEEXT}
