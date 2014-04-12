@@ -135,7 +135,7 @@ proc MainWindow {} {
 
   set ::MainFrame [$::Main getframe]
 
-  HTMLHelp setDefaults "$::HelpDir" "AzatraxProgli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
 
   LabelFrame $::MainFrame.snframe -width 22 -text "Serial Number To open:"
   pack $::MainFrame.snframe -fill x

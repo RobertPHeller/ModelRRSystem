@@ -210,7 +210,7 @@ pkgIndex.tcl: libazatrax.la $(top_builddir)/config.status
 
 MRDTest${EXEEXT}: MRDTest.src libazatrax.la $(MRDTestSCRIPTS) \
 		pkgIndex.tcl \
-		$(top_builddir)/Doc/User/AzatraxProg/AzatraxProg.html \
+		$(top_builddir)/Doc/User/AzatraxProg/index.html \
 		$(top_builddir)/po/AzatraxProg/msgfiles
 	-rm -f  MRDTest.kit
 	-rm -rf MRDTest.vfs
@@ -236,7 +236,7 @@ MRDTest${EXEEXT}: MRDTest.src libazatrax.la $(MRDTestSCRIPTS) \
 
 SL2Test${EXEEXT}: SL2Test.src libazatrax.la $(SL2TestSCRIPTS) \
 		pkgIndex.tcl \
-		$(top_builddir)/Doc/User/AzatraxProg/AzatraxProg.html \
+		$(top_builddir)/Doc/User/AzatraxProg/index.html \
 		$(top_builddir)/po/AzatraxProg/msgfiles
 	-rm -f  SL2Test.kit
 	-rm -rf SL2Test.vfs
@@ -262,7 +262,7 @@ SL2Test${EXEEXT}: SL2Test.src libazatrax.la $(SL2TestSCRIPTS) \
 
 SR4Test${EXEEXT}: SR4Test.src libazatrax.la $(SR4TestSCRIPTS) \
 		pkgIndex.tcl \
-		$(top_builddir)/Doc/User/AzatraxProg/AzatraxProg.html \
+		$(top_builddir)/Doc/User/AzatraxProg/index.html \
 		$(top_builddir)/po/AzatraxProg/msgfiles
 	-rm -f  SR4Test.kit
 	-rm -rf SR4Test.vfs
@@ -288,7 +288,7 @@ SR4Test${EXEEXT}: SR4Test.src libazatrax.la $(SR4TestSCRIPTS) \
 
 MRDSensorLoop${EXEEXT}: MRDSensorLoop.src libazatrax.la $(MRDSensorLoopSCRIPTS) \
 		pkgIndex.tcl \
-		$(top_builddir)/Doc/User/AzatraxProg/AzatraxProg.html \
+		$(top_builddir)/Doc/User/AzatraxProg/index.html \
 		$(top_builddir)/po/AzatraxProg/msgfiles
 	-rm -f  MRDSensorLoop.kit
 	-rm -rf MRDSensorLoop.vfs
@@ -314,7 +314,7 @@ MRDSensorLoop${EXEEXT}: MRDSensorLoop.src libazatrax.la $(MRDSensorLoopSCRIPTS) 
 
 AzatraxDeviceMap${EXEEXT}: AzatraxDeviceMap.src libazatrax.la $(AzatraxDeviceMapSCRIPTS) \
 		pkgIndex.tcl \
-		$(top_builddir)/Doc/User/AzatraxProg/AzatraxProg.html \
+		$(top_builddir)/Doc/User/AzatraxProg/index.html \
 		$(top_builddir)/po/AzatraxProg/msgfiles
 	-rm -f  AzatraxDeviceMap.kit
 	-rm -rf AzatraxDeviceMap.vfs
@@ -360,8 +360,8 @@ $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
 
-$(top_builddir)/Doc/User/AzatraxProg/AzatraxProg.html: FORCE
-	$(MAKE) -C $(top_builddir)/Doc/User AzatraxProg/AzatraxProg.html
+$(top_builddir)/Doc/User/AzatraxProg/index.html: FORCE
+	$(MAKE) -C $(top_builddir)/Doc/User AzatraxProg/index.html
 
 $(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
 	$(MAKE) -C $(top_builddir)/BuildData tclkit${BEXEEXT}

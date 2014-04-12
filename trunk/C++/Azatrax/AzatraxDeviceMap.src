@@ -407,7 +407,7 @@ proc MainWindow {{filename {}}} {
 
   set ::MainFrame [$::Main getframe]
 
-  HTMLHelp setDefaults "$::HelpDir" "AzatraxProgli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
 
   DeviceMap $::MainFrame.deviceMap -filename $filename -dirtycallback ::DirtyCallBack
   pack $::MainFrame.deviceMap -expand yes -fill both

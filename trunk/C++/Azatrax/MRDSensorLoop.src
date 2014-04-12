@@ -131,7 +131,7 @@ proc MainWindow {} {
   pack $::Main -expand yes -fill both
   $::Main showstatusbar progression
 
-  HTMLHelp setDefaults "$::HelpDir" "AzatraxProgli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
 
   set ::MainFrame [$::Main getframe]
 
