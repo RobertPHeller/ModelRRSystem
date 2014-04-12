@@ -625,7 +625,7 @@ proc GenericThrottle::MainWindow {port commandstationtype} {
 
   variable MainFrame [$Main getframe]
 
-  HTMLHelp setDefaults "$::HelpDir" "GenericThrottleli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
 
   if {$commandstationtype eq ""} {set commandstationtype dummy}
   set th [Throttle $MainFrame.th -port $port -commandstationtype $commandstationtype]

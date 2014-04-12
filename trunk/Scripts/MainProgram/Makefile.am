@@ -87,7 +87,7 @@ TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 BUILT_SOURCES = $(TCLKIT)
 
 ModelRRSystem$(EXEEXT) : ModelRRSystem.src $(ModelRRSystemLibFiles) $(CommonLibFiles) \
-		      $(top_builddir)/Doc/User/MainProgram/MainProgram.html \
+		      $(top_builddir)/Doc/User/MainProgram/index.html \
 		      $(top_builddir)/C++/ParserClasses/libMRRParserClasses.la \
 		      $(top_builddir)/C++/ParserClasses/pkgIndex.tcl
 	-rm -rf ModelRRSystem.vfs
@@ -113,8 +113,8 @@ ModelRRSystem$(EXEEXT) : ModelRRSystem.src $(ModelRRSystemLibFiles) $(CommonLibF
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap ModelRRSystem${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf ModelRRSystem.vfs ModelRRSystem.kit
 
-$(top_builddir)/Doc/User/MainProgram/MainProgram.html: FORCE
-	$(MAKE) -C $(top_builddir)/Doc/User MainProgram/MainProgram.html
+$(top_builddir)/Doc/User/MainProgram/index.html: FORCE
+	$(MAKE) -C $(top_builddir)/Doc/User MainProgram/index.html
 
 $(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
 	$(MAKE) -C $(top_builddir)/BuildData tclkit${BEXEEXT}

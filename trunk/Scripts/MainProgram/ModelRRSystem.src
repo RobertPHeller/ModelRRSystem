@@ -162,7 +162,7 @@ proc ModelRRSystem::MainWindow {} {
   $Main menu entryconfigure help "Warranty" \
 	-command "HTMLHelp help Warranty"
 
-  HTMLHelp setDefaults "$::HelpDir" "MainProgramli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
 }
   
 

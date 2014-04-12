@@ -100,7 +100,7 @@ GenericThrottle.pot: GenericThrottle.src $(GTScripts) \
 	    -e 's/CHARSET/ascii/g' >GenericThrottle.pot
 
 GenericThrottle$(EXEEXT) : GenericThrottle.src $(GTLibFiles) $(GTCommonFiles) \
-		$(top_builddir)/Doc/User/GenericThrottle/GenericThrottle.html \
+		$(top_builddir)/Doc/User/GenericThrottle/index.html \
 		$(top_builddir)/po/GenericThrottle/msgfiles
 	-rm -rf GenericThrottle.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/GenericThrottle.src
@@ -128,8 +128,8 @@ GenericThrottle$(EXEEXT) : GenericThrottle.src $(GTLibFiles) $(GTCommonFiles) \
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
 
-$(top_builddir)/Doc/User/GenericThrottle/GenericThrottle.html: FORCE
-	$(MAKE) -C $(top_builddir)/Doc/User GenericThrottle/GenericThrottle.html
+$(top_builddir)/Doc/User/GenericThrottle/index.html: FORCE
+	$(MAKE) -C $(top_builddir)/Doc/User GenericThrottle/index.html
 
 $(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
 	$(MAKE) -C $(top_builddir)/BuildData tclkit${BEXEEXT}
