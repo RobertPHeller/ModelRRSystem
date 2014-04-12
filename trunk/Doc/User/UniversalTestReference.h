@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 15:49:31 2014
-//  Last Modified : <140410.1604>
+//  Last Modified : <140412.1004>
 //
 //  Description	
 //
@@ -73,9 +73,9 @@
  * and \cite{Chubb03}.
  * @endlatexonly
  * 
- * @section univtest:maingui Main GUI Elements
+ * @section maingui Main GUI Elements
  *
- * @subsection univtest:mainwindow Main Window
+ * @subsection mainwindow Main Window
  * The main window upon start up looks like this:
  * @image latex UTMain.png "The main window of the Universal Test Program" width=4in
  * @image html  UTMain.png
@@ -88,7 +88,7 @@
  * means to test as fast as possible (the program will stop if there is an
  * error).
  *
- * @subsection univtest:openport Open New Port
+ * @subsection openport Open New Port
  * The New menu item on the File menu opens the serial port (/dev/ttySn)
  * the Chubb node is connected to and set the baud rate and retry count,
  * as shown here:
@@ -101,7 +101,7 @@
  * one each output and input card for the wraparound test (output card in the 
  * first slot and the input card in the second slot).
  * 
- * @section univtest:tests Tests
+ * @section tests Tests
  * 
  * There are two tests available: the output port test, which tests an output
  * port card and the wraparound test, which tests an input port card using
@@ -112,7 +112,7 @@
  * and compares what was written with what was read. These tests are
  * selected from the Actions menu.  
  * 
- * @subsection univtest:testout Test Output Card
+ * @subsection testout Test Output Card
  * 
  * The output card test displays the dialog box shown here:
  * @image latex UTOutputTest.png "The Output Card Test Dialog Box" width=5in
@@ -120,7 +120,7 @@
  * The lit up indicator on the dialog box should match a corresponding LED on 
  * the output card LED test plug. The test is repeated until canceled.
  * 
- * @subsection univtest:wraparounf Wraparound Test
+ * @subsection wraparound Wraparound Test
  * 
  * The wraparound test displays the dialog box shown here:
  * @image latex UTWrapAround.png "The Wraparound Test Dialog Box" width=5in
