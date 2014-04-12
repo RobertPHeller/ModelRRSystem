@@ -108,7 +108,7 @@ CalcScripts.pot: Resistor.tcl LocoPull.tcl \
 	
 
 Resistor${EXEEXT}: Resistor.tcl $(ResistorSCRIPTS) \
-		$(top_builddir)/Doc/User/Calc/Calc.html \
+		$(top_builddir)/Doc/User/Calc/index.html \
 		$(top_builddir)/po/CalcScripts/msgfiles
 	-rm -rf Resistor.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/Resistor.tcl
@@ -130,7 +130,7 @@ Resistor${EXEEXT}: Resistor.tcl $(ResistorSCRIPTS) \
 
 
 LocoPull${EXEEXT}: LocoPull.tcl $(LocoPullSCRIPTS) \
-		$(top_builddir)/Doc/User/Calc/Calc.html \
+		$(top_builddir)/Doc/User/Calc/index.html \
 		$(top_builddir)/po/CalcScripts/msgfiles
 	-rm -rf LocoPull.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/LocoPull.tcl
@@ -154,8 +154,8 @@ LocoPull${EXEEXT}: LocoPull.tcl $(LocoPullSCRIPTS) \
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
 
-$(top_builddir)/Doc/User/Calc/Calc.html: FORCE
-	$(MAKE) -C $(top_builddir)/Doc/User Calc/Calc.html
+$(top_builddir)/Doc/User/Calc/index.html: FORCE
+	$(MAKE) -C $(top_builddir)/Doc/User Calc/index.html
 
 $(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
 	$(MAKE) -C $(top_builddir)/BuildData tclkit${BEXEEXT}

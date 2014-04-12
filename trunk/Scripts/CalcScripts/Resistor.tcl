@@ -133,7 +133,7 @@ namespace eval Resistor {
   pack [MainFrame .main -menu $menubar -textvariable Status] -expand yes -fill both
   .main showstatusbar status
 
-  HTMLHelp setDefaults "$::HelpDir" "Calcli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
 
   # Get frame
   set frame [.main getframe]

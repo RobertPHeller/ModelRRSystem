@@ -345,7 +345,7 @@ namespace eval LocoPull {
   set Calculator [LocoPullCalculator [$Main getframe].calculator]
   pack $Calculator -expand yes -fill both
 
-  HTMLHelp setDefaults "$::HelpDir" "Calcli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
 }
 
 proc LocoPull::CareFulExit {{answer no}} {
