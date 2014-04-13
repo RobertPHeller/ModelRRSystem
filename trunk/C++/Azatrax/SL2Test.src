@@ -364,7 +364,7 @@ proc CareFulExit {} {
 # Open a selected unit...
 proc OpenUnit {} {
 
-  set serialnumber [$::SerialNumber cget -text]
+  set serialnumber [$::SerialNumber get]
 
 #  puts stderr "*** OpenUnit: serialnumber is '$serialnumber'"
 

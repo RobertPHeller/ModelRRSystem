@@ -162,12 +162,12 @@ snit::widget DeviceMap {
   method _serialNumberLookup {} {
 #    puts stderr "*** $self _serialNumberLookup: devicemap is $devicemap"
 #    puts stderr "*** $self _serialNumberLookup: serialNumberCB is $serialNumberCB"
-    set found [$devicemap search -exact column $serialNumberCol [$serialNumberCB cget -text]]
+    set found [$devicemap search -exact column $serialNumberCol [$serialNumberCB get]]
 #    puts stderr "*** $self _serialNumberLookup: found = $found"
 #    puts stderr "*** $self _serialNumberLookup: \[llength \$found\] = [llength $found]"
         if {[llength $found] < 1} {
       set row [$self _emptyrow]
-      set row [lreplace $row $serialNumberCol $serialNumberCol [$serialNumberCB cget -text]]
+      set row [lreplace $row $serialNumberCol $serialNumberCol [$serialNumberCB get]]
       $nameLE configure -text {}
       $descrText delete 1.0 end
       $devicemap add row $row
@@ -189,10 +189,10 @@ snit::widget DeviceMap {
     $serialNumberCB configure -values [Azatrax_AllConnectedDevices]
   }
   method _flashLEDs {} {
-    set serialnumber [$serialNumberCB cget -text]
+    set serialnumber [$serialNumberCB get]
     if {"$azatraxOpen" eq ""} {
       if {[string length "$serialnumber"] != 0} {
-	if {[catch {Azatrax_OpenDevice $serialnumber} errormessage]} {
+	if {[catch {Azatrax_OpenDevice $serialnumber 0} errormessage]} {
 	  tk_messageBox -icon error -message "$errormessage"
 	} else {
 	  set azatraxOpen $errormessage

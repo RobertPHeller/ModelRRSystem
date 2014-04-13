@@ -388,11 +388,11 @@ proc CareFulExit {} {
 # Open a selected unit...
 proc OpenUnit {} {
 
-  set serialnumber [$::SerialNumber cget -text]
+  set serialnumber [$::SerialNumber get]
 
-#  puts stderr "*** OpenUnit: serialnumber is '$serialnumber'"
+  #puts stderr "*** OpenUnit: serialnumber is '$serialnumber'"
 
-#  puts stderr "*** OpenUnit: info command mrdunit = [info command mrdunit]"
+  #puts stderr "*** OpenUnit: info command mrdunit = [info command mrdunit]"
 
   if {[llength [info command mrdunit]] > 0} {
     CloseUnit
@@ -401,12 +401,12 @@ proc OpenUnit {} {
   
   if {[string length "$serialnumber"] != 0} {
     if {[catch {MRD mrdunit -this [Azatrax_OpenDevice "$serialnumber" $::Azatrax_idMRDProduct]} errormessage]} {
-#      puts stderr "*** OpenUnit: errormessage = $errormessage"
+      #puts stderr "*** OpenUnit: errormessage = $errormessage"
       catch {rename mrdunit {}}
       set ::status [_ "Failed to open unit because %s." errormessage]
       tk_messageBox -icon error -message "$errormessage" -type ok
     } else {
-#      puts stderr "*** OpenUnit: Serial Number is [mrdunit SerialNumber]"
+      #puts stderr "*** OpenUnit: Serial Number is [mrdunit SerialNumber]"
       foreach b $::CommandButtons {$b configure -state normal}
       $::Main setmenustate file:close normal
       if {![catch {mrdunit GetStateData} ::status]} {

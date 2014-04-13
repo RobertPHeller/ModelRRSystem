@@ -303,7 +303,7 @@ snit::type SelectSerialNumberDialog {
     return [$dialog enddialog {}]
   }
   typemethod _Open {} {
-    set serialNumber [$serialNumberCB cget -text]
+    set serialNumber [$serialNumberCB get]
     if {"$serialNumber" eq ""} {
       tk_messageBox -icon warning -type ok -message [_ "No serial number entered or selected!"]
       return
