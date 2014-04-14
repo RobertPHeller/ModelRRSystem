@@ -111,10 +111,6 @@ GenericThrottle$(EXEEXT) : GenericThrottle.src $(GTLibFiles) $(GTCommonFiles) \
 	-rm -rf GenericThrottle.kit
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit GenericThrottle \
 		lib $(SNITLIB)
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) GenericThrottle \
-		lib/$(GTLib) $(GTLibFiles)
-	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit GenericThrottle \
-		$(GTLib)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit GenericThrottle \
 		lib/$(GTCommon) $(GTCommonFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit GenericThrottle \
@@ -127,6 +123,12 @@ GenericThrottle$(EXEEXT) : GenericThrottle.src $(GTLibFiles) $(GTCommonFiles) \
 		Messages $(top_builddir)/po/GenericThrottle/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap GenericThrottle${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf GenericThrottle.vfs GenericThrottle.kit
+
+#  Waiting for an actual list of file in $(GTLibFiles)
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) GenericThrottle \
+#		lib/$(GTLib) $(GTLibFiles)
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit GenericThrottle \
+#		$(GTLib)
 
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
