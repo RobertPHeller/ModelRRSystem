@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 28 13:51:24 2014
-#  Last Modified : <140228.1432>
+#  Last Modified : <140414.1132>
 #
 #  Description	
 #
@@ -478,7 +478,7 @@ snit::widget SelectLocomotive {
     method currentLocomotive  {} {
         ## Method to return the current locomotive address
         #
-        return [$locoList cget -text]
+        return [$locoList get]
     }
     method invoke {} {
         ## Method to invoke the widget.  This calls the script (if any) defined by
