@@ -119,7 +119,9 @@ USERMAN_TIMETABLE_FIGS = TTaddtrain.png TTprintTool.png TTNewTool.png \
 	TTaddnotetotrain.png TTremovenotefromtrainatstation.png \
 	TTremovenotefromtrain.png TTPrintTimetableDialog.png \
 	TTPrintConfigurationDialog1.png TTPrintConfigurationDialog2.png \
-	TTPrintConfigurationDialog3.png TTCloseTool.png TTSelectOneTrain.png
+	TTPrintConfigurationDialog3.png TTCloseTool.png TTSelectOneTrain.png \
+	TTMainGUIBlankSmall.png TTMainGUIToolBarSmall.png \
+	TTChart3stationSmall.png TTCreateNewTrain2Small.png TTEditNoteSmall.png
 DOXYFILES += Doxyfile.$(TIMETABLE).in
 
 USERMAN_FCF_PART = FCFTutorial.h FCFReference.h
@@ -250,6 +252,9 @@ $(USERMAN)_Version.h : $(top_builddir)/config.status
 $(USERMAN_HTML) $(USERMAN_PDF) : $(USERMAN_HS) $(USERMAN_FIGS) $(BIBLIO) \
 	footer.tex $(USERMAN)_Version.h COPYING.h Doxyfile.$(USERMAN)
 	$(DOXYGEN) Doxyfile.UserManual
+	for p in $(USERMAN_FIGS); do \
+	   if test ! \( -f $(USERMANHBase)/$$p \); then cp $(srcdir)/$$p $(USERMANHBase)/; fi; \
+	done
 	cp $(srcdir)/$(BIBLIO) latex/
 	cp Makefile.UserManual latex/Makefile
 	make -C latex pdf
@@ -313,6 +318,9 @@ $(TIMETABLE_HTML) : COPYING.h $(TIMETABLE_HS) $(TIMETABLE)_Version.h \
 		    $(USERMAN_TIMETABLE_FIGS) Help.h \
 		    Doxyfile.$(TIMETABLE)
 	$(DOXYGEN) Doxyfile.$(TIMETABLE)
+	for p in $(USERMAN_TIMETABLE_FIGS); do \
+	   if test ! \( -f $(TIMETABLEHBase)/$$p \); then cp $(srcdir)/$$p $(TIMETABLEHBase)/; fi; \
+	done
 
 $(FCF)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(FCF)_Version.h

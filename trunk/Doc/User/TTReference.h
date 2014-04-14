@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 16:48:11 2014
-//  Last Modified : <140411.1327>
+//  Last Modified : <140414.1601>
 //
 //  Description	
 //
@@ -31,7 +31,7 @@
 #ifndef __TTREFERENCE_H
 #define __TTREFERENCE_H
 
-/** @page timetable:ref Time Table (V2) Reference
+/** @page timetable_ref Time Table (V2) Reference
  * 
  * The Time Table (V2) program is a hybrid program, consisting of a Tcl/Tk
  * GUI on top of a C++ class library.  The GUI provides the user interface
@@ -53,10 +53,9 @@
  * existing time table file or it can have two options (@c -totaltime
  * and @c -timeincrement) and the name of a new time table.  The first
  * form loads an existing time table (see Section 
- * @ref sect:tt:loadexistingtimetable 
- * and the second form creates a new time table (see Section
- * @ref sect:tt:createnewtimetable
- * .  These two command line formats are shown here:
+ * @ref timetable_ref_loadexistingtimetable and the second form creates a 
+ * new time table (see Section @ref timetable_ref_createnewtimetable. These 
+ * two command line formats are shown here:
  * @code
  * TimeTable oldtimetablefile
  * TimeTable -totaltime time -timeincrement time nameoftimetable
@@ -67,25 +66,28 @@
  * @addindex Time Table!main GUI
  * is shown here:
  * @image latex TTMainGUIBlank.png "The main GUI screen of the Time Table (V2) Program" width=5in
- * @image html  TTMainGUIBlank.png
+ * @image html  TTMainGUIBlankSmall.png
  * It contains a menu bar, a toolbar, a time table chart, and a button
  * menu. The toolbar is shown here:
  * @image latex TTMainGUIToolBar.png "The Toolbar of the Time Table (V2) Program" width=5in
- * @image html  TTMainGUIToolBar.png
+ * @image html  TTMainGUIToolBarSmall.png
  * The button menu is shown here:
+ * @par
  * @image latex TTMainGUIButtonMenu.png "The Button Menu of the Time Table (V2) Program"
  * @image html  TTMainGUIButtonMenu.png
  * 
- * @section sect:tt:createnewtimetable Creating a New Time Table
+ * @section timetable_ref_createnewtimetable  Creating a New Time Table
  * 
  * Creating a new time table can be done from the command line by
  * specifying a total time (in minutes) value with the @c -totaltime
  * option and a time increment value (in minutes) value with the
  * @c -timeincrement option and a name for the new time table (as
  * shown in the second line above).  A new time table can also be created 
- * with the @c New menu item of the @c File menu of the 
+ * with the @c New menu item of the @c File menu or the 
  * @image latex TTNewTool.png
- * @image html  TTNewTool.png
+ * @htmlonly
+ * <img src="TTNewTool.png" alt="New toolbar button">
+ * @endhtmlonly
  * toolbar button. These later two methods use the ``Create a New Time Table''
  * dialog, shown below, to get the total time, time
  * increment, and the name of the new time table.  If there is a time
@@ -94,198 +96,204 @@
  * @image latex TTCreateNewTT.png "Create A New Time Table dialog"
  * @image html  TTCreateNewTT.png
  * 
-
-\subsection{Creating the station stops for a new time table}
-\label{sect:tt:CreateAllStationsDialog}
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics{TTCreateAllStations.png}
-\caption{Create All Stations Dialog}
-\label{fig:tt:CreateAllStationsDialog}
-\end{centering}
-\end{figure}
-Stations for a time table must all be created when the time table is
-created.  Stations cannot be added or removed later.  When a new time
-table is created the ``Create All Stations Dialog'',  shown in
-Figure~\ref{fig:tt:CreateAllStationsDialog} is displayed to create all
-of the station stops.
-
-\subsection{Creating an initial set of ``cabs''}
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics{TTCreateAllCabs.png}
-\caption{Create All Cabs Dialog}
-\label{fig:tt:CreateAllCabsDialog}
-\end{centering}
-\end{figure}
-Once the stations have been created, an initial set of ``cabs'' can be
-created.  Commonly, cabs are only used on block switch DC layouts, but
-the cabs can be used as with a  DCC layout as a way to associate trains
-with different operating ``crews'' (operators) or just to identify
-different classes of trains by color, etc.  The ``Create All Cabs''
-dialog, shown in Figure~\ref{fig:tt:CreateAllCabsDialog}, is used to
-bulk create an initial set of cabs.
-
-\begin{figure}[hbpt]
-\begin{centering}   
-\includegraphics[width=5in]{TTChart3station.png}
-\caption{Simple chart with three stations, four cabs, and two storage
-tracks}
-\label{fig:tt:Chart3station}
-\end{centering}
-\end{figure}   
-A simple chart with three stations, four cabs (labeled ``Crew 1''
-through ``Crew 4''), and two storage tracks is shown in
-Figure~\ref{fig:tt:Chart3station}. 
-
-\section{Loading an Exiting Time Table File}
-\label{sect:tt:loadexistingtimetable}
-
-An existing time table file can be loaded from the command line (as
-shown in the first line of Figure~\ref{fig:tt:cliusage}),  with the
-\texttt{Open...} menu item of the \texttt{File} menu or the
-\includegraphics{TTOpenTool.png} toolbar button. If there is a time
-table file already loaded, a confirmation dialog will be displayed.
-
-\section{Saving a Time Table File}
-
-The currently loaded time table can be saved with either the
-\texttt{Save} (or \texttt{Save As...}) menu item of the \texttt{File} menu or
-the \includegraphics{TTSaveTool.png} toolbar button. 
-
-\section{Adding Trains}
-
-Trains are added using the either the \texttt{Add Train} menu item of the
-\texttt{Trains} menu, clicking on the add train
-(\includegraphics{TTaddtrain.png}) toolbar button or the \texttt{Add a
-new train} button. All of these display the ``Create New Train
-Dialog'', described in Section~\ref{sect:tt:CreateNewTrainDialog}.
-
-\subsection{Create New Train Dialog}
-\label{sect:tt:CreateNewTrainDialog}
-
-\begin{figure}[hbpt]
-\begin{centering}   
-\includegraphics{TTCreateNewTrain1.png}
-\caption{Creating a new train dialog, basic information}
-\label{fig:tt:CreateNewTrain1}
-\end{centering}
-\end{figure}
-The ``Create New Train Dialog'' first collects some basic information
-about the new train, as shown in Figure~\ref{fig:tt:CreateNewTrain1}.
-The basic train information consists of the train's common name, its
-number (or symbol), its class number, its average speed, its scheduled
-departure time, and the two stations it travels between.
-
-The train's number (or symbol) needs to be a unique identification of
-the train.  The common name need not be unique.  The class is a whole
-number, with smaller numbers generally being the ``higher'' class. The
-class is used to indicate a train's priority and is also used to group
-similar trains together.  The speed is the (scale) speed the train will
-be traveling between stops.  The scheduled departure time is the time
-the train is scheduled to leave its origin station.  The origin and
-termination stations are the station end points the train travels between.
-
-\begin{figure}[hbpt]
-\begin{centering}   
-\includegraphics[width=5in]{TTCreateNewTrain2.png}
-\caption{Creating a new train dialog, scheduling information}
-\label{fig:tt:CreateNewTrain2}
-\end{centering}
-\end{figure}
-The \texttt{Schedule} button selects the scheduling page of the ``Create a
-New Train Dialog'', as shown in Figure~\ref{fig:tt:CreateNewTrain2}.  On
-this page, the cab can be selected and layover periods at intermediate
-stations can be set.  The \texttt{Update} buttons propagate the cab
-settings and adjust the times to allow for the layovers.
-
-\begin{figure}[hbpt]
-\begin{centering}   
-\includegraphics{TTCreateNewTrain3.png}
-\caption{Creating a new train dialog, storage track selection}
-\label{fig:tt:CreateNewTrain3}
-\end{centering}
-\end{figure}
-The \texttt{Storage} button selects the storage track allocation page of
-the ``Create a New Train Dialog'', as shown in
-Figure~\ref{fig:tt:CreateNewTrain3}.  This page lists those stations
-that have storage tracks available.  It only makes sense to select
-storage tracks for intermediate stops if there is a layover or for
-originating or terminating stops.
-
-\section{Deleting Trains}
-\label{sect:tt:DeletingTrains}
-
-Trains are deleted using the \texttt{Delete Train} menu item of the
-\texttt{Trains} menu, clicking on the delete train
-(\includegraphics{TTdeletetrain.png}) toolbar button or the
-\texttt{Delete an Existing train} button. All of these display the
-``Select One Train Dialog'', described in
-Section~\ref{sect:tt:SelectOneTrainDialog}. A delete confirmation
-dialog will also be displayed.
-
-\section{Linking and Unlinking Duplicate Stations}
-
-Duplicate stations occur mostly with ``out and back'' type layouts
-where the opposite ends of the line are modeled with the same trackage
-(usually a yard).  Duplicate stations also occur with reverse loops. In
-all cases, these are stations which are logically different, but which
-use the same tracks. There is an example in Figure~8-4 on page 86 of
-\cite{Chubb77}. It is necessary to keep track of this trackage in the
-schedule.  The duplicate station linking handles this. Duplicate
-stations need to be setup before trains have been added.
-
-The \texttt{Set Duplicate Station} and 
-\texttt{Clear Duplicate Station} menu items of the \texttt{Stations} menu, the
-\includegraphics{TTsetdupstation.png} and
-\includegraphics{TTcleardupstation.png} toolbar buttons, and the
-\texttt{Set Duplicate Station} and \texttt{Clear Duplicate Station} buttons
-set and clear duplicate stations.
-
-\section{Adding Station Storage Tracks}
-
-Storage tracks are sidings where whole trains can be stored, either
-during a long layover or between trips. The  \texttt{Add Storage Track}
-menu item of the \texttt{Stations} menu, the
-\includegraphics{TTaddstorage.png} toolbar button, or the  \texttt{Add
-Storage Track} button are used to add a storage track to a station.
-
-\section{Adding Cabs}
-
-Generally ``Cabs'' refer to the separate throttle controls on a block
-switched DC layout.  They are generally non-existent with a DCC layout,
-but virtual cabs might be used as a way of assigning crews (operators)
-to a train or to a segment of a train's run.  Cabs are added with the
-\texttt{Add A Cab} menu item of the \texttt{Cabs} menu, the
-\includegraphics{TTaddcab.png} toolbar button or the \texttt{Add A Cab}
-button.
-
-\section{Handling Notes}
-
-Notes are brief memos about the operating rules in effect.  There is a
-single pool of notes.  Notes from this pool can be associated either
-with a whole train or with a train at a station stop.  The notes can
-specify schedule exceptions (eg ``Daily except Saturdays, Sundays, and
-Holidays''), or operating rules relating to meets.
-
-\subsection{Creating New Notes and Editing Existing Notes}
-
-\begin{figure}[hbpt]
-\begin{centering}   
-\includegraphics[width=5in]{TTEditNote.png}
-\caption{Note editor dialog}
-\label{fig:tt:EditNote}
-\end{centering}
-\end{figure}
-Notes are created and edited the \texttt{Create New Note} and
-\texttt{Edit Existing Note} menu items of the \texttt{Notes} menu, the
-\includegraphics{TTcreatenote.png} and \includegraphics{TTeditnote.png}
-toolbar buttons, or the \texttt{Create New Note} and 
-\texttt{Edit Existing Note} buttons.  The the ``Note editor dialog'', shown in
-Figure~\ref{fig:tt:EditNote} is used to create or edit the note.  Notes are
-numbered consecutively starting with 1.
+ * A simple chart with three stations, four cabs (labeled ``Crew 1''
+ * through ``Crew 4''), and two storage tracks is shown below.
+ * @par
+ * @image latex TTChart3station.png "Simple chart with three stations, four cabs, and two storage tracks" width=5in
+ * @image html  TTChart3stationSmall.png
+ *   
+ * @subsection timetable_ref_CreateAllStationsDialog Creating the station stops for a new time table
+ * 
+ * Stations for a time table must all be created when the time table is
+ * created.  Stations cannot be added or removed later.  When a new time
+ * table is created the ``Create All Stations Dialog'', shown below,
+ * is displayed to create all of the station stops.
+ *
+ * @image latex TTCreateAllStations.png "Create All Stations Dialog"
+ * @image html  TTCreateAllStations.png
+ * 
+ * @subsection timetable_ref_CreateAllCabsDialog Create All Cabs Dialog
+ * 
+ * Once the stations have been created, an initial set of ``cabs'' can be
+ * created.  Commonly, cabs are only used on block switch DC layouts, but
+ * the cabs can be used as with a  DCC layout as a way to associate trains
+ * with different operating ``crews'' (operators) or just to identify
+ * different classes of trains by color, etc.  The ``Create All Cabs''
+ * dialog, shown below, is used to bulk create an initial set of cabs.
+ * 
+ * @image latex TTCreateAllCabs.png "Create All Cabs Dialog"
+ * @image html  TTCreateAllCabs.png
+ * 
+ * @section timetable_ref_loadexistingtimetable Loading an Exiting Time Table File
+ * 
+ * An existing time table file can be loaded from the command line (as
+ * shown in the first line of the CLI usage,  with the @c Open... menu item 
+ * of the @c File menu or the 
+ * @image latex TTOpenTool.png
+ * @htmlonly
+ * <img src="TTOpenTool.png" alt="Open toolbar button">
+ * @endhtmlonly
+ * toolbar button. If there is a time table file already loaded, a 
+ * confirmation dialog will be displayed.
+ * 
+ * @section timetable_ref_savingatimetablefile Saving a Time Table File
+ * 
+ * The currently loaded time table can be saved with either the
+ * @c Save (or @c Save As...) menu item of the @c File menu or
+ * the 
+ * @image latex TTSaveTool.png
+ * @htmlonly
+ * <img src="TTSaveTool.png" alt="Save toolbar button">
+ * @endhtmlonly
+ * toolbar button. 
+ * 
+ * @section timetable_ref_addingtrains Adding Trains
+ * 
+ * Trains are added using the either the @c Add @c Train menu item of the
+ * @c Trains menu, clicking on the add train (
+ * @image latex TTaddtrain.png
+ * @htmlonly
+ * <img src="TTaddtrain.png" alt="Add a new train toolbar button">
+ * @endhtmlonly
+ * ) toolbar button or the @c Add @c a @c new @c train button. All of these 
+ * display the ``Create New Train Dialog'', described in Section 
+ * @ref timetable_ref_CreateNewTrainDialog.
+ * 
+ * @subsection timetable_ref_CreateNewTrainDialog Create New Train Dialog
+ * 
+ * The ``Create New Train Dialog'' first collects some basic information
+ * about the new train, as shown below. The basic train information consists 
+ * of the train's common name, its number (or symbol), its class number, its 
+ * average speed, its scheduled departure time, and the two stations it 
+ * travels between.
+ * 
+ * @image latex TTCreateNewTrain1.png "Creating a new train dialog, basic information"
+ * @image html  TTCreateNewTrain1.png
+ * 
+ * The train's number (or symbol) needs to be a unique identification of
+ * the train.  The common name need not be unique.  The class is a whole
+ * number, with smaller numbers generally being the ``higher'' class. The
+ * class is used to indicate a train's priority and is also used to group
+ * similar trains together.  The speed is the (scale) speed the train will
+ * be traveling between stops.  The scheduled departure time is the time
+ * the train is scheduled to leave its origin station.  The origin and
+ * termination stations are the station end points the train travels between.
+ * 
+ * The @c Schedule button selects the scheduling page of the ``Create a
+ * New Train Dialog'', as shown below.  On this page, the cab can be selected 
+ * and layover periods at intermediate stations can be set.  The @c Update 
+ * buttons propagate the cab settings and adjust the times to allow for the 
+ * layovers.
+ * 
+ * @image latex TTCreateNewTrain2.png "Creating a new train dialog, scheduling information" width=5in
+ * @image html  TTCreateNewTrain2Small.png
+ * 
+ * The @c Storage button selects the storage track allocation page of the 
+ * ``Create a New Train Dialog'', as shown below.  This page lists those 
+ * stations that have storage tracks available.  It only makes sense to select
+ * storage tracks for intermediate stops if there is a layover or for
+ * originating or terminating stops.
+ * 
+ * @image latex TTCreateNewTrain3.png "Creating a new train dialog, storage track selection"
+ * @image html  TTCreateNewTrain3.png
+ * 
+ * @section timetable_ref_DeletingTrains Deleting Trains
+ * 
+ * Trains are deleted using the @c Delete @c Train menu item of the
+ * @c Trains menu, clicking on the delete train (
+ * @image latex TTdeletetrain.png
+ * @htmlonly
+ * <img src="TTdeletetrain.png" alt="delete train toolbar button">
+ * @endhtmlonly
+ * ) toolbar button or the @c Delete @c an @c Existing @c train button. All 
+ * of these display the ``Select One Train Dialog'', described in Section
+ * @ref timetable_ref_SelectOneTrainDialog. A delete confirmation
+ * dialog will also be displayed.
+ * 
+ * @section timetable_ref_LinkingUnlinkingDuplicate Linking and Unlinking Duplicate Stations
+ * 
+ * Duplicate stations occur mostly with ``out and back'' type layouts
+ * where the opposite ends of the line are modeled with the same trackage
+ * (usually a yard).  Duplicate stations also occur with reverse loops. In
+ * all cases, these are stations which are logically different, but which
+ * use the same tracks. 
+ * @latexonly
+ * There is an example in Figure~8-4 on page 86 of \cite{Chubb77}.
+ * @endlatexonly
+ * @htmlonly
+ * There is an example in Figure&nbsp;8-4 on page 86 of 
+ * <i>How to Operate Your Model Railroad</i>.
+ * @endhtmlonly
+ * It is necessary to keep track of this trackage in the schedule.  The 
+ * duplicate station linking handles this. Duplicate stations need to be setup 
+ * before trains have been added.
+ * The @c Set @c Duplicate @c Station and @c Clear @c Duplicate @c Station 
+ * menu items of the @c Stations menu, the
+ * @image latex TTsetdupstation.png
+ * @htmlonly
+ * <img src="TTsetdupstation.png" alt="Set Duplicate Station toolbar button">
+ * @endhtmlonly
+ * and
+ * @image latex TTcleardupstation.png
+ * @htmlonly
+ * <img src="TTcleardupstation.png" alt="Clear Duplicate Station toolbar button">
+ * @endhtmlonly
+ * toolbar buttons, and the @c Set @c Duplicate @c Station and 
+ * @c Clear @c Duplicate @c Station buttons set and clear duplicate stations.
+ * 
+ * @section timetable_ref_AddingStationStorage Adding Station Storage Tracks
+ * 
+ * Storage tracks are sidings where whole trains can be stored, either
+ * during a long layover or between trips. The  @c Add @c Storage @c Track
+ * menu item of the @c Stations menu, the
+ * @image latex TTaddstorage.png
+ * @htmlonly
+ * <img src="TTaddstorage.png" alt="Add Storage Track toolbar button">
+ * @endhtmlonly
+ * toolbar button, or the @c Add @c Storage @c Track button are used to add 
+ * a storage track to a station.
+ * 
+ * @section timetable_ref_AddingCabs Adding Cabs
+ * 
+ * Generally ``Cabs'' refer to the separate throttle controls on a block
+ * switched DC layout.  They are generally non-existent with a DCC layout,
+ * but virtual cabs might be used as a way of assigning crews (operators)
+ * to a train or to a segment of a train's run.  Cabs are added with the
+ * @c Add @c A @c Cab menu item of the @c Cabs menu, the
+ * @image latex TTaddcab.png
+ * @htmlonly
+ * <img src="TTaddcab.png" alt="Add A Cab toolbar button">
+ * @endhtmlonly
+ * toolbar button or the @c Add @c A @c Cab button.
+ * 
+ * @section timetable_ref_HandlingNotes Handling Notes
+ * 
+ * Notes are brief memos about the operating rules in effect.  There is a
+ * single pool of notes.  Notes from this pool can be associated either
+ * with a whole train or with a train at a station stop.  The notes can
+ * specify schedule exceptions (eg ``Daily except Saturdays, Sundays, and
+ * Holidays''), or operating rules relating to meets.
+ * 
+ * @subsection timetable_ref_CreatingNewNotes Creating New Notes and Editing Existing Notes
+ * 
+ * Notes are created and edited the @c Create @c New @c Note and
+ * @c Edit @c Existing @c Note menu items of the @c Notes menu, the
+ * @image latex TTcreatenote.png
+ * @htmlonly
+ * <img src="TTcreatenote.png" alt="Create New Note toolbar button">
+ * @endhtmlonly
+ * and
+ * @image latex TTeditnote.png
+ * @htmlonly
+ * <img src="TTeditnote.png" alt="Edit Existing Note toolbar button">
+ * @endhtmlonly
+ * toolbar buttons, or the @c Create @c New @c Note and @c Edit @c Existing 
+ * @c Note buttons.  The the ``Note editor dialog'', shown below is used to 
+ * create or edit the note.  Notes are numbered consecutively starting with 1.
+ *    
+ * @image latex TTEditNote.png Note editor dialog width=5in
+ * @image html  TTEditNoteSmall.png
+ * 
 
 \subsection{Adding and Removing a Notes To Trains}
 
@@ -333,8 +341,8 @@ The \texttt{Print} menu item of the \texttt{File} menu or the
 process by displaying the ``Print Timetable'' dialog, described in
 Section~\ref{sect:tt:PrintTimetableDialog}.
 
-
-\subsection{Print Timetable Dialog}
+   
+ * @subsection timetable_ref_PrintTimetableDialog Print Timetable Dialog
 \label{sect:tt:PrintTimetableDialog}
 
 \begin{figure}[hbpt]
@@ -365,8 +373,8 @@ a fair amount of diagnostic output, most of which can be ignored).  If
 you are using the default processor (\texttt{pdflatex}), you should now
 have a PDF file which can be viewed or printed with the PDF viewer of
 your choice.
-
-\subsection{Print Configuration Dialog}
+   
+ * @subsection timetable_ref_PrintConfigurationDialog Print Configuration Dialog
 \label{sect:tt:PrintConfigurationDialog}
 
 \begin{figure}[hbpt]
@@ -422,8 +430,7 @@ menu, the \includegraphics{TTCloseTool.png} toolbar button, or the
 \texttt{Quit -- Exit NOW} button exit the program.  A confirmation
 dialog is displayed to get confirmation.
 
-\section{Select One Train Dialog}
-\label{sect:tt:SelectOneTrainDialog}
+ * @section timetable_ref_SelectOneTrainDialog Select One Train Dialog
 
 \begin{figure}[hbpt] 
 \begin{centering}
@@ -433,7 +440,7 @@ dialog is displayed to get confirmation.
 \end{centering}
 \end{figure} The ``Select One Train dialog'', shown in
 Figure~\ref{fig:tt:SelectOneTrainDialog}, is used to select a train
-either for deletion (Section~\ref{sect:tt:DeletingTrains}) or for
+either for deletion (Section @ref timetable_ref_DeletingTrains) or for
 viewing (Section~\ref{sect:tt:ViewingTrains}).
 
 \section{The View Menu}
@@ -448,7 +455,7 @@ stations (Section~\ref{sect:tt:ViewingStations}), and  notes
 
 There are two menu items for viewing trains, \texttt{View One Train} and
 \texttt{View All Trains}.  The \texttt{View One Train} uses the ``Select
-One Train dialog'' (Section~\ref{sect:tt:SelectOneTrainDialog}) to
+One Train dialog'' (Section @ref timetable_ref_SelectOneTrainDialog) to
 select a train to display detailed information about and the
 \texttt{View All Trains} menu item displays a dialog listing all of the
 trains, by number and name, with buttons to get more detailed information.
@@ -497,9 +504,6 @@ items to edit the system configuration, save it and reload it.
 
 \section{Add Cab Dialog}
 \section{Add Remove Note Dialog}
-\section{Create All Cabs Dialog}
-\section{Create All Stations Dialog}
-\section{Create A New Time Table Dialog}
 \section{Edit Note Dialog}
 \section{Edit System Configuration}
 \section{Edit Train Dialog}

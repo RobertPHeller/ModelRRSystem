@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 15:29:56 2014
-//  Last Modified : <140414.1210>
+//  Last Modified : <140414.1428>
 //
 //  Description	
 //
@@ -80,8 +80,14 @@
  * <li><a class="el" href="genericthrot.html#genericthrot_maingui">Main GUI</a></li>
  * <li><a class="el" href="genericthrot.html#genericthrot_progmode">Programming Mode</a></li>
  * </ol></li>
- * <li><a class="el" href="timetable_Tutorial.html">Time Table (V2) Tutorial</a>
- * </li>
+ * <li><a class="el" href="timetable_Tutorial.html">Time Table (V2) Tutorial</a><ol type="1">
+ * <li><a class="el" href="timetable_Tutorial.html#timetable_tut_crenew">Creating a new time table</a><ol type="1">
+ * <li><a class="el" href="timetable_Tutorial.html#timetable_tut_crestat">Creating stations</a></li>
+ * <li><a class="el" href="timetable_Tutorial.html#timetable_tut_crecab">Creating cabs</a></li>
+ * </ol></li>
+ * <li><a class="el" href="timetable_Tutorial.html#timetable_tut_cretrain">Creating trains</a></li>
+ * <li><a class="el" href="timetable_Tutorial.html#timetable_tut_print">Printing a time table</a></li>
+ * </ol></li>
  * <li><a class="el" href="timetable_ref.html">Time Table (V2) Reference</a>
  * </li>
  * <li><a class="el" href="fcf_Tutorial.html">Freight Car Forwarder (V2) Tutorial</a>
