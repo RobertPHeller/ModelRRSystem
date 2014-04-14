@@ -61,7 +61,14 @@ AZATRAX_PROG_HS = AzatraxProg.h AzatraxProgReference.h
 AZATRAX_PROG = AzatraxProg
 AZATRAX_PROGHBase = AzatraxProg
 AZATRAX_PROG_HTML = $(AZATRAX_PROGHBase)/index.html
-USERMAN_AZATRAX_PROG_FIGS =
+USERMAN_AZATRAX_PROG_FIGS = Azatrax_MRDTestGUI.png Azatrax_MRDSensorLoop.png \
+                            Azatrax_SR4TestGUI.png \
+                            Azatrax_SR4TestGUISmall.png \
+                            Azatrax_SL2TestGUI.png \
+                            Azatrax_SL2TestGUISmall.png \
+                            Azatrax_AzatraxDeviceMapGUI.png \
+                            Azatrax_AzatraxDeviceMapGUISmall.png
+                            
 DOXYFILES = Doxyfile.$(AZATRAX_PROG).in
 
 USERMAN_UNIVERSALTEST_PART = UniversalTestReference.h
@@ -78,7 +85,11 @@ XPRESSNETTHROTTLE_HS = XPressNetThrottle.h  XPressNetThrottleReference.h
 XPRESSNETTHROTTLE = XPressNetThrottle
 XPRESSNETTHROTTLEHBase = XPressNetThrottle
 XPRESSNETTHROTTLE_HTML = $(XPRESSNETTHROTTLEHBase)/index.html
-USERMAN_XPRESSNETTHROTTLE_FIGS =
+USERMAN_XPRESSNETTHROTTLE_FIGS = XPressNetThrottle_maingui.png \
+                                 XPressNetThrottle_mainguiSmall.png \
+                                 XPressNetThrottle_openport.png \
+                                 XPressNetThrottle_progmode.png \
+                                 XPressNetThrottle_progmodeSmall.png
 DOXYFILES += Doxyfile.$(XPRESSNETTHROTTLE).in
 
 USERMAN_GENERICTHROTTLE_PART = GenericThrottleReference.h
@@ -86,7 +97,10 @@ GENERICTHROTTLE_HS = GenericThrottle.h  GenericThrottleReference.h
 GENERICTHROTTLE = GenericThrottle
 GENERICTHROTTLEHBase = GenericThrottle
 GENERICTHROTTLE_HTML = $(GENERICTHROTTLEHBase)/index.html
-USERMAN_GENERICTHROTTLE_FIGS =
+USERMAN_GENERICTHROTTLE_FIGS = GenericThrottle_maingui.png \
+                               GenericThrottle_mainguiSmall.png \
+                               GenericThrottle_progmode.png \
+                               GenericThrottle_progmodeSmall.png
 DOXYFILES += Doxyfile.$(GENERICTHROTTLE).in
 
 USERMAN_TIMETABLE_PART =  TTTutorial.h TTReference.h

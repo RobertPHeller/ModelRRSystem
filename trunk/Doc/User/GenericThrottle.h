@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 22:05:26 2014
-//  Last Modified : <140411.2205>
+//  Last Modified : <140414.1210>
 //
 //  Description	
 //
@@ -36,7 +36,10 @@
  * @htmlonly
  * <div class="contents">
  * <div class="textblock"><ol type="1">
- * <li><a class="el" href="genericthrot.html">Reference</a></li>
+ * <li><a class="el" href="genericthrot.html">Generic Throttle Reference</a><ol type="1">
+ * <li><a class="el" href="genericthrot.html#genericthrot_maingui">Main GUI</a></li>
+ * <li><a class="el" href="genericthrot.html#genericthrot_progmode">Programming Mode</a></li>
+ * </ol></li>
  * <li><a class="el" href="help.html">Help</a></li>
  * <li><a class="el" href="Version.html">Version</a></li>
  * <li><a class="el" href="Copying.html">Copying</a><ol type="a">

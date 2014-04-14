@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 22:04:11 2014
-//  Last Modified : <140411.2204>
+//  Last Modified : <140414.1034>
 //
 //  Description	
 //
@@ -36,7 +36,11 @@
  * @htmlonly
  * <div class="contents">
  * <div class="textblock"><ol type="1">
- * <li><a class="el" href="xpressnetthrot.html">Reference</a></li>
+ * <li><a class="el" href="xpressnetthrot.html">Reference</a><ol type="1">
+ * <li><a class="el" href="xpressnetthrot.html#xpressnetthrot_maingui">Main GUI</a></li>
+ * <li><a class="el" href="xpressnetthrot.html#xpressnetthrot_progmode">Programming Mode</a></li>
+ * <li><a class="el" href="xpressnetthrot.html#xpressnetthrot_openport">Open Port</a></li>
+ * </ol></li>
  * <li><a class="el" href="help.html">Help</a></li>
  * <li><a class="el" href="Version.html">Version</a></li>
  * <li><a class="el" href="Copying.html">Copying</a><ol type="a">
