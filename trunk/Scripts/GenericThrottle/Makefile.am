@@ -55,6 +55,9 @@ man_MANS = man1/GenericThrottle.1
 pkgdatadir = $(datadir)/$(PACKAGE)
 pkgdata_DATA = GenericThrottle.pot
 
+pkgcodedir = $(datadir)/$(PACKAGE)/GenericThrottle
+pkgcode_DATA = GenericThrottle.src
+
 GTLib = GenericThrottle
 GTLibFiles = $(GTScripts) $(GIFS)
 
