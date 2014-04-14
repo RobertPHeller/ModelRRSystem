@@ -550,8 +550,7 @@ proc XPressNetThrottle::ChangeLocomotiveSpeed {newspeed} {
   variable LocoDirection
   variable LocoAddress
   set cmd [list QueueInstruction XPressNetThrottle::XPressNetBus SetLocomotiveSpeedAndDirection [$LocoAddress currentLocomotive]]
-  set ssIndex [$LocoSpeedStep getvalue]
-  set ssMode [lindex [$LocoSpeedStep cget -values] $ssIndex]
+  set ssMode [$LocoSpeedStep get]
   lappend cmd $ssMode
   lappend cmd [$LocoDirection direction]
   
