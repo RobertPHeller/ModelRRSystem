@@ -121,7 +121,11 @@ USERMAN_TIMETABLE_FIGS = TTaddtrain.png TTprintTool.png TTNewTool.png \
 	TTPrintConfigurationDialog1.png TTPrintConfigurationDialog2.png \
 	TTPrintConfigurationDialog3.png TTCloseTool.png TTSelectOneTrain.png \
 	TTMainGUIBlankSmall.png TTMainGUIToolBarSmall.png \
-	TTChart3stationSmall.png TTCreateNewTrain2Small.png TTEditNoteSmall.png
+	TTChart3stationSmall.png TTCreateNewTrain2Small.png \
+	TTEditNoteSmall.png TTPrintTimetableDialogSmall.png \
+	TTPrintConfigurationDialog1Small.png \
+	TTPrintConfigurationDialog2Small.png \
+	TTPrintConfigurationDialog3Small.png
 DOXYFILES += Doxyfile.$(TIMETABLE).in
 
 USERMAN_FCF_PART = FCFTutorial.h FCFReference.h

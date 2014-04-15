@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 16:48:11 2014
-//  Last Modified : <140414.1601>
+//  Last Modified : <140415.1032>
 //
 //  Description	
 //
@@ -46,7 +46,7 @@
  * program.  This program implements the methods described in this
  * chapter, in an automated fashion.
  * 
- * @section cli Command Line Usage
+ * @section timetable_ref_cli Command Line Usage
  * 
  * There are two formats for the TimeTable program's command line.  The
  * command line can either have a single file name, the name of an
@@ -61,7 +61,7 @@
  * TimeTable -totaltime time -timeincrement time nameoftimetable
  * @endcode
  * 
- * @section maingui Layout of the Main GUI
+ * @section timetable_ref_maingui Layout of the Main GUI
  * The main GUI window
  * @addindex Time Table!main GUI
  * is shown here:
@@ -294,225 +294,211 @@
  * @image latex TTEditNote.png Note editor dialog width=5in
  * @image html  TTEditNoteSmall.png
  * 
-
-\subsection{Adding and Removing a Notes To Trains}
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics{TTAddNote.png}
-\caption{Add (or Remove) Note dialog}
-\label{fig:tt:AddNote}
-\end{centering}
-\end{figure}
-Notes are added to trains or removed from trains with \texttt{Notes} menu
-items \texttt{Add note to train}, \texttt{Add note to train at station stop},
-\texttt{Remove note from train}, and 
-\texttt{Remove note from train at station stop}; the
-\includegraphics{TTaddnotetotrain.png},
-\includegraphics{TTaddnotetotrainatstation.png},
-\includegraphics{TTremovenotefromtrain.png}, and
-\includegraphics{TTremovenotefromtrainatstation.png}; or the  
-\texttt{Add note to train}, \texttt{Add note to train at station stop}, 
-\texttt{Remove note from train}, and 
-\texttt{Remove note from train at station stop} buttons.  All of these
-display the ``Add (or Remove) Note dialog'', shown in
-Figure~\ref{fig:tt:AddNote}.
-
-\section{Printing a Time Table}
-
-``Printing'' a time table actually means creating a \LaTeX{} file and
-then processing that \LaTeX{} file through a \LaTeX{} processing program
-(typically \texttt{pdflatex}).  \LaTeX{} provides the means to produce a
-professionally formatted document and has the means to provide things
-like table of contents and the creation of a final document in a
-selection of different final formats, including PDF (via
-\texttt{pdflatex}), PostScript (via \texttt{latex} and \texttt{dvips})
-or HTML (via the \texttt{htlatex} script from \textit{tex4ht} package).
-
-Much of the formatting is customizable through the insertion of \LaTeX{}
-code fragments as well as through various parameter settings.  It is
-also possible to edit the \LaTeX{} style file that comes with the Time
-Table program (\texttt{TimeTable.sty}) to tweak some of the fine details
-of the formatting as well\footnote{Some knowledge of how \LaTeX{} works
-is recommended when messing with the style file.}.
-
-The \texttt{Print} menu item of the \texttt{File} menu or the
-\includegraphics{TTprintTool.png} toolbar button initiate the print
-process by displaying the ``Print Timetable'' dialog, described in
-Section~\ref{sect:tt:PrintTimetableDialog}.
-
-   
- * @subsection timetable_ref_PrintTimetableDialog Print Timetable Dialog
-\label{sect:tt:PrintTimetableDialog}
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics[width=5in]{TTPrintTimetableDialog.png}
-\caption{Print Timetable dialog}  
-\label{fig:tt:PrintTimetableDialog}
-\end{centering}
-\end{figure}
-The ``Print Timetable'' dialog, shown in
-Figure~\ref{fig:tt:PrintTimetableDialog}, collects the basic
-information needed to generate and process a \LaTeX{} source file from
-the time table data structure.  This information consists of the name of
-the name of the \LaTeX{} source file to create, the \LaTeX{} processing
-program (\texttt{pdflatex} by default), whether to run the \LaTeX{}
-processing three times (to get the table of contents right), the name of
-any post processing command (such as \texttt{dvips} if using plain
-\texttt{latex}).  Most of the time, this is enough for a standard, basic
-time table.  The \texttt{Configure} button can be used to configure a
-selection of options using a ``Print Configuration'' dialog, described
-in Section~\ref{sect:tt:PrintConfigurationDialog}.
-
-Once the settings and configuration have been set, the \texttt{Print}
-initiates the process.  First a \LaTeX{} source file is generated, then
-the \LaTeX{} processing program is run once or three times.  The output
-from these runs are displayed in a process log window (\LaTeX{} outputs
-a fair amount of diagnostic output, most of which can be ignored).  If
-you are using the default processor (\texttt{pdflatex}), you should now
-have a PDF file which can be viewed or printed with the PDF viewer of
-your choice.
-   
+ * @subsection timetable_ref_AddingRemovingNotes Adding and Removing a Notes To Trains
+ * 
+ * Notes are added to trains or removed from trains with @c Notes menu items 
+ * @c Add @c note @c to @c train, @c Add @c note @c to @c train @c at 
+ * @c station @c stop, @c Remove @c note @c from @c train, and @c Remove 
+ * @c note @c from @c train @c at @c station @c stop; the
+ * @image latex TTaddnotetotrain.png
+ * @htmlonly
+ * <img src="TTaddnotetotrain.png" alt="Add note to train toolbar button">
+ * @endhtmlonly
+ * ,
+ * @image latex TTaddnotetotrainatstation.png
+ * @htmlonly
+ * <img src="TTaddnotetotrainatstation.png" alt="Add note to train at station stop toolbar button">
+ * @endhtmlonly
+ * ,
+ * @image latex TTremovenotefromtrain.png
+ * @htmlonly
+ * <img src="TTremovenotefromtrain.png" alt="Remove note from train toolbar button">
+ * @endhtmlonly
+ * , and
+ * @image latex TTremovenotefromtrainatstation.png
+ * @htmlonly
+ * <img src="TTremovenotefromtrainatstation.png" alt="Remove note from train at station stop toolbar button">
+ * @endhtmlonly
+ * ; or the @c Add @c note @c to @c train, @c Add @c note @c to @c train 
+ * @c at @c station @c stop, @c Remove @c note @c from @c train, and 
+ * @c Remove @c note @c from @c train @c at @c station @c stop buttons.  All 
+ * of these display the ``Add (or Remove) Note dialog'', shown below.
+ * 
+ * @image latex TTAddNote.png "Add (or Remove) Note dialog"
+ * @image html  TTAddNote.png
+ * 
+ * @section timetable_ref_PrintingTimeTable Printing a Time Table
+ * 
+ * ``Printing'' a time table actually means creating a LaTeX file and
+ * then processing that LaTeX file through a LaTeX processing program
+ * (typically @c pdflatex).  LaTeX provides the means to produce a
+ * professionally formatted document and has the means to provide things
+ * like table of contents and the creation of a final document in a
+ * selection of different final formats, including PDF (via
+ * @c pdflatex), PostScript (via @c latex and @c dvips)
+ * or HTML (via the @c htlatex script from @c tex4ht package).
+ * 
+ * Much of the formatting is customizable through the insertion of LaTeX
+ * code fragments as well as through various parameter settings.  It is
+ * also possible to edit the LaTeX style file that comes with the Time
+ * Table program (@c TimeTable.sty) to tweak some of the fine details
+ * of the formatting as well
+ * @latexonly
+ * \footnote{Some knowledge of how LaTeX works is recommended when messing 
+ * with the style file.}
+ * @endlatexonly
+ * .
+ * 
+ * The @c Print menu item of the @c File menu or the
+ * @image latex TTprintTool.png
+ * @htmlonly
+ * <img src="TTprintTool.png" alt="Print toolbar button">
+ * @endhtmlonly
+ *  toolbar button initiate the print process by displaying the 
+ * ``Print Timetable'' dialog, described in Section @ref timetable_ref_PrintTimetableDialog.
+ *    
+ * @subsection timetable_ref_PrintDialog Print Dialog
+ * 
+ * The ``Print Timetable'' dialog, shown below, collects the basic
+ * information needed to generate and process a LaTeX source file from
+ * the time table data structure.  This information consists of the name of
+ * the name of the LaTeX source file to create, the LaTeX processing
+ * program (@c pdflatex by default), whether to run the LaTeX
+ * processing three times (to get the table of contents right), the name of
+ * any post processing command (such as @c dvips if using plain
+ * @c latex).  Most of the time, this is enough for a standard, basic
+ * time table.  The @c Configure button can be used to configure a
+ * selection of options using a ``Print Configuration'' dialog, described
+ * in Section @ref timetable_ref_PrintConfigurationDialog.
+ * 
+ * @image latex TTPrintTimetableDialog.png "Print Timetable dialog" width=5in
+ * @image html  TTPrintTimetableDialogSmall.png
+ * 
+ * Once the settings and configuration have been set, the @c Print
+ * initiates the process.  First a LaTeX source file is generated, then
+ * the LaTeX processing program is run once or three times.  The output
+ * from these runs are displayed in a process log window (LaTeX outputs
+ * a fair amount of diagnostic output, most of which can be ignored).  If
+ * you are using the default processor (@c pdflatex), you should now
+ * have a PDF file which can be viewed or printed with the PDF viewer of
+ * your choice.
+ *    
  * @subsection timetable_ref_PrintConfigurationDialog Print Configuration Dialog
-\label{sect:tt:PrintConfigurationDialog}
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics[width=5in]{TTPrintConfigurationDialog1.png}
-\caption{Print Configuration dialog, General settings}
-\label{fig:tt:PrintConfigurationDialog1}
-\end{centering}
-\end{figure}
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics[width=5in]{TTPrintConfigurationDialog2.png}
-\caption{Print Configuration dialog, Multi settings}
-\label{fig:tt:PrintConfigurationDialog2}
-\end{centering}
-\end{figure}
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics[width=5in]{TTPrintConfigurationDialog3.png}
-\caption{Print Configuration dialog, Groups settings}
-\label{fig:tt:PrintConfigurationDialog3}
-\end{centering}
-\end{figure}
-The Print Configuration Dialog, shown in
-Figures~\ref{fig:tt:PrintConfigurationDialog1};
-\ref{fig:tt:PrintConfigurationDialog2}; and
-\ref{fig:tt:PrintConfigurationDialog3}, provide for the setting of many
-print configuration options. The general settings
-(Figure~\ref{fig:tt:PrintConfigurationDialog1}), provide for setting the
-title, subtitle, the date, whether to have \LaTeX{} format for double
-sided printing, setting the time format, setting the logical direction
-of trains, column widths, and including additional commands in the
-\LaTeX{} preamble (usually including additional style
-packages\footnote{The style pages supertabular and graphicx are already
-included.} and style settings). The multi-table settings
-(Figure~\ref{fig:tt:PrintConfigurationDialog2}), provide for settings
-relating to time tables using multiple tables.  These settings include
-whether to create a table of contents, whether to use multiple tables at
-all, \LaTeX{} code to precede the table of contents, \LaTeX{} code to
-precede notes section, the header to use if a single ``All Trains''
-table is generated, and \LaTeX{} code to precede this single ``All
-Trains'' table.  The groups settings
-(Figure~\ref{fig:tt:PrintConfigurationDialog3}), provide for settings
-for each group.  This includes whether to group by class or to manually
-group trains and provides for setting the class or group heading and for
-\LaTeX{} code to precede the group table, and if grouping manually,
-selecting the trains in the group.
-
-\section{Exiting From the Program}
-
-The \texttt{Exit} (or \texttt{Close}) menu item of the \texttt{File}
-menu, the \includegraphics{TTCloseTool.png} toolbar button, or the
-\texttt{Quit -- Exit NOW} button exit the program.  A confirmation
-dialog is displayed to get confirmation.
-
+ * 
+ * The Print Configuration Dialog, shown below, provide for the setting of many
+ * print configuration options. The general settings, provide for setting the
+ * title, subtitle, the date, whether to have LaTeX format for double
+ * sided printing, setting the time format, setting the logical direction
+ * of trains, column widths, and including additional commands in the
+ * LaTeX preamble (usually including additional style
+ * packages
+ * @latexonly
+ * \footnote{The style pages supertabular and graphicx are already included.}
+ * @endlatexonly
+ * and style settings). The multi-table settings, provide for settings
+ * relating to time tables using multiple tables.  These settings include
+ * whether to create a table of contents, whether to use multiple tables at
+ * all, LaTeX code to precede the table of contents, LaTeX code to
+ * precede notes section, the header to use if a single ``All Trains''
+ * table is generated, and LaTeX code to precede this single ``All
+ * Trains'' table.  The groups settings, provide for settings
+ * for each group.  This includes whether to group by class or to manually
+ * group trains and provides for setting the class or group heading and for
+ * LaTeX code to precede the group table, and if grouping manually,
+ * selecting the trains in the group.
+ * 
+ * @image latex TTPrintConfigurationDialog1.png "Print Configuration dialog, General settings" width=5in
+ * @image html  TTPrintConfigurationDialog1Small.png
+ * 
+ * @image latex TTPrintConfigurationDialog2.png "Print Configuration dialog, Multi settings" width=5in
+ * @image html  TTPrintConfigurationDialog2Small.png
+ * 
+ * @image latex TTPrintConfigurationDialog3.png "Print Configuration dialog, Groups settings" width=5in
+ * @image html  TTPrintConfigurationDialog3Small.png
+ * 
+ * @section timetable_ref_Exiting Exiting From the Program
+ * 
+ * The @c Exit (or @c Close) menu item of the @c File menu, the 
+ * @image latex TTCloseTool.png
+ * @htmlonly
+ * <img src="TTCloseTool.png" alt="Close toolbar button">
+ * @endhtmlonly
+ *  toolbar button, or the @c Quit @c -- @c Exit @c NOW button exit the 
+ * program.  A confirmation dialog is displayed to get confirmation.
+ * 
  * @section timetable_ref_SelectOneTrainDialog Select One Train Dialog
-
-\begin{figure}[hbpt] 
-\begin{centering}
-\includegraphics{TTSelectOneTrain.png} 
-\caption{Select One Train dialog} 
-\label{fig:tt:SelectOneTrainDialog} 
-\end{centering}
-\end{figure} The ``Select One Train dialog'', shown in
-Figure~\ref{fig:tt:SelectOneTrainDialog}, is used to select a train
-either for deletion (Section @ref timetable_ref_DeletingTrains) or for
-viewing (Section~\ref{sect:tt:ViewingTrains}).
-
-\section{The View Menu}
-
-The view menu contains menu items for viewing detailed information about
-various things, including trains (Section~\ref{sect:tt:ViewingTrains},
-stations (Section~\ref{sect:tt:ViewingStations}), and  notes
-(Section~\ref{sect:tt:ViewingNotes}).
-
-\subsection{Trains}
-\label{sect:tt:ViewingTrains}
-
-There are two menu items for viewing trains, \texttt{View One Train} and
-\texttt{View All Trains}.  The \texttt{View One Train} uses the ``Select
-One Train dialog'' (Section @ref timetable_ref_SelectOneTrainDialog) to
-select a train to display detailed information about and the
-\texttt{View All Trains} menu item displays a dialog listing all of the
-trains, by number and name, with buttons to get more detailed information.
-
-\subsection{Stations}
-\label{sect:tt:ViewingStations}
-
-There are two menu items for viewing stations, \texttt{View One
-Station} and \texttt{View All Stations}.  The \texttt{View One Station}
-uses the ``Select One Station dialog'' to select a station to display
-detailed information about and the \texttt{View All Stations} menu item
-displays a dialog listing all of the stations, by name and scale mile, with
-buttons to get more detailed information.
-
-\subsection{Notes}
-\label{sect:tt:ViewingNotes}
-
-There are two menu items for viewing notes, \texttt{View One Note} and
-\texttt{View All Notes}.  The \texttt{View One Note} uses the ``Select
-One Note dialog'' to select a note to display detailed information
-about and the \texttt{View All Notes} menu item displays a dialog
-listing all of the notes, by number and beginning text, with buttons to
-get more detailed information.
-
-\section{System Configuration}
-
-The Time Table program has a small number of global
-configuration options.  These are stored in a file named
-\texttt{.timeTable} (\texttt{TimeTable.rc} under MS-Windows) in the
-current user's HOME directory.  These configuration options are:
-\begin{description}
-\item [Path to pdflatex] The pathname to the \texttt{pdflatex}
-executable.
-\item [Label Width in Chart] The width in pixels of cab, station, and
-storage track labels in the time table chart.
-\item [Height of main window] The initial height of the main window.
-\item [Width of main window] The initial width of the main window.
-\end{description}
-
-The system configuration file is read at program start up.  If the
-configuration does not exist, a default one is created the first time
-the program is run.
-
-The \texttt{Options} menu manages the system configuration, with menu
-items to edit the system configuration, save it and reload it.
-
-\section{Add Cab Dialog}
-\section{Add Remove Note Dialog}
-\section{Edit Note Dialog}
-\section{Edit System Configuration}
-\section{Edit Train Dialog}
-\section{Print Configuration Dialog}
-\section{Print Dialog}
-\section{Select A Storage Track Name}
-\section{Select One Note Dialog}
-\section{Select One Station Dialog}
-\section{Select One Train Dialog}
+ * 
+ * The ``Select One Train dialog'', shown below, is used to select a train
+ * either for deletion (Section @ref timetable_ref_DeletingTrains) or for
+ * viewing (Section @ref timetable_ref_ViewingTrains).
+ * 
+ * @image latex TTSelectOneTrain.png "Select One Train dialog"
+ * @image html  TTSelectOneTrain.png
+ * 
+ * @section timetable_ref_ViewMenu The View Menu
+ * 
+ * The view menu contains menu items for viewing detailed information about
+ * various things, including trains (Section @ref timetable_ref_ViewingTrains,
+ * stations (Section @ref timetable_ref_ViewingStations), and  notes
+ * (Section @ref timetable_ref_ViewingNotes).
+ * 
+ * @subsection timetable_ref_ViewingTrains Trains
+ * 
+ * There are two menu items for viewing trains, @c View @c One @c Train and
+ * @c View @c All @c Trains.  The @c View @cOne @c Train uses the ``Select
+ * One Train dialog'' (Section @ref timetable_ref_SelectOneTrainDialog) to
+ * select a train to display detailed information about and the
+ * @c View @c All @cTrains menu item displays a dialog listing all of the
+ * trains, by number and name, with buttons to get more detailed information.
+ * 
+ * @subsection timetable_ref_ViewingStations Stations
+ * 
+ * There are two menu items for viewing stations, @c View @c One
+ * @c Station and @c View @c All @c Stations.  The @c View @c One @c Station
+ * uses the ``Select One Station dialog'' to select a station to display
+ * detailed information about and the @c View @c All @c Stations menu item
+ * displays a dialog listing all of the stations, by name and scale mile, with
+ * buttons to get more detailed information.
+ * 
+ * @subsection timetable_ref_ViewingNotes Notes
+ * 
+ * There are two menu items for viewing notes, @c View @c One @c Note and
+ * @c View @c All @c Notes.  The @c View @c One @c Note uses the ``Select
+ * One Note dialog'' to select a note to display detailed information
+ * about and the @c View @c All @c Notes menu item displays a dialog
+ * listing all of the notes, by number and beginning text, with buttons to
+ * get more detailed information.
+ * 
+ * @section timetable_ref_SystemConfiguration System Configuration
+ * 
+ * The Time Table program has a small number of global
+ * configuration options.  These are stored in a file named
+ * @c .timeTable (@c TimeTable.rc under MS-Windows) in the
+ * current user's HOME directory.  These configuration options are:
+ * 
+ * <dl>
+ * <dt>Path to pdflatex</dt><dd>The pathname to the @c pdflatex executable.</dd>
+ * <dt>Label Width in Chart</dt><dd>The width in pixels of cab, station, and
+ * storage track labels in the time table chart.</dd>
+ * <dt>Height of main window</dt><dd>The initial height of the main window.</dd>
+ * <dt>Width of main window</dt><dd>The initial width of the main window.</dd>
+ * </dl>
+ * 
+ * The system configuration file is read at program start up.  If the
+ * configuration does not exist, a default one is created the first time
+ * the program is run.
+ * 
+ * The @c Options menu manages the system configuration, with menu
+ * items to edit the system configuration, save it and reload it.
+ * 
+ * @section timetable_ref_AddCabDialog Add Cab Dialog
+ * @section timetable_ref_AddRemoveNoteDialog Add Remove Note Dialog
+ * @section timetable_ref_EditNoteDialog Edit Note Dialog
+ * @section timetable_ref_EditSystemConfigurationDialog Edit System Configuration
+ * @section timetable_ref_EditTrainDialog Edit Train Dialog
+ * @section timetable_ref_SelectAStorageTrackName Select A Storage Track Name
+ * @section timetable_ref_SelectOneNoteDialog Select One Note Dialog
+ * @section timetable_ref_SelectOneStationDialog Select One Station Dialog
  */
 
 #endif // __TTREFERENCE_H
