@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:33:54 2014
-//  Last Modified : <140411.1334>
+//  Last Modified : <140415.1344>
 //
 //  Description	
 //
@@ -30,18 +30,19 @@
 
 #ifndef __FCFREFERENCE_H
 #define __FCFREFERENCE_H
-/** @page fcf:Reference Freight Car Forwarder (V2) Reference
+
+/** @page fcf_Reference Freight Car Forwarder (V2) Reference
  * The Freight Car Forwarder (V2) is a hybrid program, consisting of a
 Tcl/Tk GUI on top of a C++ class library.  The GUI provides the user
 interface to the algorithms and data structures contained in the C++
 class library.
 
-\section{Command Line Usage}
+ * @section fcf_ref_cli Command Line Usage
 
 The name of the system file to load can be specified on the command
 line. See Section~\ref{sect:fcf:loadsystem} for more information.
 
-\section{Layout of the Main GUI}
+ * @section fcf_ref_maingui Layout of the Main GUI
 
 \begin{figure}[hbpt]
 \begin{centering}
@@ -82,7 +83,7 @@ status when trains are run, one for viewing a car's information, and
 one for editing a car's information. Each slide out has a corresponding
 indicator. 
 
-\section{Opening and loading a system file.}
+ * @section fcf_ref_loadsystem Opening and loading a system file.
 \label{sect:fcf:loadsystem}
 \index{Freight Car Forwarder!Loading a system file|(}
 
@@ -97,13 +98,13 @@ can be specified on the command line and the named system file will be
 loaded when the program starts.
 \index{Freight Car Forwarder!Loading a system file|)}
 
-\section{Loading and reloading the cars file.}
+ * @section fcf_ref_loadreload  Loading and reloading the cars file.
 
 The \verb=Load Cars File= menu button and the
 \includegraphics{FCFLoadCarsTool.png} toolbar button load (or reload)
 the cars file.
 
-\section{Saving the cars file.}
+ * @section fcf_ref_savingcars Saving the cars file.
 
 The \verb=Save Cars File= menu button and the \includegraphics{FCFSaveCarsTool.png} 
 toolbar button save the cars and statistics files. This is something you
@@ -111,7 +112,7 @@ need to do after you have simulated a session, by running the car
 assignment procedure and then run the trains in your session.  This
 saves the state for the next time you run the Freight Car Forwarder.
 
-\section{Managing trains and printing}
+ * @section fcf_ref_managingtrains Managing trains and printing
 \begin{figure}[hbpt]
 \begin{centering}
 \includegraphics{FCFManageTrainsMenu.png}
@@ -126,7 +127,7 @@ relating to what trains are printed and can also  print a dispatcher
 report and generate lists of various sorts of trains.  The menu is shown
 in  Figure~\ref{fig:fcf:FCFManageTrainsMenu}.
 
-\subsection{Controlling Yard Lists}
+ * @subsection fcf_ref_controllingyardlists Controlling Yard Lists
 
 \begin{figure}[hbpt]
 \begin{centering}
@@ -140,36 +141,36 @@ in Figure~\ref{fig:fcf:controlyardldialog}, to control whether to print
 0, 1, or 2 alphabetical lists and whether to print 0, 1, or 2 train
 lists.
 
-\subsection{Enabling printing for all trains}
+ * @subsection fcf_ref_enablingprint Enabling printing for all trains
 
 The \verb=Print All Trains= menu item (p key) turns on printing for all
 trains. 
 
-\subsection{Disabling printing for all trains}
+ * @subsection fcf_ref_disablingprint Disabling printing for all trains
 
 The \verb=Print No Trains= menu item (n key) turns off printing for all
 trains.
 
-\subsection{Printing a dispatcher report}
+ * @subsection fcf_ref_printdispater Printing a dispatcher report
 
 The \verb=Print Dispatcher Report= menu item (d key) enables the
 printing of a dispatcher report.
 
-\subsection{Listing local trains for this shift}
+ * @subsection fcf_ref_listinglocal Listing local trains for this shift
 
 The \verb=List Locals This Shift= menu item (l key) lists all locals for
 this shift.
 
-\subsection{Listing manifests for this shift}
+ * @subsection fcf_ref_listingmani Listing manifests for this shift
 
 The \verb=List Manifests This Shift= menu item (m key) lists manifest
 freights for this shift.
 
-\subsection{Listing all trains for all shifts}
+ * @subsection fcf_ref_listingall Listing all trains for all shifts
 
 The \verb=List All Trains All Shifts= (? key) Lists all trains.
 
-\subsection{Managing one train}
+ * @subsection fcf_ref_managingone Managing one train
 
 \begin{figure}[hbpt]
 \begin{centering}
@@ -179,13 +180,13 @@ The \verb=List All Trains All Shifts= (? key) Lists all trains.
 \end{centering}
 \end{figure}
 The \verb=Manage One Train= menu item (1 key) pops up a dialog, shown
-in Figure~\ref{fig:fcf:manage1train}, to enable or disable printing of
+in Figure~\ref{fig:fcf:manage1train}, to enable or disable printing o
 a single train, as well as setting the train's maximum length and
 setting which shift the train will be run.  The train is selected with
 the ``Select Train Dialog'', described in
 Section~\ref{sect:fcf:selecttraindialog}.
 
-\section{Viewing a car's information}
+ * @section fcf_ref_viewingacar Viewing a car's information
 
 \begin{figure}[hbpt]
 \begin{centering}
@@ -201,7 +202,7 @@ view car ``slide out'', shown in Figure~\ref{fig:fcf:viewcarslideout}.
 The car is selected with the ``Search For Cars Dialog'', described in
 Section~\ref{sect:fcf:searchcarsdialog}. 
 
-\section{Editing a car's information}
+ * @section fcf_ref_editingacar Editing a car's information
 
 \begin{figure}[hbpt]
 \begin{centering}
@@ -218,7 +219,7 @@ Figure~\ref{fig:fcf:editcarslideout}. The car is selected with the
 ``Search For Cars Dialog'', described in
 Section~\ref{sect:fcf:searchcarsdialog}. 
 
-\section{Adding a new car}
+ * @section fcf_ref_addingacar Adding a new car
 
 The \verb=Add a New Car= menu button and the
 \includegraphics{FCFAddCarTool.png} toolbar button provide for adding a
@@ -226,7 +227,7 @@ new car.  The edit car ``slide out'', shown in
 Figure~\ref{fig:fcf:editcarslideout} is displayed and the information
 about the new car can be filled in and the car added.
 
-\section{Deleting an existing car}
+ * @section fcf_ref_deletingacar Deleting an existing car
 
 The \verb=Delete An Existing Car= menu button and the
 \includegraphics{FCFDeleteCarTool.png} toolbar button provide for
@@ -236,13 +237,13 @@ car's information is displayed in the view car ``slide out'', shown in
 Figure~\ref{fig:fcf:viewcarslideout}. Actual removal can then be
 confirmed.
 
-\section{Showing cars without assignments}
+ * @section fcf_ref_showingcarswithout Showing cars without assignments
 
 The \verb=Show Unassigned Cars= menu button and the
 \includegraphics{FCFShowUACarsTool.png} toolbar button display
 unassigned cars in the text window.
 
-\section{Running the car assignment procedure}
+ * @section fcf_ref_runningcars Running the car assignment procedure
 
 The \verb=Run Car Assignments= menu button and the
 \includegraphics{FCFRunCarATool.png} toolbar button run the car
@@ -253,7 +254,7 @@ loaded or not, industries with available trackage to accommodate the car,
 and so on.  The list of cars is scanned twice and the progress of the
 procedure is displayed in the text area.
 
-\section{Running every train in the operating session}
+ * @section fcf_ref_runningevery Running every train in the operating session
 
 \begin{figure}[hbpt]
 \begin{centering}
@@ -268,7 +269,7 @@ the operating session, except the end of session box moves.  Each
 train's progress is shown in the ``Train Status Slideout'', shown in
 Figure~\ref{fig:fcf:trainstatusslideout}.
 
-\section{Running the box move trains}
+ * @section fcf_ref_runningbox Running the box move trains
 
 The \verb=Run Boxmove Trains= menu button and the
 \includegraphics{FCFRunBTrTool.png} toolbar button run all of the box
@@ -276,7 +277,7 @@ move trains in the operating session.  Each train's progress is shown
 in the ``Train Status Slideout'', shown in
 Figure~\ref{fig:fcf:trainstatusslideout}.
 
-\section{Running a single train}
+ * @section fcf_ref_runningsingle Running a single train
 
 The \verb=Run Trains One At A Time= menu button and the
 \includegraphics{FCFRun1TrTool.png} toolbar button run a single train,
@@ -286,7 +287,7 @@ in the ``Train Status Slideout'', shown in
 Figure~\ref{fig:fcf:trainstatusslideout}.
 
 
-\section{Opening a Printer}
+ * @section fcf_ref_openprinter Opening a Printer
 
 \begin{figure}[hbpt]
 \begin{centering}
@@ -302,20 +303,20 @@ Figure~\ref{fig:fcf:openprinterdialog}. The status of the printer
 output, open or closed, is shown with the printer status indication,
 \includegraphics{FCFPrinterInd.png}.
 
-\section{Closing the printer}
+ * @section fcf_ref_closingprinter Closing the printer
 
 The \verb=Close Printer= menu button and the
 \includegraphics{FCFClosePrinterTool.png} toolbar button close the
 printer.The status of the printer output, open or closed, is shown with
 the printer status indication, \includegraphics{FCFPrinterInd.png}.
 
-\section{Printing yard and switch lists}
+ * @section fcf_ref_printyard Printing yard and switch lists
 
 The \verb=Print Yard Lists, etc.= menu button and the
 \includegraphics{FCFPrintYardTool.png} toolbar button print the yard and
 switch lists.
 
-\section{Showing cars on the screen}
+ * @section fcf_ref_showingcars Showing cars on the screen
 
 \begin{figure}[hbpt]
 \begin{centering}
@@ -328,7 +329,7 @@ The \verb=Show Cars On Screen= menu button and the
 \includegraphics{FCFShowCarsTool.png} toolbar button pops up a menu,
 shown in Figure~\ref{fig:fcf:showcarsmenu}, of classes of cars to show.
 
-\section{Printing Reports}
+ * @section fcf_ref_printingreports Printing Reports
 
 \begin{figure}[hbpt]
 \begin{centering}
@@ -342,7 +343,7 @@ The \verb=Reports Menu= menu button and the
 shown in Figure~\ref{fig:fcf:reportsmenu}, of
 possible reports.
 
-\section{Resetting Industry Statistics}
+ * @section fcf_ref_resetindus Resetting Industry Statistics
 
 The \verb=Reset Industry Statistics= menu button and the
 \includegraphics{FCFResetStatsTool.png} toolbar button resets the
@@ -355,12 +356,12 @@ The \verb=Quit -- Exit NOW= menu button and the
 confirmation dialog is popped up.
 
 
-\section{General Dialogs}
+ * @section fcf_ref_gendialogs General Dialogs
 
-\subsection{Control Yard Lists Dialog}
-\subsection{Enter Owner Initials Dialog}
+ * @subsection fcf_ref_controlyardlists Control Yard Lists Dialog
+ * @subsection fcf_ref_enterowner Enter Owner Initials Dialog
 
-\subsection{Select A Train Dialog}
+ * @subsection fcf_ref_selecttraindialog Select A Train Dialog
 \label{sect:fcf:selecttraindialog}
 
 \begin{figure}[hbpt]
@@ -387,10 +388,10 @@ way of avoiding the special interpretation of the characters
 \verb=*?[]\= in the pattern.
 \end{itemize}
 
-\subsection{Manage One Train Dialog}
-\subsection{Open Printer Dialog}
+ * @subsection fcf_ref_manage1traindialog Manage One Train Dialog
+ * @subsection fcf_ref_openprinterdialog Open Printer Dialog
 
-\subsection{Search For Cars Dialog}
+ * @subsection fcf_ref_searchcarsdialog Search For Cars Dialog
 \label{sect:fcf:searchcarsdialog}
 
 \begin{figure}[hbpt]
@@ -404,13 +405,12 @@ The Search For Cars Dialog is used to select a car (to view, edit, or
 delete). The \verb=Filter= button selects a  subset of cars based on the
 trailing car number digits.
 
-\subsection{Select A Division Dialog}
-\subsection{Select An Industry Dialog}
-\subsection{Select A Station Dialog}
-\subsection{Select Car Type}
+ * @subsection fcf_ref_seladiv Select A Division Dialog
+ * @subsection fcf_ref_selanindus Select An Industry Dialog
+ * @subsection fcf_ref_selastat Select A Station Dialog
+ * @subsection fcf_ref_selcartype Select Car Type
 
-\section{Data files}
-\label{sect:fcf:Files}
+ * @section fcf_ref_Files Data files
 
 The Freight Car Forwarder uses a collection of eight data files:
 
@@ -447,8 +447,7 @@ industry utilization.
 \end{enumerate}
 
 
-\subsection{Data File Formats}
-\label{sect:fcf:File Formats}
+ * @subsection fcf_ref_FileFormats Data File Formats
 
 Some general notes:
 
@@ -459,7 +458,7 @@ designed for BASIC read statements--the original program that this
 program is based on was written in a version of BASIC and uses the same
 file format.
 
-\subsubsection{System File}
+ * @subsubsection fcf_ref_SystemFile System File
 
 The first line of the system file is the name of the railroad system. 
 This line is used in various banners and report headings.
@@ -518,7 +517,7 @@ City/Station number one is used for the workbench.
 
 A line containing a -1 terminates the list of stations.
 
-\subsubsection{Industry File}
+ * @subsubsection fcf_ref_IndustryFile Industry File
 
 The industry file contains industries and yards.  The file starts with a
 line specifying the maximum number of industries:
@@ -568,7 +567,7 @@ Where:
 
 The industry listing is terminated by a line containing a -1.
 
-\subsubsection{Trains File}
+ * @subsubsection fcf_ref_TrainsFile Trains File
 
 The trains file contains the trains used to move the cars.  The file
 starts with a line specifying the maximum number of trains:
@@ -605,7 +604,7 @@ is a textual description of the train.
 
 The train listing is terminated by a line containing a -1.
 
-\subsubsection{Orders File}
+ * @subsubsection fcf_ref_OrdersFile Orders File
 
 This file contains lines with pairs:
 
@@ -616,7 +615,7 @@ Name,Order
 where Name is the name of a train and Order is a quoted string
 containing the order.
 
-\subsubsection{Owners File}
+ * @subsubsection fcf_ref_OwnersFile Owners File
 
 This file starts with a count of owners and then lines with with
 triples:
@@ -628,7 +627,7 @@ Initials,Name,Comment
 where Initials are the three letter initials of an owner, Name is the
 full name of the owner, and Comment is some descriptive text.
 
-\subsubsection{Car Types File}
+ * @subsubsection fcf_ref_CarTypesFile Car Types File
 
 This is a file with exactly 91 records.  Each record contains:
 
@@ -651,7 +650,7 @@ Car Type Group,Description,Comment
 where Car Type Group is a single character, Description is a 16
 character brief description, and Comment is some descriptive text.
 
-\subsubsection{Cars File}
+ * @subsubsection fcf_ref_CarsFile Cars File
 
 The cars file starts with three numbers, one per line:
 
@@ -690,7 +689,7 @@ car's present location from industry file, Dest car's destination from
 industry file, NTrips is number of car trips, and NAssigns is number of
 car assignments.
 
-\subsubsection{Statistics File}
+ * @subsubsection fcf_ref_StatisticsFile Statistics File
 
 The statistics is a file generated as an output and should not be hand
 edited.  This file has two formats, V1 and V2.  V1 is the original
@@ -705,7 +704,7 @@ The rest of file file contains lines of four numbers, either space
 separated (V1) or comma separated (V2): industry index, car count, car
 length, and statistics length.
 
-\subsubsection{Other data files}
+ * @subsubsection fcf_ref_Otherdatafiles Other data files
 
 There are some additional data files, which are not actually loaded into
 the system.  These are the plate, weight, and hazard files.  These are
