@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:33:54 2014
-//  Last Modified : <140415.1344>
+//  Last Modified : <140417.1227>
 //
 //  Description	
 //
@@ -33,210 +33,205 @@
 
 /** @page fcf_Reference Freight Car Forwarder (V2) Reference
  * The Freight Car Forwarder (V2) is a hybrid program, consisting of a
-Tcl/Tk GUI on top of a C++ class library.  The GUI provides the user
-interface to the algorithms and data structures contained in the C++
-class library.
-
+ * Tcl/Tk GUI on top of a C++ class library.  The GUI provides the user
+ * interface to the algorithms and data structures contained in the C++
+ * class library.
+ * 
  * @section fcf_ref_cli Command Line Usage
-
-The name of the system file to load can be specified on the command
-line. See Section~\ref{sect:fcf:loadsystem} for more information.
-
+ * 
+ * The name of the system file to load can be specified on the command
+ * line. See Section @ref fcf_ref_loadsystem for more information.
+ * 
  * @section fcf_ref_maingui Layout of the Main GUI
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics[width=5in]{FCFMain.png}
-\caption{The main GUI screen of the Freight Car Forwarder (V2) Program}
-\label{fig:fcf:FCFMain}
-\end{centering}
-\end{figure}
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics[width=5in]{FCFMainToolbar.png}
-\caption{The Toolbar of the Freight Car Forwarder (V2) Program}
-\label{fig:fcf:FCFMainToolbar}
-\end{centering}
-\end{figure}
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics{FCFMainButtonMenu.png}
-\caption{The Button Menu of the Freight Car Forwarder (V2) Program}
-\label{fig:fcf:FCFMainButtonMenu}
-\end{centering}
-\end{figure}
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics{FCFMainIndicators.png}
-\caption{The Indicators of the Freight Car Forwarder (V2) Program}
-\label{fig:fcf:FCFMainIndicators}
-\end{centering}
-\end{figure}
-The main GUI window\index{Freight Car Forwarder!main GUI}, show in
-Figure~\ref{fig:fcf:FCFMain}, contains a menu bar, a toolbar
-(Figure~\ref{fig:fcf:FCFMainToolbar}), a text display area, and a
-button menu (Figure~\ref{fig:fcf:FCFMainButtonMenu}). There is also a 
-work in progress message area, a  general status area, a progress
-meter, and several indicators (Figure~\ref{fig:fcf:FCFMainIndicators}).
-The main GUI also has three ``slide out'' frames, one for showing train
-status when trains are run, one for viewing a car's information, and
-one for editing a car's information. Each slide out has a corresponding
-indicator. 
-
+ * 
+ * The main GUI window\index{Freight Car Forwarder!main GUI}, shown below,
+ * @image latex FCFMain.png "The main GUI screen of the Freight Car Forwarder (V2) Program" width=5in
+ * @image html  FCFMainSmall.png
+ * contains a menu bar, a toolbar, 
+ * @image latex FCFMainToolbar.png "The Toolbar of the Freight Car Forwarder (V2) Program" width=5in
+ * @image html  FCFMainToolbarSmall.png
+ * a text display area, and a button menu.
+ * @htmlonly
+ * <br clear="all">
+ * @endhtmlonly
+ * @image latex FCFMainButtonMenu.png "The Button Menu of the Freight Car Forwarder (V2) Program"
+ * @image html  FCFMainButtonMenu.png
+ * @htmlonly
+ * <br clear="all">
+ * @endhtmlonly
+ * There is also a work in progress message area, a  general status area, 
+ * a progress meter, and several indicators.
+ * @htmlonly
+ * <br clear="all">
+ * @endhtmlonly
+ * @image latex FCFMainIndicators.png "The Indicators of the Freight Car Forwarder (V2) Program"
+ * @image html  FCFMainIndicators.png
+ * 
+ * The main GUI also has three ``slide out'' frames, one for showing train
+ * status when trains are run, one for viewing a car's information, and
+ * one for editing a car's information. Each slide out has a corresponding
+ * indicator. 
+ * 
  * @section fcf_ref_loadsystem Opening and loading a system file.
-\label{sect:fcf:loadsystem}
-\index{Freight Car Forwarder!Loading a system file|(}
-
-The \verb=File->Open...= menu button and the
-\includegraphics{FCFLoadTool.png} toolbar button pop-up a file selection
-dialog to select a system file to load. Once this file is successfully
-loaded, the name of the file, the name of the system, the current
-session and shift number, plus a count of  divisions, stations,
-industries, cars, and trains is displayed in the main GUI's text area. 
-Also all of the buttons are made active.  The name of the system file
-can be specified on the command line and the named system file will be
-loaded when the program starts.
-\index{Freight Car Forwarder!Loading a system file|)}
-
+ * @addindex "Freight Car Forwarder!Loading a system file"
+ * The @c File->Open... menu button and the
+ * @image latex FCFLoadTool.png
+ * @htmlonly
+ * <img src="FCFLoadTool.png" alt="Load toolbar button">
+ * @endhtmlonly
+ * toolbar button pop-up a file selection dialog to select a system file to 
+ * load. Once this file is successfully loaded, the name of the file, the name 
+ * of the system, the current session and shift number, plus a count of  
+ * divisions, stations, industries, cars, and trains is displayed in the main 
+ * GUI's text area. Also all of the buttons are made active.  The name of the 
+ * system file can be specified on the command line and the named system file 
+ * will be loaded when the program starts.
+ * 
  * @section fcf_ref_loadreload  Loading and reloading the cars file.
-
-The \verb=Load Cars File= menu button and the
-\includegraphics{FCFLoadCarsTool.png} toolbar button load (or reload)
-the cars file.
-
+ * 
+ * The @c Load Cars File menu button and the
+ * @image latex FCFLoadCarsTool.png
+ * @htmlonly
+ * <img src="FCFLoadCarsTool.png" alt="Load Cars toolbar button">
+ * @endhtmlonly
+ * toolbar button load (or reload) the cars file.
+ * 
  * @section fcf_ref_savingcars Saving the cars file.
-
-The \verb=Save Cars File= menu button and the \includegraphics{FCFSaveCarsTool.png} 
-toolbar button save the cars and statistics files. This is something you
-need to do after you have simulated a session, by running the car
-assignment procedure and then run the trains in your session.  This
-saves the state for the next time you run the Freight Car Forwarder.
-
+ * 
+ * The @c Save @c Cars @c File menu button and the 
+ * @image latex FCFSaveCarsTool.png
+ * @htmlonly
+ * <img src="FCFSaveCarsTool.png" alt="Save Cars toolbar button">
+ * @endhtmlonly
+ * toolbar button save the cars and statistics files. This is something you
+ * need to do after you have simulated a session, by running the car
+ * assignment procedure and then run the trains in your session.  This
+ * saves the state for the next time you run the Freight Car Forwarder.
+ * 
  * @section fcf_ref_managingtrains Managing trains and printing
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics{FCFManageTrainsMenu.png}
-\caption{Train/Printing Management Menu.}
-\label{fig:fcf:FCFManageTrainsMenu}
-\end{centering}
-\end{figure}
-The \verb=Manage trains/printing= menu button and the 
-\includegraphics{FCFManageTrainsTool.png} toolbar button pop-up the
-train/printing management menu.  This menu provides a set of functions
-relating to what trains are printed and can also  print a dispatcher
-report and generate lists of various sorts of trains.  The menu is shown
-in  Figure~\ref{fig:fcf:FCFManageTrainsMenu}.
-
+ * 
+ * The @c Manage trains/printing menu button and the 
+ * @image latex FCFManageTrainsTool.png
+ * @htmlonly
+ * <img src="FCFManageTrainsTool.png" alt="Manage Trains toolbar button">
+ * @endhtmlonly
+ * toolbar button pop-up the train/printing management menu.  This menu 
+ * provides a set of functions relating to what trains are printed and can 
+ * also  print a dispatcher report and generate lists of various sorts of 
+ * trains.  The menu is shown below.
+ * 
+ * @image latex FCFManageTrainsMenu.png "Train/Printing Management Menu."
+ * @image html  FCFManageTrainsMenu.png
+ * 
  * @subsection fcf_ref_controllingyardlists Controlling Yard Lists
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics{FCFControlYardLDialog.png}
-\caption{Control Yard Lists Dialog}
-\label{fig:fcf:controlyardldialog}
-\end{centering}
-\end{figure}
-The \verb=Control Yard Lists= menu item (y key) pops up a dialog, shown
-in Figure~\ref{fig:fcf:controlyardldialog}, to control whether to print
-0, 1, or 2 alphabetical lists and whether to print 0, 1, or 2 train
-lists.
-
+ * 
+ * The @c Control @c Yard @c Lists menu item (y key) pops up a dialog, shown
+ * below, to control whether to print 0, 1, or 2 alphabetical lists and 
+ * whether to print 0, 1, or 2 train lists.
+ * 
+ * @image latex FCFControlYardLDialog.png "Control Yard Lists Dialog"
+ * @image html  FCFControlYardLDialog.png
+ * 
+ * 
  * @subsection fcf_ref_enablingprint Enabling printing for all trains
-
-The \verb=Print All Trains= menu item (p key) turns on printing for all
-trains. 
-
+ * 
+ * The @c Print @c All @c Trains menu item (p key) turns on printing for all
+ * trains. 
+ * 
  * @subsection fcf_ref_disablingprint Disabling printing for all trains
-
-The \verb=Print No Trains= menu item (n key) turns off printing for all
-trains.
-
+ * 
+ * The @c Print @c No @c Trains menu item (n key) turns off printing for all
+ * trains.
+ * 
  * @subsection fcf_ref_printdispater Printing a dispatcher report
-
-The \verb=Print Dispatcher Report= menu item (d key) enables the
-printing of a dispatcher report.
-
+ * 
+ * The @c Print @c Dispatcher @c Report menu item (d key) enables the
+ * printing of a dispatcher report.
+ * 
  * @subsection fcf_ref_listinglocal Listing local trains for this shift
-
-The \verb=List Locals This Shift= menu item (l key) lists all locals for
-this shift.
-
+ * 
+ * The @c List @c Locals @c This @c Shift menu item (l key) lists all locals 
+ * for this shift.
+ * 
  * @subsection fcf_ref_listingmani Listing manifests for this shift
-
-The \verb=List Manifests This Shift= menu item (m key) lists manifest
-freights for this shift.
-
+ * 
+ * The @c List @c Manifests @c This @c Shift menu item (m key) lists manifest
+ * freights for this shift.
+ * 
  * @subsection fcf_ref_listingall Listing all trains for all shifts
-
-The \verb=List All Trains All Shifts= (? key) Lists all trains.
-
+ * 
+ * The @c List @c All @c Trains @c All @c Shifts (? key) Lists all trains.
+ * 
  * @subsection fcf_ref_managingone Managing one train
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics{FCFManage1TrainDialog.png}
-\caption{Train Management Dialog}
-\label{fig:fcf:manage1train}
-\end{centering}
-\end{figure}
-The \verb=Manage One Train= menu item (1 key) pops up a dialog, shown
-in Figure~\ref{fig:fcf:manage1train}, to enable or disable printing o
-a single train, as well as setting the train's maximum length and
-setting which shift the train will be run.  The train is selected with
-the ``Select Train Dialog'', described in
-Section~\ref{sect:fcf:selecttraindialog}.
-
+ * 
+ * The @c Manage @c One @c Train menu item (1 key) pops up a dialog, shown
+ * below, to enable or disable printing of a single train, as well as 
+ * setting the train's maximum length and setting which shift the train will 
+ * be run.  The train is selected with the ``Select Train Dialog'', described 
+ * in Section @ref fcf_ref_selecttraindialog.
+ * 
+ * @htmlonly
+ * <br clear="all">
+ * @endhtmlonly
+ * @image latex FCFManage1TrainDialog.png "Train Management Dialog"
+ * @image html  FCFManage1TrainDialog.png
+ * 
  * @section fcf_ref_viewingacar Viewing a car's information
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics{FCFViewCarSlideout.png}
-\caption{View Car Information Slideout}
-\label{fig:fcf:viewcarslideout}
-\end{centering}
-\end{figure}
-The \verb=View Car Information= menu button and the
-\includegraphics{FCFViewCarTool.png} toolbar button display the
-information about a single car.  The information is displayed on the
-view car ``slide out'', shown in Figure~\ref{fig:fcf:viewcarslideout}.
-The car is selected with the ``Search For Cars Dialog'', described in
-Section~\ref{sect:fcf:searchcarsdialog}. 
-
+ * 
+ * The @c View @c Car @c Information menu button and the
+ * @image latex FCFViewCarTool.png
+ * @htmlonly
+ * <img src="FCFViewCarTool.png" alt="View Car toolbar button">
+ * @endhtmlonly
+ * toolbar button display the information about a single car.  The information 
+ * is displayed on the view car ``slide out'', shown below. The car is 
+ * selected with the ``Search For Cars Dialog'', described in Section
+ * @ref fcf_ref_searchcarsdialog. 
+ * 
+ * @image latex FCFViewCarSlideout.png "View Car Information Slideout"
+ * @image html  FCFViewCarSlideout.png
+ * 
  * @section fcf_ref_editingacar Editing a car's information
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics{FCFEditCarSlideout.png}
-\caption{Edit Car Information Slideout}
-\label{fig:fcf:editcarslideout}
-\end{centering}
-\end{figure}
-The \verb=Edit Car Information= menu button and the
-\includegraphics{FCFEditCarTool.png} toolbar button display the
-information about a single car and allow for editing this information. 
-The information is displayed on the edit car ``slide out'', shown in
-Figure~\ref{fig:fcf:editcarslideout}. The car is selected with the
-``Search For Cars Dialog'', described in
-Section~\ref{sect:fcf:searchcarsdialog}. 
-
+ * 
+ * The @c Edit @c Car @c Information menu button and the
+ * @image latex FCFEditCarTool.png
+ * @htmlonly
+ * <img src="FCFEditCarTool.png" alt="Edit Car toolbar button">
+ * @endhtmlonly
+ * toolbar button display the information about a single car and allow for 
+ * editing this information. The information is displayed on the edit car 
+ * ``slide out'', shown below. The car is selected with the ``Search For Cars 
+ * Dialog'', described in Section @ref fcf_ref_searchcarsdialog. 
+ * 
+ * @htmlonly
+ * <br clear="all">
+ * @endhtmlonly
+ * @image latex FCFEditCarSlideout.png "Edit Car Information Slideout"
+ * @image html  FCFEditCarSlideout.png
+ * 
  * @section fcf_ref_addingacar Adding a new car
-
-The \verb=Add a New Car= menu button and the
-\includegraphics{FCFAddCarTool.png} toolbar button provide for adding a
-new car.  The edit car ``slide out'', shown in
-Figure~\ref{fig:fcf:editcarslideout} is displayed and the information
-about the new car can be filled in and the car added.
-
+ * 
+ * The @c Add a New Car menu button and the
+ * @image latex FCFAddCarTool.png
+ * @htmlonly
+ * <img src="FCFAddCarTool.png" alt="Add Car toolbar button">
+ * @endhtmlonly
+ * toolbar button provide for adding a new car.  The edit car ``slide out'', 
+ * shown above, is displayed and the information about the new car can be 
+ * filled in and the car added.
+ * 
  * @section fcf_ref_deletingacar Deleting an existing car
-
-The \verb=Delete An Existing Car= menu button and the
-\includegraphics{FCFDeleteCarTool.png} toolbar button provide for
-deleting an existing car.  The car is selected with the ``Search For Cars
-Dialog'', described in Section~\ref{sect:fcf:searchcarsdialog} and the
-car's information is displayed in the view car ``slide out'', shown in
-Figure~\ref{fig:fcf:viewcarslideout}. Actual removal can then be
-confirmed.
-
+ * 
+ * The @c Delete @c An @c Existing @c Car menu button and the
+ * @image latex FCFDeleteCarTool.png
+ * @htmlonly
+ * <img src="FCFDeleteCarTool.png" alt="Delete Car toolbar button">
+ * @endhtmlonly
+ * toolbar button provide for deleting an existing car.  The car is selected 
+ * with the ``Search For Cars Dialog'', described in Section 
+ * @ref fcf_ref_searchcarsdialog and the car's information is displayed in the 
+ * view car ``slide out'', shown above. Actual removal can then be confirmed.
+ * 
  * @section fcf_ref_showingcarswithout Showing cars without assignments
 
 The \verb=Show Unassigned Cars= menu button and the

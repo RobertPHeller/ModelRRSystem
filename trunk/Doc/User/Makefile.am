@@ -146,7 +146,8 @@ USERMAN_FCF_FIGS = FCFMain.png FCFMainButtonMenu.png FCFMainIndicators.png \
 	FCFManage1TrainDialog.png FCFViewCarSlideout.png \
 	FCFEditCarSlideout.png FCFTrainStatusSlideout.png  \
 	FCFOpenPrinterDialog.png FCFShowCarsMenu.png FCFSelectATrainDialog.png \
-	FCFSelectACarDialog.png FCFReportsMenu.png
+	FCFSelectACarDialog.png FCFReportsMenu.png FCFMainSmall.png \
+	FCFMainToolbarSmall.png
 DOXYFILES += Doxyfile.$(FCF).in
 
 USERMAN_CALC_PART = ResistorManual.h LocoPullManual.h
@@ -336,6 +337,9 @@ $(FCF_HTML) : COPYING.h $(FCF_HS) $(USERMAN_FCF_FIGS) \
 		    $(FCF)_Version.h Help.h \
 		    Doxyfile.$(FCF)
 	$(DOXYGEN) Doxyfile.$(FCF)
+	for p in $(USERMAN_FCF_FIGS); do \
+	   if test ! \( -f $(FCFHBase)/$$p \); then cp $(srcdir)/$$p $(FCFHBase)/; fi; \
+	done
 
 $(CALC)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(CALC)_Version.h
