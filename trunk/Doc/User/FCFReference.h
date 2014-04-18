@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:33:54 2014
-//  Last Modified : <140417.1227>
+//  Last Modified : <140418.1357>
 //
 //  Description	
 //
@@ -233,72 +233,86 @@
  * view car ``slide out'', shown above. Actual removal can then be confirmed.
  * 
  * @section fcf_ref_showingcarswithout Showing cars without assignments
-
-The \verb=Show Unassigned Cars= menu button and the
-\includegraphics{FCFShowUACarsTool.png} toolbar button display
-unassigned cars in the text window.
-
+ * 
+ * The @c Show @c Unassigned @c Cars menu button and the
+ * @image latex FCFShowUACarsTool.png
+ * @htmlonly
+ * <img src="FCFShowUACarsTool.png" alt="Show Unassigned Cars toolbar button">
+ * @endhtmlonly
+ * toolbar button display unassigned cars in the text window.
+ * 
  * @section fcf_ref_runningcars Running the car assignment procedure
-
-The \verb=Run Car Assignments= menu button and the
-\includegraphics{FCFRunCarATool.png} toolbar button run the car
-assignment procedure.  This procedure attempts to give as many
-unassigned cars assignments, that is possible destinations. 
-Considerations taken into account are the type of car, whether it is
-loaded or not, industries with available trackage to accommodate the car,
-and so on.  The list of cars is scanned twice and the progress of the
-procedure is displayed in the text area.
-
+ * 
+ * The @c Run @c Car @c Assignments menu button and the
+ * @image latex FCFRunCarATool.png
+ * @htmlonly
+ * <img src="FCFRunCarATool.png" alt="Run Car Assignments toolbar button">
+ * @endhtmlonly
+ * toolbar button run the car assignment procedure.  This procedure attempts 
+ * to give as many unassigned cars assignments, that is possible destinations.
+ * Considerations taken into account are the type of car, whether it is
+ * loaded or not, industries with available trackage to accommodate the car,
+ * and so on.  The list of cars is scanned twice and the progress of the
+ * procedure is displayed in the text area.
+ * 
  * @section fcf_ref_runningevery Running every train in the operating session
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics{FCFTrainStatusSlideout.png}
-\caption{Train Status Slideout}
-\label{fig:fcf:trainstatusslideout}
-\end{centering}
-\end{figure}
-The \verb=Run All Trains in Operating Session= menu button and the
-\includegraphics{FCFRunAllTrTool.png} toolbar button run all trains in
-the operating session, except the end of session box moves.  Each
-train's progress is shown in the ``Train Status Slideout'', shown in
-Figure~\ref{fig:fcf:trainstatusslideout}.
-
+ * 
+ * The @c Run @c All @c Trains @c in @c Operating @c Session menu button and 
+ * the
+ * @image latex FCFRunAllTrTool.png
+ * @htmlonly
+ * <img src="FCFRunAllTrTool.png" alt="Run All Trains toolbar button">
+ * @endhtmlonly
+ * toolbar button run all trains in the operating session, except the end of 
+ * session box moves.  Each train's progress is shown in the ``Train Status 
+ * Slideout'', shown below.
+ * 
+ * @image latex FCFTrainStatusSlideout.png "Train Status Slideout"
+ * @image html  FCFTrainStatusSlideout.png
+ * 
  * @section fcf_ref_runningbox Running the box move trains
-
-The \verb=Run Boxmove Trains= menu button and the
-\includegraphics{FCFRunBTrTool.png} toolbar button run all of the box
-move trains in the operating session.  Each train's progress is shown
-in the ``Train Status Slideout'', shown in
-Figure~\ref{fig:fcf:trainstatusslideout}.
-
+ * 
+ * The @c Run @c Boxmove @c Trains menu button and the
+ * @image latex FCFRunBTrTool.png
+ * @htmlonly
+ * <img src="FCFRunBTrTool.png" alt="Run Boxmove toolbar button">
+ * @endhtmlonly
+ * toolbar button run all of the box move trains in the operating session.  
+ * Each train's progress is shown in the ``Train Status Slideout'', shown 
+ * above.
+ * 
  * @section fcf_ref_runningsingle Running a single train
-
-The \verb=Run Trains One At A Time= menu button and the
-\includegraphics{FCFRun1TrTool.png} toolbar button run a single train,
-selected with the ``Select Train Dialog'', described in
-Section~\ref{sect:fcf:selecttraindialog}. The train's progress is shown
-in the ``Train Status Slideout'', shown in
-Figure~\ref{fig:fcf:trainstatusslideout}.
-
-
+ * 
+ * The @c Run @c Trains @c One @c At @c A @c Time menu button and the
+ * @image latex FCFRun1TrTool.png
+ * @htmlonly
+ * <img src="FCFRun1TrTool.png" alt="Run One Train toolbar button">
+ * @endhtmlonly
+ * toolbar button run a single train, selected with the ``Select Train 
+ * Dialog'', described in Section @ref fcf_ref_selecttraindialog. The train's 
+ * progress is shown in the ``Train Status Slideout'', shown above.
+ * 
  * @section fcf_ref_openprinter Opening a Printer
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics{FCFOpenPrinterDialog.png}
-\caption{Open Printer Dialog}
-\label{fig:fcf:openprinterdialog}
-\end{centering}
-\end{figure}
-The \verb=Open Printer= menu button and the
-\includegraphics{FCFOpenPrinterTool.png} toolbar button open the printer
-output file, using the ``Open Printer Dialog'', shown in
-Figure~\ref{fig:fcf:openprinterdialog}. The status of the printer
-output, open or closed, is shown with the printer status indication,
-\includegraphics{FCFPrinterInd.png}.
-
+ * 
+ * The @c Open @c Printer menu button and the
+ * @image latex FCFOpenPrinterTool.png
+ * @htmlonly
+ * <img src="FCFOpenPrinterTool.png" alt="Open Printer toolbar button">
+ * @endhtmlonly
+ * toolbar button open the printer output file, using the ``Open Printer 
+ * Dialog'', shown below. The status of the printer output, open or closed, 
+ * is shown with the printer status indication,
+ * @image latex FCFPrinterInd.png
+ * @htmlonly
+ * <img src="FCFPrinterInd.png" alt="Printer status indication">
+ * @endhtmlonly
+ * .
+ * 
+ * @image latex FCFOpenPrinterDialog.png "Open Printer Dialog"
+ * @image html  FCFOpenPrinterDialog.png
+ * 
  * @section fcf_ref_closingprinter Closing the printer
+ * 
 
 The \verb=Close Printer= menu button and the
 \includegraphics{FCFClosePrinterTool.png} toolbar button close the
