@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:33:54 2014
-//  Last Modified : <140418.1357>
+//  Last Modified : <140420.1129>
 //
 //  Description	
 //
@@ -267,6 +267,7 @@
  * session box moves.  Each train's progress is shown in the ``Train Status 
  * Slideout'', shown below.
  * 
+ * @n
  * @image latex FCFTrainStatusSlideout.png "Train Status Slideout"
  * @image html  FCFTrainStatusSlideout.png
  * 
@@ -313,414 +314,399 @@
  * 
  * @section fcf_ref_closingprinter Closing the printer
  * 
-
-The \verb=Close Printer= menu button and the
-\includegraphics{FCFClosePrinterTool.png} toolbar button close the
-printer.The status of the printer output, open or closed, is shown with
-the printer status indication, \includegraphics{FCFPrinterInd.png}.
-
+ * The @c Close @c Printer menu button and the
+ * @image latex FCFClosePrinterTool.png
+ * @htmlonly
+ * <img src="FCFClosePrinterTool.png" alt="Close Printer toolbar button">
+ * @endhtmlonly
+ * toolbar button close the printer.The status of the printer output, open or 
+ * closed, is shown with the printer status indication, 
+ * @image latex FCFPrinterInd.png
+ * @htmlonly
+ * <img src="FCFPrinterInd.png" alt="Printer status indication">
+ * @endhtmlonly
+ * .
+ * 
  * @section fcf_ref_printyard Printing yard and switch lists
-
-The \verb=Print Yard Lists, etc.= menu button and the
-\includegraphics{FCFPrintYardTool.png} toolbar button print the yard and
-switch lists.
-
+ * 
+ * The @c Print @c Yard @c Lists, etc. menu button and the
+ * @image latex FCFPrintYardTool.png
+ * @htmlonly
+ * <img src="FCFPrintYardTool.png" alt="Print Yard Lists toolbar button">
+ * @endhtmlonly
+ * toolbar button print the yard and switch lists.
+ * 
  * @section fcf_ref_showingcars Showing cars on the screen
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics{FCFShowCarsMenu.png}
-\caption{Show Cars Menu}
-\label{fig:fcf:showcarsmenu}
-\end{centering}
-\end{figure}
-The \verb=Show Cars On Screen= menu button and the
-\includegraphics{FCFShowCarsTool.png} toolbar button pops up a menu,
-shown in Figure~\ref{fig:fcf:showcarsmenu}, of classes of cars to show.
-
+ * 
+ * The @c Show @c Cars @c On @c Screen menu button and the
+ * @image latex FCFShowCarsTool.png
+ * @htmlonly
+ * <img src="FCFShowCarsTool.png" alt="Show Cars On Screen toolbar button">
+ * @endhtmlonly
+ * toolbar button pops up a menu, shown below, of classes of cars to show.
+ * 
+ * @n
+ * @image latex FCFShowCarsMenu.png "Show Cars Menu"
+ * @image html  FCFShowCarsMenu.png
+ * 
  * @section fcf_ref_printingreports Printing Reports
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics{FCFReportsMenu.png}
-\caption{Reports Menu}
-\label{fig:fcf:reportsmenu}
-\end{centering}
-\end{figure}
-The \verb=Reports Menu= menu button and the
-\includegraphics{FCFReportsTool.png} toolbar button pops up a menu,
-shown in Figure~\ref{fig:fcf:reportsmenu}, of
-possible reports.
-
+ * 
+ * The @c Reports @c Menu menu button and the
+ * @image latex FCFReportsTool.png
+ * @htmlonly
+ * <img src="FCFReportsTool.png" alt="Reports Menu toolbar button">
+ * @endhtmlonly
+ * toolbar button pops up a menu, shown below, of possible reports.
+ * 
+ * @n
+ * @image latex FCFReportsMenu.png "Reports Menu"
+ * @image html  FCFReportsMenu.png
+ * 
  * @section fcf_ref_resetindus Resetting Industry Statistics
-
-The \verb=Reset Industry Statistics= menu button and the
-\includegraphics{FCFResetStatsTool.png} toolbar button resets the
-industry statistics.
-
-\section{Quiting the application}
-
-The \verb=Quit -- Exit NOW= menu button and the
-\includegraphics{FCFCloseTool.png} toolbar button exit the program. A
-confirmation dialog is popped up.
-
-
+ * 
+ * The @c Reset @c Industry @c Statistics menu button and the
+ * @image latex FCFResetStatsTool.png
+ * @htmlonly
+ * <img src="FCFResetStatsTool.png" alt="Reset Industry Statistics toolbar button">
+ * @endhtmlonly
+ * toolbar button resets the industry statistics.
+ * 
+ * @section fcf_ref_Quiting Quiting the application
+ * 
+ * The @c Quit -- @c Exit @c NOW menu button and the
+ * @image latex FCFCloseTool.png
+ * @htmlonly
+ * <img src="FCFCloseTool.png" alt="Quit toolbar button">
+ * @endhtmlonly
+ * toolbar button exit the program. A confirmation dialog is popped up.
+ * 
  * @section fcf_ref_gendialogs General Dialogs
-
  * @subsection fcf_ref_controlyardlists Control Yard Lists Dialog
  * @subsection fcf_ref_enterowner Enter Owner Initials Dialog
-
  * @subsection fcf_ref_selecttraindialog Select A Train Dialog
-\label{sect:fcf:selecttraindialog}
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics{FCFSelectATrainDialog.png}
-\caption{Select A Train Dialog}
-\label{fig:fcf:selecttraindialog}
-\end{centering}
-\end{figure}
-The Select a Train Dialog is used to select a train (to manage, run, or
-print). The \verb=Filter= button uses the Train Name Pattern to match
-against train names to select a subset of trains to select from and can
-contain these special sequences:  
-\begin{itemize} 
-\item \verb=*= Matches any sequence of zero or more characters in the
-train name.
-\item \verb=?= Matches any single character in the train name. 
-\item \verb=[chars]= Matches any character in the set given by chars. 
-If a sequence of the form \verb=x-y= appears in chars, then any
-character between \verb=x= and  \verb=y=,  inclusive,  will match.
-Characters are matched in a case insensitive way. 
-\item \verb=\x= matches the single character \verb=x=. This provides a 
-way of avoiding the special interpretation of the characters
-\verb=*?[]\= in the pattern.
-\end{itemize}
-
+ * 
+ * The Select a Train Dialog is used to select a train (to manage, run, or
+ * print). The @c Filter button uses the Train Name Pattern to match
+ * against train names to select a subset of trains to select from and can
+ * contain these special sequences:  
+ *   - @c * Matches any sequence of zero or more characters in the
+ *     train name.
+ *   - @c ? Matches any single character in the train name. 
+ *   - @c [chars] Matches any character in the set given by chars. 
+ *   - If a sequence of the form @c x-y appears in chars, then any
+ *     character between @c x and  @c y,  inclusive,  will match.
+ *     Characters are matched in a case insensitive way. 
+ *   - @c \\x matches the single character @c x. This provides a 
+ *     way of avoiding the special interpretation of the characters
+ *     @c *?[]\\ in the pattern.
+ * 
+ * @image latex FCFSelectATrainDialog.png "Select A Train Dialog"
+ * @image html  FCFSelectATrainDialog.png
+ * 
  * @subsection fcf_ref_manage1traindialog Manage One Train Dialog
  * @subsection fcf_ref_openprinterdialog Open Printer Dialog
-
  * @subsection fcf_ref_searchcarsdialog Search For Cars Dialog
-\label{sect:fcf:searchcarsdialog}
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics{FCFSelectACarDialog.png}
-\caption{Search For Cars Dialog}
-\label{fig:fcf:searchcarsdialog}
-\end{centering}
-\end{figure}
-The Search For Cars Dialog is used to select a car (to view, edit, or
-delete). The \verb=Filter= button selects a  subset of cars based on the
-trailing car number digits.
-
+ * 
+ * The Search For Cars Dialog is used to select a car (to view, edit, or
+ * delete). The @c Filter button selects a  subset of cars based on the
+ * trailing car number digits.
+ * 
+ * @image latex FCFSelectACarDialog.png "Search For Cars Dialog"
+ * @image html  FCFSelectACarDialog.png
+ * 
  * @subsection fcf_ref_seladiv Select A Division Dialog
  * @subsection fcf_ref_selanindus Select An Industry Dialog
  * @subsection fcf_ref_selastat Select A Station Dialog
  * @subsection fcf_ref_selcartype Select Car Type
-
  * @section fcf_ref_Files Data files
-
-The Freight Car Forwarder uses a collection of eight data files:
-
-\begin{enumerate}
-\item \verb=System File= This is the \textbf{master} file.  It contains the
-(relative) paths to the remaining seven files, along with the name of
-the railroad system, its divisions, and its stations.
-
-\item \verb=Industry File= This file holds the description of the
-industries, both on-line, which are actually modeled on the layout and
-off- line, which are imaginary industries not actually on the layout,
-but might be modeled as implied by staging yards or by interchange with
-other layouts or imaginary off-line railroads.
-
-\item \verb=Trains File= This file holds the description of the trains used
-to actually move the cars about the layout.
-
-\item \verb=Orders File= This file contains standing train orders and is
-only used to add additional information to the printouts given to trail
-operators.
-
-\item \verb=Owners File= This file contains a mapping between owner initials
-and owner names.  Used with various generated reports.
-
-\item \verb=Car Types File= This file contains a mapping between car type
-codes and full names and descriptions of car types.
-
-\item \verb=Cars File= This is the file containing information about all of
-the rolling stock on or off the layout.
-
-\item \verb=Statistics File= This is the statistics file.  It is generated
-by the program and contains statistical information about car and
-industry utilization.
-\end{enumerate}
-
-
+ * 
+ * The Freight Car Forwarder uses a collection of eight data files:
+ * 
+ *   -# @c System @c File This is the @b master file.  It contains the
+ *      (relative) paths to the remaining seven files, along with the name of
+ *      the railroad system, its divisions, and its stations.
+ *   -# @c Industry @c File This file holds the description of the industries, 
+ *      both on-line, which are actually modeled on the layout and off-line, 
+ *      which are imaginary industries not actually on the layout, but might 
+ *      be modeled as implied by staging yards or by interchange with other 
+ *      layouts or imaginary off-line railroads.
+ *   -# @c Trains @c File This file holds the description of the trains used
+ *      to actually move the cars about the layout.
+ *   -# @c Orders @c File This file contains standing train orders and is
+ *      only used to add additional information to the printouts given to train
+ *      operators.
+ *   -# @c Owners @c File This file contains a mapping between owner initials
+ *      and owner names.  Used with various generated reports.
+ *   -# @c Car @c Types @c File This file contains a mapping between car type
+ *      codes and full names and descriptions of car types.
+ *   -# @c Cars @c File This is the file containing information about all of
+ *      the rolling stock on or off the layout.
+ *   -# @c Statistics @c File This is the statistics file.  It is generated
+ *      by the program and contains statistical information about car and
+ *      industry utilization.
+ * 
  * @subsection fcf_ref_FileFormats Data File Formats
-
-Some general notes:
-
-A comment it indicated by an apostrophe.  All characters from the
-apostrophe to the end of the line are discarded when read.  The files
-generally contain lines of comma separated fields, a format
-designed for BASIC read statements--the original program that this
-program is based on was written in a version of BASIC and uses the same
-file format.
-
+ * 
+ * Some general notes:
+ * 
+ * A comment it indicated by an apostrophe.  All characters from the
+ * apostrophe to the end of the line are discarded when read.  The files
+ * generally contain lines of comma separated fields, a format
+ * designed for BASIC read statements--the original program that this
+ * program is based on was written in a version of BASIC and uses the same
+ * file format.
+ * 
  * @subsubsection fcf_ref_SystemFile System File
-
-The first line of the system file is the name of the railroad system. 
-This line is used in various banners and report headings.
-
-The second line should be a blank line.
-
-Then come the names of the remaining seven data files, one per line, in
-this order: \verb=Industry File=, \verb=Trains File=, \verb=Orders File=, 
-\verb=Owners File=, \verb=Car Types File=, \verb=Cars File=, and finally 
-\verb=Statistics File=. 
-
-After the file names comes the division list.  This starts with a count
-of the maximum number of divisions:
-
-\begin{verbatim}
-Divisions = Number
-\end{verbatim}
-
-where Number is a positive non zero integer.
-
-This is followed by division specifications, which is a list of 5 values
-separated by commas:
-
-\begin{verbatim}
-Number,Symbol,Home,Area,Name
-\end{verbatim}
-
-Where Number is the index of the division (between 1 and the max number
-of divisions, inclusive), Symbol is an alphanumeric character (a-z, 0-9,
-A-Z), Home is the number of the home yard for this division (must be a
-yard specified in the \verb=Industry File=), area is an Area symbol, and
-Name is the name of the division.
-
-A line containing a -1 terminates the list of divisions.
-
-Then comes the stations (cities), starting with a line defining the maximum
-number of stations:
-
-\begin{verbatim}
-Stations = Number
-\end{verbatim}
-
-where Number is a positive non zero integer.
-
-This is followed by station specifications, which is a list of 4 values
-separated by commas:
-
-\begin{verbatim}
-Number,Name,Division,Comment
-\end{verbatim}
-
-Where Number is the index of the station (between 1 and the max number
-of stations, inclusive), Name is the name of the city, Division is the
-division index, and Comment is commentary about the station. 
-City/Station number one is used for the workbench.
-
-A line containing a -1 terminates the list of stations.
-
+ * 
+ * The first line of the system file is the name of the railroad system. 
+ * This line is used in various banners and report headings.
+ * 
+ * The second line should be a blank line.
+ * 
+ * Then come the names of the remaining seven data files, one per line, in
+ * this order: @c Industry @c File, @c Trains @c File, @c Orders @c File, 
+ * @c Owners @c File, @c Car @c Types @c File, @c Cars @c File, and finally 
+ * @c Statistics @c File. 
+ * 
+ * After the file names comes the division list.  This starts with a count
+ * of the maximum number of divisions:
+ * 
+ * @code
+ * Divisions = Number
+ * @endcode
+ * 
+ * where Number is a positive non zero integer.
+ * 
+ * This is followed by division specifications, which is a list of 5 values
+ * separated by commas:
+ * 
+ * @code
+ * Number,Symbol,Home,Area,Name
+ * @endcode
+ * 
+ * Where Number is the index of the division (between 1 and the max number
+ * of divisions, inclusive), Symbol is an alphanumeric character (a-z, 0-9,
+ * A-Z), Home is the number of the home yard for this division (must be a
+ * yard specified in the @c Industry @c File), area is an Area symbol, and
+ * Name is the name of the division.
+ * 
+ * A line containing a -1 terminates the list of divisions.
+ * 
+ * Then comes the stations (cities), starting with a line defining the maximum
+ * number of stations:
+ * 
+ * @code
+ * Stations = Number
+ * @endcode
+ * 
+ * where Number is a positive non zero integer.
+ * 
+ * This is followed by station specifications, which is a list of 4 values
+ * separated by commas:
+ * 
+ * @code
+ * Number,Name,Division,Comment
+ * @endcode
+ * 
+ * Where Number is the index of the station (between 1 and the max number
+ * of stations, inclusive), Name is the name of the city, Division is the
+ * division index, and Comment is commentary about the station. 
+ * City/Station number one is used for the workbench.
+ * 
+ * A line containing a -1 terminates the list of stations.
+ * 
  * @subsubsection fcf_ref_IndustryFile Industry File
-
-The industry file contains industries and yards.  The file starts with a
-line specifying the maximum number of industries:
-
-\begin{verbatim}
-Industries = Number
-\end{verbatim}
-
-where Number is a positive non zero integer.
-
-Followed by a line for each industry or yard.  Industry number 0 is
-used for the repair yard, which is for cars not in service.  Each
-industry's line contains these fields:
-
-\begin{verbatim}
-ID,T,STA,NAME,TLEN,ALEN,P,R,H,MIR,C,W,DCL,MAX,LD,EM
-\end{verbatim}
-
-Where:
-
-\begin{description}
-\item[ID]    Numeric identifier.
-\item[T]     Types are \textbf{Y}ard or \textbf{I}ndustry or \textbf{O}ffline.
-\item[STA]   Station Identifier.
-\item[NAME]  User friendly place name.
-\item[TLEN]  Actual or virtual track length.
-\item[ALEN]  Assignable length.
-\item[P]     Priority for car assignments. If \textbf{YARD} or \textbf{STAGE}, 
-	\textbf{P} is $n$, the number of yard lists to print of type \verb=A=, 
-	\verb=P=, or \verb=D=.
-\item[R]     Reloads cars \textbf{Y}es or \textbf{N}o.
-\item[H]     Hazard class for outbound cargo.
-\item[MIR]   Mirror industry or 0 if none.
-\item[C]     Maximum clearance plate.
-\item[W]     Maximum weight class.
-\item[DCL]   Destination Control List of divisions. If \textbf{YARD} or 
-\textbf{STAGE}, DCL can contain:
-  \begin{description}
-  \item[A]     Alphabetical listing of cars in yard is permitted.
-  \item[P]     Pickup listing of cars in yard is permitted.
-  \item[D]     Dropoff listing of cars in yard is permitted.
-  \end{description}
-\item[MAX]   Maximum allowed car length.
-\item[LD]    Loaded car types accepted.
-\item[EM]    Empty car types accepted.
-\end{description}
-
-The industry listing is terminated by a line containing a -1.
-
+ * 
+ * The industry file contains industries and yards.  The file starts with a
+ * line specifying the maximum number of industries:
+ * 
+ * @code
+ * Industries = Number
+ * @endcode
+ * 
+ * where Number is a positive non zero integer.
+ * 
+ * Followed by a line for each industry or yard.  Industry number 0 is
+ * used for the repair yard, which is for cars not in service.  Each
+ * industry's line contains these fields:
+ * 
+ * @code
+ * ID,T,STA,NAME,TLEN,ALEN,P,R,H,MIR,C,W,DCL,MAX,LD,EM
+ * @endcode
+ * 
+ * Where:
+ * 
+ * <dl>
+ * <dt>ID</dt><dd>Numeric identifier.</dd>
+ * <dt>T</dt><dd>Types are @b Y for yard or @b I for industry or @b O for 
+ *               offline.</dd>
+ * <dt>STA</dt><dd>Station Identifier.</dd>
+ * <dt>NAME</dt><dd>User friendly place name.</dd>
+ * <dt>TLEN</dt><dd>Actual or virtual track length.</dd>
+ * <dt>ALEN</dt><dd>Assignable length.</dd>
+ * <dt>P</dt><dd>Priority for car assignments. If @b YARD or @b STAGE, 
+ *               @b P is @f$n@f$, the number of yard lists to print of type 
+ *               @c A, @c P, or @c D.</dd>
+ * <dt>R</dt><dd>Reloads cars @b Y for yes or @b N for no.</dd>
+ * <dt>H</dt><dd>Hazard class for outbound cargo.</dd>
+ * <dt>MIR</dt><dd>Mirror industry or 0 if none.</dd>
+ * <dt>C</dt><dd>Maximum clearance plate.</dd>
+ * <dt>W</dt><dd>Maximum weight class.</dd>
+ * <dt>DCL</dt><dd>Destination Control List of divisions. If @b YARD or 
+ *                 @b STAGE, DCL can contain:
+ *    <dl>
+ *    <dt>A</dt><dd>Alphabetical listing of cars in yard is permitted.</dd>
+ *    <dt>P</dt><dd>Pickup listing of cars in yard is permitted.</dd>
+ *    <dt>D</dt><dd>Dropoff listing of cars in yard is permitted.</dd>
+ *    </dl></dd>
+ * <dt>MAX</dt><dd>Maximum allowed car length.</dd>
+ * <dt>LD</dt><dd>Loaded car types accepted.</dd>
+ * <dt>EM</dt><dd>Empty car types accepted.</dd>
+ * </dl>
+ * 
+ * The industry listing is terminated by a line containing a -1.
+ * 
  * @subsubsection fcf_ref_TrainsFile Trains File
-
-The trains file contains the trains used to move the cars.  The file
-starts with a line specifying the maximum number of trains:
-
-\begin{verbatim}
-Trains = Number
-\end{verbatim}
-
-where Number is a positive non zero integer.
-
-Followed by a record for each train (a newline is acceptable alternative
-to a comma):
-
-{\footnotesize
-\begin{verbatim}
-Number,Type,Shift,Done,Name,Maxcars, Divisions, Stops
-	filler,Onduty,Print,Maxclear, Maxweight, Types,  Maxlen, 
-	Description
-\end{verbatim}
-}
-
-Where Number is the train number, Type is \textbf{M}anifest;
-\textbf{B}oxmove; \textbf{W}ayfreight; or \textbf{P}assenger, Shift is
-1; 2; or 3, Done is \textbf{Y}es or \textbf{N}o, Name is the train
-name, Maxcars is the maximum number of cars, Divisions is a set of
-division symbols or a wildcard (\verb=*=),Stops is a space separated
-list of stations (Boxmove and Wayfrieghts) or industries (Manifests),
-filler is an unused slot (use 0), Onduty is the time on duty (the
-train's departure time) in the format HHMM, Print is \textbf{P}rint or
-\textbf{N}oprint, Maxclear is the maximum clearance number, Maxweight
-is the maximum weight number, Types is a set of car types this train
-can carry, Maxlen is the maximum train length in feet, and Description
-is a textual description of the train.
-
-The train listing is terminated by a line containing a -1.
-
+ * 
+ * The trains file contains the trains used to move the cars.  The file
+ * starts with a line specifying the maximum number of trains:
+ * 
+ * @code
+ * Trains = Number
+ * @endcode
+ * 
+ * where Number is a positive non zero integer.
+ * 
+ * Followed by a record for each train (a newline is acceptable alternative
+ * to a comma):
+ * 
+ * @code
+ * Number,Type,Shift,Done,Name,Maxcars, Divisions, Stops
+ *	filler,Onduty,Print,Maxclear, Maxweight, Types,  Maxlen, 
+ *      Description
+ * @endcode
+ * 
+ * Where Number is the train number, Type is @b M for manifest;
+ * @b B for boxmove; @b W for wayfreight; or @b P for passenger, Shift is
+ * 1; 2; or 3, Done is @b Y for yes or @b N for no, Name is the train
+ * name, Maxcars is the maximum number of cars, Divisions is a set of
+ * division symbols or a wildcard (@c *),Stops is a space separated
+ * list of stations (Boxmove and Wayfrieghts) or industries (Manifests),
+ * filler is an unused slot (use 0), Onduty is the time on duty (the
+ * train's departure time) in the format HHMM, Print is @b P for print or
+ * @b N for noprint, Maxclear is the maximum clearance number, Maxweight
+ * is the maximum weight number, Types is a set of car types this train
+ * can carry, Maxlen is the maximum train length in feet, and Description
+ * is a textual description of the train.
+ * 
+ * The train listing is terminated by a line containing a -1.
+ * 
  * @subsubsection fcf_ref_OrdersFile Orders File
-
-This file contains lines with pairs:
-
-\begin{verbatim}
-Name,Order
-\end{verbatim}
-
-where Name is the name of a train and Order is a quoted string
-containing the order.
-
+ * 
+ * This file contains lines with pairs:
+ * 
+ * @code
+ * Name,Order
+ * @endcode
+ * 
+ * where Name is the name of a train and Order is a quoted string
+ * containing the order.
+ * 
  * @subsubsection fcf_ref_OwnersFile Owners File
-
-This file starts with a count of owners and then lines with with
-triples:
-
-\begin{verbatim}
-Initials,Name,Comment
-\end{verbatim}
-
-where Initials are the three letter initials of an owner, Name is the
-full name of the owner, and Comment is some descriptive text.
-
+ * 
+ * This file starts with a count of owners and then lines with with
+ * triples:
+ * 
+ * @code
+ * Initials,Name,Comment
+ * @endcode
+ * 
+ * where Initials are the three letter initials of an owner, Name is the
+ * full name of the owner, and Comment is some descriptive text.
+ * 
  * @subsubsection fcf_ref_CarTypesFile Car Types File
-
-This is a file with exactly 91 records.  Each record contains:
-
-\begin{verbatim}
-Car Type Code,Car Type Group,Description,pad,Comment
-\end{verbatim}
-
-where Car Type Code is one of 91 printable characters, Car Type Group
-is a single character, Description is a 16 character brief description,
-pad is 0, and Comment is some descriptive text.
-
-After the car types is the Car type groupings, which map groups of car
-types into groups using the second single character, with lines
-containing these fields:
-
-\begin{verbatim}
-Car Type Group,Description,Comment
-\end{verbatim}
-
-where Car Type Group is a single character, Description is a 16
-character brief description, and Comment is some descriptive text.
-
+ * 
+ * This is a file with exactly 91 records.  Each record contains:
+ * 
+ * @code
+ * Car Type Code,Car Type Group,Description,pad,Comment
+ * @endcode
+ * 
+ * where Car Type Code is one of 91 printable characters, Car Type Group
+ * is a single character, Description is a 16 character brief description,
+ * pad is 0, and Comment is some descriptive text.
+ * 
+ * After the car types is the Car type groupings, which map groups of car
+ * types into groups using the second single character, with lines
+ * containing these fields:
+ * 
+ * @code
+ * Car Type Group,Description,Comment
+ * @endcode
+ * 
+ * where Car Type Group is a single character, Description is a 16
+ * character brief description, and Comment is some descriptive text.
+ * 
  * @subsubsection fcf_ref_CarsFile Cars File
-
-The cars file starts with three numbers, one per line:
-
-\begin{verbatim}
-Total shifts
-Current shift
-Max car count
-\end{verbatim}
-
-The first number is the total number of shifts, the second is the
-current shift number (1, 2, or 3), and the third number is the maximum
-number of cars in the file.
-
-The remainder of the file is car records. This file must be kept in
-[alphabetical order]! Each record contains:
-
-{\footnotesize
-\begin{verbatim}
-Type,Marks,Number,Home,CarLen,ClearPlate,CarWeight,EmptyWt,
-	LoadLimit,Loaded,Mirror?,Fixed?,Owner,Done,Last,Moves,Loc,
-	Dest,NTrips,NAssigns
-\end{verbatim}
-}
-Where Type is from car types file, Marks is the railroad reporting
-marks (9 characters max), Number is the car number (8 characters max),
-Home is car home division (from system file), CarLen is extreme car
-length, ClearPlate is the clearance plate (from plate file), CarWeight
-is car weight class (from weight file), EmptyWt is light weight in
-tons, LoadLimit is load limit in tons, Loaded is \textbf{L}loaded or
-\textbf{E}mpty, Mirror? is ok to mirror \textbf{Y}es or \textbf{N}o,
-Fixed? is fixed route \textbf{Y}es or \textbf{N}o, Owner is car owner's
-3 character initials (from owners file), Done is car is done moving for
-this session \textbf{Y}es or \textbf{N}o, Last is last train to handle
-the car from trains file,Moves is actual movements this session,Loc is
-car's present location from industry file, Dest car's destination from
-industry file, NTrips is number of car trips, and NAssigns is number of
-car assignments.
-
+ * 
+ * The cars file starts with three numbers, one per line:
+ * 
+ * @code
+ * Total shifts
+ * Current shift
+ * Max car count
+ * @endcode
+ * 
+ * The first number is the total number of shifts, the second is the
+ * current shift number (1, 2, or 3), and the third number is the maximum
+ * number of cars in the file.
+ * 
+ * The remainder of the file is car records. This file must be kept in
+ * @b alphabetical @b order! Each record contains:
+ * 
+ * @code
+ * Type,Marks,Number,Home,CarLen,ClearPlate,CarWeight,EmptyWt,
+ * 	LoadLimit,Loaded,Mirror?,Fixed?,Owner,Done,Last,Moves,Loc,
+ * 	Dest,NTrips,NAssigns
+ * @endcode
+ * 
+ * Where Type is from car types file, Marks is the railroad reporting
+ * marks (9 characters max), Number is the car number (8 characters max),
+ * Home is car home division (from system file), CarLen is extreme car
+ * length, ClearPlate is the clearance plate (from plate file), CarWeight
+ * is car weight class (from weight file), EmptyWt is light weight in
+ * tons, LoadLimit is load limit in tons, Loaded is @b L for loaded or
+ * @B E for empty, Mirror? is ok to mirror @b Y for yes or @b N for no,
+ * Fixed? is fixed route @b Y for yes or @b N for no, Owner is car owner's
+ * 3 character initials (from owners file), Done is car is done moving for
+ * this session @b Y for yes or @b N for no, Last is last train to handle
+ * the car from trains file,Moves is actual movements this session,Loc is
+ * car's present location from industry file, Dest car's destination from
+ * industry file, NTrips is number of car trips, and NAssigns is number of
+ * car assignments.
+ * 
  * @subsubsection fcf_ref_StatisticsFile Statistics File
-
-The statistics is a file generated as an output and should not be hand
-edited.  This file has two formats, V1 and V2.  V1 is the original
-format used by the original BASIC program.  V2 is an improved version
-that avoids getting the fields jammed together due to numerical overflow
-(result numbers too large for the field sizes).
-
-The first line of either format contains the statistics period number. 
-If in the new format (V2), this number is followed by a comma.
-
-The rest of file file contains lines of four numbers, either space
-separated (V1) or comma separated (V2): industry index, car count, car
-length, and statistics length.
-
+ * 
+ * The statistics is a file generated as an output and should not be hand
+ * edited.  This file has two formats, V1 and V2.  V1 is the original
+ * format used by the original BASIC program.  V2 is an improved version
+ * that avoids getting the fields jammed together due to numerical overflow
+ * (result numbers too large for the field sizes).
+ * 
+ * The first line of either format contains the statistics period number. 
+ * If in the new format (V2), this number is followed by a comma.
+ * 
+ * The rest of file file contains lines of four numbers, either space
+ * separated (V1) or comma separated (V2): industry index, car count, car
+ * length, and statistics length.
+ * 
  * @subsubsection fcf_ref_Otherdatafiles Other data files
-
-There are some additional data files, which are not actually loaded into
-the system.  These are the plate, weight, and hazard files.  These are
-just informational files that are used to map clearance plate, weight
-class, and hazard levels of cars.
-
-
+ * 
+ * There are some additional data files, which are not actually loaded into
+ * the system.  These are the plate, weight, and hazard files.  These are
+ * just informational files that are used to map clearance plate, weight
+ * class, and hazard levels of cars.
+ * 
  */
 
 
