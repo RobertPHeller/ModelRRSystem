@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:33:54 2014
-//  Last Modified : <140420.1129>
+//  Last Modified : <140420.1136>
 //
 //  Description	
 //
@@ -309,6 +309,7 @@
  * @endhtmlonly
  * .
  * 
+ * @n
  * @image latex FCFOpenPrinterDialog.png "Open Printer Dialog"
  * @image html  FCFOpenPrinterDialog.png
  * 
