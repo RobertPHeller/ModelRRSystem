@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 16:20:18 2014
-//  Last Modified : <140411.1623>
+//  Last Modified : <140420.1524>
 //
 //  Description	
 //
@@ -36,8 +36,19 @@
  * @htmlonly
  * <div class="contents">
  * <div class="textblock"><ol type="1">
- * <li><a class="el" href="rest_1Reference.html">Resistor Program Reference</a></li>
- * <li><a class="el" href="locopull_1Reference.html">LocoPull Program Reference</a></li>
+ * <li><a class="el" href="rest_Reference.html">Resistor Program Reference</a></li>
+ * <li><a class="el" href="locopull_Reference.html">LocoPull Program Reference</a><ol type="1">
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_BasisMathematics">Basis and Mathematics</a></li>
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_GUI">The GUI</a><ol type="1">
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_Scale">The Scale</a></li>
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_Locomotive">Locomotive Information</a></li>
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_Consist">Consist Information</a></li>
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_Zero-grade">Zero-grade capacity</a></li>
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_Grade">Grade information</a></li>
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_Curve">Curve information</a></li>
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_Capacity">Capacity and Grade plus Curve</a></li>
+ * </ol></li>
+ * </ol></li>
  * <li><a class="el" href="help.html">Help</a></li>
  * <li><a class="el" href="Version.html">Version</a></li>
  * <li><a class="el" href="Copying.html">Copying</a><ol type="a">

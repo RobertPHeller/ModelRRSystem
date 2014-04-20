@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:42:00 2014
-//  Last Modified : <140411.1342>
+//  Last Modified : <140420.1708>
 //
 //  Description	
 //
@@ -31,7 +31,7 @@
 #ifndef __DISPATCHERREFERENCE_H
 #define __DISPATCHERREFERENCE_H
 
-/** @page dispatcher:Reference Dispatcher Reference
+/** @page dispatcher_Reference Dispatcher Reference
  * The Dispatcher program is used to create computerized CTC (Centralized
 Traffic Control) panels, to be used by dispatchers as part of a CATC
 (Computer Assisted Traffic Control) system to manage traffic flow for a
@@ -106,7 +106,7 @@ graph to make the node visible and the node is highlighted.
 A node graph can be printed to provide a hard-copy reference of the node
 graph.
 
-\subsection{Creating a new CTC Panel}
+ * @subsection dispatcher_Reference_creatingCTCPanels Creating a new CTC Panel
 \label{sect:dispatcher:creatingCTCPanels}
 
 \begin{figure}[hbpt] \begin{centering}
@@ -340,7 +340,7 @@ Figure~\ref{fig:dispatcher:editPanelOptsDialog}. This dialog box allows
 changing all of the same options as were set when the panel was created
 (see Section~\ref{sect:dispatcher:creatingCTCPanels}).
 
-\subsubsection{Adding, Editing, and deleting elements to CTC Panel Windows}
+ * @subsubsection dispatcher_Reference_addeditdeletePanelElements Adding, Editing, and deleting elements to CTC Panel Windows
 \label{sect:dispatcher:addeditdeletePanelElements}
 
 CTC Panel elements can be added, edited, or deleted with the

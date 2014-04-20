@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 15:31:29 2014
-//  Last Modified : <140412.1053>
+//  Last Modified : <140420.1540>
 //
 //  Description	
 //
@@ -60,13 +60,14 @@
  *   - Chapters @ref fcf_Tutorial and @ref fcf_Reference document the Freight 
  *     Car Forwarder (V2) program. This program is used to create switch 
  *     lists for freight car forwarding.
- *   - Chapter @ref calc documents the calculator scripts, Resistor and 
- *     LocoPull, that are available to help model railroaders perform some 
- *     common calculations.
- *   - Chapter @ref camera documents the camera scripts. These scripts perform 
+ *   - Chapters @ref rest_Reference and @ref locopull_Reference document the 
+ *     calculator scripts, Resistor and LocoPull, that are available to help 
+ *     model railroaders perform some common calculations.
+ *   - Chapter @ref camera:Reference documents the camera scripts. These scripts perform 
  *     various camera scene calculations that are useful for model 
  *     railroaders.
- *   - Chapter @ref dispatch documents the automated dispatcher program.
+ *   - Chapters @ref dispatcher:Tutorial, @ref dispatcher:Reference, and 
+ *     @ref dispatcher:Examples document the automated dispatcher program.
  */
 
 #endif // __INTRODUCTION_H

@@ -155,7 +155,7 @@ CALC_HS = Calc.h ResistorManual.h LocoPullManual.h
 CALC = Calc
 CALCHBase = Calc
 CALC_HTML = $(CALCHBase)/index.html
-USERMAN_CALC_FIGS = RestMain.png LocoPullMain.png
+USERMAN_CALC_FIGS = RestMain.png RestMainSmall.png LocoPullMain.png
 DOXYFILES += Doxyfile.$(CALC).in
 
 USERMAN_CAMERA_PART = CameraManual.h
@@ -163,7 +163,7 @@ CAMERA_HS = Camera.h CameraManual.h
 CAMERA = Camera
 CAMERAHBase = Camera
 CAMERA_HTML = $(CAMERAHBase)/index.html
-USERMAN_CAMERA_FIGS = CameraAnyDist.png
+USERMAN_CAMERA_FIGS = CameraAnyDist.png CameraAnyDistSmall.png
 DOXYFILES += Doxyfile.$(CAMERA).in
 
 USERMAN_DISPATCHER_PART = DispatcherTutorial.h \
@@ -183,8 +183,12 @@ USERMAN_DISPATCHER_FIGS = DISPNewCTCPanel.png DISPEmptyCTCPanel.png \
 	DISPSimpleTutSw1CrossHairs.png DISPSimpleTutPanel1.png \
 	DISPSimpleTutSWPlate1.png DISPSimpleTutPanel2.png \
 	DISPSimpleTutCB1.png DISPSimpleTutPanel3.png DISPSimpleTutPanel4.png \
-	DISPAddEditPanelObject.png DISPEditUserCode.png DISPFindNodeDialog.png \
-	DISPSelectPanelObject.png DISPPrintDialog.png DISPSelectCTCPanel.png
+	DISPAddEditPanelObject.png DISPEditUserCode.png \
+	DISPFindNodeDialog.png DISPSelectPanelObject.png DISPPrintDialog.png \
+	DISPSelectCTCPanel.png DISPSimpleTutBlankCTCSmall.png \
+	DISPSimpleTutSw1Small.png DISPSimpleTutSw1CrossHairsSmall.png \
+	DISPSimpleTutPanel1Small.png DISPSimpleTutSWPlate1Small.png \
+	DISPSimpleTutPanel2Small.png
 USERMAN_DISPATCHER_DEPS = $(srcdir)/../../Scripts/Dispatcher/example*.tcl \
 			  $(srcdir)/../../Scripts/Dispatcher/example*.iow
 DOXYFILES += Doxyfile.$(DISPATCHER).in

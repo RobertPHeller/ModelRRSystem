@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 15:29:56 2014
-//  Last Modified : <140420.1038>
+//  Last Modified : <140420.1732>
 //
 //  Description	
 //
@@ -198,12 +198,24 @@
  * </ol></li>
  * <li><a class="el" href="rest_Reference.html">Resistor Program Reference</a>
  * </li>
- * <li><a class="el" href="locopull_Reference.html">LocoPull Program Reference</a>
- * </li>
- * <li><a class="el" href="camera_Reference.html">Camera Programs Reference</a>
+ * <li><a class="el" href="locopull_Reference.html">LocoPull Program Reference</a><ol type="1">
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_BasisMathematics">Basis and Mathematics</a></li>
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_GUI">The GUI</a><ol type="1">
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_Scale">The Scale</a></li>
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_Locomotive">Locomotive Information</a></li>
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_Consist">Consist Information</a></li>
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_Zero-grade">Zero-grade capacity</a></li>
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_Grade">Grade information</a></li>
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_Curve">Curve information</a></li>
+ * <li><a class="el" href="locopull_Reference.html#locopull_Reference_Capacity">Capacity and Grade plus Curve</a></li>
+ * </ol></li>
+ * </ol></li>
+ * <li><a class="el" href="camera_1Reference.html">Camera Programs Reference</a>
  * </li>
  * <li><a class="el" href="dispatcher_Tutorial.html">Dispatcher Tutorial</a>
- * </li>
+ * <li><a class="el" href="dispatcher_Tutorial.html#dispatcher_Tutorial_SimpleMode">A &quot;Simple Mode&quot; CTC Panel</a></li>
+ * <li><a class="el" href="dispatcher_Tutorial.html#dispatcher_Tutorial_Advanced">A more advanced Example</a></li>
+ * </ol></li>
  * <li><a class="el" href="dispatcher_Reference.html">Dispatcher Reference</a>
  * </li>
  * <li><a class="el" href="dispatcher_Examples.html">Dispatcher Examples</a>

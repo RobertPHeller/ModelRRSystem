@@ -610,7 +610,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = @srcdir/Dispatcher.h @srcdir@/DispatcherTutorial.h \
+INPUT                  = @srcdir@/Dispatcher.h @srcdir@/DispatcherTutorial.h \
                          @srcdir@/DispatcherReference.h \
                          @srcdir@/DispatcherExamples.h @srcdir@/Help.h \
                          @builddir@/Dispatcher_Version.h @srcdir@/COPYING.h

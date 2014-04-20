@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:44:09 2014
-//  Last Modified : <140411.1400>
+//  Last Modified : <140420.1702>
 //
 //  Description	
 //
@@ -31,7 +31,7 @@
 #ifndef __DISPATCHEREXAMPLES_H
 #define __DISPATCHEREXAMPLES_H
 
-/** @page dispatcher:Examples Dispatcher Examples
+/** @page dispatcher_Examples Dispatcher Examples
  * These are four examples created using the Dispatcher program.  The code
 files are included and can be used as references or even modified to
 suit some part of your layout.
