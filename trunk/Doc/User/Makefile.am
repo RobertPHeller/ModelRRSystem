@@ -188,7 +188,10 @@ USERMAN_DISPATCHER_FIGS = DISPNewCTCPanel.png DISPEmptyCTCPanel.png \
 	DISPSelectCTCPanel.png DISPSimpleTutBlankCTCSmall.png \
 	DISPSimpleTutSw1Small.png DISPSimpleTutSw1CrossHairsSmall.png \
 	DISPSimpleTutPanel1Small.png DISPSimpleTutSWPlate1Small.png \
-	DISPSimpleTutPanel2Small.png
+	DISPSimpleTutPanel2Small.png DISPSimpleTutCB1Small.png \
+	DISPSimpleTutPanel3Small.png DISPSimpleTutPanel4Small.png \
+	DISPMainGUISmall.png DISPEmptyCTCPanelSmall.png \
+	DISPAddEditPanelObjectSmall.png DISPEditUserCodeSmall.png
 USERMAN_DISPATCHER_DEPS = $(srcdir)/../../Scripts/Dispatcher/example*.tcl \
 			  $(srcdir)/../../Scripts/Dispatcher/example*.iow
 DOXYFILES += Doxyfile.$(DISPATCHER).in
@@ -260,6 +263,7 @@ $(USERMAN)_Version.h : $(top_builddir)/config.status
 
 $(USERMAN_HTML) $(USERMAN_PDF) : $(USERMAN_HS) $(USERMAN_FIGS) $(BIBLIO) \
 	footer.tex $(USERMAN)_Version.h COPYING.h Doxyfile.$(USERMAN)
+	-rm -rf $(USERMANHBase)/
 	$(DOXYGEN) Doxyfile.UserManual
 	for p in $(USERMAN_FIGS); do \
 	   if test ! \( -f $(USERMANHBase)/$$p \); then cp $(srcdir)/$$p $(USERMANHBase)/; fi; \
@@ -279,7 +283,11 @@ $(AZATRAX_PROG)_Version.h : $(top_builddir)/config.status
 $(AZATRAX_PROG_HTML) : COPYING.h Help.h $(AZATRAX_PROG_HS) \
 	$(USERMAN_AZATRAX_PROG_FIGS) $(AZATRAX_PROG)_Version.h \
 	Doxyfile.$(AZATRAX_PROG)
+	-rm -rf $(AZATRAX_PROGHBase)/
 	$(DOXYGEN) Doxyfile.$(AZATRAX_PROG)
+	for p in $(USERMAN_AZATRAX_PROG_FIGS); do \
+	   if test ! \( -f $(AZATRAX_PROGHBase)/$$p \); then cp $(srcdir)/$$p $(AZATRAX_PROGHBase)/; fi; \
+	done
 
 $(UNIVERSALTEST)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(UNIVERSALTEST)_Version.h
@@ -290,7 +298,11 @@ $(UNIVERSALTEST)_Version.h : $(top_builddir)/config.status
 $(UNIVERSALTEST_HTML) : COPYING.h Help.h $(UNIVERSALTEST_HS) \
 		$(USERMAN_UNIVERSALTEST_FIGS) $(UNIVERSALTEST)_Version.h \
 		Doxyfile.$(UNIVERSALTEST)
+	-rm -rf $(UNIVERSALTESTHBase)/
 	$(DOXYGEN) Doxyfile.$(UNIVERSALTEST)
+	for p in $(USERMAN_AZATRAX_PROG_FIGS); do \
+	   if test ! \( -f $(UNIVERSALTESTHBase)/$$p \); then cp $(srcdir)/$$p $(UNIVERSALTESTHBase)/; fi; \
+	done
 
 $(XPRESSNETTHROTTLE)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(XPRESSNETTHROTTLE)_Version.h
@@ -302,7 +314,11 @@ $(XPRESSNETTHROTTLE_HTML) :  COPYING.h $(XPRESSNETTHROTTLE_HS) \
 		    $(USERMAN_XPRESSNETTHROTTLE_FIGS) \
 		    $(XPRESSNETTHROTTLE)_Version.h Help.h \
 		    Doxyfile.$(XPRESSNETTHROTTLE)
+	-rm -rf $(XPRESSNETTHROTTLEHBase)/
 	$(DOXYGEN) Doxyfile.$(XPRESSNETTHROTTLE)
+	for p in $(USERMAN_XPRESSNETTHROTTLE_FIGS); do \
+	   if test ! \( -f $(XPRESSNETTHROTTLEHBase)/$$p \); then cp $(srcdir)/$$p $(XPRESSNETTHROTTLEHBase)/; fi; \
+	done
 
 $(GENERICTHROTTLE)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(GENERICTHROTTLE)_Version.h
@@ -314,7 +330,11 @@ $(GENERICTHROTTLE_HTML) : COPYING.h $(GENERICTHROTTLE_HS) \
 		    $(USERMAN_GENERICTHROTTLE_FIGS) \
 		    $(GENERICTHROTTLE)_Version.h Help.h \
 		    Doxyfile.$(GENERICTHROTTLE)
+	-rm -rf $(GENERICTHROTTLEHBase)/
 	$(DOXYGEN) Doxyfile.$(GENERICTHROTTLE)
+	for p in $(USERMAN_GENERICTHROTTLE_FIGS); do \
+	   if test ! \( -f $(GENERICTHROTTLEHBase)/$$p \); then cp $(srcdir)/$$p $(GENERICTHROTTLEHBase)/; fi; \
+	done
 
 $(TIMETABLE)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(TIMETABLE)_Version.h
@@ -326,6 +346,7 @@ $(TIMETABLE)_Version.h : $(top_builddir)/config.status
 $(TIMETABLE_HTML) : COPYING.h $(TIMETABLE_HS) $(TIMETABLE)_Version.h \
 		    $(USERMAN_TIMETABLE_FIGS) Help.h \
 		    Doxyfile.$(TIMETABLE)
+	-rm -rf $(TIMETABLEHBase)/
 	$(DOXYGEN) Doxyfile.$(TIMETABLE)
 	for p in $(USERMAN_TIMETABLE_FIGS); do \
 	   if test ! \( -f $(TIMETABLEHBase)/$$p \); then cp $(srcdir)/$$p $(TIMETABLEHBase)/; fi; \
@@ -340,6 +361,7 @@ $(FCF)_Version.h : $(top_builddir)/config.status
 $(FCF_HTML) : COPYING.h $(FCF_HS) $(USERMAN_FCF_FIGS) \
 		    $(FCF)_Version.h Help.h \
 		    Doxyfile.$(FCF)
+	-rm -rf $(FCFHBase)/
 	$(DOXYGEN) Doxyfile.$(FCF)
 	for p in $(USERMAN_FCF_FIGS); do \
 	   if test ! \( -f $(FCFHBase)/$$p \); then cp $(srcdir)/$$p $(FCFHBase)/; fi; \
@@ -354,7 +376,11 @@ $(CALC)_Version.h : $(top_builddir)/config.status
 $(CALC_HTML) : COPYING.h $(CALC_HS) $(USERMAN_CALC_FIGS) \
 		$(CALC)_Version.h Help.h \
 		Doxyfile.$(CALC)
+	-rm -rf $(CALCHBase)/
 	$(DOXYGEN) Doxyfile.$(CALC)
+	for p in $(USERMAN_CALC_FIGS); do \
+	   if test ! \( -f $(CALCHBase)/$$p \); then cp $(srcdir)/$$p $(CALCHBase)/; fi; \
+	done
 
 $(CAMERA)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(CAMERA)_Version.h
@@ -364,7 +390,11 @@ $(CAMERA)_Version.h : $(top_builddir)/config.status
 $(CAMERA_HTML) : COPYING.h $(CAMERA_HS) $(CAMERA)_Version.h \
 		$(USERMAN_CAMERA_FIGS) Help.h \
 		Doxyfile.$(CAMERA)
+	-rm -rf $(CAMERAHBase)/
 	$(DOXYGEN) Doxyfile.$(CAMERA)
+	for p in $(USERMAN_CAMERA_FIGS); do \
+	   if test ! \( -f $(CAMERAHBase)/$$p \); then cp $(srcdir)/$$p $(CAMERAHBase)/; fi; \
+	done
 
 $(DISPATCHER)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(DISPATCHER)_Version.h
@@ -375,7 +405,11 @@ $(DISPATCHER_HTML) : COPYING.h $(DISPATCHER_HS) $(DISPATCHER)_Version.h \
 			$(USERMAN_DISPATCHER_FIGS) \
 			$(USERMAN_DISPATCHER_DEPS) Help.h \
 			Doxyfile.$(DISPATCHER)
+	-rm -rf $(DISPATCHERHBase)/
 	$(DOXYGEN) Doxyfile.$(DISPATCHER)
+	for p in $(USERMAN_DISPATCHER_FIGS); do \
+	   if test ! \( -f $(DISPATCHERHBase)/$$p \); then cp $(srcdir)/$$p $(DISPATCHERHBase)/; fi; \
+	done
 
 $(MAINPROGRAM)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(MAINPROGRAM)_Version.h
@@ -385,7 +419,11 @@ $(MAINPROGRAM)_Version.h : $(top_builddir)/config.status
 $(MAINPROGRAM_HTML) : COPYING.h $(MAINPROGRAM_HS) $(MAINPROGRAM)_Version.h \
 			$(USERMAN_MAINPROGRAM_FIGS) Help.h \
 			Doxyfile.$(MAINPROGRAM)
+	-rm -rf $(MAINPROGRAMHBase)/
 	$(DOXYGEN) Doxyfile.$(MAINPROGRAM)
+	for p in $(USERMAN_MAINPROGRAM_FIGS); do \
+	   if test ! \( -f $(MAINPROGRAMHBase)/$$p \); then cp $(srcdir)/$$p $(MAINPROGRAMHBase)/; fi; \
+	done
 
 install-data-hook: $(USERMAN_HTML)
 	$(INSTALL) -d $(DESTDIR)$(pkgdatadir)/$(USERMANHBase)

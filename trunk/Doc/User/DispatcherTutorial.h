@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:40:00 2014
-//  Last Modified : <140420.1728>
+//  Last Modified : <140421.1014>
 //
 //  Description	
 //
@@ -119,53 +119,32 @@
  * @image latex DISPSimpleTutPanel2.png "Switch Plate 1 placed on the panel" width=4in
  * @image html  DISPSimpleTutPanel2Small.png
  * 
+ * Finally, we will add a code button, as shown below.
  * 
-
-\begin{figure}[hbpt] 
-\begin{centering}
-\includegraphics[width=4in]{DISPSimpleTutCB1.png} 
-\caption{Adding a code button} 
-\label{fig:dispatcher:Tut:CB1}
-\end{centering}
-\end{figure} 
-%
-\begin{figure}[hbpt] 
-\begin{centering}
-\includegraphics[width=4in]{DISPSimpleTutPanel3.png} 
-\caption{Code button 1 placed on the panel} 
-\label{fig:dispatcher:Tut:panel3} 
-\end{centering}
-\end{figure} 
-%
-Finally, we will add a code button, as shown in
-Figures~\ref{fig:dispatcher:Tut:CB1} and
-~\ref{fig:dispatcher:Tut:panel3}.
-
-\clearpage
-
-\begin{figure}[hbpt] 
-\begin{centering}
-\includegraphics[width=5in]{DISPSimpleTutPanel4.png} 
-\caption{The completed panel} 
-\label{fig:dispatcher:Tut:Panel4} 
-\end{centering}
-\end{figure} 
-%
-We repeat this process to add the mainline, the siding, and the second
-turnout, with its switch plate and code button. \begin{tip}Place the
-second turnout next, then add the mainline and the siding tracks. Once
-the turnouts have been placed, the locations of the endpoints of the
-straight track sections are easy to select.\end{tip} Finally we get the
-panel shown in Figure~\ref{fig:dispatcher:Tut:Panel4}.
-
-Once the panel has been completed, we can use the \texttt{Wrap As} menu
-item under the \texttt{File} menu to create a ``wrapped'' version of
-the generated program.  This is a self-contained, stand-alone
-executable program that implements the CTC panel. See
-Section~\ref{sect:dispatcher:wrapas} for more information.
-
-
-
+ * @n
+ * @image latex DISPSimpleTutCB1.png "Adding a code button" width=4in
+ * @image html  DISPSimpleTutCB1Small.png
+ * 
+ * @image latex DISPSimpleTutPanel3.png "Code button 1 placed on the panel" width=4in
+ * @image html  DISPSimpleTutPanel3Small.png
+ * 
+ * We repeat this process to add the mainline, the siding, and the second
+ * turnout, with its switch plate and code button. Place the
+ * second turnout next, then add the mainline and the siding tracks. Once
+ * the turnouts have been placed, the locations of the endpoints of the
+ * straight track sections are easy to select. Finally we get the
+ * panel shown below.
+ * 
+ * @image latex DISPSimpleTutPanel4.png "The completed panel" width=5in
+ * @image html  DISPSimpleTutPanel4Small.png
+ * 
+ * Once the panel has been completed, we can use the @c Wrap @c As menu
+ * item under the @c File menu to create a ``wrapped'' version of
+ * the generated program.  This is a self-contained, stand-alone
+ * executable program that implements the CTC panel. See
+ * Section @ref dispatche_Reference_wrapas for more information.
+ * 
+ * 
  * @section dispatcher_Tutorial_Advanced A more advanced Example
  */
 

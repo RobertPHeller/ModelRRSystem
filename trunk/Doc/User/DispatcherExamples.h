@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:44:09 2014
-//  Last Modified : <140420.1702>
+//  Last Modified : <140421.1234>
 //
 //  Description	
 //
@@ -36,7 +36,7 @@
 files are included and can be used as references or even modified to
 suit some part of your layout.
 
-\section{Example 1: Simple siding on single track mainline}
+ * @section dispatcher_Examples_ex1 Example 1: Simple siding on single track mainline
 
 \begin{figure}[hbpt]
 \begin{centering}
@@ -57,7 +57,7 @@ passing siding on a single track main line.  There are two control
 points, one at each end of the siding.  Both control points are handled
 with a single SMINI board.
 
-\section{Example 2: Mainline with an industrial siding}
+ * @section dispatcher_Examples_ex2 Example 2: Mainline with an industrial siding
 
 \begin{figure}[hbpt]
 \begin{centering}
@@ -78,7 +78,7 @@ siding on a single track main line.  There are two control points, one
 at each end of the siding.  This example uses three SMINI boards, one
 for each control point and one for the siding.
 
-\section{Example 3: double track crossover}
+ * @section dispatcher_Examples_ex3 Example 3: double track crossover
 
 \begin{figure}[hbpt]
 \begin{centering}
@@ -97,7 +97,7 @@ This example, shown in Figure~\ref{fig:dispatcher:example3}, with user
 code in Listing~\ref{lst:dispatcher:example3} implements a double track
 crossover. Uses two SMINI boards, one for each of the two control points.
 
-\section{Example 4: From Chapter 9 of C/MRI User's Manual V3.0}
+ * @section dispatcher_Examples_ex4 Example 4: From Chapter 9 of C/MRI User's Manual V3.0
 
 \begin{figure}[hbpt]
 \begin{centering}
