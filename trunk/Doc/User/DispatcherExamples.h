@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:44:09 2014
-//  Last Modified : <140421.1234>
+//  Last Modified : <140421.2247>
 //
 //  Description	
 //
@@ -33,30 +33,31 @@
 
 /** @page dispatcher_Examples Dispatcher Examples
  * These are four examples created using the Dispatcher program.  The code
-files are included and can be used as references or even modified to
-suit some part of your layout.
-
+ * files are included and can be used as references or even modified to
+ * suit some part of your layout.
+ * 
  * @section dispatcher_Examples_ex1 Example 1: Simple siding on single track mainline
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics[width=5in]{DISPExample1.png}
-\caption{Example 1: Simple siding on single track mainline}
-\label{fig:dispatcher:example1}
-\end{centering}
-\end{figure}
-\lstinputlisting[caption={Example 1: Simple siding on single track mainline},
-		 label={lst:dispatcher:example1},
-		 firstline=352]{example1.tcl}
-\lstinputlisting[caption={Example 1: I/O Worksheet},
-		 label={lst:dispatcher:example1wsh},
-		 firstline=37]{example1.iow}
-This example, shown in Figure~\ref{fig:dispatcher:example1}, with user
-code in Listing~\ref{lst:dispatcher:example1} implements a simple
-passing siding on a single track main line.  There are two control
-points, one at each end of the siding.  Both control points are handled
-with a single SMINI board.
-
+ * 
+ * This example, shown below, implements a simple
+ * passing siding on a single track main line.  There are two control
+ * points, one at each end of the siding.  Both control points are handled
+ * with a single SMINI board.
+ * 
+ * @image latex DISPExample1.png "Example 1: Simple siding on single track mainline" width=5in
+ * @image html  DISPExample1Small.png
+ * 
+ * Here is the code:
+ * 
+ * @dontinclude example1.tcl
+ * @skipline # Add User code after this line
+ * @until Main Loop End
+ * 
+ * And the I/O Worksheet:
+ * 
+ * @dontinclude example1.iow
+ * @skipline SMINI @ UA 0:
+ * @until EOF
+ * 
  * @section dispatcher_Examples_ex2 Example 2: Mainline with an industrial siding
 
 \begin{figure}[hbpt]
