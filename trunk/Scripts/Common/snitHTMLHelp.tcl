@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon May 27 10:14:03 2013
-#  Last Modified : <140410.1254>
+#  Last Modified : <140421.2256>
 #
 #  Description	
 #
@@ -916,10 +916,10 @@ snit::widgetadaptor HTMLHelp {
     }
     
     proc tracer {name1 name2 op} {
-        puts stderr "*** HTMLHelp::tracer $name1 $name2 $op"
+        #puts stderr "*** HTMLHelp::tracer $name1 $name2 $op"
         set levels [info level]
         for {set l $levels} {$l >= 0} {incr l -1} {
-            puts stderr "*** HTMLHelp::tracer: $l - [info level $l]"
+            #puts stderr "*** HTMLHelp::tracer: $l - [info level $l]"
         }
     }
     
@@ -1000,12 +1000,14 @@ snit::widgetadaptor HTMLHelp {
         #   not:   a "/" or the empty string
         #   param: The un-interpreted parameter list
         #   text:  The plain text until the next html tag
-        
+        #puts stderr "*** HMrender $selfns $win $tag $not $param $text"
 	upvar #0 HM$win var
         #	puts stderr "*** HMrender: var(stop) = $var(stop)"
 	if {$var(stop)} return
 	set tag [string tolower $tag]
-	set text [HMmap_esc $text]
+        #puts stderr "*** HMrender: text = '$text'"
+	set text [HMmap_esc "$text"]
+        #puts stderr "*** HMrender (after HMmap_esc): text = '$text'"
         
 	# manage compact rendering of lists
 	if {[info exists HMlist_elements($tag)]} {
@@ -1087,26 +1089,26 @@ snit::widgetadaptor HTMLHelp {
         #	puts "*** HMrender: var = "
         #	parray var
 	if {!$bad && [lindex $var(fill) end]} {
-            set text [string trimleft $text]
+            set text [string trimleft "$text"]
 	}
         
 	# to fill or not to fill
 	if {[lindex $var(fill) end]} {
-            set text [HMzap_white $text]
+            set text [HMzap_white "$text"]
 	}
         
 	# generic mark hook
-	catch {HMmark $not$tag $win $param text} err
+	catch {HMmark $not$tag $win $param "$text"} err
         
 	# do any special tag processing
-	catch {HMtag_$not$tag $selfns $win $param text} msg
+	catch {HMtag_$not$tag $selfns $win $param "$text"} msg
         
         
 	# add the text with proper tags
         
 	set tags [HMcurrent_tags $selfns $win]
         #	puts stderr "*** HMrender: tag = $not$tag, tags = $tags, text = $text"
-	$win insert $var(S_insert) $text $tags
+	$win insert $var(S_insert) "$text" $tags
         
 	# We need to do an update every so often to insure interactive response.
 	# This can cause us to re-enter the event loop, and cause recursive
@@ -1572,13 +1574,16 @@ snit::widgetadaptor HTMLHelp {
         #   cmd		A command to run for each html tag found
         #   start	The name of the dummy html start/stop tags
         
+        #puts stderr "*** HMparse_html $html $cmd $start"
 	regsub -all \{ $html {\&ob;} html
         regsub -all \} $html {\&cb;} html
+        regsub -all {\\} $html {\&backslash;} html
 	set w " \t\r\n"	;# white space
 	proc HMcl x {return "\[$x\]"}
 	set exp <(/?)([HMcl ^$w>]+)[HMcl $w]*([HMcl ^>]*)>
 	set sub "\}\n$cmd {\\2} {\\1} {\\3} \{"
 	regsub -all $exp $html $sub html
+        #puts stderr "*** HMparse_html: html is $html"
 	eval "$cmd {$start} {} {} \{ $html \}"
 	eval "$cmd {$start} / {} {}"
     }
@@ -2583,6 +2588,8 @@ snit::widgetadaptor HTMLHelp {
 	array set HMesc_map {
             lt <   gt >   amp &   quot \"   copy \xa9
             reg \xae   ob \x7b   cb \x7d   nbsp \xa0
+            backslash \x5c
+            
 	}
 	#############################################################
 	# ISO Latin-1 escape codes
