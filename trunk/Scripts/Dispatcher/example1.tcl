@@ -416,7 +416,7 @@ namespace eval Switches {
     method getstate {} {return $state}
     method setstate {statebits} {
       if {$statebits == $NOR} {
-	set state normal
+        set state normal
       } elseif {$statebits == $REV} {
 	set state reverse
       } else {
