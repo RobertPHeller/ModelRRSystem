@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 16:36:46 2014
-//  Last Modified : <140414.1201>
+//  Last Modified : <140423.1403>
 //
 //  Description	
 //
@@ -34,7 +34,7 @@
 /** @page xpressnetthrot XPressNet Throttle
  * 
  * The XPressNetThrottle program is a simple program that provides a 
- * ``virtual'' replacement for a LM50 or LM100 on your computer screen. 
+ * "virtual" replacement for a LM50 or LM100 on your computer screen. 
  * 
  * @section xpressnetthrot_maingui Main GUI
  * Its basic GUI in Throttle Mode is shown here:

@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 16:39:59 2014
-//  Last Modified : <140414.1419>
+//  Last Modified : <140423.1419>
 //
 //  Description	
 //
@@ -33,13 +33,13 @@
 
 /** @page timetable_Tutorial Time Table (V2) Tutorial
  * 
- * @addindex Time Table!Tutorial
+ * @addindex "Time Table: Tutorial"
  * The Time Table is a program designed to create railroad employee 
  * timetables.  The program's main display is a graph of time (of day) versus 
  * distance (along the railroad), gridded at time intervals and at station 
  * stops.  Trains schedules are represented as colored lines on this graph, 
  * with diagonals representing train movement at speed and horizontal lines 
- * representing trains ``siting'' at stations (layovers or switching).
+ * representing trains "siting" at stations (layovers or switching).
  * 
  * @section timetable_tut_crenew Creating a new time table
  * 
@@ -49,8 +49,7 @@
  * @htmlonly
  *  <img src="TTNewTool.png" alt="New Time Table toolbar button"/>
  * @endhtmlonly
- * toolbar button. A ``Create a New
- * Time Table'' dialog, described in
+ * toolbar button. A "Create a New Time Table" dialog, described in
  * Section @ref timetable_ref_createnewtimetable. is displayed.  This dialog
  * box collects three pieces of information: the name of the new time
  * table, the total time (in minutes) the time table will cover (there are
@@ -62,12 +61,12 @@
  * @subsection timetable_tut_crestat Creating stations
  * 
  * Once the name and the two time elements have been selected, a set of at
- * least two stations need to be created.  This is done with the ``Create
- * All Stations Dialog'',  described in
+ * least two stations need to be created.  This is done with the "Create
+ * All Stations Dialog",  described in
  * Section @ref timetable_ref_CreateAllStationsDialog.  This dialog box is
  * used to create stations, which can have zero or more storage tracks. 
  * Storage tracks are used when a train has a long layover (and needs to
- * be ``out of the way'' of other traffic) or when a train terminates and
+ * be "out of the way" of other traffic) or when a train terminates and
  * the train set is re-used for a different schedule, generally in the
  * opposite direction. As the stations and their storage tracks are
  * created, they are displayed in the station listing in the upper part of
@@ -76,9 +75,9 @@
  * @subsection timetable_tut_crecab Creating cabs
  * 
  * After creating all of the stations, zero or more cabs can be created. 
- * Cabs are mostly for switched block DC layouts, but creating ``cabs''
+ * Cabs are mostly for switched block DC layouts, but creating "cabs"
  * for a DCC layout is useful, since it allows for a way to visually group
- * trains operationally. Think of the cabs as a way of defining ``crews''
+ * trains operationally. Think of the cabs as a way of defining "crews"
  * (operators).  This allows for things like crew (operator) changes as
  * the train moves to different parts of the layout for example.
  * 
@@ -96,18 +95,18 @@
  * <img src="TTaddtrain.png" alt="Add Train toolbar button">
  * @endhtmlonly
  * ) toolbar button or the @c Add a new train button.  All of these display 
- * the ``Create New Train Dialog'', described in Section 
+ * the "Create New Train Dialog", described in Section 
  * @ref timetable_ref_CreateNewTrainDialog. Trains have a (common) name, 
  * a number (or symbol), a class number, an average speed, a scheduled 
  * departure time, and travel between two stations.  The train's number (or 
  * symbol) needs to be a unique identification of the train. The class is a 
- * whole number, with smaller numbers generally being the ``higher'' class.  
+ * whole number, with smaller numbers generally being the "higher" class.  
  * The class is used to indicate a train's priority and is also used to group 
  * similar trains together.  The speed is the (scale) speed the train will be 
  * traveling between stops.  The scheduled departure time is the time the 
  * train is scheduled to leave its origin station.  The origin and termination 
  * stations are the station end points the train travels between.  The train 
- * will get a ``stop'' at every intermediate station between these two 
+ * will get a "stop" at every intermediate station between these two 
  * stations.  Note that the train won't be expected to actually stop at any 
  * station where the layover time is set to zero.  Such stops would just be 
  * timekeeping points.
@@ -123,9 +122,9 @@
  * 
  * @section timetable_tut_print Printing a time table
  * 
- * Once all of the trains have been added, it it possible to ``print'' a
+ * Once all of the trains have been added, it it possible to "print" a
  * timetable.  The LaTeX system is used to format the time table and the
- * TimeTable program generates a LaTeX source file (@c .tex) and will
+ * TimeTable program generates a LaTeX source file (.tex) and will
  * run the LaTeX program, @c pdflatex, to create a PDF file from the
  * LaTeX source file.  This process is started with the
  * @c File->Print... menu item or the
@@ -133,13 +132,13 @@
  * @htmlonly
  * <img src="TTprintTool.png" alt="Print toolbar button">
  * @endhtmlonly
- * toolbar button.  This pops up the ``Print Dialog'', described in Section 
+ * toolbar button.  This pops up the "Print Dialog", described in Section 
  * @ref timetable_ref_PrintTimetableDialog. This dialog collects the name of 
  * the LaTeX source file, and the path to the LaTeX processing programing, as 
  * well as a few other options.  It also has a button to configure how the 
  * timetable will be formatted.  
  * 
- * The @c Configure button pops up the ``Print Configuration Dialog'',
+ * The @c Configure button pops up the "Print Configuration Dialog",
  * described in Section @ref timetable_ref_PrintConfigurationDialog, which has
  * three sections, a @c General section which gets some general
  * configuration settings, a @c Multi section for various

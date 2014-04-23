@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 16:48:11 2014
-//  Last Modified : <140415.1032>
+//  Last Modified : <140423.1419>
 //
 //  Description	
 //
@@ -63,7 +63,7 @@
  * 
  * @section timetable_ref_maingui Layout of the Main GUI
  * The main GUI window
- * @addindex Time Table!main GUI
+ * @addindex "Time Table: main GUI"
  * is shown here:
  * @image latex TTMainGUIBlank.png "The main GUI screen of the Time Table (V2) Program" width=5in
  * @image html  TTMainGUIBlankSmall.png
@@ -88,7 +88,7 @@
  * @htmlonly
  * <img src="TTNewTool.png" alt="New toolbar button">
  * @endhtmlonly
- * toolbar button. These later two methods use the ``Create a New Time Table''
+ * toolbar button. These later two methods use the "Create a New Time Table"
  * dialog, shown below, to get the total time, time
  * increment, and the name of the new time table.  If there is a time
  * table file already loaded, a confirmation dialog will be displayed.
@@ -96,8 +96,8 @@
  * @image latex TTCreateNewTT.png "Create A New Time Table dialog"
  * @image html  TTCreateNewTT.png
  * 
- * A simple chart with three stations, four cabs (labeled ``Crew 1''
- * through ``Crew 4''), and two storage tracks is shown below.
+ * A simple chart with three stations, four cabs (labeled "Crew 1"
+ * through "Crew 4"), and two storage tracks is shown below.
  * @par
  * @image latex TTChart3station.png "Simple chart with three stations, four cabs, and two storage tracks" width=5in
  * @image html  TTChart3stationSmall.png
@@ -106,7 +106,7 @@
  * 
  * Stations for a time table must all be created when the time table is
  * created.  Stations cannot be added or removed later.  When a new time
- * table is created the ``Create All Stations Dialog'', shown below,
+ * table is created the "Create All Stations Dialog", shown below,
  * is displayed to create all of the station stops.
  *
  * @image latex TTCreateAllStations.png "Create All Stations Dialog"
@@ -114,11 +114,11 @@
  * 
  * @subsection timetable_ref_CreateAllCabsDialog Create All Cabs Dialog
  * 
- * Once the stations have been created, an initial set of ``cabs'' can be
+ * Once the stations have been created, an initial set of "cabs" can be
  * created.  Commonly, cabs are only used on block switch DC layouts, but
  * the cabs can be used as with a  DCC layout as a way to associate trains
- * with different operating ``crews'' (operators) or just to identify
- * different classes of trains by color, etc.  The ``Create All Cabs''
+ * with different operating "crews" (operators) or just to identify
+ * different classes of trains by color, etc.  The "Create All Cabs"
  * dialog, shown below, is used to bulk create an initial set of cabs.
  * 
  * @image latex TTCreateAllCabs.png "Create All Cabs Dialog"
@@ -156,12 +156,12 @@
  * <img src="TTaddtrain.png" alt="Add a new train toolbar button">
  * @endhtmlonly
  * ) toolbar button or the @c Add @c a @c new @c train button. All of these 
- * display the ``Create New Train Dialog'', described in Section 
+ * display the "Create New Train Dialog", described in Section 
  * @ref timetable_ref_CreateNewTrainDialog.
  * 
  * @subsection timetable_ref_CreateNewTrainDialog Create New Train Dialog
  * 
- * The ``Create New Train Dialog'' first collects some basic information
+ * The "Create New Train Dialog" first collects some basic information
  * about the new train, as shown below. The basic train information consists 
  * of the train's common name, its number (or symbol), its class number, its 
  * average speed, its scheduled departure time, and the two stations it 
@@ -172,15 +172,15 @@
  * 
  * The train's number (or symbol) needs to be a unique identification of
  * the train.  The common name need not be unique.  The class is a whole
- * number, with smaller numbers generally being the ``higher'' class. The
+ * number, with smaller numbers generally being the "higher" class. The
  * class is used to indicate a train's priority and is also used to group
  * similar trains together.  The speed is the (scale) speed the train will
  * be traveling between stops.  The scheduled departure time is the time
  * the train is scheduled to leave its origin station.  The origin and
  * termination stations are the station end points the train travels between.
  * 
- * The @c Schedule button selects the scheduling page of the ``Create a
- * New Train Dialog'', as shown below.  On this page, the cab can be selected 
+ * The @c Schedule button selects the scheduling page of the "Create a
+ * New Train Dialog", as shown below.  On this page, the cab can be selected 
  * and layover periods at intermediate stations can be set.  The @c Update 
  * buttons propagate the cab settings and adjust the times to allow for the 
  * layovers.
@@ -189,7 +189,7 @@
  * @image html  TTCreateNewTrain2Small.png
  * 
  * The @c Storage button selects the storage track allocation page of the 
- * ``Create a New Train Dialog'', as shown below.  This page lists those 
+ * "Create a New Train Dialog", as shown below.  This page lists those 
  * stations that have storage tracks available.  It only makes sense to select
  * storage tracks for intermediate stops if there is a layover or for
  * originating or terminating stops.
@@ -206,13 +206,13 @@
  * <img src="TTdeletetrain.png" alt="delete train toolbar button">
  * @endhtmlonly
  * ) toolbar button or the @c Delete @c an @c Existing @c train button. All 
- * of these display the ``Select One Train Dialog'', described in Section
+ * of these display the "Select One Train Dialog", described in Section
  * @ref timetable_ref_SelectOneTrainDialog. A delete confirmation
  * dialog will also be displayed.
  * 
  * @section timetable_ref_LinkingUnlinkingDuplicate Linking and Unlinking Duplicate Stations
  * 
- * Duplicate stations occur mostly with ``out and back'' type layouts
+ * Duplicate stations occur mostly with "out and back" type layouts
  * where the opposite ends of the line are modeled with the same trackage
  * (usually a yard).  Duplicate stations also occur with reverse loops. In
  * all cases, these are stations which are logically different, but which
@@ -255,7 +255,7 @@
  * 
  * @section timetable_ref_AddingCabs Adding Cabs
  * 
- * Generally ``Cabs'' refer to the separate throttle controls on a block
+ * Generally "Cabs" refer to the separate throttle controls on a block
  * switched DC layout.  They are generally non-existent with a DCC layout,
  * but virtual cabs might be used as a way of assigning crews (operators)
  * to a train or to a segment of a train's run.  Cabs are added with the
@@ -271,8 +271,8 @@
  * Notes are brief memos about the operating rules in effect.  There is a
  * single pool of notes.  Notes from this pool can be associated either
  * with a whole train or with a train at a station stop.  The notes can
- * specify schedule exceptions (eg ``Daily except Saturdays, Sundays, and
- * Holidays''), or operating rules relating to meets.
+ * specify schedule exceptions (eg "Daily except Saturdays, Sundays, and
+ * Holidays"), or operating rules relating to meets.
  * 
  * @subsection timetable_ref_CreatingNewNotes Creating New Notes and Editing Existing Notes
  * 
@@ -288,7 +288,7 @@
  * <img src="TTeditnote.png" alt="Edit Existing Note toolbar button">
  * @endhtmlonly
  * toolbar buttons, or the @c Create @c New @c Note and @c Edit @c Existing 
- * @c Note buttons.  The the ``Note editor dialog'', shown below is used to 
+ * @c Note buttons.  The the "Note editor dialog", shown below is used to 
  * create or edit the note.  Notes are numbered consecutively starting with 1.
  *    
  * @image latex TTEditNote.png Note editor dialog width=5in
@@ -322,14 +322,14 @@
  * ; or the @c Add @c note @c to @c train, @c Add @c note @c to @c train 
  * @c at @c station @c stop, @c Remove @c note @c from @c train, and 
  * @c Remove @c note @c from @c train @c at @c station @c stop buttons.  All 
- * of these display the ``Add (or Remove) Note dialog'', shown below.
+ * of these display the "Add (or Remove) Note dialog", shown below.
  * 
  * @image latex TTAddNote.png "Add (or Remove) Note dialog"
  * @image html  TTAddNote.png
  * 
  * @section timetable_ref_PrintingTimeTable Printing a Time Table
  * 
- * ``Printing'' a time table actually means creating a LaTeX file and
+ * "Printing" a time table actually means creating a LaTeX file and
  * then processing that LaTeX file through a LaTeX processing program
  * (typically @c pdflatex).  LaTeX provides the means to produce a
  * professionally formatted document and has the means to provide things
@@ -355,11 +355,12 @@
  * <img src="TTprintTool.png" alt="Print toolbar button">
  * @endhtmlonly
  *  toolbar button initiate the print process by displaying the 
- * ``Print Timetable'' dialog, described in Section @ref timetable_ref_PrintTimetableDialog.
+ * "Print Timetable" dialog, described in Section 
+ * @ref timetable_ref_PrintTimetableDialog.
  *    
  * @subsection timetable_ref_PrintDialog Print Dialog
  * 
- * The ``Print Timetable'' dialog, shown below, collects the basic
+ * The "Print Timetable" dialog, shown below, collects the basic
  * information needed to generate and process a LaTeX source file from
  * the time table data structure.  This information consists of the name of
  * the name of the LaTeX source file to create, the LaTeX processing
@@ -368,7 +369,7 @@
  * any post processing command (such as @c dvips if using plain
  * @c latex).  Most of the time, this is enough for a standard, basic
  * time table.  The @c Configure button can be used to configure a
- * selection of options using a ``Print Configuration'' dialog, described
+ * selection of options using a "Print Configuration" dialog, described
  * in Section @ref timetable_ref_PrintConfigurationDialog.
  * 
  * @image latex TTPrintTimetableDialog.png "Print Timetable dialog" width=5in
@@ -399,9 +400,9 @@
  * relating to time tables using multiple tables.  These settings include
  * whether to create a table of contents, whether to use multiple tables at
  * all, LaTeX code to precede the table of contents, LaTeX code to
- * precede notes section, the header to use if a single ``All Trains''
- * table is generated, and LaTeX code to precede this single ``All
- * Trains'' table.  The groups settings, provide for settings
+ * precede notes section, the header to use if a single "All Trains"
+ * table is generated, and LaTeX code to precede this single "All
+ * Trains" table.  The groups settings, provide for settings
  * for each group.  This includes whether to group by class or to manually
  * group trains and provides for setting the class or group heading and for
  * LaTeX code to precede the group table, and if grouping manually,
@@ -428,7 +429,7 @@
  * 
  * @section timetable_ref_SelectOneTrainDialog Select One Train Dialog
  * 
- * The ``Select One Train dialog'', shown below, is used to select a train
+ * The "Select One Train dialog", shown below, is used to select a train
  * either for deletion (Section @ref timetable_ref_DeletingTrains) or for
  * viewing (Section @ref timetable_ref_ViewingTrains).
  * 
@@ -445,8 +446,8 @@
  * @subsection timetable_ref_ViewingTrains Trains
  * 
  * There are two menu items for viewing trains, @c View @c One @c Train and
- * @c View @c All @c Trains.  The @c View @cOne @c Train uses the ``Select
- * One Train dialog'' (Section @ref timetable_ref_SelectOneTrainDialog) to
+ * @c View @c All @c Trains.  The @c View @cOne @c Train uses the "Select
+ * One Train dialog" (Section @ref timetable_ref_SelectOneTrainDialog) to
  * select a train to display detailed information about and the
  * @c View @c All @cTrains menu item displays a dialog listing all of the
  * trains, by number and name, with buttons to get more detailed information.
@@ -455,7 +456,7 @@
  * 
  * There are two menu items for viewing stations, @c View @c One
  * @c Station and @c View @c All @c Stations.  The @c View @c One @c Station
- * uses the ``Select One Station dialog'' to select a station to display
+ * uses the "Select One Station dialog" to select a station to display
  * detailed information about and the @c View @c All @c Stations menu item
  * displays a dialog listing all of the stations, by name and scale mile, with
  * buttons to get more detailed information.
@@ -463,8 +464,8 @@
  * @subsection timetable_ref_ViewingNotes Notes
  * 
  * There are two menu items for viewing notes, @c View @c One @c Note and
- * @c View @c All @c Notes.  The @c View @c One @c Note uses the ``Select
- * One Note dialog'' to select a note to display detailed information
+ * @c View @c All @c Notes.  The @c View @c One @c Note uses the "Select
+ * One Note dialog" to select a note to display detailed information
  * about and the @c View @c All @c Notes menu item displays a dialog
  * listing all of the notes, by number and beginning text, with buttons to
  * get more detailed information.

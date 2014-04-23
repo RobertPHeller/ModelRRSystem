@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 15:31:29 2014
-//  Last Modified : <140420.1540>
+//  Last Modified : <140423.1407>
 //
 //  Description	
 //
@@ -34,7 +34,7 @@
 /** @page Introduction Introduction
  * @section org How this manual is organized.
  *
- * This manual is broken up into ``parts'', one for each ``main program''
+ * This manual is broken up into "parts", one for each "main program".
  * @latexonly
  * \footnote{The various programming libraries are described in the programming
  * guides\cite{progguide}.} 
@@ -66,8 +66,8 @@
  *   - Chapter @ref camera:Reference documents the camera scripts. These scripts perform 
  *     various camera scene calculations that are useful for model 
  *     railroaders.
- *   - Chapters @ref dispatcher:Tutorial, @ref dispatcher:Reference, and 
- *     @ref dispatcher:Examples document the automated dispatcher program.
+ *   - Chapters @ref dispatcher_Tutorial, @ref dispatcher_Reference, and 
+ *     @ref dispatcher_Examples document the automated dispatcher program.
  */
 
 #endif // __INTRODUCTION_H

@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:40:00 2014
-//  Last Modified : <140421.1014>
+//  Last Modified : <140423.1351>
 //
 //  Description	
 //
@@ -34,7 +34,7 @@
 /** @page dispatcher_Tutorial Dispatcher Tutorial
  * 
  * 
- * @section dispatcher_Tutorial_SimpleMode A ``Simple Mode'' CTC Panel
+ * @section dispatcher_Tutorial_SimpleMode A "Simple Mode" CTC Panel
  * 
  * This tutorial will go through the steps of creating a simple CTC panel
  * for a passing siding.  First, after starting up the Dispatcher program,
@@ -55,7 +55,7 @@
  * Now we can start adding track work and control elements.  But first a 
  * brief discussion about how things are structured.  First of all every 
  * object has a unique name and every object is in a named control point.  
- * A ``control point'' is a collection of track work elements and control 
+ * A "control point" is a collection of track work elements and control 
  * panel elements that relate to a single controlled feature, typically a 
  * turnout of some sort. The control point usually includes a code button, 
  * which is a button that initiates some change in the track work (turnouts, 
@@ -66,7 +66,7 @@
  * of the siding, @b Main is the mainline trackage, and @b Siding is the 
  * siding track. The @b Main and @b Siding control points won't have any 
  * control panel objects and are only being used to contain the simple track
- * elements. These are essentially ``dummy'' control points and are just
+ * elements. These are essentially "dummy" control points and are just
  * being used as containers for track work that does not contain any
  * centrally controllable track work.
  * 
@@ -80,7 +80,7 @@
  * @image latex DISPSimpleTutSw1.png "Creating Turnout 1"
  * @image html  DISPSimpleTutSw1Small.png
  * 
- * We will ``flip'' the turnout to give it the proper orientation. Turnouts 
+ * We will "flip" the turnout to give it the proper orientation. Turnouts 
  * can be flipped and can also be rotated to one of eight positions (45 degree 
  * increments). We will use the cross hairs to roughly position the turnout, 
  * as shown below.
@@ -139,7 +139,7 @@
  * @image html  DISPSimpleTutPanel4Small.png
  * 
  * Once the panel has been completed, we can use the @c Wrap @c As menu
- * item under the @c File menu to create a ``wrapped'' version of
+ * item under the @c File menu to create a "wrapped" version of
  * the generated program.  This is a self-contained, stand-alone
  * executable program that implements the CTC panel. See
  * Section @ref dispatche_Reference_wrapas for more information.

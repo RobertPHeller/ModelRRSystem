@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:33:54 2014
-//  Last Modified : <140420.1136>
+//  Last Modified : <140423.1417>
 //
 //  Description	
 //
@@ -67,13 +67,13 @@
  * @image latex FCFMainIndicators.png "The Indicators of the Freight Car Forwarder (V2) Program"
  * @image html  FCFMainIndicators.png
  * 
- * The main GUI also has three ``slide out'' frames, one for showing train
+ * The main GUI also has three "slide out" frames, one for showing train
  * status when trains are run, one for viewing a car's information, and
  * one for editing a car's information. Each slide out has a corresponding
  * indicator. 
  * 
  * @section fcf_ref_loadsystem Opening and loading a system file.
- * @addindex "Freight Car Forwarder!Loading a system file"
+ * @addindex "Freight Car Forwarder: Loading a system file"
  * The @c File->Open... menu button and the
  * @image latex FCFLoadTool.png
  * @htmlonly
@@ -167,7 +167,7 @@
  * The @c Manage @c One @c Train menu item (1 key) pops up a dialog, shown
  * below, to enable or disable printing of a single train, as well as 
  * setting the train's maximum length and setting which shift the train will 
- * be run.  The train is selected with the ``Select Train Dialog'', described 
+ * be run.  The train is selected with the "Select Train Dialog", described 
  * in Section @ref fcf_ref_selecttraindialog.
  * 
  * @htmlonly
@@ -184,8 +184,8 @@
  * <img src="FCFViewCarTool.png" alt="View Car toolbar button">
  * @endhtmlonly
  * toolbar button display the information about a single car.  The information 
- * is displayed on the view car ``slide out'', shown below. The car is 
- * selected with the ``Search For Cars Dialog'', described in Section
+ * is displayed on the view car "slide out", shown below. The car is 
+ * selected with the "Search For Cars Dialog", described in Section
  * @ref fcf_ref_searchcarsdialog. 
  * 
  * @image latex FCFViewCarSlideout.png "View Car Information Slideout"
@@ -200,8 +200,8 @@
  * @endhtmlonly
  * toolbar button display the information about a single car and allow for 
  * editing this information. The information is displayed on the edit car 
- * ``slide out'', shown below. The car is selected with the ``Search For Cars 
- * Dialog'', described in Section @ref fcf_ref_searchcarsdialog. 
+ * "slide out", shown below. The car is selected with the "Search For Cars 
+ * Dialog", described in Section @ref fcf_ref_searchcarsdialog. 
  * 
  * @htmlonly
  * <br clear="all">
@@ -216,7 +216,7 @@
  * @htmlonly
  * <img src="FCFAddCarTool.png" alt="Add Car toolbar button">
  * @endhtmlonly
- * toolbar button provide for adding a new car.  The edit car ``slide out'', 
+ * toolbar button provide for adding a new car.  The edit car "slide out", 
  * shown above, is displayed and the information about the new car can be 
  * filled in and the car added.
  * 
@@ -228,9 +228,9 @@
  * <img src="FCFDeleteCarTool.png" alt="Delete Car toolbar button">
  * @endhtmlonly
  * toolbar button provide for deleting an existing car.  The car is selected 
- * with the ``Search For Cars Dialog'', described in Section 
+ * with the "Search For Cars Dialog", described in Section 
  * @ref fcf_ref_searchcarsdialog and the car's information is displayed in the 
- * view car ``slide out'', shown above. Actual removal can then be confirmed.
+ * view car "slide out", shown above. Actual removal can then be confirmed.
  * 
  * @section fcf_ref_showingcarswithout Showing cars without assignments
  * 
@@ -264,8 +264,8 @@
  * <img src="FCFRunAllTrTool.png" alt="Run All Trains toolbar button">
  * @endhtmlonly
  * toolbar button run all trains in the operating session, except the end of 
- * session box moves.  Each train's progress is shown in the ``Train Status 
- * Slideout'', shown below.
+ * session box moves.  Each train's progress is shown in the "Train Status 
+ * Slideout", shown below.
  * 
  * @n
  * @image latex FCFTrainStatusSlideout.png "Train Status Slideout"
@@ -279,7 +279,7 @@
  * <img src="FCFRunBTrTool.png" alt="Run Boxmove toolbar button">
  * @endhtmlonly
  * toolbar button run all of the box move trains in the operating session.  
- * Each train's progress is shown in the ``Train Status Slideout'', shown 
+ * Each train's progress is shown in the "Train Status Slideout", shown 
  * above.
  * 
  * @section fcf_ref_runningsingle Running a single train
@@ -289,9 +289,9 @@
  * @htmlonly
  * <img src="FCFRun1TrTool.png" alt="Run One Train toolbar button">
  * @endhtmlonly
- * toolbar button run a single train, selected with the ``Select Train 
- * Dialog'', described in Section @ref fcf_ref_selecttraindialog. The train's 
- * progress is shown in the ``Train Status Slideout'', shown above.
+ * toolbar button run a single train, selected with the "Select Train 
+ * Dialog", described in Section @ref fcf_ref_selecttraindialog. The train's 
+ * progress is shown in the "Train Status Slideout", shown above.
  * 
  * @section fcf_ref_openprinter Opening a Printer
  * 
@@ -300,8 +300,8 @@
  * @htmlonly
  * <img src="FCFOpenPrinterTool.png" alt="Open Printer toolbar button">
  * @endhtmlonly
- * toolbar button open the printer output file, using the ``Open Printer 
- * Dialog'', shown below. The status of the printer output, open or closed, 
+ * toolbar button open the printer output file, using the "Open Printer 
+ * Dialog", shown below. The status of the printer output, open or closed, 
  * is shown with the printer status indication,
  * @image latex FCFPrinterInd.png
  * @htmlonly

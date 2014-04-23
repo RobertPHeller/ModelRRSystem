@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 16:38:56 2014
-//  Last Modified : <140414.1202>
+//  Last Modified : <140423.1355>
 //
 //  Description	
 //
@@ -33,10 +33,10 @@
 
 /** @page genericthrot Generic Throttle
  * 
- * The GenericThrottle program is a sample program that provides a ``virtual'' 
+ * The GenericThrottle program is a sample program that provides a "virtual" 
  * replacement for a hand-held DCC (or DC!) Throttle on your computer screen.
- * It has no ``back-end'', that is, it does not actually do anything.  It is
- * meant as a starting point for writing your own ``virtual'' throttle (and 
+ * It has no "back-end", that is, it does not actually do anything.  It is
+ * meant as a starting point for writing your own "virtual" throttle (and 
  * DCC programming) program.
  * 
  * @section genericthrot_maingui Main GUI

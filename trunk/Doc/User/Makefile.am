@@ -192,7 +192,8 @@ USERMAN_DISPATCHER_FIGS = DISPNewCTCPanel.png DISPEmptyCTCPanel.png \
 	DISPSimpleTutPanel3Small.png DISPSimpleTutPanel4Small.png \
 	DISPMainGUISmall.png DISPEmptyCTCPanelSmall.png \
 	DISPAddEditPanelObjectSmall.png DISPEditUserCodeSmall.png \
-	DISPExample1Small.png
+	DISPExample1Small.png DISPExample2Small.png DISPExample3Small.png \
+	DISPExample4Small.png
 USERMAN_DISPATCHER_DEPS = $(srcdir)/../../Scripts/Dispatcher/example*.tcl \
 			  $(srcdir)/../../Scripts/Dispatcher/example*.iow
 DOXYFILES += Doxyfile.$(DISPATCHER).in

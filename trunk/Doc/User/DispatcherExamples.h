@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:44:09 2014
-//  Last Modified : <140421.2247>
+//  Last Modified : <140423.1348>
 //
 //  Description	
 //
@@ -59,69 +59,73 @@
  * @until EOF
  * 
  * @section dispatcher_Examples_ex2 Example 2: Mainline with an industrial siding
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics[width=5in]{DISPExample2.png}
-\caption{Example 2: Mainline with an industrial siding}
-\label{fig:dispatcher:example2}
-\end{centering}
-\end{figure}
-\lstinputlisting[caption={Example 2: Mainline with an industrial siding},
-		 label={lst:dispatcher:example2},
-		 firstline=426]{example2.tcl}
-\lstinputlisting[caption={Example 2: I/O Worksheet},
-		 label={lst:dispatcher:example2wsh},
-		 firstline=37]{example2.iow}
-This example, shown in Figure~\ref{fig:dispatcher:example2}, with user
-code in Listing~\ref{lst:dispatcher:example2} implements an industrial
-siding on a single track main line.  There are two control points, one
-at each end of the siding.  This example uses three SMINI boards, one
-for each control point and one for the siding.
-
+ * 
+ * This example, shown below, implements an industrial
+ * siding on a single track main line.  There are two control points, one
+ * at each end of the siding.  This example uses three SMINI boards, one
+ * for each control point and one for the siding.
+ * 
+ * @image latex DISPExample2.png "Example 2: Mainline with an industrial siding" width=5in
+ * @image html  DISPExample2Small.png
+ * 
+ * Here is the code:
+ * 
+ * @dontinclude example2.tcl
+ * @skipline # Add User code after this line
+ * @until Main Loop End
+ * 
+ * And the I/O Worksheet:
+ * 
+ * @dontinclude example2.iow
+ * @skipline SMINI @ UA 0
+ * @until EOF
+ * 
  * @section dispatcher_Examples_ex3 Example 3: double track crossover
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics[width=5in]{DISPExample3.png}
-\caption{Example 3: Double track crossover}
-\label{fig:dispatcher:example3}
-\end{centering}
-\end{figure}
-\lstinputlisting[caption={Example 3: Double track crossover},
-		 label={lst:dispatcher:example3},
-		 firstline=396]{example3.tcl}
-\lstinputlisting[caption={Example 3: I/O Worksheet},
-		 label={lst:dispatcher:example3wsh},
-		 firstline=37]{example3.iow}
-This example, shown in Figure~\ref{fig:dispatcher:example3}, with user
-code in Listing~\ref{lst:dispatcher:example3} implements a double track
-crossover. Uses two SMINI boards, one for each of the two control points.
-
+ * 
+ * This example, shown below, implements a double track
+ * crossover. Uses two SMINI boards, one for each of the two control points.
+ *
+ * @image latex DISPExample3.png "Example 3: Double track crossover" width=5in
+ * @image html  DISPExample3Small.png
+ * 
+ * Here is the code:
+ * 
+ * @dontinclude example3.tcl
+ * @skipline # Add User code after this line
+ * @until Main Loop End
+ * 
+ * And the I/O Worksheet:
+ * 
+ * @dontinclude example3.iow
+ * @skipline SMINI @ UA 0
+ * @until EOF
+ * 
  * @section dispatcher_Examples_ex4 Example 4: From Chapter 9 of C/MRI User's Manual V3.0
-
-\begin{figure}[hbpt]
-\begin{centering}
-\includegraphics[width=5in]{DISPExample4.png}
-\caption{Example 3: From Chapter 9 of C/MRI User's Manual V3.0}
-\label{fig:dispatcher:example4}
-\end{centering}
-\end{figure}
-\lstinputlisting[caption={Example 4: From Chapter 9 of C/MRI User's 
-Manual V3.0},
-		 label={lst:dispatcher:example4},
-		 firstline=614]{example4.tcl}
-\lstinputlisting[caption={Example 4: I/O Worksheet},
-		 label={lst:dispatcher:example4wsh},
-		 firstline=1]{example4.iow}
-This example, shown in Figure~\ref{fig:dispatcher:example4}, with user
-code in Listing~\ref{lst:dispatcher:example4} implements the yard
-example from Chapter 9 of C/MRI User's Manual V3.0\cite{Chubb03}.  This
-example uses a single SMINI board.  The physical push buttons are
-replaced by ``virtual'' push buttons on the computer screen.  Otherwise,
-this code is a drop-in replacement, in Tcl under Linux, for the Quick
-BASIC code under MS-Windows included in Bruce Chubb's manual.
-
+ * 
+ * This example, shown below, implements the yard
+ * example from Chapter 9 of C/MRI User's Manual V3.0.
+ * @latexonly
+ * \cite{Chubb03}
+ * @endlatexonly
+ * 
+ * This example uses a single SMINI board.  The physical push buttons are
+ * replaced by "virtual" push buttons on the computer screen.  Otherwise,
+ * this code is a drop-in replacement, in Tcl under Linux, for the Quick
+ * BASIC code under MS-Windows included in Bruce Chubb's manual.
+ * 
+ * @image latex DISPExample4.png "Example 4: From Chapter 9 of C/MRI User's Manual V3.0"
+ * @image html  DISPExample4Small.png
+ * 
+ * Here is the code:
+ * 
+ * dontinclude example4.tcl
+ * @skipline # Add User code after this line
+ * @until Main Loop End
+ * 
+ * And the I/O Worksheet:
+ * 
+ * @include example4.iow
+ * 
  */
 
 #endif // __DISPATCHEREXAMPLES_H

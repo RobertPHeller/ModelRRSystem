@@ -11,6 +11,9 @@ refman.pdf: clean refman.tex
 	$(MAKEINDEX) refman.idx
 	$(BIBTEX) refman.aux
 	$(PDFLATEX) refman.tex
+	$(MAKEINDEX) refman.idx
+	$(BIBTEX) refman.aux
+	$(PDFLATEX) refman.tex
 	latex_count=5 ; \
 	while egrep -s 'Rerun (LaTeX|to get cross-references right)' refman.log && [ $$latex_count -gt 0 ] ;\
 	    do \

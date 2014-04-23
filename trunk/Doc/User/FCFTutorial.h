@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:28:13 2014
-//  Last Modified : <140415.1315>
+//  Last Modified : <140423.1418>
 //
 //  Description	
 //
@@ -33,7 +33,7 @@
 
 /** @page fcf_Tutorial Freight Car Forwarder (V2) Tutorial
  * 
- * @addindex Freight Car Forwarder!Tutorial
+ * @addindex "Freight Car Forwarder: Tutorial"
  * The Freight Car Forwarder is a program designed to simulate freight car 
  * traffic on your model railroad.  It does this by matching types of freight 
  * cars with industries.  Specific types of freight cars are meant to carry 
@@ -62,7 +62,7 @@
  * Freight Car Forwarder system to edit cars in the cars file, it is
  * probably best to use a regular text editor to add, modify, or delete
  * cars in a wholesale manor.  All of the other files are treated as
- * ``constant data'' by the Freight Car Forwarder system, which will load
+ * "constant data" by the Freight Car Forwarder system, which will load
  * the data into memory and not modify that data.
  * 
  * @section fcf_tut_LoadingSystemData Loading System Data
