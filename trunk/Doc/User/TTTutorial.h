@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 16:39:59 2014
-//  Last Modified : <140423.1419>
+//  Last Modified : <140428.1553>
 //
 //  Description	
 //
@@ -33,7 +33,6 @@
 
 /** @page timetable_Tutorial Time Table (V2) Tutorial
  * 
- * @addindex "Time Table: Tutorial"
  * The Time Table is a program designed to create railroad employee 
  * timetables.  The program's main display is a graph of time (of day) versus 
  * distance (along the railroad), gridded at time intervals and at station 

@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 15:49:31 2014
-//  Last Modified : <140412.1004>
+//  Last Modified : <140428.1948>
 //
 //  Description	
 //
@@ -68,6 +68,9 @@
 /** @page univtest Universal Test Program Reference
  * The Universal Test program is used to test the I/O ports on a USIC,
  * SUSIC, or SMINI node.  
+ * @addindex USIC
+ * @addindex SUSIC
+ * @addindex SMINI
  * @latexonly
  * It is a port of the universal test program that is shown in \cite{Chubb89}
  * and \cite{Chubb03}.
@@ -96,7 +99,9 @@
  * @image html  UTNewCard.png
  * The Open menu item on the File menu opens the previously open port (if the 
  * port is currently open, it is closed first).  The board at UA 0 is then 
- * initialized.  For USIC and SUISC cards, it is presumed that the backplane 
+ * initialized.  For USIC and SUSIC cards, it is presumed that the backplane 
+ * @addindex USIC
+ * @addindex SUSIC
  * contains just one output card (in the first slot) for output testing, and 
  * one each output and input card for the wraparound test (output card in the 
  * first slot and the input card in the second slot).

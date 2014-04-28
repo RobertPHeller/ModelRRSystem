@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 16:48:11 2014
-//  Last Modified : <140423.1419>
+//  Last Modified : <140428.1554>
 //
 //  Description	
 //
@@ -62,9 +62,7 @@
  * @endcode
  * 
  * @section timetable_ref_maingui Layout of the Main GUI
- * The main GUI window
- * @addindex "Time Table: main GUI"
- * is shown here:
+ * The main GUI window is shown here:
  * @image latex TTMainGUIBlank.png "The main GUI screen of the Time Table (V2) Program" width=5in
  * @image html  TTMainGUIBlankSmall.png
  * It contains a menu bar, a toolbar, a time table chart, and a button

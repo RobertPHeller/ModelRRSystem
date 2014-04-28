@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:33:54 2014
-//  Last Modified : <140423.1417>
+//  Last Modified : <140428.1554>
 //
 //  Description	
 //
@@ -73,7 +73,6 @@
  * indicator. 
  * 
  * @section fcf_ref_loadsystem Opening and loading a system file.
- * @addindex "Freight Car Forwarder: Loading a system file"
  * The @c File->Open... menu button and the
  * @image latex FCFLoadTool.png
  * @htmlonly

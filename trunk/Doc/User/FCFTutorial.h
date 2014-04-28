@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:28:13 2014
-//  Last Modified : <140423.1418>
+//  Last Modified : <140428.1554>
 //
 //  Description	
 //
@@ -33,7 +33,6 @@
 
 /** @page fcf_Tutorial Freight Car Forwarder (V2) Tutorial
  * 
- * @addindex "Freight Car Forwarder: Tutorial"
  * The Freight Car Forwarder is a program designed to simulate freight car 
  * traffic on your model railroad.  It does this by matching types of freight 
  * cars with industries.  Specific types of freight cars are meant to carry 
