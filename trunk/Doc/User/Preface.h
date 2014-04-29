@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 15:29:56 2014
-//  Last Modified : <140423.1355>
+//  Last Modified : <140429.1313>
 //
 //  Description	
 //
@@ -32,9 +32,6 @@
 #define __PREFACE_H
 
 /** @mainpage Preface
- * This is the user manual for the Model Railroad system.  It is a "work
- * in progress" and I will be adding chapters as I write the various
- * self-contained "main programs".
  * @anchor toc
  * @htmlonly
  * <div class="contents">
@@ -275,6 +272,9 @@
  * </li>
  * </ol></div></div> 
  * @endhtmlonly
+ * This is the user manual for the Model Railroad system.  It is a "work
+ * in progress" and I will be adding chapters as I write the various
+ * self-contained "main programs". 
  */
 
 

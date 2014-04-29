@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:33:54 2014
-//  Last Modified : <140429.1151>
+//  Last Modified : <140429.1252>
 //
 //  Description	
 //
@@ -35,7 +35,12 @@
  * The Freight Car Forwarder (V2) is a hybrid program, consisting of a
  * Tcl/Tk GUI on top of a C++ class library.  The GUI provides the user
  * interface to the algorithms and data structures contained in the C++
- * class library.
+ * class library. The program is based on Tim O'Connor's Freight Car Forwarder
+ * originally written in QBASIC.  I first ported the program to a pure Tcl/Tk
+ * application.  Then for better performance, I recoded the low-level guts 
+ * (mostly heavy data indexing logic) to a C++ class library, using the STL to 
+ * implement the various aggregate collections of objects, retaining Tcl/Tk 
+ * for the GUI.
  * 
  * @section fcf_ref_cli Command Line Usage
  * 
@@ -97,6 +102,7 @@
  * @htmlonly
  * <img src="FCFSaveCarsTool.png" alt="Save Cars toolbar button">
  * @endhtmlonly
+ * @addindex "cars, saving"
  * toolbar button save the cars and statistics files. This is something you
  * need to do after you have simulated a session, by running the car
  * assignment procedure and then run the trains in your session.  This
@@ -120,6 +126,7 @@
  * @subsection fcf_ref_controllingyardlists Controlling Yard Lists
  * 
  * The @c Control @c Yard @c Lists menu item (y key) pops up a dialog, shown
+ * @addindex "Yard Lists, printing"
  * below, to control whether to print 0, 1, or 2 alphabetical lists and 
  * whether to print 0, 1, or 2 train lists.
  * 
@@ -321,6 +328,7 @@
  * @section fcf_ref_printyard Printing yard and switch lists
  * 
  * The @c Print @c Yard @c Lists, etc. menu button and the
+ * @addindex "Yard Lists, printing"
  * @image latex FCFPrintYardTool.png
  * @htmlonly
  * <img src="FCFPrintYardTool.png" alt="Print Yard Lists toolbar button">
@@ -343,6 +351,7 @@
  * @section fcf_ref_printingreports Printing Reports
  * 
  * The @c Reports @c Menu menu button and the
+ * @addindex "Reports, printing"
  * @image latex FCFReportsTool.png
  * @htmlonly
  * <img src="FCFReportsTool.png" alt="Reports Menu toolbar button">
