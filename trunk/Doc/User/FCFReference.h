@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:33:54 2014
-//  Last Modified : <140428.1554>
+//  Last Modified : <140429.1151>
 //
 //  Description	
 //
@@ -44,26 +44,21 @@
  * 
  * @section fcf_ref_maingui Layout of the Main GUI
  * 
- * The main GUI window\index{Freight Car Forwarder!main GUI}, shown below,
+ * The main GUI window, shown below,
+ * @addindex "Freight Car Forwarder, main GUI"
  * @image latex FCFMain.png "The main GUI screen of the Freight Car Forwarder (V2) Program" width=5in
  * @image html  FCFMainSmall.png
  * contains a menu bar, a toolbar, 
  * @image latex FCFMainToolbar.png "The Toolbar of the Freight Car Forwarder (V2) Program" width=5in
  * @image html  FCFMainToolbarSmall.png
  * a text display area, and a button menu.
- * @htmlonly
- * <br clear="all">
- * @endhtmlonly
+ * @n
  * @image latex FCFMainButtonMenu.png "The Button Menu of the Freight Car Forwarder (V2) Program"
  * @image html  FCFMainButtonMenu.png
- * @htmlonly
- * <br clear="all">
- * @endhtmlonly
+ * @n
  * There is also a work in progress message area, a  general status area, 
  * a progress meter, and several indicators.
- * @htmlonly
- * <br clear="all">
- * @endhtmlonly
+ * @n
  * @image latex FCFMainIndicators.png "The Indicators of the Freight Car Forwarder (V2) Program"
  * @image html  FCFMainIndicators.png
  * 
@@ -169,9 +164,7 @@
  * be run.  The train is selected with the "Select Train Dialog", described 
  * in Section @ref fcf_ref_selecttraindialog.
  * 
- * @htmlonly
- * <br clear="all">
- * @endhtmlonly
+ * @n
  * @image latex FCFManage1TrainDialog.png "Train Management Dialog"
  * @image html  FCFManage1TrainDialog.png
  * 
@@ -202,9 +195,7 @@
  * "slide out", shown below. The car is selected with the "Search For Cars 
  * Dialog", described in Section @ref fcf_ref_searchcarsdialog. 
  * 
- * @htmlonly
- * <br clear="all">
- * @endhtmlonly
+ * @n
  * @image latex FCFEditCarSlideout.png "Edit Car Information Slideout"
  * @image html  FCFEditCarSlideout.png
  * 

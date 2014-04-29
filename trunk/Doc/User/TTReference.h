@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 16:48:11 2014
-//  Last Modified : <140428.1554>
+//  Last Modified : <140429.1056>
 //
 //  Description	
 //
@@ -103,6 +103,8 @@
  * @subsection timetable_ref_CreateAllStationsDialog Creating the station stops for a new time table
  * 
  * Stations for a time table must all be created when the time table is
+ * @addindex "station stops, creating"
+ * @addindex "storage tracks, creating"
  * created.  Stations cannot be added or removed later.  When a new time
  * table is created the "Create All Stations Dialog", shown below,
  * is displayed to create all of the station stops.
@@ -113,6 +115,7 @@
  * @subsection timetable_ref_CreateAllCabsDialog Create All Cabs Dialog
  * 
  * Once the stations have been created, an initial set of "cabs" can be
+ * @addindex "cabs, creating"
  * created.  Commonly, cabs are only used on block switch DC layouts, but
  * the cabs can be used as with a  DCC layout as a way to associate trains
  * with different operating "crews" (operators) or just to identify
@@ -148,6 +151,7 @@
  * @section timetable_ref_addingtrains Adding Trains
  * 
  * Trains are added using the either the @c Add @c Train menu item of the
+ * @addindex "trains, creating"
  * @c Trains menu, clicking on the add train (
  * @image latex TTaddtrain.png
  * @htmlonly
@@ -178,6 +182,7 @@
  * termination stations are the station end points the train travels between.
  * 
  * The @c Schedule button selects the scheduling page of the "Create a
+ * @addindex "train, adding a schedule"
  * New Train Dialog", as shown below.  On this page, the cab can be selected 
  * and layover periods at intermediate stations can be set.  The @c Update 
  * buttons propagate the cab settings and adjust the times to allow for the 
@@ -187,6 +192,7 @@
  * @image html  TTCreateNewTrain2Small.png
  * 
  * The @c Storage button selects the storage track allocation page of the 
+ * @addindex "train, adding storage tracks"
  * "Create a New Train Dialog", as shown below.  This page lists those 
  * stations that have storage tracks available.  It only makes sense to select
  * storage tracks for intermediate stops if there is a layover or for
@@ -198,6 +204,7 @@
  * @section timetable_ref_DeletingTrains Deleting Trains
  * 
  * Trains are deleted using the @c Delete @c Train menu item of the
+ * @addindex "train, deleting"
  * @c Trains menu, clicking on the delete train (
  * @image latex TTdeletetrain.png
  * @htmlonly
@@ -211,6 +218,7 @@
  * @section timetable_ref_LinkingUnlinkingDuplicate Linking and Unlinking Duplicate Stations
  * 
  * Duplicate stations occur mostly with "out and back" type layouts
+ * @addindex "stations, duplicate, linking and unlinking"
  * where the opposite ends of the line are modeled with the same trackage
  * (usually a yard).  Duplicate stations also occur with reverse loops. In
  * all cases, these are stations which are logically different, but which
@@ -242,6 +250,7 @@
  * @section timetable_ref_AddingStationStorage Adding Station Storage Tracks
  * 
  * Storage tracks are sidings where whole trains can be stored, either
+ * @addindex "storage tracks, creating
  * during a long layover or between trips. The  @c Add @c Storage @c Track
  * menu item of the @c Stations menu, the
  * @image latex TTaddstorage.png
@@ -254,6 +263,7 @@
  * @section timetable_ref_AddingCabs Adding Cabs
  * 
  * Generally "Cabs" refer to the separate throttle controls on a block
+ * @addindex "cabs, creating"
  * switched DC layout.  They are generally non-existent with a DCC layout,
  * but virtual cabs might be used as a way of assigning crews (operators)
  * to a train or to a segment of a train's run.  Cabs are added with the
@@ -267,6 +277,7 @@
  * @section timetable_ref_HandlingNotes Handling Notes
  * 
  * Notes are brief memos about the operating rules in effect.  There is a
+ * * @addindex "notes, creating and editing"
  * single pool of notes.  Notes from this pool can be associated either
  * with a whole train or with a train at a station stop.  The notes can
  * specify schedule exceptions (eg "Daily except Saturdays, Sundays, and
@@ -328,6 +339,7 @@
  * @section timetable_ref_PrintingTimeTable Printing a Time Table
  * 
  * "Printing" a time table actually means creating a LaTeX file and
+ * @addindex "timetable, printing"
  * then processing that LaTeX file through a LaTeX processing program
  * (typically @c pdflatex).  LaTeX provides the means to produce a
  * professionally formatted document and has the means to provide things

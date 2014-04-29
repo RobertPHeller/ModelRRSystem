@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:44:09 2014
-//  Last Modified : <140423.1348>
+//  Last Modified : <140429.1129>
 //
 //  Description	
 //
@@ -113,12 +113,12 @@
  * this code is a drop-in replacement, in Tcl under Linux, for the Quick
  * BASIC code under MS-Windows included in Bruce Chubb's manual.
  * 
- * @image latex DISPExample4.png "Example 4: From Chapter 9 of C/MRI User's Manual V3.0"
+ * @image latex DISPExample4.png "Example 4: From Chapter 9 of C/MRI User's Manual V3.0" width=5in
  * @image html  DISPExample4Small.png
  * 
  * Here is the code:
  * 
- * dontinclude example4.tcl
+ * @dontinclude example4.tcl
  * @skipline # Add User code after this line
  * @until Main Loop End
  * 

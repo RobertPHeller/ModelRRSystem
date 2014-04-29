@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 16:39:59 2014
-//  Last Modified : <140428.1553>
+//  Last Modified : <140429.1049>
 //
 //  Description	
 //
@@ -62,8 +62,10 @@
  * Once the name and the two time elements have been selected, a set of at
  * least two stations need to be created.  This is done with the "Create
  * All Stations Dialog",  described in
+ * @addindex "station stops, creating"
  * Section @ref timetable_ref_CreateAllStationsDialog.  This dialog box is
  * used to create stations, which can have zero or more storage tracks. 
+ * @addindex "storage tracks, creating"
  * Storage tracks are used when a train has a long layover (and needs to
  * be "out of the way" of other traffic) or when a train terminates and
  * the train set is re-used for a different schedule, generally in the
@@ -75,6 +77,7 @@
  * 
  * After creating all of the stations, zero or more cabs can be created. 
  * Cabs are mostly for switched block DC layouts, but creating "cabs"
+ * @addindex "cabs, creating"
  * for a DCC layout is useful, since it allows for a way to visually group
  * trains operationally. Think of the cabs as a way of defining "crews"
  * (operators).  This allows for things like crew (operator) changes as
@@ -87,14 +90,15 @@
  * section of the chart has the cabs (if any), the middle part of the chart
  * has the stations, and the bottom part of the chart has the storage
  * tracks (if any).  Now we can create a train.  This is done by selecting
+ * @addindex "trains, creating"
  * either the @c Trains->Add Train menu item, clicking on the add train
  * ( 
  * @image latex TTaddtrain.png
  * @htmlonly
  * <img src="TTaddtrain.png" alt="Add Train toolbar button">
  * @endhtmlonly
- * ) toolbar button or the @c Add a new train button.  All of these display 
- * the "Create New Train Dialog", described in Section 
+ * ) toolbar button or the @c Add @c a @c new @c train button.  All of these 
+ * display the "Create New Train Dialog", described in Section 
  * @ref timetable_ref_CreateNewTrainDialog. Trains have a (common) name, 
  * a number (or symbol), a class number, an average speed, a scheduled 
  * departure time, and travel between two stations.  The train's number (or 
@@ -111,10 +115,12 @@
  * timekeeping points.
  * 
  * Once the train's basic information is set, the @c Schedule button can be
+ * @addindex "train, adding a schedule"
  * clicked.  This shifts to the schedule page, where layovers and cab
  * assignments cab be set.  The @c Update buttons propagate the
  * cab settings and adjust the times to allow for the layovers.  If the
  * train makes use of station storage tracks, the @c Storage button can
+ * @addindex "train, adding storage tracks"
  * be clicked and storage tracks selected.  When the train is fully
  * configured, the @c Done button can be clicked to actually create the
  * train.
@@ -132,7 +138,7 @@
  * <img src="TTprintTool.png" alt="Print toolbar button">
  * @endhtmlonly
  * toolbar button.  This pops up the "Print Dialog", described in Section 
- * @ref timetable_ref_PrintTimetableDialog. This dialog collects the name of 
+ * @ref timetable_ref_PrintDialog. This dialog collects the name of 
  * the LaTeX source file, and the path to the LaTeX processing programing, as 
  * well as a few other options.  It also has a button to configure how the 
  * timetable will be formatted.  
