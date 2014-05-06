@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 15:31:29 2014
-//  Last Modified : <140423.1407>
+//  Last Modified : <140506.0819>
 //
 //  Description	
 //
@@ -63,7 +63,7 @@
  *   - Chapters @ref rest_Reference and @ref locopull_Reference document the 
  *     calculator scripts, Resistor and LocoPull, that are available to help 
  *     model railroaders perform some common calculations.
- *   - Chapter @ref camera:Reference documents the camera scripts. These scripts perform 
+ *   - Chapter @ref camera_Reference documents the camera scripts. These scripts perform 
  *     various camera scene calculations that are useful for model 
  *     railroaders.
  *   - Chapters @ref dispatcher_Tutorial, @ref dispatcher_Reference, and 

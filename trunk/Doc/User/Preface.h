@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 15:29:56 2014
-//  Last Modified : <140429.1313>
+//  Last Modified : <140506.0820>
 //
 //  Description	
 //
@@ -207,7 +207,7 @@
  * <li><a class="el" href="locopull_Reference.html#locopull_Reference_Capacity">Capacity and Grade plus Curve</a></li>
  * </ol></li>
  * </ol></li>
- * <li><a class="el" href="camera_1Reference.html">Camera Programs Reference</a>
+ * <li><a class="el" href="camera_Reference.html">Camera Programs Reference</a>
  * </li>
  * <li><a class="el" href="dispatcher_Tutorial.html">Dispatcher Tutorial</a><ol type="1">
  * <li><a class="el" href="dispatcher_Tutorial.html#dispatcher_Tutorial_SimpleMode">A &quot;Simple Mode&quot; CTC Panel</a></li>

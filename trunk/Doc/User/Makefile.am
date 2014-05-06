@@ -270,6 +270,7 @@ $(USERMAN_HTML) $(USERMAN_PDF) : $(USERMAN_HS) $(USERMAN_FIGS) $(BIBLIO) \
 	for p in $(USERMAN_FIGS); do \
 	   if test ! \( -f $(USERMANHBase)/$$p \); then cp $(srcdir)/$$p $(USERMANHBase)/; fi; \
 	done
+	-rm -f $(USERMANHBase)/pages.html
 	cp $(srcdir)/$(BIBLIO) latex/
 	cp Makefile.UserManual latex/Makefile
 	make -C latex pdf
@@ -290,6 +291,7 @@ $(AZATRAX_PROG_HTML) : COPYING.h Help.h $(AZATRAX_PROG_HS) \
 	for p in $(USERMAN_AZATRAX_PROG_FIGS); do \
 	   if test ! \( -f $(AZATRAX_PROGHBase)/$$p \); then cp $(srcdir)/$$p $(AZATRAX_PROGHBase)/; fi; \
 	done
+	-rm -f $(AZATRAX_PROGHBase)/pages.html
 
 $(UNIVERSALTEST)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(UNIVERSALTEST)_Version.h
@@ -305,6 +307,7 @@ $(UNIVERSALTEST_HTML) : COPYING.h Help.h $(UNIVERSALTEST_HS) \
 	for p in $(USERMAN_AZATRAX_PROG_FIGS); do \
 	   if test ! \( -f $(UNIVERSALTESTHBase)/$$p \); then cp $(srcdir)/$$p $(UNIVERSALTESTHBase)/; fi; \
 	done
+	-rm -f $(UNIVERSALTESTHBase)/pages.html
 
 $(XPRESSNETTHROTTLE)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(XPRESSNETTHROTTLE)_Version.h
@@ -321,6 +324,7 @@ $(XPRESSNETTHROTTLE_HTML) :  COPYING.h $(XPRESSNETTHROTTLE_HS) \
 	for p in $(USERMAN_XPRESSNETTHROTTLE_FIGS); do \
 	   if test ! \( -f $(XPRESSNETTHROTTLEHBase)/$$p \); then cp $(srcdir)/$$p $(XPRESSNETTHROTTLEHBase)/; fi; \
 	done
+	-rm -f $(XPRESSNETTHROTTLEHBase)/pages.html
 
 $(GENERICTHROTTLE)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(GENERICTHROTTLE)_Version.h
@@ -337,6 +341,7 @@ $(GENERICTHROTTLE_HTML) : COPYING.h $(GENERICTHROTTLE_HS) \
 	for p in $(USERMAN_GENERICTHROTTLE_FIGS); do \
 	   if test ! \( -f $(GENERICTHROTTLEHBase)/$$p \); then cp $(srcdir)/$$p $(GENERICTHROTTLEHBase)/; fi; \
 	done
+	-rm -f $(GENERICTHROTTLEHBase)/pages.html
 
 $(TIMETABLE)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(TIMETABLE)_Version.h
@@ -353,6 +358,7 @@ $(TIMETABLE_HTML) : COPYING.h $(TIMETABLE_HS) $(TIMETABLE)_Version.h \
 	for p in $(USERMAN_TIMETABLE_FIGS); do \
 	   if test ! \( -f $(TIMETABLEHBase)/$$p \); then cp $(srcdir)/$$p $(TIMETABLEHBase)/; fi; \
 	done
+	-rm -f $(TIMETABLEHBase)/pages.html
 
 $(FCF)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(FCF)_Version.h
@@ -368,6 +374,7 @@ $(FCF_HTML) : COPYING.h $(FCF_HS) $(USERMAN_FCF_FIGS) \
 	for p in $(USERMAN_FCF_FIGS); do \
 	   if test ! \( -f $(FCFHBase)/$$p \); then cp $(srcdir)/$$p $(FCFHBase)/; fi; \
 	done
+	-rm -f $(FCFHBase)/pages.html
 
 $(CALC)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(CALC)_Version.h
@@ -383,6 +390,7 @@ $(CALC_HTML) : COPYING.h $(CALC_HS) $(USERMAN_CALC_FIGS) \
 	for p in $(USERMAN_CALC_FIGS); do \
 	   if test ! \( -f $(CALCHBase)/$$p \); then cp $(srcdir)/$$p $(CALCHBase)/; fi; \
 	done
+	-rm -f $(CALCHBase)/pages.html
 
 $(CAMERA)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(CAMERA)_Version.h
@@ -397,6 +405,7 @@ $(CAMERA_HTML) : COPYING.h $(CAMERA_HS) $(CAMERA)_Version.h \
 	for p in $(USERMAN_CAMERA_FIGS); do \
 	   if test ! \( -f $(CAMERAHBase)/$$p \); then cp $(srcdir)/$$p $(CAMERAHBase)/; fi; \
 	done
+	-rm -f $(CAMERAHBase)/pages.html
 
 $(DISPATCHER)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(DISPATCHER)_Version.h
@@ -412,6 +421,7 @@ $(DISPATCHER_HTML) : COPYING.h $(DISPATCHER_HS) $(DISPATCHER)_Version.h \
 	for p in $(USERMAN_DISPATCHER_FIGS); do \
 	   if test ! \( -f $(DISPATCHERHBase)/$$p \); then cp $(srcdir)/$$p $(DISPATCHERHBase)/; fi; \
 	done
+	-rm -f $(DISPATCHERHBase)/pages.html
 
 $(MAINPROGRAM)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(MAINPROGRAM)_Version.h
@@ -426,6 +436,7 @@ $(MAINPROGRAM_HTML) : COPYING.h $(MAINPROGRAM_HS) $(MAINPROGRAM)_Version.h \
 	for p in $(USERMAN_MAINPROGRAM_FIGS); do \
 	   if test ! \( -f $(MAINPROGRAMHBase)/$$p \); then cp $(srcdir)/$$p $(MAINPROGRAMHBase)/; fi; \
 	done
+	-rm -f $(MAINPROGRAMHBase)/pages.html
 
 install-data-hook: $(USERMAN_HTML)
 	$(INSTALL) -d $(DESTDIR)$(pkgdatadir)/$(USERMANHBase)

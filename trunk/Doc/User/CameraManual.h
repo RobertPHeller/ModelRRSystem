@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:38:47 2014
-//  Last Modified : <140420.1534>
+//  Last Modified : <140506.0820>
 //
 //  Description	
 //
@@ -31,7 +31,7 @@
 #ifndef __CAMERAMANUAL_H
 #define __CAMERAMANUAL_H
 
-/** @page camera:Reference Camera Programs Reference
+/** @page camera_Reference Camera Programs Reference
  * AnyDistance and Closest compute the view angle in both real and scale
  * units. It also computes the effective scale of the imaging plane, such
  * as the size of a 35mm slide, which might be used as a transparency for
@@ -61,7 +61,7 @@
  * 
  * @f{eqnarray*}{
  * W_{view} &=& \mbox{The scale view width.}\\
- * D &=& \mbox{The distance from the scene and the camera lens.}\\
+ * D &=& \mbox{The distance between the scene and the camera lens.}\\
  * S &=& \mbox{The model scale factor.}\\
  * \mbox{and} \\
  * \theta &=& \mbox{The lens view angle.}
