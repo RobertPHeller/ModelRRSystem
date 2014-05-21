@@ -174,7 +174,6 @@ fi
 AM_PROG_LIBTOOL
 AX_PKG_DOXYGEN(1.6.0, [], [ AC_MSG_ERROR([DOXYGEN 1.6.0 or later is required to build..]) ])
 AC_PATH_PROG(PDFLATEX,pdflatex,/bin/true)
-AC_PATH_PROGS(HTLATEX,[htlatex htlatex.sh],/bin/true)
 AC_PATH_PROG(LATEX,latex,/bin/true)
 AC_PATH_PROG(MAKEINDEX,makeindex,/bin/true)
 AC_PATH_PROG(BIBTEX,bibtex,/bin/true)
@@ -680,6 +679,7 @@ AC_CONFIG_FILES([config_tcl.sed \
 		Doc/doxygen/Doxyfile \
 		Doc/doxygen/tcldoxyfilter.sh \
 		Doc/ProgrammingGuides/Makefile \
+		Doc/ProgrammingGuides/Doxyfile.SampleCode \
 		Doc/ApplicationNotes/Makefile \
 	  Installer/Makefile \
 	  intl/Makefile \

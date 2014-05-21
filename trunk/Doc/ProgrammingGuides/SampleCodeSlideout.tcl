@@ -38,16 +38,14 @@
 
 # $Id$
 
-package require BWFileEntry;#		Load FileEntry code.
-package require BWLabelComboBox;#	Load LabelComboBox code.
-package require BWLabelSpinBox;#	Load LabelSpinBox code.
-package require LabelSelectColor;#	Load LabelSelectColor code.
+package require LabelFrames;# Label<mumble> (LabelEntry, LabelSpinBox, LabelComboBox)
 
 # Populate the sample slideout with various LabelEntry like
 # Widgets.  These widgets all have a Label and some kind of 
 # Entry-like widget for gathering some sort of user input.
 
-namespace eval SampleCode {
+namespace eval SampleCode {}
+proc SampleCode::SampleCodeSlideout {} {
   variable Slideout
 
   # FileEntry widgets are used to get file and directory
@@ -56,7 +54,7 @@ namespace eval SampleCode {
   # information to, and directories (folders).
   #
   # First an old file:
-  pack [FileEntry::create $Slideout.oldfile \
+  pack [FileEntry $Slideout.oldfile \
 		-label "Old file:" -labelwidth 20\
 		-filedialog open -defaultextension .text \
 		-filetypes {
@@ -64,7 +62,7 @@ namespace eval SampleCode {
 			{{All Files}  *            }}] \
 	-fill x
   # Second a new file:
-  pack [FileEntry::create $Slideout.newfile \
+  pack [FileEntry $Slideout.newfile \
 		-label "New file:" -labelwidth 20\
 		-filedialog save -defaultextension .text \
 		-filetypes {
@@ -72,22 +70,22 @@ namespace eval SampleCode {
 			{{All Files}  *            }}] \
 	-fill x
   # Finally, a directory:
-  pack [FileEntry::create $Slideout.directory \
+  pack [FileEntry $Slideout.directory \
 		-label "Directory:" -labelwidth 20\
 		-filedialog directory] -fill x
   # A LabelComboBox would be used for selecting 
   # from a list of values.
-  pack [LabelComboBox::create $Slideout.combo \
+  pack [LabelComboBox $Slideout.combo \
 		-label "Pick one:" -labelwidth 20\
 		-values {A B C D}] -fill x
   # A LabelSpinBox would be usually be used for 
   # selecting a number from a range.
-  pack [LabelSpinBox::create $Slideout.spin \
+  pack [LabelSpinBox $Slideout.spin \
 		-label "Pick a value:" -labelwidth 20\
 		-range {1 10 1}] -fill x
   # A LabelSelectColor would be used to select a
   # color.
-  pack [LabelSelectColor::create $Slideout.color \
+  pack [LabelSelectColor $Slideout.color \
   		-label "Choose a color:" -labelwidth 20] \
 	-fill x
 }

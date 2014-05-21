@@ -41,19 +41,45 @@
 package require Instruments 2.0
 
 namespace eval SampleCode {
-  variable Main
-  variable InstrumentPanelSlide [$Main slideout add instrumentPanel]
-  proc ToggleInstrumentPanelSlide {} {
+}
+proc SampleCode::ToggleInstrumentPanelSlide {} {
     variable InstrumentPanelSlideState
     variable Main
     $Main slideout $InstrumentPanelSlideState instrumentPanel
-  }
+}
+proc SampleCode::UpdateRTClock {} {
+    variable Clock
+    scan [::clock format [::clock scan now] -format %R] \
+	 {%2d:%2d} hour minute
+    $Clock settime $hour  $minute
+    after 60000 SampleCode::UpdateRTClock
+}
+proc SampleCode::UpdateFastClock {} {
+    variable fastHours
+    variable fastMinutes
+    variable realMillisecsPerFastMinute
+    variable FastClock
+    incr fastMinutes
+    if {$fastMinutes > 59} {
+      incr fastHours
+      set fastMinutes 0
+      if {$fastHours > 12} {
+	set fastHours 1
+      }
+    }
+    $FastClock settime $fastHours $fastMinutes
+    after $realMillisecsPerFastMinute SampleCode::UpdateFastClock
+}
+
+proc SampleCode::SampleCodeInstrumentPanel {} {
+  variable Main
+  variable InstrumentPanelSlide [$Main slideout add instrumentPanel]
   variable InstrumentPanelSlideState hide
   $Main menu add view checkbutton -label "Instrument Panel" \
 	-variable ::SampleCode::InstrumentPanelSlideState \
 	-onvalue show -offvalue hide \
 	-command ::SampleCode::ToggleInstrumentPanelSlide
-  set sw [ScrolledWindow::create $InstrumentPanelSlide.sw \
+  set sw [ScrolledWindow $InstrumentPanelSlide.sw \
 		-scrollbar both -auto both]
   pack $sw -expand yes -fill both
   variable InstrumentPanelCanvas [canvas $sw.canvas \
@@ -62,7 +88,6 @@ namespace eval SampleCode {
 					-borderwidth 0 \
 					-relief flat \
 					-background white]
-  pack $InstrumentPanelCanvas -expand yes -fill both
   $sw setwidget $InstrumentPanelCanvas
 
   variable Voltmeter [Instruments::DialInstrument \
@@ -87,34 +112,11 @@ namespace eval SampleCode {
 		-x 105 -y 125 -size 90 \
 		-label {Fast Clock}]
 
-  proc UpdateRTClock {} {
-    variable Clock
-    scan [::clock format [::clock scan now] -format %R] \
-	 {%2d:%2d} hour minute
-    $Clock settime $hour  $minute
-    after 60000 SampleCode::UpdateRTClock
-  }
   UpdateRTClock
   variable fastHours 12
   variable fastMinutes 0
   variable FTFactor 8
   variable realMillisecsPerFastMinute [expr {(60*1000)/$FTFactor}]
-  proc UpdateFastClock {} {
-    variable fastHours
-    variable fastMinutes
-    variable realMillisecsPerFastMinute
-    variable FastClock
-    incr fastMinutes
-    if {$fastMinutes > 59} {
-      incr fastHours
-      set fastMinutes 0
-      if {$fastHours > 12} {
-	set fastHours 1
-      }
-    }
-    $FastClock settime $fastHours $fastMinutes
-    after $realMillisecsPerFastMinute SampleCode::UpdateFastClock
-  }
   UpdateFastClock  
 }
 

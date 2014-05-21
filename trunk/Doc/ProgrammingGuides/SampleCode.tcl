@@ -42,7 +42,6 @@
 set argv0 [info nameofexecutable]
 
 package require Tk;#		Include Tk
-package require BWidget;#	Include BWidget
 package require snit;#		Include Snit
 package require Splash;#	Splash screen module
 
@@ -92,18 +91,22 @@ update idle
 catch {SplashWorkMessage {Creating Main Window} 11}
 
 package require SampleCodeMain
+SampleCode::SampleCodeMain
 
 catch {SplashWorkMessage {Create CTC Panel} 22}
 
 package require SampleCodeCTCPanel
+SampleCode::CTCPanel::SampleCodeCTCPanel
 
 catch {SplashWorkMessage {Create Configutation} 33}
 
 package require SampleCodeRC
+SampleCode::Configuration::SampleCodeRC
 
 catch {SplashWorkMessage {Populate Slideout} 44}
 
 package require SampleCodeSlideout 
+SampleCode::SampleCodeSlideout
 
 catch {SplashWorkMessage {LoadCircle Code} 55}
 
@@ -124,6 +127,7 @@ Circle bindtocanvas $SampleCode::CanvasWindow <1> {
 catch {SplashWorkMessage {Create Instrument Panel} 66}
 
 package require SampleCodeInstrumentPanel
+SampleCode::SampleCodeInstrumentPanel
 
 catch {SplashWorkMessage {Done} 100}
 

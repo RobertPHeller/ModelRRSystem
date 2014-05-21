@@ -50,6 +50,7 @@
 
 SUFFIXES        = .tex .sty
 
+
 SampleCodePackages = SampleCodeMain.tcl SampleCodeCTCPanel.tcl \
 			SampleCodeRC.tcl SampleCodeSlideout.tcl \
 			SampleCodeInstrumentPanel.tcl SampleCodeCircle.tcl
@@ -81,7 +82,7 @@ CLEANFILES = LocoTest.tcl ProgrammingGuide.pdf *.aux *.bbl *.blg *.idx *.ilg \
 
 pkgdata_DATA = $(PROGRAMMINGGUIDE_PDF) SampleCode.tcl \
 	$(SampleCodePackages) fig9-5.tcl fig12-13.tcl \
-	fig14-5.tcl SampleCode.tex
+	fig14-5.tcl SampleCode.h
 
 EXTRA_DIST = $(PROGRAMMINGGUIDE_TEXS)  $(PROGRAMMINGGUIDE_FIGS)
 
@@ -116,18 +117,6 @@ $(PROGRAMMINGGUIDE_PDF) : $(PROGRAMMINGGUIDE_TEXS) $(BIBLIO)  \
 	$(MAKEINDEX) $(PROGRAMMINGGUIDE).idx
 	$(PDFLATEX) $(PROGRAMMINGGUIDE)
 
-#$(PROGRAMMINGGUIDE_HTML) : $(PROGRAMMINGGUIDE_PDF)
-#	-rm -rf $(PROGRAMMINGGUIDEHBase)
-#	-mkdir $(PROGRAMMINGGUIDEHBase)
-#	$(HTLATEX) $(PROGRAMMINGGUIDE) "html,2,info" "" \
-#		"-d$(PROGRAMMINGGUIDEHBase)/"
-#	(cd $(PROGRAMMINGGUIDEHBase)&&ln -s ../*.png ./)
-#	-rm -f zz$(PROGRAMMINGGUIDE).p* $(PROGRAMMINGGUIDE).4ct \
-#		$(PROGRAMMINGGUIDE).xref $(PROGRAMMINGGUIDE).4tc tex4ht.fls \
-#		$(PROGRAMMINGGUIDE).tmp $(PROGRAMMINGGUIDE).lg \
-#		$(PROGRAMMINGGUIDE).idv $(PROGRAMMINGGUIDE).dvi \
-#		$(PROGRAMMINGGUIDE)*.html
-
 SampleCodeScripts = $(top_srcdir)/Scripts/Common/CTCPanel2.tcl \
 		    $(top_srcdir)/Scripts/Common/ReadConfiguration.tcl \
 		    $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif \
@@ -135,46 +124,43 @@ SampleCodeScripts = $(top_srcdir)/Scripts/Common/CTCPanel2.tcl \
 		    $(top_srcdir)/Scripts/Common/close.gif \
 		    $(top_srcdir)/Scripts/Common/save.gif \
 		    $(top_srcdir)/Scripts/Common/print.gif \
-		    $(top_srcdir)/Scripts/Common/BWStdMenuBar.tcl \
-		    $(top_srcdir)/Scripts/Common/HTMLHelp.tcl \
-		    $(top_srcdir)/Scripts/Common/panedw.tcl \
+		    $(top_srcdir)/Scripts/Common/unknown.xpm \
+		    $(top_srcdir)/Scripts/Common/openfold.png \
+		    $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+		    $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
 		    $(top_srcdir)/Scripts/Common/splash.tcl \
 		    $(top_srcdir)/Scripts/Common/mainwindow.tcl \
-		    $(top_srcdir)/Scripts/Common/labelcombobox.tcl \
-		    $(top_srcdir)/Scripts/Common/labelspinbox.tcl \
-		    $(top_srcdir)/Scripts/Common/labelselectcolor.tcl \
-		    $(top_srcdir)/Scripts/Common/fileentry.tcl \
+		    $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+		    $(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+		    $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+		    $(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+		    $(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+		    $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+		    $(top_srcdir)/Scripts/Common/gettext.tcl \
+		    $(top_srcdir)/Scripts/Common/snitdialog.tcl \
 		    $(top_srcdir)/Scripts/GRSupport/grsupport2.tcl \
 		    $(top_srcdir)/Scripts/GRSupport/Instruments2.tcl
 
-SampleCodeHelpDep = SampleCodeDoc/SampleCode.html
+SampleCodeHelpDep = SampleCodeDoc/index.html
 SampleCodeHelpFiles = SampleCodeDoc/*
 
-SampleCode_Version.tex: $(top_builddir)/config.status
-	echo '\chapter*{Version}'               >SampleCode_Version.tex
-	echo '\addcontentsline{toc}{chapter}{Version}' \
-						>>SampleCode_Version.tex
-	echo '\markboth{Version}{Version}	>>SampleCode_Version.tex
-	echo "System patch level is $(MRR_PATCH_LEVEL).\\\\" \
-						>>SampleCode_Version.tex
+SampleCode_Version.h : $(top_builddir)/config.status
+	echo '/** @page Version Version' >SampleCode_Version.h
+	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>SampleCode_Version.h
+	echo "  */" >>SampleCode_Version.h
 
 
-SampleCodeDoc/SampleCode.html : SampleCode.tex ../User/Help.tex \
-	../User/COPYING.tex SampleCode_Version.tex
-	-ln -s $(srcdir)/SampleCode.tex ./
-	-ln -s $(srcdir)/../User/Help.tex ./
-	-ln -s $(srcdir)/../User/COPYING.tex ./
-	-rm -rf SampleCodeDoc
-	-mkdir SampleCodeDoc
-	$(HTLATEX) SampleCode "html,4,info" "" "-dSampleCodeDoc/"
-	-rm -f zzSampleCode.p* SampleCode.4ct SampleCode.xref SampleCode.4tc \
-		tex4ht.fls SampleCode.tmp SampleCode.lg SampleCode.idv \
-		SampleCode.dvi SampleCode*.html
+SampleCodeDoc/index.html : SampleCode.h Doxyfile.SampleCode \
+		SampleCode_Version.h
+	-rm -rf SampleCode/
+	$(DOXYGEN) Doxyfile.SampleCode
+	-rm -f SampleCode/pages.html
 
-EXTRA_DIST += SampleCode.tcl $(SampleCodePackages) SampleCode.tex
+EXTRA_DIST += SampleCode.tcl $(SampleCodePackages) SampleCode.h \
+		Doxyfile.SampleCode.in
 
 SampleCode${EXEEXT}: SampleCode.tcl $(SampleCodeScripts) $(SampleCodeHelpDep) \
-		SamplePkgIndex.tcl $(SampleCodePackages)
+		$(SampleCodePackages)
 	-rm -rf SampleCode.kit
 	-rm -rf SampleCode.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/SampleCode.tcl
@@ -188,9 +174,10 @@ SampleCode${EXEEXT}: SampleCode.tcl $(SampleCodeScripts) $(SampleCodeHelpDep) \
 		lib/Common $(SampleCodeScripts)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit SampleCode \
 		Common
-	cat SamplePkgIndex.tcl >>SampleCode.vfs/lib/Common/pkgIndex.tcl
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) SampleCode \
-		lib/Common $(SampleCodePackages)
+		lib/SampleCode $(SampleCodePackages)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit SampleCode \
+	        SampleCode
 	$(UNZIP) -qq -d SampleCode.vfs/lib \
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SampleCode \

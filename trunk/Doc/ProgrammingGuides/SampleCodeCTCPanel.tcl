@@ -38,7 +38,72 @@
 
 package require CTCPanel 2.0;#	Include CTCPanel V2.0
 
-namespace eval SampleCode::CTCPanel {
+namespace eval SampleCode::CTCPanel {}
+  # Procedure bound to the switch plate commands.
+  proc SampleCode::CTCPanel::SetSwitchSP1 {state} {
+    variable CTCPanel
+    # Just move the switch's points.
+    $CTCPanel setv IndustrySwitch $state
+    # And set the indicators.
+    switch $state {
+      Normal {
+	$CTCPanel seti SP1Switch N on
+	$CTCPanel seti SP1Switch R off
+      }
+      Reverse {
+	$CTCPanel seti SP1Switch R on
+	$CTCPanel seti SP1Switch N off
+      }
+    }
+  }
+  # Procedure bound to the signal plate commands
+  proc SampleCode::CTCPanel::SetSignalSP1 {state} {
+    variable CTCPanel
+    # Set the signal indicator lamps.
+    switch $state {
+      Left {
+	$CTCPanel seti SP1Signal L on
+	$CTCPanel seti SP1Signal R off
+	$CTCPanel seti SP1Signal C off
+      }
+      Right {
+	$CTCPanel seti SP1Signal L off
+	$CTCPanel seti SP1Signal R on
+	$CTCPanel seti SP1Signal C off
+      }
+      Center {
+	$CTCPanel seti SP1Signal L off
+	$CTCPanel seti SP1Signal R off
+	$CTCPanel seti SP1Signal C on
+      }
+    }
+  }
+  # Procedure bound to the code button
+  proc SampleCode::CTCPanel::CodeSP1 {} {
+    variable CTCPanel
+    # Check if the switch is occupied 
+    # (and fetch any state feedback).
+    if {[$CTCPanel invoke IndustrySwitch]} {
+      # Switch is occupied: controls are disabled.
+      $CTCPanel setv SP1Signal Center
+      $CTCPanel invoke SP1Signal
+      return false
+    } else {
+      # If the switch is not occupied, invoke 
+      # the switch and signal plates.
+      $CTCPanel invoke SP1Switch
+      $CTCPanel invoke SP1Signal
+      return true
+    }
+  }
+  # procedure to show the CTC Panel.
+  proc SampleCode::CTCPanel::ShowCTCPanel {} {
+    variable CTCPanelTL
+    wm deiconify $CTCPanelTL
+  }
+
+proc SampleCode::CTCPanel::SampleCodeCTCPanel {} {
+  
   $::SampleCode::Main menu add view command \
 		-label CTCPanel \
 		-command ::SampleCode::CTCPanel::ShowCTCPanel
@@ -56,7 +121,7 @@ namespace eval SampleCode::CTCPanel {
   # With a toolbar
   set panelToolbar [$panelMain addtoolbar]
   # Close button
-  pack [Button $panelToolbar.close \
+  pack [ttk::button $panelToolbar.close \
 		-image CloseButtonImage \
 		-command "wm withdraw $CTCPanelTL"] \
 	-side  right
@@ -82,23 +147,6 @@ namespace eval SampleCode::CTCPanel {
 		-x 150 -y 50 -controlpoint SP1 \
 		-label "SP1"
 
-  # Procedure bound to the switch plate commands.
-  proc SetSwitchSP1 {state} {
-    variable CTCPanel
-    # Just move the switch's points.
-    $CTCPanel setv IndustrySwitch $state
-    # And set the indicators.
-    switch $state {
-      Normal {
-	$CTCPanel seti SP1Switch N on
-	$CTCPanel seti SP1Switch R off
-      }
-      Reverse {
-	$CTCPanel seti SP1Switch R on
-	$CTCPanel seti SP1Switch N off
-      }
-    }
-  }
   # The Switch Plate
   $CTCPanel create SWPlate SP1Switch \
 	-x 150 -y 75 -controlpoint SP1 \
@@ -108,28 +156,6 @@ namespace eval SampleCode::CTCPanel {
 	-reversecommand \
 	"::SampleCode::CTCPanel::SetSwitchSP1 Reverse"
 
-  # Procedure bound to the signal plate commands
-  proc SetSignalSP1 {state} {
-    variable CTCPanel
-    # Set the signal indicator lamps.
-    switch $state {
-      Left {
-	$CTCPanel seti SP1Signal L on
-	$CTCPanel seti SP1Signal R off
-	$CTCPanel seti SP1Signal C off
-      }
-      Right {
-	$CTCPanel seti SP1Signal L off
-	$CTCPanel seti SP1Signal R on
-	$CTCPanel seti SP1Signal C off
-      }
-      Center {
-	$CTCPanel seti SP1Signal L off
-	$CTCPanel seti SP1Signal R off
-	$CTCPanel seti SP1Signal C on
-      }
-    }
-  }
   # The signal plate
   $CTCPanel create SIGPlate SP1Signal -x 150 -y 150 \
 	-controlpoint SP1 \
@@ -141,24 +167,6 @@ namespace eval SampleCode::CTCPanel {
 	-centercommand \
 	    "::SampleCode::CTCPanel::SetSignalSP1 Center"
   
-  # Procedure bound to the code button
-  proc CodeSP1 {} {
-    variable CTCPanel
-    # Check if the switch is occupied 
-    # (and fetch any state feedback).
-    if {[$CTCPanel invoke IndustrySwitch]} {
-      # Switch is occupied: controls are disabled.
-      $CTCPanel setv SP1Signal Center
-      $CTCPanel invoke SP1Signal
-      return false
-    } else {
-      # If the switch is not occupied, invoke 
-      # the switch and signal plates.
-      $CTCPanel invoke SP1Switch
-      $CTCPanel invoke SP1Signal
-      return true
-    }
-  }
   # The code button
   $CTCPanel create CodeButton SP1Code -x 250 -y 150 \
 	-controlpoint SP1 \
@@ -169,7 +177,7 @@ namespace eval SampleCode::CTCPanel {
 	-controlpoint SP1 -label "SP1"
 
   # Initialize the control point
-  CodeSP1
+  ::SampleCode::CTCPanel::CodeSP1
 
   # Control Point Block15:
   # Just a block of the main line east.
@@ -192,11 +200,6 @@ namespace eval SampleCode::CTCPanel {
 		-x1 $isx1 -x2 $isx2 -y1 $isy -y2 $isy \
 		-controlpoint Spur1 -label "Spur 1"
 
-  # procedure to show the CTC Panel.
-  proc ShowCTCPanel {} {
-    variable CTCPanelTL
-    wm deiconify $CTCPanelTL
-  }
 }
 
 package provide SampleCodeCTCPanel 1.0

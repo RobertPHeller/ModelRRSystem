@@ -60,6 +60,7 @@ package require Tk
 package require tile
 package require LabelFrames
 package require Dialog
+package require HTMLHelp 2.0
 
 namespace eval ReadConfiguration {
 ## The Read Configuration File code is contained in this namespace.
@@ -215,7 +216,7 @@ snit::macro ::ReadConfiguration::ConfigurationType {args} {
       if {![string equal "$_EditDialog" {}] && 
 	  [winfo exists $_EditDialog]} {return}
       # Build dialog box
-      set _EditDialog [Dialog::create .configuration \
+      set _EditDialog [Dialog .configuration \
 				-bitmap questhead \
 				-title "Edit Configuration" \
 				-modal local \
@@ -223,20 +224,20 @@ snit::macro ::ReadConfiguration::ConfigurationType {args} {
 				-default 0 -cancel 2 \
 				-parent . -side bottom]
       # Dialog buttons
-      $_EditDialog add -name ok \
+      $_EditDialog add ok \
 		       -text OK \
 		       -command [mytypemethod _OK]
-      $_EditDialog add -name apply \
+      $_EditDialog add apply \
 		       -text Apply \
 		       -command [mytypemethod _Apply]
-      $_EditDialog add -name cancel \
+      $_EditDialog add cancel \
 		       -text Cancel \
 		       -command [mytypemethod _Cancel]
       wm protocol [winfo toplevel $_EditDialog] \
 		WM_DELETE_WINDOW [mytypemethod _Cancel]
-      $_EditDialog add -name help \
+      $_EditDialog add help \
 		       -text Help \
-		       -command "HTMLHelp::HTMLHelp help {Edit Configuration}"
+		       -command "HTMLHelp help {Edit Configuration}"
       # Dialog frame
       set frame [$_EditDialog  getframe]
   }
@@ -306,11 +307,9 @@ snit::macro ::ReadConfiguration::ConfigurationType {args} {
 		-editable no \
 		-values \{$opt\}\] \n\
 	  pack \$$tc -fill x\n\
-	  \$$tc setvalue @\[lsearch -exact \{$opt\}\ \
-				    \"\$_Configuration($an)\"\]"
+	  \$$tc set \"\$_Configuration($an)\""
         append updateBody "\n\
-	  \$$tc setvalue @\[lsearch -exact \{$opt\}\ \
-				    \"\$_Configuration($an)\"\]"
+	  \$$tc set \"\$_Configuration($an)\""
       }
       double {
 	append createDialogBody "\n\
@@ -352,11 +351,9 @@ snit::macro ::ReadConfiguration::ConfigurationType {args} {
 		-editable no \
 		-values \{true false\}\] \n\
 	  pack \$$tc -fill x\n\
-	  \$$tc setvalue @\[lsearch -exact \{true false\}\ \
-				    \"\$_Configuration($an)\"\]"
+	  \$$tc set \"\$_Configuration($an)\""
         append updateBody "\n\
-	  \$$tc setvalue @\[lsearch -exact \{true false\}\ \
-				    \"\$_Configuration($an)\"\]"
+	  \$$tc set \"\$_Configuration($an)\""
       }
       default -
       string {
@@ -419,21 +416,21 @@ snit::macro ::ReadConfiguration::ConfigurationType {args} {
     $type _UpdateDialog
     wm transient [winfo toplevel $_EditDialog] \
 	   [$_EditDialog cget -parent]
-    return [Dialog::draw $_EditDialog]
+    return [$_EditDialog draw]
   }
   # typemethod bound to the OK button
   typemethod _OK {} {
     $type _Apply
-    Dialog::withdraw $_EditDialog
-    return [Dialog::enddialog $_EditDialog ok]
+    $_EditDialog withdraw
+    return [$_EditDialog enddialog ok]
   }
   # typemethod bound to the Apply button
 #  puts stderr "*** macro ReadConfiguration::ConfigurationType: applyBody = $applyBody"
   typemethod _Apply {} $applyBody
   # typemethod bound to the Cancel button
   typemethod _Cancel {} {
-    Dialog::withdraw $_EditDialog
-    return [Dialog::enddialog $_EditDialog cancel]
+    $_EditDialog withdraw
+    return [$_EditDialog enddialog cancel]
   }
   # type method to fetch a keyed option
   typemethod getkeyoption {name key} {

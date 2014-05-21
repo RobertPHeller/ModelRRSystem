@@ -40,14 +40,14 @@
 #* 
 
 package require Tk
-package require BWidget
 package require snit
-package require BWStdMenuBar;#	Standard Menu Bar
-package require HTMLHelp;#	Help package
-package require DWpanedw;#	Modified paned window
+package require snitStdMenuBar;#	Standard Menu Bar
+package require HTMLHelp 2.0;#	Help package
 package require MainWindow;#	Main Window package
 
-namespace eval SampleCode {
+namespace eval SampleCode {}
+
+proc SampleCode::SampleCodeMain {} {
 
   wm protocol . WM_DELETE_WINDOW {SampleCode::CarefulExit}
   wm title . "Sample Code"
@@ -77,22 +77,19 @@ namespace eval SampleCode {
 				-command SampleCode::CarefulExit
   set MainWindow [$Main scrollwindow getframe]
   # Create a canvas window
-  pack [set CanvasWindow [canvas $MainWindow.canvas -background white]] -fill both -expand yes
+  set CanvasWindow [canvas $MainWindow.canvas -background white]
   $Main scrollwindow setwidget $CanvasWindow
   # Add a 'slideout'
   variable Slideout [$Main slideout add sampleslide]
   # Add some buttons to the Button box
-  $Main buttons add -name showslide \
+  $Main buttons add ttk::button showslide \
 		    -text "Show Slideout" \
-		    -helptext "Show the sample slideout" \
 		    -command "$Main slideout show sampleslide"
-  $Main buttons add -name hideslide \
+  $Main buttons add ttk::button hideslide \
 		    -text "Hide Slideout" \
-		    -helptext "Hide the sample slideout" \
 		    -command "$Main slideout hide sampleslide"
-  $Main buttons add -name testB1 \
+  $Main buttons add ttk::button testB1 \
 		    -text "Test Button 1" \
-		    -helptext "Just a test button" \
 		    -command {tk_messageBox -type ok \
 					    -icon info \
 					    -message "Testing"}
@@ -101,21 +98,21 @@ namespace eval SampleCode {
   $Main menu delete help "Index..."
   $Main menu add help command \
         -label "Reference Manual" \
-        -command "::HTMLHelp::HTMLHelp help {Sample Reference}"
+        -command "HTMLHelp help {Sample Reference}"
   $Main menu entryconfigure help "On Help..." \
-	-command "::HTMLHelp::HTMLHelp help Help"
+	-command "HTMLHelp help Help"
   $Main menu entryconfigure help "Tutorial..." \
-	-command "::HTMLHelp::HTMLHelp help {Sample Tutorial}"
+	-command "HTMLHelp help {Sample Tutorial}"
   $Main menu entryconfigure help "On Version" \
-	-command "::HTMLHelp::HTMLHelp help Version"
+	-command "HTMLHelp help Version"
   $Main menu entryconfigure help "Copying" \
-	-command "::HTMLHelp::HTMLHelp help Copying"
+	-command "HTMLHelp help Copying"
   $Main menu entryconfigure help "Warranty" \
-	-command "::HTMLHelp::HTMLHelp help Warranty"
+	-command "HTMLHelp help Warranty"
 
 
 
-  HTMLHelp::HTMLHelp setDefaults "$::HelpDir" "SampleCodeli1.html"
+  HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
 
 }
 

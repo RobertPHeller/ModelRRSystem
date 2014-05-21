@@ -37,7 +37,7 @@
 
 package require snit;#	Load the snit package
 package require Tk;#	Load the Tk package
-package require BWidget;# BWidget Code
+package require tile;# BWidget Code
 package require grsupport 2.0;#	Load V2 Graphics Support package.
 
 snit::type Circle {

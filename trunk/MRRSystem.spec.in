@@ -8,10 +8,10 @@ URL: http://www.deepsoft.com/ModelRailroadSystem
 Source: ftp://ftp.deepsoft.com/pub/deepwoods/Products/MRRSystem/@PACKAGE@-@VERSION@.tar.gz
 BuildRoot: /var/tmp/%{name}-root
 BuildRequires: doxygen >= 1.6.0, tcl-devel >= 8.4, bison++, swig >= 1.3
-BuildRequires: libusb1-devel >= 1.0, bwidget, tcllib, gcc >= 3.4, gcc-c++
+BuildRequires: libusb1-devel >= 1.0, tcllib, gcc >= 3.4, gcc-c++
 BuildRequires: libstdc++-devel, glibc-devel, unzip
 BuildRequires: boost-devel, libtool, automake, autoconf, tetex-latex, 
-BuildRequires: tex4ht gettext gettext-devel
+BuildRequires: gettext gettext-devel
 # Suppress striping executables -- preserve my starkits! 
 %define __strip /bin/true
 %description

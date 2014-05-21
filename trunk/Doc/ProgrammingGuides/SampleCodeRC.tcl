@@ -40,17 +40,6 @@ package require ReadConfiguration;#	Load configuration code
 
 
 namespace eval SampleCode::Configuration {
-  # Add menu items
-  $::SampleCode::Main menu add options command \
-	-label "Edit Configuration" \
-	-command "::SampleCode::Configuration::Configuration edit"
-  $::SampleCode::Main menu add options command \
-	-label "Save Configuration" \
-	-command "::SampleCode::Configuration::Configuration save"
-  $::SampleCode::Main menu add options command \
-	-label "Load Configuration" \
-	-command "::SampleCode::Configuration::Configuration load"
-
   # Create the configuration object.
   snit::type Configuration {
     ReadConfiguration::ConfigurationType \
@@ -63,5 +52,17 @@ namespace eval SampleCode::Configuration {
   }
 }
 
+proc SampleCode::Configuration::SampleCodeRC {} {
+  # Add menu items
+  $::SampleCode::Main menu add options command \
+	-label "Edit Configuration" \
+	-command "::SampleCode::Configuration::Configuration edit"
+  $::SampleCode::Main menu add options command \
+	-label "Save Configuration" \
+	-command "::SampleCode::Configuration::Configuration save"
+  $::SampleCode::Main menu add options command \
+	-label "Load Configuration" \
+	-command "::SampleCode::Configuration::Configuration load"
+}
 
 package provide SampleCodeRC 1.0
