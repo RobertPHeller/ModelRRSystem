@@ -186,7 +186,13 @@ AX_PKG_SWIG(1.3)
 AX_SWIG_ENABLE_CXX
 AC_PATH_PROG(BISONXX,bison++,/bin/true)
 
+
 AM_CONDITIONAL(DONT_HAVE_BISONXX,test $BISONXX = /bin/true)
+
+if test $BISONXX = /bin/true; then
+  AC_MSG_WARN([You don't have bison++ installed, not going to build XtrkCAD parser])
+fi
+
 dnl Checks for libraries.
 
 PKG_PROG_PKG_CONFIG()
@@ -212,7 +218,7 @@ if test ${have_libusb1} = "yes"; then
   libusbVer=`pkg-config --modversion libusb-1.0`
   AC_MSG_RESULT([libusb Version is $libusbVer])
 else
-  AC_MSG_RESULT([You don't have libusb-1.0 installed, some parts of the system won't be built.])
+  AC_MSG_WARN([You don't have libusb-1.0 installed, some parts of the system won't be built.])
 fi
 
 AM_CONDITIONAL(DONT_HAVE_USB,test x$LIBUSB_CFLAGS = "x")
