@@ -9,7 +9,7 @@ Tue Nov  4 11:50:23 2014
     Minor update to the GenericThrottle Makefile.
     Minor bugfix in snitCabWidgets.tcl.
     Fix bugs in Azatrax (Tcl) code.
-    Updated Makefiles new manual build.
+    Updated Makefiles for new manual build.
     Rewrite user manual using Doxygen instead of straight LaTeX (vastly 
        improves generated HTML for internal help).
 
