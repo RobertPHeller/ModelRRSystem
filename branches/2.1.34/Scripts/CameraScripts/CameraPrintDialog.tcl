@@ -114,9 +114,9 @@ namespace eval CameraPrintDialog {
 			     -value Printer \
 			     -command [mytypemethod _TogglePrintDev] \
 			     -variable [mytypevar _PrintCanvasOutputDevice]] \
-	-side left -expand yes -fill x
+	-side left -expand no -fill x
       set printE $prframe.entry
-      pack [ttk::entry $printE] -side left -fill x
+      pack [ttk::entry $printE] -side left -fill x -expand yes
       set printB $prframe.button
       pack [ttk::button $printB -text [_m "Button|Browse"] \
 				   -command [mytypemethod _BrowsePrinters]] \
@@ -129,9 +129,9 @@ namespace eval CameraPrintDialog {
 			     -value File \
 			     -command [mytypemethod _TogglePrintDev] \
 			     -variable [mytypevar _PrintCanvasOutputDevice]] \
-	-side left -expand yes -fill x
+	-side left -expand no -fill x
       set fileE $fiframe.entry
-      pack [ttk::entry $fileE -state disabled] -side left -fill x
+      pack [ttk::entry $fileE -state disabled] -side left -fill x -expand yes
       set fileB $fiframe.button
       pack [ttk::button $fileB -text [_m "Button|Browse"] \
 				  -command [mytypemethod _BrowsePSFiles] \
@@ -216,22 +216,22 @@ namespace eval CameraPrintDialog {
       pack [LabelFrame $pageXLF -text X:] -side left -fill x
       set pageXSB [$pageXLF getframe].spinBox
       pack [spinbox $pageXSB -from 0.0 -to 612.0 -increment 1 -width 5] -fill x
-      $pageXSB configure -text 36.0
+      $pageXSB set 36.0
       set pageYLF $posFrame.yLF
       pack [LabelFrame $pageYLF -text Y:] -side left -fill x
       set pageYSB [$pageYLF getframe].spinBox
       pack [spinbox $pageYSB -from 0.0 -to 792.0 -increment 1 -width 5] -fill x
-      $pageYSB configure -text 36.0
+      $pageYSB set 36.0
       set pageWidthLF $posFrame.widthLF
       pack [LabelFrame $pageWidthLF -text [_m "Label|Width:"]] -side left -fill x
       set pageWidthSB [$pageWidthLF getframe].spinBox
       pack [spinbox $pageWidthSB -from 1 -to 612 -increment 1 -width 5 -text 612] -fill x
-      $pageWidthSB configure -text [expr {612 - 72}]
+      $pageWidthSB set [expr {612 - 72}]
       set pageHeightLF $posFrame.heightLF
       pack [LabelFrame $pageHeightLF -text [_m "Label|Height:"]] -side left -fill x
       set pageHeightSB [$pageHeightLF getframe].spinBox
       pack [spinbox $pageHeightSB -from 1 -to 792 -increment 1 -width 5 -text 792] -fill x
-      $pageHeightSB configure -text [expr {792 - 72}]
+      $pageHeightSB set [expr {792 - 72}]
     }
     typemethod createPrbDialog {} {
       if {![string equal "$prbdialog" {}] && [winfo exists $prbdialog]} {return}
@@ -301,25 +301,26 @@ namespace eval CameraPrintDialog {
         }
       }
       $printerCB configure -values $printers
-      set curprinter [$printE cget -text]
+      set curprinter [$printE get]
       if {[string equal "$curprinter" {}]} {set curprinter "$defprinter"}
       set curprindex [lsearch $printers "$curprinter"]
       set defprindex [lsearch $printers "$defprinter"]
       if {$curprindex >= 0} {
-	$printerCB setvalue @$curprindex
+	$printerCB set [lindex $printers $curprindex]
       } elseif {$defprindex >= 0} {
-	$printerCB setvalue @$defprindex
+	$printerCB set [lindex $printers $defprindex]
       } else {
-	$printerCB setvalue first
+	$printerCB set [lindex $printers 0]
       }
       switch [$prbdialog draw] {
-	ok {
-	  $printE configure -text [lindex $printers [$printerCB getvalue]]
-	}
+          ok {
+              $printE delete 0 end
+              $printE insert end [$printerCB get]
+          }
       }
     }
     typemethod _BrowsePSFiles {} {
-      set curfile "[$fileE cget -text]"
+      set curfile "[$fileE get]"
       set curdirectory [file dirname "$curfile"]
       set newfile [tk_getSaveFile -defaultextension .ps \
 				  -filetypes {
@@ -331,7 +332,8 @@ namespace eval CameraPrintDialog {
 				  -parent $dialog \
 				  -title [_ "Postscript file to save output to"]]
       if {![string equal "$newfile" {}]} {
-	$fileE configure -text "$newfile"
+         $fileE delete 0 end
+         $fileE insert end "$newfile"
       }
     }
     typemethod draw {args} {
@@ -376,7 +378,7 @@ namespace eval CameraPrintDialog {
       global tcl_platform
       switch $_PrintCanvasOutputDevice {
 	Printer {
-	  set printer "[$printE cget -text]"
+	  set printer "[$printE get]"
 	  switch -exact "$tcl_platform(platform)" {
 	    macintosh -
 	    unix {
@@ -396,20 +398,20 @@ namespace eval CameraPrintDialog {
 	  }
 	}
 	File {
-	  if {[catch {open "[$fileE cget -text]" w} printchan]} {
-	    tk_messageBox -type ok -icon error -message [format [_ "Could not open %s for output: %s"] [$fileE cget -text] $printchan]
+	  if {[catch {open "[$fileE get]" w} printchan]} {
+	    tk_messageBox -type ok -icon error -message [format [_ "Could not open %s for output: %s"] [$fileE get] $printchan]
 	    return error
 	  }
 	}
       }
       $_Canvas postscript -channel $printchan \
-		-colormode [$colormodeCB cget -text] \
-		-x [$canvasXSB cget -text] -y [$canvasYSB cget -text] \
-		-width [$canvasWidthSB cget -text] \
-		-height [$canvasHeightSB cget -text] \
-		-pagex [$pageXSB cget -text] -pagey [$pageYSB cget -text] \
-		-pagewidth [$pageWidthSB cget -text] \
-		-pageheight [$pageHeightSB cget -text] \
+		-colormode [$colormodeCB get] \
+		-x [$canvasXSB get] -y [$canvasYSB get] \
+		-width [$canvasWidthSB get] \
+		-height [$canvasHeightSB get] \
+		-pagex [$pageXSB get] -pagey [$pageYSB get] \
+		-pagewidth [$pageWidthSB get] \
+		-pageheight [$pageHeightSB get] \
 		-pageanchor $_PrintCanvasAnchor
       close $printchan
       return $result
