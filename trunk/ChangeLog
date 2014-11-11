@@ -1,3 +1,18 @@
+Tue Nov  4 11:50:23 2014
+
+  2.1.34 Release Candidate:
+
+    Fix camera script print dialog
+    Update configure script to warn when bison++ is not found. 
+    Change missing libusb 1.0 message to a warning.
+    Minor bugfix in XPressNetThrottle.src.
+    Minor update to the GenericThrottle Makefile.
+    Minor bugfix in snitCabWidgets.tcl.
+    Fix bugs in Azatrax (Tcl) code.
+    Updated Makefiles for new manual build.
+    Rewrite user manual using Doxygen instead of straight LaTeX (vastly 
+       improves generated HTML for internal help).
+
 Thr Mar 27 13:14:33 2014
 
   2.1.33 Release Candidate:

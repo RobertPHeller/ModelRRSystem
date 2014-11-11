@@ -494,7 +494,7 @@ proc Resistor::WriteOutValue {} {
 	  label [list [_m "Label|Supply Voltage"] [_m "Label|Load Voltage"] \
 		 [_m "Label|Load Current"] \
 		 [_m "Label|Voltage Dropped by Resistor"] \
-		 [_m "Label|Calculated Resistance"] \ 
+		 [_m "Label|Calculated Resistance"] \
 		 [_m "Label|Stock Resistor Value"] \
 		 [_m "Label|Minimum Power Rating"] [_m "Label|Bands"]] \
 	  formatCode {{FormatVoltage} {FormatVoltage} {FormatCurrent} 
