@@ -186,8 +186,9 @@ fi
 %{_datadir}/@PACKAGE@/*.pot
 %{_mandir}/man3
 %{_prefix}/include
+%{_datadir}/@PACKAGE@/GenericThrottle
 %{_datadir}/@PACKAGE@/Doc/fig*
-%{_datadir}/@PACKAGE@/Doc/Help.tex
+%{_datadir}/@PACKAGE@/Doc/Help.h
 %{_datadir}/@PACKAGE@/Doc/InternalsHTML
 %{_datadir}/@PACKAGE@/Doc/internals.pdf
 %{_datadir}/@PACKAGE@/Doc/ProgrammingGuide.pdf
