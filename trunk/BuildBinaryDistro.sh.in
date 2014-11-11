@@ -186,7 +186,7 @@ echo lib/@PACKAGE@/Installer >>/tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find share/@PACKAGE@ -name '*.pot') >>/tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find man/man3 ) >>/tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find include ) >>/tmp/DEVFILES$$.list
-(cd ${DESTDIR}/usr/local&&find share/@PACKAGE@/GenericThrottle)  >>/tmp/DEVFILES$$.list
+echo share/@PACKAGE@/GenericThrottle  >>/tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find share/@PACKAGE@/Doc -name 'fig*') >>/tmp/DEVFILES$$.list
 echo share/@PACKAGE@/Doc/Help.h \
 share/@PACKAGE@/Doc/InternalsHTML \
