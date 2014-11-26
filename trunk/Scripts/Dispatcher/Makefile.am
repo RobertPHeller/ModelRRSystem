@@ -214,3 +214,5 @@ man1/Dispatcher.1 : Doxyfile Dispatcher.src
 clean-local:
 	-rm -rf man1
 
+$(top_builddir)/Scripts/Common/Version.tcl: FORCE
+	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl

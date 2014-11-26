@@ -191,11 +191,11 @@ namespace eval WrapIt {
       foreach f [glob -nocomplain [file join $PackageBaseDir $ap *.tcl]] {
         file copy $f [file join $filename lib $ap]
       }
-    }      
+    }
     set lib [file join $filename lib]
     file mkdir [file join $lib app-$module]
     set fp [open [file join $lib app-$module $module.tcl] w]
-    eval $writeprogfun $fp $module yes
+    eval $writeprogfun $fp $module yes $lib
     close $fp
     set fp [open [file join $lib app-$module pkgIndex.tcl] w]
     puts $fp "package ifneeded app-$module 1.0 \[list source \[file join \$dir $module.tcl\]\]"

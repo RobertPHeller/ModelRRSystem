@@ -146,6 +146,7 @@ namespace eval CTCPanelWindow {
     }
 
     variable additionalPackages {}
+    variable externalUserModules -array {}
 
     constructor {args} {
       wm protocol $win WM_DELETE_WINDOW {Dispatcher::CarefulExit}
@@ -310,6 +311,10 @@ namespace eval CTCPanelWindow {
 			{edit:additionalpackages edit:simplemode} \
 			edit:additionalpackages 0 $em1apm]
 
+      lappend em1 \
+        [list command [_m "Menu|Edit|Add External User Module"] \
+         {edit:externalUserModules edit:simplemode} \
+         "" {} -command [mymethod AddExternalUserModule] -state $editstate]
       set editmenu [list [_m "Menu|&Edit"] {edit} {edit} 0 $em1]
       #puts stderr "*** CTCPanelWindow::create: editmenu = $editmenu"
       set mainmenu [StdMenuBar MakeMenu -file  $filemenu -edit  $editmenu ]
@@ -470,7 +475,7 @@ namespace eval CTCPanelWindow {
       $self configure -filename "$filename"
       $self cleardirty
     }
-    method writeprog {fp module {iswraped no}} {
+    method writeprog {fp module {iswraped no} {libdir {}}} {
       if {$iswraped} {
 	puts $fp "package provide app-$module 1.0"
       } else {
@@ -569,6 +574,14 @@ namespace eval CTCPanelWindow {
       puts $fp {}
       puts $fp {# Add User code after this line}
       puts $fp "$userCode"
+      if {$iswraped} {
+          foreach eum [array names externalUserModules] {
+              file mkdir [file join $libdir $eum]
+              foreach f [glob -nocomplain [file join $externalUserModules($eum) *]] {
+                  file copy $f [file join $libdir $eum]
+              }
+          }
+      }
     }
     method wrapas {{filename {}}} {
 #      puts stderr "*** $self wrapas $filename"
@@ -1312,6 +1325,7 @@ namespace eval CTCPanelWindow {
     component addAZATRAXNodeDialog
     component selectAZATRAXNodeDialog
     component editUserCodeDialog
+    component addExternalUserModuleDialog
 
     method buildDialogs {} {
 
@@ -1323,6 +1337,7 @@ namespace eval CTCPanelWindow {
       install addAZATRAXNodeDialog using CTCPanelWindow::AddAZATRAXNodeDialog $win.addAZATRAXNodeDialog -parent $win
       install selectAZATRAXNodeDialog using CTCPanelWindow::SelectAZATRAXNodeDialog $win.selectAZATRAXNodeDialog -parent $win
       install editUserCodeDialog  using CTCPanelWindow::EditUserCodeDialog $win.editUserCodeDialog -parent $win
+      install addExternalUserModuleDialog using CTCPanelWindow::AddExternalUserModuleDialog $win.addExternalUserModuleDialog -parent $win
     }
 
     method addblocktopanel {node args} {
@@ -1493,6 +1508,20 @@ namespace eval CTCPanelWindow {
 	catch {unset azatraxnodes_comments($nodeToDelete)}
 	$self setdirty
       }
+    }
+    method AddExternalUserModule {args} {
+        set addModuleNameAndDir [eval [list $addExternalUserModuleDialog draw] $args]
+        if {"$addModuleNameAndDir" eq ""} {return}
+        foreach {name dir} $addModuleNameAndDir {break}
+        set externalUserModules($name) $dir
+        set userCode "package require $name\n$userCode"
+    }
+    method externalUserModuleDir {packageName} {
+        if {[catch {set externalUserModules($packageName)} dir]} {
+            return -code error -errorinfo $::errorInfo -errorcode $::errorCode $dir
+        } else {
+            return $dir
+        }
     }
     method AddAdditionalPackage {packagename} {
       if {[lsearch -exact $additionalPackages $packagename] >= 0} {
@@ -3437,6 +3466,62 @@ namespace eval CTCPanelWindow {
     method getcode {} {
       return "[$codeText get 1.0 end]"
     }
+  }
+  snit::widgetadaptor AddExternalUserModuleDialog {
+      delegate option -parent to hull
+
+      component moduleNameLE
+      component moduleDirFE
+      
+      constructor {args} {
+          installhull using Dialog -bitmap questhead -default add \
+                -cancel cancel -modal local -transient yes \
+                -side bottom -title [_ "Add External User Module"] \
+                -parent [from args -parent]
+          $hull add add    -text [_m "Button|Add"]    -command [mymethod _Add]
+          $hull add cancel -text [_m "Button|Cancel"] -command [mymethod _Cancel]
+          wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
+          $hull add help -text [_m "Button|Help"] -command {HTMLHelp help {Add External User Module}}
+          set frame [$hull getframe]
+          set lwidth [_mx "Label|Package Name:" "Label|Directory:"]
+          install moduleNameLE using LabelEntry $frame.moduleNameLE -label [_m "Label|Package Name:"] \
+                -labelwidth $lwidth -text {}
+          pack $moduleNameLE -fill x
+          install moduleDirFE using FileEntry $frame.moduleDirFE -label [_m "Label|Directory:"] \
+                -labelwidth $lwidth -filedialog directory \
+                -title [_ "External User Module Directory"]
+          pack $moduleDirFE -fill x
+          $self configurelist $args
+      }
+      method draw {args} {
+          $self configurelist $args
+          set parent [$hull cget -parent]
+          wm transient [winfo toplevel $win] $parent
+          return [$hull draw]
+      }
+      method _Cancel {} {
+          $hull withdraw
+          return [$hull enddialog {}]
+      }
+      method _CheckNameChars {value} {
+          return [expr {[regexp {^[[:alpha:]][[:alnum:]_.-]*$} "$value"] > 0}]
+      }
+      method _Add {} {
+          set packageName "[$moduleNameLE cget -text]"
+          if {![$self _CheckNameChars "$packageName"]} {
+                tk_messageBox -type ok -icon error -parent $win \
+                      -message [_ "Illegal characters in name, must start with a letter and contain only letters, digits, underscores, dots, and dashes, got '%s'" $packageName]
+                return
+          }
+          set parent [$hull cget -parent]
+          if {![catch {$parent externalUserModuleDir $packageName}]} {
+              tk_messageBox -type ok -icon error -parent $win \
+                    -message [_ "Package Name %s already in use!" $packageName]
+              return
+          }
+          $hull withdraw
+          return [$hull enddialog [list $packageName [$moduleDirFE cget -text]]]
+      }
   }
   snit::type WaitExternalProgramASync {
     option -commandline -readonly yes
