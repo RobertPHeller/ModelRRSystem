@@ -576,12 +576,19 @@ namespace eval CTCPanelWindow {
       puts $fp "$userCode"
       if {$iswraped} {
           foreach eum [array names externalUserModules] {
-              file mkdir [file join $libdir $eum]
-              foreach f [glob -nocomplain [file join $externalUserModules($eum) *]] {
-                  file copy $f [file join $libdir $eum]
-              }
+              RecursiveFileCopy $externalUserModules($eum) [file join $libdir $eum]
           }
       }
+    }
+    proc RecursiveFileCopy {fromdir todir} {
+        file mkdir $todir
+        foreach f [glob -nocomplain [file join $fromdir *]] {
+            if {[file isdirectory $f]} {
+                RecursiveFileCopy $f [file join $todir [file tail $f]]
+            } else {
+                file copy $f $todir
+            }
+        }
     }
     method wrapas {{filename {}}} {
 #      puts stderr "*** $self wrapas $filename"
