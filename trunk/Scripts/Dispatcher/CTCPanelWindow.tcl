@@ -505,6 +505,14 @@ namespace eval CTCPanelWindow {
       set line "# "
       append line [concat additionalPackages $additionalPackages]
       puts $fp $line
+      foreach eum [array names externalUserModules] {
+          set line "# "
+          append line [list externalUserModule $eum $externalUserModules($eum)]
+          puts $fp $line
+          if {!$iswraped} {
+              puts $fp "lappend auto_path $externalUserModules($eum)"
+          }
+      }
       puts $fp {# Load Tcl/Tk system supplied packages}
       puts $fp {package require Tk;#		Make sure Tk is loaded}
       puts $fp {package require tile;#          Load tile}
@@ -841,6 +849,7 @@ namespace eval CTCPanelWindow {
       set opts [list -filename "$filename"]
       set buffer {}
       set aplist {}
+      array unset eums
       while {[gets $fp line] >= 0} {
 #	puts stderr "*** $type open (looking for options): line = '$line'"
 	append buffer "$line"
@@ -851,7 +860,12 @@ namespace eval CTCPanelWindow {
 	  if {[regexp {^# additionalPackages[[:space:]]*(.*)$} $line -> aplist] > 0} {
 	    set buffer {}
 	    continue
-	  }
+          }
+          if {[regexp {^# externalUserModule[[:space:]]*(.*)$} $line -> eumlist] > 0} {
+              set buffer {}
+              set eums([lindex $eumlist 0]) [lindex $eumlist 1]
+              continue
+          }
 	  if {[regexp {^# -} "$buffer"] < 1} {set buffer {};continue}
 #	  puts stderr "*** $type open: buffer = '$buffer'"
 #	  puts stderr "*** $type open: llength \$buffer is [llength $buffer]"
@@ -868,6 +882,9 @@ namespace eval CTCPanelWindow {
  	if {"$ap" eq ""} {continue}
 	puts stderr "*** $type open: ap is '$ap'"
 	$newWindow AddAdditionalPackage $ap
+      }
+      foreach eum [array names eums] {
+          $newWindow AddExternalUserModule_ $eum $eums($eum)
       }
       while {[gets $fp line] >= 0} {
 #	puts stderr "*** $type open (looking for CTCPanelObjects): line = '$line'"
@@ -1520,6 +1537,10 @@ namespace eval CTCPanelWindow {
         set addModuleNameAndDir [eval [list $addExternalUserModuleDialog draw] $args]
         if {"$addModuleNameAndDir" eq ""} {return}
         foreach {name dir} $addModuleNameAndDir {break}
+        set externalUserModules($name) $dir
+        set userCode "package require $name\n$userCode"
+    }
+    method AddExternalUserModule_ {name dir} {
         set externalUserModules($name) $dir
         set userCode "package require $name\n$userCode"
     }
@@ -3511,7 +3532,7 @@ namespace eval CTCPanelWindow {
           return [$hull enddialog {}]
       }
       method _CheckNameChars {value} {
-          return [expr {[regexp {^[[:alpha:]][[:alnum:]_.-]*$} "$value"] > 0}]
+          return [expr {[regexp {^[[:alpha:]][[:alnum:]_.-:]*$} "$value"] > 0}]
       }
       method _Add {} {
           set packageName "[$moduleNameLE cget -text]"
