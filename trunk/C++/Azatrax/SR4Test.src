@@ -157,7 +157,7 @@ proc MainWindow {} {
   # Row 1
   ttk::button $::MainFrame.commands.blinkRelays \
 	-text "Blink Relays" \
-	-command {catch {sr4unit BlinkRelays $::B1 $::B2 $::B3 $::B4 [$::MainFrame.commands.blinkSpeed getvalue]} ::status} \
+	-command {catch {sr4unit BlinkRelays $::B1 $::B2 $::B3 $::B4 [lsearch -exact [$::MainFrame.commands.blinkSpeed cget -values] [$::MainFrame.commands.blinkSpeed get]]} ::status} \
 	-state disabled
   grid configure $::MainFrame.commands.blinkRelays -column 0  -row 0 -sticky we
   lappend ::CommandButtons $::MainFrame.commands.blinkRelays
@@ -216,7 +216,7 @@ proc MainWindow {} {
   # Row 4
   ttk::button $::MainFrame.commands.pulseRelays \
 	-text "Pulse Relays" \
-	-command {catch {sr4unit PulseRelays $::P1 $::P2 $::P3 $::P4 [$::MainFrame.commands.pulsePeriod getvalue]} ::status} \
+	-command {catch {sr4unit PulseRelays $::P1 $::P2 $::P3 $::P4 [expr {int([$::MainFrame.commands.pulsePeriod get]/0.5)}]} ::status} \
 	-state disabled
   grid configure $::MainFrame.commands.pulseRelays -column 0  -row 3 -sticky we
   lappend ::CommandButtons $::MainFrame.commands.pulseRelays

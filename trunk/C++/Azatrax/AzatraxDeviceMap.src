@@ -100,8 +100,10 @@ snit::widget DeviceMap {
   variable serialNumberCol 0
   variable nameCol 1
   variable descCol 2
+  variable productCol 3
   variable currentRow -1
   variable columnCount 3
+  variable serialnumber 0
   option -filename -default {};# Current filename
   option -dirtycallback -default {} -readonly yes
 
@@ -140,7 +142,7 @@ snit::widget DeviceMap {
     install descrSW using ScrolledWindow $descrLF.descrSW -auto both \
 							  -scrollbar both
     pack $descrSW -fill both -expand yes
-    install descrText using text $descrSW.descrText
+    install descrText using text $descrSW.descrText -height 10 -width 20
     pack $descrText -fill both -expand yes
     $descrSW setwidget $descrText
 
@@ -165,7 +167,7 @@ snit::widget DeviceMap {
     set found [$devicemap search -exact column $serialNumberCol [$serialNumberCB get]]
 #    puts stderr "*** $self _serialNumberLookup: found = $found"
 #    puts stderr "*** $self _serialNumberLookup: \[llength \$found\] = [llength $found]"
-        if {[llength $found] < 1} {
+    if {[llength $found] < 1} {
       set row [$self _emptyrow]
       set row [lreplace $row $serialNumberCol $serialNumberCol [$serialNumberCB get]]
       $nameLE configure -text {}
