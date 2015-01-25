@@ -430,7 +430,7 @@ bool System::SaveCars(char **outmessage)
 	}
 	sprintf(messageBuffer,_("Number syntax error (Session Number) in %1$s at %2$s"),
 		carsFile.FullPath().c_str(),line.c_str());
-	if (!StringToInt(line,oldSessionNumber,messageBuffer,outmessage)) return false;
+	if (!StringToInt(trim(line),oldSessionNumber,messageBuffer,outmessage)) return false;
 	if (!getline(oldcarsstream,line)) {
 	  if (outmessage != NULL) {
 	    sprintf(messageBuffer,_("Could not read cars file (Shift Number) %s"),
@@ -442,7 +442,7 @@ bool System::SaveCars(char **outmessage)
 	}
 	sprintf(messageBuffer,_("Number syntax error (Shift Number) in %1$s at %2$s"),
 		carsFile.FullPath().c_str(),line.c_str());
-	if (!StringToInt(line,oldShiftNumber,messageBuffer,outmessage)) return false;
+	if (!StringToInt(trim(line),oldShiftNumber,messageBuffer,outmessage)) return false;
 	if (!getline(oldcarsstream,line)) {
 	  if (outmessage != NULL) {
 	    sprintf(messageBuffer,_("Could not read cars file (Total Cars) %s"),
@@ -454,7 +454,7 @@ bool System::SaveCars(char **outmessage)
 	}
 	sprintf(messageBuffer,_("Number syntax error (Total Cars) in %1$s at %2$s"),
 		carsFile.FullPath().c_str(),line.c_str());
-	if (!StringToInt(line,oldTotalCars,messageBuffer,outmessage)) return false;
+	if (!StringToInt(trim(line),oldTotalCars,messageBuffer,outmessage)) return false;
 	if (ranAllTrains == 0) {
 	  sessionNumber = oldSessionNumber;
 	  shiftNumber = oldShiftNumber;
