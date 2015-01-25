@@ -60,7 +60,7 @@ proc SaveCars {} {
     tk_messageBox -icon error -type ok -message [_ "Please load a system first."]
     return
   }
-  TheSystem SaveCars  
+  TheSystem SaveCars
 }
 
 proc LoadCars {} {
