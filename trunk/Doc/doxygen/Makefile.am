@@ -1,3 +1,6 @@
+if DONT_HAVE_BISONXX
+ParserClassesHeaders =
+else
 ParserClassesHeaders = \
 	$(top_builddir)/C++/ParserClasses/ParserClassesGroup.h \
 	$(top_srcdir)/C++/ParserClasses/IntegerList.h \
@@ -7,15 +10,20 @@ ParserClassesHeaders = \
 	$(top_srcdir)/C++/ParserClasses/TrackGraph.h \
 	$(top_srcdir)/C++/ParserClasses/SocketPair.h \
 	$(top_builddir)/C++/ParserClasses/MRRXtrkCad.tab.h
+endif
 
 CMriTcls = $(top_srcdir)/Scripts/CMri/cmri.tcl
 
 #MRDHeaders = $(top_builddir)/C++/MRD/mrd.h
 
+if DONT_HAVE_USB
+AzatraxHeaders =
+else
 AzatraxHeaders = $(top_builddir)/C++/Azatrax/Azatrax.h \
 		 $(top_srcdir)/C++/Azatrax/mrd.h \
 		 $(top_srcdir)/C++/Azatrax/sl2.h \
 		 $(top_srcdir)/C++/Azatrax/sr4.h
+endif
 
 XPressNetTcls = $(top_srcdir)/Scripts/XPressNet/xpressnet.tcl
 
@@ -48,8 +56,11 @@ TTSupportHeaders = $(top_builddir)/C++/TTSupport/TTSupportGroup.h \
 	$(top_srcdir)/C++/TTSupport/Train.h \
 	$(top_srcdir)/C++/TTSupport/Cab.h 
 	 
-
+if DONT_HAVE_USB
+RailDriverHeaders =
+else
 RailDriverHeaders = 	$(top_builddir)/C++/RailDriver/RaildriverIO.h
+endif
 
 C_INTERNALS_H_HERE = titlepage.h #Intro.h Biblio.h
 C_INTERNALS_H = $(C_INTERNALS_H_HERE) \
