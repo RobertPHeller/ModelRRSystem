@@ -48,7 +48,7 @@ libazatrax_la_LDFLAGS = -no-undefined  -g -avoid-version  $(TCL_STUB_LIB_SPEC) $
 else
 libazatrax_la_LDFLAGS =   -g -version-info 0:0:0  $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 endif
-libazatrax_la_LIBADD = $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS) $(LIBINTL)
+libazatrax_la_LIBADD = $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 #libazatrax_la-azatrax_wrap.lo : azatrax_wrap.cc
 #	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(TCL_DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libazatrax_la_CXXFLAGS) $(CXXFLAGS) -MT libazatrax_la-Azatrax.lo -MD -MP -MF "$(DEPDIR)/libazatrax_la-Azatrax.Tpo" -c -o libazatrax_la-Azatrax.lo `test -f 'Azatrax.cc' || echo '$(srcdir)/'`Azatrax.cc; \
 #	then mv -f "$(DEPDIR)/libazatrax_la-Azatrax.Tpo" "$(DEPDIR)/libazatrax_la-Azatrax.Plo"; else rm -f "$(DEPDIR)/libazatrax_la-Azatrax.Tpo"; exit 1; fi

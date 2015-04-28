@@ -88,7 +88,7 @@ libttclasses_la_LDFLAGS = -no-undefined -g -avoid-version $(TCL_STUB_LIB_SPEC)
 else
 libttclasses_la_LDFLAGS = -g -version-info 0:0:0 $(TCL_STUB_LIB_SPEC)
 endif
-libttclasses_la_LIBADD = $(TCL_STUB_LIB_SPEC) $(LIBINTL)
+libttclasses_la_LIBADD = $(TCL_STUB_LIB_SPEC)
 noinst_SCRIPTS = pkgIndex.tcl
 noinst_DATA = TTClasses.potlist
 BUILT_SOURCES = TTClasses_wrap.cc TTSupportGroup.h

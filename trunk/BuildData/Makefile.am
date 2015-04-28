@@ -1,6 +1,6 @@
-EXTRA_DIST=Img-1.4-Mac-Universal.zip Img-1.4-Linux32.zip Img-1.4-Linux64.zip \
-	   Img-1.4-win32.zip tclkit-darwin-univ-aqua tclkit-linux-x86 \
-	   tclkit-linux-x86_64 tclkit-win32.exe pdf4tcl05.zip
+EXTRA_DIST=Img-1.4-Mac-Universalx86.zip Img-1.4-Linux32.zip \
+           Img-1.4-Linux64.zip Img-1.4-win32.zip tclkit-darwin-univ-aqua \
+           tclkit-linux-x86 tclkit-linux-x86_64 tclkit-win32.exe pdf4tcl05.zip
 
 BUILT_SOURCES = tclkit${BEXEEXT}
 
