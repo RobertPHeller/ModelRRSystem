@@ -75,10 +75,10 @@ libMRRParserClasses_la_XGETTEXTFILES = \
 			$(libMRRParserClasses_la_SOURCES) MRRXtrkCad.y
 if CROSSCOMPILING
 libMRRParserClasses_la_LDFLAGS = -no-undefined -g -avoid-version $(TCL_STUB_LIB_SPEC) $(BOOST_LDFLAGS) -lwsock32 -lws2_32
-libMRRParserClasses_la_LIBADD = $(TCL_STUB_LIB_SPEC) $(BOOST_LDFLAGS)  -lwsock32 -lws2_32
+libMRRParserClasses_la_LIBADD = $(TCL_STUB_LIB_SPEC) $(BOOST_LDFLAGS)  -lwsock32 -lws2_32 $(LIBINTL)
 else
 libMRRParserClasses_la_LDFLAGS = -g -version-info 0:0:0 $(TCL_STUB_LIB_SPEC) $(BOOST_LDFLAGS)
-libMRRParserClasses_la_LIBADD = $(TCL_STUB_LIB_SPEC) $(BOOST_LDFLAGS)
+libMRRParserClasses_la_LIBADD = $(TCL_STUB_LIB_SPEC) $(BOOST_LDFLAGS) $(LIBINTL)
 endif
 libMRRParserClasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) $(BOOST_CPPFLAGS) -Wall
 
