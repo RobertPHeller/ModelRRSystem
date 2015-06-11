@@ -7,6 +7,19 @@
 #include "gettext.h"
 static char rcsid[] = "$Id$";
 using namespace azatrax;
+#ifdef __cplusplus
+    extern "C" {
+#endif
+#ifdef MAC_TCL
+#pragma export on
+#endif
+SWIGEXPORT int Azatrax_SafeInit(Tcl_Interp *);
+#ifdef MAC_TCL
+#pragma export off
+#endif
+#ifdef __cplusplus
+}
+#endif
 %}      
         
 %include typemaps.i

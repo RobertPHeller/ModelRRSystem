@@ -1,0 +1,249 @@
+#**************************************************************************
+#*
+#*  System        : 
+#*  Module        : 
+#*  Object Name   : $RCSfile$
+#*  Revision      : $Revision$
+#*  Date          : $Date$
+#*  Author        : $Author$
+#*  Created By    : Robert Heller
+#*  Created       : Thu Jun 11 11:38:28 2015
+#*  Last Modified : <150611.1705>
+#*
+#*  Description	
+#*
+#*  Notes
+#*
+#*  History
+#*	
+#************************************************************************
+#*
+#*    Copyright (C) 2015  Robert Heller D/B/A Deepwoods Software
+#*			51 Locke Hill Road
+#*			Wendell, MA 01379-9728
+#*
+#*    This program is free software; you can redistribute it and/or modify
+#*    it under the terms of the GNU General Public License as published by
+#*    the Free Software Foundation; either version 2 of the License, or
+#*    (at your option) any later version.
+#*
+#*    This program is distributed in the hope that it will be useful,
+#*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#*    GNU General Public License for more details.
+#*
+#*    You should have received a copy of the GNU General Public License
+#*    along with this program; if not, write to the Free Software
+#*    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#*
+#* 
+#*
+#**************************************************************************
+
+## @defgroup SatelliteDaemon SatelliteDaemon
+# @brief Satellite computer Daemon
+#
+# @section SYNOPSIS
+# SatelliteDaemon [-debug] [-port listenport] [-log logfilename] [-nodaemon] [-addpath path]
+#
+# @section DESCRIPTION
+#
+# This is the deamon program that runs on 'satellite' computers on a network
+# of computers controlling a layout.  These satellite computers could be 
+# Raspberry Pis (running Rasperian) or small Intel/AMD systems (eg mini-Itx
+# systems or other Intel/AMD SBCs running some version of Linux).  Somewhere
+# on the network would be a computer running the master (client) package,
+# typically in the context of a Dispatcher control panel.  The satellite
+# systems would be connected to a collection of USB interface boards (or 
+# possibly using the GPIO pins on a Raspberry) that would interface to various
+# actuating devices on the layout, such as turnout motors, signals, uncoupling 
+# magnets, as well as various sensors that might be in use.
+#
+# @section OPTIONS
+#
+# @arg -debug This option turns on verbose debug logging.
+# @arg -port  This option selects the port to listen on (default: 40000).
+# @arg -log   This option selects the name of the log filename (default: 
+#             \$HOME/SatelliteDaemon.log).
+# @arg -nodaemon This option supresses daemonisation to facilitate debugging.
+# @arg -addpath This option adds additional search paths for packages.
+#               (These packages are always available: the core Tcl packages,
+#                snit, Azatrax, and Cmri.)
+# @par
+#
+# @section PROTOCOL
+#
+# The protocol is simple.  The daemon creates a 'safe' interpreter and simply 
+# feeds the command stream coming in to this interpreter and sends this 
+# interpreter's output back to the master.
+#
+# @section AUTHOR
+# Robert Heller \<heller\@deepsoft.com\>
+#
+
+
+set argv0 [file join  [file dirname [info nameofexecutable]] SatelliteDaemon]
+
+package require gettext
+package require log
+package require snit
+
+set msgfiles [::msgcat::mcload [file join [file dirname [file dirname \
+                                                         [file dirname \
+                                                          [info script]]]] \
+                                                         Messages]]
+snit::type SatelliteDaemon {
+   typevariable activeServers
+   component safe_interp
+   variable socketfp
+   variable remoteaddress
+   variable remoteport
+   variable inputbuffer
+   typevariable additionalpaths {}
+   constructor {sock address port} {
+       set socketfp $sock
+       set remoteaddress $address
+       set remoteport $port
+       # -- log the connection
+       log::logMsg [_ "Connection from %s:%d accepted" $address $port]
+       lappend activeServers $self
+       ::safe::setLogCmd [mymethod safe_log]
+       install safe_interp using ::safe::interpCreate "[namespace tail ${self}]_interp"
+       foreach path $additionalpaths {
+           ::safe::interpAddToAccessPath $safe_interp $path
+       }
+       #parray ::tcl_platform
+       ### This is needed for the Cmri package
+       $safe_interp eval set ::tcl_platform(os) $::tcl_platform(os)
+       set inputbuffer {}
+       fileevent $socketfp readable [mymethod read_socket]
+   }
+   method safe_log {message} {
+       ::log::log debug [_ "*** SafeLog: (%s:%d): %s" $remoteaddress $remoteport $message]
+   }
+   method read_socket {} {
+       while {true} {
+           if {[catch {gets $socketfp linebuffer}]} {return}
+           if {[eof $socketfp]} {
+               $self destroy
+               return
+           } elseif {[fblocked $socketfp]} {
+               break
+           } else {
+               if {$inputbuffer ne {}} {append inputbuffer "\n"}
+               append inputbuffer $linebuffer
+               if {[info complete $inputbuffer]} {
+                   if {$inputbuffer eq "exit"} {
+                       $self destroy
+                       return
+                   }
+                   ::log::log debug "*** $self read_socket: inputbuffer is complete: \{$inputbuffer\}"
+                   if {[catch {eval [list interp eval $safe_interp] $inputbuffer} result]} {
+                       ::log::log debug "*** $self read_socket: error result is \{$result\}"
+                       puts $socketfp [lindex [split $result "\n"] 0]
+                   } else {
+                       ::log::log debug "*** $self read_socket: result is \{$result\}"
+                       puts $socketfp $result
+                   }
+                   flush $socketfp
+                   set inputbuffer {}
+               }
+           }
+       }
+   }
+   destructor {
+       if {[catch {set remoteaddress} address]} {set address {}}
+       if {[catch {set remoteport} port]} {set port -1}
+       ::safe::interpDelete $safe_interp
+       catch {fileevent $socketfp readable {}}
+       catch {close $socketfp}
+       catch {unset socketfp}
+       set i [lsearch -exact $activeServers $self]
+       if {$i == 0} {
+           set activeServers [lrange $activeServers 1 end]
+       } elseif {$i > 0} {
+           set activeServers [lreplace $activeServers $i $i]
+       }
+       # -- log the disconnect
+       ::log::logMsg [_ "Connection from %s:%d closed" $address $port]
+   }
+   typevariable listenSock
+   typevariable logchan
+   typevariable DEFAULTPORT 40000
+   typevariable DEFAULTLOGFILE ~/SatelliteDaemon.log
+   typemethod Initialize {args} {
+       set daemonize true
+       set debugnotvis 1
+       set listenport $DEFAULTPORT
+       set logfilename $DEFAULTLOGFILE
+       while {[llength $args] > 0} {
+           switch -exact [lindex $args 0] {
+               -debug {
+                   set debugnotvis 0
+                   set args [lrange $args 1 end]
+               }
+               -port {
+                   if {[llength $args] < 2} {
+                       error [_ "Port number missing!"]
+                   }
+                   set listenport [lindex $args 1]
+                   set args [lrange $args 2 end]
+               }
+               -log {
+                   if {[llength $args] < 2} {
+                       error [_ "Log file missing!"]
+                   }
+                   set logfilename [lindex $args 1]
+                   set args [lrange $args 2 end]
+               }
+               -nodaemon {
+                   set daemonize false
+                   set args [lrange $args 1 end]
+               }
+               -addpath {
+                   if {[llength $args] < 2} {
+                       error [_ "Path missing!"]
+                   }
+                   lappend additionalpaths [lindex $args 1]
+                   set args [lrange $args 2 end]
+               }
+               default {
+                   error [_ "Unknow option: %s, should be one of -debug, -port, -log, -nodaemon, or -addpath" [lindex $args 0]]
+               }
+           }
+       }
+       if {$daemonize} {
+           close stdin
+           close stdout
+           close stderr
+           open /dev/null r
+           open /dev/null w
+       }
+       set logchan [open $logfilename w]
+       fconfigure $logchan  -buffering none
+       ::log::lvChannelForall $logchan
+       ::log::lvSuppress info 0
+       ::log::lvSuppress notice 0
+       ::log::lvSuppress debug $debugnotvis
+       ::log::lvCmdForall [mytypemethod LogPuts]
+       ::log::logMsg [_ "SatelliteDaemon starting on port %d" $listenport]
+       if {[llength $additionalpaths] > 0} {
+           ::log::logMsg [_ "SatelliteDaemon Added Paths: %s" $additionalpaths]
+       }
+       if {$debugnotvis == 0} {
+           ::log::logMsg [_ "SatelliteDaemon debug logging is on"]
+       }
+       if {[catch {socket -server [list $type create %%AUTO%%] $listenport} listenSock]} {
+           error [_ "Failed to open server socket %d: %s" $listenport $listenSock]
+       }
+       set activeServers {}
+   }
+   typemethod LogPuts {level message} {
+       puts [::log::lv2channel $level] "[clock format [clock scan now] -format {%b %d %T}] $level $message"
+   }
+}
+
+
+
+eval [list SatelliteDaemon Initialize] $::argv
+vwait forever

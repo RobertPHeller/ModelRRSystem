@@ -666,6 +666,8 @@ AC_CONFIG_FILES([config_tcl.sed \
 		Scripts/LocoNet/Makefile \
 		Scripts/RailDriverSupport/Makefile \
 		Scripts/RailDriverSupport/Doxyfile \
+		Scripts/Satellite/Makefile \
+		Scripts/Satellite/Doxyfile \
 	  Doc/Makefile \
 		Doc/Support/Makefile \
 		Doc/User/Makefile \
@@ -702,6 +704,7 @@ AC_CONFIG_FILES([config_tcl.sed \
 	  	po/mrrsystem/Makefile \
 		po/mrrsystem/mrrsystem_header.pot \
 		po/raildriverd/Makefile \
+		po/Satellite/Makefile \
 		po/xplocotest/Makefile \
 	  MRRSystem.spec \
 	  BuildBinaryDistro.sh \
