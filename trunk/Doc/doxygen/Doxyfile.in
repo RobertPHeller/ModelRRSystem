@@ -671,7 +671,8 @@ INPUT                  = @top_srcdir@/Doc/doxygen/titlepage.h \
                          @top_srcdir@/Scripts/GRSupport/grsupport2.tcl \
                          @top_srcdir@/Scripts/GRSupport/Instruments2.tcl \
                          @top_srcdir@/Scripts/GRSupport/LCARSWidgets2.tcl \
-                         @top_srcdir@/Scripts/GRSupport/OvalWidgets2.tcl
+                         @top_srcdir@/Scripts/GRSupport/OvalWidgets2.tcl \
+                         @top_srcdir@/Scripts/Satellite/Satellite.tcl
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is

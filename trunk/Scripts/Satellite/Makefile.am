@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jun 11 11:28:01 2015
-#  Last Modified : <150611.1701>
+#  Last Modified : <150612.0943>
 #
 #  Description	
 #
@@ -41,10 +41,17 @@
 # 
 #
 ##############################################################################
+TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
+
 sbin_SCRIPTS = SatelliteDaemon${EXEEXT}
 man_MANS = man8/SatelliteDaemon.8
-CLEANFILES          = SatelliteDaemon${EXEEXT}
-EXTRA_DIST          = SatelliteDaemon.src
+CLEANFILES          = SatelliteDaemon${EXEEXT} pkgIndex.tcl SatelliteDaemon.pot
+
+EXTRA_DIST          = SatelliteDaemon.src Satellite.tcl
+pkgdatadir = $(datadir)/$(PACKAGE)/Satellite
+pkgdata_DATA =  Satellite.tcl pkgIndex.tcl SatelliteDaemon.pot
+
+BUILT_SOURCES = $(TCLKIT)                                                       
 
 SatelliteDaemon.pot: SatelliteDaemon.src
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
@@ -69,6 +76,13 @@ AzatraxSupportFiles =  $(top_builddir)/C++/Azatrax/.libs/libazatrax$(SHLIB_SUFFI
 		    $(top_builddir)/C++/Azatrax/pkgIndex.tcl
 AzatraxDependFiles = $(top_builddir)/C++/Azatrax/libazatrax.la \
 		  $(top_builddir)/C++/Azatrax/pkgIndex.tcl
+
+pkgIndex.tcl : Satellite.tcl
+	for f in $(notdir $^) ; do \
+	   if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi;\
+	done
+	echo "pkg_mkIndex . $(notdir $^)" | $(TCLKIT)
+
 
 SatelliteDaemonSCRIPTS = $(top_srcdir)/Scripts/Common/gettext.tcl \
 	$(top_builddir)/Scripts/Common/Version.tcl
