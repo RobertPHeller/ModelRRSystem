@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jun 11 11:28:01 2015
-#  Last Modified : <150612.0943>
+#  Last Modified : <150612.1223>
 #
 #  Description	
 #
@@ -76,6 +76,8 @@ AzatraxSupportFiles =  $(top_builddir)/C++/Azatrax/.libs/libazatrax$(SHLIB_SUFFI
 		    $(top_builddir)/C++/Azatrax/pkgIndex.tcl
 AzatraxDependFiles = $(top_builddir)/C++/Azatrax/libazatrax.la \
 		  $(top_builddir)/C++/Azatrax/pkgIndex.tcl
+SigtermDependFiles = $(top_builddir)/C++/RailDriver/libsigterm.la
+SigtermSupportFiles = $(top_builddir)/C++/RailDriver/.libs/libsigterm.so
 
 pkgIndex.tcl : Satellite.tcl
 	for f in $(notdir $^) ; do \
@@ -88,7 +90,7 @@ SatelliteDaemonSCRIPTS = $(top_srcdir)/Scripts/Common/gettext.tcl \
 	$(top_builddir)/Scripts/Common/Version.tcl
 
 SatelliteDaemon${EXEEXT}: SatelliteDaemon.src $(CMriDependFiles)  \
-			$(AzatraxDependFiles) \
+			$(AzatraxDependFiles) $(SigtermDependFiles) \
 			$(top_builddir)/po/Satellite/msgfiles \
 			$(SatelliteDaemonSCRIPTS)
 	-rm -f  SatelliteDaemon.kit
@@ -109,6 +111,9 @@ SatelliteDaemon${EXEEXT}: SatelliteDaemon.src $(CMriDependFiles)  \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SatelliteDaemon \
 		lib/Azatrax $(AzatraxSupportFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SatelliteDaemon \
+		lib/sigterm $(SigtermSupportFiles)
+	echo 'package ifneeded Sigterm 1.0 [list load [file join $$dir libsigterm[info sharedlibextension]]]' > SatelliteDaemon.vfs/lib/sigterm/pkgIndex.tcl
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SatelliteDaemon \
 		Messages $(top_builddir)/po/Satellite/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap SatelliteDaemon${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf SatelliteDaemon.vfs
@@ -125,6 +130,10 @@ $(top_builddir)/C++/Azatrax/libazatrax.la : \
 	$(top_srcdir)/C++/Azatrax/*.h \
 	$(top_srcdir)/C++/Azatrax/*.i
 	$(MAKE) -C $(top_builddir)/C++/Azatrax
+
+$(top_builddir)/C++/RailDriver/libsigterm.la : \
+	$(top_srcdir)/C++/RailDriver/sigterm.i
+	$(MAKE) -C $(top_builddir)/C++/RailDriver libsigterm.la
 
 $(top_builddir)/Scripts/CMri/pkgIndex.tcl : $(top_srcdir)/Scripts/CMri/cmri.tcl
 	$(MAKE) -C $(top_builddir)/Scripts/CMri pkgIndex.tcl
