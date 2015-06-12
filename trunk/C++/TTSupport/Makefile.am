@@ -94,11 +94,11 @@ noinst_DATA = TTClasses.potlist
 BUILT_SOURCES = TTClasses_wrap.cc TTSupportGroup.h
 EXTRA_DIST = TTSupportGroup.h.in TTClasses.i TimeTableSystemTcl.h
 CLEANFILES = pkgIndex.tcl $(BUILT_SOURCES) TTClasses.potlist
-SWIG_FLAGS =  -tcl8 -c++ $(INCLUDES)
+SWIG_FLAGS =  -tcl8 $(INCLUDES)
 
 TTClasses_wrap.cc : TTClasses.i $(pkginclude_HEADERS) TimeTableSystemTcl.h \
 		$(top_builddir)/config.status
-	$(SWIG) $(SWIG_FLAGS) -o TTClasses_wrap.cc $(srcdir)/TTClasses.i
+	$(SWIG_CXX) $(SWIG_FLAGS) -o TTClasses_wrap.cc $(srcdir)/TTClasses.i
 
 pkgIndex.tcl: libttclasses.la $(top_builddir)/config.status
 	echo 'package ifneeded Ttclasses $(TTCLASSES_VERSIONLIB) [list load [file join $$dir libttclasses[info sharedlibextension]]]' > pkgIndex.tcl

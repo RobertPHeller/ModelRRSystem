@@ -114,11 +114,11 @@ noinst_DATA = FCFClasses.potlist
 EXTRA_DIST = FCFSupportGroup.h FCFClasses.i System.h.in
 CLEANFILES = $(BUILT_SOURCES) pkgIndex.tcl FCFClasses.potlist
 
-SWIG_FLAGS = -tcl8 -c++ $(INCLUDES)
+SWIG_FLAGS = -tcl8 $(INCLUDES)
 
 FCFClasses_wrap.cc : FCFClasses.i $(pkginclude_HEADERS) \
 		$(top_builddir)/config.status
-	$(SWIG) $(SWIG_FLAGS) $(INCLUDES) -o FCFClasses_wrap.cc \
+	$(SWIG_CXX) $(SWIG_FLAGS) $(INCLUDES) -o FCFClasses_wrap.cc \
 		$(srcdir)/FCFClasses.i
 
 FCFClasses.potlist: $(libfcfclasses_la_XGETTEXTFILES)

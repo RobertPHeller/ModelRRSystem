@@ -109,7 +109,7 @@ libsigterm_la_LDFLAGS = -g -version-info 0:0:0  $(TCL_STUB_LIB_SPEC)
 endif
 libsigterm_la_LIBADD = $(TCL_STUB_LIB_SPEC)
 
-SWIG_FLAGS =  -tcl8 -c++ $(INCLUDES)
+SWIG_FLAGS =  -tcl8  $(INCLUDES)
 
 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
@@ -143,10 +143,10 @@ man_MANS = man8/raildriverd.8
 
 raildriverio_wrap.cc : raildriverio.i $(pkginclude_HEADERS) \
 			$(top_builddir)/config.status
-	$(SWIG) $(SWIG_FLAGS) $(INCLUDES) -o raildriverio_wrap.cc $(srcdir)/raildriverio.i
+	$(SWIG_CXX) $(SWIG_FLAGS) $(INCLUDES) -o raildriverio_wrap.cc $(srcdir)/raildriverio.i
 
 sigterm_wrap.cc : sigterm.i
-	$(SWIG) $(SWIG_FLAGS) $(INCLUDES) -o sigterm_wrap.cc $(srcdir)/sigterm.i
+	$(SWIG_CXX) $(SWIG_FLAGS) $(INCLUDES) -o sigterm_wrap.cc $(srcdir)/sigterm.i
 
 noinst_DATA += raildriverio.potlist
 

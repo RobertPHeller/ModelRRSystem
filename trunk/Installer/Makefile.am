@@ -36,13 +36,13 @@
 #*  
 #* 
 
-BUILT_SOURCES = diskfree_wrap.cc
+BUILT_SOURCES = diskfree_wrap.c
 
 pkglibdir = $(libdir)/$(PACKAGE)/Installer
 
 pkglib_LTLIBRARIES = diskfree.la
 INCLUDES = -I$(top_builddir)  -I. -I$(TCL_INC_DIR)
-nodist_diskfree_la_SOURCES = diskfree_wrap.cc
+nodist_diskfree_la_SOURCES = diskfree_wrap.c
 if CROSSCOMPILING
 NOUNDEFINED = -no-undefined
 else
@@ -50,7 +50,7 @@ NOUNDEFINED =
 endif
 diskfree_la_LDFLAGS = $(NOUNDEFINED) -g -module -avoid-version 
 diskfree_la_LIBADD = $(TCL_STUB_LIB_SPEC)
-diskfree_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES)
+diskfree_la_CFLAGS = -DUSE_TCL_STUBS $(INCLUDES)
 setupSCRIPTS = $(top_builddir)/Scripts/Common/Version.tcl \
 		$(top_srcdir)/Scripts/Common/snitpagesmanager.tcl \
 		$(top_srcdir)/Scripts/Common/snitrotext.tcl \
@@ -74,14 +74,14 @@ install-data-hook: setup${EXEEXT}
 
 CLEANFILES = $(BUILT_SOURCES) pkgIndex.tcl setup.kit setup${EXEEXT}
 
-SWIG_FLAGS =  -tcl8 -c++ $(INCLUDES)
+SWIG_FLAGS =  -tcl8 $(INCLUDES)
 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
 BUILT_SOURCES += $(TCLKIT)
 
-diskfree_wrap.cc : diskfree.i
-	$(SWIG) $(SWIG_FLAGS) $(INCLUDES) -o diskfree_wrap.cc \
+diskfree_wrap.c : diskfree.i
+	$(SWIG) $(SWIG_FLAGS) $(INCLUDES) -o diskfree_wrap.c \
 			$(srcdir)/diskfree.i
 
 pkgIndex.tcl: diskfree.la

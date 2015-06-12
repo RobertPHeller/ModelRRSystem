@@ -45,6 +45,20 @@
 #include "config.h"
 #include <signal.h>
 
+#ifdef __cplusplus
+    extern "C" {
+#endif
+#ifdef MAC_TCL
+#pragma export on
+#endif
+SWIGEXPORT int Sigterm_SafeInit(Tcl_Interp *);
+#ifdef MAC_TCL
+#pragma export off
+#endif
+#ifdef __cplusplus
+}
+#endif
+
 #if defined(__WIN32__) || defined(_WIN32)
 
 #ifndef NO_SIGACTION

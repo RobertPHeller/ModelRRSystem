@@ -176,7 +176,7 @@ EXTRA_DIST = MRDTest.src azatrax.i MRDTest.desktop MRDTest.png Doxyfile.in \
 	SL2Test.src SR4Test.desktop SR4Test.png SR4Test.src Azatrax.h.in
 
 #DEFS = @DEFS@
-SWIG_FLAGS =  -tcl8 -c++ $(INCLUDES)
+SWIG_FLAGS =  -tcl8 $(INCLUDES)
 CLEANFILES    = $(BUILT_SOURCES) *.kit azatrax_wrap.cc MRDTest${EXEEXT} \
 		pkgIndex.tcl AzatraxProg.pot azatrax.potlist 90-Azatrax.rules \
 		90-Azatrax.rules-Ubuntu \
@@ -184,7 +184,7 @@ CLEANFILES    = $(BUILT_SOURCES) *.kit azatrax_wrap.cc MRDTest${EXEEXT} \
 		AzatraxDeviceMap${EXEEXT}
 
 azatrax_wrap.cc: azatrax.i $(pkginclude_HEADERS) $(top_builddir)/config.status
-	$(SWIG) $(SWIG_FLAGS) $(INCLUDES) -o azatrax_wrap.cc $(srcdir)/azatrax.i
+	$(SWIG_CXX) $(SWIG_FLAGS) $(INCLUDES) -o azatrax_wrap.cc $(srcdir)/azatrax.i
 
 azatrax.potlist: $(libazatrax_la_XGETTEXTFILES)
 	echo $(addprefix $(subdir)/,$(libazatrax_la_XGETTEXTFILES)) |\

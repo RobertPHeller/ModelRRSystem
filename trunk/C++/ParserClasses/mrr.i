@@ -98,6 +98,19 @@ static char rcsid[] = "$Id: mrr.i 624 2008-04-21 23:36:58Z heller $";
 
 using namespace Parsers;
 
+#ifdef __cplusplus
+    extern "C" {
+#endif
+#ifdef MAC_TCL
+#pragma export on
+#endif
+SWIGEXPORT int Mrr_SafeInit(Tcl_Interp *);
+#ifdef MAC_TCL
+#pragma export off
+#endif
+#ifdef __cplusplus
+}
+#endif
 %}
 
 

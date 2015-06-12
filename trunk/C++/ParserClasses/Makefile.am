@@ -89,7 +89,7 @@ noinst_DATA = mrr.potlist
 CLEANFILES = $(BUILT_SOURCES) MRRXtrkCad*.output pkgIndex.tcl *~ \
 		mrr.potlist 
 
-SWIG_FLAGS =  -tcl8 -c++ $(INCLUDES) \
+SWIG_FLAGS =  -tcl8 $(INCLUDES) \
 	$(SWIGVERSIONFLAGS)
 
 
@@ -106,7 +106,7 @@ MRRXtrkCad.tab.cc MRRXtrkCad.tab.h : MRRXtrkCad.y
 	
 mrr_wrap.cc : mrr.i $(pkginclude_HEADERS) SocketPair.h \
 		$(top_builddir)/config.status
-	$(SWIG) $(SWIG_FLAGS) $(INCLUDES) -o mrr_wrap.cc $(srcdir)/mrr.i
+	$(SWIG_CXX) $(SWIG_FLAGS) $(INCLUDES) -o mrr_wrap.cc $(srcdir)/mrr.i
 
 pkgIndex.tcl: libMRRParserClasses.la $(top_builddir)/config.status
 	echo 'package ifneeded  Mrr $(MRR_PATCH_LEVELLIB) [list load [file join $$dir libMRRParserClasses[info sharedlibextension]] Mrr]' > pkgIndex.tcl

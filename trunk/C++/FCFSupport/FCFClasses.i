@@ -62,6 +62,19 @@
 #include <assert.h>
 static char rcsid[] = "$Id$";
 using namespace FCFSupport;
+#ifdef __cplusplus
+    extern "C" {
+#endif
+#ifdef MAC_TCL
+#pragma export on
+#endif
+SWIGEXPORT int Fcfclasses_SafeInit(Tcl_Interp *);
+#ifdef MAC_TCL
+#pragma export off
+#endif
+#ifdef __cplusplus
+}
+#endif
 %}
 
 
