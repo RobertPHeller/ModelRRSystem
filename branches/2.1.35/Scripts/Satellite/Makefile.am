@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jun 11 11:28:01 2015
-#  Last Modified : <150612.1223>
+#  Last Modified : <150614.1022>
 #
 #  Description	
 #
@@ -77,7 +77,7 @@ AzatraxSupportFiles =  $(top_builddir)/C++/Azatrax/.libs/libazatrax$(SHLIB_SUFFI
 AzatraxDependFiles = $(top_builddir)/C++/Azatrax/libazatrax.la \
 		  $(top_builddir)/C++/Azatrax/pkgIndex.tcl
 SigtermDependFiles = $(top_builddir)/C++/RailDriver/libsigterm.la
-SigtermSupportFiles = $(top_builddir)/C++/RailDriver/.libs/libsigterm.so
+SigtermSupportFiles = $(top_builddir)/C++/RailDriver/.libs/libsigterm$(SHLIB_SUFFIX)
 
 pkgIndex.tcl : Satellite.tcl
 	for f in $(notdir $^) ; do \

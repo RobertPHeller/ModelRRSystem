@@ -37,7 +37,7 @@
 #*****************************
 #
 # $1 = archive type, one of .zip, .tar.gz, or .tar.bz2 -- default: .tar.gz
-# $2 = DESTDIR (default /tmp)
+# $2 = DESTDIR (default /tmp/MRR@VERSION@)
 # $3 = archive directory (default ..)
 # $4 = archive target name (default is target)
 #
@@ -70,7 +70,7 @@ else
 fi
 
 if [ x$2 = x ]; then
-  DESTDIR="/tmp"
+  DESTDIR="/tmp/MRR@VERSION@"
 else
   DESTDIR=$2
 fi
@@ -116,6 +116,11 @@ make
 
 rm -rf ${DESTDIR}
 make DESTDIR=$DESTDIR install
+prefix=@prefix@
+#echo "*** mandir is |@mandir@|, prefix is |@prefix@|, \${prefix} is |${prefix}|"
+mansubdir=`echo @mandir@|sed 's|@prefix@/||g'`
+mansubdir=`echo ${mansubdir}|sed 's|^/||g'`
+#echo "*** mansubdir is |${mansubdir}|"
 
 # Now create the archives
 
@@ -146,6 +151,7 @@ bin/xplocotest@EXEEXT@ | tr ' ' '\n' >>/tmp/BINFILES$$.list
 (cd ${DESTDIR}/usr/local&&find sbin) >> /tmp/BINFILES$$.list
 (cd ${DESTDIR}/usr/local&&find lib -name 'lib*@SHLIB_SUFFIX@*') >> /tmp/BINFILES$$.list
 (cd ${DESTDIR}/usr/local&&find lib/@PACKAGE@ -name 'lib*@SHLIB_SUFFIX@') >> /tmp/BINFILES$$.list
+(cd ${DESTDIR}/usr/local&&find ${mansubdir}/man1 ${mansubdir}/man8 ) >>/tmp/BINFILES$$.list
 echo lib/@PACKAGE@/pkgIndex.tcl  \
 share/@PACKAGE@/CMri \
 share/@PACKAGE@/Common  \
@@ -157,8 +163,6 @@ share/@PACKAGE@/RailDriver  \
 share/@PACKAGE@/TTScripts  \
 share/@PACKAGE@/XPressNet \
 share/@PACKAGE@/Satellite \
-man/man1 \
-man/man8 \
 share/applications \
 share/pixmaps \
 share/locale/en/LC_MESSAGES/mrrsystem.mo | tr ' ' '\n' >>/tmp/BINFILES$$.list
@@ -181,11 +185,11 @@ echo lib/@PACKAGE@/AddKitDir.kit \
 lib/@PACKAGE@/AddKitFile.kit \
 lib/@PACKAGE@/MakePkgIndex.kit \
 lib/@PACKAGE@/sdx.kit | tr ' ' '\n' >>/tmp/DEVFILES$$.list
-(cd ${DESTDIR}/usr/local&&find lib/@PACKAGE@ -name 'Img-1.3*.zip') >>/tmp/DEVFILES$$.list
+(cd ${DESTDIR}/usr/local&&find lib/@PACKAGE@ -name 'Img-1.4*.zip') >>/tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find lib/@PACKAGE@ -name 'pkgIndex_*.tcl') >>/tmp/DEVFILES$$.list
 echo lib/@PACKAGE@/Installer >>/tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find share/@PACKAGE@ -name '*.pot') >>/tmp/DEVFILES$$.list
-(cd ${DESTDIR}/usr/local&&find man/man3 ) >>/tmp/DEVFILES$$.list
+(cd ${DESTDIR}/usr/local&&find ${mansubdir}/man3 ) >>/tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find include ) >>/tmp/DEVFILES$$.list
 echo share/@PACKAGE@/GenericThrottle  >>/tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find share/@PACKAGE@/Doc -name 'fig*') >>/tmp/DEVFILES$$.list
