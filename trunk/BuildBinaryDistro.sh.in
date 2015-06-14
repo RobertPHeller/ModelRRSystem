@@ -141,6 +141,7 @@ bin/TTChart2TT2@EXEEXT@ \
 bin/UniversalTest@EXEEXT@ \
 bin/XPressNetThrottle@EXEEXT@ \
 bin/xplocotest@EXEEXT@ | tr ' ' '\n' >>/tmp/BINFILES$$.list
+(cd ${DESTDIR}/usr/local&&find bin -name 'tclkit-*') >>/tmp/BINFILES$$.list
 (cd ${DESTDIR}/usr/local&&find bin -name 'lib*@SHLIB_SUFFIX@*') >> /tmp/BINFILES$$.list
 (cd ${DESTDIR}/usr/local&&find sbin) >> /tmp/BINFILES$$.list
 (cd ${DESTDIR}/usr/local&&find lib -name 'lib*@SHLIB_SUFFIX@*') >> /tmp/BINFILES$$.list
@@ -155,6 +156,7 @@ share/@PACKAGE@/Azatrax \
 share/@PACKAGE@/RailDriver  \
 share/@PACKAGE@/TTScripts  \
 share/@PACKAGE@/XPressNet \
+share/@PACKAGE@/Satellite \
 man/man1 \
 man/man8 \
 share/applications \
@@ -173,7 +175,6 @@ share/@PACKAGE@/Doc/AN02.tcl | tr ' ' '\n' >>/tmp/DOCFILES$$.list
 
 rm -f /tmp/DEVFILES$$.list
 touch /tmp/DEVFILES$$.list
-(cd ${DESTDIR}/usr/local&&find bin -name 'tclkit-*') >>/tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find lib -name 'lib*.la') >>/tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find lib -name 'lib*.a') >>/tmp/DEVFILES$$.list
 echo lib/@PACKAGE@/AddKitDir.kit \

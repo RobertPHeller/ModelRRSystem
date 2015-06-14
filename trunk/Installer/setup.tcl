@@ -279,7 +279,11 @@ proc FindArchivesAndComputeSizes_WINDOWS {} {
   # (only 32-bit support at present)
 #  puts stderr "*** FindArchivesAndComputeSizes_WINDOWS: ::CDDir = $::CDDir"
   set ::BinaryArchive [file join $::CDDir \
-	MRRSystem-${::MRRSystem::VERSION}-Win32BinOnly.zip]
+                       MRRSystem-${::MRRSystem::VERSION}-Win32BinOnly.zip]
+  set ::SysBinaryArchive [file join $::CDDir \
+                          i686-w64-mingw32-4.6-DLLS.zip]
+  set ::SysBinaryArchiveDest "C:/windows/system/"
+  set ::InstallArchives::hasSysBinaryArchive yes
   set ::BinaryArchiveInstallProc WindowsInstallVFSZIP
   set ::DevelArchive [file join $::CDDir \
 	MRRSystem-${::MRRSystem::VERSION}-Win32BinDevel.zip]
@@ -578,6 +582,7 @@ proc MainWindow {} {
 		variable installDevel no
 		variable installBinary yes
 		variable installDocs yes
+                variable hasSysBinaryArchive no
 	}
 	pack [ttk::labelframe $page.progressFrame -text "Selecting Archives to install..." \
 				-labelanchor nw] \
@@ -839,6 +844,9 @@ while {![string equal $::State {Done}]} {
 	  incr acount
 	  set Installing::logstatus "Installing ($acount): [file tail $::BinaryArchive]"
 	  $::BinaryArchiveInstallProc $::BinaryArchive "$::DestDisk::destdir" $::Installing::logtext
+          if {$::InstallArchives::hasSysBinaryArchive} {
+              $::BinaryArchiveInstallProc $::SysBinaryArchive "$::SysBinaryArchiveDest" $::Installing::logtext
+          }
 	  incr inst $::BinaryArchiveSize
 	  set ::Installing::progress [expr {int((double($inst) / $sn)*100)}]
 	  update

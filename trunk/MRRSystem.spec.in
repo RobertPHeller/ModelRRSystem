@@ -106,6 +106,7 @@ fi
 %{_bindir}/UniversalTest
 %{_bindir}/XPressNetThrottle
 %{_bindir}/xplocotest
+%{_bindir}/tclkit-*
 %{_sbindir}
 %{_sysconfdir}/hotplug/usb/raildriverd
 %{_sysconfdir}/udev/rules.d/90-raildriver.rules
@@ -141,6 +142,7 @@ fi
 %{_datadir}/@PACKAGE@/RailDriver 
 %{_datadir}/@PACKAGE@/TTScripts 
 %{_datadir}/@PACKAGE@/XPressNet
+%{_datadir}/@PACKAGE@/Satellite
 %{_mandir}/man1
 %{_mandir}/man8
 %{_desktopdir}
@@ -161,7 +163,6 @@ fi
 
 %files devel
 
-%{_bindir}/tclkit-*
 %{_libdir}/libfcfclasses.la 
 %{_libdir}/libazatrax.la 
 %{_libdir}/libMRRParserClasses.la 
