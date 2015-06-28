@@ -520,7 +520,7 @@ case $target_os in
     AC_SUBST(IMG_ZIP, Img-1.4-Mac-Universal.zip)
     AC_SUBST(TCLKITRUN, tclkit-darwin-univ-aqua)
     ;;
-  linux-gnu)
+  linux-gnu*)
     case $target_cpu in
       x86_64)
 	AC_SUBST(IMG_ZIP, Img-1.4-Linux64.zip)
@@ -530,6 +530,10 @@ case $target_os in
 	AC_SUBST(IMG_ZIP, Img-1.4-Linux32.zip)
 	AC_SUBST(TCLKITRUN, tclkit-linux-x86)
 	;;
+      armv7l)
+        AC_SUBST(IMG_ZIP, Img-1.3-Linuxarmv7l.zip)
+        AC_SUBST(TCLKITRUN, tclkit-linux-armv7l)
+        ;;
       *)
 	AC_MSG_ERROR([Unsupported Linux arch: $target_cpu])
 	;;
@@ -553,7 +557,7 @@ case $build_os in
     AC_SUBST(TCLKITBSRC, tclkit-darwin-univ-aqua)
     AC_SUBST(BEXEEXT, )
     ;;
-  linux-gnu)
+  linux-gnu*)
     AC_SUBST(BEXEEXT, )
     case $build_cpu in
       x86_64)
@@ -562,6 +566,9 @@ case $build_os in
       i*86)
 	AC_SUBST(TCLKITBSRC, tclkit-linux-x86)
 	;;
+      armv7l)
+        AC_SUBST(TCLKITBSRC, tclkit-linux-armv7l)
+        ;;
       *)
 	AC_MSG_ERROR([Unsupported Linux arch: $build_cpu])
 	;;
