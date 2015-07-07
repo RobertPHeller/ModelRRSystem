@@ -699,7 +699,7 @@ IMAGE_PATH             =
 # If FILTER_PATTERNS is specified, this tag will be
 # ignored.
 
-INPUT_FILTER           = 
+INPUT_FILTER           = "@top_builddir@/BuildData/tclkit@BEXEEXT@ @top_srcdir@/Doc/Support/tcl2dox.kit"
 
 # The FILTER_PATTERNS tag can be used to specify filters on a per file pattern
 # basis.
@@ -710,7 +710,7 @@ INPUT_FILTER           =
 # info on how filters are used. If FILTER_PATTERNS is empty or if
 # non of the patterns match the file name, INPUT_FILTER is applied.
 
-FILTER_PATTERNS        = "*.tcl=@top_builddir@/BuildData/tclkit@BEXEEXT@ @top_srcdir@/Doc/Support/tcl2dox.kit" "*.src=@top_builddir@/BuildData/tclkit@BEXEEXT@ @top_srcdir@/Doc/Support/tcl2dox.kit"
+FILTER_PATTERNS        =
 
 # If the FILTER_SOURCE_FILES tag is set to YES, the input filter (if set using
 # INPUT_FILTER) will be used to filter the input files when producing source
