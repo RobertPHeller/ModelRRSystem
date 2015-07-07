@@ -172,7 +172,7 @@ if test ${cross_compiling} = "yes"; then
   lt_cv_deplibs_check_method='pass_all'
 fi
 AM_PROG_LIBTOOL
-AX_PKG_DOXYGEN(1.6.0, [], [ AC_MSG_ERROR([DOXYGEN 1.6.0 or later is required to build..]) ])
+AX_PKG_DOXYGEN(1.6.0, [], [ AC_MSG_ERROR([DOXYGEN 1.6.0 is required to build.]) ])
 AC_PATH_PROG(PDFLATEX,pdflatex,/bin/true)
 AC_PATH_PROG(LATEX,latex,/bin/true)
 AC_PATH_PROG(MAKEINDEX,makeindex,/bin/true)
