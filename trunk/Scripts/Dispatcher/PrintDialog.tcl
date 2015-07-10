@@ -70,8 +70,8 @@ namespace eval PrintDialog {
 				-cancel 1 -default 0 -modal local \
 				-parent . -side bottom \
 				-title [_ "Print"] -transient yes]
-      $_printdialog add -name print  -text {Print}
-      $_printdialog add -name cancel -text {Cancel}
+      $_printdialog add print  -text {Print}
+      $_printdialog add cancel -text {Cancel}
       set frame [$_printdialog getframe]
       set lwidth [_mx "Label|Output file:" "Label|Paper size:"]
       set printfileFE [FileEntry $frame.printfileFE -label [_m "Label|Output file:"] \
@@ -84,7 +84,7 @@ namespace eval PrintDialog {
 							  -editable no \
 					  -values [::pdf4tcl::getPaperSizeList]]
       pack $papersizeLCB -fill x
-      $papersizeLCB setvalue first
+      $papersizeLCB set [lindex [$frame.papersizeLCB cget -values] 0]
     }
     typemethod draw {args} {
       $type createPrintDialog
