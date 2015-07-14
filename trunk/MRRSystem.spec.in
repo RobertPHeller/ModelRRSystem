@@ -41,6 +41,17 @@ railroad itself, freight car forwarding, time table creating, and
 dealing with some of the design work as well. This is the development
 package.
 
+%package examples
+Summary: Model Railroad System Example Data and Code
+Group: Applications/Engineering
+%description examples
+The Model Railroad System contains programs and libraries to support
+various model railroad activities, including operating the model
+railroad itself, freight car forwarding, time table creating, and
+dealing with some of the design work as well. This is the development
+package.
+
+
 %prep
 %setup -q
 ./bootstrap
@@ -196,3 +207,6 @@ fi
 %{_datadir}/@PACKAGE@/Doc/SampleCode*
 %{_datadir}/@PACKAGE@/Doc/Finn.pdf
 
+%files examples
+
+%{_datadir}/@PACKAGE@/ExampleDataAndCode/*

@@ -108,8 +108,14 @@ pkgdata_DATA = internals.pdf
 
 man3dir = $(mandir)/man3
 
+tcldoxyfilter.sh: tcldoxyfilter.sh.in $(top_builddir)/config.status
+	$(top_builddir)/config.status --file=tcldoxyfilter.sh:tcldoxyfilter.sh.in
+	chmod +x tcldoxyfilter.sh
+	
+
 html/index.html latex/refman.tex man/man3 : Doxyfile $(C_INTERNALS_H) \
-					    $(TCL_INTERNALS_TCLS) 
+					    $(TCL_INTERNALS_TCLS) \
+					    tcldoxyfilter.sh
 	-rm -rf html latex man
 	-chmod +x tcldoxyfilter.sh
 	$(DOXYGEN)

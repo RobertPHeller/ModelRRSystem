@@ -40,3 +40,18 @@
 #* 
 
 EXTRA_DIST = CmriSupport.tcl
+TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
+
+CLEANFILES = pkgIndex.tcl
+
+pkgdatadir = $(datadir)/$(PACKAGE)/ControlSupport
+pkgdata_DATA = CmriSupport.tcl pkgIndex.tcl
+
+pkgIndex.tcl : CmriSupport.tcl
+	for f in $(notdir $^) ; do \
+	  if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi;\
+	done
+	echo "pkg_mkIndex . $(notdir $^)" | $(TCLKIT)
+
+
+

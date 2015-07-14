@@ -104,6 +104,10 @@ AzatraxSupportFiles =  $(top_builddir)/C++/Azatrax/.libs/libazatrax$(SHLIB_SUFFI
 AzatraxDependFiles = $(top_builddir)/C++/Azatrax/libazatrax.la \
 		  $(top_builddir)/C++/Azatrax/pkgIndex.tcl
 
+ControlSupportFiles $(top_srcdir)/Scripts/ControlSupport/*.tcl \
+			$(top_builddir)/Scripts/ControlSupport/pkgIndex.tcl
+ControlSupportDependFiles  = $(ControlSupportFiles)
+
 CodeLibraryFiles = cmriCode.tcl panelCode.tcl userCodeModules.tcl
 EXTRA_DIST  = Dispatcher.src $(DispatcherScripts) $(DispatcherImages) \
 		$(CodeLibraryFiles) $(ExampleScripts) Dispatcher.png \
@@ -141,6 +145,7 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 		      $(top_builddir)/po/Dispatcher/msgfiles \
 		      $(top_builddir)/Doc/User/Dispatcher/index.html \
 		      $(CMriDependFiles)  $(AzatraxDependFiles) \
+		      $(ControlSupportDependFiles) \
 		      $(top_builddir)/C++/ParserClasses/libMRRParserClasses.la \
 		      $(top_builddir)/C++/ParserClasses/pkgIndex.tcl
 	-rm -rf Dispatcher.vfs
@@ -171,6 +176,8 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 		CodeLibrary/CMri $(CMriSupportFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		CodeLibrary/Azatrax $(AzatraxSupportFiles)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
+		CodeLibrary/ControlSupport $(ControlSupportFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		Messages $(top_builddir)/po/Dispatcher/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap Dispatcher${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
@@ -206,6 +213,9 @@ $(top_builddir)/C++/Azatrax/libazatrax.la : \
 
 $(top_builddir)/Scripts/CMri/pkgIndex.tcl : $(top_srcdir)/Scripts/CMri/cmri.tcl
 	$(MAKE) -C $(top_builddir)/Scripts/CMri pkgIndex.tcl
+
+$(top_builddir)/Scripts/ControlSupport/pkgIndex.tcl : $(top_srcdir)/Scripts/ControlSupport/*.tcl
+	$(MAKE) -C $(top_builddir)/Scripts/ControlSupport pkgIndex.tcl
 
 man1/Dispatcher.1 : Doxyfile Dispatcher.src
 	-rm -rf man1

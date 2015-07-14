@@ -110,6 +110,8 @@ namespace eval WrapIt {
 #  puts stderr "*** WrapIt::CMriLibDir = $CMriLibDir"
   variable AzatraxLibDir [glob -nocomplain [file join $CodeLibrary Azatrax]]
 #  puts stderr "*** WrapIt::AzatraxLibDir = $AzatraxLibDir"
+  variable ControlSupportDir [glob -nocomplain [file join $CodeLibrary ControlSupport]]
+#  puts stderr "*** WrapIt::ControlSupportDir = $ControlSupportDir"
   variable CopyCommonLibFiles [list \
     [file join $Lib Common snitStdMenuBar.tcl] \
     [file join $Lib Common mainwindow.tcl] \
@@ -179,7 +181,9 @@ namespace eval WrapIt {
     close $pkgFp
     if {$needcmri} {
       variable CMriLibDir
+      variable ControlSupportDir  
       file copy $CMriLibDir [file join $filename lib [file tail $CMriLibDir]]
+      file copy $ControlSupportDir [file join $filename lib [file tail $ControlSupportDir]]
     }
     if {$needazatrax} {
       variable AzatraxLibDir

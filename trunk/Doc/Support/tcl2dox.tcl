@@ -46,6 +46,9 @@ namespace eval tcl2dox {
 # This namespace is used to hold all of tcl2dox's procedures and variables.
 #
 
+  variable flineno 0
+  ## File line number
+
   proc ProcessBody {struturaltype structname isclass needgroup haselements bodylist} {
     ## @brief Process an element body.
     # This function processes an element's body, possibly recursing for those
@@ -62,6 +65,8 @@ namespace eval tcl2dox {
 
     #puts stderr "*** ProcessBody $struturaltype $structname $isclass $needgroup $haselements [lrange $bodylist 0 3]..."
 
+    variable flineno
+    if {$struturaltype eq "file"} {set flineno 0}
     set lineno 0
     set state LookingForDocBlockOrElementStart
     set elementblock {}
@@ -69,8 +74,11 @@ namespace eval tcl2dox {
     set currentStructname     $structname
     set completedDocBlock no
     set needendgroup no
+    set elementblock_flineno $flineno
     foreach line $bodylist {
       incr lineno
+      if {$struturaltype eq "file"} {incr flineno}
+      #puts stderr "*** ProcessBody: lineno = $lineno, flineno = $flineno, line is $line"
       switch -exact $state {
 	LookingForDocBlockOrElementStart {
 	  #if {$currentStructuralType eq "namespace"} {puts stderr "*** ProcessBody: line is $line"}
@@ -84,9 +92,11 @@ namespace eval tcl2dox {
 	    if {!$haselements} {return}
 	    if {[regexp {^[[:space:]]*#} "$line"] > 0} {continue}
 	    set elementblock "$line\n"
+	    set elementblock_flineno $lineno
 	    if {[info complete "$elementblock"]} {
 	      set state [DoElement $elementblock $isclass $structname \
-				     currentStructuralType currentStructname]
+				     currentStructuralType currentStructname \
+				     $elementblock_flineno]
 	      set elementblock {}
 	    } else {
 	      set state LookingForCompleteElement
@@ -125,7 +135,8 @@ namespace eval tcl2dox {
 	      set elementblock "$line\n"
 	      if {[info complete "$elementblock"]} {
 		set state [DoElement $elementblock $isclass $structname \
-				     currentStructuralType currentStructname]
+				     currentStructuralType currentStructname \
+				     $elementblock_flineno]
 	        set elementblock {}
 	      } else {
 	        set state LookingForCompleteElement
@@ -137,7 +148,8 @@ namespace eval tcl2dox {
 	  append elementblock "$line\n"
 	  if {[info complete "$elementblock"]} {
 	    set state [DoElement $elementblock $isclass $structname \
-				     currentStructuralType currentStructname]
+				     currentStructuralType currentStructname \
+				     $elementblock_flineno]
 	    set elementblock {}
 	  }
 	}
@@ -154,6 +166,7 @@ namespace eval tcl2dox {
 
     #puts stderr "*** ProcessENumElements $structname [lrange $bodylist 0 3]..."
 
+    variable flineno
     set lineno 0
     set state LookingForDocBlockOrElement
     set elementblock {}
@@ -165,6 +178,7 @@ namespace eval tcl2dox {
     set needcomma no
     foreach line $bodylist {
       incr lineno
+      incr flineno
       #puts stderr "*** ProcessENumElements: line($lineno) is $line"
       #puts stderr "*** ProcessENumElements: state = $state"
       switch -exact $state {
@@ -173,6 +187,7 @@ namespace eval tcl2dox {
 	 		"$line" -> CH L] > 0} {
 	    set state ProcessingDocBlock
 	    if {$needcomma} {puts stdout ","}
+	    puts stdout "#line $flineno"
 	    puts stdout "/** $L"
 	  } elseif {[string trim "$line"] ne ""} {
 	    if {[regexp {^[[:space:]]*#} "$line"] > 0} {continue}
@@ -209,7 +224,7 @@ namespace eval tcl2dox {
     if {$needcomma} {puts stdout {}}
     if {$needendgroup} {puts stdout "\};"}
   }
-  proc DoElement {eblock isclass classname curSTVar curSNVar} {
+  proc DoElement {eblock isclass classname curSTVar curSNVar elementblock_flineno} {
   ##
   # @brief Process an element.
   # Process one element in a body.
@@ -229,6 +244,8 @@ namespace eval tcl2dox {
 	"$eblock" -> firstword] < 1} {
       return LookingForDocBlockOrElementStart
     } 	
+    puts stdout "#line $elementblock_flineno"
+
     switch -exact -- $firstword {
       method {
 	set structType fn

@@ -56,7 +56,7 @@ namespace eval CmriSupport {
 #
 #  @section CmriSupport_package Package provided
 #
-#  CmriSupport 1.1
+#  CmriSupport 1.2
 #
 
 
@@ -66,24 +66,6 @@ namespace eval CmriSupport {
   # This Snit type defines CMR/I nodes (SUSIC, USIC, or SMINI
   # boards) on a CMR/I network.  All options are readonly.
   #
-  # @param name Name of the node.
-  # @param ... Options:
-  # @arg -type The type of node, one of SUSIC, USIC, or SMINI. No default 
-  #		   value.
-  # @arg -address The address of the node.  Default is 0.
-  # @arg -cardmap The card type map.  Only used with SUSIC and USIC. 
-  #			Default is {}.
-  # @arg -yellowmap The yellow bi-color LED map.  Only used with the SMINI
-  #			card type. Default is {0 0 0 0 0 0}.
-  # @arg -numberofyellow The number of yellow bi-color LED signals. Only
-  #			for SMINI cards.  Default is 0.
-  # @arg -inputports The number of 8-bit input ports.  Default 0 (3 for 
-  #			SMINI cards).
-  # @arg -outputports The number of 8-bit output ports.  Default 0 (6 for 
-  #			SMINI cards).
-  # @arg -delay The delay value to use.  Only meaningful for older (USIC)
-  #			cards.  Default is 0.
-  # @par
   # @author Robert Heller @<heller\@deepsoft.com@>
 
 
@@ -175,6 +157,21 @@ namespace eval CmriSupport {
 	error "Expected a 16-bit integer for $option, got $value"
       }
     }
+    typemethod validate {object} {
+        ## Type validating code
+        # Raises an error if object is not either the empty string or a C4TSMINI_Block
+        # type.
+        
+        if {$object eq ""} {
+            return $object;# Empty or null objects are OK
+        } elseif {[catch {$object info type} itstype]} {
+            error "$object is not a $type";# object is not a SNIT type
+        } elseif {$itstype eq $type} {
+            return $object;# Object is of our type (CmriNode)
+        } else {
+            error "$object is not a $type";# object is something else
+        }
+    }
     option -numberofyellow -readonly yes -default 0 -validatemethod _ValidateByte
     option -inputports -readonly yes -validatemethod _ValidateByte
     option -outputports -readonly yes -validatemethod _ValidateByte
@@ -208,9 +205,30 @@ namespace eval CmriSupport {
 	return yes
       }
     }
+    variable outputbuffer {}
+    ## Output buffer
+    
+    
     constructor {args} {
-    ## Constructor -- initialize a board.
-    # @param ... Option list.
+        ## Constructor -- initialize a board.
+        # @param name Name of the node.
+        # @param ... Options:
+        # @arg -type The type of node, one of SUSIC, USIC, or SMINI. No default 
+        #		   value.
+        # @arg -address The address of the node.  Default is 0.
+        # @arg -cardmap The card type map.  Only used with SUSIC and USIC. 
+        #			Default is {}.
+        # @arg -yellowmap The yellow bi-color LED map.  Only used with the SMINI
+        #			card type. Default is {0 0 0 0 0 0}.
+        # @arg -numberofyellow The number of yellow bi-color LED signals. Only
+        #			for SMINI cards.  Default is 0.
+        # @arg -inputports The number of 8-bit input ports.  Default 0 (3 for 
+        #			SMINI cards).
+        # @arg -outputports The number of 8-bit output ports.  Default 0 (6 for 
+        #			SMINI cards).
+        # @arg -delay The delay value to use.  Only meaningful for older (USIC)
+        #			cards.  Default is 0.
+        # @par
 
       if {![$type portopenp]} {
 	error "Port is not open!  Open the port before initializing boards!"
@@ -243,25 +261,61 @@ namespace eval CmriSupport {
 		$_TypeCodes([string toupper $options(-type)]) 0
 	}
       }
+      set outputbuffer {}
+      for {set i 0} {$i < $options(-outputports)} {incr i} {
+          lappend outputbuffer 0
+      }
+      
     }
     method inputs {} {
     ## Method to fetch input port values.
 
       return [$_cmriPort Inputs $options(-inputports) $options(-address)]
     }
-    method outputs {portvector} {
+    method outputs {{portvector {}}} {
     ## Method to set output ports.
     # @param portvector Vector of output ports.
-
+    
+      if {$portvector eq {}} {set portvector $outputbuffer}
       $self _ValidateListOfBytes portvector "$portvector"
       if {[llength "$portvector"] != $options(-outputports)} {
 	error "Wrong number of output port values, should be $options(-outputports), got $portvector ([llength $$portvector] elements)."
       }
+      set outputbuffer $portvector
       return [$_cmriPort Outputs $portvector $options(-address)]
+    }
+    method setport {portnum byte} {
+        ## Set and send one byte to a port (rewrites all ports).
+        # @param portnum Number of the output port.
+        # @param byte Value to write.
+        
+        $self _ValidateByte $byte
+        if {$portnum < 0 || $portnum >= $options(-outputports)} {
+            error "Port number ($portnum) out of range (0..$options(-outputports))"
+        }
+        lset outputbuffer $portnum $byte
+        $self outputs
+    }
+    method setbitfield {portnum mask bits} {
+        ## Set and send a bitfield to a port (rewrites all ports).
+        # @param portnum Number of the output port.
+        # @param mask Bit mask.
+        # @param bits Bits (must already shifted into position!).
+        
+        $self _ValidateByte $mask
+        $self _ValidateByte $bits
+        if {$portnum < 0 || $portnum >= $options(-outputports)} {
+            error "Port number ($portnum) out of range (0..$options(-outputports))"
+        }
+        set oldbyte [lindex $outputbuffer $portnum]
+        set oldbyte [expr {((~$mask) & $oldbyte) & 0x0FF}]
+        set newbyte [expr {$oldbyte | $bits}]
+        $self setport $portnum $newbyte
     }
   }
 }
 
 ## @}
     
-package provide CmriSupport 1.1
+package provide CmriSupport 1.2
+

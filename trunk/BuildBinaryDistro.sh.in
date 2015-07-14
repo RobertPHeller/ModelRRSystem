@@ -102,11 +102,13 @@ echo "Archive basename is $archive_dir/@PACKAGE@-@VERSION@-$archive_target"
 BIN=$archive_dir/@PACKAGE@-@VERSION@-${archive_target}BinOnly${archiverext}
 DEV=$archive_dir/@PACKAGE@-@VERSION@-${archive_target}BinDevel${archiverext}
 DOC=$archive_dir/@PACKAGE@-@VERSION@-${archive_target}BinDoc${archiverext}
+EXAM=$archive_dir/@PACKAGE@-@VERSION@-${archive_target}BinExamples${archiverext}
 
 echo "Archive names are:"
 echo "  $BIN"
 echo "  $DEV"
 echo "  $DOC"
+echo "  $EXAM"
 
 # First make it
 
@@ -200,6 +202,8 @@ share/@PACKAGE@/Doc/ProgrammingGuide.pdf | tr ' ' '\n' >>/tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find share/@PACKAGE@/Doc -name 'SampleCode*') >>/tmp/DEVFILES$$.list
 echo share/@PACKAGE@/Doc/Finn.pdf >>/tmp/DEVFILES$$.list
 
+echo share/@PACKAGE@/ExampleDataAndCode >/tmp/EXAMFILES$$.list
+
 echo "Writing archives..."
 
 case $archiver in
@@ -210,6 +214,8 @@ case $archiver in
 	echo "Wrote $DOC"
 	(cd ${DESTDIR}/usr/local&&$archiver $archiveropts $DEV /tmp/DEVFILES$$.list)
 	echo "Wrote $DEV"
+	(cd ${DESTDIR}/usr/local&&$archiver $archiveropts $EXAM /tmp/EXAMFILES$$.list)
+	echo "Wrote $EXAM"
   ;;
   zip)
 	(cd ${DESTDIR}/usr/local&&${archiver} ${archiveropts} $BIN < /tmp/BINFILES$$.list)
@@ -218,10 +224,12 @@ case $archiver in
 	echo "Wrote $DOC"
 	(cd ${DESTDIR}/usr/local&&${archiver} ${archiveropts} $DEV < /tmp/DEVFILES$$.list)
 	echo "Wrote $DEV"
+	(cd ${DESTDIR}/usr/local&&${archiver} ${archiveropts} $EXAM < /tmp/EXAMFILES$$.list)
+	echo "Wrote $EXAM"
   ;;
 esac
 
-rm -f /tmp/DEVFILES$$.list /tmp/DOCFILES$$.list /tmp/BINFILES$$.list
+rm -f /tmp/DEVFILES$$.list /tmp/DOCFILES$$.list /tmp/BINFILES$$.list /tmp/EXAMFILES$$.list
 rm -rf ${DESTDIR}
 
 
