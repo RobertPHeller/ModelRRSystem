@@ -724,6 +724,8 @@ AC_CONFIG_FILES([config_tcl.sed \
                 ExampleDataAndCode/Yards/Doxyfile \
                 ExampleDataAndCode/Sidings/Makefile \
                 ExampleDataAndCode/Sidings/Doxyfile \
+                ExampleDataAndCode/Switches/Makefile \
+                ExampleDataAndCode/Switches/Doxyfile \
                 ExampleDataAndCode/TimeTables/Makefile \
                 ExampleDataAndCode/FreightCarForwarding/Makefile \
 	  MRRSystem.spec \

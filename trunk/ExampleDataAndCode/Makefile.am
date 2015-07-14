@@ -1,4 +1,4 @@
-SUBDIRS = Blocks Signals InterlockingPlants Yards Sidings TimeTables \
+SUBDIRS = Blocks Switches Signals InterlockingPlants Yards Sidings TimeTables \
 	  FreightCarForwarding
 
 
