@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Jul 13 12:42:15 2015
-#  Last Modified : <150714.1337>
+#  Last Modified : <150714.1905>
 #
 #  Description	
 #
@@ -271,3 +271,5 @@ snit::type C4TSMINI_Block {
         }
     }
 }
+
+package provide C4TSMINI_Block 1.0

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jul 12 11:27:53 2015
-#  Last Modified : <150714.1336>
+#  Last Modified : <150714.1904>
 #
 #  Description	
 #
@@ -275,3 +275,4 @@ snit::type MRD2_Block {
 }
 
 
+package provide MRD2_Block 1.0

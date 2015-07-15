@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Jul 13 10:23:04 2015
-#  Last Modified : <150714.1338>
+#  Last Modified : <150714.1904>
 #
 #  Description	
 #
@@ -268,3 +268,4 @@ snit::type C4TSR4_Block {
     
             
 
+package provide C4TSR4_Block 1.0

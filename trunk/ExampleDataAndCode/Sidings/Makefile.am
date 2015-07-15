@@ -1,9 +1,9 @@
 SUBDIRS = 
-CODEFILES =
+CODEFILES = Siding.tcl
 FIGURES = 
 OTHERFILES =
 EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in main.h 
-pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Signals
+pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Sidings
 
 noinst_DATA = html/index.html
 pkgdata_DATA =  latex/refman.pdf

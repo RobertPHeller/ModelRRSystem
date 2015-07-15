@@ -1,12 +1,14 @@
 SUBDIRS = 
-CODEFILES =
+CODEFILES = SR4_SM_Switch.tcl
 FIGURES = 
 OTHERFILES =
 EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in main.h 
-pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Signals
+pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Switches
 
 noinst_DATA = html/index.html
-pkgdata_DATA =  latex/refman.pdf
+pkgdata_DATA =  latex/refman.pdf pkgIndex.tcl
+CLEANFILES = pkgIndex.tcl
+TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
 html/index.html latex/refman.pdf : Doxyfile main.h $(CODEFILES) \
 	$(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
@@ -47,3 +49,9 @@ uninstall-hook:
 	  echo " rm -rf '$(DESTDIR)$(pkgdatadir)/$$f'"; \
 	  rm -rf "$(DESTDIR)$(pkgdatadir)/$$f"; \
 	done                                                         
+
+pkgIndex.tcl : $(CODEFILES)
+	for f in $(notdir $^) ; do \
+	  if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi;\
+	done
+	echo "pkg_mkIndex . $(notdir $^)" | $(TCLKIT)

@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Tue Jul 14 12:40:17 2015
-//  Last Modified : <150714.1241>
+//  Last Modified : <150714.1903>
 //
 //  Description	
 //
@@ -42,7 +42,10 @@
 
 #ifndef __MAIN_H
 #define __MAIN_H
-/** @mainpage 
+/** @mainpage Switch (Turnout) Abstract Types (Classes)
+ * 
+ * This folder contain a collection of Tcl code to implement switches (aka 
+ * turnouts), using various actuator hardware.
  */
 
 #endif // __MAIN_H
