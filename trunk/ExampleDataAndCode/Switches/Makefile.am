@@ -1,7 +1,7 @@
 SUBDIRS = 
 CODEFILES = SR4_SM_Switch.tcl
-FIGURES = 
-OTHERFILES =
+FIGURES = switch-SR4-MRD2.png switch-SR4-MRD2-thumb.png
+OTHERFILES = switch-SR4-MRD2.xtc switch-SR4-MRD2.pdf
 EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in main.h 
 pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Switches
 
@@ -10,7 +10,7 @@ pkgdata_DATA =  latex/refman.pdf pkgIndex.tcl
 CLEANFILES = pkgIndex.tcl
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
-html/index.html latex/refman.pdf : Doxyfile main.h $(CODEFILES) \
+html/index.html latex/refman.pdf : Doxyfile main.h $(CODEFILES) $(FIGURES) \
 	$(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
 	-rm -rf latex/ html/
 	-chmod +x $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
