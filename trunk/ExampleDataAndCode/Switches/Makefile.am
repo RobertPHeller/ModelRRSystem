@@ -1,5 +1,5 @@
 SUBDIRS = 
-CODEFILES = SR4_SM_Switch.tcl
+CODEFILES = SR4_MRD2_Switch.tcl
 FIGURES = switch-SR4-MRD2.png switch-SR4-MRD2-thumb.png
 OTHERFILES = switch-SR4-MRD2.xtc switch-SR4-MRD2.pdf
 EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in main.h 

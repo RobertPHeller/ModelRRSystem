@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Jul 13 12:42:15 2015
-#  Last Modified : <150714.1905>
+#  Last Modified : <150716.1214>
 #
 #  Description	
 #
@@ -227,14 +227,14 @@ snit::type C4TSMINI_Block {
             # Now propagate the signal to the previous block (if any)
             if {$options(-previousblock) ne {}} {
                 # Set a yellow (approach) aspect on the previous block.
-                $options(-previousblock) propagate yellow -direction forward
+                $options(-previousblock) propagate yellow $self -direction forward
             }
         } else {
             if {$reversesignal ne ""} {$reversesignal setaspect red}
             # Now propagate the signal to the previous block (if any)
             if {$options(-nextblock) ne {}} {
                 # Set a yellow (approach) aspect on the previous block.
-                $options(-nextblock) propagate yellow -direction reverse
+                $options(-nextblock) propagate yellow $self -direction reverse
             }
         }
     }
@@ -243,8 +243,12 @@ snit::type C4TSMINI_Block {
         
         # Nothing here -- could be used for any sort of exit handling.
     }
-    method propagate {aspect args} {
+    method propagate {aspect from args} {
         ## @publicsection Method used to propagate distant signal states back down the line.
+        # @param aspect The signal aspect that is being propagated.
+        # @param from The propagating block (not used). 
+        # @param ... Options:
+        # @arg -direction The direction of the propagation.
         
         ## First process any options
         $self configurelist $args
@@ -256,7 +260,7 @@ snit::type C4TSMINI_Block {
             # If the new aspect was yellow, propagate a green (clear) signal
             if {$aspect eq "yellow"} {
                 if {$options(-previousblock) ne {}} {
-                    $options(-previousblock) propagate green -direction forward
+                    $options(-previousblock) propagate green $self -direction forward
                 }
             }
         } else {
@@ -265,7 +269,7 @@ snit::type C4TSMINI_Block {
             # If the new aspect was yellow, propagate a green (clear) signal
             if {$aspect eq "yellow"} {
                 if {$options(-nextblock) ne {}} {
-                    $options(-nextblock) propagate green -direction reverse
+                    $options(-nextblock) propagate green $self -direction reverse
                 }
             }
         }

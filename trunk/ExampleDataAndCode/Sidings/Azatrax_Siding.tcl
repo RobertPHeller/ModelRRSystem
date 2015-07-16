@@ -210,6 +210,13 @@ package require Azatrax
 # the switch motors (Circuitron Tortoise Switch Machines).  There are no 
 # signals in this example.
 #
+# Using the Abstract Data Types (Classes) 
+# <a href="../../Blocks/html/classMRD2__Block.html">MRD2_Block</a> and 
+# <a href="../../Switches/html/classSR4__MRD2__Switch.html">SR4_MRD2_Switch</a> 
+# almost all of the code is embeded in these Abstract Data Types, which makes 
+# the code here very simple.
+#
+
 
 
 
@@ -237,8 +244,8 @@ namespace eval ControlPoints {
 # Load in MRD2_Block code
 package require MRD2_Block
 
-# Load in SR4_SM_Switch code
-package require SR4_SM_Switch
+# Load in SR4_MRD2_Switch code
+package require SR4_MRD2_Switch
 
 # Two straight blocks, with MRD2s
 MRD2_Block main   -sensorsn 0200001234
@@ -247,13 +254,16 @@ MRD2_Block siding -sensorsn 0200001235
 SR4 turnoutControl1 -this [Azatrax_OpenDevice 0400001234 \
                            $::Azatrax_idSR4Product]
 # Two turnouts, one at each end.
-SR4_SM_Switch switch1 -motorobj turnoutControl1 -motorhalf lower \
+SR4_MRD2_Switch switch1 -motorobj turnoutControl1 -motorhalf lower \
       -pointsenseobj turnoutControl1 -pointsensehalf lower \
-      -ossensorsn 0200001236 -nextmainblock main -nextdivergentblock siding
-SR4_SM_Switch switch2 -motorobj turnoutControl1 -motorhalf upper \
+      -ossensorsn 0200001236 -nextmainblock main -nextdivergentblock siding \
+      -plate SwitchPlate1
+SR4_MRD2_Switch switch2 -motorobj turnoutControl1 -motorhalf upper \
       -pointsenseobj turnoutControl1 -pointsensehalf upper \
       -ossensorsn 0200001237 -forwarddirection reverse  \
-      -nextmainblock main -nextdivergentblock siding
+      -nextmainblock main -nextdivergentblock siding \
+      -plate SwitchPlate2
+# Connect the siding and main to the switch frogs
 main configure -previousblock switch1 -nextblock switch2
 siding configure -previousblock switch1 -nextblock switch2
 
