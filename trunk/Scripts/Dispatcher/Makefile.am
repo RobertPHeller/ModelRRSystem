@@ -104,7 +104,7 @@ AzatraxSupportFiles =  $(top_builddir)/C++/Azatrax/.libs/libazatrax$(SHLIB_SUFFI
 AzatraxDependFiles = $(top_builddir)/C++/Azatrax/libazatrax.la \
 		  $(top_builddir)/C++/Azatrax/pkgIndex.tcl
 
-ControlSupportFiles $(top_srcdir)/Scripts/ControlSupport/*.tcl \
+ControlSupportFiles = $(top_srcdir)/Scripts/ControlSupport/*.tcl \
 			$(top_builddir)/Scripts/ControlSupport/pkgIndex.tcl
 ControlSupportDependFiles  = $(ControlSupportFiles)
 
