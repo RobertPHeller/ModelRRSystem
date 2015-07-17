@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jul 12 11:27:53 2015
-#  Last Modified : <150716.1211>
+#  Last Modified : <150717.1338>
 #
 #  Description	
 #
@@ -52,14 +52,8 @@ snit::type MRD2_Block {
     ##
     # @brief Block occupation detection using Azatrax MRD2Us
     #
-    # @verbatim
-    # o
-    # |
-    # ----------------------------------------------------------------
-    # ||||*||||||||||||||||||||||||||||||||||||||||||||||||||||||*||||
-    # ----------------------------------------------------------------
-    # Sensor1         >=== traffic direction ===>             Sensor2
-    # @endverbatim
+    # @image html MRD2_Block-thumb.png
+    # @image latex MRD2_Block.png "Block detection using a MRD2" width=5in
     #
     # Above is a simple diagram for using Azatrax MRD2Us for block occupation 
     # detection. The Azatrax MRD2U has two IR sensors and one can be use to test 

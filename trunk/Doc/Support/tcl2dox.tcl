@@ -288,7 +288,7 @@ namespace eval tcl2dox {
       }
       constructor {
 	set structType fn
-	set structname "$classname ("
+	set structname "$classname (name, "
 	append structname [ProcessParams [lindex $eblock 1]]
 	append structname ")"
 	ProcessBody $structType "$structname" no no no [split [lindex $eblock 2] "\n"]

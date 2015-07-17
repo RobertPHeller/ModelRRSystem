@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Jul 13 10:23:04 2015
-#  Last Modified : <150716.1213>
+#  Last Modified : <150717.1523>
 #
 #  Description	
 #
@@ -48,14 +48,8 @@ snit::type C4TSR4_Block {
     ##
     # @brief Block occupation detection using Circuits4Tracks Quad Occupancy Detectors and Azatrax SR4s
     #
-    # @verbatim
-    # o
-    # |
-    # ----------------------------------------------------------------
-    # ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-    # :---------------------------------------------------------------
-    # Rail Gap         >=== traffic direction ===>             
-    # @endverbatim
+    # @image html C4TSR4_Block-thumb.png
+    # @image latex C4TSR4_Block.png "Block detection with a Circuits4Tracks Quad Occupancy Detector and a SR4" width=5in
     #
     # Above is a simple diagram for using Circuits4Tracks Quad Occupancy 
     # Detectors for block occupation detection. A Circuits4Tracks Quad 
