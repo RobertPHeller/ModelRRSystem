@@ -1,7 +1,7 @@
 SUBDIRS = 
-CODEFILES = Azatrax_Siding.tcl
-FIGURES = 
-OTHERFILES = Azatrax_Siding.pdf 
+CODEFILES = 
+FIGURES = Azatrax_Siding_controls.png Azatrax_Siding_schematic.png
+OTHERFILES = Azatrax_Siding.pdf Azatrax_Siding.tcl
 EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in main.h 
 pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Sidings
 

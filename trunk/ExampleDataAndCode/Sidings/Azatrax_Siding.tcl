@@ -202,22 +202,6 @@ package require Azatrax
 
 # Add User code after this line
 
-## @file Azatrax_Siding.tcl 
-# @brief This file contains a simple passing siding with block detection and
-# turnout actuation using Azatrax's MRD2 and SR4 devices.
-#
-# Four MRD2-Us are used for occupancy detection and one SR4 is used to activate
-# the switch motors (Circuitron Tortoise Switch Machines).  There are no 
-# signals in this example.
-#
-# Using the Abstract Data Types (Classes) MRD2_Block and SR4_MRD2_Switch 
-# almost all of the code is embeded in these Abstract Data Types, which makes 
-# the code here very simple.
-#
-
-
-
-
 #* ControlPoints:START *
 # Control points.  Used to implement code buttons.  
 # Encapsulates a control point
@@ -243,12 +227,27 @@ package require MRD2_Block
 # Load in SR4_MRD2_Switch code
 package require SR4_MRD2_Switch
 
+## @file Azatrax_Siding.tcl 
+# @brief This file contains a simple passing siding with block detection and
+# turnout actuation using Azatrax's MRD2 and SR4 devices.
+#
+# Four MRD2-Us are used for occupancy detection and one SR4 is used to activate
+# the switch motors (Circuitron Tortoise Switch Machines).  There are no 
+# signals in this example, although working signals can be easily added.
+#
+# Using the Abstract Data Types (Classes) MRD2_Block and SR4_MRD2_Switch 
+# almost all of the code is embeded in these Abstract Data Types, which makes 
+# the code here very simple.  Specificly, we create a MRD2_Block object for the
+# main and siding tracks:
 # Two straight blocks, with MRD2s
 MRD2_Block main   -sensorsn 0200001234
 MRD2_Block siding -sensorsn 0200001235
+## Then create a connection to the SR4 for use by the two turnouts:
 # One SR4 for turnout control
 SR4 turnoutControl1 -this [Azatrax_OpenDevice 0400001234 \
                            $::Azatrax_idSR4Product]
+## Then we create a SR4_MRD2_Switch object for each turnout, linking them to 
+# the main and siding tracks.
 # Two turnouts, one at each end.
 SR4_MRD2_Switch switch1 -motorobj turnoutControl1 -motorhalf lower \
       -pointsenseobj turnoutControl1 -pointsensehalf lower \
@@ -259,15 +258,27 @@ SR4_MRD2_Switch switch2 -motorobj turnoutControl1 -motorhalf upper \
       -ossensorsn 0200001237 -forwarddirection reverse  \
       -nextmainblock main -nextdivergentblock siding \
       -plate SwitchPlate2
+## Then connect the main and siding MRD2_Block objects to the SR4_MRD2_Switch 
+# objects.
 # Connect the siding and main to the switch frogs
 main configure -previousblock switch1 -nextblock switch2
 siding configure -previousblock switch1 -nextblock switch2
-
+## Finally, we create a pair of CodeButton objects for the code buttons.
 # Two Code buttons
 ControlPoint code1 -cpname CP1
 ControlPoint code2 -cpname CP2
-
-
+## When we assembled the track work and control panel, we set the scripts to 
+# run the various callback methods:
+#
+# For the Main straight block, the "Occupied Script" would be 
+# "main occupiedp". For the Siding it would be "siding occupiedp".
+# For Switches, "State Script" would be set to "switchN pointstate" and
+# "Occupied Script" would be set to "switchN occupiedp". For the switch
+# plates, the "Normal Script" would be "switchN motor normal" and the
+# "Reverse Script" would be "switchN motor reverse". Finally the code
+# buttons would have an "Action Script" of "codeN code". Thus everything is 
+# tied together.  The main loop 'invokes' the track work elements, which runs 
+# the occupency methods.
 # Main Loop Start
 while {true} {
   # Read all AZATRAX state data
@@ -279,5 +290,6 @@ while {true} {
   update;# Update display
 }
 # Main Loop End
-
+## The code buttons will run the switch plate functions which in turn 
+# will activate the switch machines.
 
