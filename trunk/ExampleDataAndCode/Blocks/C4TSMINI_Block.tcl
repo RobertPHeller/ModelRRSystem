@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Jul 13 12:42:15 2015
-#  Last Modified : <150716.1214>
+#  Last Modified : <150718.0800>
 #
 #  Description	
 #
@@ -47,14 +47,8 @@ snit::type C4TSMINI_Block {
     ##
     # @brief Block occupation detection using Circuits4Tracks Quad Occupancy Detectors and Azatrax SR4s
     #
-    # @verbatim
-    # o
-    # |
-    # ----------------------------------------------------------------
-    # ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-    # :---------------------------------------------------------------
-    # Rail Gap         >=== traffic direction ===>             
-    # @endverbatim
+    # @image html C4TSMINI_Block-thumb.png
+    # @image latex C4TSMINI_Block.png "Block detection with a Circuits4Tracks Quad Occupancy Detector and a Chubb SMINI card" width=5in
     #
     # Above is a simple diagram for using Circuits4Tracks Quad Occupancy 
     # Detectors for block occupation detection. A Circuits4Tracks Quad 

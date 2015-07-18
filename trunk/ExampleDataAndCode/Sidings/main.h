@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Tue Jul 14 12:40:17 2015
-//  Last Modified : <150715.1654>
+//  Last Modified : <150718.0818>
 //
 //  Description	
 //
@@ -48,7 +48,8 @@
  * 
  * The Azatrax_Siding.tcl file contains a simple passing siding using Azatrax
  * devices for block occupancy detection, turnout activation, and turnout
- * point state detection.
+ * point state detection.  It uses code from MRD2_Block.tcl and 
+ * SR4_MRD2_Switch.tcl.
  * 
  */
 

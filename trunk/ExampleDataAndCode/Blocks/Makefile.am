@@ -2,10 +2,12 @@ SUBDIRS =
 CODEFILES = MRD2_Block.tcl C4TSR4_Block.tcl C4TSMINI_Block.tcl
 FIGURES = 4circleblocks.png  EditingBlock1.png \
 		MRD2_Block-thumb.png MRD2_Block.png \
-		C4TSR4_Block-thumb.png C4TSR4_Block.png
+		C4TSR4_Block-thumb.png C4TSR4_Block.png \
+		C4TSMINI_Block.png C4TSMINI_Block-thumb.png
 OTHERFILES = ODtoSR4-UALL.png ODtoSR4-UComponent.png ODtoSR4-UGND.png \
 	     ODtoSR4-U.partsList ODtoSR4-U.pcb ODtoSR4-U.pdf \
-	     ODtoSR4-UPower.png ODtoSR4-U.ps MRD2_Block.xtc C4TSR4_Block.xtc
+	     ODtoSR4-UPower.png ODtoSR4-U.ps MRD2_Block.xtc C4TSR4_Block.xtc \
+	     C4TSMINI_Block.xtc
 EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in main.h
 
 pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Blocks

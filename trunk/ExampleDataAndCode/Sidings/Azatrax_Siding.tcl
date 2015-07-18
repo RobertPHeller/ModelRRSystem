@@ -210,9 +210,7 @@ package require Azatrax
 # the switch motors (Circuitron Tortoise Switch Machines).  There are no 
 # signals in this example.
 #
-# Using the Abstract Data Types (Classes) 
-# <a href="../../Blocks/html/classMRD2__Block.html">MRD2_Block</a> and 
-# <a href="../../Switches/html/classSR4__MRD2__Switch.html">SR4_MRD2_Switch</a> 
+# Using the Abstract Data Types (Classes) MRD2_Block and SR4_MRD2_Switch 
 # almost all of the code is embeded in these Abstract Data Types, which makes 
 # the code here very simple.
 #
@@ -221,23 +219,21 @@ package require Azatrax
 
 
 #* ControlPoints:START *
-namespace eval ControlPoints {
-  # Control points.  Used to implement code buttons.  
-  # Encapsulates a control point
-  snit::type ControlPoint {
+# Control points.  Used to implement code buttons.  
+# Encapsulates a control point
+snit::type ControlPoint {
     option -cpname -readonly yes -default {}
     constructor {args} {
-      $self configurelist $args
+        $self configurelist $args
     }
     method code {} {
-      foreach swp [MainWindow ctcpanel objectlist $options(-cpname) SwitchPlates] {
-	MainWindow ctcpanel invoke $swp
-      }      
-      foreach sgp [MainWindow ctcpanel objectlist $options(-cpname) SignalPlates] {
-	MainWindow ctcpanel invoke $sgp
-      }
+        foreach swp [MainWindow ctcpanel objectlist $options(-cpname) SwitchPlates] {
+            MainWindow ctcpanel invoke $swp
+        }      
+        foreach sgp [MainWindow ctcpanel objectlist $options(-cpname) SignalPlates] {
+            MainWindow ctcpanel invoke $sgp
+        }
     }
-  }
 }
 #* ControlPoints:END *
 
