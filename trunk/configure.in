@@ -675,6 +675,7 @@ AC_CONFIG_FILES([config_tcl.sed \
 		Scripts/RailDriverSupport/Doxyfile \
 		Scripts/Satellite/Makefile \
 		Scripts/Satellite/Doxyfile \
+		Scripts/CTIAcela/Makefile \
 	  Doc/Makefile \
 		Doc/Support/Makefile \
 		Doc/User/Makefile \

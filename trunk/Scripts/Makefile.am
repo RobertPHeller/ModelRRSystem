@@ -42,5 +42,5 @@
 SUBDIRS = Common GRSupport Dispatcher CameraScripts \
 	  CalcScripts FreightCarForwarder2 \
 	  TimeTable2 ControlSupport MainProgram GenericThrottle CMri \
-	  XPressNet NCE LocoNet RailDriverSupport Satellite
+	  XPressNet NCE LocoNet RailDriverSupport Satellite CTIAcela
 
