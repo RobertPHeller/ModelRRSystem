@@ -650,6 +650,7 @@ INPUT                  = @top_srcdir@/Doc/doxygen/titlepage.h \
                          @top_srcdir@/C++/TTSupport/Cab.h \
                          @top_srcdir@/C++/TTSupport/PathName.h \
                          @top_srcdir@/Scripts/CMri/cmri.tcl \
+                         @top_srcdir@/Scripts/CTIAcela/CTIAcela.tcl \
                          @top_srcdir@/Scripts/XPressNet/xpressnet.tcl \
                          @top_srcdir@/Scripts/NCE/nce.tcl \
                          @top_srcdir@/Scripts/Common/CommonTclGroup.h \

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jul 21 10:56:52 2015
-#  Last Modified : <150721.1520>
+#  Last Modified : <150721.1956>
 #
 #  Description	
 #
@@ -71,6 +71,64 @@ namespace eval ctiacela {
     #  CTIAcela 1.0.0
     #
     
+    snit::enum directiontype -values {
+        ## @enum directiontype
+        # @brief Direction type
+        #
+        # Either forward or reverse.
+        #
+        
+        forward 
+        ##
+        reverse
+        ##
+    }
+    
+    snit::enum lampcontroltype -values {
+        ## @enum lampcontroltype
+        # @brief Lamp control type
+        #
+        # One of off, on, blink, or reverseblink.
+        #
+        
+        off 
+        ##
+        on
+        ##
+        blink
+        ##
+        reverseblink
+        ##
+    }
+    
+    snit::enum selecttype -values {
+        ## @enum selecttype
+        # @brief Filter select type.
+        #
+        # One of noise, bounce, gap, or dirty.
+        
+        noise
+        ##
+        bounce
+        ##
+        gap
+        ##
+        dirty
+        ##
+    }
+    
+    snit::enum polaritytype -values {
+        ## @enum polaritytype
+        # @brief Polarity type
+        #
+        # One of normal or invert.
+        
+        normal
+        ##
+        invert
+        ##
+    }
+    
     snit::integer addresstype -min 0 -max 65535
     ## @typedef unsigned short int addresstype
     # @brief Module address type.
@@ -80,7 +138,7 @@ namespace eval ctiacela {
     
     snit::integer ubyte -min 0 -max 255
     ## @typedef unsigned char ubyte
-    # @brief unsigned byte type.
+    # @brief Unsigned byte type.
     #
     # An integer in the range from 0 to 255, inclusive.
     #
@@ -97,36 +155,11 @@ namespace eval ctiacela {
     #
     # Integer in the range of 0 to 7, inclusive.
     
-    snit::enum directiontype -values {forward reverse}
-    ## @typedef enum direction
-    # @brief direction type
-    #
-    # Either forward or reverse.
-    
-    snit::enum lampcontroltype -values {off on blink reverseblink}
-    ## @typedef enum lampcontroltype
-    # @brief Lamp control type
-    #
-    # One of off, on, blink, or reverseblink.
-    #
-    
     snit::integer filterthreshtype -min 0 -max 31
     ## @typedef int filterthreshtype
-    # @brief  filterthreshtype type.
+    # @brief  Filter threshold type.
     #
     # An integer from 0 to 31, inclusive.
-    
-    snit::enum selecttype -values {noise bounce gap dirty}
-    ## @typedef enum selecttype
-    # @brief Filter select type.
-    #
-    # One of noise, bounce, gap, or dirty.
-    
-    snit::enum polaritytype -values {normal invert}
-    ## @typedef enum polaritytype
-    # @brief Polarity type
-    #
-    # One of normal or invert.
     
     snit::type CTIAcela {
         ## @brief Main CTIAcela interface class. 
@@ -135,10 +168,22 @@ namespace eval ctiacela {
         # @param port Name of the serial port connected to the CTI Acela.
         # Either something like /dev/ttySN for real serial ports or 
         # /dev/ttyUSBS0 for a USB connected Acela.
-        # @param ... Options:
-        # @par
         # @author Robert Heller @<heller\@deepsoft.com@>
         #
+        
+        #typevariable dummy {}
+        # @private
+        
+        typevariable Responses -array {
+            Success           0x00
+            ProcessedOffline  0x01
+            AddressOutOfRange 0x02
+            UnknownCommand    0x03
+            SRQSenseStateChg  0x81
+            SRQCommLost       0x82
+        }
+        ## @private Responses
+        
         typevariable Opcodes -array {
             Activate         0x01
             Deactive         0x02
@@ -170,30 +215,24 @@ namespace eval ctiacela {
             SRQControl       0x1C
             Query            0x1D
         }
-        ##@private Opcodes.
-        typevariable Responses -array {
-            Success           0x00
-            ProcessedOffline  0x01
-            AddressOutOfRange 0x02
-            UnknownCommand    0x03
-            SRQSenseStateChg  0x81
-            SQRCommLost       0x82
-        }
-        ##@private Responses
+        ## @private Opcodes.
+        
         typevariable LampBits -array {
             off           0x00
             on            0x01
             blink         0x02
             reverseblink  0x03
         }
-        ##@private Lamp Bits
+        ## @private Lamp Bits
+        
         typevariable FilterSelectBits -array {
             noise   0x00
             bounce  0x01
             gap     0x02
             dirty   0x03
         }
-        ##@private Filter Select Bits
+        ## @private Filter Select Bits
+        
         typevariable CTI_DeviceMap -array {
             1 {Train Brain}
             2 Dash-8
@@ -206,16 +245,22 @@ namespace eval ctiacela {
             255 {Unrecognized module}
         }
         ## @private CTI Module Map
+        
         variable ttyfd
-        ##@private Terminal file descriptor.
+        ## @private Terminal file descriptor.
+        
+        option -srqhandler -default {}
+        
         constructor {port args} {
             ## Constructor: open a connection to the CTI Acela.
             # @param name The name of this instance.
             # @param port Name of the serial port connected to theCTI Acela.
             # @param ... Options:
+            # @arg -srqhandler Script to run when there is a sense state 
+            # change.
             # @par
             
-            #$self configurelist $args
+            $self configurelist $args
             if {[catch {open $port r+} ttyfd]} {
                 set theerror $ttyfd
                 catch {unset ttyfd}
@@ -260,8 +305,12 @@ namespace eval ctiacela {
             if {![$self _readbyte srq]} {return}
             if {$srq == $Responses(SRQSenseStateChg)} {
                 set dataavailable yes
-            } elseif {$srq == $Responses(SQRCommLost)} {
+            } elseif {$srq == $Responses(SRQCommLost)} {
                 set networkonline no
+            }
+            set srqhandler [$self cget -srqhandler]
+            if {$srqhandler ne {}} {
+                uplevel #0 $srqhandler
             }
         }
         proc highbyte {addr} {
@@ -453,21 +502,21 @@ namespace eval ctiacela {
             # false deactivates.
             # @param c8 Eighth control status, boolean true activates, boolean 
             # false deactivates.
-            # @param c9 First control status, boolean true activates, boolean 
+            # @param c9 Ninth control status, boolean true activates, boolean 
             # false deactivates.
-            # @param c10 Second control status, boolean true activates, boolean
+            # @param c10 Tenth control status, boolean true activates, boolean
             # false deactivates.
-            # @param c11 Third control status, boolean true activates, boolean 
+            # @param c11 Eleventh control status, boolean true activates, boolean 
             # false deactivates.
-            # @param c12 Fourth control status, boolean true activates, boolean 
+            # @param c12 Twelth control status, boolean true activates, boolean 
             # false deactivates.
-            # @param c13 Fifth control status, boolean true activates, boolean 
+            # @param c13 Thirteenth control status, boolean true activates, boolean 
             # false deactivates.
-            # @param c14 Sixth control status, boolean true activates, boolean
+            # @param c14 Fourteenth control status, boolean true activates, boolean
             # false deactivates.
-            # @param c15 Seventh control status, boolean true activates, boolean 
+            # @param c15 Fifteenth control status, boolean true activates, boolean 
             # false deactivates.
-            # @param c16 Eighth control status, boolean true activates, boolean 
+            # @param c16 Sixteenth control status, boolean true activates, boolean 
             # false deactivates.
             
             ::ctiacela::addresstype validate $address
@@ -695,7 +744,7 @@ namespace eval ctiacela {
             # @param address Address of the sensor.
             # @param threshold Filter threshold, 0-31.
             # @param select Filter select, one of noise, bounce, gap, pr dirty.
-            # @param polarity Polarity, on of normal or invert.
+            # @param polarity Polarity, one of normal or invert.
             
             ::ctiacela::addresstype validate $address
             ::ctiacela::filterthreshtype validate $threshold
@@ -715,6 +764,7 @@ namespace eval ctiacela {
         method Read {address} {
             ## Read the state of a sensor.
             # @param address Address of the sensor.
+            # @returns the sensor state as a boolean value.
             
             ::ctiacela::addresstype validate $address
             set response [$self _transmit [list $Opcodes(Read) [highbyte $address] [lowbyte $address]] 1]
@@ -729,6 +779,8 @@ namespace eval ctiacela {
         method Read4 {address} {
             ## Read the state of four sensors.
             # @param address Address of the first sensor.
+            # @returns the state of four sensors as a four element list of 
+            # boolean values.
             
             ::ctiacela::addresstype validate $address
             set response [$self _transmit [list $Opcodes(Read4) [highbyte $address] [lowbyte $address]] 1]
@@ -747,6 +799,8 @@ namespace eval ctiacela {
         method Read8 {address} {
             ## Read the state of eight sensors.
             # @param address Address of the first sensor.
+            # @returns the state of eight sensors as an eight element list of 
+            # boolean values.
             
             ::ctiacela::addresstype validate $address
             set response [$self _transmit [list $Opcodes(Read8) [highbyte $address] [lowbyte $address]] 1]
@@ -769,6 +823,8 @@ namespace eval ctiacela {
         method Read16 {address} {
             ## Read the state of sixteen sensors.
             # @param address Address of the first sensor.
+            # @returns the state of sisteen sensors as a sixteen element list 
+            # of boolean values.
             
             ::ctiacela::addresstype validate $address
             set response [$self _transmit [list $Opcodes(Read16) [highbyte $address] [lowbyte $address]] 2]
@@ -804,7 +860,8 @@ namespace eval ctiacela {
         }
         method ReadAll {} {
             ## Read all sensors
-            #
+            # @returns the state of all sensors as a list of boolean values.
+            
             set response [$self _transmit [list $Opcodes(ReadAll)] N]
             if {[lindex $response 0] == $Responses(Success)} {
                 set n [lindex $response 1]
@@ -838,7 +895,7 @@ namespace eval ctiacela {
         }
         method Query {} {
             ## Query sensor change state
-            #
+            # @returns true if sensors changed state since the last Query call.
             
             set response [$self _transmit [list $Opcodes(Query)] 1]
             if {[lindex $response 0] == $Responses(Success)} {
@@ -891,6 +948,8 @@ namespace eval ctiacela {
         }
         method Poll {} {
             ## Poll the network configuration
+            # @returns a list of modules on the network.
+            
             set response [$self _transmit [list $Opcodes(NetworkOffline)] N]
             if {[lindex $response 0] == $Responses(Success)} {
                 set n [lindex $response 1]
@@ -912,7 +971,9 @@ namespace eval ctiacela {
         }
         method ReadRevision {} {
             ## Read CTI Acela firmware revision.
-            #
+            # @returns a two element list containing the major and minor
+            # revision numbers of the Acela
+            
             set response [$self _transmit [list $Opcodes(ReadRevision)] 2]
             if {[lindex $response 0] == $Responses(Success)} {
                 set result [list [lindex $response 1] [lindex $response 2]]
@@ -961,11 +1022,10 @@ namespace eval ctiacela {
         ## @private Loop control for read attempts.
         method _readbyte {thebytevar} {
             ## @private Read a single byte from the serial interface.  Used by
-            # methods that read responses.  Returns false on error and and
-            # true on success.
+            # methods that read responses.  
             # @param thebytevar A name of a variable to put the byte read.
             #   Undefined if there was an error.
-            #
+            # @returns false on error and and true on success.
             upvar $thebytevar thebyte
             foreach {in out} [fconfigure $ttyfd -queue] {break}
             for {set i 0} {$i < $maxtries} {incr i} {
@@ -991,3 +1051,5 @@ namespace eval ctiacela {
 
 
             
+package provide CTIAcela 1.0.0
+

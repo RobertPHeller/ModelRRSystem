@@ -14,6 +14,8 @@ endif
 
 CMriTcls = $(top_srcdir)/Scripts/CMri/cmri.tcl
 
+CTIAcelaTcls = $(top_srcdir)/Scripts/CTIAcela/CTIAcela.tcl
+
 #MRDHeaders = $(top_builddir)/C++/MRD/mrd.h
 
 if DONT_HAVE_USB
@@ -68,7 +70,7 @@ C_INTERNALS_H = $(C_INTERNALS_H_HERE) \
 	$(FCFSupportHeaders) $(TTSupportHeaders) \
 	$(RailDriverHeaders) $(RailDriverHeaders)
 
-SERIAL_TCL_INTERNALS_TCLS = $(CMriTcls) $(XPressNetTcls) $(NCETcls)
+SERIAL_TCL_INTERNALS_TCLS = $(CMriTcls) $(CTIAcelaTcls) $(XPressNetTcls) $(NCETcls)
 
 COMMON_TCL_INTERNALS_TCLS = $(top_srcdir)/Scripts/Common/CommonTclGroup.h \
 			    $(top_srcdir)/Scripts/Common/ReadConfiguration.tcl \
