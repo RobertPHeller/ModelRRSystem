@@ -164,6 +164,15 @@ AC_PROG_CPP
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_LEX
+if [ ${target_cpu} == "armv7l" ]; then
+  AC_SUBST(CFLAGS,[-I/usr/local/include])
+  AC_SUBST(CXXFLAGS,[-I/usr/local/include])
+  AC_CHECK_HEADERS([wiringPi.h wiringPiI2C.h wiringPiSPI.h])
+  AM_CONDITIONAL(HAVE_WIRINGPI, test ${HAVE_WIRINGPI_H} = "1")
+else
+  AM_CONDITIONAL(HAVE_WIRINGPI, /bin/false)
+fi
+
 dnl if test ${cross_compiling} = "no"; then
 dnl   AM_DISABLE_STATIC
 dnl fi
@@ -589,6 +598,8 @@ AC_MSG_RESULT([TCLKITBSRC is $TCLKITBSRC])
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS(fcntl.h limits.h malloc.h strings.h sys/ioctl.h sys/time.h syslog.h unistd.h sys/select.h)
+
+
 
 
 AC_PATH_PROG(SED,sed)
