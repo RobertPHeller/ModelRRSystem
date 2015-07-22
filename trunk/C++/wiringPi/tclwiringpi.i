@@ -8,7 +8,7 @@
  *  Author        : $Author$
  *  Created By    : Robert Heller
  *  Created       : Wed Jul 22 11:06:42 2015
- *  Last Modified : <150722.1131>
+ *  Last Modified : <150722.1137>
  *
  *  Description	
  *
@@ -58,6 +58,7 @@ static const char rcsid[] = "@(#) : $Id$";
 #define SWIG_name "Tclwiringpi"
 #undef SWIG_version
 #define SWIG_version "1.0.0"
+ int  wiringPiSetupPiFaceForGpioProg (void) {return wiringPiSetupPiFace();}
 %}
 
 %include <wiringPi.h>
