@@ -652,6 +652,7 @@ AC_CONFIG_FILES([config_tcl.sed \
 		C++/Azatrax/Doxyfile \
 		C++/TTSupport/Makefile \
 		C++/FCFSupport/Makefile \
+		C++/wiringPi/Makefile \
 	  Scripts/Makefile \
 		Scripts/Common/Makefile \
 		Scripts/GRSupport/Makefile \
