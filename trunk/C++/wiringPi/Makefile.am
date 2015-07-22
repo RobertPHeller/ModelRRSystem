@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Jul 22 10:53:17 2015
-#  Last Modified : <150722.1122>
+#  Last Modified : <150722.1126>
 #
 #  Description	
 #
@@ -62,7 +62,7 @@ SWIG_FLAGS =  -tcl8 $(INCLUDES) $(WIRINGPI_CFLAGS)
 CLEANFILES    = $(BUILT_SOURCES)
 
 tclwiringpi_wrap.c: tclwiringpi.i $(top_builddir)/config.status
-	$(SWIG_C) $(SWIG_FLAGS) -o tclwiringpi_wrap.c $(srcdir)/tclwiringpi.i
+	$(SWIG) $(SWIG_FLAGS) -o tclwiringpi_wrap.c $(srcdir)/tclwiringpi.i
 	
 
 pkgIndex.tcl: libtclwiringpi.la $(top_builddir)/config.status
