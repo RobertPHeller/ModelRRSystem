@@ -164,14 +164,8 @@ AC_PROG_CPP
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_LEX
-if [ ${target_cpu} = "armv7l" ]; then
-  AC_SUBST(CFLAGS,[-I/usr/local/include])
-  AC_SUBST(CXXFLAGS,[-I/usr/local/include])
-  AC_CHECK_HEADERS([wiringPi.h wiringPiI2C.h wiringPiSPI.h])
-  AM_CONDITIONAL(HAVE_WIRINGPI, test ${HAVE_WIRINGPI_H} = "1")
-else
-  AM_CONDITIONAL(HAVE_WIRINGPI, /bin/false)
-fi
+AX_WIRINGPI
+AM_CONDITIONAL(HAVE_WIRINGPI, test ${HAVE_WIRINGPI} = "1")
 
 dnl if test ${cross_compiling} = "no"; then
 dnl   AM_DISABLE_STATIC
