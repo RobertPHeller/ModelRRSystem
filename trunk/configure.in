@@ -164,7 +164,7 @@ AC_PROG_CPP
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_LEX
-if [ ${target_cpu} == "armv7l" ]; then
+if [ ${target_cpu} = "armv7l" ]; then
   AC_SUBST(CFLAGS,[-I/usr/local/include])
   AC_SUBST(CXXFLAGS,[-I/usr/local/include])
   AC_CHECK_HEADERS([wiringPi.h wiringPiI2C.h wiringPiSPI.h])
