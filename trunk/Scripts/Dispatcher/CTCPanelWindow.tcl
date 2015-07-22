@@ -898,7 +898,12 @@ namespace eval CTCPanelWindow {
 	    ![string equal "\\" "[string index $buffer end]"]} {
 #	  puts stderr "*** $type open: buffer = $buffer"
 	  if {[regexp {^MainWindow ctcpanel create (.*)$} "$buffer" -> obj] > 0} {
-	    eval [list $newWindow ctcpanel create] $obj
+              set o [eval [list $newWindow ctcpanel create] $obj]
+              set name       [lindex $obj 1]
+              $o bind <3> [list $newWindow _contextMenu $name %x %y %W]
+              $o bind <ButtonPress-2> [list $newWindow _start_draging_object $name %x %y %W]
+              $o bind <B2-Motion> [list $newWindow _drag_object $name %x %y %W]
+              $o bind <ButtonRelease-2> [list $newWindow _stop_draging_object $name %x %y %W]
 	  } else {
 	    break
 	  }
@@ -1369,27 +1374,49 @@ namespace eval CTCPanelWindow {
       set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -mode add -setoftypes {StraightBlock CurvedBlock HiddenBlock StubYard ThroughYard EndBumper}] $args]
       if {[string equal "$result" {}]} {return}
       $self setdirty
-      eval [list $ctcpanel create] $result
+      set o [eval [list $ctcpanel create] $result]
+      set name       [lindex $result 1]
+      $o bind <3> [mymethod _contextMenu $name %x %y %W]
+      $o bind <ButtonPress-2> [mymethod _start_draging_object $name %x %y %W]
+      $o bind <B2-Motion> [mymethod _drag_object $name %x %y %W]
+      $o bind <ButtonRelease-2> [mymethod _stop_draging_object $name %x %y %W]
+      return $o      
     }
     method addsimpleturnouttopanel {node args} {
       set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -mode add -setoftypes {Switch}] $args]
       if {[string equal "$result" {}]} {return}
       $self setdirty
-      eval [list $ctcpanel create] $result
+      set o [eval [list $ctcpanel create] $result]
+      set name       [lindex $result 1]
+      $o bind <3> [mymethod _contextMenu $name %x %y %W]
+      $o bind <ButtonPress-2> [mymethod _start_draging_object $name %x %y %W]
+      $o bind <B2-Motion> [mymethod _drag_object $name %x %y %W]
+      $o bind <ButtonRelease-2> [mymethod _stop_draging_object $name %x %y %W]
+      return $o      
     }
     method addcomplextrackworktopanel {node args} {
       set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -mode add -setoftypes {ScissorCrossover Crossover Crossing SingleSlip DoubleSlip ThreeWaySW}] $args]
       if {[string equal "$result" {}]} {return}
       $self setdirty
-      eval [list $ctcpanel create] $result
+      set o [eval [list $ctcpanel create] $result]
+      set name       [lindex $result 1]
+      $o bind <3> [mymethod _contextMenu $name %x %y %W]
+      $o bind <ButtonPress-2> [mymethod _start_draging_object $name %x %y %W]
+      $o bind <B2-Motion> [mymethod _drag_object $name %x %y %W]
+      $o bind <ButtonRelease-2> [mymethod _stop_draging_object $name %x %y %W]
+      return $o      
     }
     method addswitchplatetopanel {args} {
       set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -mode add -setoftypes {SWPlate}] $args]
       if {[string equal "$result" {}]} {return}
       $self setdirty
-      eval [list $ctcpanel create] $result
+      set o [eval [list $ctcpanel create] $result]
       set objectType [lindex $result 0]
       set name       [lindex $result 1]
+      $o bind <3> [mymethod _contextMenu $name %x %y %W]
+      $o bind <ButtonPress-2> [mymethod _start_draging_object $name %x %y %W]
+      $o bind <B2-Motion> [mymethod _drag_object $name %x %y %W]
+      $o bind <ButtonRelease-2> [mymethod _stop_draging_object $name %x %y %W]
       if {$options(-simplemode) && 
 	  ("$objectType" eq "SWPlate" || "$objectType" eq "SIGPlate")} {
 	set initPlateCode {}
@@ -1402,14 +1429,19 @@ namespace eval CTCPanelWindow {
 	  append userCode "$initPlateCode"
 	}
       }
+      return $o
     }
     method addpanelobject {args} {
       set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -mode add -setoftypes {}] $args]
       if {[string equal "$result" {}]} {return}
       $self setdirty
-      eval [list $ctcpanel create] $result
+      set o [eval [list $ctcpanel create] $result]
       set objectType [lindex $result 0]
       set name       [lindex $result 1]
+      $o bind <3> [mymethod _contextMenu $name %x %y %W]
+      $o bind <ButtonPress-2> [mymethod _start_draging_object $name %x %y %W]
+      $o bind <B2-Motion> [mymethod _drag_object $name %x %y %W]
+      $o bind <ButtonRelease-2> [mymethod _stop_draging_object $name %x %y %W]
       if {$options(-simplemode) && 
 	  ("$objectType" eq "SWPlate" || "$objectType" eq "SIGPlate")} {
 	set initPlateCode {}
@@ -1422,6 +1454,7 @@ namespace eval CTCPanelWindow {
 	  append userCode "$initPlateCode"
 	}
       }
+      return $o
     }
     method editpanelobject {args} {
       set objectToEdit [eval [list $selectPanelObjectDialog draw] $args]
@@ -1430,7 +1463,13 @@ namespace eval CTCPanelWindow {
       if {[string equal "$result" {}]} {return}
       $self setdirty
       $ctcpanel delete $objectToEdit
-      eval [list $ctcpanel create] $result
+      set o [eval [list $ctcpanel create] $result]
+      set name       [lindex $result 1]
+      $o bind <3> [mymethod _contextMenu $name %x %y %W]
+      $o bind <ButtonPress-2> [mymethod _start_draging_object $name %x %y %W]
+      $o bind <B2-Motion> [mymethod _drag_object $name %x %y %W]
+      $o bind <ButtonRelease-2> [mymethod _stop_draging_object $name %x %y %W]
+      return $o
     }
     method deletepanelobject {args} {
       set objectToDelete [eval [list $selectPanelObjectDialog draw] $args]
@@ -1457,6 +1496,85 @@ namespace eval CTCPanelWindow {
 	$self setdirty
       }
     }
+    variable _cm {}
+    method _contextMenu {name mx my w} {
+        if {$_cm eq {}} {set _cm ${win}.cm}
+        if {[winfo exists $_cm]} {destroy $_cm}
+        menu $_cm 
+        $_cm add command -label [_m "Menu|Context|Edit"] \
+              -command [mymethod _edit_from_context $name]
+        $_cm add command -label [_m "Menu|Context|Delete"] \
+              -command [mymethod _delete_from_context $name]
+        set root_x [expr {$mx + [winfo rootx $w]}]
+        set root_y [expr {$my + [winfo rooty $w]}]
+        $_cm post $root_x $root_y
+        update idle
+        tk_menuSetFocus $_cm
+    }
+    method _edit_from_context {name args} {
+        puts stderr "*** $self _edit_from_context $name"
+        $_cm unpost
+        set objectToEdit $name
+        set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -mode edit -object $objectToEdit] $args]
+        if {[string equal "$result" {}]} {return}
+        $self setdirty
+        $ctcpanel delete $objectToEdit
+        set o [eval [list $ctcpanel create] $result]
+        set name       [lindex $result 1]
+        $o bind <3> [mymethod _contextMenu $name %x %y %W]
+        $o bind <ButtonPress-2> [mymethod _start_draging_object $name %x %y %W]
+        $o bind <Motion-2> [mymethod _drag_object $name %x %y %W]
+        $o bind <ButtonRelease-2> [mymethod _stop_draging_object $name %x %y %W]
+        return $o
+    }
+    method _delete_from_context {name args} {
+        puts stderr "*** $self _delete_from_context $name"
+        $_cm unpost
+        set objectToDelete $name
+        if {[tk_messageBox -type yesno -icon question \
+             -message [_ "Really delete $objectToDelete?"] \
+             -parent $win]} {
+            set objectType [$ctcpanel class $objectToDelete]
+            $ctcpanel delete $objectToDelete
+            if {$options(-simplemode) && 
+                ("$objectType" eq "SWPlate" || "$objectType" eq "SIGPlate")} {
+                set startPattern "(^#Initialize $objectToDelete START\$)"
+                set endPattern "(^#Initialize $objectToDelete END\$)"
+                #puts stderr "*** $self deletepanelobject: startPattern = \{$startPattern\}"
+                #puts stderr "*** $self deletepanelobject: endPattern = \{$endPattern\}"
+                #puts stderr "*** $self deletepanelobject: userCode (before) = \{$userCode\}"
+                if {[regexp -line -indices $startPattern "$userCode" -> start] > 0 &&
+                    [regexp -line -indices $endPattern "$userCode" -> end] > 0} {
+                    #puts stderr "*** $self deletepanelobject: start is $start, end is $end"
+                    set userCode [string replace "$userCode" [lindex $start 0] [lindex $end 1] ""]
+                    #puts stderr "*** $self deletepanelobject: userCode (after) = \{$userCode\}"
+                }
+            }
+            $self setdirty
+        }
+    }
+    variable _drag_dx -1
+    variable _drag_dy -1
+    method _start_draging_object {name mx my w} {
+        puts stderr "*** $self _start_draging_object $name $mx $my $w"
+        if {[catch {$ctcpanel itemcget $name -x} x]} {
+            set x1 [$ctcpanel itemcget $name -x1]
+            set y1 [$ctcpanel itemcget $name -y1]
+            set x2 [$ctcpanel itemcget $name -x2]
+            set y2 [$ctcpanel itemcget $name -y2]
+            puts stderr "*** $self _start_draging_object: Endpoints: $x1 $y1 $x2 $y2"
+        } else {
+            set y [$ctcpanel itemcget $name -y]
+            puts stderr "*** $self _start_draging_object: Centerpoint $x $y"
+        }
+    }
+    method _drag_object {name mx my w} {
+        puts stderr "*** $self _drag_object $name $mx $my $w"
+    }
+    method _stop_draging_object {name mx my w} {
+        puts stderr "*** $self _stop_draging_object $name $mx $my $w"
+    }
+    
     method configurepanel {args} {
       set result [eval [list $configurePanelDialog draw] $args]
       if {[string equal "$result" {}]} {return}

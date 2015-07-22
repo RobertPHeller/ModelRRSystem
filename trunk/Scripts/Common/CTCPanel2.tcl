@@ -464,6 +464,27 @@ snit::widget CTCPanel {
     }
     return [$obj coords $tname]
   }
+  method bind {name args} {
+      ## Method to set a binding on an Object.
+      # @param name The name of the object to set a binding on.
+      # @param sequence The event sequence to bind to.
+      # @param script   The script to run when the binding event occurs.
+      # If the script is prefixed with a "+", it is appended to any existing
+      # script.
+      # @returns The empty string in all cases where script is non-empty.  If
+      # the script is missing, returns the current binding for the specificed
+      # sequence.  If neither sequence nor script is supplied, then returns
+      # a list of all bindings.
+      # See the bind sub-command of canvas.
+      
+      if {[catch [list set Objects($name)] obj]} {
+          error "No such object: $name"
+      }
+      return [eval [list $obj bind] $args]
+  }
+
+
+
   method print {name fp} {
   ## Method to print the named object to the specificied file channel.
   # @param name The object to print.
@@ -1232,6 +1253,12 @@ snit::macro CTCPanel::standardMethods {} {
 
     return [namespace tail $type]
   }
+  method bind {args} {
+      # Method to set an event binding.
+      
+      set tag $selfns
+      return [eval [list $canvas bind $tag] $args]
+  }
 }
 
 snit::type SWPlate {
@@ -1318,19 +1345,19 @@ snit::type SWPlate {
     set x $options(-x)
     set y $options(-y)
 
-    $canvas create polygon $_PlatePolygon -fill black -outline lightgrey -width 2 -tag [list $tag $cp]
-    $canvas create text -24 -32 -text {N} -anchor nw -fill lightgrey -font [list Courier -12 bold] -tag [list $tag $cp]
-    $canvas create text  24 -32 -text {R} -anchor ne -fill lightgrey -font [list Courier -12 bold] -tag [list $tag $cp]
-    $canvas create text   0 -30 -text {SWITCH} -anchor n -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp]
-    $canvas create text   0 -32 -text $options(-label) -anchor s -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_label]
-    $canvas create oval -26 -48 -18 -40 -fill black -outline lightgrey -tag [list $tag ${tag}_NInd $cp]
-    $canvas create oval  -4 -56   4 -48 -fill black -outline lightgrey -tag [list $tag ${tag}_CInd $cp]
-    $canvas create oval  18 -48  26 -40 -fill black -outline lightgrey -tag [list $tag ${tag}_RInd $cp]
+    $canvas create polygon $_PlatePolygon -fill black -outline lightgrey -width 2 -tag [list $tag $cp ${tag}_internal]
+    $canvas create text -24 -32 -text {N} -anchor nw -fill lightgrey -font [list Courier -12 bold] -tag [list $tag $cp  ${tag}_internal]
+    $canvas create text  24 -32 -text {R} -anchor ne -fill lightgrey -font [list Courier -12 bold] -tag [list $tag $cp ${tag}_internal]
+    $canvas create text   0 -30 -text {SWITCH} -anchor n -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_internal]
+    $canvas create text   0 -32 -text $options(-label) -anchor s -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_label ${tag}_internal]
+    $canvas create oval -26 -48 -18 -40 -fill black -outline lightgrey -tag [list $tag ${tag}_NInd $cp ${tag}_internal]
+    $canvas create oval  -4 -56   4 -48 -fill black -outline lightgrey -tag [list $tag ${tag}_CInd $cp ${tag}_internal]
+    $canvas create oval  18 -48  26 -40 -fill black -outline lightgrey -tag [list $tag ${tag}_RInd $cp ${tag}_internal]
     $canvas move   $tag $x $y
     $canvas create line $x $y $x $y -tag [list $tag ${tag}_xy $cp]
     $canvas scale  $tag 0 0 [$ctcpanel getZoom] [$ctcpanel getZoom]
     $self _AddLever Left
-    $canvas bind $tag <1> "[mymethod _MoveLever] %x"
+    $canvas bind ${tag}_internal <1> "[mymethod _MoveLever] %x"
     $ctcpanel checkInitCP $options(-controlpoint)
     $ctcpanel updateAndSyncCP $options(-controlpoint)
     $ctcpanel lappendCP $options(-controlpoint) SwitchPlates [namespace tail $self]
@@ -1531,19 +1558,19 @@ snit::type SIGPlate {
     set x $options(-x)
     set y $options(-y)
 
-    $canvas create polygon $_PlatePolygon -fill black -outline lightgrey -width 2 -tag [list $tag $cp]
-    $canvas create text -24 -32 -text {L} -anchor nw -fill lightgrey -font [list Courier -12 bold] -tag [list $tag $cp]
-    $canvas create text  24 -32 -text {R} -anchor ne -fill lightgrey -font [list Courier -12 bold] -tag [list $tag $cp]
-    $canvas create text   0 -30 -text {SIGNAL} -anchor n -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp]
-    $canvas create text   0 -32 -text $options(-label) -anchor s -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_label]
-    $canvas create oval -26 -48 -18 -40 -fill black -outline lightgrey -tag [list $tag ${tag}_LInd $cp]
-    $canvas create oval  -4 -56   4 -48 -fill black -outline lightgrey -tag [list $tag ${tag}_CInd $cp]
-    $canvas create oval  18 -48  26 -40 -fill black -outline lightgrey -tag [list $tag ${tag}_RInd $cp]
+    $canvas create polygon $_PlatePolygon -fill black -outline lightgrey -width 2 -tag [list $tag $cp ${tag}_internal]
+    $canvas create text -24 -32 -text {L} -anchor nw -fill lightgrey -font [list Courier -12 bold] -tag [list $tag $cp ${tag}_internal]
+    $canvas create text  24 -32 -text {R} -anchor ne -fill lightgrey -font [list Courier -12 bold] -tag [list $tag $cp ${tag}_internal]
+    $canvas create text   0 -30 -text {SIGNAL} -anchor n -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_internal]
+    $canvas create text   0 -32 -text $options(-label) -anchor s -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_label ${tag}_internal]
+    $canvas create oval -26 -48 -18 -40 -fill black -outline lightgrey -tag [list $tag ${tag}_LInd $cp ${tag}_internal]
+    $canvas create oval  -4 -56   4 -48 -fill black -outline lightgrey -tag [list $tag ${tag}_CInd $cp ${tag}_internal]
+    $canvas create oval  18 -48  26 -40 -fill black -outline lightgrey -tag [list $tag ${tag}_RInd $cp ${tag}_internal]
     $canvas move   $tag $x $y
     $canvas create line $x $y $x $y -tag [list $tag ${tag}_xy $cp]
     $canvas scale  $tag 0 0 [$ctcpanel getZoom] [$ctcpanel getZoom]
     $self _AddLever Center
-    $canvas bind $tag <1> "[mymethod _MoveLever] %x"
+    $canvas bind ${tag}_internal <1> "[mymethod _MoveLever] %x"
     $ctcpanel checkInitCP $options(-controlpoint)
     $ctcpanel updateAndSyncCP $options(-controlpoint)
     $ctcpanel lappendCP $options(-controlpoint) SignalPlates [namespace tail $self]
@@ -1868,21 +1895,21 @@ snit::type Toggle {
 
     switch -exact -- $options(-orientation) {
       horizontal {
-        $canvas create rectangle -30 -10 30 10 -fill black -outline lightgrey -width 2 -tag [list $tag $cp]
-        $canvas create oval -10 -10 10 10 -fill black -outline lightgrey -width 2 -tag [list $tag $cp]
-        $canvas create text -30 -15 -text $options(-leftlabel) -anchor s -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_leftlabel]
-        $canvas create text  30 -15 -text $options(-rightlabel) -anchor s -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_rightlabel]
+        $canvas create rectangle -30 -10 30 10 -fill black -outline lightgrey -width 2 -tag [list $tag $cp ${tag}_internal]
+        $canvas create oval -10 -10 10 10 -fill black -outline lightgrey -width 2 -tag [list $tag $cp ${tag}_internal]
+        $canvas create text -30 -15 -text $options(-leftlabel) -anchor s -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_leftlabel ${tag}_internal]
+        $canvas create text  30 -15 -text $options(-rightlabel) -anchor s -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_rightlabel ${tag}_internal]
         if {$options(-hascenter)} {
-	  $canvas create text  0 -15 -text $options(-centerlabel) -anchor s -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_centerlabel]
+	  $canvas create text  0 -15 -text $options(-centerlabel) -anchor s -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_centerlabel ${tag}_internal]
         }
       }
       vertical {
-        $canvas create rectangle -10 -30 10 30 -fill black -outline lightgrey -width 2 -tag [list $tag $cp]
-        $canvas create oval -10 -10 10 10 -fill black -outline lightgrey -width 2 -tag [list $tag $cp]
-        $canvas create text  15 -30 -text $options(-leftlabel) -anchor w -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_leftlabel]      
-        $canvas create text  15  30 -text $options(-rightlabel) -anchor w -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_rightlabel]
+        $canvas create rectangle -10 -30 10 30 -fill black -outline lightgrey -width 2 -tag [list $tag $cp ${tag}_internal]
+        $canvas create oval -10 -10 10 10 -fill black -outline lightgrey -width 2 -tag [list $tag $cp ${tag}_internal]
+        $canvas create text  15 -30 -text $options(-leftlabel) -anchor w -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_leftlabel ${tag}_internal]
+        $canvas create text  15  30 -text $options(-rightlabel) -anchor w -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_rightlabel ${tag}_internal]
         if {$options(-hascenter)} {
-	  $canvas create text  15  0 -text $options(-centerlabel) -anchor w -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_centerlabel]
+	  $canvas create text  15  0 -text $options(-centerlabel) -anchor w -fill lightgrey -font [list Courier -8 normal] -tag [list $tag $cp ${tag}_centerlabel ${tag}_internal]
         }
       }
     }
@@ -1890,8 +1917,8 @@ snit::type Toggle {
     $canvas create line $x $y $x $y -tag [list $tag ${tag}_xy $cp]
     $canvas scale  $tag 0 0 [$ctcpanel getZoom] [$ctcpanel getZoom]
     $self _AddTLever Left
-    $canvas bind $tag <1> "[mymethod _MoveTLever] %x %y"
-#    puts stderr "*** CTCPanel::Toggle_Create: bindings on $canvas $tag: [$canvas bind $tag]"
+    $canvas bind ${tag}_internal <1> "[mymethod _MoveTLever] %x %y"
+#    puts stderr "*** CTCPanel::Toggle_Create: bindings on $canvas $tag: [$canvas bind ${tag}_internal]"
 
     $ctcpanel checkInitCP $options(-controlpoint)
     $ctcpanel updateAndSyncCP $options(-controlpoint)
