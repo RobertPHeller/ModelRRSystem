@@ -8,7 +8,7 @@
 #*  Author        : $Author$
 #*  Created By    : Robert Heller
 #*  Created       : Thu Jun 11 11:38:28 2015
-#*  Last Modified : <150612.1237>
+#*  Last Modified : <150723.1407>
 #*
 #*  Description	
 #*
@@ -292,11 +292,44 @@ snit::type SatelliteDaemon {
         foreach path $additionalpaths {
             ::safe::interpAddToAccessPath $safe_interp $path
         }
+        interp alias $safe_interp open {} [myproc opentty] $safe_interp
+        interp alias $safe_interp fconfigure {} [myproc fconfiguretty]  $safe_interp
         #parray ::tcl_platform
         ### This is needed for the Cmri package
         $safe_interp eval set ::tcl_platform(os) $::tcl_platform(os)
         set inputbuffer {}
         fileevent $socketfp readable [mymethod read_socket]
+    }
+    proc opentty {i args} {
+        set istty no
+        switch $::tcl_platform(os) {
+            Linux {
+                if {[string match {/dev/ttyS[0-9]*} [lindex $args 0]]} {
+                    set istty yes
+                } elseif {[string match {/dev/ttyUSB[0-9]*} [lindex $args 0]]} {
+                    set istty yes
+                } else {
+                    set istty no
+                }
+            }
+            Windows {
+                if {[string -nocase match {com[0-9]*:} [lindex $args 0]]} {
+                    set istty yes
+                } else {
+                    set istty no
+                }
+            }
+        }
+        if {!$istty} {
+            error "Not a tty: [lindex $args 0]!"
+        }
+        return [eval [linsert $args 0 interp invokehidden $i open]]
+    }
+    proc fconfiguretty {i args} {
+        if {[catch {interp invokehidden $i fconfigure [lindex $args 0] -mode}]} {
+            error "Not a tty: [lindex $args 0]!"
+        }
+        return [eval [linsert $args 0 interp invokehidden $i fconfigure]]
     }
     method safe_log {message} {
         #** @brief Log messages from the ::safe:: package.
@@ -359,3 +392,4 @@ snit::type SatelliteDaemon {
 
 eval [list SatelliteDaemon Initialize] $::argv
 vwait forever
+
