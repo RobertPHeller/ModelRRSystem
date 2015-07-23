@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jun 11 11:28:01 2015
-#  Last Modified : <150614.1022>
+#  Last Modified : <150723.1523>
 #
 #  Description	
 #
@@ -76,6 +76,10 @@ AzatraxSupportFiles =  $(top_builddir)/C++/Azatrax/.libs/libazatrax$(SHLIB_SUFFI
 		    $(top_builddir)/C++/Azatrax/pkgIndex.tcl
 AzatraxDependFiles = $(top_builddir)/C++/Azatrax/libazatrax.la \
 		  $(top_builddir)/C++/Azatrax/pkgIndex.tcl
+ControlSupportFiles = $(top_srcdir)/Scripts/ControlSupport/*.tcl \
+			$(top_builddir)/Scripts/ControlSupport/pkgIndex.tcl
+ControlSupportDependFiles  = $(ControlSupportFiles)
+
 SigtermDependFiles = $(top_builddir)/C++/RailDriver/libsigterm.la
 SigtermSupportFiles = $(top_builddir)/C++/RailDriver/.libs/libsigterm$(SHLIB_SUFFIX)
 
@@ -90,6 +94,7 @@ SatelliteDaemonSCRIPTS = $(top_srcdir)/Scripts/Common/gettext.tcl \
 	$(top_builddir)/Scripts/Common/Version.tcl
 
 SatelliteDaemon${EXEEXT}: SatelliteDaemon.src $(CMriDependFiles)  \
+			$(ControlSupportDependFiles) \
 			$(AzatraxDependFiles) $(SigtermDependFiles) \
 			$(top_builddir)/po/Satellite/msgfiles \
 			$(SatelliteDaemonSCRIPTS)
@@ -110,6 +115,8 @@ SatelliteDaemon${EXEEXT}: SatelliteDaemon.src $(CMriDependFiles)  \
 		lib/CMri $(CMriSupportFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SatelliteDaemon \
 		lib/Azatrax $(AzatraxSupportFiles)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SatelliteDaemon \
+		lib/ControlSupport $(ControlSupportFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SatelliteDaemon \
 		lib/sigterm $(SigtermSupportFiles)
 	echo 'package ifneeded Sigterm 1.0 [list load [file join $$dir libsigterm[info sharedlibextension]]]' > SatelliteDaemon.vfs/lib/sigterm/pkgIndex.tcl
@@ -137,6 +144,9 @@ $(top_builddir)/C++/RailDriver/libsigterm.la : \
 
 $(top_builddir)/Scripts/CMri/pkgIndex.tcl : $(top_srcdir)/Scripts/CMri/cmri.tcl
 	$(MAKE) -C $(top_builddir)/Scripts/CMri pkgIndex.tcl
+
+$(top_builddir)/Scripts/ControlSupport/pkgIndex.tcl : $(top_srcdir)/Scripts/ControlSupport/*.tcl
+	$(MAKE) -C $(top_builddir)/Scripts/ControlSupport pkgIndex.tcl
 
 
 
