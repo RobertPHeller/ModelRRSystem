@@ -48,6 +48,7 @@ package require MainWindow
 package require ScrollableFrame
 package require ListBox
 package require ScrollWindow 
+package require ROText
 
 catch {Dispatcher::SplashWorkMessage "Loading CTC Panel Window Code" 16}
 
@@ -424,10 +425,10 @@ namespace eval CTCPanelWindow {
       }
     }
     destructor {
-#      puts stderr "*** $self destroy: win = $win, array names OpenWindows = [array names OpenWindows]"
+        #puts stderr "*** $self destroy: win = $win, array names OpenWindows = [array names OpenWindows]"
       if {![catch {set OpenWindows($options(-name))} xwin] &&
 	  [string equal "$xwin" "$win"]} {
-#	puts stderr "*** $self destroy: xwin = $xwin"
+          #puts stderr "*** $self destroy: xwin = $xwin"
 	catch {Dispatcher::RemoveFromWindows $win "$options(-name)"}
 	unset OpenWindows($options(-name))
       }
@@ -439,7 +440,7 @@ namespace eval CTCPanelWindow {
 	  $self save
 	}
       }
-#      puts stderr "*** $self close"
+      #puts stderr "*** $self close"
       destroy $self
     }
     method save {} {
@@ -557,7 +558,7 @@ namespace eval CTCPanelWindow {
 				     $options(-cmriretries)]
 	puts $fp {# CMRIBoards}
 	foreach n [array names cmrinodes_comments] {
-	  puts stderr "*** $self writeprog: cmrinodes_comments($n) = '$cmrinodes_comments($n)'"
+	  #puts stderr "*** $self writeprog: cmrinodes_comments($n) = '$cmrinodes_comments($n)'"
 	}
 	foreach board [array names cmrinodes] {
 	  if {![catch {set cmrinodes_comments($board)} board_comment]} {
@@ -599,7 +600,7 @@ namespace eval CTCPanelWindow {
         }
     }
     method wrapas {{filename {}}} {
-#      puts stderr "*** $self wrapas $filename"
+        #puts stderr "*** $self wrapas $filename"
       if {[string length "$filename"] == 0} {
 	set initdir [file dirname "$options(-filename)"]
 	if {[string equal "$initdir" {.}]} {set initdir [pwd]}
@@ -607,10 +608,10 @@ namespace eval CTCPanelWindow {
 	set filetypes [list]
 	lappend filetypes [list {Exe Files} [list "$exeext"] BINF]
 	lappend filetypes {{All Files} *      BINF}
-#	puts stderr "*** $self wrapas: exeext = \"$exeext\", filetypes = $filetypes"
+        #puts stderr "*** $self wrapas: exeext = \"$exeext\", filetypes = $filetypes"
 	regsub -all {\.} [file extension "$options(-filename)"] {\\.} pattern
 	regsub "$pattern" "$options(-filename)" "$exeext" exefile
-#	puts stderr "*** $self wrapas: exefile = $exefile"
+        #puts stderr "*** $self wrapas: exefile = $exefile"
 	set filename [tk_getSaveFile -initialfile "$exefile" \
 				     -initialdir  "$initdir" \
 				     -defaultextension "$exeext" \
@@ -669,10 +670,10 @@ namespace eval CTCPanelWindow {
     typevariable allowedImageTypes {gif ppm bmp jpeg pcx pixmap png raw sgi 
 				    sun tga tiff xpm}
     proc theimagetype {filename} {
-#      puts stderr "*** CTCPanelWindow::theimagetype $filename"
-#      puts stderr "*** CTCPanelWindow::theimagetype $filename's extension is '[file extension $filename]'"
+        #puts stderr "*** CTCPanelWindow::theimagetype $filename"
+        #puts stderr "*** CTCPanelWindow::theimagetype $filename's extension is '[file extension $filename]'"
       regsub {^\.} [file extension $filename] {} result
-#      puts stderr "*** CTCPanelWindow::theimagetype: result = '$result'"
+      #puts stderr "*** CTCPanelWindow::theimagetype: result = '$result'"
       return [string tolower $result]
     }
     proc checkImageType {filename} {
@@ -772,7 +773,7 @@ namespace eval CTCPanelWindow {
       update;# idletasks
       raise [winfo toplevel $ctcpanel]
       update;# idletasks
-      puts stderr "*** $self export: \[wm stackorder [winfo parent [winfo toplevel $ctcpanel]]\] yields: [wm stackorder [winfo parent [winfo toplevel $ctcpanel]]]"
+      #puts stderr "*** $self export: \[wm stackorder [winfo parent [winfo toplevel $ctcpanel]]\] yields: [wm stackorder [winfo parent [winfo toplevel $ctcpanel]]]"
       foreach {schematicfile controlsfile} $outfiles break
       if {"$schematicfile" ne ""} {
 	set img [image create photo -format window -data [set [$ctcpanel info vars schematic]]]
@@ -830,7 +831,7 @@ namespace eval CTCPanelWindow {
       set parent [from args -parent .]
 
       set filename [from args -file  {}]
-#      puts stderr "*** $type open: filename = '$filename'"
+      #puts stderr "*** $type open: filename = '$filename'"
       if {[string length "$filename"] == 0} {
 	set filename [tk_getOpenFile -defaultextension ".tcl" \
 				   -initialfile newctcpanel.tcl \
@@ -838,7 +839,7 @@ namespace eval CTCPanelWindow {
 						{{All Files} *      TEXT} } \
 				   -title [_ "CTC File to open"] \
 				   -parent $parent]
-#	puts stderr "*** $type open (after tk_getOpenFile): filename = '$filename'"
+        #puts stderr "*** $type open (after tk_getOpenFile): filename = '$filename'"
       }
       if {[string length "$filename"] == 0} {return}
       if {[catch {open "$filename" r} fp]} {
@@ -851,11 +852,11 @@ namespace eval CTCPanelWindow {
       set aplist {}
       array unset eums
       while {[gets $fp line] >= 0} {
-#	puts stderr "*** $type open (looking for options): line = '$line'"
+          #puts stderr "*** $type open (looking for options): line = '$line'"
 	append buffer "$line"
 	if {[info complete "$buffer"] && 
 	    ![string equal "\\" "[string index $buffer end]"]} {
-#	  puts stderr "*** $type open (looking for options): buffer = '$buffer'"
+            #puts stderr "*** $type open (looking for options): buffer = '$buffer'"
 	  if {[regexp {^#} "$buffer"] < 1} {break}
 	  if {[regexp {^# additionalPackages[[:space:]]*(.*)$} $line -> aplist] > 0} {
 	    set buffer {}
@@ -867,43 +868,40 @@ namespace eval CTCPanelWindow {
               continue
           }
 	  if {[regexp {^# -} "$buffer"] < 1} {set buffer {};continue}
-#	  puts stderr "*** $type open: buffer = '$buffer'"
-#	  puts stderr "*** $type open: llength \$buffer is [llength $buffer]"
+          #puts stderr "*** $type open: buffer = '$buffer'"
+          #puts stderr "*** $type open: llength \$buffer is [llength $buffer]"
 	  lappend opts [lindex $buffer 1] "[lindex $buffer 2]"
-#	  puts stderr "*** $type open: opts = $opts"
+          #puts stderr "*** $type open: opts = $opts"
 	  set buffer {}
 	} else {
 	  append buffer "\n"
 	}
       }
-      puts stderr "*** $type open: aplist is '$aplist'"
+      #puts stderr "*** $type open: aplist is '$aplist'"
       set newWindow [eval [list $type create .ctcpanel%AUTO%] $opts]
       foreach ap $aplist {
  	if {"$ap" eq ""} {continue}
-	puts stderr "*** $type open: ap is '$ap'"
+	#puts stderr "*** $type open: ap is '$ap'"
 	$newWindow AddAdditionalPackage $ap
       }
       foreach eum [array names eums] {
           $newWindow AddExternalUserModule_ $eum $eums($eum)
       }
       while {[gets $fp line] >= 0} {
-#	puts stderr "*** $type open (looking for CTCPanelObjects): line = '$line'"
+          #puts stderr "*** $type open (looking for CTCPanelObjects): line = '$line'"
 	if {[regexp {^# CTCPanelObjects$} "$line"] > 0} {break}
       }
       set buffer {}
       while {[gets $fp line] >= 0} {
-#	puts stderr "*** $type open (reading CTCPanelObjects): line = '$line'"
+          #puts stderr "*** $type open (reading CTCPanelObjects): line = '$line'"
 	append buffer "$line"
 	if {[info complete "$buffer"] && 
 	    ![string equal "\\" "[string index $buffer end]"]} {
-#	  puts stderr "*** $type open: buffer = $buffer"
+            #puts stderr "*** $type open: buffer = $buffer"
 	  if {[regexp {^MainWindow ctcpanel create (.*)$} "$buffer" -> obj] > 0} {
               set o [eval [list $newWindow ctcpanel create] $obj]
               set name       [lindex $obj 1]
               $o bind <3> [list $newWindow _contextMenu $name %x %y %W]
-              $o bind <ButtonPress-2> [list $newWindow _start_draging_object $name %x %y %W]
-              $o bind <B2-Motion> [list $newWindow _drag_object $name %x %y %W]
-              $o bind <ButtonRelease-2> [list $newWindow _stop_draging_object $name %x %y %W]
 	  } else {
 	    break
 	  }
@@ -923,18 +921,18 @@ namespace eval CTCPanelWindow {
 	  }
 	  set mode EOF
 	}
-#	puts stderr "*** $type open: mode is $mode"
+        #puts stderr "*** $type open: mode is $mode"
 	set board_comment ""
 	switch $mode {
 	  CMRIBoards {
 	    set buffer {}
 	    while {[gets $fp line] >= 0} {
-	      puts stderr "*** $type open: read CMRIBoards loop: line = '$line'"
+	      #puts stderr "*** $type open: read CMRIBoards loop: line = '$line'"
 	      if {[regexp {^# Azatrax Nodes$} "$line"] > 0 ||
 		  [regexp {^# Add User code after this line$} "$line"] > 0} {break}
 	      if {[regexp {^# (.*)$} "$line" => board_comment] > 0} {continue}
 	      append buffer "$line"
-	      puts stderr "*** $type open: read CMRIBoards loop: buffer = '$buffer'"
+	      #puts stderr "*** $type open: read CMRIBoards loop: buffer = '$buffer'"
 	      if {[info complete "$buffer"] && 
 		  ![string equal "\\" "[string index $buffer end]"]} {
 		if {[regexp {^CMriNode create .*$} "$buffer"] > 0} {
@@ -958,9 +956,9 @@ namespace eval CTCPanelWindow {
 	      append buffer "$line"
 	      if {[info complete "$buffer"] && 
 		  ![string equal "\\" "[string index $buffer end]"]} {
-#		puts stderr "*** $type open: (AZATRAXNodes branch) buffer = '$buffer'"
+                  #puts stderr "*** $type open: (AZATRAXNodes branch) buffer = '$buffer'"
 		if {[regexp {^(MRD|SL2|SR4)[[:space:]]([[:alpha:]][[:alnum:]_.-]*)[[:space:]]-this[[:space:]]\[Azatrax_OpenDevice[[:space:]](0[[:digit:]]*)[[:space:]]\$::Azatrax_id(MRD|SL2|SR4)Product\]}  $buffer => product name serial] > 0} {
-		  puts stderr "*** $type open: \$newWindow setazatraxnode $name $serial $product"
+		  #puts stderr "*** $type open: \$newWindow setazatraxnode $name $serial $product"
 		  $newWindow setazatraxnode $name $serial $product $board_comment
 		  set board_comment ""
 		} else {
@@ -1054,7 +1052,7 @@ namespace eval CTCPanelWindow {
     typecomponent   selectPanel_nameLCB
 
     typeconstructor {
-#      puts stderr "*** $type constructor: \[info script\] = [info script]"
+        #puts stderr "*** $type constructor: \[info script\] = [info script]"
       set CodeLibraryDir [file join [file dirname \
 					   [file dirname \
 						 [file dirname \
@@ -1245,7 +1243,7 @@ namespace eval CTCPanelWindow {
       return [$selectPanelDialog enddialog {}]
     }
     typemethod addtrackworknodetopanel {node args} {
-#      puts stderr "*** $type addtrackworknodetopanel $node"
+        #puts stderr "*** $type addtrackworknodetopanel $node"
       set nparent [from args -parent .]
       switch [llength [array names OpenWindows]] {
 	0 {
@@ -1265,10 +1263,10 @@ namespace eval CTCPanelWindow {
       $panel showme
       set blocks [from args -blocks]
       set switches [from args -switchmotors]
-#      puts stderr "*** $type addtrackworknodetopanel: [$node NumEdges] edges"
+      #puts stderr "*** $type addtrackworknodetopanel: [$node NumEdges] edges"
       switch [$node NumEdges] {
 	0 {
-	  puts stderr "*** $type addtrackworknodetopanel: [$node TypeOfNode]"
+	  #puts stderr "*** $type addtrackworknodetopanel: [$node TypeOfNode]"
 	  switch [$node TypeOfNode] {
 	    TrackGraph::Block {
 	     eval [list $panel addblocktopanel $node \
@@ -1370,16 +1368,13 @@ namespace eval CTCPanelWindow {
     }
 
     method addblocktopanel {node args} {
-#      puts stderr "*** $self addblocktopanel $node $args"
+        #puts stderr "*** $self addblocktopanel $node $args"
       set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -mode add -setoftypes {StraightBlock CurvedBlock HiddenBlock StubYard ThroughYard EndBumper}] $args]
       if {[string equal "$result" {}]} {return}
       $self setdirty
       set o [eval [list $ctcpanel create] $result]
       set name       [lindex $result 1]
       $o bind <3> [mymethod _contextMenu $name %x %y %W]
-      $o bind <ButtonPress-2> [mymethod _start_draging_object $name %x %y %W]
-      $o bind <B2-Motion> [mymethod _drag_object $name %x %y %W]
-      $o bind <ButtonRelease-2> [mymethod _stop_draging_object $name %x %y %W]
       return $o      
     }
     method addsimpleturnouttopanel {node args} {
@@ -1389,9 +1384,6 @@ namespace eval CTCPanelWindow {
       set o [eval [list $ctcpanel create] $result]
       set name       [lindex $result 1]
       $o bind <3> [mymethod _contextMenu $name %x %y %W]
-      $o bind <ButtonPress-2> [mymethod _start_draging_object $name %x %y %W]
-      $o bind <B2-Motion> [mymethod _drag_object $name %x %y %W]
-      $o bind <ButtonRelease-2> [mymethod _stop_draging_object $name %x %y %W]
       return $o      
     }
     method addcomplextrackworktopanel {node args} {
@@ -1401,9 +1393,6 @@ namespace eval CTCPanelWindow {
       set o [eval [list $ctcpanel create] $result]
       set name       [lindex $result 1]
       $o bind <3> [mymethod _contextMenu $name %x %y %W]
-      $o bind <ButtonPress-2> [mymethod _start_draging_object $name %x %y %W]
-      $o bind <B2-Motion> [mymethod _drag_object $name %x %y %W]
-      $o bind <ButtonRelease-2> [mymethod _stop_draging_object $name %x %y %W]
       return $o      
     }
     method addswitchplatetopanel {args} {
@@ -1414,9 +1403,6 @@ namespace eval CTCPanelWindow {
       set objectType [lindex $result 0]
       set name       [lindex $result 1]
       $o bind <3> [mymethod _contextMenu $name %x %y %W]
-      $o bind <ButtonPress-2> [mymethod _start_draging_object $name %x %y %W]
-      $o bind <B2-Motion> [mymethod _drag_object $name %x %y %W]
-      $o bind <ButtonRelease-2> [mymethod _stop_draging_object $name %x %y %W]
       if {$options(-simplemode) && 
 	  ("$objectType" eq "SWPlate" || "$objectType" eq "SIGPlate")} {
 	set initPlateCode {}
@@ -1439,9 +1425,6 @@ namespace eval CTCPanelWindow {
       set objectType [lindex $result 0]
       set name       [lindex $result 1]
       $o bind <3> [mymethod _contextMenu $name %x %y %W]
-      $o bind <ButtonPress-2> [mymethod _start_draging_object $name %x %y %W]
-      $o bind <B2-Motion> [mymethod _drag_object $name %x %y %W]
-      $o bind <ButtonRelease-2> [mymethod _stop_draging_object $name %x %y %W]
       if {$options(-simplemode) && 
 	  ("$objectType" eq "SWPlate" || "$objectType" eq "SIGPlate")} {
 	set initPlateCode {}
@@ -1466,9 +1449,6 @@ namespace eval CTCPanelWindow {
       set o [eval [list $ctcpanel create] $result]
       set name       [lindex $result 1]
       $o bind <3> [mymethod _contextMenu $name %x %y %W]
-      $o bind <ButtonPress-2> [mymethod _start_draging_object $name %x %y %W]
-      $o bind <B2-Motion> [mymethod _drag_object $name %x %y %W]
-      $o bind <ButtonRelease-2> [mymethod _stop_draging_object $name %x %y %W]
       return $o
     }
     method deletepanelobject {args} {
@@ -1505,6 +1485,8 @@ namespace eval CTCPanelWindow {
               -command [mymethod _edit_from_context $name]
         $_cm add command -label [_m "Menu|Context|Delete"] \
               -command [mymethod _delete_from_context $name]
+        $_cm add command -label [_m "Menu|Context|Info"] \
+              -command [mymethod _info_from_context $name]
         set root_x [expr {$mx + [winfo rootx $w]}]
         set root_y [expr {$my + [winfo rooty $w]}]
         $_cm post $root_x $root_y
@@ -1512,7 +1494,7 @@ namespace eval CTCPanelWindow {
         tk_menuSetFocus $_cm
     }
     method _edit_from_context {name args} {
-        puts stderr "*** $self _edit_from_context $name"
+        #puts stderr "*** $self _edit_from_context $name"
         $_cm unpost
         set objectToEdit $name
         set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -mode edit -object $objectToEdit] $args]
@@ -1522,13 +1504,10 @@ namespace eval CTCPanelWindow {
         set o [eval [list $ctcpanel create] $result]
         set name       [lindex $result 1]
         $o bind <3> [mymethod _contextMenu $name %x %y %W]
-        $o bind <ButtonPress-2> [mymethod _start_draging_object $name %x %y %W]
-        $o bind <Motion-2> [mymethod _drag_object $name %x %y %W]
-        $o bind <ButtonRelease-2> [mymethod _stop_draging_object $name %x %y %W]
         return $o
     }
     method _delete_from_context {name args} {
-        puts stderr "*** $self _delete_from_context $name"
+        #puts stderr "*** $self _delete_from_context $name"
         $_cm unpost
         set objectToDelete $name
         if {[tk_messageBox -type yesno -icon question \
@@ -1553,26 +1532,10 @@ namespace eval CTCPanelWindow {
             $self setdirty
         }
     }
-    variable _drag_dx -1
-    variable _drag_dy -1
-    method _start_draging_object {name mx my w} {
-        puts stderr "*** $self _start_draging_object $name $mx $my $w"
-        if {[catch {$ctcpanel itemcget $name -x} x]} {
-            set x1 [$ctcpanel itemcget $name -x1]
-            set y1 [$ctcpanel itemcget $name -y1]
-            set x2 [$ctcpanel itemcget $name -x2]
-            set y2 [$ctcpanel itemcget $name -y2]
-            puts stderr "*** $self _start_draging_object: Endpoints: $x1 $y1 $x2 $y2"
-        } else {
-            set y [$ctcpanel itemcget $name -y]
-            puts stderr "*** $self _start_draging_object: Centerpoint $x $y"
-        }
-    }
-    method _drag_object {name mx my w} {
-        puts stderr "*** $self _drag_object $name $mx $my $w"
-    }
-    method _stop_draging_object {name mx my w} {
-        puts stderr "*** $self _stop_draging_object $name $mx $my $w"
+    method _info_from_context {name args} {
+        CTCPanelWindow::displayPanelObject draw -ctcpanel $ctcpanel \
+              -simplemode $options(-simplemode) -object $name -parent $win \
+              -title [_ "Object %s" $name]
     }
     
     method configurepanel {args} {
@@ -1595,7 +1558,7 @@ namespace eval CTCPanelWindow {
       set nodeToEdit [eval [list $selectCMRINodeDialog draw] $args]
       if {[string equal "$nodeToEdit" {}]} {return}
       set result [eval [list $addCMRINodeDialog draw -mode edit -node $nodeToEdit] $args]
-      puts stderr "*** $self editcmrinode: result = $result"
+      #puts stderr "*** $self editcmrinode: result = $result"
       if {[string equal "$result" {}]} {return}
       set board [lindex $result 0]
       set comment [lindex $result 1]
@@ -1692,10 +1655,10 @@ namespace eval CTCPanelWindow {
       lappend additionalPackages $packagename
     }
     method AddModule {modname} {
-#      puts stderr "*** $self AddModule $modname"
+        #puts stderr "*** $self AddModule $modname"
       set startPattern "^#\\* ${modname}:START \\*\$"
       set endPattern "^#\\* ${modname}:END \\*\$"
-#      puts stderr "*** $self AddModule: startPattern = '$startPattern', endPattern = '$endPattern'"
+      #puts stderr "*** $self AddModule: startPattern = '$startPattern', endPattern = '$endPattern'"
       set userCodeModulesFp [open [file join "$CodeLibraryDir" \
 					     userCodeModules.tcl] r]
       while {[gets $userCodeModulesFp line] >= 0} {
@@ -1712,7 +1675,7 @@ namespace eval CTCPanelWindow {
       append moduleBuffer "${line}\n"
       set endLinePattern "^[regsub -all {\*} $line {\\*}]\$"
       close $userCodeModulesFp
-#      puts stderr "*** $self AddModule: moduleBuffer = '$moduleBuffer'"
+      #puts stderr "*** $self AddModule: moduleBuffer = '$moduleBuffer'"
       if {[string length "$moduleBuffer"] > 0} {
 	if {[regexp -line -indices $startLinePattern "$userCode" -> start] > 0 &&
 	    [regexp -line -indices $endLinePattern "$userCode" -> end] > 0} {
@@ -1739,7 +1702,7 @@ namespace eval CTCPanelWindow {
       }
       append loop "  # Invoke all trackwork and get occupicency\n"
       foreach obj [$ctcpanel objectlist] {
-#	puts stderr "*** $self GenerateMainLoop: \[$ctcpanel itemconfigure $obj\] = [$ctcpanel itemconfigure $obj]"
+          #puts stderr "*** $self GenerateMainLoop: \[$ctcpanel itemconfigure $obj\] = [$ctcpanel itemconfigure $obj]"
 	if {![catch {$ctcpanel itemcget $obj -occupiedcommand}]} {
 	  append loop "  MainWindow ctcpanel invoke $obj\n"
 	}
@@ -1753,7 +1716,7 @@ namespace eval CTCPanelWindow {
       append loop "  update;# Update display\n\}\n# Main Loop End\n"
       if {[regexp -line -indices {(^# Main Loop Start$)} "$userCode" -> start] > 0 &&
 	  [regexp -line -indices {(^# Main Loop End$)} "$userCode" -> end] > 0} {
-#	puts stderr "*** $self GenerateMainLoop: start = $start, end = $end"
+          #puts stderr "*** $self GenerateMainLoop: start = $start, end = $end"
 	set userCode [string replace "$userCode" [lindex $start 0] [lindex $end 1] "$loop"]
       } else {
 	append userCode "$loop"
@@ -1945,7 +1908,7 @@ namespace eval CTCPanelWindow {
     }
 
     constructor {args} {
-#      puts stderr "*** $type create $self $args"
+        #puts stderr "*** $type create $self $args"
       installhull using Dialog -bitmap questhead -default add \
 				-cancel cancel -modal local -transient yes \
 				-side bottom -title [_ "Add Panel Object to panel"] \
@@ -1980,7 +1943,7 @@ namespace eval CTCPanelWindow {
       foreach {rb0 rb1 rb2 rb3 rb4} {sWPlateRB sIGPlateRB codeButtonRB toggleRB pushButtonRB lampRB cTCLabelRB straightBlockRB endBumperRB curvedBlockRB hiddenBlockRB stubYardRB throughYardRB crossingRB switchRB scissorCrossoverRB crossoverRB singleSlipRB doubleSlipRB threeWaySWRB signalRB schLabelRB} {
 	foreach rb [list $rb0 $rb1 $rb2 $rb3 $rb4] col {0 1 2 3 4} {
 	  if {[string length "$rb"] == 0} {continue}
-#	  puts stderr "*** $type create: rb = '$rb', col = $col"
+          #puts stderr "*** $type create: rb = '$rb', col = $col"
 	  regsub {RB$} "$rb" {} name
 	  regexp {^([[:alpha:]])} "$name" -> char
 	  regsub {^[[:alpha:]]} "$name" [string toupper $char] name
@@ -2243,7 +2206,7 @@ namespace eval CTCPanelWindow {
       }
     }
     method draw {args} {
-#      puts stderr "*** $self draw $args"
+        #puts stderr "*** $self draw $args"
       $self configurelist $args
       if {"$options(-name)" ne ""} {
 	$labelLE configure -text "$options(-name)"
@@ -2277,8 +2240,8 @@ namespace eval CTCPanelWindow {
 	  $controlPointLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -controlpoint]
 	  set objectType [$options(-ctcpanel) class "$options(-object)"]
 	  set options(-setoftypes) [list $objectType]
-#	  puts stderr "*** $self draw: objectType = $objectType"
-#	  puts stderr "*** $self draw: options(-object) = '$options(-object)'"
+          #puts stderr "*** $self draw: objectType = $objectType"
+          #puts stderr "*** $self draw: options(-object) = '$options(-object)'"
 	  $self packAndConfigureOptions $objectType
 	  $hull itemconfigure add -text [_m "Button|Update"]
 	  $hull configure -title [_ "Edit Panel Object"]
@@ -2315,7 +2278,7 @@ namespace eval CTCPanelWindow {
     method lappendCP {args} {}
     method getZoom {} {return 1.0}
     method redrawgraphic {} {
-      puts stderr "*** $self redrawgraphic"
+      #puts stderr "*** $self redrawgraphic"
       $graphicCanvas delete all
       if {[lsearch -exact $objectTypeOptions($objectType) radius] >= 0} {
 	if {[$self doRangeCheck]} {
@@ -2324,9 +2287,9 @@ namespace eval CTCPanelWindow {
 	}
       }
       set opts {}
-      puts stderr "*** $self redrawgraphic: calling getOptions"
+      #puts stderr "*** $self redrawgraphic: calling getOptions"
       $self getOptions opts
-#      puts stderr "*** $self redrawgraphic: opts is $opts"
+      #puts stderr "*** $self redrawgraphic: opts is $opts"
       eval [list ::CTCPanel::$objectType create %AUTO% $self $graphicCanvas -controlpoint nil] $opts
       if {[lsearch -exact {SWPlate SIGPlate CodeButton Toggle Lamp CTCLabel PushButton} $objectType] < 0} {
 	set background black
@@ -2406,7 +2369,7 @@ namespace eval CTCPanelWindow {
 	  }
 	}
       }
-#      puts stderr "*** $self packOptions: options(-simplemode) is $options(-simplemode)"
+      #puts stderr "*** $self packOptions: options(-simplemode) is $options(-simplemode)"
       if {$options(-simplemode) && $objtype eq "SWPlate"} {
 	pack $azatraxSerialNumberLE -fill x
 	$azatraxSerialNumberLE configure -text ""
@@ -2486,7 +2449,7 @@ namespace eval CTCPanelWindow {
     }
     method packAndConfigureOptions {objtype} {
       foreach slave [pack slaves $optionsFrame] {pack forget $slave}
-#      puts stderr "*** $self packAndConfigureOptions: objtype = $objtype, options(-object) = $options(-object), opts are [$options(-ctcpanel) itemconfigure $options(-object)]"
+      #puts stderr "*** $self packAndConfigureOptions: objtype = $objtype, options(-object) = $options(-object), opts are [$options(-ctcpanel) itemconfigure $options(-object)]"
       foreach opt $objectTypeOptions($objtype) {
 	switch -exact $opt {
 	  xyctl {
@@ -2570,8 +2533,8 @@ namespace eval CTCPanelWindow {
 		$typeLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -type]
 	  }
 	}
-      }	
-#      puts stderr "*** $self packAndConfigureOptions: options(-simplemode) is $options(-simplemode)"
+      }
+      #puts stderr "*** $self packAndConfigureOptions: options(-simplemode) is $options(-simplemode)"
       if {$options(-simplemode) && $objtype eq "SWPlate"} {
 	set command "[$options(-ctcpanel) itemcget $options(-object) -normalcommand]"
 	set switch {}
@@ -2739,7 +2702,7 @@ namespace eval CTCPanelWindow {
       $hull withdraw
       lappend result "$objectType" "$name"
       lappend result -controlpoint "$cp"
-      puts stderr "*** $self _Add: calling getOptions"
+      #puts stderr "*** $self _Add: calling getOptions"
       $self getOptions result
       return [$hull enddialog "$result"]
     }
@@ -2748,9 +2711,9 @@ namespace eval CTCPanelWindow {
       set opts {}
       puts stderr "*** $self doRangeCheck: calling getOptions"
       $self getOptions opts
-#      puts stderr "*** $self doRangeCheck: opts is $opts"
+      #puts stderr "*** $self doRangeCheck: opts is $opts"
       if {[catch {eval [list ::CTCPanel::$objectType create %AUTO% $self $graphicCanvas -controlpoint nil] $opts} error]} {
-#	puts stderr "*** $self doRangeCheck: error is '$error'"
+          #puts stderr "*** $self doRangeCheck: error is '$error'"
 	if {[string first {Range error: } "$error"] >= 0} {
 	  set radius [from opts -radius]
 	  set x1 [from opts -x1]
@@ -2759,7 +2722,7 @@ namespace eval CTCPanelWindow {
 	  set y2 [from opts -y2]
 	  set dx [expr {int(abs($x2 - $x1))}]
 	  set dy [expr {int(abs($y2 - $y1))}]
-#	  puts stderr "*** $self doRangeCheck: (1) radius=$radius, x1=$x1, x2=$x2, y1=$y1, y2=$y2, dx=$dx, dy=$dy"
+          #puts stderr "*** $self doRangeCheck: (1) radius=$radius, x1=$x1, x2=$x2, y1=$y1, y2=$y2, dx=$dx, dy=$dy"
 	  if {$dx < 10} {
 	    $x2LSB configure -text [expr {$x1 + 10}]
 	    update idle
@@ -2772,26 +2735,26 @@ namespace eval CTCPanelWindow {
 	    set y2 [$y2LSB cget -text]
 	    set dy [expr {int(abs($y2 - $y1))}]
 	  }
-#	  puts stderr "*** $self doRangeCheck: (2) radius=$radius, x1=$x1, x2=$x2, y1=$y1, y2=$y2, dx=$dx, dy=$dy"
+          #puts stderr "*** $self doRangeCheck: (2) radius=$radius, x1=$x1, x2=$x2, y1=$y1, y2=$y2, dx=$dx, dy=$dy"
 	  if {$dx < $dy} {
 	    $radiusLSB configure -text $dx
 	  } else {
 	    $radiusLSB configure -text $dy
 	  }
-#	  puts stderr "*** $self doRangeCheck: \[$radiusLSB cget -text\] = [$radiusLSB cget -text]"
-#	  puts stderr "*** $self doRangeCheck: range error, radius adjusted."
+          #puts stderr "*** $self doRangeCheck: \[$radiusLSB cget -text\] = [$radiusLSB cget -text]"
+          #puts stderr "*** $self doRangeCheck: range error, radius adjusted."
 	  return 1
 	} else {
-#	  puts stderr "*** $self doRangeCheck: some other error, punting."
+            #puts stderr "*** $self doRangeCheck: some other error, punting."
 	  error "$error" $::errorInfo $::errorCode
 	}
-#	puts stderr "*** $self doRangeCheck: some error handled."
+        #puts stderr "*** $self doRangeCheck: some error handled."
       }
-#      puts stderr "*** $self doRangeCheck: not a range error."
+      #puts stderr "*** $self doRangeCheck: not a range error."
       return 0
     }
     method getOptions {resultVar} {
-      puts stderr "*** $self getOptions $resultVar"
+      #puts stderr "*** $self getOptions $resultVar"
       upvar $resultVar result
       foreach opt $objectTypeOptions($objectType) {
 	switch -exact $opt {
@@ -3018,7 +2981,7 @@ namespace eval CTCPanelWindow {
     variable _simpleMode no
     
     constructor {args} {
-#      puts stderr "*** $type create $self $args"
+        #puts stderr "*** $type create $self $args"
       installhull using Dialog -bitmap questhead -default update \
 				-cancel cancel -modal local -transient yes \
 				-side bottom -title [_ "Edit Panel Options"] \
@@ -3235,7 +3198,7 @@ namespace eval CTCPanelWindow {
       $self configurelist $args
     }
     method draw {args} {
-#      puts stderr "*** $self draw $args"
+        #puts stderr "*** $self draw $args"
       $self configurelist $args
       set parent [$hull cget -parent]
       wm transient [winfo toplevel $win] $parent
@@ -3296,7 +3259,7 @@ namespace eval CTCPanelWindow {
       lappend result -no [$numberOutputsLSB cget -text]
       lappend result -dl [$delayValueLSB cget -text]
       lappend result -ct "[$cardTypeMapLE cget -text]"
-      puts stderr "*** $self _Add: result = $result"
+      #puts stderr "*** $self _Add: result = $result"
       return [$hull enddialog "$result"]
     }
     method _updateCTLab {} {
@@ -3697,6 +3660,504 @@ namespace eval CTCPanelWindow {
     method wait {} {
       if {$processflag > 0} {vwait [myvar processflag]}
     }
+  }
+  snit::widget displayPanelObject {
+      Dispatcher::StdShell DisplayPanelObject
+      
+      component nameLE;#                  Name of object
+      component objectTypeLE;#            Object Type
+      component controlPointLE;#          -controlpoint
+      component optionsFrame;#            options frame
+      component xyframe1;#                XY 1 options:
+      component   x1LE;#                  -x1 or -x
+      component   y1LE;#                  -y1 or -y
+      component xyframe2;#                XY 2 options:
+      component   x2LE;#                  -x2
+      component   y2LE;#                  -y2
+      component radiusLE;#                -radius
+      component labelLE;#                 -label
+      component positionLE;#              -position
+      component orientationLE;#           -orientation (8-way)
+      component hvorientationLE;#         -orientation (horizontal / vertical)
+      component flippedLE;#               -flipped
+      component headsLE;#                 -heads (1, 2, 3)
+      component typeLE;#                  -type
+      component leftlabelLE;#		  -leftlabel
+      component centerlabelLE;#		  -centerlabel
+      component rightlabelLE;#		  -rightlabel
+      component hascenterLCB;#		  -hascenter
+      component colorLE;#		  -color
+      # Simple mode features for Switch Plates
+      component azatraxSerialNumberLE;#	  Azatrax serial number (SWitch Plates in simple mode)
+      component azatraxProductTypeLE;#	  Azatrax product type and index (SWitch Plates in simple mode)
+      component switchNameLE;#		  Trackwork controlled by this switch plate
+      #
+      component occupiedcommandLF
+      component   occupiedcommandSW
+      component     occupiedcommandText;# -occupiedcommand
+      component statecommandLF
+      component   statecommandSW
+      component     statecommandText;#	  -statecommand
+      component normalcommandLF
+      component   normalcommandSW
+      component     normalcommandText;#	  -normalcommand
+      component reversecommandLF
+      component   reversecommandSW
+      component     reversecommandText;#  -reversecommand
+      component leftcommandLF
+      component   leftcommandSW
+      component     leftcommandText;#	  -leftcommand
+      component centercommandLF
+      component   centercommandSW
+      component     centercommandText;#	  -centercommand
+      component rightcommandLF
+      component   rightcommandSW
+      component     rightcommandText;#	  -rightcommand
+      component commandLF
+      component   commandSW
+      component     commandText;#	  -command
+      
+      typevariable objectTypeOptions -array {
+          SWPlate {xyctl label normalcommand reversecommand}
+          SIGPlate {xyctl label leftcommand centercommand rightcommand}
+          CodeButton {xyctl command}
+          Toggle {xyctl hvorientation leftlabel centerlabel rightlabel 
+              hascenter leftcommand rightcommand centercommand}
+          PushButton {xyctl label color command}
+          Lamp {xyctl label color}
+          CTCLabel {xyctl label color}
+          SchLabel {xysch label color}
+          Switch {xysch label orientation flipped statecommand
+              occupiedcommand}
+          StraightBlock {xy1sch xy2sch label position occupiedcommand}
+          EndBumper {xysch label position orientation occupiedcommand}
+          CurvedBlock {xy1sch xy2sch radius label position occupiedcommand}
+          ScissorCrossover {xysch label orientation flipped statecommand 
+              occupiedcommand}
+          Crossover {xysch label orientation flipped statecommand 
+              occupiedcommand}
+          Crossing {xysch label orientation flipped type occupiedcommand}
+          SingleSlip {xysch label orientation flipped statecommand
+              occupiedcommand}
+          DoubleSlip {xysch label orientation flipped statecommand
+              occupiedcommand}
+          ThreeWaySW {xysch label orientation flipped statecommand
+              occupiedcommand}
+          HiddenBlock {xy1sch xy2sch label orientation flipped occupiedcommand}
+          StubYard {xysch label orientation flipped occupiedcommand}
+          ThroughYard {xysch label orientation flipped occupiedcommand}
+          Signal {xysch label orientation heads}
+      }
+      
+      option -title -default {Displaying Object Info} \
+            -configuremethod _SetTitle
+      option -ctcpanel  -default {} -validatemethod _CheckPanel
+      option -object -default {}
+      option -simplemode -default no
+
+      method _CheckPanel {option value} {
+          if {[catch {$value info type} typename]} {
+              error "Expected a ::CTCPanel::CTCPanel, got $value"
+          } elseif {{::CTCPanel::CTCPanel} ne $typename} {
+              error "Expected a ::CTCPanel::CTCPanel, got $value ($typename)"
+          } else {
+              return $value
+          }
+      }
+      
+      method settopframeoption {frame option value} {
+          puts stderr "*** $self settopframeoption $frame $option $value"
+      }
+      method constructtopframe {frame args} {
+          #puts stderr "*** $self constructtopframe $frame $args"
+          set lwidth [_mx "Label|Name:" "Label|Control Point:" \
+                      "Label|Radius:" "Label|Object Type:" \
+		      "Label|Label:" "Label|Position:" "Label|Orientation:" \
+		      "Label|Flipped?" "Label|Heads:" "Label|Crossing Type:" \
+		      "Label|Left Label:" "Label|Center Label:" \
+		      "Label|Right Label:" "Label|Has Center Position?" \
+		      "Label|Color:" "Label|Occupied Script:" \
+		      "Label|State Script:" "Label|Normal Script:" \
+		      "Label|Reverse Script:" "Label|Left Script:" \
+		      "Label|Center Script:" "Label|Right Script:" \
+		      "Label|Action Script:" "Label|Azatrax S#:" \
+		      "Label|Switch Name:" "Label|Azatrax Product:"]
+          install nameLE using LabelEntry $frame.nameLE \
+                -label [_m "Label|Name:"] \
+                -labelwidth $lwidth \
+                -editable no -text {}
+          pack $nameLE -fill x
+          install objectTypeLE using LabelEntry $frame.objectTypeLE \
+                -label [_m "Label|Object Type:"] \
+                -labelwidth $lwidth \
+                -editable no -text {}
+          pack $objectTypeLE -fill x
+          install controlPointLE using LabelEntry $frame.controlPointLE \
+                -label [_m "Label|Control Point:"] \
+                -labelwidth $lwidth -editable no -text {}
+          pack $controlPointLE -fill x
+          install optionsFrame using frame $frame.optionsFrame -borderwidth 0 \
+							   -relief flat
+          pack $optionsFrame -expand yes -fill both
+          install xyframe1 using ttk::labelframe $optionsFrame.xyframe1 \
+                -text [_m "Label|First Coord"] \
+                -labelanchor nw
+          install x1LE using LabelEntry $xyframe1.x1LE \
+						-label X: \
+						-editable no
+          pack $x1LE -side left -fill x -expand yes
+          install y1LE using LabelEntry $xyframe1.y1LE \
+						-label Y: \
+						-editable no
+          pack $y1LE -side left -fill x -expand yes
+          install xyframe2 using ttk::labelframe $optionsFrame.xyframe2 \
+                -text [_m "Label|Second Coord"] \
+                -labelanchor nw
+          install x2LE using LabelEntry $xyframe2.x2LE \
+						-label X: \
+						-editable no
+          pack $x2LE -side left -fill x -expand yes
+          install y2LE using LabelEntry $xyframe2.y2LE \
+						-label Y: \
+						-editable no
+          pack $y2LE -side left -fill x -expand yes
+          install radiusLE using LabelEntry $optionsFrame.radiusLE \
+						-label [_m "Label|Radius:"] \
+						-labelwidth $lwidth \
+						-editable no
+          install labelLE using LabelEntry $optionsFrame.labelLE \
+                -label [_m "Label|Label:"] \
+                -labelwidth $lwidth -editable no
+          install positionLE using LabelEntry $optionsFrame.positionLE \
+                -label [_m "Label|Position:"] \
+                -labelwidth $lwidth \
+                -editable no
+          install orientationLE using LabelEntry $optionsFrame.orientationLE \
+                -label [_m "Label|Orientation:"] \
+                -labelwidth $lwidth \
+                -editable no
+          install hvorientationLE using LabelEntry $optionsFrame.hvorientationLE \
+                -label [_m "Label|Orientation:"] \
+                -labelwidth $lwidth \
+                -editable no
+          install flippedLE using LabelEntry $optionsFrame.flippedLE \
+                -label [_m "Label|Flipped?"] \
+                -labelwidth $lwidth \
+                -editable no
+          install headsLE using LabelEntry $optionsFrame.headsLE \
+                -label [_m "Label|Heads:"] \
+                -labelwidth $lwidth \
+                -editable no
+          install typeLE using LabelComboBox $optionsFrame.typeLE \
+                -label [_m "Label|Crossing Type:"] \
+                -labelwidth $lwidth \
+                -editable no
+          install leftlabelLE using LabelEntry $optionsFrame.leftlabelLE \
+                -label [_m "Label|Left Label:"] \
+                -labelwidth $lwidth
+          install centerlabelLE using LabelEntry $optionsFrame.centerlabelLE \
+                -label [_m "Label|Center Label:"] \
+                -labelwidth $lwidth
+          install rightlabelLE using LabelEntry $optionsFrame.rightlabelLE \
+                -label [_m "Label|Right Label:"] \
+                -labelwidth $lwidth
+          install hascenterLE using LabelEntry $optionsFrame.hascenterLE \
+                -label [_m "Label|Has Center Position?"] \
+                -labelwidth $lwidth \
+                -editable no
+          install colorLE using LabelEntry $optionsFrame.colorLE \
+                -label [_m "Label|Color:"] \
+                -labelwidth $lwidth \
+                -editable no
+          install azatraxSerialNumberLE using LabelEntry $optionsFrame.azatraxSerialNumberLE \
+                -label [_m "Label|Azatrax S#:"] \
+                -labelwidth $lwidth \
+                -editable no
+          install azatraxProductTypeLE using LabelEntry $optionsFrame.azatraxProductTypeLE \
+                -label [_m "Label|Azatrax Product:"] \
+                -labelwidth $lwidth \
+                -editable no
+          install switchNameLE using LabelEntry $optionsFrame.switchNameLE \
+                -label [_m "Label|Switch Name:"] \
+                -labelwidth $lwidth
+          install occupiedcommandLF using LabelFrame $optionsFrame.occupiedcommandLF \
+                -text [_m "Label|Occupied Script:"] \
+                -width $lwidth
+          install occupiedcommandSW using ScrolledWindow \
+                [$occupiedcommandLF getframe].occupiedcommandSW \
+                -scrollbar both -auto both
+          pack $occupiedcommandSW -expand yes -fill both
+          install occupiedcommandText using ROText \
+                [$occupiedcommandSW getframe].occupiedcommandText \
+                -wrap none -width 40 -height 5
+          $occupiedcommandSW setwidget $occupiedcommandText
+          install statecommandLF using LabelFrame $optionsFrame.statecommandLF \
+                -text [_m "Label|State Script:"] \
+                -width $lwidth
+          install statecommandSW using ScrolledWindow \
+                [$statecommandLF getframe].statecommandSW \
+                -scrollbar both -auto both
+          pack $statecommandSW -expand yes -fill both
+          install statecommandText using ROText \
+                [$statecommandSW getframe].statecommandText \
+                -wrap none -width 40 -height 5
+          $statecommandSW setwidget $statecommandText
+          install normalcommandLF using LabelFrame $optionsFrame.normalcommandLF \
+                -text [_m "Label|Normal Script:"] \
+                -width $lwidth
+          install normalcommandSW using ScrolledWindow \
+                [$normalcommandLF getframe].normalcommandSW \
+                -scrollbar both -auto both
+          pack $normalcommandSW -expand yes -fill both
+          install normalcommandText using ROText \
+                [$normalcommandSW getframe].normalcommandText \
+                -wrap none -width 40 -height 5
+          $normalcommandSW setwidget $normalcommandText
+          install reversecommandLF using LabelFrame $optionsFrame.reversecommandLF \
+                -text [_m "Label|Reverse Script:"] \
+                -width $lwidth
+          install reversecommandSW using ScrolledWindow \
+                [$reversecommandLF getframe].reversecommandSW \
+                -scrollbar both -auto both
+          pack $reversecommandSW -expand yes -fill both
+          install reversecommandText using ROText \
+                [$reversecommandSW getframe].reversecommandText \
+                -wrap none -width 40 -height 5
+          $reversecommandSW setwidget $reversecommandText
+          install leftcommandLF using LabelFrame $optionsFrame.leftcommandLF \
+                -text [_m "Label|Left Script:"] \
+                -width $lwidth
+          install leftcommandSW using ScrolledWindow \
+                [$leftcommandLF getframe].leftcommandSW \
+                -scrollbar both -auto both
+          pack $leftcommandSW -expand yes -fill both
+          install leftcommandText using ROText \
+                [$leftcommandSW getframe].leftcommandText \
+                -wrap none -width 40 -height 5
+          $leftcommandSW setwidget $leftcommandText
+          install centercommandLF using LabelFrame $optionsFrame.centercommandLF \
+                -text [_m "Label|Center Script:"] \
+                -width $lwidth
+          install centercommandSW using ScrolledWindow \
+                [$centercommandLF getframe].centercommandSW \
+                -scrollbar both -auto both
+          pack $centercommandSW -expand yes -fill both
+          install centercommandText using ROText \
+                [$centercommandSW getframe].centercommandText \
+                -wrap none -width 40 -height 5
+          $centercommandSW setwidget $centercommandText
+          install rightcommandLF using LabelFrame $optionsFrame.rightcommandLF \
+                -text [_m "Label|Right Script:"] \
+                -width $lwidth
+          install rightcommandSW using ScrolledWindow \
+                [$rightcommandLF getframe].rightcommandSW \
+                -scrollbar both -auto both
+          pack $rightcommandSW -expand yes -fill both
+          install rightcommandText using ROText \
+                [$rightcommandSW getframe].rightcommandText \
+                -wrap none -width 40 -height 5
+          $rightcommandSW setwidget $rightcommandText
+          install commandLF using LabelFrame $optionsFrame.commandLF \
+                -text [_m "Label|Action Script:"] \
+                -width $lwidth
+          install commandSW using ScrolledWindow \
+                [$commandLF getframe].commandSW \
+                -scrollbar both -auto both
+          pack $commandSW -expand yes -fill both
+          install commandText using ROText \
+                [$commandSW getframe].commandText \
+                -wrap none -width 40 -height 5
+          $commandSW setwidget $commandText
+          $self configurelist $args
+      }
+      method initializetopframe {frame args} {
+          #puts stderr "*** $self initializetopframe $frame $args"
+          $self configurelist $args
+          if {"$options(-object)" ne ""} {
+              $nameLE configure -text "$options(-object)"
+          }
+          $controlPointLE configure \
+                -text [$options(-ctcpanel) itemcget $options(-object) \
+                       -controlpoint]
+          set objectType [$options(-ctcpanel) class "$options(-object)"]
+          $objectTypeLE configure -text $objectType
+          $self packAndConfigureOptions $objectType
+      }
+      method packAndConfigureOptions {objtype} {
+          #puts stderr "*** $self packAndConfigureOptions $objtype"
+          catch {foreach slave [pack slaves $optionsFrame] {pack forget $slave}} err
+          #puts stderr "*** $self packAndConfigureOptions: err = $err"
+          #puts stderr "*** $self packAndConfigureOptions: optionsFrame cleared"
+          foreach opt $objectTypeOptions($objtype) {
+              #puts stderr "*** $self packAndConfigureOptions: opt = $opt"
+              switch -exact $opt {
+                  xyctl {
+                      pack $xyframe1 -fill x
+                      $xyframe1 configure -text {}
+                      set x1 [$options(-ctcpanel) itemcget $options(-object) \
+                              -x]
+                      set y1 [$options(-ctcpanel) itemcget $options(-object) \
+                              -y]
+                      $x1LE configure -text $x1
+                      $y1LE configure -text $y1
+                  }
+                  xysch {
+                      pack $xyframe1 -fill x
+                      $xyframe1 configure -text {}
+                      set x1 [$options(-ctcpanel) itemcget $options(-object) \
+                              -x]
+                      set y1 [$options(-ctcpanel) itemcget $options(-object) \
+                              -y]
+                      $x1LE configure -text $x1
+                      $y1LE configure -text $y1
+                  }
+                  xy1sch {
+                      pack $xyframe1 -fill x
+                      $xyframe1 configure -text {First Coord}
+                      set x1 [$options(-ctcpanel) itemcget $options(-object) -x1]
+                      set y1 [$options(-ctcpanel) itemcget $options(-object) -y1]
+                      $x1LE configure -text $x1
+                      $y1LE configure -text $y1
+                  }
+                  xy2sch {
+                      pack $xyframe2 -fill x
+                      $xyframe2 configure -text {Second Coord}
+                      set x2 [$options(-ctcpanel) itemcget $options(-object) -x2]
+                      set y2 [$options(-ctcpanel) itemcget $options(-object) -y2]
+                      $x2LE configure -text $x2
+                      $y2LE configure -text $x2
+                  }
+                  label {
+                      pack $labelLE -fill x
+                      $labelLE configure -text "[$options(-ctcpanel) itemcget $options(-object) -label]"
+                  }
+                  leftlabel {
+                      pack $leftlabelLE -fill x
+                      $leftlabelLE configure -text "[$options(-ctcpanel) itemcget $options(-object) -leftlabel]"
+                  }
+                  centerlabel {
+                      pack $centerlabelLE -fill x
+                      $centerlabelLE configure -text "[$options(-ctcpanel) itemcget $options(-object) -centerlabel]"
+                  }
+                  rightlabel {
+                      pack $rightlabelLE -fill x
+                      $rightlabelLE configure -text "[$options(-ctcpanel) itemcget $options(-object) -rightlabel]"
+                  }
+                  hvorientation {
+                      pack $hvorientationLE -fill x
+                      $hvorientationLE configure -text [$options(-ctcpanel) itemcget $options(-object) -orientation]
+                  }
+                  hascenter {
+                      pack $hascenterLE -fill x
+                      $hascenterLE configure -text [$options(-ctcpanel) itemcget $options(-object) -hascenter]
+                  }
+                  color {
+                      pack $colorLE -fill x
+                      $colorLE configure -text "[$options(-ctcpanel) itemcget $options(-object) -color]"
+                  }
+                  orientation {
+                      pack $orientationLE -fill x
+                      $orientationLE configure -text [$options(-ctcpanel) itemcget $options(-object) -orientation]
+                  }
+                  flipped {
+                      pack $flippedLE -fill x
+                      $flippedLE configure -text [$options(-ctcpanel) itemcget $options(-object) -flipped]
+                  }
+                  heads {
+                      pack $headsLE -fill x
+                      $headsLE configure -text [$options(-ctcpanel) itemcget $options(-object) -heads]
+                  }
+                  position {
+                      pack $positionLE -fill x
+                      $positionLE configure -text [$options(-ctcpanel) itemcget $options(-object) -position]
+                  }
+                  radius {
+                      pack $radiusLE -fill x
+                      $radiusLE configure -text [$options(-ctcpanel) itemcget $options(-object) -radius]
+                  }
+                  type {
+                      pack $typeLE -fill x
+                      $typeLE configure -text [$options(-ctcpanel) itemcget $options(-object) -type]
+                  }
+              }
+          }
+          #puts stderr "*** $self packAndConfigureOptions: options(-simplemode) is $options(-simplemode)"
+          if {$options(-simplemode) && $objtype eq "SWPlate"} {
+              set command "[$options(-ctcpanel) itemcget $options(-object) -normalcommand]"
+              set switch {}
+              set azatraxsn  {}
+              set azatraxprod {}
+              set azatraxswn {}
+              if {[regexp {NormalMRD[[:space:]]+[^[:space:]]+[[:space:]]+([^[:space:]]+)[[:space:]]+([^[:space:]]+)$} "$command" => switch azatraxsn] > 0} {
+                  set azatraxprod MRD2-U
+              } elseif {[regexp {NormalSL2[[:space:]]+([[:digit:]])[[:space:]]+[^[:space:]]+[[:space:]]+([^[:space:]]+)[[:space:]]+([^[:space:]]+)$} "$command" => azatraxswn switch azatraxsn] > 0} {
+                  set azatraxprod "SL2 Switch $azatraxswn"
+              } elseif {[regexp {NormalSR4[[:space:]]+([[:digit:]])[[:space:]]+[^[:space:]]+[[:space:]]+([^[:space:]]+)[[:space:]]+([^[:space:]]+)$} "$command" => azatraxswn switch azatraxsn] > 0} {
+                  set azatraxprod "SR4 Switch $azatraxswn"
+              } elseif {[regexp {Normal[[:space:]]+[^[:space:]]+[[:space:]]+([^[:space:]]+)[[:space:]]+([^[:space:]]+)$} "$command" => switch azatraxsn] > 0} {
+                  set azatraxprod MRD2-U
+              }
+              pack $azatraxSerialNumberLE -fill x
+              $azatraxSerialNumberLE configure -text "$azatraxsn"
+              pack $azatraxProductTypeLCB -fill x
+              $azatraxProductTypeLE configure -text $azatraxprod
+              pack $switchNameLE -fill x
+              $switchNameLE configure -text "$switch"
+          }
+          foreach opt $objectTypeOptions($objtype) {
+              #puts stderr "*** $self packAndConfigureOptions: opt = $opt"
+              switch -exact $opt {
+                  normalcommand {
+                      pack $normalcommandLF -fill x
+                      $normalcommandText configure -state normal
+                      $normalcommandText delete 1.0 end
+                      $normalcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -normalcommand]"
+                  }
+                  reversecommand {
+                      pack $reversecommandLF -fill x
+                      $reversecommandText configure -state normal
+                      $reversecommandText delete 1.0 end
+                      $reversecommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -reversecommand]"
+                  }
+                  leftcommand {
+                      pack $leftcommandLF -fill x
+                      $leftcommandText  configure -state normal
+                      $leftcommandText delete 1.0 end
+                      $leftcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -leftcommand]"
+                  }
+                  centercommand {
+                      pack $centercommandLF -fill x
+                      $centercommandText configure -state normal
+                      $centercommandText delete 1.0 end
+                      $centercommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -centercommand]"
+                  }
+                  rightcommand {
+                      pack $rightcommandLF -fill x
+                      $rightcommandText configure -state normal
+                      $rightcommandText delete 1.0 end
+                      $rightcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -rightcommand]"
+                  }
+                  command {
+                      pack $commandLF -fill x
+                      $commandText configure -state normal
+                      $commandText delete 1.0 end
+                      $commandText insert end "[$options(-ctcpanel) itemcget $options(-object) -command]"
+                  }
+                  statecommand {
+                      pack $statecommandLF -fill x
+                      $statecommandText configure -state normal
+                      $statecommandText delete 1.0 end
+                      $statecommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -statecommand]"
+                  }
+                  occupiedcommand {
+                      pack $occupiedcommandLF -fill x
+                      $occupiedcommandText configure -state normal
+                      $occupiedcommandText delete 1.0 end
+                      $occupiedcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -occupiedcommand]"
+                  }
+              }
+          }
+      }
   }
 }
 

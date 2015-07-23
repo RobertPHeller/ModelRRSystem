@@ -378,7 +378,7 @@ snit::macro Dispatcher::StdShell {dialogclass} {
 	-default active \
 	-text [_m "Button|Dismis"] \
 	-command [mymethod _Dismis]
-    pack $dismisbutton -expand yes -fill x
+    pack $dismisbutton -fill x
     if {[catch [list $self constructtopframe $userframe] message]} {
       puts stderr "*** ${self}::constructor: constructtopframe failed: $message"
     }
