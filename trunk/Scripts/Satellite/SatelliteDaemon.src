@@ -8,7 +8,7 @@
 #*  Author        : $Author$
 #*  Created By    : Robert Heller
 #*  Created       : Thu Jun 11 11:38:28 2015
-#*  Last Modified : <150724.1454>
+#*  Last Modified : <150724.1512>
 #*
 #*  Description	
 #*
@@ -55,12 +55,16 @@
 # of computers controlling a layout.  These satellite computers could be 
 # Raspberry Pis (running Rasperian) or small Intel/AMD systems (eg mini-Itx
 # systems or other Intel/AMD SBCs running some version of Linux).  Somewhere
-# on the network would be a computer running the master (client) package,
-# typically in the context of a Dispatcher control panel.  The satellite
-# systems would be connected to a collection of USB interface boards (or 
-# possibly using the GPIO pins on a Raspberry) that would interface to various
-# actuating devices on the layout, such as turnout motors, signals, uncoupling 
-# magnets, as well as various sensors that might be in use.
+# on the network would be a (desktop) computer running the master (client) 
+# package, typically in the context of a Dispatcher control panel.  
+# The satellite systems would be connected to a collection of USB interface 
+# boards (or possibly using the GPIO pins on a Raspberry) that would interface 
+# to various actuating devices on the layout, such as turnout motors, signals, 
+# uncoupling magnets, as well as various sensors that might be in use.
+#
+# The second form (SatelliteDaemon -extenddaemon newDaemon ...) of the command
+# creates a new StarPak with the listed package dirs copied into the StarPak.
+# The -tclkit defaults to /usr/local/bin/tclkit.
 #
 # @section OPTIONS
 #
@@ -75,10 +79,7 @@
 # @arg -addpackage This option loads additional packages into the daemon's 
 #               internal virtual file system.
 # @arg -extenddaemon This option creates a new version of the daemon with
-#               additional package directories included. Usage: 
-# @code
-# SatelliteDaemon -extenddaemon newdaemon [-tclkit tclkit] packagedir ...
-# @endcode
+#               additional package directories included. 
 # @par
 #
 # @section PROTOCOL
