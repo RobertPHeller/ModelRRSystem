@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 15:31:29 2014
-//  Last Modified : <140506.0819>
+//  Last Modified : <150724.1630>
 //
 //  Description	
 //
@@ -68,6 +68,10 @@
  *     railroaders.
  *   - Chapters @ref dispatcher_Tutorial, @ref dispatcher_Reference, and 
  *     @ref dispatcher_Examples document the automated dispatcher program.
+ *   - Chapter @ref SatelliteDaemon documents the daemon for using satellite 
+ *     computers.
+ *   - Chapter @ref raildriverd documents the daemon program for the 
+ *     RailDriver control stand console.
  */
 
 #endif // __INTRODUCTION_H

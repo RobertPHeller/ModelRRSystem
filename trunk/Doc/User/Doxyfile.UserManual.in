@@ -230,7 +230,7 @@ OPTIMIZE_OUTPUT_VHDL   = NO
 # (default is Fortran), use: inc=Fortran f=C. Note that for custom extensions
 # you also need to set FILE_PATTERNS otherwise the files are not read by doxygen.
 
-EXTENSION_MAPPING      =
+EXTENSION_MAPPING      = "tcl=C++" "src="C++"
 
 # If you use STL classes (i.e. std::string, std::vector, etc.) but do not want
 # to include (a tag file for) the STL sources as input, then you should
@@ -623,6 +623,8 @@ INPUT                  = @srcdir@/Preface.h \
                          @srcdir@/DispatcherTutorial.h \
                          @srcdir@/DispatcherReference.h \
                          @srcdir@/DispatcherExamples.h \
+                         @top_srcdir@/Scripts/Satellite/SatelliteDaemon.src \
+                         @top_srcdir@/C++/RailDriver/raildriverd.src \
                          @srcdir@/Help.h \
                          @builddir@/UserManual_Version.h @srcdir@/COPYING.h
 
@@ -724,7 +726,7 @@ INPUT_FILTER           =
 # info on how filters are used. If FILTER_PATTERNS is empty or if
 # non of the patterns match the file name, INPUT_FILTER is applied.
 
-FILTER_PATTERNS        =
+FILTER_PATTERNS        = *.tcl=@builddir@/../doxygen/tcldoxyfilter.sh *.src=@builddir@/../doxygen/tcldoxyfilter.sh
 
 # If the FILTER_SOURCE_FILES tag is set to YES, the input filter (if set using
 # INPUT_FILTER) will be used to filter the input files when producing source

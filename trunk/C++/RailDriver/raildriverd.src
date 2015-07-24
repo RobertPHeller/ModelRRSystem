@@ -33,11 +33,13 @@
 #*  
 #* 
 
-## @defgroup raildriverd raildriverd
+## @page raildriverd raildriverd
 # @brief Raildriver USB Hotplug Daemon
 #
 # @section SYNOPSIS
+# @code
 # raildriverd [-debug] busnum devnum
+# @endcode
 #
 # @section DESCRIPTION
 #

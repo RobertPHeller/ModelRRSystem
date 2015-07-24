@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 15:29:56 2014
-//  Last Modified : <140506.0820>
+//  Last Modified : <150724.1627>
 //
 //  Description	
 //
@@ -263,6 +263,21 @@
  * <li><a class="el" href="dispatcher_Examples.html#dispatcher_Examples_ex2">Example 2: Mainline with an industrial siding</a></li>
  * <li><a class="el" href="dispatcher_Examples.html#dispatcher_Examples_ex3">Example 3: double track crossover</a></li>
  * <li><a class="el" href="dispatcher_Examples.html#dispatcher_Examples_ex4">Example 4: From Chapter 9 of C/MRI User's Manual V3.0</a></li>
+ * </ol></li>
+ * <li><a class="el" href="SatelliteDaemon.html">SatelliteDaemon</a><ol type="1">
+ * <li><a class="el" href="SatelliteDaemon.html#SYNOPSIS">SYNOPSIS</a></li>
+ * <li><a class="el" href="SatelliteDaemon.html#DESCRIPTION">DESCRIPTION</a></li>
+ * <li><a class="el" href="SatelliteDaemon.html#OPTIONS">OPTIONS</a></li>
+ * <li><a class="el" href="SatelliteDaemon.html#PROTOCOL">PROTOCOL</a></li>
+ * <li><a class="el" href="SatelliteDaemon.html#AUTHOR">AUTHOR</a></li>
+ * </ol></li>
+ * <li><a class="el" href="raildriverd.html">raildriverd</a><ol type="1">
+ * <li><a class="el" href="raildriverd.html#SYNOPSIS">SYNOPSIS</a></li>
+ * <li><a class="el" href="raildriverd.html#DESCRIPTION">DESCRIPTION</a></li>
+ * <li><a class="el" href="raildriverd.html#OPTIONS">OPTIONS</a></li>
+ * <li><a class="el" href="raildriverd.html#PARAMETERS">PARAMETERS</a></li>
+ * <li><a class="el" href="raildriverd.html#HotplugScripts">Hotplugging scripts and setup.</a></li>
+ * <li><a class="el" href="raildriverd.html#AUTHOR">AUTHOR</a></li>
  * </ol></li>
  * <li><a class="el" href="help.html">Help</a>
  * </li>

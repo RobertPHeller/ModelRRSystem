@@ -264,7 +264,9 @@ $(USERMAN)_Version.h : $(top_builddir)/config.status
 
 
 $(USERMAN_HTML) $(USERMAN_PDF) : $(USERMAN_HS) $(USERMAN_FIGS) $(BIBLIO) \
-	footer.tex $(USERMAN)_Version.h COPYING.h Doxyfile.$(USERMAN)
+	footer.tex $(USERMAN)_Version.h COPYING.h Doxyfile.$(USERMAN) \
+	../../C++/RailDriver/raildriverd.src \
+	../../Scripts/Satellite/SatelliteDaemon.src
 	-rm -rf $(USERMANHBase)/
 	$(DOXYGEN) Doxyfile.UserManual
 	for p in $(USERMAN_FIGS); do \
