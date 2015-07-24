@@ -8,7 +8,7 @@
 #*  Author        : $Author$
 #*  Created By    : Robert Heller
 #*  Created       : Thu Jun 11 11:38:28 2015
-#*  Last Modified : <150723.1407>
+#*  Last Modified : <150724.1454>
 #*
 #*  Description	
 #*
@@ -44,7 +44,10 @@
 # @brief Satellite computer Daemon
 #
 # @section SYNOPSIS
-# SatelliteDaemon [-debug] [-port listenport] [-log logfilename] [-nodaemon] [-addpath path]
+# @code
+# SatelliteDaemon [-debug] [-port listenport] [-log logfilename] [-nodaemon] [-addpath path] [-addpackage path]
+# SatelliteDaemon -extenddaemon newDaemon [-tclkit tclkit] packageDir ...
+# @endcode
 #
 # @section DESCRIPTION
 #
@@ -69,6 +72,13 @@
 # @arg -addpath This option adds additional search paths for packages.
 #               (These packages are always available: the core Tcl packages,
 #                snit, Azatrax, and Cmri.)
+# @arg -addpackage This option loads additional packages into the daemon's 
+#               internal virtual file system.
+# @arg -extenddaemon This option creates a new version of the daemon with
+#               additional package directories included. Usage: 
+# @code
+# SatelliteDaemon -extenddaemon newdaemon [-tclkit tclkit] packagedir ...
+# @endcode
 # @par
 #
 # @section PROTOCOL
@@ -176,8 +186,22 @@ snit::type SatelliteDaemon {
                     lappend additionalpaths [lindex $args 1]
                     set args [lrange $args 2 end]
                 }
+                -addpackage {
+                    if {[llength $args] < 2} {
+                        error [_ "Path missing!"]
+                    }
+                    $type addpackage [lindex $args 1]
+                    set args [lrange $args 2 end]
+                }
+                -extenddaemon {
+                    if {[llength $args] < 2} {
+                        error [_ "Mising filename!"]
+                    }
+                    $type ExtendDaemon [lindex $args 1] [lrange $args 2 end]
+                    exit
+                }
                 default {
-                    error [_ "Unknow option: %s, should be one of -debug, -port, -log, -nodaemon, or -addpath" [lindex $args 0]]
+                    error [_ "Unknow option: %s, should be one of -debug, -port, -log, -nodaemon, -addpath, -addpackage, or -extenddaemon" [lindex $args 0]]
                 }
             }
         }
@@ -202,7 +226,7 @@ snit::type SatelliteDaemon {
         if {$debugnotvis == 0} {
             ::log::logMsg [_ "SatelliteDaemon debug logging is on"]
         }
-        if {[catch {socket -server [list $type create %%AUTO%%] $listenport} listenSock]} {
+        if {[catch {socket -server [list $type create %AUTO%] $listenport} listenSock]} {
             error [_ "Failed to open server socket %d: %s" $listenport $listenSock]
         }
         set activeServers {}
@@ -386,9 +410,53 @@ snit::type SatelliteDaemon {
         # -- log the disconnect
         ::log::logMsg [_ "Connection from %s:%d closed" $address $port]
     }
+    typemethod ExtendDaemon {newDaemon pathlist} {
+        #** @brief Create an extended Daemon starpack
+        #
+        
+        set tclkit [from pathlist -tclkit /usr/local/bin/tclkit]
+        set SrcDaemon [info nameofexe]
+        set filename $newDaemon
+        file copy $tclkit $filename
+        if {![catch { package require Mk4tcl }]} {
+            vfs::mk4::Mount $filename $filename
+        } elseif {![catch { package require vlerq }]} {
+            package require vfs::m2m 1.8
+            vfs::m2m::Mount $filename $filename
+        } else {
+            error "Cannot find required packages (Mk4tcl or Vlerq)"
+        }
+        file copy $SrcDaemon/main.tcl [file join $filename main.tcl]
+        foreach f [glob -nocomplain $SrcDaemon/lib/*] {
+            set dest [file join $filename lib [file tail $f]]
+            if {[file exists $dest]} {continue}
+            file copy $f [file join $filename lib]
+        }
+        foreach dir $pathlist {
+            if {[file isdirectory $dir]} {
+                set dest [file join $filename lib [file tail $dir]]
+                if {[file exists $dest]} {continue}
+                file copy $dir [file join $filename lib]
+            } else {
+                error [_ "%s is not a directory!" $dir]
+            }
+        }
+        vfs::unmount $filename
+    }
+    typemethod addpackage {dir} {
+        #** Load a package into out VFS
+        #
+        
+        set SrcDaemon [info nameofexe]
+        if {[file isdirectory $dir]} {
+            set dest [file join $SrcDaemon lib [file tail $dir]]
+            if {[file exists $dest]} {return}
+            file copy $dir [file join $SrcDaemon lib]
+        } else {
+            error [_ "%s is not a directory!" $dir]
+        }
+    }
 }
-
-
 
 eval [list SatelliteDaemon Initialize] $::argv
 vwait forever
