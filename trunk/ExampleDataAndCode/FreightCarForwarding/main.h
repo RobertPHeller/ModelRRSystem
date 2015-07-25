@@ -7,8 +7,8 @@
 //  Date          : $Date$
 //  Author        : $Author$
 //  Created By    : Robert Heller
-//  Created       : Tue Jul 14 12:40:17 2015
-//  Last Modified : <150725.1534>
+//  Created       : Sat Jul 25 15:35:47 2015
+//  Last Modified : <150725.1536>
 //
 //  Description	
 //
@@ -42,7 +42,7 @@
 
 #ifndef __MAIN_H
 #define __MAIN_H
-/** @mainpage Example Interlocking Plant CTC Panels
+/** @mainpage Example Freight Car Forwarding Data
  */
 
 #endif // __MAIN_H

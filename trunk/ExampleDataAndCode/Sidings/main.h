@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Tue Jul 14 12:40:17 2015
-//  Last Modified : <150718.1416>
+//  Last Modified : <150725.1534>
 //
 //  Description	
 //
@@ -42,9 +42,9 @@
 
 #ifndef __MAIN_H
 #define __MAIN_H
-/** @mainpage Sidings Abstract Types (Classes)
+/** @mainpage Example Siding CTC Panels
  * 
- * This folder contains a collection of Tcl code to implement sidings.
+ * This folder contains a collection of example siding CTC panels
  * 
  * The Azatrax_Siding.tcl file contains a simple passing siding using Azatrax
  * devices for block occupancy detection, turnout activation, and turnout

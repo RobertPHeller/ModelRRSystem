@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Tue Jul 14 12:40:17 2015
-//  Last Modified : <150714.1241>
+//  Last Modified : <150725.1535>
 //
 //  Description	
 //
@@ -42,7 +42,7 @@
 
 #ifndef __MAIN_H
 #define __MAIN_H
-/** @mainpage 
+/** @mainpage Example Yard CTC Panels
  */
 
 #endif // __MAIN_H

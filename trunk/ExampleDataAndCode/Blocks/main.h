@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Jul 12 15:21:38 2015
-//  Last Modified : <150714.1345>
+//  Last Modified : <150725.1436>
 //
 //  Description	
 //
@@ -102,7 +102,7 @@
                      -forwardsignalobj signal2
  * @endcode
  * 
- * There is a pair of common options, @c -previousblock and @c -nextblock, 
+ * There are a pair of common options, @c -previousblock and @c -nextblock, 
  * which are the names of the previous block in the forward direction and the 
  * name of the previous block in the reverse direction.  Another pair of 
  * common options, @c -forwardsignalobj and @c -reversesignalobj, are the 
