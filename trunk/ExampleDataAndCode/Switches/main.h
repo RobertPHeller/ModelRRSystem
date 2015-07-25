@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Tue Jul 14 12:40:17 2015
-//  Last Modified : <150725.0839>
+//  Last Modified : <150725.1311>
 //
 //  Description	
 //
@@ -71,6 +71,11 @@
  * and 1/4 of a Circuits4Tracks Quad Occupancy Detector connected to another 
  * Azatrax SR4 for OS detection.
  * 
+ * @subsection smini_c4t Chubb SMINI board as actuator and pointsense with a Circuits4Tracks Quad OD as OS sensor
+ * 
+ * C4TSMINI_Switch.tcl contains an abstract data type (C4TSMINI_Switch) that
+ * implements switches using a Chubb SMINI board as actuator and pointsense 
+ * with a Circuits4Tracks Quad OD as OS sensor.
  */
 
 #endif // __MAIN_H
