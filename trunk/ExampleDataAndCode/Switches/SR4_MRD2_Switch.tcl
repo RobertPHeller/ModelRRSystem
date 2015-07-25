@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jul 14 19:03:09 2015
-#  Last Modified : <150716.1602>
+#  Last Modified : <150725.0827>
 #
 #  Description	
 #
@@ -65,12 +65,12 @@ snit::type SR4_MRD2_Switch {
     # # Switch 1 is controlled and sensed by the lower 1/2 of turnoutControl1
     # SR4_MRD2_Switch switch1 -motorobj turnoutControl1 -motorhalf lower \
     #                       -pointsenseobj turnoutControl1 \
-    #                       -pointsensehalf lower \
+    #                       -pointsensehalf lower -plate SwitchPlate1 \
     #                       -ossensorsn 0200001234
     # # Switch2 is controlled and sensed by the upper 1/2 of turnoutControl1
     # SR4_MRD2_Switch switch2 -motorobj turnoutControl1 -motorhalf upper \
     #                       -pointsenseobj turnoutControl1 \
-    #                       -pointsensehalf upper \
+    #                       -pointsensehalf upper -plate SwitchPlate2 \
     #                       -ossensorsn 0200001235
     # @endcode
     #
@@ -196,8 +196,9 @@ snit::type SR4_MRD2_Switch {
         # @arg -previousblock The block connected to the point end.
         # @arg -nextmainblock The block connected to the straight frog end.
         # @arg -nextdivergentblock The block connected to the divergent frog 
-        # @arg -plate The name of the switch plate for this switch.
         # end.
+        # @arg -plate The name of the switch plate for this switch.
+        # 
         
         # Prefetch the -forwarddirection option.
         set options(-forwarddirection) [from args -forwarddirection]

@@ -1,7 +1,9 @@
 SUBDIRS = 
 CODEFILES = SR4_MRD2_Switch.tcl SR4_C4TSR4_Switch.tcl
-FIGURES = switch-SR4-MRD2.png switch-SR4-MRD2-thumb.png switch-SR4-C4TSR4.png
-OTHERFILES = switch-SR4-MRD2.xtc switch-SR4-MRD2.pdf switch-SR4-C4TSR4.xtc
+FIGURES = switch-SR4-MRD2.png switch-SR4-MRD2-thumb.png \
+          switch-SR4-C4TSR4.png switch-SR4-C4TSR4-thumb.png
+OTHERFILES = switch-SR4-MRD2.xtc switch-SR4-MRD2.pdf \
+             switch-SR4-C4TSR4.xtc switch-SR4-C4TSR4.pdf
 EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in main.h 
 pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Switches
 

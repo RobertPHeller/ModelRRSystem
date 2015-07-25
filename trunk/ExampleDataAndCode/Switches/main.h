@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Tue Jul 14 12:40:17 2015
-//  Last Modified : <150714.1903>
+//  Last Modified : <150725.0839>
 //
 //  Description	
 //
@@ -45,7 +45,32 @@
 /** @mainpage Switch (Turnout) Abstract Types (Classes)
  * 
  * This folder contain a collection of Tcl code to implement switches (aka 
- * turnouts), using various actuator hardware.
+ * turnouts), using various actuator hardware. Included is OS detection and
+ * point position detection, along with code to operate switch motors.
+ * 
+ * @section files Source Files
+ * 
+ * There are several Tcl source files in this directory.  Each contains a
+ * SNIT @b Abstract data type (also known as a @e Class).  This abstract data
+ * type encapsulates a single @e switch (turnout). All of these abstract data 
+ * types a method named @c occupiedp, which returns a true or false result
+ * indicating whether or not the OS is occupied. Also included are a 
+ * @c pointsense method which returns the state of the points and a @c motor 
+ * method which operates the switch machine to move the points.
+ * 
+ * @subsection sr4_mrd2 SR4 as actuator and pointsense with a MRD2U for OS detection
+ * 
+ * SR4_MRD2_Switch.tcl contains an abstract data type (SR4_MRD2_Switch) that 
+ * implements switches using one half of a Azatrax SR4 for the actuator and 
+ * pointsense and a Azatrax MRD2U Sensor for OS detection.
+ * 
+ * @subsection sr4_c4tsr4 SR4 as actuator and pointsense with a Circuits4Tracks Quad Occupancy Detector with a SR4 (USB connected I/O board).
+ * 
+ * SR4_C4TSR4_Switch.tcl contains an abstract data type (SR4_C4TSR4_Switch)
+ * that implements switches using one half of a Azatrax SR4 for the actuator 
+ * and 1/4 of a Circuits4Tracks Quad Occupancy Detector connected to another 
+ * Azatrax SR4 for OS detection.
+ * 
  */
 
 #endif // __MAIN_H

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Jul 24 20:07:30 2015
-#  Last Modified : <150724.2123>
+#  Last Modified : <150725.0839>
 #
 #  Description	
 #
@@ -48,7 +48,7 @@ snit::type SR4_C4TSR4_Switch {
     ##
     # @brief Switch (turnout) operation using 1/2 of a SR4
     #
-    # @image html switch-SR4-C4TSR4.png
+    # @image html switch-SR4-C4TSR4-thumb.png
     # @image latex switch-SR4-C4TSR4.png "Switch controlled by a SR4 with a Circuits4Tracks OS detection using a second SR4" width=5in
     #
     # Above is a typical switch (turnout) using an Azatrax SR4 to control a
@@ -70,12 +70,12 @@ snit::type SR4_C4TSR4_Switch {
     # # Switch 1 is controlled and sensed by the lower 1/2 of turnoutControl1
     # SR4_C4TSR4_Switch switch1 -motorobj turnoutControl1 -motorhalf lower \
     #                       -pointsenseobj turnoutControl1 \
-    #                       -pointsensehalf lower \
+    #                       -pointsensehalf lower -plate SwitchPlate1 \
     #                       -ossensorobj quadsense1 -bit 0
     # # Switch2 is controlled and sensed by the upper 1/2 of turnoutControl1
     # SR4_C4TSR4_Switch switch2 -motorobj turnoutControl1 -motorhalf upper \
     #                       -pointsenseobj turnoutControl1 \
-    #                       -pointsensehalf upper \
+    #                       -pointsensehalf upper -plate SwitchPlate2 \
     #                       -ossensorobj quadsense1 -bit 1
     # @endcode
     #
@@ -206,8 +206,8 @@ snit::type SR4_C4TSR4_Switch {
         # @arg -previousblock The block connected to the point end.
         # @arg -nextmainblock The block connected to the straight frog end.
         # @arg -nextdivergentblock The block connected to the divergent frog 
-        # @arg -plate The name of the switch plate for this switch.
         # end.
+        # @arg -plate The name of the switch plate for this switch.
         
         # Prefetch the -forwarddirection option.
         set options(-forwarddirection) [from args -forwarddirection]
@@ -257,6 +257,264 @@ snit::type SR4_C4TSR4_Switch {
                 }
             }
         }
-    }    
+    }
+    
+    method occupiedp {} {
+        ## The occupiedp method returns yes or no (true or false) indicating
+        # block (OS) occupation.
+        # @returns Yes or no, indicating whether the OS is occupied.
+        
+        # First read the current sensor state.
+        $ossensor GetSenseData
+        if {[$ossensor $sensemap($options(-bit))]} {
+            if {$isoccupied} {
+                # Already entered the OS.
+                return $isoccupied
+            } else {
+                # Just entered the OS
+                set isoccupied yes
+                $self _entering
+                return $isoccupied
+            }
+        } else {
+            if {$isoccupied} {
+                # Just left the OS
+                set isoccupied no
+                $self _exiting
+                return $isoccupied
+            } else {
+                # OS still unoccupied
+                return $isoccupied
+            }
+        }
+    }
+    method pointstate {} {
+        ## The pointstate method returns normal if the points are aligned to
+        # the main route and reverse if the points are aligned to the divergent
+        # route. If the state cannot be determined, a value of unknown is 
+        # returned.
+        # @returns Normal or reverse, indicating the point state.
+        
+        # Assume point state is unknown.
+        set result unknown
+        
+        # Check for a point sensor. If none, use motor position instead.
+        if {$pointsense eq {}} {
+            # No point sense object -- use motor position instead.
+            $motor GetStateData
+            if {[$self cget -motorhalf] eq "lower"} {
+                if {[$motor Q1_State]} {
+                    set result normal
+                } elseif {[$motor Q2_State]} {
+                    set result reverse
+                } else {
+                    set result unknown
+                }
+            } else {
+                if {[$motor Q3_State]} {
+                    set result normal
+                } elseif {[$motor Q4_State]} {
+                    set result reverse
+                } else {
+                    set result unknown
+                }
+            }
+        } else {
+            # Fetch state
+            $pointsense GetStateData
+            if {[$self cget -pointsensehalf] eq "lower"} {
+                if {[$pointsense Sense_1_Live]} {
+                    set result normal
+                } elseif {[$pointsense Sense_2_Live]} {
+                    set result reverse
+                } else {
+                    set result unknown
+                }
+            } else {
+                if {[$pointsense Sense_3_Live]} {
+                    set result normal
+                } elseif {[$pointsense Sense_4_Live]} {
+                    set result reverse
+                } else {
+                    set resultunknown
+                }
+            }
+        }
+        if {[$self cget -plate] ne {}} {
+            set plate [$self cget -plate]
+            switch $result {
+                normal {
+                    MainWindow ctcpanel seti $plate N on
+                    MainWindow ctcpanel seti $plate C off
+                    MainWindow ctcpanel seti $plate R off
+                }
+                reverse {
+                    MainWindow ctcpanel seti $plate N off
+                    MainWindow ctcpanel seti $plate C off
+                    MainWindow ctcpanel seti $plate R on
+                }
+                unknown {
+                    MainWindow ctcpanel seti $plate N off
+                    MainWindow ctcpanel seti $plate C on
+                    MainWindow ctcpanel seti $plate R off
+                }
+            }
+        }
+        return $result
+    }
+    typevariable _routes 
+    ## @private Route check validation object.
+    typeconstructor {
+        set _routes [snit::enum _routes -values {normal reverse}]
+    }
+    
+    method motor {route} {
+        ## The motor method sets the switch motor to align the points for the
+        # specificed route.
+        # @param route The desired route.  A value of normal means align the
+        # points to the main (straight) route and a value of reverse means 
+        # align the points to the divergent route.
+        
+        $_routes validate $route
+        switch $route {
+            normal {
+                if {[$self cget -motorhalf] eq "lower"} {
+                    $motor RelaysOff 1 1 0 0
+                    $motor RelaysOn  1 0 0 0
+                } else {
+                    $motor RelaysOff 0 0 1 1
+                    $motor RelaysOn  0 0 1 0
+                }
+                if {$reversedivergentsignal ne {}} {
+                    $reversedivergentsignal setaspect red
+                }
+            }
+            reverse {
+                if {[$self cget -motorhalf] eq "lower"} {
+                    $motor RelaysOff 1 1 0 0
+                    $motor RelaysOn  0 1 0 0
+                } else {
+                    $motor RelaysOff 0 0 1 1
+                    $motor RelaysOn  0 0 0 1
+                }
+                if {$reversemainsignal ne {}} {
+                    $reversemainsignal setaspect red
+                }
+            }
+        }
+    }
+    method _entering {} {
+        ## @protected Code to run when just entering the OS
+        # Sets the signal aspects and propagates signal state.
+        
+        switch $options(-direction) {
+            forward {
+                # Forward direction, set point end signal and propagate back
+                # from the points.
+                if {$forwardsignal ne {}} {$forwardsignal setaspect {red red}}
+                if {[$self cget -previousblock] ne {}} {
+                    [$self cget -previousblock] propagate yellow $self -direction [$self cget -direction]
+                }
+            }
+            reverse {
+                # Reverse direction.
+                switch [$self pointstate] {
+                    normal {
+                        # Set the main frog end signal and propagate down the
+                        # main.
+                        if {$reversemainsignal ne {}} {
+                            $reversemainsignal setaspect red
+                        }
+                        if {[$self cget -nextmainblock] ne {}} {
+                            [$self cget -nextmainblock] propagate yellow $self -direction [$self cget -direction]
+                        }
+                    }
+                    reverse {
+                        # Set the divergent frog end signal and propagate down 
+                        # the divergent route.
+                        if {$reversedivergentsignal ne {}} {
+                            $reversedivergentsignal setaspect red
+                        }
+                        if {[$self cget -nextdivergentblock] ne {}} {
+                            [$self cget -nextdivergentblock] propagate yellow $self -direction [$self cget -direction]
+                        }
+                    }
+                }
+            }
+        }
+    }
+    method _exiting {} {
+        ## @protected Code to run when about to exit the OS
+    }
+    method propagate {aspect from args} {
+        ## @publicsection Method used to propagate distant signal states back down the line.
+        # @param aspect The signal aspect that is being propagated.
+        # @param from The propagating block. 
+        # @param ... Options:
+        # @arg -direction The direction of the propagation.
+        
+        set from [regsub {^::} $from {}]
+        $self configurelist $args
+        if {[$self occupiedp]} {return}
+        
+        switch $options(-direction) {
+            forward {
+                # Propagate back from the points.
+                switch [$self pointstate] {
+                    normal {
+                        # Points are normal, upper head is a logical block 
+                        # signal, but don't propagate against the points.                        
+                        if {$from ne [regsub {^::} [$self cget -nextmainblock] {}]} {return}
+                        if {$forwardsignal ne {}} {
+                            $forwardsignal setaspect [list $aspect red]
+                        }
+                    }
+                    reverse {
+                        # Points are reversed, lower head is the controling 
+                        # head, but  has no yellow.
+                        # But don't propagate against the points.
+                        if {$from ne [regsub {^::} [$self cget -nextdivergentblock] {}]} {return}
+                        if {$forwardsignal ne {}} {
+                            $forwardsignal setaspect [list red green]
+                        }
+                    }
+                }
+                # Propagate back from the points.
+                if {$aspect eq "yellow"} {
+                    if {[$self cget -previousblock] ne {}} {
+                        [$self cget -previousblock] propagate green $self -direction [$self cget -direction]
+                    }
+                }
+            }
+            reverse {
+                # Reverse direction, propagate towards the frog end.
+                switch [$self pointstate] {
+                    normal {
+                        # Points normal, propagate down the main.
+                        if {$reversemainsignal ne {}} {
+                            $reversemainsignal setaspect $aspect
+                        }
+                        if {$aspect eq "yellow"} {
+                            if {[$self cget -nextmainblock] ne {}} {
+                                [$self cget -nextmainblock] propagate green $self -direction [$self cget -direction]
+                            }
+                        }
+                    }
+                    reverse {
+                        # Points reversed, propagate down the divergent route.
+                        if {$reversedivergentsignal ne {}} {
+                            $reversedivergentsignal setaspect $aspect
+                        }
+                        if {$aspect eq "yellow"} {
+                            if {[$self cget -nextdivergentblock] ne {}} {
+                                [$self cget -nextdivergentblock] propagate green $self -direction [$self cget -direction]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
+package provide SR4_C4TSR4_Switch 1.0
