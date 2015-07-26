@@ -268,6 +268,7 @@ $(USERMAN_HTML) $(USERMAN_PDF) : $(USERMAN_HS) $(USERMAN_FIGS) $(BIBLIO) \
 	../../C++/RailDriver/raildriverd.src \
 	../../Scripts/Satellite/SatelliteDaemon.src
 	-rm -rf $(USERMANHBase)/
+	-rm -rf latex
 	$(DOXYGEN) Doxyfile.UserManual
 	for p in $(USERMAN_FIGS); do \
 	   if test ! \( -f $(USERMANHBase)/$$p \); then cp $(srcdir)/$$p $(USERMANHBase)/; fi; \
