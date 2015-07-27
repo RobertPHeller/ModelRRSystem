@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jul 12 11:27:53 2015
-#  Last Modified : <150717.1338>
+#  Last Modified : <150726.1009>
 #
 #  Description	
 #
@@ -157,9 +157,8 @@ snit::type MRD2_Block {
             error "The -sensorsn is required!"
         }
         # Create a MRD object and install it as a component
-        install sensor using MRD %%AUTO%% \
-              -this [Azatrax_OpenDevice $options(-sensorsn) \
-                     $::Azatrax_idMRDProduct]
+        install sensor using Azatrax_OpenDevice $options(-sensorsn) \
+              $::Azatrax_idMRDProduct
         ## Process any other options 
         $self configurelist $args
         # Install the signal components.

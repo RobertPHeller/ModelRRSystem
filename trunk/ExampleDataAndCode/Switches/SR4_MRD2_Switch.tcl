@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jul 14 19:03:09 2015
-#  Last Modified : <150725.0827>
+#  Last Modified : <150726.1010>
 #
 #  Description	
 #
@@ -207,9 +207,8 @@ snit::type SR4_MRD2_Switch {
         if {$options(-ossensorsn) eq {}} {
             error "The -ossensorsn option is required!"
         }
-        install ossensor using MRD %%AUTO%% \
-              -this [Azatrax_OpenDevice $options(-ossensorsn) \
-                     $::Azatrax_idMRDProduct]
+        install ossensor using Azatrax_OpenDevice $options(-ossensorsn) \
+              $::Azatrax_idMRDProduct
         ## Process any other options
         $self configurelist $args
         set motor [$self cget -motorobj]

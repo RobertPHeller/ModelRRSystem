@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Jul 24 20:07:30 2015
-#  Last Modified : <150725.1306>
+#  Last Modified : <150726.1356>
 #
 #  Description	
 #
@@ -41,7 +41,7 @@
 #*****************************************************************************
 
 
-package require Azatrax;# require the Azatrax package
+package require CmriSupport;# require the Cmri Support package
 package require snit;#    require the SNIT OO framework
 
 snit::type C4TSMINI_Switch {
@@ -212,9 +212,10 @@ snit::type C4TSMINI_Switch {
         ## Process any other options
         $self configurelist $args
         set node [$self cget -nodeobj]
-        if {$motor eq {}} {
+        if {$node eq {}} {
             error "The -nodeobj option is required!"
         }
+        CmriSupport::CmriNode validate $node
         set forwardsignal [$self cget -forwardsignalobj]
         set reversemainsignal [$self cget -reversemainsignalobj]
         set reversedivergentsignal [$self cget -reversedivergentsignalobj]

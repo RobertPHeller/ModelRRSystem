@@ -725,6 +725,8 @@ AC_CONFIG_FILES([config_tcl.sed \
                 ExampleDataAndCode/Blocks/Doxyfile \
                 ExampleDataAndCode/Signals/Makefile \
                 ExampleDataAndCode/Signals/Doxyfile \
+                ExampleDataAndCode/Signals/ArdunioMAX72XX/Makefile \
+                ExampleDataAndCode/Signals/ArdunioMAX72XX/Doxyfile \
                 ExampleDataAndCode/InterlockingPlants/Makefile \
                 ExampleDataAndCode/InterlockingPlants/Doxyfile \
                 ExampleDataAndCode/Yards/Makefile \

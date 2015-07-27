@@ -1,7 +1,7 @@
-SUBDIRS = 
-CODEFILES = 
-FIGURES = 
-OTHERFILES =
+SUBDIRS = ArdunioMAX72XX
+CODEFILES = Azatrax_Signals.tcl
+FIGURES = Azatrax_Signals.png Azatrax_Signals-thumb.png
+OTHERFILES = Azatrax_Signals.pdf Azatrax_Signals.xtc
 EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in main.h 
 pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Signals
 

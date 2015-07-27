@@ -7,8 +7,8 @@
 //  Date          : $Date$
 //  Author        : $Author$
 //  Created By    : Robert Heller
-//  Created       : Tue Jul 14 12:40:17 2015
-//  Last Modified : <150726.1426>
+//  Created       : Sun Jul 26 17:01:21 2015
+//  Last Modified : <150726.1738>
 //
 //  Description	
 //
@@ -40,24 +40,21 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __MAIN_H
-#define __MAIN_H
-/** @mainpage Signal Abstract Types (Classes)
- * 
- * This folder contains a collection of Tcl code to implement signals, using 
- * various methods.
- * 
- * @section SourceFiles Source files
- * 
- * Using Azatrax's SR4's to control signals is illustrated in the file
- * Azatrax_Signals.tcl.  One or two SR4's can control one, two, or three headed
- * signals, either common anode to common cathode.
- * 
- * Using Dr. Bruce Chubb's SMINI or SUSIC/USIC to control signals is 
- * illustrated in the file Chubb_Signals.tcl.  Output ports on these nodes can
- * control one, two, or three headed signals.
- * 
- */
+#ifndef __PREFAC_H
+#define __PREFAC_H
+/** @mainpage Preface
+ * This document outlines using an Arduino Uno microprocessor board to control
+ * upto eight signals with up to eight lamps (LEDs) per signal. 
+ * @htmlonly
+ * <div class="contents">
+ * <div class="textblock"><ol type="1">
+ * <li><a class="el" href="Introduction.html">Introduction</a><ol type="1">
+ * <li><a class="el" href="Introduction.html#layoutmodule">The layout module</a></li>
+ * <li><a class="el" href="Introduction.html#HardwareUsed">Hardware being used</a></li></ol></li>
+ * <li><a class="el" href="SignalDriverBoard.html">Signal Driver board</a></li>
+ * </ol></div></div>
+ * @endhtmlonly
+ */ 
 
-#endif // __MAIN_H
+#endif // __PREFAC_H
 
