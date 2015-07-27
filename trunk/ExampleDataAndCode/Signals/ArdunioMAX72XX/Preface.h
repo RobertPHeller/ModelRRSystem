@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Jul 26 17:01:21 2015
-//  Last Modified : <150726.2122>
+//  Last Modified : <150727.1146>
 //
 //  Description	
 //
@@ -52,10 +52,10 @@
  * <li><a class="el" href="Introduction.html#layoutmodule">The layout module</a></li>
  * <li><a class="el" href="Introduction.html#HardwareUsed">Hardware being used</a></li></ol></li>
  * <li><a class="el" href="SignalDriverBoard.html">Signal Driver board</a></li>
- * <li><a class="el" href="ConnectingSignalDriverBoard">Connecting the Signal Driver Board</a></li>
- * <li><a class="el" href="SignalDriverboardcables">Signal Driver board cables</a></li>
- * <li><a class="el" href="Assemblingsignaltargets">Assembling signal targets</a></li>
- * <li><a class="el" href="ProgrammingtheArduino">Programming the Arduino</a></li>
+ * <li><a class="el" href="ConnectingSignalDriverBoard.html">Connecting the Signal Driver Board</a></li>
+ * <li><a class="el" href="SignalDriverboardcables.html">Signal Driver board cables</a></li>
+ * <li><a class="el" href="Assemblingsignaltargets.html">Assembling signal targets</a></li>
+ * <li><a class="el" href="ProgrammingtheArduino.html">Programming the Arduino</a></li>
  * <li><a class="el" href=""></a></li>
  * </ol></div></div>
  * @endhtmlonly

@@ -2,15 +2,12 @@
 #include <stdio.h>
 #include <string.h>
 
-/** @page SignalDriverMax72xx SignalDriverMax72xx.ino
-  * 
-  * This is the firmware downloaded to the Ardunio to interface to the MAX72XX
+/** This is the firmware downloaded to the Ardunio to interface to the MAX72XX
   * LED multiplexer driving the signals.
   */
 
 
-/*  
- * Create a new LedControl. 
+/* Create a new LedControl. 
  * We use pins 12,11 and 10 for the SPI interface
  * With our hardware we have connected pin 12 to the DATA IN-pin (1) of the first MAX7221
  * pin 11 is connected to the CLK-pin(13) of the first MAX7221
@@ -199,5 +196,5 @@ void loop() {
     Serial.print("\n>>");
     Serial.flush();
   }
-}
+} /* End of Main loop */
 

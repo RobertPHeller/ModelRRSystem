@@ -36,7 +36,44 @@ FIGURES = Xover-WithSiding.png Xover-WithSiding-small.png \
 	  SignalDriverMax72xx_frontassembly-angle-photo.jpg \
 	  SignalDriverMax72xx_frontassembly-angle-photo-thumb.jpg \
 	  SignalDriverMax72xx_frontassembly-wpinnos.png \
-	  SignalDriverMax72xx_frontassembly-wpinnos-thumb.png
+	  SignalDriverMax72xx_frontassembly-wpinnos-thumb.png \
+	  SignalConnectorBoard_bare.jpg \
+	  SignalConnectorBoard_cablesecuredwithwiretie.jpg \
+	  SignalConnectorBoard_cablesolderedon.jpg \
+	  SignalConnectorBoard_cablesolderedon_solderside.jpg \
+	  SignalConnectorBoard_ColorCodes.jpg \
+	  SignalConnectorBoard_copperremoved.jpg \
+	  SignalConnectorBoard_holesdrilled.jpg \
+	  SignalConnectorBoard_terminalblocksinstalled.jpg \
+	  SignalConnectorBoard_bare-thumb.jpg \
+	  SignalConnectorBoard_cablesecuredwithwiretie-thumb.jpg \
+	  SignalConnectorBoard_cablesolderedon-thumb.jpg \
+	  SignalConnectorBoard_cablesolderedon_solderside-thumb.jpg \
+	  SignalConnectorBoard_ColorCodes-thumb.jpg \
+	  SignalConnectorBoard_copperremoved-thumb.jpg \
+	  SignalConnectorBoard_holesdrilled-thumb.jpg \
+	  SignalConnectorBoard_terminalblocksinstalled-thumb.jpg \
+	  SignalConnectorCable_wiresstripedandtinned.jpg \
+	  SignalConnectorCable_wiresstripedandtinned-thumb.jpg \
+	  SignalConnectorCable_headerpluginstalled.jpg \
+	  SignalConnectorCable_headerpluginstalled-thumb.jpg \
+	  ComponentsideofUnoconnector.jpg \
+	  ComponentsideofUnoconnector-thumb.jpg \
+	  UnoConnector_FoilSide.jpg \
+	  UnoConnector_FoilSide-thumb.jpg \
+	  connector_on_Uno.jpg \
+	  connector_on_Uno-thumb.jpg \
+	  ConnectorPlug_Installed.jpg \
+	  ConnectorPlug_Installed-thumb.jpg \
+	  InstallingConnectorPlugs.jpg \
+	  InstallingConnectorPlugs-thumb.jpg \
+	  ChipPackageOutline.png  ChipPhoto.jpg ChipTape.png \
+	  ChipTape-thumb.png ChipPackageOutline-thumb.png \
+	  SignalChipLEDInCarrier.jpg SignalChipLEDInCarrier-thumb.jpg \
+	  SignalTargetAndStripBoard.jpg SignalTargetAndStripBoard-thumb.jpg \
+	  SignalCircuitBoard_WiresSoldered.jpg \
+	  SignalChipLEDSoldered.jpg SerialMonitor_TestSketch.png \
+	  SerialMonitor_TestSketch-thumb.png
 OTHERFILES = SignalDriverMax72xx.zip
 DOCFILES = Preface.h Introduction.h SignalDriverBoard.h \
            ConnectingSignalDriverBoard.h SignalDriverboardcables.h \
@@ -51,7 +88,7 @@ html/index.html latex/refman.pdf : Doxyfile $(DOCFILES) $(CODEFILES) $(FIGURES)\
 	-rm -rf latex/ html/
 	-chmod +x $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
 	$(DOXYGEN) Doxyfile
-	for p in $(FIGURES); do \
+	for p in $(FIGURES) $(CODEFILES) $(OTHERFILES); do \
 	  if test ! \( -f html/$$p \); then cp $(srcdir)/$$p html/; fi; \
 	done
 	$(MAKE) -C latex pdf

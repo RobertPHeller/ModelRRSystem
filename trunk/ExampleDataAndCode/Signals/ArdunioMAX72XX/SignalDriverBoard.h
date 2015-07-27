@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Jul 26 17:22:30 2015
-//  Last Modified : <150726.2016>
+//  Last Modified : <150727.1019>
 //
 //  Description	
 //
@@ -133,6 +133,9 @@
  * @image latex SignalDriverMax72xx_frontassembly-wpinnos.png "PCB layout of the front assembly with pin numbers" height=2.5in
  * @image html  SignalDriverMax72xx_frontassembly-wpinnos-thumb.png
  * 
+ * @htmlonly
+ * <div class="contents"><a class="el" href="ConnectingSignalDriverBoard.html">Continuing with the Connecting the Signal Driver Board</a></div>
+ * @endhtmlonly
  */
 
 #endif // __SIGNALDRIVERBOARD_H
