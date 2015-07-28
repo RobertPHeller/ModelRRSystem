@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Jul 26 17:01:21 2015
-//  Last Modified : <150727.1849>
+//  Last Modified : <150727.2112>
 //
 //  Description	
 //
@@ -57,8 +57,6 @@
  * <li><a class="el" href="Assemblingsignaltargets.html">Assembling signal targets</a></li>
  * <li><a class="el" href="ProgrammingtheArduino.html">Programming the Arduino</a></li>
  * <li><a class="el" href=""></a></li>
- * <li><a class="el" href="modules.html">Modules</a></li>
- * <li><a class="el" href="classes.html">Classes</a></li>
  * </ol></div></div>
  * @endhtmlonly
  */ 

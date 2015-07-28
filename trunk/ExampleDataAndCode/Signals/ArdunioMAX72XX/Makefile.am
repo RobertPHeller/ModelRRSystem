@@ -79,13 +79,18 @@ OTHERFILES = SignalDriverMax72xx.zip
 DOCFILES = Preface.h Introduction.h SignalDriverBoard.h \
            ConnectingSignalDriverBoard.h SignalDriverboardcables.h \
            Assemblingsignaltargets.h ProgrammingtheArduino.h
-EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in $(DOCFILES)
+EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in $(DOCFILES) \
+            navbar.html
 pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Signals/ArdunioMAX72XX
 noinst_DATA = html/index.html
 pkgdata_DATA =  latex/refman.pdf pkgIndex.tcl
 
 html/index.html latex/refman.pdf : Doxyfile $(DOCFILES) $(CODEFILES) $(FIGURES)\
 	$(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
+	$(DOXYGEN) -w html header0.html /dev/null doxygen.css  Doxyfile
+	rm doxygen.css
+	cat header0.html $(srcdir)/navbar.html > navheader.html
+	rm header0.html
 	-rm -rf latex/ html/
 	-chmod +x $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
 	$(DOXYGEN) Doxyfile

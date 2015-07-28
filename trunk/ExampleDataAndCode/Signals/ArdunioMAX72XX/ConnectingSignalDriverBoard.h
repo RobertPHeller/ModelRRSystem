@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Jul 26 21:13:07 2015
-//  Last Modified : <150727.1025>
+//  Last Modified : <150727.2119>
 //
 //  Description	
 //
@@ -57,11 +57,11 @@
  * are in the correct header position!
  * 
  * @image latex ComponentsideofUnoconnector.jpg "Component side of Uno connector" width=4in
- * @image html  ComponentsideofUnoconnector-thumb.jpg
+ * @image html  ComponentsideofUnoconnector-thumb.jpg "Component side of Uno connector"
  * @image latex UnoConnector_FoilSide.jpg "Uno Connector, Foil Side" width=4in
- * @image html  UnoConnector_FoilSide-thumb.jpg
+ * @image html  UnoConnector_FoilSide-thumb.jpg "Uno Connector, Foil Side"
  * @image latex connector_on_Uno.jpg "Connector on Uno" width=4.5in
- * @image html  connector_on_Uno-thumb.jpg
+ * @image html  connector_on_Uno-thumb.jpg "Connector on Uno"
  * 
  * The IDC plug is attached to the other end and I used an Exacto Knife to 
  * press the wires into the IDC slots.  Mouser sells a 
@@ -69,9 +69,9 @@
  * to do this, if you prefer.
  * 
  * @image latex ConnectorPlug_Installed.jpg "Connector Plug, Installed" width=3in
- * @image html  ConnectorPlug_Installed-thumb.jpg
+ * @image html  ConnectorPlug_Installed-thumb.jpg "Connector Plug, Installed"
  * @image latex InstallingConnectorPlugs.jpg "Installing Connector Plugs" width=3in
- * @image html  InstallingConnectorPlugs-thumb.jpg
+ * @image html  InstallingConnectorPlugs-thumb.jpg "Installing Connector Plugs"
  * @htmlonly
  * <div class="contents"><a class="el" href="SignalDriverboardcables.html">Continuing with the Signal Driver board cables</a></div>
  * @endhtmlonly

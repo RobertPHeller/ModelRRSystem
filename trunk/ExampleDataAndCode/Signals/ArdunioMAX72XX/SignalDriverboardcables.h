@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Jul 26 21:18:28 2015
-//  Last Modified : <150727.1019>
+//  Last Modified : <150727.2120>
 //
 //  Description	
 //
@@ -57,11 +57,11 @@
  * removed and four 1/8 inch (3.5mm) holes are drilled.
  * 
  * @image latex SignalConnectorBoard_bare.jpg "Signal Connector Board, bare" height=2in
- * @image html  SignalConnectorBoard_bare-thumb.jpg
+ * @image html  SignalConnectorBoard_bare-thumb.jpg "Signal Connector Board, bare"
  * @image latex SignalConnectorBoard_copperremoved.jpg "Signal Connector Board, copper removed" height=2in
- * @image html  SignalConnectorBoard_copperremoved-thumb.jpg
+ * @image html  SignalConnectorBoard_copperremoved-thumb.jpg "Signal Connector Board, copper removed"
  * @image latex SignalConnectorBoard_holesdrilled.jpg "Signal Connector Board, holes drilled" height=2in
- * @image html  SignalConnectorBoard_holesdrilled-thumb.jpg
+ * @image html  SignalConnectorBoard_holesdrilled-thumb.jpg "Signal Connector Board, holes drilled"
  * 
  * Next the screw terminal blocks are soldered to the board (this is actually 
  * a 4 position terminal block with a 5 position terminal block next to it -- 
@@ -73,19 +73,19 @@
  * strain relief.
  * 
  * @image latex SignalConnectorBoard_terminalblocksinstalled.jpg "Signal Connector Board, terminal blocks installed" height=2in
- * @image html  SignalConnectorBoard_terminalblocksinstalled-thumb.jpg
+ * @image html  SignalConnectorBoard_terminalblocksinstalled-thumb.jpg "Signal Connector Board, terminal blocks installed"
  * @image latex SignalConnectorCable_wiresstripedandtinned.jpg "Signal Connector Cable, wires stripped and tinned" height=2in
- * @image html  SignalConnectorCable_wiresstripedandtinned-thumb.jpg
+ * @image html  SignalConnectorCable_wiresstripedandtinned-thumb.jpg "Signal Connector Cable, wires stripped and tinned"
  * @image latex SignalConnectorBoard_cablesolderedon.jpg "Signal Connector Board, cable soldered on" height=2in
- * @image html  SignalConnectorBoard_cablesolderedon-thumb.jpg
+ * @image html  SignalConnectorBoard_cablesolderedon-thumb.jpg "Signal Connector Board, cable soldered on"
  * @image latex SignalConnectorBoard_cablesecuredwithwiretie.jpg "Signal Connector Board, cable secured with wire tie" height=2in
- * @image html  SignalConnectorBoard_cablesecuredwithwiretie-thumb.jpg
+ * @image html  SignalConnectorBoard_cablesecuredwithwiretie-thumb.jpg "Signal Connector Board, cable secured with wire tie"
  * 
  * Finally, a 9 position header plug is installed on the other end of the 
  * cable.
  * 
  * @image latex SignalConnectorCable_headerpluginstalled.jpg "Signal Connector Cable, header plug installed" height=2in
- * @image html  SignalConnectorCable_headerpluginstalled-thumb.jpg
+ * @image html  SignalConnectorCable_headerpluginstalled-thumb.jpg "Signal Connector Cable, header plug installed"
  * 
  * About cable lengths: each cable should be long enough to reach from where 
  * the signal wire bundles emerge under the layout to where the Signal Driver 

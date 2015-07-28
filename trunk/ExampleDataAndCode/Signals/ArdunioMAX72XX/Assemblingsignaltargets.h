@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Jul 26 21:20:26 2015
-//  Last Modified : <150727.1104>
+//  Last Modified : <150727.2121>
 //
 //  Description	
 //
@@ -55,9 +55,9 @@
  * because you will likely loose one or two.
  * 
  * @image latex ChipPhoto.jpg "Photo of a typical chip LED" width=3in
- * @image html  ChipPhoto.jpg
+ * @image html  ChipPhoto.jpg "Photo of a typical chip LED"
  * @image latex ChipPackageOutline.png "Outline drawing of a typical chip LED" width=4.5in
- * @image html  ChipPackageOutline-thumb.png
+ * @image html  ChipPackageOutline-thumb.png "Outline drawing of a typical chip LED"
  *
  * These devices come on a tape carrier.  This is something normally meant to 
  * go in a robot feeding device that places the chips on circuit boards in 
@@ -71,9 +71,9 @@
  * solder to secure them to the circuit board.
  * 
  * @image latex SignalChipLEDInCarrier.jpg "Signal Chip LED In Carrier" width=3in
- * @image html  SignalChipLEDInCarrier-thumb.jpg
+ * @image html  SignalChipLEDInCarrier-thumb.jpg "Signal Chip LED In Carrier"
  * @image latex ChipTape.png "Chip Tape specs (page 13 of the data sheet)" width=4.5in
- * @image html  ChipTape-thumb.png
+ * @image html  ChipTape-thumb.png "Chip Tape specs (page 13 of the data sheet)"
  * 
  * You will also need a supply of wire wrap wire in a number of colors (this 
  * is available from <a href="http://www.digikey.com/product-search/en?pv77=223&FV=fff40019%2Cfff8006f%2Cfffc0028%2C1c001d&k=wire+wrap+wire&mnonly=0&newproducts=0&ColumnSort=0&page=1&stock=1&quantity=0&ptm=0&fid=0&pageSize=25" target="_blank">DigiKey</a>), 
@@ -97,9 +97,9 @@
  * down the length of the common side.
  * 
  * @image latex SignalTargetAndStripBoard.jpg "Signal Target And Strip Board" width=4in
- * @image html  SignalTargetAndStripBoard-thumb.jpg
+ * @image html  SignalTargetAndStripBoard-thumb.jpg "Signal Target And Strip Board"
  * @image latex SignalCircuitBoard_WiresSoldered.jpg "Signal Circuit Board, Wires Soldered" width=4in
- * @image html  SignalCircuitBoard_WiresSoldered.jpg
+ * @image html  SignalCircuitBoard_WiresSoldered.jpg "Signal Circuit Board, Wires Soldered"
  * 
  * Now we can solder on the LED chips. The carrier tape has a clear cover 
  * strip over the top. @e Carefully peel this back (a hobby knife can help 
@@ -120,7 +120,7 @@
  * color a chip is.
  * 
  * @image latex SignalChipLEDSoldered.jpg "Signal Chip LED Soldered" width=4in
- * @image html  SignalChipLEDSoldered.jpg
+ * @image html  SignalChipLEDSoldered.jpg "Signal Chip LED Soldered"
  * 
  * Once the chips have been soldered to the circuit board, each target's 
  * circuit board can be cut off the strip and that target's circuit board can 

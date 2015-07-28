@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Jul 26 21:22:14 2015
-//  Last Modified : <150727.1757>
+//  Last Modified : <150727.2122>
 //
 //  Description	
 //
@@ -105,7 +105,7 @@
  * the wires for the missing LEDs are also missing.
  *
  * @image latex SignalConnectorBoard_ColorCodes.jpg "Signal Connector Board, Wiring Color Codes" width=4in
- * @image html  SignalConnectorBoard_ColorCodes-thumb.jpg
+ * @image html  SignalConnectorBoard_ColorCodes-thumb.jpg "Signal Connector Board, Wiring Color Codes"
  *
  * Once you have entered the code and verified that it compiles and uploaded 
  * it to the Arduino, you can test the code with the Serial Monitor tool on 
@@ -113,7 +113,7 @@
  * commands into the Serial Monitor tool's send bar, as shown here.
  *
  * @image latex SerialMonitor_TestSketch.png "Serial Monitor, Test Sketch" width=4.5in
- * @image html  SerialMonitor_TestSketch.png
+ * @image html  SerialMonitor_TestSketch.png "Serial Monitor, Test Sketch"
  * @htmlonly
  * <div class="contents"><a class="el" href="ProgrammingtheHostComputer.html">Continuing with the Programming the Host Computer</a></div>
  * @endhtmlonly
