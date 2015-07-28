@@ -78,7 +78,8 @@ FIGURES = Xover-WithSiding.png Xover-WithSiding-small.png \
 OTHERFILES = SignalDriverMax72xx.zip
 DOCFILES = Preface.h Introduction.h SignalDriverBoard.h \
            ConnectingSignalDriverBoard.h SignalDriverboardcables.h \
-           Assemblingsignaltargets.h ProgrammingtheArduino.h
+           Assemblingsignaltargets.h ProgrammingtheArduino.h \
+           ProgrammingtheHostComputer.h
 EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in $(DOCFILES) \
             navbar.html
 pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Signals/ArdunioMAX72XX

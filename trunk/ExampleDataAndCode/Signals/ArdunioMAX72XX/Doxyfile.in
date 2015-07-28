@@ -616,6 +616,7 @@ INPUT                  = @srcdir@/Preface.h @srcdir@/Introduction.h \
                          @srcdir@/SignalDriverboardcables.h \
                          @srcdir@/Assemblingsignaltargets.h \
                          @srcdir@/ProgrammingtheArduino.h \
+                         @srcdir@/ProgrammingtheHostComputer.h \
                          @srcdir@/SignalDriverMax72xx.ino \
                          @srcdir@/SignalDriverMax72xx_Host.tcl
 

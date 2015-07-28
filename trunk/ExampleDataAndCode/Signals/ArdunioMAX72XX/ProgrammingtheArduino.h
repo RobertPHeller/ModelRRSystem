@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Jul 26 21:22:14 2015
-//  Last Modified : <150727.2122>
+//  Last Modified : <150728.1024>
 //
 //  Description	
 //
@@ -44,11 +44,11 @@
 #define __PROGRAMMINGTHEARDUINO_H
 /** @page ProgrammingtheArduino Programming the Arduino
  * @htmlonly
- * The code to download to the Arduino is in available for download as 
- * <a href="SignalDriverMax72xx.ino">SignalDriverMax72xx.ino</a>.
+ * The C++ source code to download to the Arduino is in available for download 
+ * as <a href="SignalDriverMax72xx.ino">SignalDriverMax72xx.ino</a>.
  * @endhtmlonly
  * @latexonly
- * The source code for the Arduino is in the file SignalDriverMax72xx.ino.
+ * The C++ source code for the Arduino is in the file SignalDriverMax72xx.ino.
  * @endlatexonly
  * It uses the @e LedControl library, so the code starts by including the 
  * header file:
