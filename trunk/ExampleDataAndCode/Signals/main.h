@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Tue Jul 14 12:40:17 2015
-//  Last Modified : <150726.1426>
+//  Last Modified : <150728.1950>
 //
 //  Description	
 //
@@ -52,6 +52,11 @@
  * Using Azatrax's SR4's to control signals is illustrated in the file
  * Azatrax_Signals.tcl.  One or two SR4's can control one, two, or three headed
  * signals, either common anode to common cathode.
+ * 
+ * Using an Ardunio with a MAX72XX LED Driver to control signals is 
+ * illustrated in the file ArdunioMAX72XX_Signals.tcl. Upto eight LEDs per 
+ * signal is possible, although the code assumes a maximum of six LEDs in
+ * a three over three two headed signal.
  * 
  * Using Dr. Bruce Chubb's SMINI or SUSIC/USIC to control signals is 
  * illustrated in the file Chubb_Signals.tcl.  Output ports on these nodes can

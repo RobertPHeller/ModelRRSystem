@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jul 26 09:16:15 2015
-#  Last Modified : <150726.1545>
+#  Last Modified : <150728.1943>
 #
 #  Description	
 #
@@ -146,7 +146,7 @@ snit::type OneHead3Color {
         
         signalcolors validate $aspect
         $signal RelaysOff 1 1 1 0
-        set sig [$self cget -signal]
+        set sig [$self cget -signalname]
         if {$sig ne {}} {MainWindow ctcpanel setv $sig $aspect}
         switch $aspect {
             red {
@@ -259,7 +259,7 @@ snit::type TwoHead3over2 {
         twoaspectlist validate $aspect
         $signalupper RelaysOff 1 1 1 0
         $signallower RelaysOff 1 1 0 0
-        set sig [$self cget -signal]
+        set sig [$self cget -signalname]
         if {$sig ne {}} {MainWindow ctcpanel setv $sig $aspect}
         switch [lindex $aspect 0] {
             red {
@@ -360,7 +360,7 @@ snit::type TwoHead2over2 {
         
         twoaspectlist validate $aspect
         $signal RelaysOff 1 1 1 1
-        set sig [$self cget -signal]
+        set sig [$self cget -signalname]
         if {$sig ne {}} {MainWindow ctcpanel setv $sig $aspect}
         switch [lindex $aspect 0] {
             red {
@@ -487,7 +487,7 @@ snit::type ThreeHead3over2over2 {
         threeaspectlist validate $aspect
         $signalupper RelaysOff 1 1 1 0
         $signallower RelaysOff 1 1 1 1
-        set sig [$self cget -signal]
+        set sig [$self cget -signalname]
         if {$sig ne {}} {MainWindow ctcpanel setv $sig $aspect}
         # Top head
         switch [lindex $aspect 0] {

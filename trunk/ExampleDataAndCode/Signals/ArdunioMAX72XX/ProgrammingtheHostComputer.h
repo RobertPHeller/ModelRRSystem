@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Tue Jul 28 09:13:33 2015
-//  Last Modified : <150728.1058>
+//  Last Modified : <150728.1915>
 //
 //  Description	
 //
@@ -69,7 +69,7 @@
  *    - r_y (Red over Yellow -- Approach Limited)
  *    - dark (all lights off)
  * 
- * There is also a instance method, @c dark, which turns all of the signal LEDs
+ * There is also an instance method, @c dark, which turns all of the signal LEDs
  * off.
  * 
  * Typical usage:
@@ -99,7 +99,6 @@
  * controlpoint1 set $CP1e1 g_r
  * # Set Track 2 for clear (Green over Red) Westbound
  * controlpoint1 set $CP1w2 g_r
- * 
  * @endcode
  * 
  * 
