@@ -8,7 +8,7 @@
 #*  Author        : $Author$
 #*  Created By    : Robert Heller
 #*  Created       : Thu Jun 11 11:38:28 2015
-#*  Last Modified : <150724.1607>
+#*  Last Modified : <150728.1105>
 #*
 #*  Description	
 #*
@@ -330,8 +330,16 @@ snit::type SatelliteDaemon {
         switch $::tcl_platform(os) {
             Linux {
                 if {[string match {/dev/ttyS[0-9]*} [lindex $args 0]]} {
+                    # Real RS232 port device
                     set istty yes
                 } elseif {[string match {/dev/ttyUSB[0-9]*} [lindex $args 0]]} {
+                    # USB RS232 port device
+                    set istty yes
+                } elseif {[string match {/dev/ttyACM[0-9]*} [lindex $args 0]]} {
+                    # USB Serial model (Ardunio) device
+                    set istty yes
+                } elseif {[string match {/dev/ttyAMA[0-9]*} [lindex $args 0]]} {
+                    # RPi serial port
                     set istty yes
                 } else {
                     set istty no
