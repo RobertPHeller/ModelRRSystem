@@ -18,7 +18,7 @@ html/index.html latex/refman.pdf : Doxyfile main.h $(CODEFILES) \
 	$(MAKE) -C latex pdf
 
 $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh : $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh.in
-	$(MAKE) -C $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
+	$(MAKE) -C $(top_builddir)/Doc/doxygen tcldoxyfilter.sh
 
 clean-local:
 	-rm -rf latex/ html/

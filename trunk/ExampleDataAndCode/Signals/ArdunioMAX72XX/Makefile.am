@@ -1,5 +1,6 @@
 SUBDIRS = 
-CODEFILES = SignalDriverMax72xx.ino
+TCLCODEFILES = SignalDriverMax72xx_Host.tcl
+CODEFILES = SignalDriverMax72xx.ino $(TCLCODEFILES)
 FIGURES = Xover-WithSiding.png Xover-WithSiding-small.png \
 	  SignalDriverMax72xx_back-photo.jpg \
 	  SignalDriverMax72xx_back-photo-thumb.jpg \
@@ -81,7 +82,7 @@ DOCFILES = Preface.h Introduction.h SignalDriverBoard.h \
 EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in $(DOCFILES)
 pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Signals/ArdunioMAX72XX
 noinst_DATA = html/index.html
-pkgdata_DATA =  latex/refman.pdf# pkgIndex.tcl
+pkgdata_DATA =  latex/refman.pdf pkgIndex.tcl
 
 html/index.html latex/refman.pdf : Doxyfile $(DOCFILES) $(CODEFILES) $(FIGURES)\
 	$(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
@@ -94,11 +95,19 @@ html/index.html latex/refman.pdf : Doxyfile $(DOCFILES) $(CODEFILES) $(FIGURES)\
 	$(MAKE) -C latex pdf
 
 $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh : $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh.in
-	$(MAKE) -C $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
+	$(MAKE) -C $(top_builddir)/Doc/doxygen tcldoxyfilter.sh
 
 clean-local:
 	-rm -rf latex/ html/
 
+CLEANFILES = pkgIndex.tcl
+TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
+
+pkgIndex.tcl : $(TCLCODEFILES)
+	for f in $(notdir $^) ; do \
+	  if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi;\
+	done
+	echo "pkg_mkIndex . $(notdir $^)" | $(TCLKIT)
 
 install-data-hook: $(CODEFILES) $(OTHERFILES) html/index.html
 	$(INSTALL) -d $(DESTDIR)$(pkgdatadir)
@@ -122,3 +131,4 @@ uninstall-hook:
 	  echo " rm -f '$(DESTDIR)$(pkgdatadir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(pkgdatadir)/$$f"; \
 	done                                                         
+

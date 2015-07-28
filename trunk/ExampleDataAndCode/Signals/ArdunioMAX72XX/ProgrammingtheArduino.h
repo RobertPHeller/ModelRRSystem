@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Jul 26 21:22:14 2015
-//  Last Modified : <150727.1150>
+//  Last Modified : <150727.1757>
 //
 //  Description	
 //
@@ -43,9 +43,15 @@
 #ifndef __PROGRAMMINGTHEARDUINO_H
 #define __PROGRAMMINGTHEARDUINO_H
 /** @page ProgrammingtheArduino Programming the Arduino
+ * @htmlonly
  * The code to download to the Arduino is in available for download as 
- * <a href="SignalDriverMax72xx.ino">SignalDriverMax72xx.ino</a>. It uses the 
- * @e LedControl library, so the code starts by including the header file:
+ * <a href="SignalDriverMax72xx.ino">SignalDriverMax72xx.ino</a>.
+ * @endhtmlonly
+ * @latexonly
+ * The source code for the Arduino is in the file SignalDriverMax72xx.ino.
+ * @endlatexonly
+ * It uses the @e LedControl library, so the code starts by including the 
+ * header file:
  * @dontinclude SignalDriverMax72xx.ino
  * @line LedControl
  * 
@@ -72,14 +78,15 @@
  * 
  * Next we have a helper function to convert from an aspect name sent from the 
  * host computer to the Arduino.
- * @skipline GetAspectBits
  * @until }
  *
  * Next comes the main loop function.  Here we read a one line command from 
- * the host computer and decide what to do.  There are only two commands 
- * defined, one to turn all of the LEDs off and another to set the aspect of 
- * one signal.
- * @skipline loop
+ * the host computer and decide what to do.  There are only three commands 
+ * defined:
+ *  - One to turn all of the LEDs off.
+ *  - One to set the aspect of one signal.
+ *  - And a final command to initiate a test sequence.
+ *
  * @until End of Main loop
  * 
  * @section wiring Wiring the signals.

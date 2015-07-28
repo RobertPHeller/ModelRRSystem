@@ -6,7 +6,17 @@ EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in main.h
 pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Signals
 
 noinst_DATA = html/index.html
-pkgdata_DATA =  latex/refman.pdf
+pkgdata_DATA =  latex/refman.pdf pkgIndex.tcl
+
+CLEANFILES = pkgIndex.tcl
+TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
+
+pkgIndex.tcl : $(CODEFILES)
+	for f in $(notdir $^) ; do \
+	  if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi;\
+	done
+	echo "pkg_mkIndex . $(notdir $^)" | $(TCLKIT)
+
 
 html/index.html latex/refman.pdf : Doxyfile main.h $(CODEFILES) \
 	$(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
@@ -20,7 +30,7 @@ html/index.html latex/refman.pdf : Doxyfile main.h $(CODEFILES) \
 	
 
 $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh : $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh.in
-	$(MAKE) -C $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
+	$(MAKE) -C $(top_builddir)/Doc/doxygen tcldoxyfilter.sh
 
 clean-local:
 	-rm -rf latex/ html/

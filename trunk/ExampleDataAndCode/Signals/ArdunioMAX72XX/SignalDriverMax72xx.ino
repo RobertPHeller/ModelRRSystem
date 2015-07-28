@@ -2,12 +2,15 @@
 #include <stdio.h>
 #include <string.h>
 
-/** This is the firmware downloaded to the Ardunio to interface to the MAX72XX
+/** @defgroup SignalDriverMax72xx Ardunio Signal Driver using a MAX72XX
+  * This is the software downloaded to the Ardunio to interface to the MAX72XX
   * LED multiplexer driving the signals.
+  * 
+  * @{
   */
 
 
-/* Create a new LedControl. 
+/** Create a new LedControl. 
  * We use pins 12,11 and 10 for the SPI interface
  * With our hardware we have connected pin 12 to the DATA IN-pin (1) of the first MAX7221
  * pin 11 is connected to the CLK-pin(13) of the first MAX7221
@@ -19,9 +22,22 @@ LedControl lc1=LedControl(12,11,10,1);
 /*
  * Testing control variables.
  */
-int s_digit, e_digit, i_digit, i_bits;
+
+/** Start digit. */
+int s_digit, 
+/** End digit. */
+    e_digit, 
+/** Current digit. */
+    i_digit, 
+/** Current bits. */
+    i_bits;
+/** Flag indicating if we are in test mode. */
 boolean test = false;
 
+
+/** The setup function initializes the MAX72xx chip and sends an 
+  * announcement to the host computer over the serial port.
+  */
 void setup() {
   /* Set max intensity */
   lc1.setIntensity(0,15);
@@ -38,16 +54,25 @@ void setup() {
 }
 
 /* Signal Aspects */
-#define R_R B00001001 /* Red over Red (Stop) */
-#define R_Y B00001010 /* Red over Yellow (Approach Limited) */
-#define R_G B00001100 /* Red over Green (Slow Clear) */
-#define Y_R B00010001 /* Yellow over Red (Approach) */
-#define G_R B00100001 /* Green over red (Clear) */
-#define DARK B00000000 /* Dark (all lights off) */
+/** Red over Red (Stop) */
+#define R_R B00001001
+/** Red over Yellow (Approach Limited) */
+#define R_Y B00001010 
+/** Red over Green (Slow Clear) */
+#define R_G B00001100 
+/** Yellow over Red (Approach) */
+#define Y_R B00010001 
+/** Green over red (Clear) */
+#define G_R B00100001 
+/** Dark (all lights off) */
+#define DARK B00000000 
 
+/** Test for each signal aspect string and when a match
+  * Occurs, return the corresponding bit pattern. 
+  * @param aspectname The aspect text sent from the host.
+  * @returns The bit pattern to display the selected aspect.
+  */
 int GetAspectBits(const char *aspectname) {
-  /* Test for each signal aspect string and when a match
-   * Occurs, return the corresponding bit pattern. */
   if (strcasecmp("R_R",aspectname) == 0) return R_R;
   else if (strcasecmp("R_Y",aspectname) == 0) return R_Y;
   else if (strcasecmp("R_G",aspectname) == 0) return R_G;
@@ -57,8 +82,14 @@ int GetAspectBits(const char *aspectname) {
   else return -1;
 }
   
+/** The main loop function.  Here we read a one line command from
+  * the host computer and decide what to do.  There are only three commands
+  * defined:
+  *   - One to turn all of the LEDs off.
+  *   - One to set the aspect of one signal.
+  *   - And one to initiate a test sequence.
+  */
 void loop() {
-  /* Main loop... */
   char buffer[256]; /* Command line buffer. */
   char p_buffer[32]; /* Test prompt buffer. */
   int  len;         /* Line length. */
@@ -198,3 +229,4 @@ void loop() {
   }
 } /* End of Main loop */
 
+/** @} */

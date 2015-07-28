@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Jul 26 16:31:52 2015
-//  Last Modified : <150727.1151>
+//  Last Modified : <150727.1750>
 //
 //  Description	
 //
@@ -81,10 +81,17 @@
  * <a href="https://www.mouser.com/Search/ProductDetail.aspx?R=A000066virtualkey24200000virtualkey782-A000066" target="_blank">782-A000066</a>) 
  * and a home built board (based on the Arduino Playground circuit) containing 
  * a Max7221 (Mouser Parts: <a href="https://www.mouser.com/ProjectManager/ProjectDetail.aspx?AccessID=982ba0c79b" target="_blank">Mouser Project</a> 
- * and see also <a href="SignalDriverMax72xx.zip">SignalDriverMax72xx.zip</a>, 
- * which contains the PCB Layout/assembly files). This manual describes how I 
- * built these signals and how I will control them from my Linux computer, 
- * using a CTC panel created with my Model Railroad System Dispatcher program.
+ * ). This manual describes how I built these signals and 
+ * how I will control them from my Linux computer, using a CTC panel created 
+ * with my Model Railroad System Dispatcher program.
+ * @htmlonly
+ * A ZIP archive containing the PCB Layout/assembly files is available here:
+ * <a href="SignalDriverMax72xx.zip">SignalDriverMax72xx.zip</a>.
+ * @endhtmlonly
+ * @latexonly
+ * A ZIP archive containing the PCB Layout/assembly files is available in the
+ * file SignalDriverMax72xx.zip in the same folder as this PDF file.
+ * @endlatexonly
  * @htmlonly
  * <div class="contents"><a class="el" href="SignalDriverBoard.html">Continuing with the Signal Driver board</a></div>
  * @endhtmlonly
