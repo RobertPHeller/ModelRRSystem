@@ -2,7 +2,9 @@ SUBDIRS = ArdunioMAX72XX
 CODEFILES = Azatrax_Signals.tcl ArdunioMAX72XX_Signals.tcl
 FIGURES = Azatrax_Signals.png Azatrax_Signals-thumb.png
 OTHERFILES = Azatrax_Signals.pdf Azatrax_Signals.xtc
-EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in main.h 
+EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in main.h \
+	navbar.html
+
 pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Signals
 
 noinst_DATA = html/index.html
@@ -19,8 +21,12 @@ pkgIndex.tcl : $(CODEFILES)
 
 
 html/index.html latex/refman.pdf : Doxyfile main.h $(CODEFILES) \
-	$(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
+	$(top_builddir)/Doc/doxygen/tcldoxyfilter.sh navbar.html
 	-rm -rf latex/ html/
+	$(DOXYGEN) -w html header0.html /dev/null doxygen.css  Doxyfile
+	rm doxygen.css
+	cat header0.html $(srcdir)/navbar.html > navheader.html
+	rm header0.html
 	-chmod +x $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
 	$(DOXYGEN) Doxyfile
 	for p in $(FIGURES); do \
