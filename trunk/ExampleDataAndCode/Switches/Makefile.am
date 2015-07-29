@@ -6,7 +6,8 @@ FIGURES = switch-SR4-MRD2.png switch-SR4-MRD2-thumb.png \
 OTHERFILES = switch-SR4-MRD2.xtc switch-SR4-MRD2.pdf \
              switch-SR4-C4TSR4.xtc switch-SR4-C4TSR4.pdf \
              switch-C4TSMINI.xtc switch-C4TSMINI.pdf
-EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in main.h 
+EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in main.h \
+		navbar.html
 pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Switches
 
 noinst_DATA = html/index.html
@@ -17,6 +18,10 @@ TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 html/index.html latex/refman.pdf : Doxyfile main.h $(CODEFILES) $(FIGURES) \
 	$(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
 	-rm -rf latex/ html/
+	$(DOXYGEN) -w html header0.html /dev/null doxygen.css  Doxyfile
+	rm doxygen.css
+	cat header0.html $(srcdir)/navbar.html > navheader.html
+	rm header0.html
 	-chmod +x $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
 	$(DOXYGEN) Doxyfile
 	for p in $(FIGURES); do \
