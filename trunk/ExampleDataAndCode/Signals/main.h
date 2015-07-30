@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Tue Jul 14 12:40:17 2015
-//  Last Modified : <150728.1950>
+//  Last Modified : <150730.1327>
 //
 //  Description	
 //
@@ -61,6 +61,38 @@
  * Using Dr. Bruce Chubb's SMINI or SUSIC/USIC to control signals is 
  * illustrated in the file Chubb_Signals.tcl.  Output ports on these nodes can
  * control one, two, or three headed signals.
+ * 
+ * @section common Common methods and functionality
+ * 
+ * All of the signal type constructors have a common structure. The 
+ * constructors take the form:
+ *
+ * @code
+ * typename objectname [optional options]
+ * @endcode
+ *
+ * Eg:
+ * 
+ * @code
+ * azatrax_signals::OneHead3Color cp27w -signalname CP27W -signalsn 040001234
+ * @endcode
+ * 
+ * There is one common option, @c -signalname.  This is the name of the signal
+ * object on the track work schematic.  When the signal aspect is changed,
+ * the track work symbol is changed to display the signal's new aspect.
+ * 
+ * There is one common method, @c setaspect, which is used to set the signal's
+ * aspect.  For a one headed signal, this method takes a single word (eg a 
+ * single element list) that is the signal aspect.  This will be one of the
+ * colors red, yellow, green, or dark.  For a two headed signal, this method 
+ * takes a list of two elements, each of which is one of the colors red, 
+ * yellow, green, or dark.  A three headed signal will take a a list of three
+ * elements, each of which is one of the colors red, yellow, green, or dark.
+ * It should be noted that not all possible combinations are allowed, only 
+ * those aspects that make sense.  This usually means that only one head will 
+ * display a color other than red, with the other heads displaying red. That is
+ * {red yellow} or {green red} or {red red yellow} are allowed, but not 
+ * {green yellow} or {green red yellow}.
  * 
  */
 
