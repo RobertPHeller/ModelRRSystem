@@ -108,6 +108,11 @@ ControlSupportFiles = $(top_srcdir)/Scripts/ControlSupport/*.tcl \
 			$(top_builddir)/Scripts/ControlSupport/pkgIndex.tcl
 ControlSupportDependFiles  = $(ControlSupportFiles)
 
+CTIAcelaSupportFiles = $(top_srcdir)/Scripts/CTIAcela/*.tcl \
+			$(top_builddir)/Scripts/CTIAcela/pkgIndex.tcl
+
+CTIAcelaDependFiles  = $(CTIAcelaSupportFiles)
+
 CodeLibraryFiles = cmriCode.tcl panelCode.tcl userCodeModules.tcl
 EXTRA_DIST  = Dispatcher.src $(DispatcherScripts) $(DispatcherImages) \
 		$(CodeLibraryFiles) $(ExampleScripts) Dispatcher.png \
@@ -146,6 +151,7 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 		      $(top_builddir)/Doc/User/Dispatcher/index.html \
 		      $(CMriDependFiles)  $(AzatraxDependFiles) \
 		      $(ControlSupportDependFiles) \
+		      $(CTIAcelaDependFiles) \
 		      $(top_builddir)/C++/ParserClasses/libMRRParserClasses.la \
 		      $(top_builddir)/C++/ParserClasses/pkgIndex.tcl
 	-rm -rf Dispatcher.vfs
@@ -174,6 +180,8 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 		CodeLibrary $(CodeLibraryFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		CodeLibrary/CMri $(CMriSupportFiles)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
+		CodeLibrary/CTIAcela $(CTIAcelaSupportFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		CodeLibrary/Azatrax $(AzatraxSupportFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \

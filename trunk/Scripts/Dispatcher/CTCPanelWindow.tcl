@@ -92,7 +92,8 @@ namespace eval CTCPanelWindow {
     option -hasazatrax -default no -validatemethod _VerifyBoolean \
 				-configuremethod _ConfigureAZATRAX
     option -hasmrd -default no -validatemethod _VerifyBoolean \
-				-configuremethod _ConfigureAZATRAX
+          -configuremethod _ConfigureAZATRAX
+    option -hasctiacela -default no -type snit::boolean
     GRSupport::VerifyBooleanMethod
     method _ConfigureCMRI {option value} {
       set options($option) $value
@@ -105,6 +106,7 @@ namespace eval CTCPanelWindow {
     option -cmriport -default /dev/ttyS1
     option -cmrispeed -default 9600
     option -cmriretries -default 1000
+    option -ctiacelaport -default /dev/ttyACM0
     option -simplemode -default no -validatemethod _VerifyBoolean \
 					-configuremethod _ConfigureSimpleMode
     variable cmrinodes -array {}
@@ -501,6 +503,11 @@ namespace eval CTCPanelWindow {
         puts -nonewline $fp {# }
 	puts $fp [list -cmriretries $options(-cmriretries)]
       }
+      puts $fp "# -hasctiacela $options(-hasctiacela)"
+      if {$options(-hasctiacela)} {
+          puts -nonewline $fp {# }
+          puts $fp [list -ctiacelaport "$options(-ctiacelaport)"]
+      }
       puts $fp "# -hasazatrax $options(-hasazatrax)"
       puts $fp "# -simplemode $options(-simplemode)"
       set line "# "
@@ -580,6 +587,13 @@ namespace eval CTCPanelWindow {
 
 	}
       }
+      if {$options(-hasctiacela)} {
+          puts $fp {}
+          puts $fp "package require CTIAcela"
+          puts $fp {}
+          puts $fp [list ctiacela::CTIAcela Acela "$options(-ctiacelaport)"]
+          puts $fp [list Acela NetworkOnline]
+      }
       puts $fp {}
       puts $fp {# Add User code after this line}
       puts $fp "$userCode"
@@ -625,7 +639,7 @@ namespace eval CTCPanelWindow {
       if {[file exists "$filename"]} {
 	file rename -force "$filename" "${filename}~"
       }
-      WrapIt::WrapIt $filename [mymethod writeprog] $options(-hascmri) $options(-hasazatrax) $additionalPackages
+      WrapIt::WrapIt $filename [mymethod writeprog] $options(-hascmri) $options(-hasazatrax) $options(-hasctiacela) $additionalPackages
     }
     method print {} {
       if {[llength [$ctcpanel objectlist]] < 1} {
@@ -1046,6 +1060,8 @@ namespace eval CTCPanelWindow {
     typecomponent  new_cmriretriesLSB
     typecomponent  new_hasazatraxLCB
     typecomponent  new_simpleModeCB
+    typecomponent  new_hasctiacelaLCB
+    typecomponent  new_ctiacelaportLCB
     typevariable   _simpleMode no
 
     typecomponent selectPanelDialog
@@ -1077,7 +1093,8 @@ namespace eval CTCPanelWindow {
       set frame [$newDialog getframe]
       set lwidth [_mx "Label|Name:" "Label|Width:" "Label|Height:" \
 		      "Label|Has CM/RI?" "Label|CM/RI Port:" \
-		      "Label|CM/RI Speed:" "Label|CM/RI Retries:"]
+                  "Label|CM/RI Speed:" "Label|CM/RI Retries:" \
+                  "Label|Has CTI Acela?" "Label|CTI Acela Port:"]
       set new_nameLE [LabelEntry $frame.nameLE -label [_m "Label|Name:"] \
 						   -labelwidth $lwidth\
 						   -text {Unnamed}]
@@ -1108,8 +1125,8 @@ namespace eval CTCPanelWindow {
 						   -labelwidth $lwidth \
 						   -values {/dev/ttyS0 
 							    /dev/ttyS1 
-							    /dev/ttyS2 
-							    /dev/ttyS3}]
+							    /dev/ttyUSBS0 
+							    /dev/ttyUSBS1}]
       pack $new_cmriportLCB -fill x
       $new_cmriportLCB set [lindex [$new_cmriportLCB cget -values] 0]
       set new_cmrispeedLCB [LabelComboBox $frame.cmrispeedLCB \
@@ -1131,6 +1148,22 @@ namespace eval CTCPanelWindow {
 						   -editable no]
       $new_hasazatraxLCB set [lindex [$new_hasazatraxLCB cget -values] end]
       pack $new_hasazatraxLCB -fill x
+      set new_hasctiacelaLCB [LabelComboBox $frame.hasctiacelaLCB \
+                              -label [_m "Label|Has CTI Acela?"] \
+                              -labelwidth $lwidth \
+                              -values [list [_m "Answer|yes"] [_m "Answer|no"]] \
+                              -editable no]
+      
+      $new_hasctiacelaLCB set [lindex [$new_hasctiacelaLCB cget -values] end]
+      pack $new_hasctiacelaLCB -fill x
+      set new_ctiacelaportLCB [LabelComboBox $frame.ctiacelaportLCB \
+                               -label [_m "Label|CTI Acela Port:"] \
+                               -labelwidth $lwidth \
+                               -values {/dev/ttyS0
+                                        /dev/ttyS1
+                                        /dev/ttyACM0}]
+      pack $new_ctiacelaportLCB -fill x
+      $new_ctiacelaportLCB set [lindex [$new_ctiacelaportLCB cget -values] end]
     }
     typemethod togglesimplemode {} {
       if {$_simpleMode} {
@@ -1184,14 +1217,16 @@ namespace eval CTCPanelWindow {
 				     -simplemode yes
       } else {
 	$type create .ctcpanel%AUTO% -name "[$new_nameLE cget -text]" \
-				     -width [$new_widthLSB cget -text] \
-				     -height [$new_heightLSB cget -text] \
-				     -hascmri [converttobool [$new_hascmriLCB cget -text]] \
-				     -cmriport [$new_cmriportLCB cget -text] \
-				     -cmrispeed [$new_cmrispeedLCB cget -text] \
-				     -cmriretries [$new_cmriretriesLSB cget -text] \
-				     -hasazatrax [converttobool [$new_hasazatraxLCB cget -text]] \
-				     -simplemode no
+              -width [$new_widthLSB cget -text] \
+              -height [$new_heightLSB cget -text] \
+              -hascmri [converttobool [$new_hascmriLCB cget -text]] \
+              -cmriport [$new_cmriportLCB cget -text] \
+              -cmrispeed [$new_cmrispeedLCB cget -text] \
+              -cmriretries [$new_cmriretriesLSB cget -text] \
+              -hasazatrax [converttobool [$new_hasazatraxLCB cget -text]] \
+              -hasctiacela [converttobool [$new_hasctiacelaLCB cget -text]] \
+              -ctiacelaport [$new_ctiacelaportLCB cget -text] \
+              -simplemode no
       }
       
       return [$newDialog enddialog Create]
@@ -2978,6 +3013,8 @@ namespace eval CTCPanelWindow {
     component cmrispeedLCB;#		-cmrispeed
     component cmriretriesLSB;#		-cmriretries
     component hasazatraxLCB;#		-hasazatrax
+    component hasctiacelaLCB;#          -hasctiacela
+    component ctiacelaportLCB;#         -ctiacelaport
     variable _simpleMode no
     
     constructor {args} {
@@ -2993,7 +3030,8 @@ namespace eval CTCPanelWindow {
       set frame [$hull getframe]
       set lwidth [_mx "Label|Name:" "Label|Width:" "Label|Height:" \
 		      "Label|Has CM/RI?" "Label|CM/RI Port:" \
-		      "Label|CM/RI Speed:" "Label|CM/RI Retries:"]
+                  "Label|CM/RI Speed:" "Label|CM/RI Retries:" \
+                  "Label|Has CTI Acela?" "Label|CTI Acela Port:"]
       install nameLE using LabelEntry $frame.nameLE -label [_m "Label|Name:"] \
 						    -labelwidth $lwidth \
 						    -editable no
@@ -3047,24 +3085,42 @@ namespace eval CTCPanelWindow {
 						   -editable no
       $hasazatraxLCB set [lindex [$hasazatraxLCB cget -values] end]
       pack $hasazatraxLCB -fill x
+      set hasctiacelaLCB [LabelComboBox $frame.hasctiacelaLCB \
+                              -label [_m "Label|Has CTI Acela?"] \
+                              -labelwidth $lwidth \
+                              -values [list [_m "Answer|yes"] [_m "Answer|no"]] \
+                              -editable no]
+      
+      $hasctiacelaLCB set [lindex [$hasctiacelaLCB cget -values] end]
+      pack $hasctiacelaLCB -fill x
+      set ctiacelaportLCB [LabelComboBox $frame.ctiacelaportLCB \
+                               -label [_m "Label|CTI Acela Port:"] \
+                               -labelwidth $lwidth \
+                               -values {/dev/ttyS0
+                                        /dev/ttyS1
+                                        /dev/ttyACM0}]
+      pack $ctiacelaportLCB -fill x
+      $ctiacelaportLCB set [lindex [$ctiacelaportLCB cget -values] end]
       $self configurelist $args
     }
     method togglesimplemode {} {
       set parent [$hull cget -parent]
       if {$_simpleMode} {
 	foreach w {hascmriLCB cmriportLCB cmrispeedLCB 
-		   cmriretriesLSB hasazatraxLCB} {
+            cmriretriesLSB hasazatraxLCB hasctiacelaLCB 
+            ctiacelaportLCB} {
 	  [set $w] configure -state disabled
 	}
         $hasazatraxLCB configure -text [backtrans [$parent cget -hasazatrax]]
       } else {
 	foreach w {hascmriLCB cmriportLCB cmrispeedLCB 
-		   cmriretriesLSB hasazatraxLCB} {
+            cmriretriesLSB hasazatraxLCB hasctiacelaLCB 
+            ctiacelaportLCB} {
 	  [set $w] configure -state normal
 	}
         if {![converttobool [$hasazatraxLCB cget -text]]} {
 	  $hasazatraxLCB set [lindex [$hasazatraxLCB cget -values] end]
-	}
+        }
       }
     }
     proc converttobool {value} {
@@ -3093,6 +3149,8 @@ namespace eval CTCPanelWindow {
       $cmrispeedLCB configure -text [$parent cget -cmrispeed]
       $cmriretriesLSB configure -text [$parent cget -cmriretries]
       $hasazatraxLCB configure -text [backtrans [$parent cget -hasazatrax]]
+      $hasctiacelaLCB configure -text [backtrans [$parent cget -hasctiacela]]
+      $ctiacelaportLCB configure -text "[$parent cget -ctiacelaport]"
       set _simpleMode [$parent cget -simplemode]
       if {$_simpleMode} {
 	$hascmriLCB configure -state disabled
@@ -3100,6 +3158,8 @@ namespace eval CTCPanelWindow {
 	$cmrispeedLCB configure -state disabled
 	$cmriretriesLSB configure -state disabled
 	$hasazatraxLCB configure -state disabled
+        $hasctiacelaLCB configure -state disabled
+        $ctiacelaportLCB configure -state disabled
       }
       return [$hull draw]
     }
@@ -3117,6 +3177,8 @@ namespace eval CTCPanelWindow {
       lappend result -cmriretries [$cmriretriesLSB cget -text]
       lappend result -hasazatrax [converttobool [$hasazatraxLCB cget -text]]
       lappend result -simplemode $_simpleMode
+      lappend result -hasctiacela [converttobool [$hasctiacelaLCB cget -text]]
+      lappend result -ctiacelaport "[$ctiacelaportLCB cget -text]"
       return [$hull enddialog $result]
     }
   }

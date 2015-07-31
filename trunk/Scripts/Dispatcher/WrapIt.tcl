@@ -105,13 +105,15 @@ namespace eval WrapIt {
                         [glob -nocomplain [file join $Lib Img*]] \
                         [glob -nocomplain [file join $Lib snit*]] \
                         ]
-#  puts stderr "*** WrapIt::CopyLibDirs = $CopyLibDirs"
+  #  puts stderr "*** WrapIt::CopyLibDirs = $CopyLibDirs"
   variable CMriLibDir [glob -nocomplain [file join $CodeLibrary CMri]]
-#  puts stderr "*** WrapIt::CMriLibDir = $CMriLibDir"
+  #  puts stderr "*** WrapIt::CMriLibDir = $CMriLibDir"
   variable AzatraxLibDir [glob -nocomplain [file join $CodeLibrary Azatrax]]
-#  puts stderr "*** WrapIt::AzatraxLibDir = $AzatraxLibDir"
+  #  puts stderr "*** WrapIt::AzatraxLibDir = $AzatraxLibDir"
   variable ControlSupportDir [glob -nocomplain [file join $CodeLibrary ControlSupport]]
-#  puts stderr "*** WrapIt::ControlSupportDir = $ControlSupportDir"
+  #  puts stderr "*** WrapIt::ControlSupportDir = $ControlSupportDir"
+  variable CTIAcelaLibDir [glob -nocomplain [file join $CodeLibrary CTIAcela]]
+  #  puts stderr "*** WrapIt::CTIAcelaLibDir = $CTIAcelaSupportDir"
   variable CopyCommonLibFiles [list \
     [file join $Lib Common snitStdMenuBar.tcl] \
     [file join $Lib Common mainwindow.tcl] \
@@ -133,7 +135,7 @@ namespace eval WrapIt {
     [file join $Lib Common gray50.xbm] \
   ]
 #  puts stderr "*** WrapIt::CopyCommonLibFiles = $CopyCommonLibFiles"
-  proc WrapIt {filename writeprogfun {needcmri no} {needazatrax no} {additionalPackages {}}} {
+  proc WrapIt {filename writeprogfun {needcmri no} {needazatrax no} {needctiacela no} {additionalPackages {}}} {
     variable TclKit
     variable PackageBaseDir
     set compress 1
@@ -188,6 +190,10 @@ namespace eval WrapIt {
     if {$needazatrax} {
       variable AzatraxLibDir
       file copy $AzatraxLibDir [file join $filename lib [file tail $AzatraxLibDir]]
+    }
+    if {$needctiacela} {
+        variable CTIAcelaLibDir
+        file copy $CTIAcelaLibDir [file join $filename lib [file tail $CTIAcelaLibDir]]
     }
     
     foreach ap $additionalPackages {
