@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jul 21 10:56:52 2015
-#  Last Modified : <150721.1956>
+#  Last Modified : <150731.1249>
 #
 #  Description	
 #
@@ -167,7 +167,7 @@ namespace eval ctiacela {
         # @param name Name of the CTIAcela interface instance.
         # @param port Name of the serial port connected to the CTI Acela.
         # Either something like /dev/ttySN for real serial ports or 
-        # /dev/ttyUSBS0 for a USB connected Acela.
+        # /dev/ttyACM0 for a USB connected Acela.
         # @author Robert Heller @<heller\@deepsoft.com@>
         #
         
@@ -317,13 +317,13 @@ namespace eval ctiacela {
             ## @private Return the high byte of address.
             # @param addr Address word (16-bits)
             # @returns upper 8 bits
-            return [expr {(addr >> 8) & 0x0FF}]
+            return [expr {($addr >> 8) & 0x0FF}]
         }
         proc lowbyte {addr} {
             ## @private Return the low byte of address.
             # @param addr Address word (16-bits)
             # @returns lower 8 bits
-            return [expr {addr  & 0x0FF}]
+            return [expr {$addr  & 0x0FF}]
         }
         method Activate {address} {
             ## Activate a control.
@@ -359,7 +359,7 @@ namespace eval ctiacela {
             # @param pulsewidth Pulsewidth in 10ths of a second
             
             ::ctiacela::addresstype validate $address
-            ::ctiacela::ubytetype validate $pulsewidth
+            ::ctiacela::ubyte validate $pulsewidth
             set response [$self _transmit [list $Opcodes(PulseOn) [highbyte $address] [lowbyte $address] $pulsewidth]]
             if {$response == $Responses(Success)} {
                 return yes
@@ -375,7 +375,7 @@ namespace eval ctiacela {
             # @param pulsewidth Pulsewidth in 10ths of a second
             
             ::ctiacela::addresstype validate $address
-            ::ctiacela::ubytetype validate $pulsewidth
+            ::ctiacela::ubyte validate $pulsewidth
             set response [$self _transmit [list $Opcodes(PulseOff) [highbyte $address] [lowbyte $address] $pulsewidth]]
             if {$response == $Responses(Success)} {
                 return yes
@@ -391,7 +391,7 @@ namespace eval ctiacela {
             # @param pulsewidth Pulsewidth in 10ths of a second
             
             ::ctiacela::addresstype validate $address
-            ::ctiacela::ubytetype validate $pulsewidth
+            ::ctiacela::ubyte validate $pulsewidth
             set response [$self _transmit [list $Opcodes(Blink) [highbyte $address] [lowbyte $address] $pulsewidth]]
             if {$response == $Responses(Success)} {
                 return yes
@@ -407,7 +407,7 @@ namespace eval ctiacela {
             # @param pulsewidth Pulsewidth in 10ths of a second
             
             ::ctiacela::addresstype validate $address
-            ::ctiacela::ubytetype validate $pulsewidth
+            ::ctiacela::ubyte validate $pulsewidth
             set response [$self _transmit [list $Opcodes(ReverseBlink) [highbyte $address] [lowbyte $address] $pulsewidth]]
             if {$response == $Responses(Success)} {
                 return yes
@@ -714,8 +714,8 @@ namespace eval ctiacela {
             # @param yellowhue Mix of red and green to get yellow as a 
             # percentage of green vs red: 128 is 50/50.
             
-            ::ctiacela::ubytetype validate $blinkrate
-            ::ctiacela::ubytetype validate $yellowhue
+            ::ctiacela::ubyte validate $blinkrate
+            ::ctiacela::ubyte validate $yellowhue
             set response [$self _transmit [list $Opcodes(SignalX) $blinkrate $yellowhue]]
             if {$response == $Responses(Success)} {
                 return yes
@@ -729,7 +729,7 @@ namespace eval ctiacela {
             ## Set signal brightness.
             # @param brightness Signal brightness.
             
-            ::ctiacela::ubytetype validate $brightness
+            ::ctiacela::ubyte validate $brightness
             set response [$self _transmit [list $Opcodes(SignalBrightness) $brightness]]
             if {$response == $Responses(Success)} {
                 return yes
@@ -950,7 +950,7 @@ namespace eval ctiacela {
             ## Poll the network configuration
             # @returns a list of modules on the network.
             
-            set response [$self _transmit [list $Opcodes(NetworkOffline)] N]
+            set response [$self _transmit [list $Opcodes(Poll)] N]
             if {[lindex $response 0] == $Responses(Success)} {
                 set n [lindex $response 1]
                 set result [list]
@@ -990,11 +990,16 @@ namespace eval ctiacela {
             # @param responsebytes Number of expected databytes (not counting 
             # the command ack byte) or N for a variable number of result bytes.
             # @returns the response, either a single byte or a list of bytes.
+            
+            #puts stderr "*** $self _transmit: sending $buffer"
             puts -nonewline $ttyfd [binary format c* $buffer]
             if {[$self _readbyte result]} {
-                if {$result != $Responses(Success)} return $result
+                #puts stderr "*** $self _transmit: result is $result"
+                if {$result != $Responses(Success)} {return $result}
+                #puts stderr "*** $self _transmit: need to get $responsebytes"
                 if {$responsebytes eq "N" || $responsebytes eq "n"} {
                     if {[$self _readbyte N]} {
+                        #puts stderr "*** $self _transmit: getting $N bytes"
                         lappend result $N
                         for {set idata 0} {$idata < $N} {incr idata} {
                             if {[$self _readbyte data]} {
@@ -1003,12 +1008,14 @@ namespace eval ctiacela {
                         }
                     }
                 } else {
+                    #puts stderr "*** $self _transmit: getting $responsebytes bytes"
                     for {set idata 0} {$idata < $responsebytes} {incr idata} {
                         if {[$self _readbyte data]} {
                             lappend result $data
                         }
                     }
                 }
+                #puts stderr "*** $self _transmit: result is $result"
                 return $result
             }
         }
