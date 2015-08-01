@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Jul 12 15:21:38 2015
-//  Last Modified : <150801.1032>
+//  Last Modified : <150801.1436>
 //
 //  Description	
 //
@@ -94,7 +94,7 @@
  * 
  * C4TTB_Block.tcl contains an abstract data type (C4TTB_Block) that
  * implements blocks using Circuits4Tracks Quad Occupancy Detectors connected
- * to the sensor inputs of a CTI Train Brain, Watchman, or Sentry board.
+ * to the sensor inputs of a CTI Train Brain, Watchman, or Sentry board.Circuits4Tracks Quad Occupancy Detector connected to a
  *
  * @section Commmethods Common methods and functionality
  * 
