@@ -7,7 +7,13 @@ test -f autobook.texi || cat > autobook.texi <<EOF
 EOF
 
 # make setup
-libtoolize
+# On MAC OS X, GNU libtoolize is named 'glibtoolize':
+if [ `(uname -s) 2>/dev/null` == 'Darwin' ]
+then
+ glibtoolize
+else
+ libtoolize
+fi
 aclocal -I m4
 automake --gnu --add-missing --copy --force
 autoheader
