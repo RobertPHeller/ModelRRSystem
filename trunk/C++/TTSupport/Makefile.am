@@ -82,7 +82,7 @@ nodist_libttclasses_la_SOURCES  = TTClasses_wrap.cc ../gettext.c
 libttclasses_la_SOURCES = TimeTableSystem.cc PathName.cc Station.cc Train.cc \
 		Cab.cc CreateLaTeXTimetable.cc $(pkginclude_HEADERS) ../gettext.h
 libttclasses_la_XGETTEXTFILES = $(libttclasses_la_SOURCES)
-libttclasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) -Wall
+libttclasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) -Wall $(KIT_EXTRA_CFLAGS)
 if CROSSCOMPILING
 libttclasses_la_LDFLAGS = -no-undefined -g -avoid-version $(TCL_STUB_LIB_SPEC) 
 else

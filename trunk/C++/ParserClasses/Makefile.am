@@ -80,7 +80,7 @@ else
 libMRRParserClasses_la_LDFLAGS = -g -version-info 0:0:0 $(TCL_STUB_LIB_SPEC) $(BOOST_LDFLAGS)
 libMRRParserClasses_la_LIBADD = $(TCL_STUB_LIB_SPEC) $(BOOST_LDFLAGS)
 endif
-libMRRParserClasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) $(BOOST_CPPFLAGS) -Wall
+libMRRParserClasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) $(BOOST_CPPFLAGS) -Wall $(KIT_EXTRA_CFLAGS)
 
 EXTRA_DIST = MRRXtrkCad.y ParserClassesGroup.h.in mrr.i SocketPair.h
 noinst_SCRIPTS = pkgIndex.tcl

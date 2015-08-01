@@ -91,7 +91,7 @@ lib_LTLIBRARIES = libraildriverio.la
 libraildriverio_la_SOURCES = RaildriverIO.cc $(pkginclude_HEADERS) ../gettext.h
 libraildriverio_la_XGETTEXTFILES = $(libraildriverio_la_SOURCES)
 nodist_libraildriverio_la_SOURCES = raildriverio_wrap.cc ../gettext.c
-libraildriverio_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) -Wall $(LIBUSB_CFLAGS) -g
+libraildriverio_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) -Wall $(LIBUSB_CFLAGS) -g  $(KIT_EXTRA_CFLAGS)
 if CROSSCOMPILING
 libraildriverio_la_LDFLAGS = -no-undefined   -g -avoid-version  $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 else
@@ -101,7 +101,7 @@ libraildriverio_la_LIBADD = $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 xlibdir = $(libdir)/$(PACKAGE)/RailDriverNotInstalled
 xlib_LTLIBRARIES = libsigterm.la
 libsigterm_la_SOURCES = sigterm_wrap.cc
-libsigterm_la_CXXFLAGS =  -DUSE_TCL_STUBS $(INCLUDES) -Wall -g
+libsigterm_la_CXXFLAGS =  -DUSE_TCL_STUBS $(INCLUDES) -Wall -g  $(KIT_EXTRA_CFLAGS)
 if CROSSCOMPILING
 libsigterm_la_LDFLAGS = -no-undefined -g -avoid-version  $(TCL_STUB_LIB_SPEC)
 else

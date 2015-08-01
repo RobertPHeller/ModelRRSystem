@@ -50,7 +50,7 @@ NOUNDEFINED =
 endif
 diskfree_la_LDFLAGS = $(NOUNDEFINED) -g -module -avoid-version 
 diskfree_la_LIBADD = $(TCL_STUB_LIB_SPEC)
-diskfree_la_CFLAGS = -DUSE_TCL_STUBS $(INCLUDES)
+diskfree_la_CFLAGS = -DUSE_TCL_STUBS $(INCLUDES) $(KIT_EXTRA_CFLAGS)
 setupSCRIPTS = $(top_builddir)/Scripts/Common/Version.tcl \
 		$(top_srcdir)/Scripts/Common/snitpagesmanager.tcl \
 		$(top_srcdir)/Scripts/Common/snitrotext.tcl \
