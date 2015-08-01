@@ -520,7 +520,7 @@ AC_PATH_PROGS(UNZIP,unzip)
 AC_MSG_CHECKING([Checking target Img and tclkit])
 case $target_os in 
   macos | darwin*) 
-    AC_SUBST(IMG_ZIP, Img-1.4-Mac-Universal.zip)
+    AC_SUBST(IMG_ZIP, Img-1.4-Mac-Universalx86.zip)
     AC_SUBST(TCLKITRUN, tclkit-darwin-univ-aqua)
     AC_SUBST(KIT_EXTRA_CFLAGS,['-arch i386 -arch x86_64'])
     AC_SUBST(NEED_APP_BUNDLE,[true])
