@@ -198,7 +198,7 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		CodeLibrary/ControlSupport $(ControlSupportFiles)
 if HAVE_WIRINGPI
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SatelliteDaemon \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		CodeLibrary/WiringPi $(WIRINGPISupportFiles)
 endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \

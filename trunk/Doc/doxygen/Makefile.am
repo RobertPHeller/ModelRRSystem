@@ -111,7 +111,7 @@ pkgdata_DATA = internals.pdf
 man3dir = $(mandir)/man3
 
 tcldoxyfilter.sh: tcldoxyfilter.sh.in $(top_builddir)/config.status
-	$(top_builddir)/config.status --file=tcldoxyfilter.sh:tcldoxyfilter.sh.in
+	$(top_builddir)/config.status --file=tcldoxyfilter.sh:$(srcdir)/tcldoxyfilter.sh.in
 	chmod +x tcldoxyfilter.sh
 	
 
