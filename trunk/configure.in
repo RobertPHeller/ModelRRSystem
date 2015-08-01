@@ -522,6 +522,8 @@ case $target_os in
   macos | darwin) 
     AC_SUBST(IMG_ZIP, Img-1.4-Mac-Universal.zip)
     AC_SUBST(TCLKITRUN, tclkit-darwin-univ-aqua)
+    AC_SUBST(KIT_EXTRA_CFLAGS,['-arch i386 -arch x86_64'])
+    AC_SUBST(NEED_APP_BUNDLE,[true])
     ;;
   linux-gnu*)
     case $target_cpu in
@@ -541,18 +543,23 @@ case $target_os in
 	AC_MSG_ERROR([Unsupported Linux arch: $target_cpu])
 	;;
      esac
+     AC_SUBST(KIT_EXTRA_CFLAGS,[])
+     AC_SUBST(NEED_APP_BUNDLE,[false])
      ;;
 
    mingw32 | winnt | windows* | cygwin)
      AC_SUBST(IMG_ZIP, Img-1.4-win32.zip)
      AC_SUBST(TCLKITRUN, tclkit-win32.exe)
      AC_SUBST(EXEEXT, .exe)
+     AC_SUBST(KIT_EXTRA_CFLAGS,[])
+     AC_SUBST(NEED_APP_BUNDLE,[false])
      ;;
    *) 
      AC_MSG_ERROR([Unsupported Operating System: $target_os])
      ;;
 esac
 AC_MSG_RESULT([IMG_ZIP is $IMG_ZIP and TCLKITRUN is $TCLKITRUN])
+AM_CONDITIONAL(MACOSX, test x${NEED_APP_BUNDLE} = xtrue)                        
 
 AC_MSG_CHECKING([Checking build tclkit])
 case $build_os in 
