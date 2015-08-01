@@ -114,7 +114,7 @@ USERMAN_TIMETABLE_FIGS = TTaddtrain.png TTprintTool.png TTNewTool.png \
 	TTChart3station.png TTOpenTool.png TTSaveTool.png \
 	TTCreateNewTrain1.png  TTCreateNewTrain2.png  TTCreateNewTrain3.png \
 	TTdeletetrain.png TTsetdupstation.png TTcleardupstation.png \
-	TTaddstorage.png TTaddcab.png TTcreatenote.png TTeditnote.png \
+	TTaddstorage.png TTaddcab.png TTcreatenote.png TTEditNote.png \
 	TTEditNote.png TTAddNote.png TTaddnotetotrainatstation.png \
 	TTaddnotetotrain.png TTremovenotefromtrainatstation.png \
 	TTremovenotefromtrain.png TTPrintTimetableDialog.png \
