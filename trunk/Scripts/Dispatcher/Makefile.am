@@ -104,6 +104,16 @@ AzatraxSupportFiles =  $(top_builddir)/C++/Azatrax/.libs/libazatrax$(SHLIB_SUFFI
 AzatraxDependFiles = $(top_builddir)/C++/Azatrax/libazatrax.la \
 		  $(top_builddir)/C++/Azatrax/pkgIndex.tcl
 
+if HAVE_WIRINGPI
+WIRINGPISupportFiles = $(top_builddir)/C++/wiringPi/.libs/libtclwiringpi$(SHLIB_SUFFIX) \
+			$(top_builddir)/C++/wiringPi/pkgIndex.tcl
+WIRINGPIDependFiles = $(top_builddir)/C++/wiringPi/libtclwiringpi.la \
+			$(top_builddir)/C++/wiringPi/pkgIndex.tcl
+else
+WIRINGPISupportFiles = 
+WIRINGPIDependFiles = 
+endif
+
 ControlSupportFiles = $(top_srcdir)/Scripts/ControlSupport/*.tcl \
 			$(top_builddir)/Scripts/ControlSupport/pkgIndex.tcl
 ControlSupportDependFiles  = $(ControlSupportFiles)
@@ -112,6 +122,7 @@ CTIAcelaSupportFiles = $(top_srcdir)/Scripts/CTIAcela/*.tcl \
 			$(top_builddir)/Scripts/CTIAcela/pkgIndex.tcl
 
 CTIAcelaDependFiles  = $(CTIAcelaSupportFiles)
+
 
 CodeLibraryFiles = cmriCode.tcl panelCode.tcl userCodeModules.tcl
 EXTRA_DIST  = Dispatcher.src $(DispatcherScripts) $(DispatcherImages) \
@@ -151,7 +162,7 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 		      $(top_builddir)/Doc/User/Dispatcher/index.html \
 		      $(CMriDependFiles)  $(AzatraxDependFiles) \
 		      $(ControlSupportDependFiles) \
-		      $(CTIAcelaDependFiles) \
+		      $(CTIAcelaDependFiles) $(WIRINGPIDependFiles) \
 		      $(top_builddir)/C++/ParserClasses/libMRRParserClasses.la \
 		      $(top_builddir)/C++/ParserClasses/pkgIndex.tcl
 	-rm -rf Dispatcher.vfs
@@ -186,6 +197,10 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 		CodeLibrary/Azatrax $(AzatraxSupportFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		CodeLibrary/ControlSupport $(ControlSupportFiles)
+if HAVE_WIRINGPI
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SatelliteDaemon \
+		CodeLibrary/WiringPi $(WIRINGPISupportFiles)
+endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		Messages $(top_builddir)/po/Dispatcher/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap Dispatcher${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)

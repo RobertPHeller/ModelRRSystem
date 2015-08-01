@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jun 11 11:28:01 2015
-#  Last Modified : <150723.1523>
+#  Last Modified : <150801.0826>
 #
 #  Description	
 #
@@ -80,6 +80,21 @@ ControlSupportFiles = $(top_srcdir)/Scripts/ControlSupport/*.tcl \
 			$(top_builddir)/Scripts/ControlSupport/pkgIndex.tcl
 ControlSupportDependFiles  = $(ControlSupportFiles)
 
+CTIAcelaSupportFiles = $(top_srcdir)/Scripts/CTIAcela/*.tcl \
+			$(top_builddir)/Scripts/CTIAcela/pkgIndex.tcl
+
+CTIAcelaDependFiles  = $(CTIAcelaSupportFiles)
+
+if HAVE_WIRINGPI
+WIRINGPISupportFiles = $(top_builddir)/C++/wiringPi/.libs/libtclwiringpi$(SHLIB_SUFFIX) \
+			$(top_builddir)/C++/wiringPi/pkgIndex.tcl
+WIRINGPIDependFiles = $(top_builddir)/C++/wiringPi/libtclwiringpi.la \
+			$(top_builddir)/C++/wiringPi/pkgIndex.tcl
+else
+WIRINGPISupportFiles = 
+WIRINGPIDependFiles = 
+endif
+
 SigtermDependFiles = $(top_builddir)/C++/RailDriver/libsigterm.la
 SigtermSupportFiles = $(top_builddir)/C++/RailDriver/.libs/libsigterm$(SHLIB_SUFFIX)
 
@@ -95,9 +110,10 @@ SatelliteDaemonSCRIPTS = $(top_srcdir)/Scripts/Common/gettext.tcl \
 
 SatelliteDaemon${EXEEXT}: SatelliteDaemon.src $(CMriDependFiles)  \
 			$(ControlSupportDependFiles) \
+			$(CTIAcelaDependFiles) \
 			$(AzatraxDependFiles) $(SigtermDependFiles) \
 			$(top_builddir)/po/Satellite/msgfiles \
-			$(SatelliteDaemonSCRIPTS)
+			$(SatelliteDaemonSCRIPTS) $(WIRINGPIDependFiles)
 	-rm -f  SatelliteDaemon.kit
 	-rm -rf SatelliteDaemon.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/SatelliteDaemon.src
@@ -117,6 +133,12 @@ SatelliteDaemon${EXEEXT}: SatelliteDaemon.src $(CMriDependFiles)  \
 		lib/Azatrax $(AzatraxSupportFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SatelliteDaemon \
 		lib/ControlSupport $(ControlSupportFiles)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SatelliteDaemon \
+		lib/CTIAcela $(CTIAcelaSupportFiles)
+if HAVE_WIRINGPI
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SatelliteDaemon \
+		lib/WiringPi $(WIRINGPISupportFiles)
+endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SatelliteDaemon \
 		lib/sigterm $(SigtermSupportFiles)
 	echo 'package ifneeded Sigterm 1.0 [list load [file join $$dir libsigterm[info sharedlibextension]]]' > SatelliteDaemon.vfs/lib/sigterm/pkgIndex.tcl

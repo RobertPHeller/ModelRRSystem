@@ -114,6 +114,8 @@ namespace eval WrapIt {
   #  puts stderr "*** WrapIt::ControlSupportDir = $ControlSupportDir"
   variable CTIAcelaLibDir [glob -nocomplain [file join $CodeLibrary CTIAcela]]
   #  puts stderr "*** WrapIt::CTIAcelaLibDir = $CTIAcelaSupportDir"
+  variable WiringPiLibDir [glob -nocomplain [file join $CodeLibrary WiringPi]]
+  #  puts stderr "*** WrapIt::WiringPiLibDir = $WiringPiLibDir"
   variable CopyCommonLibFiles [list \
     [file join $Lib Common snitStdMenuBar.tcl] \
     [file join $Lib Common mainwindow.tcl] \
@@ -195,7 +197,10 @@ namespace eval WrapIt {
         variable CTIAcelaLibDir
         file copy $CTIAcelaLibDir [file join $filename lib [file tail $CTIAcelaLibDir]]
     }
-    
+    variable WiringPiLibDir
+    if {$WiringPiLibDir ne ""} {
+        file copy $WiringPiLibDir [file join $filename lib [file tail $WiringPiLibDir]]
+    }
     foreach ap $additionalPackages {
       file mkdir [file join $filename lib $ap]
       foreach f [glob -nocomplain [file join $PackageBaseDir $ap *.tcl]] {
