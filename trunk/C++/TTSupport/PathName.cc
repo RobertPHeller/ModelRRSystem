@@ -51,11 +51,10 @@ using namespace TTSupport;
 
 #if defined(__WIN32__)
 #define PATHSEPARATORS "\\/"
-#endif
-
-#if defined(__unix__)
+#else
 #define PATHSEPARATORS "/"
 #endif
+
 
 char PathName::PathSeparator() const {
 	string::size_type seploc = pathname.size(), newloc;
