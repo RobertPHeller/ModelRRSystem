@@ -20,6 +20,7 @@ install-data-hook: $(IMG_ZIP)
 
 tclkit${BEXEEXT}: $(TCLKITBSRC) $(top_builddir)/config.status
 	cp $(srcdir)/$(TCLKITBSRC) ./tclkit${BEXEEXT}
+	chmod +x ./tclkit${BEXEEXT}
 
 FORCE:
 
