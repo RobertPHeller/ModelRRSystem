@@ -89,9 +89,12 @@ $(AN01_PDF) : $(AN01_TEXS) $(BIBLIO) $(AN01_DEPS) $(AN01_FIGS) $(AN01Code)
 	done
 	$(PDFLATEX) $(AN01)
 	-$(BIBTEX) $(AN01)
-	echo '\begin{theindex}' > $(AN01).ind
-	echo '\item Dummy, 0' >> $(AN01).ind
-	echo '\end{theindex}' >> $(AN01).ind
+	echo -n '\\' > $(AN01).ind 
+	echo 'begin{theindex}' >> $(AN01).ind
+	echo -n '\\' >> $(AN01).ind
+	echo 'item Dummy, 0' >> $(AN01).ind
+	echo -n '\\' >> $(AN01).ind
+	echo 'end{theindex}' >> $(AN01).ind
 	$(PDFLATEX) $(AN01)
 	$(MAKEINDEX) $(AN01).idx
 	$(PDFLATEX) $(AN01)
@@ -106,9 +109,9 @@ $(AN02_PDF) : $(AN02_TEXS) $(BIBLIO) $(AN02_DEPS) $(AN02_FIGS) $(AN02Code)
 	done
 	$(PDFLATEX) $(AN02)
 	-$(BIBTEX) $(AN02)
-	echo '\begin{theindex}' > $(AN02).ind
-	echo '\item Dummy, 0' >> $(AN02).ind
-	echo '\end{theindex}' >> $(AN02).ind
+	echo '\\begin{theindex}' > $(AN02).ind
+	echo '\\item Dummy, 0' >> $(AN02).ind
+	echo '\\end{theindex}' >> $(AN02).ind
 	$(PDFLATEX) $(AN02)
 	$(MAKEINDEX) $(AN02).idx
 	$(PDFLATEX) $(AN02)
