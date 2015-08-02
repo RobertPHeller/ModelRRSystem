@@ -449,7 +449,7 @@ install-data-hook: $(USERMAN_HTML)
 	  echo " $(INSTALL_DATA) '$$d$$p' '$(DESTDIR)$(pkgdatadir)/$(USERMANHBase)$$f'"; \
 	  $(INSTALL_DATA) "$$d$$p" "$(DESTDIR)$(pkgdatadir)/$(USERMANHBase)/$$f"; \
 	done
-	
+
 uninstall-hook: 
 	for p in $(DESTDIR)$(pkgdatadir)/$(USERMANHBase)/*; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
@@ -457,5 +457,5 @@ uninstall-hook:
 	  echo " rm -f '$(DESTDIR)$(pkgdatadir)/$(USERMANHBase)$$f'"; \
 	  rm -f "$(DESTDIR)$(pkgdatadir)/$(USERMANHBase)/$$f"; \
 	done
-	
+
 
