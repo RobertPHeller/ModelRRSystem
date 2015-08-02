@@ -51,9 +51,7 @@ namespace FCFSupport {
 
 #if defined(__WIN32__)
 #define PATHSEPARATORS "\\/"
-#endif
-
-#if defined(__unix__)
+#else
 #define PATHSEPARATORS "/"
 #endif
 
