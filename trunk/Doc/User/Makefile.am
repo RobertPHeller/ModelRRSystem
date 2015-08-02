@@ -1,4 +1,4 @@
-v#* 
+#* 
 #* ------------------------------------------------------------------
 #* Makefile.am - User Doc Makefile
 #* Created by Robert Heller on Fri Nov  4 13:43:37 2005
