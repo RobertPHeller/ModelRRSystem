@@ -1,4 +1,4 @@
-#* 
+v#* 
 #* ------------------------------------------------------------------
 #* Makefile.am - User Doc Makefile
 #* Created by Robert Heller on Fri Nov  4 13:43:37 2005
@@ -114,7 +114,7 @@ USERMAN_TIMETABLE_FIGS = TTaddtrain.png TTprintTool.png TTNewTool.png \
 	TTChart3station.png TTOpenTool.png TTSaveTool.png \
 	TTCreateNewTrain1.png  TTCreateNewTrain2.png  TTCreateNewTrain3.png \
 	TTdeletetrain.png TTsetdupstation.png TTcleardupstation.png \
-	TTaddstorage.png TTaddcab.png TTcreatenote.png TTeditnote.png \
+	TTaddstorage.png TTaddcab.png TTcreatenote.png TTeditnote_.png \
 	TTEditNote.png TTAddNote.png TTaddnotetotrainatstation.png \
 	TTaddnotetotrain.png TTremovenotefromtrainatstation.png \
 	TTremovenotefromtrain.png TTPrintTimetableDialog.png \

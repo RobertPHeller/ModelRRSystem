@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 16:48:11 2014
-//  Last Modified : <140429.1056>
+//  Last Modified : <150801.2014>
 //
 //  Description	
 //
@@ -292,9 +292,9 @@
  * <img src="TTcreatenote.png" alt="Create New Note toolbar button">
  * @endhtmlonly
  * and
- * @image latex TTeditnote.png
+ * @image latex TTeditnote_.png
  * @htmlonly
- * <img src="TTeditnote.png" alt="Edit Existing Note toolbar button">
+ * <img src="TTeditnote_.png" alt="Edit Existing Note toolbar button">
  * @endhtmlonly
  * toolbar buttons, or the @c Create @c New @c Note and @c Edit @c Existing 
  * @c Note buttons.  The the "Note editor dialog", shown below is used to 
