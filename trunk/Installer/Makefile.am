@@ -40,16 +40,16 @@ BUILT_SOURCES = diskfree_wrap.c
 
 pkglibdir = $(libdir)/$(PACKAGE)/Installer
 
-pkglib_LTLIBRARIES = diskfree.la
+pkglib_LTLIBRARIES = libdiskfree.la
 INCLUDES = -I$(top_builddir)  -I. -I$(TCL_INC_DIR)
-nodist_diskfree_la_SOURCES = diskfree_wrap.c
+nodist_libdiskfree_la_SOURCES = diskfree_wrap.c
 if CROSSCOMPILING
-diskfree_la_LDFLAGS = -no-undefined  -g -avoid-version -module
+libdiskfree_la_LDFLAGS = -no-undefined  -g -avoid-version
 else
-diskfree_la_LDFLAGS = -g -version-info 0:0:0 -module
+libdiskfree_la_LDFLAGS = -g -version-info 0:0:0
 endif
-diskfree_la_LIBADD = $(TCL_STUB_LIB_SPEC)
-diskfree_la_CFLAGS = -DUSE_TCL_STUBS $(INCLUDES) $(KIT_EXTRA_CFLAGS)
+libdiskfree_la_LIBADD = $(TCL_STUB_LIB_SPEC)
+libdiskfree_la_CFLAGS = -DUSE_TCL_STUBS $(INCLUDES) $(KIT_EXTRA_CFLAGS)
 setupSCRIPTS = $(top_builddir)/Scripts/Common/Version.tcl \
 		$(top_srcdir)/Scripts/Common/snitpagesmanager.tcl \
 		$(top_srcdir)/Scripts/Common/snitrotext.tcl \
@@ -83,11 +83,11 @@ diskfree_wrap.c : diskfree.i
 	$(SWIG) $(SWIG_FLAGS) $(INCLUDES) -o diskfree_wrap.c \
 			$(srcdir)/diskfree.i
 
-pkgIndex.tcl: diskfree.la
-	echo 'package ifneeded Diskfree 1.0 [list load [file join $$dir diskfree[info sharedlibextension]] Diskfree]' > pkgIndex.tcl
+pkgIndex.tcl: libdiskfree.la
+	echo 'package ifneeded Diskfree 1.0 [list load [file join $$dir libdiskfree[info sharedlibextension]] Diskfree]' > pkgIndex.tcl
 
 setup${EXEEXT}: setup.tcl $(setupSCRIPTS) $(setupIMAGES) $(setupLIBIMAGES) \
-		pkgIndex.tcl diskfree.la
+		pkgIndex.tcl libdiskfree.la
 	-rm -f  setup.kit
 	-rm -rf setup.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/setup.tcl
@@ -96,7 +96,7 @@ setup${EXEEXT}: setup.tcl $(setupSCRIPTS) $(setupIMAGES) $(setupLIBIMAGES) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit setup \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit setup \
-		lib/Diskfree .libs/diskfree$(SHLIB_SUFFIX) pkgIndex.tcl
+		lib/Diskfree .libs/libdiskfree$(SHLIB_SUFFIX) pkgIndex.tcl
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit setup \
 		lib/Images $(setupIMAGES) $(setupLIBIMAGES)
 	$(UNZIP) -qq -d setup.vfs/lib $(top_srcdir)/BuildData/$(IMG_ZIP)
