@@ -598,7 +598,7 @@ AC_MSG_RESULT([TCLKITBSRC is $TCLKITBSRC])
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(fcntl.h limits.h malloc.h strings.h sys/ioctl.h sys/time.h syslog.h unistd.h sys/select.h)
+AC_CHECK_HEADERS(fcntl.h limits.h malloc.h strings.h sys/ioctl.h sys/time.h syslog.h unistd.h sys/select.h sys/vfs.h sys/param.h sys/mount.h)
 
 
 
