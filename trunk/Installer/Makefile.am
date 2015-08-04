@@ -44,9 +44,9 @@ pkglib_LTLIBRARIES = diskfree.la
 INCLUDES = -I$(top_builddir)  -I. -I$(TCL_INC_DIR)
 nodist_diskfree_la_SOURCES = diskfree_wrap.c
 if CROSSCOMPILING
-diskfree_la_LDFLAGS = -no-undefined  -g -avoid-version
+diskfree_la_LDFLAGS = -no-undefined  -g -avoid-version -module
 else
-diskfree_la_LDFLAGS = -g -version-info 0:0:0
+diskfree_la_LDFLAGS = -g -version-info 0:0:0 -module
 endif
 diskfree_la_LIBADD = $(TCL_STUB_LIB_SPEC)
 diskfree_la_CFLAGS = -DUSE_TCL_STUBS $(INCLUDES) $(KIT_EXTRA_CFLAGS)
