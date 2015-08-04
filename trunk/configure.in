@@ -431,89 +431,12 @@ else
   AC_PATH_PROGS(HOSTTCLSH,[tclsh8.4 tclsh])
 fi
 
-dnl AC_MSG_CHECKING(bwidget dir)
-dnl BWLIB=`echo 'puts $tcl_library'|${HOSTTCLSH}`
-dnl dirs="${TCL_PREFIX}/lib/bwidget* ${TCL_PREFIX}/lib/tcllib*/bwidget* ${BWLIB}/bwidget* ${BWLIB}/../tcllib*/bwidget* ${BWLIB}/../bwidget* ${BWLIB}/tcllib*/bwidget*"
-dnl for i in $dirs ; do
-dnl   if test -d "$i" -a -f "$i/pkgIndex.tcl"; then
-dnl     BWLIB=`cd $i; pwd`
-dnl   fi
-dnl done
-dnl AC_ARG_WITH(bwlib, [  --with-bwlib=DIR          use BWidget from DIR], BWLIB=$withval,)
-dnl if test -d $BWLIB; then
-dnl    AC_MSG_RESULT([using BWidget library in $BWLIB])
-dnl else
-dnl    AC_MSG_ERROR(BWidget library directory $BWLIB doesn't exist)
-dnl fi
-dnl AC_SUBST(BWLIB)
-
-AC_MSG_CHECKING(snit dir)
-SNITLIB=`echo 'puts $tcl_library'|${HOSTTCLSH}`
-
-dirs="${TCL_PREFIX}/lib/snit* ${TCL_PREFIX}/lib/tcllib*/snit* ${SNITLIB}/../tcllib*/snit* ${SNITLIB}/../snit* ${SNITLIB}/tcllib*/snit* ${SNITLIB}/snit*"
-for i in $dirs ; do
-  if test -d "$i" -a -f "$i/pkgIndex.tcl"; then
-    SNITLIB=`cd $i; pwd`
-  fi
-done
-AC_ARG_WITH(snitlib, [  --with-snitlib=DIR          use snit from DIR], SNITLIB=$withval,)
-if test -d $SNITLIB; then
-   AC_MSG_RESULT([using snit library in $SNITLIB])
-else
-   AC_MSG_ERROR(Snit library directory $SNITLIB doesn't exist)
-fi
-AC_SUBST(SNITLIB)
-
-AC_MSG_CHECKING(csv dir)
-CSVLIB=`echo 'puts $tcl_library'|${HOSTTCLSH}`
-
-dirs="${TCL_PREFIX}/lib/csv* ${TCL_PREFIX}/lib/tcllib*/csv* ${CSVLIB}/../tcllib*/csv* ${CSVLIB}/../csv* ${CSVLIB}/tcllib*/csv* ${CSVLIB}/csv*"
-for i in $dirs ; do
-  if test -d "$i" -a -f "$i/pkgIndex.tcl"; then
-    CSVLIB=`cd $i; pwd`
-  fi
-done
-AC_ARG_WITH(csvlib, [  --with-csvlib=DIR          use csv from DIR], CSVLIB=$withval,)
-if test -d $csvLIB; then
-   AC_MSG_RESULT([using csv library in $CSVLIB])
-else
-   AC_MSG_ERROR(csv library directory $CSVLIB doesn't exist)
-fi
-AC_SUBST(CSVLIB)
-
-AC_MSG_CHECKING(struct dir)
-STRUCTLIB=`echo 'puts $tcl_library'|${HOSTTCLSH}`
-
-dirs="${TCL_PREFIX}/lib/struct* ${TCL_PREFIX}/lib/tcllib*/struct* ${STRUCTLIB}/../tcllib*/struct* ${STRUCTLIB}/../struct* ${STRUCTLIB}/tcllib*/struct* ${STRUCTLIB}/struct*"
-for i in $dirs ; do
-  if test -d "$i" -a -f "$i/pkgIndex.tcl"; then
-    STRUCTLIB=`cd $i; pwd`
-  fi
-done
-AC_ARG_WITH(structlib, [  --with-structlib=DIR          use struct from DIR], STRUCTLIB=$withval,)
-if test -d $STRUCTLIB; then
-   AC_MSG_RESULT([using struct library in $STRUCTLIB])
-else
-   AC_MSG_ERROR(struct library directory $STRUCTLIB doesn't exist)
-fi
-AC_SUBST(STRUCTLIB)
-
-AC_MSG_CHECKING(Tcl log dir)
-TCLLOGLIB=`echo 'puts $tcl_library'|${HOSTTCLSH}`
-
-dirs="${TCL_PREFIX}/lib/log* ${TCL_PREFIX}/lib/tcllib*/log* ${TCLLOGLIB}/../tcllib*/log* ${TCLLOGLIB}/../log* ${TCLLOGLIB}/tcllib*/log* ${TCLLOGLIB}/log*"
-for i in $dirs ; do
-  if test -d "$i" -a -f "$i/pkgIndex.tcl"; then
-    TCLLOGLIB=`cd $i; pwd`
-  fi
-done
-AC_ARG_WITH(tclloglib, [  --with-tclloglib=DIR          use tcl log from DIR], TCLLOGLIB=$withval,)
-if test -d $TCLLOGLIB; then
-   AC_MSG_RESULT([using tcl log library in $TCLLOGLIB])
-else
-   AC_MSG_ERROR(tcl log library directory $TCLLOGLIB doesn't exist)
-fi
-AC_SUBST(TCLLOGLIB)
+dnl Pure Tcl code libraries
+dnl AX_BWIDGET
+AX_SNIT
+AX_CSV
+AX_STRUCT
+AX_TCLLOG
 
 AC_PATH_PROGS(UNZIP,unzip)
 
