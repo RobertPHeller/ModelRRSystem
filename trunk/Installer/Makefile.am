@@ -44,11 +44,10 @@ pkglib_LTLIBRARIES = diskfree.la
 INCLUDES = -I$(top_builddir)  -I. -I$(TCL_INC_DIR)
 nodist_diskfree_la_SOURCES = diskfree_wrap.c
 if CROSSCOMPILING
-NOUNDEFINED = -no-undefined
+diskfree_la_LDFLAGS = -no-undefined  -g -avoid-version
 else
-NOUNDEFINED = 
+diskfree_la_LDFLAGS = -g -version-info 0:0:0
 endif
-diskfree_la_LDFLAGS = $(NOUNDEFINED) -g -module -avoid-version 
 diskfree_la_LIBADD = $(TCL_STUB_LIB_SPEC)
 diskfree_la_CFLAGS = -DUSE_TCL_STUBS $(INCLUDES) $(KIT_EXTRA_CFLAGS)
 setupSCRIPTS = $(top_builddir)/Scripts/Common/Version.tcl \
