@@ -84,13 +84,12 @@ double SpaceAvailable(const char *device)
 #include "config.h"
 #ifdef HAVE_SYS_VFS_H
 #include <sys/vfs.h>
+#else
+# if defined(HAVE_SYS_PARAM_H) && defined(HAVE_SYS_MOUNT_H)
+# include <sys/param.h>
+# include <sys/mount.h>
+# endif
 #endif
-#ifdef HAVE_SYS_PARAM_H
-#include <sys/param.h>
-#endif                                                                          
-#ifdef HAVE_SYS_MOUNT_H
-#include <sys/mount.h>
-#endif                                                                          
     
 
 double SpaceAvailable(const char *device)
