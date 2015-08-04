@@ -35,7 +35,7 @@
 
 AC_DEFUN([AX_BWIDGET],[
 AC_MSG_CHECKING(bwidget dir)
-[searchdirs=`echo 'puts $auto_path'|${TCLSH_PROG}`]
+[searchdirs=`echo 'puts $auto_path'|${HOSTTCLSH}`]
 for dir in $searchdirs ; do
   [dirs="${dir}/bwidget* ${dir}/tcllib*/bwidget*"]
   for i in $dirs ; do 
@@ -55,7 +55,7 @@ AC_SUBST(BWLIB)
 
 AC_DEFUN([AX_SNIT],[
 AC_MSG_CHECKING(snit dir)
-searchdirs=`echo 'puts $auto_path'|${TCLSH_PROG}`
+searchdirs=`echo 'puts $auto_path'|${HOSTTCLSH}`
 for dir in $searchdirs ; do
   dirs="${dir}/snit* ${dir}/tcllib*/snit*"
   for i in $dirs ; do
@@ -74,7 +74,7 @@ AC_SUBST(SNITLIB)
 ])
 AC_DEFUN([AX_CSV],[
 AC_MSG_CHECKING(csv dir)
-searchdirs=`echo 'puts $auto_path'|${TCLSH_PROG}`
+searchdirs=`echo 'puts $auto_path'|${HOSTTCLSH}`
 for dir in $searchdirs ; do
   dirs="${dir}/csv* ${dir}/tcllib*/csv*"
   for i in $dirs ; do
@@ -93,7 +93,7 @@ AC_SUBST(CSVLIB)
 ])
 AC_DEFUN([AX_STRUCT],[
 AC_MSG_CHECKING(struct dir)
-searchdirs=`echo 'puts $auto_path'|${TCLSH_PROG}`
+searchdirs=`echo 'puts $auto_path'|${HOSTTCLSH}`
 for dir in $searchdirs ; do
   dirs="${dir}/struct* ${dir}/tcllib*/struct*"
   for i in $dirs ; do
@@ -114,16 +114,16 @@ AC_SUBST(STRUCTLIB)
 
 AC_DEFUN([AX_TCLLOG],[
 AC_MSG_CHECKING(Tcl log dir)
-searchdirs=`echo 'puts $auto_path'|${TCLSH_PROG}`
+searchdirs=`echo 'puts $auto_path'|${HOSTTCLSH}`
 for dir in $searchdirs ; do
-  dirs="${dir}/mime* ${dir}/tcllib*/mime*"
+  dirs="${dir}/log* ${dir}/tcllib*/log*"
   for i in $dirs ; do
     if test -d "$i" -a -f "$i/pkgIndex.tcl"; then
       TCLLOGLIB=`cd $i; pwd`
     fi
   done
 done
-AC_ARG_WITH(mimelib, [  --with-mimelib=DIR          use Tcl log from DIR], TCLLOGLIB=$withval,)
+AC_ARG_WITH(tclloglib, [  --with-tclloglib=DIR          use Tcl log from DIR], TCLLOGLIB=$withval,)
 if test x$TCLLOGLIB != x -a -d $TCLLOGLIB; then
    AC_MSG_RESULT([using Tcl log library in $TCLLOGLIB])
 else
@@ -134,7 +134,7 @@ AC_SUBST(TCLLOGLIB)
 
 AC_DEFUN([AX_HTML],[
 AC_MSG_CHECKING(html dir)
-searchdirs=`echo 'puts $auto_path'|${TCLSH_PROG}`
+searchdirs=`echo 'puts $auto_path'|${HOSTTCLSH}`
 for dir in $searchdirs ; do
   dirs="${dir}/html* ${dir}/tcllib*/html*"
   for i in $dirs ; do
@@ -154,7 +154,7 @@ AC_SUBST(HTMLLIB)
 
 AC_DEFUN([AX_IMG],[
 AC_MSG_CHECKING(Img dir)
-searchdirs=`echo 'puts $auto_path'|${TCLSH_PROG}`
+searchdirs=`echo 'puts $auto_path'|${HOSTTCLSH}`
 for dir in $searchdirs ; do
   dirs="${dir}/Img*"
   for i in $dirs ; do
@@ -174,7 +174,7 @@ AC_SUBST(IMGLIB)
 
 AC_DEFUN([AX_TCLXML],[
 AC_MSG_CHECKING(Tclxml dir)
-searchdirs=`echo 'puts $auto_path'|${TCLSH_PROG}`
+searchdirs=`echo 'puts $auto_path'|${HOSTTCLSH}`
 for dir in $searchdirs ; do
   dirs="${dir}/Tclxml*"
   for i in $dirs ; do
@@ -195,7 +195,7 @@ AC_SUBST(TCLXMLLIB)
 
 AC_DEFUN([AX_URI],[
 AC_MSG_CHECKING(uri dir)
-searchdirs=`echo 'puts $auto_path'|${TCLSH_PROG}`
+searchdirs=`echo 'puts $auto_path'|${HOSTTCLSH}`
 for dir in $searchdirs ; do
   dirs="${dir}/uri* ${dir}/tcllib*/uri*"
   for i in $dirs ; do
@@ -215,7 +215,7 @@ AC_SUBST(URILIB)
 
 AC_DEFUN([AX_NCGI],[
 AC_MSG_CHECKING(ncgi dir)
-searchdirs=`echo 'puts $auto_path'|${TCLSH_PROG}`
+searchdirs=`echo 'puts $auto_path'|${HOSTTCLSH}`
 for dir in $searchdirs ; do
   dirs="${dir}/ncgi* ${dir}/tcllib*/ncgi*"
   for i in $dirs ; do
@@ -235,7 +235,7 @@ AC_SUBST(NCGILIB)
 
 AC_DEFUN([AX_FILEUTIL],[
 AC_MSG_CHECKING(fileutil dir)
-searchdirs=`echo 'puts $auto_path'|${TCLSH_PROG}`
+searchdirs=`echo 'puts $auto_path'|${HOSTTCLSH}`
 for dir in $searchdirs ; do
   dirs="${dir}/fileutil* ${dir}/tcllib*/fileutil*"
   for i in $dirs ; do
@@ -255,7 +255,7 @@ AC_SUBST(FILEUTILLIB)
 
 AC_DEFUN([AX_CMDLINE],[
 AC_MSG_CHECKING(cmdline dir)
-searchdirs=`echo 'puts $auto_path'|${TCLSH_PROG}`
+searchdirs=`echo 'puts $auto_path'|${HOSTTCLSH}`
 for dir in $searchdirs ; do
   dirs="${dir}/cmdline* ${dir}/tcllib*/cmdline*"
   for i in $dirs ; do
