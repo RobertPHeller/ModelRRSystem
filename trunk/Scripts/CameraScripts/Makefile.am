@@ -48,7 +48,12 @@
 #*  
 #* 
 
+if MACOSX                                                                       
+bin_SCRIPTS = AnyDistance.dmg Closest.dmg
+else                                                                            
 bin_SCRIPTS = AnyDistance${EXEEXT} Closest${EXEEXT}
+endif                                                                           
+
 EXTRA_DIST  = AnyDistance.src Closest.src
 CLEANFILES = AnyDistance.kit Closest.kit $(bin_SCRIPTS) CameraScripts.pot
 CameraSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
@@ -118,6 +123,40 @@ AnyDistance${EXEEXT} : AnyDistance.src $(CameraSCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap AnyDistance${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf AnyDistance.vfs AnyDistance.kit
 
+if MACOSX
+# create application for Mac OSX                                               $
+AnyDistance.dmg: AnyDistance$(EXEEXT)
+	-rm -rf AnyDistance.app
+	mkdir -p AnyDistance.app/Contents/MacOS/
+	cp AnyDistance$(EXEEXT) AnyDistance.app/Contents/MacOS/
+	mkdir -p AnyDistance.app/Contents/Resources/
+	-rm -rf AnyDistance.iconset
+	mkdir AnyDistance.iconset
+	sips -z 16 16     $(srcdir)/AnyDistance.png --out AnyDistance.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/AnyDistance.png --out AnyDistance.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/AnyDistance.png --out AnyDistance.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/AnyDistance.png --out AnyDistance.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/AnyDistance.png --out AnyDistance.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/AnyDistance.png --out AnyDistance.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/AnyDistance.png --out AnyDistance.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/AnyDistance.png --out AnyDistance.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/AnyDistance.png --out AnyDistance.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/AnyDistance.png --out AnyDistance.iconset/icon_512x512@2x.png
+	iconutil -c icns AnyDistance.iconset
+	-rm -rf AnyDistance.iconset
+	cp AnyDistance.icns AnyDistance.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit AnyDistance 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o AnyDistance.app/Contents/Info.plist \
+		AnyDistance.plist
+	-rm -f AnyDistance.plist
+	-rm -rf dmg
+	mkdir dmg
+	cp -r AnyDistance.app dmg
+	ln -s /Applications dmg/
+	rm -f AnyDistance.dmg
+	hdiutil create -srcfolder dmg -format UDZO -volname AnyDistance.dmg AnyDistance.dmg
+	-rm -rf dmg
+endif
 
 
 Closest${EXEEXT} : Closest.src $(CameraSCRIPTS) \
@@ -141,6 +180,40 @@ Closest${EXEEXT} : Closest.src $(CameraSCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap Closest${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf Closest.vfs Closest.kit
 
+if MACOSX
+# create application for Mac OSX                                               $
+Closest.dmg: Closest$(EXEEXT)
+	-rm -rf Closest.app
+	mkdir -p Closest.app/Contents/MacOS/
+	cp Closest$(EXEEXT) Closest.app/Contents/MacOS/
+	mkdir -p Closest.app/Contents/Resources/
+	-rm -rf Closest.iconset
+	mkdir Closest.iconset
+	sips -z 16 16     $(srcdir)/Closest.png --out Closest.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/Closest.png --out Closest.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/Closest.png --out Closest.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/Closest.png --out Closest.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/Closest.png --out Closest.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/Closest.png --out Closest.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/Closest.png --out Closest.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/Closest.png --out Closest.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/Closest.png --out Closest.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/Closest.png --out Closest.iconset/icon_512x512@2x.png
+	iconutil -c icns Closest.iconset
+	-rm -rf Closest.iconset
+	cp Closest.icns Closest.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit Closest 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o Closest.app/Contents/Info.plist \
+		Closest.plist
+	-rm -f Closest.plist
+	-rm -rf dmg
+	mkdir dmg
+	cp -r Closest.app dmg
+	ln -s /Applications dmg/
+	rm -f Closest.dmg
+	hdiutil create -srcfolder dmg -format UDZO -volname Closest.dmg Closest.dmg
+	-rm -rf dmg
+endif
 
 
 
