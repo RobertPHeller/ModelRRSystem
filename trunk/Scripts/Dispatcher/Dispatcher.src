@@ -134,6 +134,8 @@ namespace eval Dispatcher {
   variable SimpleMode no
 }
 
+#tk_messageBox -type ok -icon info -message "*** argc = $argc, argv = $argv"
+
 for {set ia 0} {$ia < $argc} {incr ia} {
   switch -glob -- "[lindex $argv $ia]" {
     -isslave* {
@@ -148,7 +150,7 @@ for {set ia 0} {$ia < $argc} {incr ia} {
     -xtrkcad {
 	set ia1 [expr {$ia + 1}]
 	if {$HaveXTrkCADFile || $ia1 >= $argc} {
-	  puts stderr "usage: $argv0 \[wish options\] -- \[-isslave\] \[-console\] \[-xtrkcad xtrkcadfile\] [CTCWindowFile]"
+	  tk_messageBox -type ok -icon error -message  "usage: $argv0 \[wish options\] -- \[-isslave\] \[-console\] \[-xtrkcad xtrkcadfile\] [CTCWindowFile]"
 	  exit 96
 	} else {
 	  set HaveXTrkCADFile yes
@@ -159,16 +161,17 @@ for {set ia 0} {$ia < $argc} {incr ia} {
     -simplepanels {
        set Dispatcher::SimpleMode yes
     }
+    -psn* {
+    }
     -* {
-    	puts stderr "usage: $argv0 \[wish options\] -- \[-isslave\] \[-console\] \[-simplepanels\] \[-xtrkcad xtrkcadfile\] \[CTCWindowFiles\]"
-	exit 96
+        tk_messageBox -type ok -icon error -message "usage: $argv0 \[wish options\] -- \[-isslave\] \[-console\] \[-simplepanels\] \[-xtrkcad xtrkcadfile\] \[CTCWindowFiles\]"
+        exit 96
     }
     default {
       lappend CTCFiles "[lindex $argv $ia]"
     }
   }
 }
-
 
 
 
