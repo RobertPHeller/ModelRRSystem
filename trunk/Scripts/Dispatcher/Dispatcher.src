@@ -207,6 +207,7 @@ proc Dispatcher::SplashWorkMessage {message percent} {
   if {$CurrentProgress > 100} {set CurrentProgress 100}
   if {!$IsSlave} {
     .mrrSplash update "$message" $CurrentProgress
+    raise .mrrSplash
     update
   }
 }
