@@ -55,6 +55,8 @@ for {set ia 0} {$ia < $argc} {incr ia} {
       fconfigure stdin -buffering line
       fconfigure stdout -buffering line
     }
+    -psn* {
+    }
     -* {
     	puts stderr "usage: $argv0 \[wish options\] -- \[-isslave\]"
 	exit 96
