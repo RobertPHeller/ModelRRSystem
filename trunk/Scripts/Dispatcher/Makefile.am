@@ -218,16 +218,16 @@ Dispatcher.dmg: Dispatcher$(EXEEXT)
 	cp Dispatcher$(EXEEXT) Dispatcher.app/Contents/MacOS/
 	mkdir -p Dispatcher.app/Contents/Resources/
 	mkdir Dispatcher.iconset
-	sips -z 16 16     Dispatcher.png --out Dispatcher.iconset/icon_16x16.png
-	sips -z 32 32     Dispatcher.png --out Dispatcher.iconset/icon_16x16@2x.png
-	sips -z 32 32     Dispatcher.png --out Dispatcher.iconset/icon_32x32.png
-	sips -z 64 64     Dispatcher.png --out Dispatcher.iconset/icon_32x32@2x.png
-	sips -z 128 128   Dispatcher.png --out Dispatcher.iconset/icon_128x128.png
-	sips -z 256 256   Dispatcher.png --out Dispatcher.iconset/icon_128x128@2x.png
-	sips -z 256 256   Dispatcher.png --out Dispatcher.iconset/icon_256x256.png
-	sips -z 512 512   Dispatcher.png --out Dispatcher.iconset/icon_256x256@2x.png
-	sips -z 512 512   Dispatcher.png --out Dispatcher.iconset/icon_512x512.png
-	sips -z 1024 1024 Dispatcher.png --out Dispatcher.iconset/icon_512x512@2x.png
+	sips -z 16 16     $(srcdir)/Dispatcher.png --out Dispatcher.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/Dispatcher.png --out Dispatcher.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/Dispatcher.png --out Dispatcher.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/Dispatcher.png --out Dispatcher.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/Dispatcher.png --out Dispatcher.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/Dispatcher.png --out Dispatcher.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/Dispatcher.png --out Dispatcher.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/Dispatcher.png --out Dispatcher.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/Dispatcher.png --out Dispatcher.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/Dispatcher.png --out Dispatcher.iconset/icon_512x512@2x.png
 	iconutil -c icns Dispatcher.iconset
 	-rm -rf Dispatcher.iconset
 	cp Dispatcher.icns Dispatcher.app/Contents/Resources/
@@ -290,3 +290,4 @@ clean-local:
 
 $(top_builddir)/Scripts/Common/Version.tcl: FORCE
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
+
