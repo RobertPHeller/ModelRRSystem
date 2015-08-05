@@ -43,7 +43,11 @@
 #* 
 
 EXTRA_DIST = Resistor.tcl LocoPull.tcl
+if MACOSX
+bin_SCRIPTS =  Resistor.dmg LocoPull.dmg
+else
 bin_SCRIPTS =  Resistor${EXEEXT} LocoPull${EXEEXT}
+endif
 ResistorSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
                 $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
                 $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
@@ -128,6 +132,41 @@ Resistor${EXEEXT}: Resistor.tcl $(ResistorSCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap Resistor${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf Resistor.vfs Resistor.kit
 
+if MACOSX
+# create application for Mac OSX                                               $
+Resistor.dmg: Resistor$(EXEEXT)
+	-rm -rf Resistor.app
+	mkdir -p Resistor.app/Contents/MacOS/
+	cp Resistor$(EXEEXT) Resistor.app/Contents/MacOS/
+	mkdir -p Resistor.app/Contents/Resources/
+	-rm -rf Resistor.iconset
+	mkdir Resistor.iconset
+	sips -z 16 16     $(srcdir)/Resistor.png --out Resistor.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/Resistor.png --out Resistor.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/Resistor.png --out Resistor.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/Resistor.png --out Resistor.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/Resistor.png --out Resistor.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/Resistor.png --out Resistor.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/Resistor.png --out Resistor.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/Resistor.png --out Resistor.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/Resistor.png --out Resistor.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/Resistor.png --out Resistor.iconset/icon_512x512@2x.png
+	iconutil -c icns Resistor.iconset
+	-rm -rf Resistor.iconset
+	cp Resistor.icns Resistor.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit Resistor 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o Resistor.app/Contents/Info.plist \
+		Resistor.plist
+	-rm -f Resistor.plist
+	-rm -rf dmg
+	mkdir dmg
+	cp -r Resistor.app dmg
+	ln -s /Applications dmg/
+	rm -f Resistor.dmg
+	hdiutil create -srcfolder dmg -format UDZO -volname Resistor.dmg Resistor.dmg
+	-rm -rf dmg
+endif
+
 
 LocoPull${EXEEXT}: LocoPull.tcl $(LocoPullSCRIPTS) \
 		$(top_builddir)/Doc/User/Calc/index.html \
@@ -149,6 +188,41 @@ LocoPull${EXEEXT}: LocoPull.tcl $(LocoPullSCRIPTS) \
 		Messages $(top_builddir)/po/CalcScripts/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap LocoPull${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf LocoPull.vfs LocoPull.kit
+
+if MACOSX
+# create application for Mac OSX                                               $
+LocoPull.dmg: LocoPull$(EXEEXT)
+	-rm -rf LocoPull.app
+	mkdir -p LocoPull.app/Contents/MacOS/
+	cp LocoPull$(EXEEXT) LocoPull.app/Contents/MacOS/
+	mkdir -p LocoPull.app/Contents/Resources/
+	-rm -rf LocoPull.iconset
+	mkdir LocoPull.iconset
+	sips -z 16 16     $(srcdir)/LocoPull.png --out LocoPull.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/LocoPull.png --out LocoPull.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/LocoPull.png --out LocoPull.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/LocoPull.png --out LocoPull.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/LocoPull.png --out LocoPull.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/LocoPull.png --out LocoPull.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/LocoPull.png --out LocoPull.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/LocoPull.png --out LocoPull.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/LocoPull.png --out LocoPull.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/LocoPull.png --out LocoPull.iconset/icon_512x512@2x.png
+	iconutil -c icns LocoPull.iconset
+	-rm -rf LocoPull.iconset
+	cp LocoPull.icns LocoPull.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit LocoPull 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o LocoPull.app/Contents/Info.plist \
+		LocoPull.plist
+	-rm -f LocoPull.plist
+	-rm -rf dmg
+	mkdir dmg
+	cp -r LocoPull.app dmg
+	ln -s /Applications dmg/
+	rm -f LocoPull.dmg
+	hdiutil create -srcfolder dmg -format UDZO -volname LocoPull.dmg LocoPull.dmg
+	-rm -rf dmg
+endif
 
 
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status

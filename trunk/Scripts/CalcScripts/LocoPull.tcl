@@ -387,6 +387,8 @@ for {set ia 0} {$ia < $argc} {incr ia} {
       fconfigure stdin -buffering line
       fconfigure stdout -buffering line
     }
+    -psn* {
+    }
     default {
       puts stderr "usage: $argv0 \[wish options\]"
       exit 96
