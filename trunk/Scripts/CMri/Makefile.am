@@ -115,6 +115,7 @@ UniversalTest${EXEEXT}: UniversalTest.src $(UniversalTestSCRIPTS) \
 		Messages $(top_builddir)/po/UniversalTest/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap UniversalTest${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf UniversalTest.vfs
+
 if MACOSX
 # create application for Mac OSX                                               $
 UniversalTest.dmg: UniversalTest$(EXEEXT)

@@ -34,8 +34,11 @@
 #* 
 
 GTScripts = 
-
+if MACOSX                                                                       
+bin_SCRIPTS = GenericThrottle.dmg
+else
 bin_SCRIPTS = GenericThrottle$(EXEEXT)
+endif
 
 GIFS = 
 
@@ -129,6 +132,41 @@ GenericThrottle$(EXEEXT) : GenericThrottle.src $(GTLibFiles) $(GTCommonFiles) \
 #		lib/$(GTLib) $(GTLibFiles)
 #	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit GenericThrottle \
 #		$(GTLib)
+
+if MACOSX
+# create application for Mac OSX                                               $
+GenericThrottle.dmg: GenericThrottle$(EXEEXT)
+	-rm -rf GenericThrottle.app
+	mkdir -p GenericThrottle.app/Contents/MacOS/
+	cp GenericThrottle$(EXEEXT) GenericThrottle.app/Contents/MacOS/
+	mkdir -p GenericThrottle.app/Contents/Resources/
+	-rm -rf GenericThrottle.iconset
+	mkdir GenericThrottle.iconset
+	sips -z 16 16     $(srcdir)/GenericThrottle.png --out GenericThrottle.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/GenericThrottle.png --out GenericThrottle.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/GenericThrottle.png --out GenericThrottle.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/GenericThrottle.png --out GenericThrottle.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/GenericThrottle.png --out GenericThrottle.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/GenericThrottle.png --out GenericThrottle.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/GenericThrottle.png --out GenericThrottle.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/GenericThrottle.png --out GenericThrottle.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/GenericThrottle.png --out GenericThrottle.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/GenericThrottle.png --out GenericThrottle.iconset/icon_512x512@2x.png
+	iconutil -c icns GenericThrottle.iconset
+	-rm -rf GenericThrottle.iconset
+	cp GenericThrottle.icns GenericThrottle.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit GenericThrottle 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o GenericThrottle.app/Contents/Info.plist \
+		GenericThrottle.plist
+	-rm -f GenericThrottle.plist
+	-rm -rf dmg
+	mkdir dmg
+	cp -r GenericThrottle.app dmg
+	ln -s /Applications dmg/
+	rm -f GenericThrottle.dmg
+	hdiutil create -srcfolder dmg -format UDZO -volname GenericThrottle.dmg GenericThrottle.dmg
+	-rm -rf dmg
+endif
 
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
