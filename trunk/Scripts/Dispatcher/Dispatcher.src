@@ -134,7 +134,7 @@ namespace eval Dispatcher {
   variable SimpleMode no
 }
 
-tk_messageBox -type ok -icon info -message "*** argc = $argc, argv = $argv"
+#tk_messageBox -type ok -icon info -message "*** argc = $argc, argv = $argv"
 
 for {set ia 0} {$ia < $argc} {incr ia} {
   switch -glob -- "[lindex $argv $ia]" {
