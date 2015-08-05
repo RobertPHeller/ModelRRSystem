@@ -42,7 +42,11 @@ MainProgramImages  = AnyDistance.xbm banner.gif Closest.xbm \
 		     TimeTable.xbm xtc64.xbm Dispatcher.xbm FCF.xbm \
 		     FCFCre.xbm
 
+if MACOSX                                                                       
+bin_SCRIPTS = ModelRRSystem.dmg                                                 
+else
 bin_SCRIPTS = ModelRRSystem$(EXEEXT)
+endif
 
 CLEANFILES = ModelRRSystem.kit $(bin_SCRIPTS)
 
@@ -112,6 +116,42 @@ ModelRRSystem$(EXEEXT) : ModelRRSystem.src $(ModelRRSystemLibFiles) $(CommonLibF
 		Help $(top_builddir)/Doc/User/MainProgram/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap ModelRRSystem${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf ModelRRSystem.vfs ModelRRSystem.kit
+
+if MACOSX
+# create application for Mac OSX                                               $
+ModelRRSystem.dmg: ModelRRSystem$(EXEEXT)
+	-rm -rf ModelRRSystem.app
+	mkdir -p ModelRRSystem.app/Contents/MacOS/
+	cp ModelRRSystem$(EXEEXT) ModelRRSystem.app/Contents/MacOS/
+	mkdir -p ModelRRSystem.app/Contents/Resources/
+	-rm -rf ModelRRSystem.iconset
+	mkdir ModelRRSystem.iconset
+	sips -z 16 16     $(srcdir)/ModelRRSystem.png --out ModelRRSystem.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/ModelRRSystem.png --out ModelRRSystem.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/ModelRRSystem.png --out ModelRRSystem.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/ModelRRSystem.png --out ModelRRSystem.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/ModelRRSystem.png --out ModelRRSystem.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/ModelRRSystem.png --out ModelRRSystem.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/ModelRRSystem.png --out ModelRRSystem.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/ModelRRSystem.png --out ModelRRSystem.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/ModelRRSystem.png --out ModelRRSystem.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/ModelRRSystem.png --out ModelRRSystem.iconset/icon_512x512@2x.png
+	iconutil -c icns ModelRRSystem.iconset
+	-rm -rf ModelRRSystem.iconset
+	cp ModelRRSystem.icns ModelRRSystem.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit ModelRRSystem 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o ModelRRSystem.app/Contents/Info.plist \
+		ModelRRSystem.plist
+	-rm -f ModelRRSystem.plist
+	-rm -rf dmg
+	mkdir dmg
+	cp -r ModelRRSystem.app dmg
+	ln -s /Applications dmg/
+	rm -f ModelRRSystem.dmg
+	hdiutil create -srcfolder dmg -format UDZO -volname ModelRRSystem.dmg ModelRRSystem.dmg
+	-rm -rf dmg
+endif
+
 
 $(top_builddir)/Doc/User/MainProgram/index.html: FORCE
 	$(MAKE) -C $(top_builddir)/Doc/User MainProgram/index.html
