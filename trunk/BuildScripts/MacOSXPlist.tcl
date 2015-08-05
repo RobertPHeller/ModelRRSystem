@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Aug 4 19:41:54 2015
-#  Last Modified : <150804.2104>
+#  Last Modified : <150804.2158>
 #
 #  Description	
 #
@@ -69,8 +69,6 @@ puts $xmlfp {    <key>CFBundleVersion</key>}
 puts $xmlfp "[format {    <string>%s</string>} $Version]"
 puts $xmlfp {    <key>CFBundlePackageType</key>}
 puts $xmlfp {    <string>APPL</string>}
-puts $xmlfp {    <key>CFBundleSignature</key>}
-puts $xmlfp {    <string>ttxt</string>}
 puts $xmlfp {    <key>CFBundleExecutable</key>}
 puts $xmlfp "[format {    <string>%s</string>} $BundleName]"
 puts $xmlfp {    <key>CFBundleLongVersionString</key>}
@@ -83,10 +81,6 @@ puts $xmlfp {    <key>CFBundleIconFile</key>}
 puts $xmlfp "[format {    <string>%s</string>} $BundleName]"
 puts $xmlfp {    <key>CFBundleInfoDictionaryVersion</key>}
 puts $xmlfp {    <string>6.0</string>}
-puts $xmlfp {    <key>CSResourcesFileMapped</key>}
-puts $xmlfp {    <true/>}
-puts $xmlfp {    <key>NSHighResolutionCapable</key>}
-puts $xmlfp {    <true/>}
 puts $xmlfp {    <key>NSHumanReadableCopyright</key>}
 puts $xmlfp "[format {    <string>Copyright %s</string>} $Copyright]"
 puts $xmlfp {  </dict>}
