@@ -42,7 +42,11 @@ DispatcherImages  = banner.gif search.gif load.gif largePrinter.gif \
 ExampleScripts = example1.tcl example2.tcl example3.tcl example4.tcl \
 		 example1.iow example2.iow example3.iow example4.iow
 
+if MACOSX
+bin_SCRIPTS = Dispatcher.dmg
+else
 bin_SCRIPTS = Dispatcher$(EXEEXT)
+endif
 
 pkgdataexdir = $(datadir)/$(PACKAGE)/Doc/DispatcherExamples
 pkgdataex_DATA = $(ExampleScripts) 
@@ -206,6 +210,40 @@ endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap Dispatcher${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf Dispatcher.vfs Dispatcher.kit
 
+if MACOSX 
+# create application for Mac OSX                                                
+Dispatcher.dmg: Dispatcher$(EXEEXT)
+	-rm -rf Dispatcher.app
+	mkdir -p Dispatcher.app/Contents/MacOS/
+	cp Dispatcher$(EXEEXT) Dispatcher.app/Contents/MacOS/
+	mkdir -p Dispatcher.app/Contents/Resources/
+	mkdir Dispatcher.iconset
+	sips -z 16 16     Dispatcher.png --out Dispatcher.iconset/icon_16x16.png
+	sips -z 32 32     Dispatcher.png --out Dispatcher.iconset/icon_16x16@2x.png
+	sips -z 32 32     Dispatcher.png --out Dispatcher.iconset/icon_32x32.png
+	sips -z 64 64     Dispatcher.png --out Dispatcher.iconset/icon_32x32@2x.png
+	sips -z 128 128   Dispatcher.png --out Dispatcher.iconset/icon_128x128.png
+	sips -z 256 256   Dispatcher.png --out Dispatcher.iconset/icon_128x128@2x.png
+	sips -z 256 256   Dispatcher.png --out Dispatcher.iconset/icon_256x256.png
+	sips -z 512 512   Dispatcher.png --out Dispatcher.iconset/icon_256x256@2x.png
+	sips -z 512 512   Dispatcher.png --out Dispatcher.iconset/icon_512x512.png
+	sips -z 1024 1024 Dispatcher.png --out Dispatcher.iconset/icon_512x512@2x.png
+	iconutil -c icns Dispatcher.iconset
+	-rm -rf Dispatcher.iconset
+	cp Dispatcher.icns Dispatcher.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit Dispatcher 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	cp Dispatcher.plist Dispatcher.app/Contents/Info.plist
+	-rm -f Dispatcher.plist
+	-rm -rf dmg
+	mkdir dmg
+	cp -r Dispatcher.app dmg
+	ln -s /Applications dmg/
+	rm -f Dispatcher.dmg
+	hdiutil create -srcfolder dmg -format UDZO -volname Dispatcher.dmg Dispatcher.dmg
+	-rm -rf dmg
+endif
+	
+	
 $(top_builddir)/Doc/User/Dispatcher/index.html : FORCE
 	$(MAKE) -C $(top_builddir)/Doc/User Dispatcher/index.html
 
