@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Aug 4 19:41:54 2015
-#  Last Modified : <150804.2020>
+#  Last Modified : <150804.2104>
 #
 #  Description	
 #
@@ -59,50 +59,30 @@ puts $xmlfp {<?xml version="1.0" encoding="ISO-8859-1"?>}
 puts $xmlfp {<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">}
 puts $xmlfp {<plist version="1.0">}
 puts $xmlfp {  <dict>}
-puts $xmlfp {    <key>CFBundleDevelopmentRegion</key>}
-puts $xmlfp {    <string>English</string>}
-puts $xmlfp {    <key>CFBundleDocumentTypes</key>}
-puts $xmlfp {    <array>}
-puts $xmlfp {      <dict>}
-puts $xmlfp {        <key>CFBundleTypeExtensions</key>}
-puts $xmlfp {        <array>}
-puts $xmlfp {          <string>hdf</string>}
-puts $xmlfp {          <string>HDF</string>}
-puts $xmlfp {        </array>}
-puts $xmlfp {        <key>CFBundleTypeIconFile</key>}
-puts $xmlfp "[format {        <string>%s</string>} $BundleName]"
-puts $xmlfp {        <key>CFBundleTypeMIMETypes</key>}
-puts $xmlfp {        <array>}
-puts $xmlfp {          <string>application/hdf</string>}
-puts $xmlfp {        </array>}
-puts $xmlfp {        <key>CFBundleTypeName</key>}
-puts $xmlfp {        <string>Hierarchical Data Format</string>}
-puts $xmlfp {        <key>CFBundleTypeRole</key>}
-puts $xmlfp {        <string>Viewer</string>}
-puts $xmlfp {      </dict>}
-puts $xmlfp {    </array>}
+puts $xmlfp {    <key>CFBundleName</key>}
+puts $xmlfp "[format {    <string>%s</string>} $BundleName]"
 puts $xmlfp {    <key>CFBundleDisplayName</key>}
 puts $xmlfp "[format {    <string>%s</string>} $BundleName]"
+puts $xmlfp {    <key>CFBundleIdentifier</key>}
+puts $xmlfp "[format {    <string>com.deepsoft.%s</string>} $BundleName]"
+puts $xmlfp {    <key>CFBundleVersion</key>}
+puts $xmlfp "[format {    <string>%s</string>} $Version]"
+puts $xmlfp {    <key>CFBundlePackageType</key>}
+puts $xmlfp {    <string>APPL</string>}
+puts $xmlfp {    <key>CFBundleSignature</key>}
+puts $xmlfp {    <string>ttxt</string>}
 puts $xmlfp {    <key>CFBundleExecutable</key>}
 puts $xmlfp "[format {    <string>%s</string>} $BundleName]"
+puts $xmlfp {    <key>CFBundleLongVersionString</key>}
+puts $xmlfp "[format {    <string>Version %s</string>} $Version]"
+puts $xmlfp {    <key>CFBundleShortVersionString</key>}
+puts $xmlfp "[format {    <string>%s</string>} $Version]"
 puts $xmlfp {    <key>CFBundleGetInfoString</key>}
 puts $xmlfp "[format {    <string>%s Version %s</string>} $BundleName $Version]"
 puts $xmlfp {    <key>CFBundleIconFile</key>}
 puts $xmlfp "[format {    <string>%s</string>} $BundleName]"
-puts $xmlfp {    <key>CFBundleIdentifier</key>}
-puts $xmlfp "[format {    <string>com.deepsoft.%s</string>} $BundleName]"
 puts $xmlfp {    <key>CFBundleInfoDictionaryVersion</key>}
 puts $xmlfp {    <string>6.0</string>}
-puts $xmlfp {    <key>CFBundleLongVersionString</key>}
-puts $xmlfp "[format {    <string>Version %s</string>} $Version]"
-puts $xmlfp {    <key>CFBundleName</key>}
-puts $xmlfp "[format {    <string>%s</string>} $BundleName]"
-puts $xmlfp {    <key>CFBundlePackageType</key>}
-puts $xmlfp {    <string>APPL</string>}
-puts $xmlfp {    <key>CFBundleShortVersionString</key>}
-puts $xmlfp "[format {    <string>%s</string>} $Version]"
-puts $xmlfp {    <key>CFBundleVersion</key>}
-puts $xmlfp "[format {    <string>%s</string>} $Version]"
 puts $xmlfp {    <key>CSResourcesFileMapped</key>}
 puts $xmlfp {    <true/>}
 puts $xmlfp {    <key>NSHighResolutionCapable</key>}
