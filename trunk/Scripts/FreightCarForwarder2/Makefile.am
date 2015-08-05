@@ -89,7 +89,12 @@ BUILT_SOURCES = $(TCLKIT)
 
 SUBDIRS = NorthAmerican
 
+if MACOSX                                                                       
+bin_SCRIPTS = FCFMain.dmg FCFCreate.dmg
+else                                                                            
 bin_SCRIPTS = FCFMain$(EXEEXT) FCFCreate$(EXEEXT)
+endif                                                                           
+
 EXTRA_DIST  = FCFMain.src FCFCreate.src $(FCFScripts) $(FCFCreScripts) \
 		addcar.gif assigncars.gif banner.gif \
 		closeprint.gif deletecar.gif editcar.gif loadcars.gif \
@@ -202,6 +207,41 @@ FCFMain${EXEEXT} : FCFMain.src $(FCFLibFiles) $(FCFCommonFiles) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap FCFMain${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf FCFMain.vfs FCFMain.kit
 
+if MACOSX
+# create application for Mac OSX                                               $
+FCFMain.dmg: FCFMain$(EXEEXT)
+	-rm -rf FCFMain.app
+	mkdir -p FCFMain.app/Contents/MacOS/
+	cp FCFMain$(EXEEXT) FCFMain.app/Contents/MacOS/
+	mkdir -p FCFMain.app/Contents/Resources/
+	-rm -rf FCFMain.iconset
+	mkdir FCFMain.iconset
+	sips -z 16 16     $(srcdir)/FCFMain.png --out FCFMain.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/FCFMain.png --out FCFMain.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/FCFMain.png --out FCFMain.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/FCFMain.png --out FCFMain.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/FCFMain.png --out FCFMain.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/FCFMain.png --out FCFMain.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/FCFMain.png --out FCFMain.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/FCFMain.png --out FCFMain.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/FCFMain.png --out FCFMain.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/FCFMain.png --out FCFMain.iconset/icon_512x512@2x.png
+	iconutil -c icns FCFMain.iconset
+	-rm -rf FCFMain.iconset
+	cp FCFMain.icns FCFMain.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit FCFMain 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o FCFMain.app/Contents/Info.plist \
+		FCFMain.plist
+	-rm -f FCFMain.plist
+	-rm -rf dmg
+	mkdir dmg
+	cp -r FCFMain.app dmg
+	ln -s /Applications dmg/
+	rm -f FCFMain.dmg
+	hdiutil create -srcfolder dmg -format UDZO -volname FCFMain.dmg FCFMain.dmg
+	-rm -rf dmg
+endif
+
 FCFCreate$(EXEEXT) : FCFCreate.src $(FCFCreLibFiles) $(FCFCommonFiles) \
 		$(top_builddir)/po/FreightCarForwarder2/msgfiles \
 		$(top_builddir)/Doc/User/FCF/index.html \
@@ -231,6 +271,41 @@ FCFCreate$(EXEEXT) : FCFCreate.src $(FCFCreLibFiles) $(FCFCommonFiles) \
 		Messages $(top_builddir)/po/FreightCarForwarder2/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap FCFCreate${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf FCFCreate.vfs FCFCreate.kit
+
+if MACOSX
+# create application for Mac OSX                                               $
+FCFCreate.dmg: FCFCreate$(EXEEXT)
+	-rm -rf FCFCreate.app
+	mkdir -p FCFCreate.app/Contents/MacOS/
+	cp FCFCreate$(EXEEXT) FCFCreate.app/Contents/MacOS/
+	mkdir -p FCFCreate.app/Contents/Resources/
+	-rm -rf FCFCreate.iconset
+	mkdir FCFCreate.iconset
+	sips -z 16 16     $(srcdir)/FCFCreate.png --out FCFCreate.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/FCFCreate.png --out FCFCreate.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/FCFCreate.png --out FCFCreate.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/FCFCreate.png --out FCFCreate.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/FCFCreate.png --out FCFCreate.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/FCFCreate.png --out FCFCreate.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/FCFCreate.png --out FCFCreate.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/FCFCreate.png --out FCFCreate.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/FCFCreate.png --out FCFCreate.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/FCFCreate.png --out FCFCreate.iconset/icon_512x512@2x.png
+	iconutil -c icns FCFCreate.iconset
+	-rm -rf FCFCreate.iconset
+	cp FCFCreate.icns FCFCreate.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit FCFCreate 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o FCFCreate.app/Contents/Info.plist \
+		FCFCreate.plist
+	-rm -f FCFCreate.plist
+	-rm -rf dmg
+	mkdir dmg
+	cp -r FCFCreate.app dmg
+	ln -s /Applications dmg/
+	rm -f FCFCreate.dmg
+	hdiutil create -srcfolder dmg -format UDZO -volname FCFCreate.dmg FCFCreate.dmg
+	-rm -rf dmg
+endif
 
 
 $(top_builddir)/Doc/User/FCF/index.html : FORCE

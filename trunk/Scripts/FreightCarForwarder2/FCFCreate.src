@@ -118,6 +118,8 @@ for {set ia 0} {$ia < $argc} {incr ia} {
     -console {
 	catch {console show}
     }
+    -psn* {
+    }
     -* {
     	puts stderr [_ "usage: %s \[wish options\] -- \[-isslave\] \[-console\]" $argv0]
 	exit 96
