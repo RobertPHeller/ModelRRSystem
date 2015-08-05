@@ -70,7 +70,12 @@ TTScripts = TTMainWindow.tcl TTMenuSupport.tcl TTFileIO.tcl \
 	    TTTrains.tcl TTStations.tcl TTCabs.tcl TTNotes.tcl TTPrint.tcl \
 	    TTSystemConfiguration.tcl
 
+if MACOSX                                                                       
+bin_SCRIPTS = TTChart2TT2$(EXEEXT) TimeTable.dmg
+else
 bin_SCRIPTS = TTChart2TT2$(EXEEXT) TimeTable$(EXEEXT)
+endif
+
 GIFS =  addstorage.gif  cleardupstation.gif  setdupstation.gif \
 	addtrain.gif    deletetrain.gif      smallStation.gif \
 	banner.gif      edittrain.gif        smallTrack.gif \
@@ -208,6 +213,41 @@ TimeTable$(EXEEXT) : TimeTable.src $(TTLibFiles) $(TTCommonFiles) \
 		Messages $(top_builddir)/po/TimeTable2/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap TimeTable${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf TimeTable.vfs TimeTable.kit
+
+if MACOSX
+# create application for Mac OSX                                               $
+TimeTable.dmg: TimeTable$(EXEEXT)
+	-rm -rf TimeTable.app
+	mkdir -p TimeTable.app/Contents/MacOS/
+	cp TimeTable$(EXEEXT) TimeTable.app/Contents/MacOS/
+	mkdir -p TimeTable.app/Contents/Resources/
+	-rm -rf TimeTable.iconset
+	mkdir TimeTable.iconset
+	sips -z 16 16     $(srcdir)/TimeTable.png --out TimeTable.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/TimeTable.png --out TimeTable.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/TimeTable.png --out TimeTable.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/TimeTable.png --out TimeTable.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/TimeTable.png --out TimeTable.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/TimeTable.png --out TimeTable.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/TimeTable.png --out TimeTable.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/TimeTable.png --out TimeTable.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/TimeTable.png --out TimeTable.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/TimeTable.png --out TimeTable.iconset/icon_512x512@2x.png
+	iconutil -c icns TimeTable.iconset
+	-rm -rf TimeTable.iconset
+	cp TimeTable.icns TimeTable.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit TimeTable 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o TimeTable.app/Contents/Info.plist \
+		TimeTable.plist
+	-rm -f TimeTable.plist
+	-rm -rf dmg
+	mkdir dmg
+	cp -r TimeTable.app dmg
+	ln -s /Applications dmg/
+	rm -f TimeTable.dmg
+	hdiutil create -srcfolder dmg -format UDZO -volname TimeTable.dmg TimeTable.dmg
+	-rm -rf dmg
+endif
 
 $(top_builddir)/C++/TTSupport/libttclasses.la : \
 		$(top_srcdir)/C++/TTSupport/*.cc \

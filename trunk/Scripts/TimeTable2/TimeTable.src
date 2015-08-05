@@ -238,6 +238,8 @@ namespace eval TimeTable {
       fconfigure stdin -buffering line
       fconfigure stdout -buffering line
       }
+      -psn* {
+      }
       -* {
     	puts stderr [_ "usage: %s \[wish options\] -- \[-totaltime time\] \[-timeincrement time\] \[-isslave\] \[timetablename or timetablefile\]" $argv0]
 	exit 96
