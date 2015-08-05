@@ -8,7 +8,11 @@ pkgdata_DATA =  xpressnet.tcl pkgIndex.tcl XPressNetThrottle.pot
 
 BUILT_SOURCES = $(TCLKIT)
 
+if MACOSX
+bin_SCRIPTS = XPressNetThrottle.dmg
+else
 bin_SCRIPTS = XPressNetThrottle${EXEEXT}
+endif
 
 desktopdir = $(datadir)/applications
 desktop_DATA = XPressNetThrottle.desktop
@@ -88,6 +92,41 @@ XPressNetThrottle${EXEEXT}: XPressNetThrottle.src \
 		Messages $(top_builddir)/po/XPressNetThrottle/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap XPressNetThrottle${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf XPressNetThrottle.vfs
+
+if MACOSX
+# create application for Mac OSX                                               $
+XPressNetThrottle.dmg: XPressNetThrottle$(EXEEXT)
+	-rm -rf XPressNetThrottle.app
+	mkdir -p XPressNetThrottle.app/Contents/MacOS/
+	cp XPressNetThrottle$(EXEEXT) XPressNetThrottle.app/Contents/MacOS/
+	mkdir -p XPressNetThrottle.app/Contents/Resources/
+	-rm -rf XPressNetThrottle.iconset
+	mkdir XPressNetThrottle.iconset
+	sips -z 16 16     $(srcdir)/XPressNetThrottle.png --out XPressNetThrottle.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/XPressNetThrottle.png --out XPressNetThrottle.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/XPressNetThrottle.png --out XPressNetThrottle.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/XPressNetThrottle.png --out XPressNetThrottle.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/XPressNetThrottle.png --out XPressNetThrottle.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/XPressNetThrottle.png --out XPressNetThrottle.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/XPressNetThrottle.png --out XPressNetThrottle.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/XPressNetThrottle.png --out XPressNetThrottle.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/XPressNetThrottle.png --out XPressNetThrottle.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/XPressNetThrottle.png --out XPressNetThrottle.iconset/icon_512x512@2x.png
+	iconutil -c icns XPressNetThrottle.iconset
+	-rm -rf XPressNetThrottle.iconset
+	cp XPressNetThrottle.icns XPressNetThrottle.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit XPressNetThrottle 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o XPressNetThrottle.app/Contents/Info.plist \
+		XPressNetThrottle.plist
+	-rm -f XPressNetThrottle.plist
+	-rm -rf dmg
+	mkdir dmg
+	cp -r XPressNetThrottle.app dmg
+	ln -s /Applications dmg/
+	rm -f XPressNetThrottle.dmg
+	hdiutil create -srcfolder dmg -format UDZO -volname XPressNetThrottle.dmg XPressNetThrottle.dmg
+	-rm -rf dmg
+endif
 
 
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
