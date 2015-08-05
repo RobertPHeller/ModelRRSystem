@@ -34,7 +34,12 @@
 #* 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
+if MACOSX
+bin_SCRIPTS = UniversalTest.dmg
+else
 bin_SCRIPTS = UniversalTest${EXEEXT}
+endif
+
 pkgdatadir = $(datadir)/$(PACKAGE)/CMri
 pkgdata_DATA = UniversalTest.pot cmri.tcl pkgIndex.tcl
 
@@ -110,6 +115,42 @@ UniversalTest${EXEEXT}: UniversalTest.src $(UniversalTestSCRIPTS) \
 		Messages $(top_builddir)/po/UniversalTest/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap UniversalTest${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf UniversalTest.vfs
+if MACOSX
+# create application for Mac OSX                                               $
+UniversalTest.dmg: UniversalTest$(EXEEXT)
+	-rm -rf UniversalTest.app
+	mkdir -p UniversalTest.app/Contents/MacOS/
+	cp UniversalTest$(EXEEXT) UniversalTest.app/Contents/MacOS/
+	mkdir -p UniversalTest.app/Contents/Resources/
+	-rm -rf UniversalTest.iconset
+	mkdir UniversalTest.iconset
+	sips -z 16 16     $(srcdir)/UniversalTest.png --out UniversalTest.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/UniversalTest.png --out UniversalTest.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/UniversalTest.png --out UniversalTest.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/UniversalTest.png --out UniversalTest.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/UniversalTest.png --out UniversalTest.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/UniversalTest.png --out UniversalTest.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/UniversalTest.png --out UniversalTest.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/UniversalTest.png --out UniversalTest.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/UniversalTest.png --out UniversalTest.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/UniversalTest.png --out UniversalTest.iconset/icon_512x512@2x.png
+	iconutil -c icns UniversalTest.iconset
+	-rm -rf UniversalTest.iconset
+	cp UniversalTest.icns UniversalTest.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit UniversalTest 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o UniversalTest.app/Contents/Info.plist \
+		UniversalTest.plist
+	-rm -f UniversalTest.plist
+	-rm -rf dmg
+	mkdir dmg
+	cp -r UniversalTest.app dmg
+	ln -s /Applications dmg/
+	rm -f UniversalTest.dmg
+	hdiutil create -srcfolder dmg -format UDZO -volname UniversalTest.dmg UniversalTest.dmg
+	-rm -rf dmg
+endif
+
+
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
 
