@@ -65,11 +65,21 @@ setupIMAGES =
 setupLIBIMAGES = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif
 EXTRA_DIST = diskfree.i setup.tcl $(setupIMAGES)
 
+if MACOSX
+noinst_SCRIPTS = setup.dmg
+else
 noinst_SCRIPTS = setup${EXEEXT}
+endif
 
+if MACOSX
+install-data-hook: setup.dmg
+	test -z "$(pkglibdir)" || $(mkdir_p) "$(DESTDIR)$(pkglibdir)"
+	$(INSTALL_DATA) "setup.dmg"  "$(DESTDIR)$(pkglibdir)/setup.dmg"
+else
 install-data-hook: setup${EXEEXT}
 	test -z "$(pkglibdir)" || $(mkdir_p) "$(DESTDIR)$(pkglibdir)"
 	$(INSTALL_DATA) "setup${EXEEXT}"  "$(DESTDIR)$(pkglibdir)/setup${EXEEXT}"
+endif
 
 CLEANFILES = $(BUILT_SOURCES) pkgIndex.tcl setup.kit setup${EXEEXT}
 
