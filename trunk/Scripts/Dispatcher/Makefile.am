@@ -217,6 +217,7 @@ Dispatcher.dmg: Dispatcher$(EXEEXT)
 	mkdir -p Dispatcher.app/Contents/MacOS/
 	cp Dispatcher$(EXEEXT) Dispatcher.app/Contents/MacOS/
 	mkdir -p Dispatcher.app/Contents/Resources/
+	-rm -rf Dispatcher.iconset
 	mkdir Dispatcher.iconset
 	sips -z 16 16     $(srcdir)/Dispatcher.png --out Dispatcher.iconset/icon_16x16.png
 	sips -z 32 32     $(srcdir)/Dispatcher.png --out Dispatcher.iconset/icon_16x16@2x.png
