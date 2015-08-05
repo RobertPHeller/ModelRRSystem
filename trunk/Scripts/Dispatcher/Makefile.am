@@ -233,7 +233,8 @@ Dispatcher.dmg: Dispatcher$(EXEEXT)
 	-rm -rf Dispatcher.iconset
 	cp Dispatcher.icns Dispatcher.app/Contents/Resources/
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit Dispatcher 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
-	cp Dispatcher.plist Dispatcher.app/Contents/Info.plist
+	plutil -convert binary1 -o Dispatcher.app/Contents/Info.plist \
+		Dispatcher.plist
 	-rm -f Dispatcher.plist
 	-rm -rf dmg
 	mkdir dmg
