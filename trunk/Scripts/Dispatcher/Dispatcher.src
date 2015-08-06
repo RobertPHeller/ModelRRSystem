@@ -231,7 +231,7 @@ proc Dispatcher::MainWindow {} {
   variable FocusNowhere [canvas .focusNowhere]
   
   variable Main [mainwindow .main -dontwithdraw $::IsSlave \
-                 -applemenu {Apple {apple} {apple} 0 {}} \
+                 -applemenu {apple {apple} {apple} 0 {}} \
                  -extramenus {"&Windows" {windows} {windows} 0 {}}]
   pack $Main -expand yes -fill both
   $Main toolbar add tools
