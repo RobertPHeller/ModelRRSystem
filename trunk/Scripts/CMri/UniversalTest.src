@@ -143,6 +143,10 @@ proc MainWindow {} {
     [list command [_m "Menu|Help|Copying"] {help:copying} [_ "Copying"] {} -command "HTMLHelp help Copying"]
   lappend hmenu_cs \
     [list command [_m "Menu|Help|Reference Manual"] {help:reference} [_ "Reference Manual"] {} -command {HTMLHelp help "Universal Test Program Reference"}]
+  if {$::tcl_platform(os) eq "Darwin"} {
+      lappend hmenu_cs \
+            [list command [_m "Menu|Help|About"] {help:about} [_ "About"] {} -command {::tk::mac::standardAboutPane}]
+  }
   lappend hmenu $hmenu_cs
 
   set menubar [StdMenuBar MakeMenu \
@@ -706,3 +710,29 @@ for {set ia 0} {$ia < $argc} {incr ia} {
 
 MainWindow
 
+if {$::tcl_platform(os) eq "Darwin"} {
+    proc ::tk::mac::ReopenApplication {} {
+        if {[wm state .] eq "withdrawn"} {
+            wm state . normal
+        } else {
+            wm deiconify .
+        }
+    }
+    proc ::tk::mac::Quit {} {
+        CarefulExit
+    }
+    proc ::tk::mac::OnHide {} {
+        wm withdraw .
+    }
+    proc ::tk::mac::OnShow {} {
+        if {[wm state .] eq "withdrawn"} {
+            wm state . normal
+        } else {
+            wm deiconify .
+        }
+    }
+    
+    proc ::tk::mac::ShowHelp {} {
+        HTMLHelp help {Universal Test Program Reference}
+    }
+}

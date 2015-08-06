@@ -236,7 +236,7 @@ TimeTable.dmg: TimeTable$(EXEEXT)
 	iconutil -c icns TimeTable.iconset
 	-rm -rf TimeTable.iconset
 	cp TimeTable.icns TimeTable.app/Contents/Resources/
-	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit TimeTable 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit TimeTable 2.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o TimeTable.app/Contents/Info.plist \
 		TimeTable.plist
 	-rm -f TimeTable.plist

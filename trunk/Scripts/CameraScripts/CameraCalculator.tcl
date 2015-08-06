@@ -152,6 +152,18 @@ proc CameraCalculator::CameraCalculator {anyDistanceP} {
   variable FilmNames
 
   # Construct menubar.
+  set helpmenu1 [list \
+                 [list command [_m "Menu|Help|On &Help..."] {help:help} [_ "Help on help"] {} -command "HTMLHelp help Help"] \
+                 [list command [_m "Menu|Help|On &Version"] {help:version} [_ "Version"] {} -command "HTMLHelp help Version"] \
+                 [list command [_m "Menu|Help|Warranty"] {help:warranty} [_ "Warranty"] {} -command "HTMLHelp help Warranty"] \
+                 [list command [_m "Menu|Help|Copying"] {help:copying} [_ "Copying"] {} -command "HTMLHelp help Copying"] \
+                 [list command [_m "Menu|Help|Reference Manual"] {help:reference} [_ "Reference Manual"] {} -command {HTMLHelp help "Camera Programs Reference"}] \
+                 ]
+    if {$::tcl_platform(os) eq "Darwin"} {
+      lappend helpmenu1 [list command [_m "Menu|Help|About"] {help:about} [_ "About"] {} -command {::tk::mac::standardAboutPane}]
+  }
+  set helpmenu [list [_m "Menu|&Help"] {help} {help} 0 $helpmenu1]
+
   set menubar [StdMenuBar MakeMenu \
 	-file [list [_m "Menu|&File"] {file} {file} 0 [list \
 	[list command [_m "Menu|File|&New"] {file:new} [_ "New Lens"] {Ctrl n} \
@@ -169,14 +181,7 @@ proc CameraCalculator::CameraCalculator {anyDistanceP} {
 	[list command [_m "Menu|File|E&xit"] {file:exit}  [_ "Close the application"] {Ctrl q} \
 					-command {CameraCalculator::CarefulExit}] \
 	] \
-    ] -help [list [_m "Menu|&Help"] {help} {help} 0 [list \
-		[list command [_m "Menu|Help|On &Help..."] {help:help} [_ "Help on help"] {} -command "HTMLHelp help Help"] \
-		[list command [_m "Menu|Help|On &Version"] {help:version} [_ "Version"] {} -command "HTMLHelp help Version"] \
-		[list command [_m "Menu|Help|Warranty"] {help:warranty} [_ "Warranty"] {} -command "HTMLHelp help Warranty"] \
-		[list command [_m "Menu|Help|Copying"] {help:copying} [_ "Copying"] {} -command "HTMLHelp help Copying"] \
-		[list command [_m "Menu|Help|Reference Manual"] {help:reference} [_ "Reference Manual"] {} -command {HTMLHelp help "Camera Programs Reference"}] \
-	] \
-    ]]
+    ] -help $helpmenu]
 
   # Construct the main frame.
   variable Status {}
@@ -384,6 +389,33 @@ proc CameraCalculator::PrintDiagram {} {
 
   variable LensCanvas
   CameraPrintDialog::PrintCanvasDialog draw -canvas $LensCanvas
+}
+
+if {$::tcl_platform(os) eq "Darwin"} {
+    proc ::tk::mac::ReopenApplication {} {
+        if {[wm state .] eq "withdrawn"} {
+            wm state . normal
+        } else {
+            wm deiconify .
+        }
+    }
+    proc ::tk::mac::Quit {} {
+        CameraCalculator::CarefulExit
+    }
+    proc ::tk::mac::OnHide {} {
+        wm withdraw .
+    }
+    proc ::tk::mac::OnShow {} {
+        if {[wm state .] eq "withdrawn"} {
+            wm state . normal
+        } else {
+            wm deiconify .
+        }
+    }
+    
+    proc ::tk::mac::ShowHelp {} {
+        HTMLHelp help {Camera Programs Program Reference}
+    }
 }
 
 

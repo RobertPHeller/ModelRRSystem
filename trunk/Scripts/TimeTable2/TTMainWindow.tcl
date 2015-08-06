@@ -968,6 +968,14 @@ proc TimeTable::MainWindow {dontWithdraw} {
 	-label {Re-load System Configuration} \
 	-command [list TimeTable::TimeTableConfiguration read "$SysConfigFile"] \
 	-dynamichelp "Reload the system configuration"
+  
+  if {$::tcl_platform(os) eq "Darwin"} {
+      proc ::tk::mac::ShowPreferences {} {
+          TimeTable::TimeTableConfiguration edit
+      }
+  }
+  
+
   $Main toolbar add tools
   $Main toolbar show tools
   variable MainWindow 
@@ -992,6 +1000,10 @@ proc TimeTable::MainWindow {dontWithdraw} {
 	-command "HTMLHelp help Copying"
   $Main menu entryconfigure help "Warranty" \
 	-command "HTMLHelp help Warranty"
+  if {$::tcl_platform(os) eq "Darwin"} {
+      $Main menu add help command -label [_m "Menu|Help|About"] \
+            -command ::tk::mac::standardAboutPanel
+  }
 
   variable HelpDir
 

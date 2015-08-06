@@ -367,3 +367,29 @@ if {$mwidth > 0 && $mheight > 0} {
   wm geometry . ${mwidth}x${mheight}
 }
 
+if {$::tcl_platform(os) eq "Darwin"} {
+    proc ::tk::mac::ReopenApplication {} {
+        if {[wm state .] eq "withdrawn"} {
+            wm state . normal
+        } else {
+            wm deiconify .
+        }
+    }
+    proc ::tk::mac::Quit {} {
+        TimeTable::CarefulExit
+    }
+    proc ::tk::mac::OnHide {} {
+        wm withdraw .
+    }
+    proc ::tk::mac::OnShow {} {
+        if {[wm state .] eq "withdrawn"} {
+            wm state . normal
+        } else {
+            wm deiconify .
+        }
+    }
+    
+    proc ::tk::mac::ShowHelp {} {
+        HTMLHelp help {Time Table (V2) Reference}
+    }
+}

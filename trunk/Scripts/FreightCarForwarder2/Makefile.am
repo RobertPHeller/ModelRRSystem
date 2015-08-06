@@ -229,7 +229,7 @@ FCFMain.dmg: FCFMain$(EXEEXT)
 	iconutil -c icns FCFMain.iconset
 	-rm -rf FCFMain.iconset
 	cp FCFMain.icns FCFMain.app/Contents/Resources/
-	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit FCFMain 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit FCFMain 2.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o FCFMain.app/Contents/Info.plist \
 		FCFMain.plist
 	-rm -f FCFMain.plist

@@ -322,6 +322,18 @@ namespace eval LocoPull {
   variable Calculator
 
   # Create menubar
+  set helpmenu1 [list \
+                 [list command [_m "Menu|Help|On &Help..."] {help:help} [_ "Help on help"] {} -command "HTMLHelp help Help"] \
+                 [list command [_m "Menu|Help|On &Version"] {help:version} [_ "Version"] {} -command "HTMLHelp help Version"] \
+                 [list command [_m "Menu|Help|Warranty"] {help:warranty} [_ "Warranty"] {} -command "HTMLHelp help Warranty"] \
+                 [list command [_m "Menu|Help|Copying"] {help:copying} [_ "Copying"] {} -command "HTMLHelp help Copying"] \
+                 [list command [_m "Menu|Help|Reference Manual"] {help:reference} [_ "Reference Manual"] {} -command {HTMLHelp help "LocoPull Program Reference"}] \
+                 ]
+  if {$::tcl_platform(os) eq "Darwin"} {
+      lappend helpmenu1 [list command [_m "Menu|Help|About"] {help:about} [_ "About"] {} -command {::tk::mac::standardAboutPane}]
+  }
+  
+  set helpmenu [list [_m "Menu|&Help"] {help} {help} 0 $helpmenu1]
   set menubar [StdMenuBar MakeMenu \
 	-file [list [_m "Menu|&File"] {file} {file} 0 [list \
 	     [list command [_m "Menu|File|&New"] {file:new} [_ "Reset Values"]  {Ctrl n} -command {$LocoPull::Calculator reset}] \
@@ -330,14 +342,7 @@ namespace eval LocoPull {
 	     [list command [_m "Menu|File|&Close"] {file:close} [_ "Close the application"] {Ctrl q} -command {LocoPull::CareFulExit}] \
 	     [list command [_m "Menu|File|E&xit"] {file:exit} [_ "Close the application"] {Ctrl q} -command {LocoPull::CareFulExit}] \
 	] \
-    ] -help [list [_m "Menu|&Help"] {help} {help} 0 [list \
-		[list command [_m "Menu|Help|On &Help..."] {help:help} [_ "Help on help"] {} -command "HTMLHelp help Help"] \
-		[list command [_m "Menu|Help|On &Version"] {help:version} [_ "Version"] {} -command "HTMLHelp help Version"] \
-		[list command [_m "Menu|Help|Warranty"] {help:warranty} [_ "Warranty"] {} -command "HTMLHelp help Warranty"] \
-		[list command [_m "Menu|Help|Copying"] {help:copying} [_ "Copying"] {} -command "HTMLHelp help Copying"] \
-		[list command [_m "Menu|Help|Reference Manual"] {help:reference} [_ "Reference Manual"] {} -command {HTMLHelp help "LocoPull Program Reference"}] \
-	] \
-    ]]
+    ] -help $helpmenu]
   # Create main frame
   wm withdraw .
   set Main [MainFrame .main -menu $menubar]
@@ -406,6 +411,33 @@ if {!$IsSlave} {
   set y [expr {[winfo screenheight $w]/2 - [winfo reqheight $w]/2 \
             - [winfo vrooty $w]}]
   wm geom $w +$x+$y
+}
+
+if {$::tcl_platform(os) eq "Darwin"} {
+    proc ::tk::mac::ReopenApplication {} {
+        if {[wm state .] eq "withdrawn"} {
+            wm state . normal
+        } else {
+            wm deiconify .
+        }
+    }
+    proc ::tk::mac::Quit {} {
+        LocoPull::CarefulExit
+    }
+    proc ::tk::mac::OnHide {} {
+        wm withdraw .
+    }
+    proc ::tk::mac::OnShow {} {
+        if {[wm state .] eq "withdrawn"} {
+            wm state . normal
+        } else {
+            wm deiconify .
+        }
+    }
+    
+    proc ::tk::mac::ShowHelp {} {
+        HTMLHelp help {LocoPull Program Reference}
+    }
 }
 
 update idle

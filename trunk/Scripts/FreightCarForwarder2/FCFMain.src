@@ -270,7 +270,11 @@ proc MainWindow {} {
 	-command "HTMLHelp help Copying"
   $Main menu entryconfigure help [_m "Menu|Help|Warranty"] \
 	-command "HTMLHelp help Warranty"
-
+  
+  if {$::tcl_platform(os) eq "Darwin"} {
+      $Main menu add help command -label [_m "Menu|Help|About"] \
+            -command ::tk::mac::standardAboutPanel
+  }
   HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
 }
 
@@ -784,5 +788,32 @@ if {$IsSlave} {
       default {}
     }
   }
+}
+
+if {$::tcl_platform(os) eq "Darwin"} {
+    proc ::tk::mac::ReopenApplication {} {
+        if {[wm state .] eq "withdrawn"} {
+            wm state . normal
+        } else {
+            wm deiconify .
+        }
+    }
+    proc ::tk::mac::Quit {} {
+        CarefulExit
+    }
+    proc ::tk::mac::OnHide {} {
+        wm withdraw .
+    }
+    proc ::tk::mac::OnShow {} {
+        if {[wm state .] eq "withdrawn"} {
+            wm state . normal
+        } else {
+            wm deiconify .
+        }
+    }
+    
+    proc ::tk::mac::ShowHelp {} {
+        HTMLHelp help {Freight Car Forwarder (V2) Reference}
+    }
 }
 
