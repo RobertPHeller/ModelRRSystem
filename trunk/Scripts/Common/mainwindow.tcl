@@ -610,7 +610,7 @@ snit::widgetadaptor mainwindow {
     } else {
       set menudesc $options(-menu)
     }
-    puts stderr "*** $type create $self: menudesc = $menudesc"
+    #puts stderr "*** $type create $self: menudesc = $menudesc"
     set options(-separator) [from args -separator]
     set status {}
     set progress 0
