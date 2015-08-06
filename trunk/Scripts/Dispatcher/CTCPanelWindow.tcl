@@ -370,6 +370,11 @@ namespace eval CTCPanelWindow {
 	-command "HTMLHelp help Copying"
       $main menu entryconfigure help [_m "Menu|Help|Warranty"] \
 	-command "HTMLHelp help Warranty"
+      if {$::tcl_platform(os) eq "Darwin"} {
+          $Main menu add help command \
+                -label [_m "Menu|Help|About"] \
+                -command ::tk::mac::standardAboutPanel
+      }
 
       $main mainframe setmenustate cmri disabled
       $main mainframe setmenustate azatrax disabled
