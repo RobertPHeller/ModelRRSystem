@@ -789,17 +789,17 @@ if {$::tcl_platform(os) eq "Darwin"} {
             }
         }
     }
-    ::tk::mac::Quit {} {
+    proc ::tk::mac::Quit {} {
         Dispatcher::CarefulExit
     }
-    ::tk::mac::OnHide {} {
+    proc ::tk::mac::OnHide {} {
         Dispatcher::HideAllWindows
     }
-    ::tk::mac::OnShow {} {
+    proc ::tk::mac::OnShow {} {
         Dispatcher::ShowAllWindows
     }
     
-    ::tk::mac::ShowHelp {} {
+    proc ::tk::mac::ShowHelp {} {
         HTMLHelp help {Dispatcher Reference}
     }
     proc Dispatcher::HideAllWindows {} {
