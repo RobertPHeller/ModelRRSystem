@@ -230,11 +230,9 @@ proc Dispatcher::MainWindow {} {
 
   variable FocusNowhere [canvas .focusNowhere]
   
-  set extramenus {"&Windows" {windows} {windows} 0 {}}
-  if {$::tcl_platform(os) eq "Darwin"} {
-      lappend extramenus Apple {apple} {apple} 0 [list [list command [_m "Menu|Apple|&About"] {apple:about} "" {} -command {tk_messageBox -type ok -icon info -message "About Dispatcher..."}]]
-  }
-  variable Main [mainwindow .main -dontwithdraw $::IsSlave -extramenus $extramenus]
+  variable Main [mainwindow .main -dontwithdraw $::IsSlave \
+                 -applemenu {Apple {apple} {apple} 0 {}} \
+                 -extramenus {"&Windows" {windows} {windows} 0 {}}]
   pack $Main -expand yes -fill both
   $Main toolbar add tools
   $Main toolbar show tools

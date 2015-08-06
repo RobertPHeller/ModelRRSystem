@@ -69,6 +69,7 @@ snit::widgetadaptor mainwindow {
 # @arg -extramenus Like the basic MainFrame -menu option, but can be used
 # 	   when the just additional menus need to be added to the standard
 #	   set.
+# @arg -applemenu Apple menu (MacOS only).  Defines an Apple item.
 # @arg -height Widget height.  Delegated to the hull (MainFrame) widget.
 # @arg -width Widget width.  Delegated to the hull (MainFrame) widget.
 # @arg -separator Include a separator between windows on the MainFrame
@@ -124,6 +125,7 @@ snit::widgetadaptor mainwindow {
   option {-extramenus extraMenus ExtraMenus} \
 	-readonly yes \
 	-default {}
+  option {-applemenu appleMenu AppleMenu} -readonly yes -default {}
   delegate option -height to hull
   delegate option -width  to hull
   option -separator -default both
@@ -610,7 +612,13 @@ snit::widgetadaptor mainwindow {
     } else {
       set menudesc $options(-menu)
     }
-    #puts stderr "*** $type create $self: menudesc = $menudesc"
+    if {$::tcl_platform(os) eq "Darwin"} {
+        set options(-applemenu) [from args -applemenu]
+        if {[llength $options(-applemenu)] > 0} {
+            set menudesc [eval [list linsert $menudesc 0] $options(-applemenu)]
+        }
+    }
+    puts stderr "*** $type create $self: menudesc = $menudesc"
     set options(-separator) [from args -separator]
     set status {}
     set progress 0

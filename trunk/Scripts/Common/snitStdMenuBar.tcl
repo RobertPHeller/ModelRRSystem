@@ -168,7 +168,7 @@ snit::type StdMenuBar {
       set menu [lreplace $menu [expr $index + 1] [expr $index + 1] $value]
     }
   }
-  3puts stderr "*** StdMenuBar::MakeMenu: menu = $menu"
+  #puts stderr "*** StdMenuBar::MakeMenu: menu = $menu"
   set result {}
   foreach {option value} $menu {
     eval [concat lappend result $value]
