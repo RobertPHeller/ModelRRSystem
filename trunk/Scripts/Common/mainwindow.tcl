@@ -618,7 +618,7 @@ snit::widgetadaptor mainwindow {
             set menudesc [eval [list linsert $menudesc 0] $options(-applemenu)]
         }
     }
-    puts stderr "*** $type create $self: menudesc = $menudesc"
+    #puts stderr "*** $type create $self: menudesc = $menudesc"
     set options(-separator) [from args -separator]
     set status {}
     set progress 0
