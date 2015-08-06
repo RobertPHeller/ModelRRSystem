@@ -232,7 +232,7 @@ proc Dispatcher::MainWindow {} {
   
   set extramenus {"&Windows" {windows} {windows} 0 {}}
   if {$::tcl_platform(os) eq "Darwin"} {
-      set extramenus [linsert $extramenus 0 Apple {apple} {apple} 0 [list command [_m "Menu|Apple|&About"] {apple:about} "" {} -command {tk_messageBox -type ok -icon info -message "About Dispatcher..."}]
+      set extramenus [linsert $extramenus 0 Apple {apple} {apple} 0 [list command [_m "Menu|Apple|&About"] {apple:about} "" {} -command {tk_messageBox -type ok -icon info -message "About Dispatcher..."}]]
   }
   variable Main [mainwindow .main -dontwithdraw $::IsSlave -extramenus $extramenus]
   pack $Main -expand yes -fill both
