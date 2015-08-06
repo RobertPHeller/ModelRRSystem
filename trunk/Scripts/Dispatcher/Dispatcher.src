@@ -500,9 +500,6 @@ snit::macro Dispatcher::StdShell {dialogclass} {
 
 package require NodeGraphCanvas
 
-Dispatcher::MainWindow
-
-
 package require TrackGraph
 
 proc Dispatcher::LoadLayout {{filename {}}} {
@@ -560,14 +557,10 @@ proc Dispatcher::LoadLayout {{filename {}}} {
     catch {exec "$xtrkcad" "$filename" &}
   }    
 }
-
-proc Dispatcher::WorkingUpdate {} {
-  update
-  variable WorkingAfterID [after 1000 Dispatcher::WorkingUpdate]
-}
-
 package require CTCPanelWindow
   
+Dispatcher::MainWindow
+
 if {$::tcl_platform(os) eq "Darwin"} {
     proc ::tk::mac::OpenDocument {files} {
         #tk_messageBox -type ok -icon info -message "*** ::tk::mac::OpenDocument $files"
@@ -581,7 +574,14 @@ if {$::tcl_platform(os) eq "Darwin"} {
             }
         }
     }
+    update idle
 }    
+
+
+proc Dispatcher::WorkingUpdate {} {
+  update
+  variable WorkingAfterID [after 1000 Dispatcher::WorkingUpdate]
+}
 
 proc Dispatcher::UnPostMenu {menu} {
 #  global errorInfo
