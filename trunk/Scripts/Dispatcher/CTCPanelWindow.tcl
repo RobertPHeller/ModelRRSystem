@@ -371,7 +371,7 @@ namespace eval CTCPanelWindow {
       $main menu entryconfigure help [_m "Menu|Help|Warranty"] \
 	-command "HTMLHelp help Warranty"
       if {$::tcl_platform(os) eq "Darwin"} {
-          $Main menu add help command \
+          $main menu add help command \
                 -label [_m "Menu|Help|About"] \
                 -command ::tk::mac::standardAboutPanel
       }
