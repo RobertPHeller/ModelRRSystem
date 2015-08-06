@@ -568,6 +568,21 @@ proc Dispatcher::WorkingUpdate {} {
 
 package require CTCPanelWindow
   
+if {$::tcl_platform(os) eq "Darwin"} {
+    proc ::tk::mac::OpenDocument {files} {
+        #tk_messageBox -type ok -icon info -message "*** ::tk::mac::OpenDocument $files"
+        foreach f $files {
+            if {[file extension "$f"] eq ".tcl"} {
+                CTCPanelWindow::CTCPanelWindow open -parent . -file "$f"
+            } elseif {[file extension "$f"] eq ".xtc"} {
+                Dispatcher::LoadLayout "$f"
+            } else {
+                tk_messageBox -type ok -icon error -message "Don't know how to open $f"
+            }
+        }
+    }
+}    
+
 proc Dispatcher::UnPostMenu {menu} {
 #  global errorInfo
 #  puts stderr "*** UnPostMenu: errorInfo = $errorInfo"
@@ -778,18 +793,6 @@ if {$::tcl_platform(os) eq "Darwin"} {
             wm deiconify .
         }
     }
-    proc ::tk::mac::OpenDocument {files} {
-        tk_messageBox -type ok -icon info -message "*** ::tk::mac::OpenDocument $files"
-        foreach f $files {
-            if {[file extension "$f"] eq ".tcl"} {
-                CTCPanelWindow::CTCPanelWindow open -parent . -file "$f"
-            } elseif {[file extension "$f"] eq ".xtc"} {
-                Dispatcher::LoadLayout "$f"
-            } else {
-                tk_messageBox -type ok -icon error -message "Don't know how to open $f"
-            }
-        }
-    }
     proc ::tk::mac::Quit {} {
         Dispatcher::CarefulExit
     }
@@ -802,9 +805,6 @@ if {$::tcl_platform(os) eq "Darwin"} {
     
     proc ::tk::mac::ShowHelp {} {
         HTMLHelp help {Dispatcher Reference}
-    }
-    proc ::tk::mac::standardAboutPanel {} {
-        tk_messageBox -type ok -icon info "*** ::tk::mac::standardAboutPanel"
     }
     proc Dispatcher::HideAllWindows {} {
         variable Main
