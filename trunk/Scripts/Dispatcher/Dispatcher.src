@@ -231,7 +231,6 @@ proc Dispatcher::MainWindow {} {
   variable FocusNowhere [canvas .focusNowhere]
   
   variable Main [mainwindow .main -dontwithdraw $::IsSlave \
-                 -applemenu {apple {apple} {apple} 0 {}} \
                  -extramenus {"&Windows" {windows} {windows} 0 {}}]
   pack $Main -expand yes -fill both
   $Main toolbar add tools
@@ -316,7 +315,11 @@ proc Dispatcher::MainWindow {} {
 	-command "HTMLHelp help Copying"
   $Main menu entryconfigure help [_m "Menu|Help|Warranty"] \
 	-command "HTMLHelp help Warranty"
-
+  if {$::tcl_platform(os) eq "Darwin"} {
+      $Main menu add help command \
+            -label [_m "Menu|Help|About"] \
+            -command ::tk::mac::standardAboutPanel
+  }
   HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
 }
 
