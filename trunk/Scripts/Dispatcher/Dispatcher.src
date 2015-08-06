@@ -779,6 +779,7 @@ if {$::tcl_platform(os) eq "Darwin"} {
         }
     }
     proc ::tk::mac::OpenDocument {files} {
+        tk_messageBox -type ok -icon info -message "*** ::tk::mac::OpenDocument $files"
         foreach f $files {
             if {[file extension "$f"] eq ".tcl"} {
                 CTCPanelWindow::CTCPanelWindow open -parent . -file "$f"
@@ -801,6 +802,9 @@ if {$::tcl_platform(os) eq "Darwin"} {
     
     proc ::tk::mac::ShowHelp {} {
         HTMLHelp help {Dispatcher Reference}
+    }
+    proc ::tk::mac::standardAboutPanel {} {
+        tk_messageBox -type ok -icon info "*** ::tk::mac::standardAboutPanel"
     }
     proc Dispatcher::HideAllWindows {} {
         variable Main
