@@ -151,12 +151,12 @@ snit::type StdMenuBar {
 		 -options $_std_options_menu \
 		 -help $_std_help_menu \
 		]
-#  puts stderr "*** StdMenuBar::MakeMenu: menu = $menu"
+  puts stderr "*** StdMenuBar::MakeMenu: menu = $menu"
   foreach {option value} $args {
     set index [lsearch -exact $menu $option]
-#    puts stderr "*** StdMenuBar::MakeMenu: index = $index"
-#    puts stderr "*** StdMenuBar::MakeMenu: option = $option"
-#    puts stderr "*** StdMenuBar::MakeMenu: value = $value"
+    puts stderr "*** StdMenuBar::MakeMenu: index = $index"
+    puts stderr "*** StdMenuBar::MakeMenu: option = $option"
+    puts stderr "*** StdMenuBar::MakeMenu: value = $value"
     if {$index < 0} {
       set hindex [lsearch -exact $menu -help]
       if {$hindex < 0} {
@@ -168,12 +168,12 @@ snit::type StdMenuBar {
       set menu [lreplace $menu [expr $index + 1] [expr $index + 1] $value]
     }
   }
-#  puts stderr "*** StdMenuBar::MakeMenu: menu = $menu"
+  puts stderr "*** StdMenuBar::MakeMenu: menu = $menu"
   set result {}
   foreach {option value} $menu {
     eval [concat lappend result $value]
   }
-#  puts stderr "*** StdMenuBar::MakeMenu: result = $result"
+  puts stderr "*** StdMenuBar::MakeMenu: result = $result"
   return $result
 }
 
