@@ -222,6 +222,7 @@ Dispatcher::SplashWorkMessage [_ "Building Main window"] 0
 proc Dispatcher::MainWindow {} {
   global CommonImageDir
   global ImageDir
+  variable WindowList {}
 
   wm protocol . WM_DELETE_WINDOW {Dispatcher::CarefulExit}
   if {!$::IsSlave} {wm withdraw .}
@@ -319,14 +320,21 @@ proc Dispatcher::MainWindow {} {
 
 proc Dispatcher::AddToWindows {window name} {
   variable Main
+  variable WindowList  
 
   $Main menu add windows command -label "$name" -command "$window showme"
+  lappend WindowList $window
 }
 
 proc Dispatcher::RemoveFromWindows {window name} {
   variable Main
+  variable WindowList  
 
   $Main menu delete windows "$name" "$name"
+  set index [lsearch -exact $WindowList $window]
+  if {$index >= 0} {
+      set WindowList [lreplace $index $index $WindowList]
+  }
 }
 
 
@@ -757,3 +765,61 @@ foreach ctcfile $CTCFiles {
 }
 
 
+if {$::tcl_platform(os) eq "Darwin"} {
+    proc ::tk::mac::ShowPreferences {} {
+        ::Dispatcher::Configuration edit
+    }
+    #proc ::tk::mac::OpenApplication {} {
+    #}
+    proc ::tk::mac::ReopenApplication {} {
+        if {[wm state .] eq "withdrawn"} {
+            wm state . normal
+        } else {
+            wm deiconify .
+        }
+    }
+    proc ::tk::mac::OpenDocument {files} {
+        foreach f $files {
+            if {[file extension "$f"] eq ".tcl"} {
+                CTCPanelWindow::CTCPanelWindow open -parent . -file "$f"
+            } elseif {[file extension "$f"] eq ".xtc"} {
+                Dispatcher::LoadLayout "$f"
+            } else {
+                tk_messageBox -type ok -icon error -message "Don't know how to open $f"
+            }
+        }
+    }
+    ::tk::mac::Quit {} {
+        Dispatcher::CarefulExit
+    }
+    ::tk::mac::OnHide {} {
+        Dispatcher::HideAllWindows
+    }
+    ::tk::mac::OnShow {} {
+        Dispatcher::ShowAllWindows
+    }
+    
+    ::tk::mac::ShowHelp {} {
+        HTMLHelp help {Dispatcher Reference}
+    }
+    proc Dispatcher::HideAllWindows {} {
+        variable Main
+        variable WindowList
+        
+        foreach w $WindowList {
+            wm withdraw $w
+        }
+        wm iconify .
+    }
+    proc Dispatcher::ShowAllWindows {} {
+        variable Main
+        variable WindowList
+        
+        foreach w $WindowList {
+            $w showme
+        }
+        wm deiconify .
+    }
+}
+
+        
