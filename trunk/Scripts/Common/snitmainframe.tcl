@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon May 13 14:24:47 2013
-#  Last Modified : <150811.0810>
+#  Last Modified : <150811.0815>
 #
 #  Description	
 #
@@ -121,7 +121,6 @@ snit::widget MainFrame {
             }
         }
         set menubar [eval [list menu $top.menubar -tearoff 0] $mbfnt]
-        $top configure -menu $menubar
         set count 0
         if {$::tcl_platform(os) eq "Darwin"} {
             set menu [menu $menubar.apple -tearoff 0]
@@ -133,6 +132,7 @@ snit::widget MainFrame {
             $menubar.apple add separator
             incr count
         }
+        $top configure -menu $menubar
         foreach {name _tags _menuid tearoff entries} $descmenu {
             set opt  [_parse_name $name]
             if {[string length $_menuid] &&
