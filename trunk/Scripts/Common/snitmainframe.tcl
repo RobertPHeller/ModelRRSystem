@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon May 13 14:24:47 2013
-#  Last Modified : <130710.1656>
+#  Last Modified : <150811.0804>
 #
 #  Description	
 #
@@ -123,6 +123,16 @@ snit::widget MainFrame {
         set menubar [eval [list menu $top.menubar -tearoff 0] $mbfnt]
         $top configure -menu $menubar
         set count 0
+        if {$::tcl_platform(os) eq "Darwin"} {
+            set menu $menubar.apple -tearoff 0
+            $menubar add cascade -label "[file tail [info nameofexecutable]]" \
+                  -menu $menubar.apple
+            $menubar.apple add command \
+                  -label "About [file tail [info nameofexecutable]]" \
+                  -command {::tk::mac::standardAboutPanel}
+            $menubar.apple add separator
+            incr count
+        }
         foreach {name _tags _menuid tearoff entries} $descmenu {
             set opt  [_parse_name $name]
             if {[string length $_menuid] &&
