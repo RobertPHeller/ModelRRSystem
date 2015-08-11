@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon May 13 14:24:47 2013
-#  Last Modified : <150811.0809>
+#  Last Modified : <150811.0810>
 #
 #  Description	
 #
@@ -124,7 +124,7 @@ snit::widget MainFrame {
         $top configure -menu $menubar
         set count 0
         if {$::tcl_platform(os) eq "Darwin"} {
-            set menu [$menubar.apple -tearoff 0]
+            set menu [menu $menubar.apple -tearoff 0]
             $menubar add cascade -label "[file tail [info nameofexecutable]]" \
                   -menu $menubar.apple
             $menubar.apple add command \
