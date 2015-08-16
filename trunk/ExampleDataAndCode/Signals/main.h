@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Tue Jul 14 12:40:17 2015
-//  Last Modified : <150730.1327>
+//  Last Modified : <150816.1431>
 //
 //  Description	
 //
@@ -61,6 +61,9 @@
  * Using Dr. Bruce Chubb's SMINI or SUSIC/USIC to control signals is 
  * illustrated in the file Chubb_Signals.tcl.  Output ports on these nodes can
  * control one, two, or three headed signals.
+ * 
+ * Using CTI's Acela Network Bridge with CTI controler boards to control 
+ * signals is illustrated in the file CTI_Signals.tcl.
  * 
  * @section common Common methods and functionality
  * 

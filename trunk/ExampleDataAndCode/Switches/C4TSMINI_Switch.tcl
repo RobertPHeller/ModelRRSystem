@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Jul 24 20:07:30 2015
-#  Last Modified : <150726.1356>
+#  Last Modified : <150816.1126>
 #
 #  Description	
 #
@@ -206,6 +206,7 @@ snit::type C4TSMINI_Switch {
         # @arg -nextdivergentblock The block connected to the divergent frog 
         # end.
         # @arg -plate The name of the switch plate for this switch.
+        # @par
         
         # Prefetch the -forwarddirection option.
         set options(-forwarddirection) [from args -forwarddirection]

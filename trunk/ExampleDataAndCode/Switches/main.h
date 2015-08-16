@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Tue Jul 14 12:40:17 2015
-//  Last Modified : <150725.1451>
+//  Last Modified : <150816.1142>
 //
 //  Description	
 //
@@ -76,6 +76,12 @@
  * C4TSMINI_Switch.tcl contains an abstract data type (C4TSMINI_Switch) that
  * implements switches using a Chubb SMINI board as actuator and pointsense 
  * with a Circuits4Tracks Quad OD as OS sensor.
+ * 
+ * @subsection tb CTI Yardmaster as actuator and Train Brain as pointsense with a Circuits4Tracks Quad OD as OS sensor
+ *
+ * TB_Switch.tcl contains an abstract data type (TB_Switch) that implements 
+ * switches using a CTI Yardmaster as actuator and a Train Brain for 
+ * pointsense with a Circuits4Tracks Quad OD as OS sensor.
  * 
  * @section Commmethods Common methods and functionality
  * 
