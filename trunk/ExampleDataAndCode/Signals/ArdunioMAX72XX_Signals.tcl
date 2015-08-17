@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jul 28 19:15:41 2015
-#  Last Modified : <150728.1941>
+#  Last Modified : <150817.1413>
 #
 #  Description	
 #
@@ -168,17 +168,6 @@ snit::type OneTwoHead3Color {
         $driver set [$self cget -signal] $aspectmap(ap)
         set sig [$self cget -signalname]
         if {$sig ne {}} {MainWindow ctcpanel setv $sig $aspect}
-        switch $aspect {
-            red {
-                $signal RelaysOn 0 0 1 0
-            }
-            yellow {
-                $signal RelaysOn 0 1 0 0
-            }
-            green {
-                $signal RelaysOn 1 0 0 0
-            }
-        }
     }
 }
 
