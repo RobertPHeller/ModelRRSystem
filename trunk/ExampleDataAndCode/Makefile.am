@@ -2,7 +2,7 @@ SUBDIRS = Blocks Switches Signals InterlockingPlants Yards Sidings TimeTables \
 	  FreightCarForwarding
 
 
-EXTRA_DIST = 
+EXTRA_DIST = Readme.txt
 
 pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode
 
