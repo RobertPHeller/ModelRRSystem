@@ -245,7 +245,7 @@ Dispatcher.dmg: Dispatcher$(EXEEXT)
 	-rm -rf dmg
 
 install-exec-local: Dispatcher.dmg
-	$(top_srcdir)/BuildScripts/macappInstall.sh Dispatcher.app $(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh Dispatcher.app $(DESTDIR)$(bindir)
 
 endif
 	
