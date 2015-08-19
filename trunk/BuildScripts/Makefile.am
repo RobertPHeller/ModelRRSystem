@@ -49,7 +49,7 @@ EXTRA_DIST = generateLib_pkgIndex.sh generateLib_pkgIndex.tcl \
 	AddKitDir.kit AddKitDir.tcl AddKitFile.kit AddKitFile.tcl \
 	MakePkgIndex.kit MakePkgIndex.tcl MakeVersion.tcl MakeVersion.kit \
 	MakeVersionHelp.tcl MakeVersionHelp.kit sdx.kit \
-	MacOSXPlist.tcl MacOSXPlist.kit
+	MacOSXPlist.tcl MacOSXPlist.kit macappInstall.sh
 
 KITFILES = AddKitDir.kit AddKitFile.kit MakePkgIndex.kit sdx.kit
 
