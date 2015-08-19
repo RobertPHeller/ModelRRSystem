@@ -408,7 +408,7 @@ proc FindArchivesAndComputeSizes_UNIX {} {
 
 proc UnixInstallTarxzvf {tarpath destpath logtext} {
   catch {file mkdir $destpath}
-  set fd [open |[list tar xzvf "$tarpath" -C "$destpath"] r]
+  set fd [open |[list tar xzvf --no-same-owner "$tarpath" -C "$destpath"] r]
   set ::LogDone 0
   fileevent $fd readable [list PipeToLog $fd $logtext]
   tkwait variable ::LogDone
@@ -417,7 +417,7 @@ proc UnixInstallTarxzvf {tarpath destpath logtext} {
 
 proc UnixInstallTarxjvf {tarpath destpath logtext} {
   catch {file mkdir $destpath}
-  set fd [open |[list tar xjvf "$tarpath" -C "$destpath"] r]
+  set fd [open |[list tar xjvf --no-same-owner "$tarpath" -C "$destpath"] r]
   set ::LogDone 0
   fileevent $fd readable [list PipeToLog $fd $logtext]
   tkwait variable ::LogDone
