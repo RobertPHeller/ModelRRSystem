@@ -73,11 +73,12 @@ endif
 
 if MACOSX
 install-data-hook: setup.dmg
-	test -z "$(pkglibdir)" || $(mkdir_p) "$(DESTDIR)$(pkglibdir)"
+	$(INSTALL) -d $(DESTDIR)$(pkglibdir)
 	$(INSTALL_DATA) "setup.dmg"  "$(DESTDIR)$(pkglibdir)/setup.dmg"
+	$(top_srcdir)/BuildScripts/macappInstall.sh setup.app $(DESTDIR)$(pkglibdir)
 else
 install-data-hook: setup${EXEEXT}
-	test -z "$(pkglibdir)" || $(mkdir_p) "$(DESTDIR)$(pkglibdir)"
+	$(INSTALL) -d $(DESTDIR)$(pkglibdir)
 	$(INSTALL_DATA) "setup${EXEEXT}"  "$(DESTDIR)$(pkglibdir)/setup${EXEEXT}"
 endif
 

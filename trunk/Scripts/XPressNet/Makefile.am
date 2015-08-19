@@ -126,6 +126,11 @@ XPressNetThrottle.dmg: XPressNetThrottle$(EXEEXT)
 	rm -f XPressNetThrottle.dmg
 	hdiutil create -srcfolder dmg -format UDZO -volname XPressNetThrottle.dmg XPressNetThrottle.dmg
 	-rm -rf dmg
+	
+install-exec-local: XPressNetThrottle.dmg
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh XPressNetThrottle.app $(DESTDIR)$(bindir)
+
 endif
 
 

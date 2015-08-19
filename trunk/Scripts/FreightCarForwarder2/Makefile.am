@@ -307,6 +307,13 @@ FCFCreate.dmg: FCFCreate$(EXEEXT)
 	-rm -rf dmg
 endif
 
+if MACOSX
+install-exec-local: FCFMain.dmg FCFCreate.dmg
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh FCFMain.app $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh FCFCreate.app $(DESTDIR)$(bindir)
+
+endif
 
 $(top_builddir)/Doc/User/FCF/index.html : FORCE
 	$(MAKE) -C $(top_builddir)/Doc/User FCF/index.html

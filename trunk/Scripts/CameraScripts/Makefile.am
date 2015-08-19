@@ -215,6 +215,13 @@ Closest.dmg: Closest$(EXEEXT)
 	-rm -rf dmg
 endif
 
+if MACOSX
+install-exec-local: AnyDistance.dmg Closest.dmg
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh AnyDistance.app $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh Closest.app $(DESTDIR)$(bindir)
+
+endif
 
 
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status

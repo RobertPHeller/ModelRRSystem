@@ -522,6 +522,18 @@ SR4Test.dmg: SR4Test$(EXEEXT)
 	-rm -rf dmg
 endif
 
+if MACOSX
+install-exec-local: MRDTest.dmg MRDSensorLoop.dmg AzatraxDeviceMap.dmg \
+			SL2Test.dmg SR4Test.dmg
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh MRDTest.app $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh MRDSensorLoop.app $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh AzatraxDeviceMap.app $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh SL2Test.app $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh SR4Test.app $(DESTDIR)$(bindir)
+
+endif
+
 
 
 install-exec-hook: libazatrax.la pkgIndex.tcl

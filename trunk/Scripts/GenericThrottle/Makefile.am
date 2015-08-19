@@ -166,6 +166,11 @@ GenericThrottle.dmg: GenericThrottle$(EXEEXT)
 	rm -f GenericThrottle.dmg
 	hdiutil create -srcfolder dmg -format UDZO -volname GenericThrottle.dmg GenericThrottle.dmg
 	-rm -rf dmg
+	
+install-exec-local: GenericThrottle.dmg
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh GenericThrottle.dmg $(DESTDIR)$(bindir)
+
 endif
 
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status

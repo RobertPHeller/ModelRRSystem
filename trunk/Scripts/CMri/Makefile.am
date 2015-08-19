@@ -149,6 +149,11 @@ UniversalTest.dmg: UniversalTest$(EXEEXT)
 	rm -f UniversalTest.dmg
 	hdiutil create -srcfolder dmg -format UDZO -volname UniversalTest.dmg UniversalTest.dmg
 	-rm -rf dmg
+
+install-exec-local: UniversalTest.dmg
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh UniversalTest.dmg $(DESTDIR)$(bindir)
+
 endif
 
 

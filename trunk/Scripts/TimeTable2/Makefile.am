@@ -247,6 +247,11 @@ TimeTable.dmg: TimeTable$(EXEEXT)
 	rm -f TimeTable.dmg
 	hdiutil create -srcfolder dmg -format UDZO -volname TimeTable.dmg TimeTable.dmg
 	-rm -rf dmg
+
+install-exec-local: TimeTable.dmg
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh TimeTable.dmg $(DESTDIR)$(bindir)
+
 endif
 
 $(top_builddir)/C++/TTSupport/libttclasses.la : \

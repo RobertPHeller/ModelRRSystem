@@ -150,6 +150,11 @@ ModelRRSystem.dmg: ModelRRSystem$(EXEEXT)
 	rm -f ModelRRSystem.dmg
 	hdiutil create -srcfolder dmg -format UDZO -volname ModelRRSystem.dmg ModelRRSystem.dmg
 	-rm -rf dmg
+
+install-exec-local: ModelRRSystem.dmg
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh ModelRRSystem.app $(DESTDIR)$(bindir)
+
 endif
 
 
