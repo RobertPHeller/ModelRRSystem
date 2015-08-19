@@ -4,7 +4,7 @@
 # $2 == $(bindir)
 #
 for bf in `find $1`; do
-   if [ -d $bf ] then
+   if [ -d $bf ] ; then
       echo "install -d $2/$bf"
       install -d $2/$bf
    else
