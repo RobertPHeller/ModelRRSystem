@@ -11,7 +11,7 @@ for bf in `find $1`; do
       echo "install $bf $2/$bf"
       install $bf $2/$bf
    else
-      echo "install $bf $2/$bf"
+      echo "install -m 644 $bf $2/$bf"
       install -m 644 $bf $2/$bf
    fi
 done
