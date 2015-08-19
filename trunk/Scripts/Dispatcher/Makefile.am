@@ -243,6 +243,10 @@ Dispatcher.dmg: Dispatcher$(EXEEXT)
 	rm -f Dispatcher.dmg
 	hdiutil create -srcfolder dmg -format UDZO -volname Dispatcher.dmg Dispatcher.dmg
 	-rm -rf dmg
+
+install-exec-local: Dispatcher.dmg
+	$(top_srcdir)/BuildScripts/macappInstall.sh Dispatcher.app $(bindir)
+
 endif
 	
 	
