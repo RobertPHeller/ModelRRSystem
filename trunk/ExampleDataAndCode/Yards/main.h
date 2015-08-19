@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Tue Jul 14 12:40:17 2015
-//  Last Modified : <150725.1535>
+//  Last Modified : <150819.1348>
 //
 //  Description	
 //
@@ -43,6 +43,10 @@
 #ifndef __MAIN_H
 #define __MAIN_H
 /** @mainpage Example Yard CTC Panels
+ * 
+ * The Chubb_FoxYard.tcl file contains part of the layout shown in Chapters 12
+ * (Figure 12-11 on page 12-27) and 14 (Figure 14-3 on page 14-7) of The 
+ * Computer/Model Railroad Interface User's Manual Version 3.
  */
 
 #endif // __MAIN_H

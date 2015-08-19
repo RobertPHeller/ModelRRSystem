@@ -1,7 +1,7 @@
 SUBDIRS = 
-CODEFILES =
+CODEFILES = 
 FIGURES = 
-OTHERFILES =
+OTHERFILES = Chubb_FoxYard.tcl
 EXTRA_DIST = $(OTHERFILES) $(CODEFILES) $(FIGURES) Doxyfile.in main.h 
 pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Yards
 
