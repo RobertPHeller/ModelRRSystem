@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Jul 13 12:42:15 2015
-#  Last Modified : <150718.0800>
+#  Last Modified : <150820.1252>
 #
 #  Description	
 #
@@ -162,8 +162,8 @@ snit::type C4TSMINI_Block {
         # for 'propagating' signal aspects and must be a C4TSMINI_Block type 
         # object.  The default is the empty string.
         # @arg -nextblock Next block (previous block in reverse) -- used for 
-        # 'propagating' signal aspects and must be a C4TSMINI_Block type object.  
-        # The default is the empty string.
+        # 'propagating' signal aspects and must be a C4TSMINI_Block type 
+        # object.  The default is the empty string.
         # @arg -direction Current running direction, either the word forward
         # or reverse.  The default is forward.
         # @par
