@@ -110,12 +110,7 @@ $(PROGRAMMINGGUIDE_PDF) : $(PROGRAMMINGGUIDE_TEXS) $(BIBLIO)  \
 	done
 	$(PDFLATEX) $(PROGRAMMINGGUIDE)
 	-$(BIBTEX) $(PROGRAMMINGGUIDE)
-	echo -n '\\' > $(PROGRAMMINGGUIDE).ind
-	echo 'begin{theindex}' >> $(PROGRAMMINGGUIDE).ind
-	echo -n '\\'  >> $(PROGRAMMINGGUIDE).ind
-	echo 'item Dummy, 0'
-	echo -n '\\' >> $(PROGRAMMINGGUIDE).ind
-	echo 'end{theindex}' >> $(PROGRAMMINGGUIDE).ind
+	cp $(top_srcdir)/BuildData/emptyindex.ind $(PROGRAMMINGGUIDE).ind
 	$(PDFLATEX) $(PROGRAMMINGGUIDE)
 	$(MAKEINDEX) $(PROGRAMMINGGUIDE).idx
 	$(PDFLATEX) $(PROGRAMMINGGUIDE)
