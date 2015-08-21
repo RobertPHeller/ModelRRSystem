@@ -97,27 +97,7 @@ fi
 %defattr(-, root, root)
 
 %doc AUTHORS COPYING INSTALL NEWS README ChangeLog
-%{_bindir}/AnyDistance
-%{_bindir}/Closest
-%{_bindir}/Dispatcher
-%{_bindir}/FCFCreate
-%{_bindir}/FCFMain
-%{_bindir}/GenericThrottle
-%{_bindir}/LocoPull
-%{_bindir}/LocoTest
-%{_bindir}/ModelRRSystem
-%{_bindir}/AzatraxDeviceMap
-%{_bindir}/SL2Test
-%{_bindir}/SR4Test
-%{_bindir}/MRDSensorLoop
-%{_bindir}/MRDTest
-%{_bindir}/Resistor
-%{_bindir}/TimeTable
-%{_bindir}/TTChart2TT2
-%{_bindir}/UniversalTest
-%{_bindir}/XPressNetThrottle
-%{_bindir}/xplocotest
-%{_bindir}/tclkit-*
+%{_bindir}
 %{_sbindir}
 %{_sysconfdir}/hotplug/usb/raildriverd
 %{_sysconfdir}/udev/rules.d/90-raildriver.rules

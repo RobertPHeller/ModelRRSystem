@@ -128,28 +128,7 @@ mansubdir=`echo ${mansubdir}|sed 's|^/||g'`
 
 rm -f /tmp/BINFILES$$.list
 touch /tmp/BINFILES$$.list
-echo bin/AnyDistance@EXEEXT@ \
-bin/Closest@EXEEXT@ \
-bin/Dispatcher@EXEEXT@ \
-bin/FCFCreate@EXEEXT@ \
-bin/FCFMain@EXEEXT@ \
-bin/GenericThrottle@EXEEXT@ \
-bin/LocoPull@EXEEXT@ \
-bin/LocoTest@EXEEXT@ \
-bin/ModelRRSystem@EXEEXT@ \
-bin/AzatraxDeviceMap@EXEEXT@ \
-bin/SL2Test@EXEEXT@ \
-bin/SR4Test@EXEEXT@ \
-bin/MRDSensorLoop@EXEEXT@ \
-bin/MRDTest@EXEEXT@ \
-bin/Resistor@EXEEXT@ \
-bin/TimeTable@EXEEXT@ \
-bin/TTChart2TT2@EXEEXT@ \
-bin/UniversalTest@EXEEXT@ \
-bin/XPressNetThrottle@EXEEXT@ \
-bin/xplocotest@EXEEXT@ | tr ' ' '\n' >>/tmp/BINFILES$$.list
-(cd ${DESTDIR}/usr/local&&find bin -name 'tclkit-*') >>/tmp/BINFILES$$.list
-(cd ${DESTDIR}/usr/local&&find bin -name 'lib*@SHLIB_SUFFIX@*') >> /tmp/BINFILES$$.list
+(cd ${DESTDIR}/usr/local&&find bin) >>/tmp/BINFILES$$.list
 (cd ${DESTDIR}/usr/local&&find sbin) >> /tmp/BINFILES$$.list
 (cd ${DESTDIR}/usr/local&&find lib -name 'lib*@SHLIB_SUFFIX@*') >> /tmp/BINFILES$$.list
 (cd ${DESTDIR}/usr/local&&find lib/@PACKAGE@ -name 'lib*@SHLIB_SUFFIX@') >> /tmp/BINFILES$$.list
@@ -215,12 +194,16 @@ case $archiver in
 	echo "Wrote $EXAM"
   ;;
   zip)
+        rm -f $BIN
 	(cd ${DESTDIR}/usr/local&&${archiver} ${archiveropts} $BIN < /tmp/BINFILES$$.list)
 	echo "Wrote $BIN"
+	rm -f $DOC
 	(cd ${DESTDIR}/usr/local&&${archiver} ${archiveropts} $DOC < /tmp/DOCFILES$$.list)
 	echo "Wrote $DOC"
+	rm -f $DEV
 	(cd ${DESTDIR}/usr/local&&${archiver} ${archiveropts} $DEV < /tmp/DEVFILES$$.list)
 	echo "Wrote $DEV"
+	rm -f $EXAM
 	(cd ${DESTDIR}/usr/local&&${archiver} ${archiveropts} $EXAM < /tmp/EXAMFILES$$.list)
 	echo "Wrote $EXAM"
   ;;
