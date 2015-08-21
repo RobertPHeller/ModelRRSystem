@@ -52,7 +52,9 @@ EXTRA_DIST = generateLib_pkgIndex.sh generateLib_pkgIndex.tcl \
 	MacOSXPlist.tcl MacOSXPlist.kit macappInstall.sh
 
 KITFILES = AddKitDir.kit AddKitFile.kit MakePkgIndex.kit sdx.kit
-
+if MACOSX
+KITFILES += MacOSXPlist.kit
+endif
 
 noinst_SCRIPTS = $(KITFILES)
 

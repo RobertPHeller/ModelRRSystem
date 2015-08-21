@@ -183,10 +183,7 @@ rm -f /tmp/DEVFILES$$.list
 touch /tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find lib -name 'lib*.la') >>/tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find lib -name 'lib*.a') >>/tmp/DEVFILES$$.list
-echo lib/@PACKAGE@/AddKitDir.kit \
-lib/@PACKAGE@/AddKitFile.kit \
-lib/@PACKAGE@/MakePkgIndex.kit \
-lib/@PACKAGE@/sdx.kit | tr ' ' '\n' >>/tmp/DEVFILES$$.list
+echo lib/@PACKAGE@/*.kit | tr ' ' '\n' >>/tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find lib/@PACKAGE@ -name 'Img-1.*.zip') >>/tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find lib/@PACKAGE@ -name 'pkgIndex_*.tcl') >>/tmp/DEVFILES$$.list
 echo lib/@PACKAGE@/Installer >>/tmp/DEVFILES$$.list

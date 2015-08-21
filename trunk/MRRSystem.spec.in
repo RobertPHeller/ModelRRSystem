@@ -184,11 +184,8 @@ fi
 %{_libdir}/libMRRParserClasses.a 
 %{_libdir}/libraildriverio.a
 %{_libdir}/libttclasses.a 
-%{_libdir}/@PACKAGE@/AddKitDir.kit
-%{_libdir}/@PACKAGE@/AddKitFile.kit
-%{_libdir}/@PACKAGE@/MakePkgIndex.kit
-%{_libdir}/@PACKAGE@/sdx.kit
-%{_libdir}/@PACKAGE@/Img-1.4*.zip
+%{_libdir}/@PACKAGE@/*.kit
+%{_libdir}/@PACKAGE@/Img-*.zip
 %{_libdir}/@PACKAGE@/pkgIndex_fcfclasses.tcl
 %{_libdir}/@PACKAGE@/pkgIndex_azatrax.tcl
 %{_libdir}/@PACKAGE@/pkgIndex_mrr.tcl
