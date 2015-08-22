@@ -134,6 +134,8 @@ fi
 %{_datadir}/@PACKAGE@/TTScripts 
 %{_datadir}/@PACKAGE@/XPressNet
 %{_datadir}/@PACKAGE@/Satellite
+%{_datadir}/@PACKAGE@/CTIAcela
+%{_datadir}/@PACKAGE@/ControlSupport
 %{_mandir}/man1
 %{_mandir}/man8
 %{_desktopdir}

@@ -291,12 +291,17 @@ proc FindArchivesAndComputeSizes_WINDOWS {} {
   set ::DocsArchive [file join $::CDDir \
 	MRRSystem-${::MRRSystem::VERSION}-Win32BinDoc.zip]
   set ::DocsArchiveInstallProc WindowsInstallVFSZIP
-#  puts stderr "*** FindArchivesAndComputeSizes_WINDOWS: ::BinaryArchive = $::BinaryArchive"
+  set ::ExamplesArchive [file join $::CDDir \
+                         MRRSystem-${::MRRSystem::VERSION}-Win32BinExamples.zip]
+  set ::ExamplesArchiveInstallProc WindowsInstallVFSZIP
+  
+  #  puts stderr "*** FindArchivesAndComputeSizes_WINDOWS: ::BinaryArchive = $::BinaryArchive"
 #  puts stderr "*** FindArchivesAndComputeSizes_WINDOWS: ::DevelArchive = $::DevelArchive"
 #  puts stderr "*** FindArchivesAndComputeSizes_WINDOWS: ::DocsArchive = $::DocsArchive"
   if {![file exists $::BinaryArchive] ||
       ![file exists $::DevelArchive] ||
-      ![file exists $::DocsArchive]} {
+      ![file exists $::DocsArchive] ||
+      ![file exists $::ExamplesArchive]} {
     tk_messageBox -type ok -parent . -title "Unsupported O/S" \
 		  -icon error \
 		  -message "The archives for $::tcl_platform(os) are missing!"
@@ -313,19 +318,26 @@ proc FindArchivesAndComputeSizes_WINDOWS {} {
     set ::BinaryArchiveSize [DiskUsage tempmount]
     vfs::unmount tempmount
     set ::Startup::binarySize "[HumanReadableNumber $::BinaryArchiveSize]"
-    set ::Startup::progress 33
+    set ::Startup::progress 25
     set ::Startup::devel [file tail $::DevelArchive]
     vfs::zip::Mount "$::DevelArchive" tempmount
     set ::DevelArchiveSize [DiskUsage tempmount]
     vfs::unmount tempmount
     set ::Startup::develSize "[HumanReadableNumber $::DevelArchiveSize]"
-    set ::Startup::progress 67
+    set ::Startup::progress 50
     set ::Startup::docs [file tail $::DocsArchive]
     vfs::zip::Mount "$::DocsArchive" tempmount
     set ::DocsArchiveSize [DiskUsage tempmount]
     vfs::unmount tempmount
     set ::Startup::docsSize "[HumanReadableNumber $::DocsArchiveSize]"
+    set ::Startup::progress 75
+    set ::Startup::examples [file tail $::ExamplesArchive]
+    vfs::zip::Mount "$::ExamplesArchive" tempmount
+    set ::ExamplesArchiveSize [DiskUsage tempmount]
+    vfs::unmount tempmount
+    set ::Startup::examplesSize "[HumanReadableNumber $::ExamplesArchiveSize]"
     set ::Startup::progress 100
+    
   } error]} {
     puts stderr "Error getting archive sizes: $error"
     tk_messageBox -type ok -parent . -title "Error getting archive sizes" \
@@ -534,6 +546,16 @@ proc MainWindow {} {
 		-side left -expand yes -fill x
 	pack [ttk::entry [$docsLF getframe].size -state readonly -width 6\
 					      -textvariable ::Startup::docsSize] \
+		-side left
+	set examplesLF [LabelFrame \
+			$page.progressFrame.examplesLF \
+				-text "Examples Archive:" -width 16]
+	pack $examplesLF -expand yes -fill x
+	pack [ttk::entry [$examplesLF getframe].name -state readonly \
+					      -textvariable ::Startup::examples] \
+		-side left -expand yes -fill x
+	pack [ttk::entry [$examplesLF getframe].size -state readonly -width 6\
+					      -textvariable ::Startup::examplesSize] \
 		-side left
 	pack [ttk::button $page.next -text "Next ==>" -command {set ::State Copyright}\
 				-state disabled] \
