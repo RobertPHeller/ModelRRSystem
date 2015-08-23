@@ -3,7 +3,6 @@ set ::CDDir [file dirname [info nameofexecutable]]
 
 set argv0 [file join  [file dirname [info nameofexecutable]] setup]
 
-console show
 
 #	davidw - it took me a while to figure this out, so I thought I'd share 
 #	it. Here is a hint how to add things to the windows start menu:
@@ -37,6 +36,8 @@ if {[string equal $::tcl_platform(platform) windows]} {
 global ImageDir 
 set ImageDir [file join [file dirname [file dirname [info script]]] \
 			Images]
+
+console show
 
 wm withdraw .
 
