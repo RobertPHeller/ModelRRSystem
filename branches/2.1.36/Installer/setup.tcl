@@ -358,7 +358,7 @@ proc FindArchivesAndComputeSizes_WINDOWS {} {
 
 proc FindArchivesAndComputeSizes_MacOSX {} {
     set plat $::tcl_platform(os)
-    set ::BinaryArchive [glob -nocomplain 
+    set ::BinaryArchive [glob -nocomplain \
                          [file join $::CDDir \
                           MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.zip]]
     if {$::BinaryArchive eq ""} {
@@ -371,7 +371,7 @@ proc FindArchivesAndComputeSizes_MacOSX {} {
             exit
         }
         set payloaddir [file join $tdir Payload]
-        set ::BinaryArchive [glob -nocomplain 
+        set ::BinaryArchive [glob -nocomplain \
                              [file join $payloaddir \
                               MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.zip]]
         if {$::BinaryArchive ne ""} {
