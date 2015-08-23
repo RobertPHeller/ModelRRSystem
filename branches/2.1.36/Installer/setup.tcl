@@ -387,15 +387,23 @@ proc FindArchivesAndComputeSizes_MacOSX {} {
     puts stderr "*** FindArchivesAndComputeSizes_MacOSX (2): ::CDDir = $::CDDir"
     set ::BinaryArchive [file join $::CDDir \
                          MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.zip]
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::BinaryArchive = $::BinaryArchive"
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::BinaryArchive: [file exists $::BinaryArchive]"
     set ::BinaryArchiveInstallProc WindowsInstallVFSZIP
     set ::DevelArchive [file join $::CDDir \
                         MRRSystem-$::MRRSystem::VERSION-${plat}BinDevel.zip]
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::DevelArchive = $::DevelArchive"
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::DevelArchive: [file exists $::DevelArchive]"
     set ::DevelArchiveInstallProc WindowsInstallVFSZIP
     set ::DocsArchive [file join $::CDDir \
                        MRRSystem-$::MRRSystem::VERSION-${plat}BinDoc.zip]
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::DocsArchive = $::DocsArchive"
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::DocsArchive: [file exists $::DocsArchive]"
     set ::DocsArchiveInstallProc WindowsInstallVFSZIP
     set ::ExamplesArchive [file join $::CDDir \
                            MRRSystem-$::MRRSystem::VERSION-${plat}Examples.zip]
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::ExamplesArchive = $::ExamplesArchive"
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::ExamplesArchive: [file exists $::ExamplesArchive]"
     set ::ExamplesArchiveInstallProc WindowsInstallVFSZIP
     if {![file exists $::BinaryArchive] ||
         ![file exists $::DevelArchive] ||
