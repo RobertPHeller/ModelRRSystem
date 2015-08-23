@@ -235,6 +235,8 @@ install-exec-local: Dispatcher.app
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh Dispatcher.app $(DESTDIR)$(bindir)
 
+Dispatcher.app: Dispatcher${BEXEEXT}
+
 endif
 	
 

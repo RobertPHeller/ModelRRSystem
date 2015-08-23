@@ -482,6 +482,16 @@ install-exec-local: MRDTest.app MRDSensorLoop.app AzatraxDeviceMap.app \
 	$(top_srcdir)/BuildScripts/macappInstall.sh SL2Test.app $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh SR4Test.app $(DESTDIR)$(bindir)
 
+MRDTest.app: MRDTest${EXEEXT}
+
+MRDSensorLoop.app: MRDSensorLoop${EXEEXT}
+
+AzatraxDeviceMap.app: AzatraxDeviceMap${EXEEXT}
+
+SL2Test.app: SL2Test${EXEEXT}
+
+SR4Test.app: SR4Test${EXEEXT}
+
 endif
 
 

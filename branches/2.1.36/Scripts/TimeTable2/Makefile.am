@@ -70,11 +70,7 @@ TTScripts = TTMainWindow.tcl TTMenuSupport.tcl TTFileIO.tcl \
 	    TTTrains.tcl TTStations.tcl TTCabs.tcl TTNotes.tcl TTPrint.tcl \
 	    TTSystemConfiguration.tcl
 
-if MACOSX                                                                       
-bin_SCRIPTS = TTChart2TT2$(EXEEXT) TimeTable.dmg
-else
 bin_SCRIPTS = TTChart2TT2$(EXEEXT) TimeTable$(EXEEXT)
-endif
 
 GIFS =  addstorage.gif  cleardupstation.gif  setdupstation.gif \
 	addtrain.gif    deletetrain.gif      smallStation.gif \
@@ -213,10 +209,8 @@ TimeTable$(EXEEXT) : TimeTable.src $(TTLibFiles) $(TTCommonFiles) \
 		Messages $(top_builddir)/po/TimeTable2/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap TimeTable${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf TimeTable.vfs TimeTable.kit
-
 if MACOSX
 # create application for Mac OSX                                               $
-TimeTable.dmg: TimeTable$(EXEEXT)
 	-rm -rf TimeTable.app
 	mkdir -p TimeTable.app/Contents/MacOS/
 	cp TimeTable$(EXEEXT) TimeTable.app/Contents/MacOS/
@@ -239,18 +233,13 @@ TimeTable.dmg: TimeTable$(EXEEXT)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit TimeTable 2.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o TimeTable.app/Contents/Info.plist \
 		TimeTable.plist
-	-rm -f TimeTable.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r TimeTable.app dmg
-	ln -s /Applications dmg/
-	rm -f TimeTable.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname TimeTable.dmg TimeTable.dmg
-	-rm -rf dmg
+	-rm -f TimeTable.plist TimeTable.icns
 
-install-exec-local: TimeTable.dmg
+install-exec-local: TimeTable.app
 	$(INSTALL) -d $(DESTDIR)$(bindir)
-	$(top_srcdir)/BuildScripts/macappInstall.sh TimeTable.dmg $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh TimeTable.app $(DESTDIR)$(bindir)
+
+TimeTable.app: TimeTable${EXEEXT}
 
 endif
 
@@ -292,4 +281,6 @@ man1/TTChart2TT2.1 : Doxyfile TTChart2TT2.src
 
 clean-local:
 	-rm -rf man1
-
+if MACOSX
+	-rm -rf TimeTable.app
+endif

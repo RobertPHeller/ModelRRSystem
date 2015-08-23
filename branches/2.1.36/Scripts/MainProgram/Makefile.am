@@ -42,11 +42,7 @@ MainProgramImages  = AnyDistance.xbm banner.gif Closest.xbm \
 		     TimeTable.xbm xtc64.xbm Dispatcher.xbm FCF.xbm \
 		     FCFCre.xbm
 
-if MACOSX                                                                       
-bin_SCRIPTS = ModelRRSystem.dmg                                                 
-else
 bin_SCRIPTS = ModelRRSystem$(EXEEXT)
-endif
 
 CLEANFILES = ModelRRSystem.kit $(bin_SCRIPTS)
 
@@ -116,10 +112,8 @@ ModelRRSystem$(EXEEXT) : ModelRRSystem.src $(ModelRRSystemLibFiles) $(CommonLibF
 		Help $(top_builddir)/Doc/User/MainProgram/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap ModelRRSystem${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf ModelRRSystem.vfs ModelRRSystem.kit
-
 if MACOSX
 # create application for Mac OSX                                               $
-ModelRRSystem.dmg: ModelRRSystem$(EXEEXT)
 	-rm -rf ModelRRSystem.app
 	mkdir -p ModelRRSystem.app/Contents/MacOS/
 	cp ModelRRSystem$(EXEEXT) ModelRRSystem.app/Contents/MacOS/
@@ -139,22 +133,20 @@ ModelRRSystem.dmg: ModelRRSystem$(EXEEXT)
 #	iconutil -c icns ModelRRSystem.iconset
 #	-rm -rf ModelRRSystem.iconset
 #	cp ModelRRSystem.icns ModelRRSystem.app/Contents/Resources/
+#	-rm -f ModelRRSystem.icns
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit ModelRRSystem 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o ModelRRSystem.app/Contents/Info.plist \
 		ModelRRSystem.plist
 	-rm -f ModelRRSystem.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r ModelRRSystem.app dmg
-	ln -s /Applications dmg/
-	rm -f ModelRRSystem.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname ModelRRSystem.dmg ModelRRSystem.dmg
-	-rm -rf dmg
 
-install-exec-local: ModelRRSystem.dmg
+install-exec-local: ModelRRSystem.app
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh ModelRRSystem.app $(DESTDIR)$(bindir)
 
+ModelRRSystem.app: ModelRRSystem${EXEEXT}
+
+clean-local:
+	-rm -rf ModelRRSystem.app
 endif
 
 

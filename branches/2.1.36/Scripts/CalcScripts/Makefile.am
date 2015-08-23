@@ -43,11 +43,9 @@
 #* 
 
 EXTRA_DIST = Resistor.tcl LocoPull.tcl
-if MACOSX
-bin_SCRIPTS =  Resistor.dmg LocoPull.dmg
-else
+
 bin_SCRIPTS =  Resistor${EXEEXT} LocoPull${EXEEXT}
-endif
+
 ResistorSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
                 $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
                 $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
@@ -131,10 +129,8 @@ Resistor${EXEEXT}: Resistor.tcl $(ResistorSCRIPTS) \
 		Messages $(top_builddir)/po/CalcScripts/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap Resistor${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf Resistor.vfs Resistor.kit
-
 if MACOSX
 # create application for Mac OSX                                               $
-Resistor.dmg: Resistor$(EXEEXT)
 	-rm -rf Resistor.app
 	mkdir -p Resistor.app/Contents/MacOS/
 	cp Resistor$(EXEEXT) Resistor.app/Contents/MacOS/
@@ -157,14 +153,7 @@ Resistor.dmg: Resistor$(EXEEXT)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit Resistor 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o Resistor.app/Contents/Info.plist \
 		Resistor.plist
-	-rm -f Resistor.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r Resistor.app dmg
-	ln -s /Applications dmg/
-	rm -f Resistor.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname Resistor.dmg Resistor.dmg
-	-rm -rf dmg
+	-rm -f Resistor.plist Resistor.icns
 endif
 
 
@@ -188,10 +177,8 @@ LocoPull${EXEEXT}: LocoPull.tcl $(LocoPullSCRIPTS) \
 		Messages $(top_builddir)/po/CalcScripts/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap LocoPull${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf LocoPull.vfs LocoPull.kit
-
 if MACOSX
 # create application for Mac OSX                                               $
-LocoPull.dmg: LocoPull$(EXEEXT)
 	-rm -rf LocoPull.app
 	mkdir -p LocoPull.app/Contents/MacOS/
 	cp LocoPull$(EXEEXT) LocoPull.app/Contents/MacOS/
@@ -214,21 +201,18 @@ LocoPull.dmg: LocoPull$(EXEEXT)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit LocoPull 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o LocoPull.app/Contents/Info.plist \
 		LocoPull.plist
-	-rm -f LocoPull.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r LocoPull.app dmg
-	ln -s /Applications dmg/
-	rm -f LocoPull.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname LocoPull.dmg LocoPull.dmg
-	-rm -rf dmg
+	-rm -f LocoPull.plist LocoPull.icns
 endif
 
 if MACOSX
-install-exec-local: Resistor.dmg LocoPull.dmg
+install-exec-local: Resistor.app LocoPull.app
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh Resistor.app $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh LocoPull.app $(DESTDIR)$(bindir)
+
+Resistor.app: Resistor${EXEEXT}
+
+LocoPull.app: LocoPull${EXEEXT}
 
 endif
 
@@ -256,4 +240,6 @@ man1/LocoPull.1 : Doxyfile LocoPull.tcl
 
 clean-local:
 	-rm -rf man1
-
+if MACOSX
+	-rm -rf Resistor.app LocoPull.app
+endif

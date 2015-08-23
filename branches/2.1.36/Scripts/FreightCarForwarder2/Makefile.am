@@ -89,11 +89,7 @@ BUILT_SOURCES = $(TCLKIT)
 
 SUBDIRS = NorthAmerican
 
-if MACOSX                                                                       
-bin_SCRIPTS = FCFMain.dmg FCFCreate.dmg
-else                                                                            
 bin_SCRIPTS = FCFMain$(EXEEXT) FCFCreate$(EXEEXT)
-endif                                                                           
 
 EXTRA_DIST  = FCFMain.src FCFCreate.src $(FCFScripts) $(FCFCreScripts) \
 		addcar.gif assigncars.gif banner.gif \
@@ -206,10 +202,8 @@ FCFMain${EXEEXT} : FCFMain.src $(FCFLibFiles) $(FCFCommonFiles) \
 		Messages $(top_builddir)/po/FreightCarForwarder2/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap FCFMain${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf FCFMain.vfs FCFMain.kit
-
 if MACOSX
 # create application for Mac OSX                                               $
-FCFMain.dmg: FCFMain$(EXEEXT)
 	-rm -rf FCFMain.app
 	mkdir -p FCFMain.app/Contents/MacOS/
 	cp FCFMain$(EXEEXT) FCFMain.app/Contents/MacOS/
@@ -232,14 +226,7 @@ FCFMain.dmg: FCFMain$(EXEEXT)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit FCFMain 2.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o FCFMain.app/Contents/Info.plist \
 		FCFMain.plist
-	-rm -f FCFMain.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r FCFMain.app dmg
-	ln -s /Applications dmg/
-	rm -f FCFMain.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname FCFMain.dmg FCFMain.dmg
-	-rm -rf dmg
+	-rm -f FCFMain.plist FCFMain.icns
 endif
 
 FCFCreate$(EXEEXT) : FCFCreate.src $(FCFCreLibFiles) $(FCFCommonFiles) \
@@ -271,10 +258,8 @@ FCFCreate$(EXEEXT) : FCFCreate.src $(FCFCreLibFiles) $(FCFCommonFiles) \
 		Messages $(top_builddir)/po/FreightCarForwarder2/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap FCFCreate${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf FCFCreate.vfs FCFCreate.kit
-
 if MACOSX
 # create application for Mac OSX                                               $
-FCFCreate.dmg: FCFCreate$(EXEEXT)
 	-rm -rf FCFCreate.app
 	mkdir -p FCFCreate.app/Contents/MacOS/
 	cp FCFCreate$(EXEEXT) FCFCreate.app/Contents/MacOS/
@@ -297,21 +282,17 @@ FCFCreate.dmg: FCFCreate$(EXEEXT)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit FCFCreate 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o FCFCreate.app/Contents/Info.plist \
 		FCFCreate.plist
-	-rm -f FCFCreate.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r FCFCreate.app dmg
-	ln -s /Applications dmg/
-	rm -f FCFCreate.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname FCFCreate.dmg FCFCreate.dmg
-	-rm -rf dmg
+	-rm -f FCFCreate.plist FCFCreate.icns
 endif
 
 if MACOSX
-install-exec-local: FCFMain.dmg FCFCreate.dmg
+install-exec-local: FCFMain.app FCFCreate.app
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh FCFMain.app $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh FCFCreate.app $(DESTDIR)$(bindir)
+FCFMain.app: FCFMain${EXEEXT}
+
+FCFCreate.app: FCFCreate${EXEEXT}
 
 endif
 
@@ -346,4 +327,6 @@ man1/FCFMain.1 man1/FCFCreate.1 : Doxyfile FCFMain.src FCFCreate.src
 
 clean-local:
 	-rm -rf man1
-
+if MACOSX
+	-rm -rf FCFMain.app FCFCreate.app
+endif

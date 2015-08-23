@@ -65,17 +65,14 @@ setupIMAGES =
 setupLIBIMAGES = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif
 EXTRA_DIST = diskfree.i setup.tcl $(setupIMAGES)
 
-if MACOSX
-noinst_SCRIPTS = setup.dmg
-else
 noinst_SCRIPTS = setup${EXEEXT}
-endif
 
 if MACOSX
-install-data-hook: setup.dmg
+install-data-hook: setup.app
 	$(INSTALL) -d $(DESTDIR)$(pkglibdir)
-	$(INSTALL_DATA) "setup.dmg"  "$(DESTDIR)$(pkglibdir)/setup.dmg"
 	$(top_srcdir)/BuildScripts/macappInstall.sh setup.app $(DESTDIR)$(pkglibdir)
+
+setup.app: setup${EXEEXT}
 else
 install-data-hook: setup${EXEEXT}
 	$(INSTALL) -d $(DESTDIR)$(pkglibdir)
@@ -116,10 +113,8 @@ setup${EXEEXT}: setup.tcl $(setupSCRIPTS) $(setupIMAGES) $(setupLIBIMAGES) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit setup Common
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap setup${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf setup.vfs
-
 if MACOSX
 # create application for Mac OSX                                               $
-setup.dmg: setup$(EXEEXT)
 	-rm -rf setup.app
 	mkdir -p setup.app/Contents/MacOS/
 	cp setup$(EXEEXT) setup.app/Contents/MacOS/
@@ -139,21 +134,15 @@ setup.dmg: setup$(EXEEXT)
 #	iconutil -c icns setup.iconset
 #	-rm -rf setup.iconset
 #	cp setup.icns setup.app/Contents/Resources/
+#	-rm -f setup.icns
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit setup 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o setup.app/Contents/Info.plist \
 		setup.plist
 	-rm -f setup.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r setup.app dmg
-	ln -s /Applications dmg/
-	rm -f setup.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname setup.dmg setup.dmg
-	-rm -rf dmg
+
+clean-local:
+	-rm -rf setup.app
 endif
-
-
-
 
 $(top_builddir)/Scripts/Common/Version.tcl : $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
