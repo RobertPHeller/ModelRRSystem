@@ -31,6 +31,8 @@ package require ScrollableFrame
 if {[string equal $::tcl_platform(platform) windows]} {
   package require vfs::zip
   package require registry
+} elseif if {[string equal $::tcl_platform(os) Darwin]} {
+  package require vfs::zip
 }
 global ImageDir 
 set ImageDir [file join [file dirname [file dirname [info script]]] \
