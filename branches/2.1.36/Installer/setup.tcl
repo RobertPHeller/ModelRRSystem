@@ -37,9 +37,9 @@ global ImageDir
 set ImageDir [file join [file dirname [file dirname [info script]]] \
 			Images]
 
-console show
+#console show
 
-#wm withdraw .
+wm withdraw .
 
 #option add *background #2e6150 
 #option add *foreground #ffffff
@@ -362,7 +362,6 @@ proc FindArchivesAndComputeSizes_WINDOWS {} {
 proc FindArchivesAndComputeSizes_MacOSX {} {
     set plat $::tcl_platform(os)
     puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::CDDir = $::CDDir"
-    return
     set ::BinaryArchive [file join $::CDDir \
                          MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.zip]
     puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::BinaryArchive = $::BinaryArchive"
@@ -448,7 +447,6 @@ proc FindArchivesAndComputeSizes_MacOSX {} {
          vfs::unmount tempmount
          set ::Startup::examplesSize "[HumanReadableNumber $::ExamplesArchiveSize]"
          set ::Startup::progress 100
-         
      } error]} {
          puts stderr "Error getting archive sizes: $error"
          tk_messageBox -type ok -parent . -title "Error getting archive sizes" \
@@ -609,7 +607,8 @@ proc MainWindow {} {
 					{command "E&xit" {} 
 						 "Exit the application" {} 
 						 -command CleanupAndExit}}} \
-					]
+                                           ]
+  wm protocol . WM_DELETE_WINDOW CleanupAndExit
   pack $::Main  -expand yes -fill both
   image create photo DeepwoodsBanner -format gif \
 				     -file [file join $::ImageDir \
