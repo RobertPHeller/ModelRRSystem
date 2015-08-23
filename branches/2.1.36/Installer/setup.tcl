@@ -37,7 +37,7 @@ global ImageDir
 set ImageDir [file join [file dirname [file dirname [info script]]] \
 			Images]
 
-console show
+#console show
 
 wm withdraw .
 
