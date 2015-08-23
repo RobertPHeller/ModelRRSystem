@@ -61,7 +61,7 @@ setupSCRIPTS = $(top_builddir)/Scripts/Common/Version.tcl \
 		$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
 		$(top_srcdir)/Scripts/Common/openfold.png \
 		$(top_srcdir)/Scripts/Common/snitLFs.tcl
-setupIMAGES = 
+setupIMAGES = setup.png
 setupLIBIMAGES = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif
 EXTRA_DIST = diskfree.i setup.tcl $(setupIMAGES)
 
