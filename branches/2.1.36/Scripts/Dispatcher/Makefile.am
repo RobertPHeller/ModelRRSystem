@@ -229,7 +229,7 @@ if MACOSX
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit Dispatcher 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o Dispatcher.app/Contents/Info.plist \
 		Dispatcher.plist
-	-rm -f Dispatcher.plist
+	-rm -f Dispatcher.plist Dispatcher.icns
 
 install-exec-local: Dispatcher.app
 	$(INSTALL) -d $(DESTDIR)$(bindir)
