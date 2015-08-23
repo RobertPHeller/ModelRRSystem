@@ -39,7 +39,7 @@ set ImageDir [file join [file dirname [file dirname [info script]]] \
 
 console show
 
-wm withdraw .
+#wm withdraw .
 
 #option add *background #2e6150 
 #option add *foreground #ffffff
@@ -923,6 +923,7 @@ proc CleanupAndExit {} {
 MainWindow
 ::tk::PlaceWindow .
 set ::State "Startup"
+set ::State "Done"
 $::Pages raise $::State
 while {![string equal $::State {Done}]} {
   switch -exact -- $::State {
