@@ -268,7 +268,7 @@ proc HumanReadableNumber {n} {
 proc FindArchivesAndComputeSizes {} {
   switch -exact -- $::tcl_platform(platform) {
       unix {
-          if {[$::tcl_platform(os) eq "Darwin"} {
+          if {$::tcl_platform(os) eq "Darwin"} {
                FindArchivesAndComputeSizes_MacOSX
            } else {
                FindArchivesAndComputeSizes_UNIX
