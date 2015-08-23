@@ -401,7 +401,7 @@ proc FindArchivesAndComputeSizes_MacOSX {} {
     puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::DocsArchive: [file exists $::DocsArchive]"
     set ::DocsArchiveInstallProc WindowsInstallVFSZIP
     set ::ExamplesArchive [file join $::CDDir \
-                           MRRSystem-$::MRRSystem::VERSION-${plat}Examples.zip]
+                           MRRSystem-$::MRRSystem::VERSION-${plat}BinExamples.zip]
     puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::ExamplesArchive = $::ExamplesArchive"
     puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::ExamplesArchive: [file exists $::ExamplesArchive]"
     set ::ExamplesArchiveInstallProc WindowsInstallVFSZIP
