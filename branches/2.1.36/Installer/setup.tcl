@@ -267,15 +267,21 @@ proc HumanReadableNumber {n} {
 
 proc FindArchivesAndComputeSizes {} {
   switch -exact -- $::tcl_platform(platform) {
-    unix {FindArchivesAndComputeSizes_UNIX}
-    windows {FindArchivesAndComputeSizes_WINDOWS}
-    default {
-	tk_messageBox -type ok -parent . -title "Unsupported Platform" \
-		      -icon error \
-		      -message "The platform, $::tcl_platform(platform), is not supported!"
-        exit
-    }
-  }
+      unix {
+          if {[$::tcl_platform(os) eq "Darwin"} {
+               FindArchivesAndComputeSizes_MacOSX
+           } else {
+               FindArchivesAndComputeSizes_UNIX
+           }
+       }
+       windows {FindArchivesAndComputeSizes_WINDOWS}
+       default {
+           tk_messageBox -type ok -parent . -title "Unsupported Platform" \
+                 -icon error \
+                 -message "The platform, $::tcl_platform(platform), is not supported!"
+           exit
+       }
+   }
 }
 
 proc FindArchivesAndComputeSizes_WINDOWS {} {
@@ -348,6 +354,91 @@ proc FindArchivesAndComputeSizes_WINDOWS {} {
     update
     exit
   }
+}
+
+proc FindArchivesAndComputeSizes_MacOSX {} {
+    set plat $::tcl_platform(os)
+    set ::BinaryArchive [glob -nocomplain 
+                         [file join $::CDDir \
+                          MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.zip]]
+    if {$::BinaryArchive eq ""} {
+        set tdir [file dirname [file dirname $::CDDir]]
+        set tdirnameext [file extension [file tail $tdir]]
+        if {$tdirnameext ne ".app"} {
+            tk_messageBox -type ok -parent . -title "Unsupported O/S" \
+		  -icon error \
+		  -message "The archives for $::tcl_platform(os) are missing!"
+            exit
+        }
+        set payloaddir [file join $tdir Payload]
+        set ::BinaryArchive [glob -nocomplain 
+                             [file join $payloaddir \
+                              MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.zip]]
+        if {$::BinaryArchive ne ""} {
+            set ::CDDir $payloaddir
+        } else {
+            set ::CDDir [file dirname $tdir]
+        }
+    }
+    set ::BinaryArchive [file join $::CDDir \
+                         MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.zip]
+    set ::BinaryArchiveInstallProc WindowsInstallVFSZIP
+    set ::DevelArchive [file join $::CDDir \
+                        MRRSystem-$::MRRSystem::VERSION-${plat}BinDevel.zip]
+    set ::DevelArchiveInstallProc WindowsInstallVFSZIP
+    set ::DocsArchive [file join $::CDDir \
+                       MRRSystem-$::MRRSystem::VERSION-${plat}BinDoc.zip]
+    set ::DocsArchiveInstallProc WindowsInstallVFSZIP
+    set ::ExamplesArchive [file join $::CDDir \
+                           MRRSystem-$::MRRSystem::VERSION-${plat}Examples.zip]
+    set ::ExamplesArchiveInstallProc WindowsInstallVFSZIP
+    if {![file exists $::BinaryArchive] ||
+        ![file exists $::DevelArchive] ||
+        ![file exists $::DocsArchive] ||
+        ![file exists $::ExamplesArchive]} {
+        tk_messageBox -type ok -parent . -title "Unsupported O/S" \
+              -icon error \
+              -message "The archives for $::tcl_platform(os) are missing!"
+        exit
+    }
+    set ::LittleDocFiles {}
+    foreach f {COPYING README ChangeLog} {
+        set f1 [file join $::CDDir $f]
+        if {[file exists "$f1"]} {lappend ::LittleDocFiles "$f1"}
+    }
+    if {[catch {
+         set ::Startup::binary [file tail $::BinaryArchive]
+         vfs::zip::Mount "$::BinaryArchive" tempmount
+         set ::BinaryArchiveSize [DiskUsage tempmount]
+         vfs::unmount tempmount
+         set ::Startup::binarySize "[HumanReadableNumber $::BinaryArchiveSize]"
+         set ::Startup::progress 25
+         set ::Startup::devel [file tail $::DevelArchive]
+         vfs::zip::Mount "$::DevelArchive" tempmount
+         set ::DevelArchiveSize [DiskUsage tempmount]
+         vfs::unmount tempmount
+         set ::Startup::develSize "[HumanReadableNumber $::DevelArchiveSize]"
+         set ::Startup::progress 50
+         set ::Startup::docs [file tail $::DocsArchive]
+         vfs::zip::Mount "$::DocsArchive" tempmount
+         set ::DocsArchiveSize [DiskUsage tempmount]
+         vfs::unmount tempmount
+         set ::Startup::docsSize "[HumanReadableNumber $::DocsArchiveSize]"
+         set ::Startup::progress 75
+         set ::Startup::examples [file tail $::ExamplesArchive]
+         vfs::zip::Mount "$::ExamplesArchive" tempmount
+         set ::ExamplesArchiveSize [DiskUsage tempmount]
+         vfs::unmount tempmount
+         set ::Startup::examplesSize "[HumanReadableNumber $::ExamplesArchiveSize]"
+         set ::Startup::progress 100
+         
+     } error]} {
+         puts stderr "Error getting archive sizes: $error"
+         tk_messageBox -type ok -parent . -title "Error getting archive sizes" \
+               -icon error -message "$error"
+         update
+         exit
+    }
 }
 
 proc FindArchivesAndComputeSizes_UNIX {} {
