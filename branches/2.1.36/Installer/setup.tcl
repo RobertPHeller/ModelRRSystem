@@ -358,12 +358,15 @@ proc FindArchivesAndComputeSizes_WINDOWS {} {
 
 proc FindArchivesAndComputeSizes_MacOSX {} {
     set plat $::tcl_platform(os)
-    set ::BinaryArchive [glob -nocomplain \
-                         [file join $::CDDir \
-                          MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.zip]]
-    if {$::BinaryArchive eq ""} {
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::CDDir = $::CDDir"
+    set ::BinaryArchive [file join $::CDDir \
+                         MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.zip]
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::BinaryArchive = $::BinaryArchive"
+    if {![file exists $::BinaryArchive]} {
         set tdir [file dirname [file dirname $::CDDir]]
+        puts stderr "*** FindArchivesAndComputeSizes_MacOSX: tdir = $tdir"
         set tdirnameext [file extension [file tail $tdir]]
+        puts stderr "*** FindArchivesAndComputeSizes_MacOSX: tdirnameext  = $tdirnameext"
         if {$tdirnameext ne ".app"} {
             tk_messageBox -type ok -parent . -title "Unsupported O/S" \
 		  -icon error \
@@ -371,15 +374,17 @@ proc FindArchivesAndComputeSizes_MacOSX {} {
             exit
         }
         set payloaddir [file join $tdir Payload]
-        set ::BinaryArchive [glob -nocomplain \
-                             [file join $payloaddir \
-                              MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.zip]]
-        if {$::BinaryArchive ne ""} {
+        puts stderr "*** FindArchivesAndComputeSizes_MacOSX: payloaddir = $payloaddir"
+        set ::BinaryArchive [file join $payloaddir \
+                             MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.zip]
+        puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::BinaryArchive = $::BinaryArchive"
+        if {[file exists $::BinaryArchive]} {
             set ::CDDir $payloaddir
         } else {
             set ::CDDir [file dirname $tdir]
         }
     }
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX (2): ::CDDir = $::CDDir"
     set ::BinaryArchive [file join $::CDDir \
                          MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.zip]
     set ::BinaryArchiveInstallProc WindowsInstallVFSZIP
