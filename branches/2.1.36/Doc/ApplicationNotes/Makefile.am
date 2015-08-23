@@ -69,7 +69,7 @@ pkgdatadir = $(datadir)/$(PACKAGE)/Doc
 
 CLEANFILES = *.aux *.bbl *.blg *.idx *.ilg *.ind *.lof *.lot *.lol *.toc \
 		*.log titlepage.tex MRR.bib MyTitlepage.sty \
-		$(AN02_PDF) $(AN01_PDF)
+		$(AN02_PDF) $(AN01_PDF) MyBibIndex.sty
 
 pkgdata_DATA = $(AN01_PDF) $(AN02_PDF) $(AN01Code) $(AN02Code)
 
@@ -108,4 +108,12 @@ $(AN02_PDF) : $(AN02_TEXS) $(BIBLIO) $(AN02_DEPS) $(AN02_FIGS) $(AN02Code)
 	$(PDFLATEX) $(AN02)
 	$(MAKEINDEX) $(AN02).idx
 	$(PDFLATEX) $(AN02)
+
+clean-local:
+	for f in $(AN02_TEXS) $(AN02Code) $(AN02_FIGS); do \
+	  if test -h "./$$f"; then rm "./$$f"; fi; \
+	done
+	for f in $(AN01_TEXS) $(AN01Code) $(AN01_FIGS); do \
+	  if test -h "./$$f"; then rm "./$$f"; fi; \
+	done
 

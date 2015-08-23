@@ -459,3 +459,9 @@ uninstall-hook:
 	done
 
 
+clean-local:
+	-rm -rf $(AZATRAX_PROGHBase) $(UNIVERSALTESTHBase) \
+		$(XPRESSNETTHROTTLEHBase) $(GENERICTHROTTLEHBase) \
+		$(TIMETABLEHBase) $(FCFHBase) $(CALCHBase) \
+		$(CAMERAHBase) $(DISPATCHERHBase) $(MAINPROGRAMHBase) \
+		$(USERMANHBase) latex

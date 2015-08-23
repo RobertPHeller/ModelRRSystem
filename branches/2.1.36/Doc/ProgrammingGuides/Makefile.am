@@ -78,7 +78,7 @@ pkgdatadir = $(datadir)/$(PACKAGE)/Doc
 
 CLEANFILES = LocoTest.tcl ProgrammingGuide.pdf *.aux *.bbl *.blg *.idx *.ilg \
 	*.ind *.lof *.lot *.lol *.toc *.log titlepage.tex LocoTest.tcl MRR.bib \
-	MyTitlepage.sty
+	MyTitlepage.sty MyBibIndex.sty
 
 pkgdata_DATA = $(PROGRAMMINGGUIDE_PDF) SampleCode.tcl \
 	$(SampleCodePackages) fig9-5.tcl fig12-13.tcl \
@@ -215,3 +215,10 @@ $(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
 	$(MAKE) -C $(top_builddir)/BuildData tclkit${BEXEEXT}
 
 FORCE:
+
+clean-local:
+	for f in $(PROGRAMMINGGUIDE_TEXS) SampleCode.tcl $(SampleCodePackages) \
+		 $(PROGRAMMINGGUIDE_FIGS) Makefile.am; do \
+	  if test -h "./$$f"; then rm "./$$f"; fi; \
+	done
+

@@ -17,7 +17,8 @@ html/index.html latex/refman.pdf : Doxyfile main.h $(CODEFILES) \
 	  if test ! \( -f html/$$p \); then cp $(srcdir)/$$p html/; fi; \
 	done
 	$(MAKE) -C latex pdf
-	
+
+CLEANFILES= *.tag navheader.html 	
 
 $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh : $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh.in
 	$(MAKE) -C $(top_builddir)/Doc/doxygen tcldoxyfilter.sh

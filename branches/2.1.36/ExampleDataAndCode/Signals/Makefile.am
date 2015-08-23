@@ -10,7 +10,7 @@ pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Signals
 noinst_DATA = html/index.html
 pkgdata_DATA =  latex/refman.pdf pkgIndex.tcl
 
-CLEANFILES = pkgIndex.tcl
+CLEANFILES = pkgIndex.tcl *.tag navheader.html 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
 pkgIndex.tcl : $(CODEFILES)
