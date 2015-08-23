@@ -119,22 +119,22 @@ if MACOSX
 	mkdir -p setup.app/Contents/MacOS/
 	cp setup$(EXEEXT) setup.app/Contents/MacOS/
 	mkdir -p setup.app/Contents/Resources/
-#	-rm -rf setup.iconset
-#	mkdir setup.iconset
-#	sips -z 16 16     $(srcdir)/setup.png --out setup.iconset/icon_16x16.png
-#	sips -z 32 32     $(srcdir)/setup.png --out setup.iconset/icon_16x16@2x.png
-#	sips -z 32 32     $(srcdir)/setup.png --out setup.iconset/icon_32x32.png
-#	sips -z 64 64     $(srcdir)/setup.png --out setup.iconset/icon_32x32@2x.png
-#	sips -z 128 128   $(srcdir)/setup.png --out setup.iconset/icon_128x128.png
-#	sips -z 256 256   $(srcdir)/setup.png --out setup.iconset/icon_128x128@2x.png
-#	sips -z 256 256   $(srcdir)/setup.png --out setup.iconset/icon_256x256.png
-#	sips -z 512 512   $(srcdir)/setup.png --out setup.iconset/icon_256x256@2x.png
-#	sips -z 512 512   $(srcdir)/setup.png --out setup.iconset/icon_512x512.png
-#	sips -z 1024 1024 $(srcdir)/setup.png --out setup.iconset/icon_512x512@2x.png
-#	iconutil -c icns setup.iconset
-#	-rm -rf setup.iconset
-#	cp setup.icns setup.app/Contents/Resources/
-#	-rm -f setup.icns
+	-rm -rf setup.iconset
+	mkdir setup.iconset
+	sips -z 16 16     $(srcdir)/setup.png --out setup.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/setup.png --out setup.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/setup.png --out setup.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/setup.png --out setup.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/setup.png --out setup.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/setup.png --out setup.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/setup.png --out setup.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/setup.png --out setup.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/setup.png --out setup.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/setup.png --out setup.iconset/icon_512x512@2x.png
+	iconutil -c icns setup.iconset
+	-rm -rf setup.iconset
+	cp setup.icns setup.app/Contents/Resources/
+	-rm -f setup.icns
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit setup 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o setup.app/Contents/Info.plist \
 		setup.plist
