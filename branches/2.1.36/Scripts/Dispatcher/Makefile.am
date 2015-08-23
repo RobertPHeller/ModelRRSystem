@@ -235,8 +235,6 @@ install-exec-local: Dispatcher.app
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh Dispatcher.app $(DESTDIR)$(bindir)
 
-clean-local:
-	-rm -rf Dispatcher.app
 endif
 	
 
@@ -286,6 +284,9 @@ man1/Dispatcher.1 : Doxyfile Dispatcher.src
 
 clean-local:
 	-rm -rf man1
+if MACOSX                                                                       
+	-rm -rf Dispatcher.app
+endif
 
 $(top_builddir)/Scripts/Common/Version.tcl: FORCE
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
