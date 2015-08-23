@@ -362,6 +362,7 @@ proc FindArchivesAndComputeSizes_WINDOWS {} {
 proc FindArchivesAndComputeSizes_MacOSX {} {
     set plat $::tcl_platform(os)
     puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::CDDir = $::CDDir"
+    return
     set ::BinaryArchive [file join $::CDDir \
                          MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.zip]
     puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::BinaryArchive = $::BinaryArchive"
@@ -923,7 +924,6 @@ proc CleanupAndExit {} {
 MainWindow
 ::tk::PlaceWindow .
 set ::State "Startup"
-set ::State "Done"
 $::Pages raise $::State
 while {![string equal $::State {Done}]} {
   switch -exact -- $::State {
