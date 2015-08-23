@@ -33,6 +33,8 @@
 #*  
 #* 
 
+BUILT_SOURCES = $(TCLKIT) azatrax_wrap.cc Azatrax.h
+
 pkgincludedir = $(includedir)/$(PACKAGE)/Azatrax
 pkginclude_HEADERS = Azatrax.h mrd.h sl2.h sr4.h
 lib_LTLIBRARIES = libazatrax.la
@@ -59,8 +61,6 @@ libazatrax_la_LIBADD = $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 	
 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
-
-BUILT_SOURCES = $(TCLKIT) azatrax_wrap.cc Azatrax.h
 
 bin_SCRIPTS = MRDTest${EXEEXT} MRDSensorLoop${EXEEXT} \
 		AzatraxDeviceMap${EXEEXT} SL2Test${EXEEXT} SR4Test${EXEEXT}
