@@ -1,3 +1,24 @@
+Mon Aug 24 08:44:22 2015
+
+  2.1.36 Released:
+
+  Add build infrastructure for Raspbian (Raspberry Pi)
+  Update doxyfiles for > 1.7.4
+  Minor fixes to Dispatcher print dialog (BWidget => Snit/tile updates)
+  Add Example Code
+  Added support for CTI Electronics Acela
+  Added support for wiringPi library (Raspberry Pi)
+  Dispatcher GUI Improvements
+  Updates to SatelliteDaemon to support serial port access (needed for Cmri, 
+    Ardunio, CTI, and DCC access).
+  Added CmriSupport to the SatelliteDaemon
+  Updates to SatelliteDaemon: self extension, both as new StarPak and to the 
+    running Daemon.
+  Build infrastructure updates
+  Fix build break issues: Hyperlink prob with internal docs, missing cleanup 
+    in the User manual
+  Added support for MacOSX
+  
 Sun Jun 14 13:58:45 2015
 
   2.1.35 Released:
