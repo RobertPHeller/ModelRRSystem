@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Jul 22 10:53:17 2015
-#  Last Modified : <150722.1129>
+#  Last Modified : <150824.1053>
 #
 #  Description	
 #
@@ -54,6 +54,8 @@ libtclwiringpi_la_LIBADD = $(TCL_STUB_LIB_SPEC) $(WIRINGPI_LIBS)
 BUILT_SOURCES = pkgIndex.tcl
 
 noinst_SCRIPTS = pkgIndex.tcl
+
+EXTRA_DIST = tclwiringpi.i
 
 pkgdatadir = $(datadir)/$(PACKAGE)/wiringPi
 
