@@ -1,9 +1,0 @@
-all:
-	
-clean:
-
-install:
-
-distclean: clean
-	rm -f Makefile
-
