@@ -34,11 +34,7 @@
 #* 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
-if MACOSX
-bin_SCRIPTS = UniversalTest.dmg
-else
 bin_SCRIPTS = UniversalTest${EXEEXT}
-endif
 
 pkgdatadir = $(datadir)/$(PACKAGE)/CMri
 pkgdata_DATA = UniversalTest.pot cmri.tcl pkgIndex.tcl
@@ -115,10 +111,8 @@ UniversalTest${EXEEXT}: UniversalTest.src $(UniversalTestSCRIPTS) \
 		Messages $(top_builddir)/po/UniversalTest/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap UniversalTest${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf UniversalTest.vfs
-
 if MACOSX
 # create application for Mac OSX                                               $
-UniversalTest.dmg: UniversalTest$(EXEEXT)
 	-rm -rf UniversalTest.app
 	mkdir -p UniversalTest.app/Contents/MacOS/
 	cp UniversalTest$(EXEEXT) UniversalTest.app/Contents/MacOS/
@@ -141,18 +135,13 @@ UniversalTest.dmg: UniversalTest$(EXEEXT)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit UniversalTest 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o UniversalTest.app/Contents/Info.plist \
 		UniversalTest.plist
-	-rm -f UniversalTest.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r UniversalTest.app dmg
-	ln -s /Applications dmg/
-	rm -f UniversalTest.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname UniversalTest.dmg UniversalTest.dmg
-	-rm -rf dmg
+	-rm -f UniversalTest.plist UniversalTest.icns
 
-install-exec-local: UniversalTest.dmg
+install-exec-local: UniversalTest.app
 	$(INSTALL) -d $(DESTDIR)$(bindir)
-	$(top_srcdir)/BuildScripts/macappInstall.sh UniversalTest.dmg $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh UniversalTest.app $(DESTDIR)$(bindir)
+
+UniversalTest.app: UniversalTest${EXEEXT}
 
 endif
 
@@ -178,6 +167,8 @@ man1/UniversalTest.1 : Doxyfile UniversalTest.src
 
 clean-local:
 	-rm -rf man1
-
+if MACOSX
+	-rm -rf UniversalTest.app
+endif
 
 

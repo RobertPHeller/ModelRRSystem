@@ -48,11 +48,7 @@
 #*  
 #* 
 
-if MACOSX                                                                       
-bin_SCRIPTS = AnyDistance.dmg Closest.dmg
-else                                                                            
 bin_SCRIPTS = AnyDistance${EXEEXT} Closest${EXEEXT}
-endif                                                                           
 
 EXTRA_DIST  = AnyDistance.src Closest.src
 CLEANFILES = AnyDistance.kit Closest.kit $(bin_SCRIPTS) CameraScripts.pot
@@ -122,10 +118,8 @@ AnyDistance${EXEEXT} : AnyDistance.src $(CameraSCRIPTS) \
 		Messages $(top_builddir)/po/CameraScripts/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap AnyDistance${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf AnyDistance.vfs AnyDistance.kit
-
 if MACOSX
 # create application for Mac OSX                                               $
-AnyDistance.dmg: AnyDistance$(EXEEXT)
 	-rm -rf AnyDistance.app
 	mkdir -p AnyDistance.app/Contents/MacOS/
 	cp AnyDistance$(EXEEXT) AnyDistance.app/Contents/MacOS/
@@ -148,14 +142,7 @@ AnyDistance.dmg: AnyDistance$(EXEEXT)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit AnyDistance 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o AnyDistance.app/Contents/Info.plist \
 		AnyDistance.plist
-	-rm -f AnyDistance.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r AnyDistance.app dmg
-	ln -s /Applications dmg/
-	rm -f AnyDistance.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname AnyDistance.dmg AnyDistance.dmg
-	-rm -rf dmg
+	-rm -f AnyDistance.plist AnyDistance.icns
 endif
 
 
@@ -179,10 +166,8 @@ Closest${EXEEXT} : Closest.src $(CameraSCRIPTS) \
 		Messages $(top_builddir)/po/CameraScripts/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap Closest${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf Closest.vfs Closest.kit
-
 if MACOSX
 # create application for Mac OSX                                               $
-Closest.dmg: Closest$(EXEEXT)
 	-rm -rf Closest.app
 	mkdir -p Closest.app/Contents/MacOS/
 	cp Closest$(EXEEXT) Closest.app/Contents/MacOS/
@@ -205,21 +190,18 @@ Closest.dmg: Closest$(EXEEXT)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit Closest 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o Closest.app/Contents/Info.plist \
 		Closest.plist
-	-rm -f Closest.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r Closest.app dmg
-	ln -s /Applications dmg/
-	rm -f Closest.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname Closest.dmg Closest.dmg
-	-rm -rf dmg
+	-rm -f Closest.plist Closest.icns
 endif
 
 if MACOSX
-install-exec-local: AnyDistance.dmg Closest.dmg
+install-exec-local: AnyDistance.app Closest.app
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh AnyDistance.app $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh Closest.app $(DESTDIR)$(bindir)
+
+AnyDistance.app: AnyDistance${EXEEXT}
+
+Closest.app: Closest${EXEEXT}
 
 endif
 
@@ -249,4 +231,6 @@ man1/Closest.1 : man1/AnyDistance.1
 
 clean-local:
 	-rm -rf man1
-
+if MACOSX
+	-rm -rf AnyDistance.app Closest.app
+endif

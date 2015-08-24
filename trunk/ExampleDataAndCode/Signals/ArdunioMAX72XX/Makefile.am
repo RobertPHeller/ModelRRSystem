@@ -106,7 +106,7 @@ $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh : $(top_builddir)/Doc/doxygen/tcldo
 clean-local:
 	-rm -rf latex/ html/
 
-CLEANFILES = pkgIndex.tcl
+CLEANFILES = pkgIndex.tcl *.tag navheader.html 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
 pkgIndex.tcl : $(TCLCODEFILES)

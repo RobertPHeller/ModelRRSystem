@@ -3,7 +3,6 @@ set ::CDDir [file dirname [info nameofexecutable]]
 
 set argv0 [file join  [file dirname [info nameofexecutable]] setup]
 
-#console show
 
 #	davidw - it took me a while to figure this out, so I thought I'd share 
 #	it. Here is a hint how to add things to the windows start menu:
@@ -31,10 +30,14 @@ package require ScrollableFrame
 if {[string equal $::tcl_platform(platform) windows]} {
   package require vfs::zip
   package require registry
+} elseif {[string equal $::tcl_platform(os) Darwin]} {
+  package require vfs::zip
 }
 global ImageDir 
 set ImageDir [file join [file dirname [file dirname [info script]]] \
 			Images]
+
+#console show
 
 wm withdraw .
 
@@ -73,6 +76,9 @@ proc CheckFreeSpace {} {
   } 
   if {$::InstallArchives::installDocs} {
     incr sn $::DocsArchiveSize
+  }
+  if {$::InstallArchives::installExamples} {
+    incr sn $::ExamplesArchiveSize
   }
   set device "$::DestDisk::destdir"
   while {![file exists $device]} {set device [file dirname $device]}
@@ -228,7 +234,7 @@ proc DiskUsage {path} {
 
 proc File_Copy {source destdir logtext} {
   catch {file mkdir $destdir}
-  file copy $source $destdir
+  file copy -force $source $destdir
   $logtext insert end "file copy $source $destdir\n"
   $logtext see end
 }
@@ -264,15 +270,21 @@ proc HumanReadableNumber {n} {
 
 proc FindArchivesAndComputeSizes {} {
   switch -exact -- $::tcl_platform(platform) {
-    unix {FindArchivesAndComputeSizes_UNIX}
-    windows {FindArchivesAndComputeSizes_WINDOWS}
-    default {
-	tk_messageBox -type ok -parent . -title "Unsupported Platform" \
-		      -icon error \
-		      -message "The platform, $::tcl_platform(platform), is not supported!"
-        exit
-    }
-  }
+      unix {
+          if {$::tcl_platform(os) eq "Darwin"} {
+               FindArchivesAndComputeSizes_MacOSX
+           } else {
+               FindArchivesAndComputeSizes_UNIX
+           }
+       }
+       windows {FindArchivesAndComputeSizes_WINDOWS}
+       default {
+           tk_messageBox -type ok -parent . -title "Unsupported Platform" \
+                 -icon error \
+                 -message "The platform, $::tcl_platform(platform), is not supported!"
+           exit
+       }
+   }
 }
 
 proc FindArchivesAndComputeSizes_WINDOWS {} {
@@ -291,12 +303,17 @@ proc FindArchivesAndComputeSizes_WINDOWS {} {
   set ::DocsArchive [file join $::CDDir \
 	MRRSystem-${::MRRSystem::VERSION}-Win32BinDoc.zip]
   set ::DocsArchiveInstallProc WindowsInstallVFSZIP
-#  puts stderr "*** FindArchivesAndComputeSizes_WINDOWS: ::BinaryArchive = $::BinaryArchive"
+  set ::ExamplesArchive [file join $::CDDir \
+                         MRRSystem-${::MRRSystem::VERSION}-Win32BinExamples.zip]
+  set ::ExamplesArchiveInstallProc WindowsInstallVFSZIP
+  
+  #  puts stderr "*** FindArchivesAndComputeSizes_WINDOWS: ::BinaryArchive = $::BinaryArchive"
 #  puts stderr "*** FindArchivesAndComputeSizes_WINDOWS: ::DevelArchive = $::DevelArchive"
 #  puts stderr "*** FindArchivesAndComputeSizes_WINDOWS: ::DocsArchive = $::DocsArchive"
   if {![file exists $::BinaryArchive] ||
       ![file exists $::DevelArchive] ||
-      ![file exists $::DocsArchive]} {
+      ![file exists $::DocsArchive] ||
+      ![file exists $::ExamplesArchive]} {
     tk_messageBox -type ok -parent . -title "Unsupported O/S" \
 		  -icon error \
 		  -message "The archives for $::tcl_platform(os) are missing!"
@@ -313,19 +330,26 @@ proc FindArchivesAndComputeSizes_WINDOWS {} {
     set ::BinaryArchiveSize [DiskUsage tempmount]
     vfs::unmount tempmount
     set ::Startup::binarySize "[HumanReadableNumber $::BinaryArchiveSize]"
-    set ::Startup::progress 33
+    set ::Startup::progress 25
     set ::Startup::devel [file tail $::DevelArchive]
     vfs::zip::Mount "$::DevelArchive" tempmount
     set ::DevelArchiveSize [DiskUsage tempmount]
     vfs::unmount tempmount
     set ::Startup::develSize "[HumanReadableNumber $::DevelArchiveSize]"
-    set ::Startup::progress 67
+    set ::Startup::progress 50
     set ::Startup::docs [file tail $::DocsArchive]
     vfs::zip::Mount "$::DocsArchive" tempmount
     set ::DocsArchiveSize [DiskUsage tempmount]
     vfs::unmount tempmount
     set ::Startup::docsSize "[HumanReadableNumber $::DocsArchiveSize]"
+    set ::Startup::progress 75
+    set ::Startup::examples [file tail $::ExamplesArchive]
+    vfs::zip::Mount "$::ExamplesArchive" tempmount
+    set ::ExamplesArchiveSize [DiskUsage tempmount]
+    vfs::unmount tempmount
+    set ::Startup::examplesSize "[HumanReadableNumber $::ExamplesArchiveSize]"
     set ::Startup::progress 100
+    
   } error]} {
     puts stderr "Error getting archive sizes: $error"
     tk_messageBox -type ok -parent . -title "Error getting archive sizes" \
@@ -335,16 +359,115 @@ proc FindArchivesAndComputeSizes_WINDOWS {} {
   }
 }
 
+proc FindArchivesAndComputeSizes_MacOSX {} {
+    set plat $::tcl_platform(os)
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::CDDir = $::CDDir"
+    set ::BinaryArchive [file join $::CDDir \
+                         MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.zip]
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::BinaryArchive = $::BinaryArchive"
+    if {![file exists $::BinaryArchive]} {
+        set tdir [file dirname [file dirname $::CDDir]]
+        puts stderr "*** FindArchivesAndComputeSizes_MacOSX: tdir = $tdir"
+        set tdirnameext [file extension [file tail $tdir]]
+        puts stderr "*** FindArchivesAndComputeSizes_MacOSX: tdirnameext  = $tdirnameext"
+        if {$tdirnameext ne ".app"} {
+            tk_messageBox -type ok -parent . -title "Unsupported O/S" \
+		  -icon error \
+		  -message "The archives for $::tcl_platform(os) are missing!"
+            exit
+        }
+        set payloaddir [file join $tdir Payload]
+        puts stderr "*** FindArchivesAndComputeSizes_MacOSX: payloaddir = $payloaddir"
+        set ::BinaryArchive [file join $payloaddir \
+                             MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.zip]
+        puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::BinaryArchive = $::BinaryArchive"
+        if {[file exists $::BinaryArchive]} {
+            set ::CDDir $payloaddir
+        } else {
+            set ::CDDir [file dirname $tdir]
+        }
+    }
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX (2): ::CDDir = $::CDDir"
+    set ::BinaryArchive [file join $::CDDir \
+                         MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.zip]
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::BinaryArchive = $::BinaryArchive"
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::BinaryArchive: [file exists $::BinaryArchive]"
+    set ::BinaryArchiveInstallProc WindowsInstallVFSZIP
+    set ::DevelArchive [file join $::CDDir \
+                        MRRSystem-$::MRRSystem::VERSION-${plat}BinDevel.zip]
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::DevelArchive = $::DevelArchive"
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::DevelArchive: [file exists $::DevelArchive]"
+    set ::DevelArchiveInstallProc WindowsInstallVFSZIP
+    set ::DocsArchive [file join $::CDDir \
+                       MRRSystem-$::MRRSystem::VERSION-${plat}BinDoc.zip]
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::DocsArchive = $::DocsArchive"
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::DocsArchive: [file exists $::DocsArchive]"
+    set ::DocsArchiveInstallProc WindowsInstallVFSZIP
+    set ::ExamplesArchive [file join $::CDDir \
+                           MRRSystem-$::MRRSystem::VERSION-${plat}BinExamples.zip]
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::ExamplesArchive = $::ExamplesArchive"
+    puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::ExamplesArchive: [file exists $::ExamplesArchive]"
+    set ::ExamplesArchiveInstallProc WindowsInstallVFSZIP
+    if {![file exists $::BinaryArchive] ||
+        ![file exists $::DevelArchive] ||
+        ![file exists $::DocsArchive] ||
+        ![file exists $::ExamplesArchive]} {
+        tk_messageBox -type ok -parent . -title "Unsupported O/S" \
+              -icon error \
+              -message "The archives for $::tcl_platform(os) are missing!"
+        exit
+    }
+    set ::LittleDocFiles {}
+    foreach f {COPYING README ChangeLog} {
+        set f1 [file join $::CDDir $f]
+        if {[file exists "$f1"]} {lappend ::LittleDocFiles "$f1"}
+    }
+    if {[catch {
+         set ::Startup::binary [file tail $::BinaryArchive]
+         vfs::zip::Mount "$::BinaryArchive" tempmount
+         set ::BinaryArchiveSize [DiskUsage tempmount]
+         vfs::unmount tempmount
+         set ::Startup::binarySize "[HumanReadableNumber $::BinaryArchiveSize]"
+         set ::Startup::progress 25
+         set ::Startup::devel [file tail $::DevelArchive]
+         vfs::zip::Mount "$::DevelArchive" tempmount
+         set ::DevelArchiveSize [DiskUsage tempmount]
+         vfs::unmount tempmount
+         set ::Startup::develSize "[HumanReadableNumber $::DevelArchiveSize]"
+         set ::Startup::progress 50
+         set ::Startup::docs [file tail $::DocsArchive]
+         vfs::zip::Mount "$::DocsArchive" tempmount
+         set ::DocsArchiveSize [DiskUsage tempmount]
+         vfs::unmount tempmount
+         set ::Startup::docsSize "[HumanReadableNumber $::DocsArchiveSize]"
+         set ::Startup::progress 75
+         set ::Startup::examples [file tail $::ExamplesArchive]
+         vfs::zip::Mount "$::ExamplesArchive" tempmount
+         set ::ExamplesArchiveSize [DiskUsage tempmount]
+         vfs::unmount tempmount
+         set ::Startup::examplesSize "[HumanReadableNumber $::ExamplesArchiveSize]"
+         set ::Startup::progress 100
+     } error]} {
+         puts stderr "Error getting archive sizes: $error"
+         tk_messageBox -type ok -parent . -title "Error getting archive sizes" \
+               -icon error -message "$error"
+         update
+         exit
+    }
+}
+
 proc FindArchivesAndComputeSizes_UNIX {} {
   set bits {}
   if {$::tcl_platform(os) eq "Linux"} {
-    # Assume 32-bit (i386/i486/i586/i686) and 64-bit (x86_64) Intel/AMD machines
+      # Assume 32-bit (i386/i486/i586/i686) and 64-bit (x86_64) Intel/AMD machines
+      # Add in armv7l (Raspberry Pi)
     switch -glob $::tcl_platform(machine) {
       x86_64 {set bits 64}
       i?86   {set bits 32}
+      armv7l {set bits Armv7l32}
     }
     set plat Linux$bits
-  } else {;## Change for other multi-arch UNIX platforms...
+  } else {;## Change for other multi-arch UNIX platforms (Darwin -- MacOSX)
     set plat $::tcl_platform(os)
   }
   set ::BinaryArchive [file join $::CDDir \
@@ -356,12 +479,17 @@ proc FindArchivesAndComputeSizes_UNIX {} {
   set ::DevelArchive [file join $::CDDir \
 	MRRSystem-$::MRRSystem::VERSION-${plat}BinDevel.tar.bz2]
   set ::DevelArchiveInstallProc UnixInstallTarxjvf
+  set ::ExamplesArchive [file join $::CDDir \
+	MRRSystem-$::MRRSystem::VERSION-${plat}BinExamples.tar.bz2]
+  set ::ExamplesArchiveInstallProc UnixInstallTarxjvf
   puts stderr "*** FindArchivesAndComputeSizes_UNIX: ::BinaryArchive = $::BinaryArchive"
   puts stderr "*** FindArchivesAndComputeSizes_UNIX: ::DocsArchive   = $::DocsArchive"
   puts stderr "*** FindArchivesAndComputeSizes_UNIX: ::DevelArchive  = $::DevelArchive"
+  puts stderr "*** FindArchivesAndComputeSizes_UNIX: ::ExamplesArchive = $::ExamplesArchive"
   if {![file exists $::DevelArchive] ||
       ![file exists $::BinaryArchive] ||
-      ![file exists $::DocsArchive]} {
+      ![file exists $::DocsArchive] ||
+      ![file exists $::ExamplesArchive]} {
     tk_messageBox -type ok -parent . -title "Unsupported O/S" \
 		  -icon error \
 		  -message "The archives for $::tcl_platform(os) are missing!"
@@ -380,7 +508,7 @@ proc FindArchivesAndComputeSizes_UNIX {} {
     tkwait variable ::BinaryArchiveSize
     set ::Startup::binarySize "[HumanReadableNumber $::BinaryArchiveSize]"
     catch {close $fd}
-    set ::Startup::progress 33
+    set ::Startup::progress 25
     set ::Startup::devel [file tail $::DevelArchive]
     set ::DevelArchiveSize 0
     set fd [open |[list sh -c "bzcat $::DevelArchive|wc -c"] r]
@@ -388,7 +516,7 @@ proc FindArchivesAndComputeSizes_UNIX {} {
     tkwait variable ::DevelArchiveSize
     set ::Startup::develSize "[HumanReadableNumber $::DevelArchiveSize]"
     catch {close $fd}
-    set ::Startup::progress 67
+    set ::Startup::progress 50
     set ::Startup::docs [file tail $::DocsArchive]
     set ::DocsArchiveSize 0
     set fd [open |[list sh -c "bzcat $::DocsArchive|wc -c"] r]
@@ -396,6 +524,14 @@ proc FindArchivesAndComputeSizes_UNIX {} {
     tkwait variable ::DocsArchiveSize
     set ::Startup::docsSize "[HumanReadableNumber $::DocsArchiveSize]"
     catch {close $fd}
+    set ::Startup::progress 75
+    set ::Startup::examples [file tail $::ExamplesArchive]
+    set ::ExamplesArchiveSize 0
+    set fd [open |[list sh -c "bzcat $::ExamplesArchive|wc -c"] r]
+    fileevent $fd readable [list gets $fd ::ExamplesArchiveSize]
+    tkwait variable ::ExamplesArchiveSize
+    catch {close $fd}
+    set ::Startup::examplesSize "[HumanReadableNumber $::ExamplesArchiveSize]"
     set ::Startup::progress 100
   } error]} {
     puts stderr "Error getting archive sizes: $error"
@@ -407,8 +543,9 @@ proc FindArchivesAndComputeSizes_UNIX {} {
 }
 
 proc UnixInstallTarxzvf {tarpath destpath logtext} {
+  puts stderr "*** UnixInstallTarxzvf $tarpath $destpath $logtext"  
   catch {file mkdir $destpath}
-  set fd [open |[list tar xzvf --no-same-owner "$tarpath" -C "$destpath"] r]
+  set fd [open |[list tar xzv --no-same-owner -f "$tarpath" -C "$destpath"] r]
   set ::LogDone 0
   fileevent $fd readable [list PipeToLog $fd $logtext]
   tkwait variable ::LogDone
@@ -416,8 +553,9 @@ proc UnixInstallTarxzvf {tarpath destpath logtext} {
 }
 
 proc UnixInstallTarxjvf {tarpath destpath logtext} {
+  puts stderr "*** UnixInstallTarxjvf $tarpath $destpath $logtext"  
   catch {file mkdir $destpath}
-  set fd [open |[list tar xjvf --no-same-owner "$tarpath" -C "$destpath"] r]
+  set fd [open |[list tar xjv --no-same-owner -f "$tarpath" -C "$destpath"] r]
   set ::LogDone 0
   fileevent $fd readable [list PipeToLog $fd $logtext]
   tkwait variable ::LogDone
@@ -428,7 +566,7 @@ proc PipeToLog {fd logtext} {
   if {[gets $fd line] >= 0} {
     $logtext insert end "$line\n"
     $logtext see end
-    update
+    update idle
   } else {
     catch {close $fd}
     incr ::LogDone
@@ -446,17 +584,17 @@ proc Deep_File_Copy {sourceDir destDir logtext} {
   foreach f [glob -nocomplain [file join $sourceDir *]] {
     switch [file type $f] {
       file {
-	file copy $f $destDir
+	catch {file copy $f $destDir}
 	$logtext insert end "[file join $destDir [file tail $f]]\n"
 	$logtext see end
-        update
+        update idle
       }
       directory {
 	set newdir [file join $destDir [file tail $f]]
 	file mkdir $newdir
         $logtext insert end "$newdir\n"
 	$logtext see end
-	update
+	update idle
 	Deep_File_Copy $f $newdir $logtext
       }
     }
@@ -469,7 +607,8 @@ proc MainWindow {} {
 					{command "E&xit" {} 
 						 "Exit the application" {} 
 						 -command CleanupAndExit}}} \
-					]
+                                           ]
+  wm protocol . WM_DELETE_WINDOW CleanupAndExit
   pack $::Main  -expand yes -fill both
   image create photo DeepwoodsBanner -format gif \
 				     -file [file join $::ImageDir \
@@ -496,6 +635,8 @@ proc MainWindow {} {
 		variable binarySize "[HumanReadableNumber 0]"
 		variable docs {}
 		variable docsSize "[HumanReadableNumber 0]"
+		variable examples {}
+		variable examplesSize "[HumanReadableNumber 0]"
 	}
 	pack [ttk::labelframe $page.progressFrame -labelanchor nw -text "Finding Archives..." \
 					     ] \
@@ -507,7 +648,7 @@ proc MainWindow {} {
         pack $progress -fill x
 	set binaryLF [LabelFrame \
 			$page.progressFrame.binaryLF \
-				-text "Binary Archive:" -width 16]
+				-text "Binary Archive:" -width 20]
 	pack $binaryLF -expand yes -fill x
 	pack [ttk::entry [$binaryLF getframe].name -state readonly \
 					      -textvariable ::Startup::binary] \
@@ -517,7 +658,7 @@ proc MainWindow {} {
 		-side left
 	set develLF [LabelFrame \
 			$page.progressFrame.develLF \
-				-text "Devel Archive:" -width 16]
+				-text "Devel Archive:" -width 20]
 	pack $develLF -expand yes -fill x
 	pack [ttk::entry [$develLF getframe].name -state readonly \
 					      -textvariable ::Startup::devel] \
@@ -527,13 +668,23 @@ proc MainWindow {} {
 		-side left
 	set docsLF [LabelFrame \
 			$page.progressFrame.docsLF \
-				-text "Docs Archive:" -width 16]
+				-text "Docs Archive:" -width 20]
 	pack $docsLF -expand yes -fill x
 	pack [ttk::entry [$docsLF getframe].name -state readonly \
 					      -textvariable ::Startup::docs] \
 		-side left -expand yes -fill x
 	pack [ttk::entry [$docsLF getframe].size -state readonly -width 6\
 					      -textvariable ::Startup::docsSize] \
+		-side left
+	set examplesLF [LabelFrame \
+			$page.progressFrame.examplesLF \
+				-text "Examples Archive:" -width 20]
+	pack $examplesLF -expand yes -fill x
+	pack [ttk::entry [$examplesLF getframe].name -state readonly \
+					      -textvariable ::Startup::examples] \
+		-side left -expand yes -fill x
+	pack [ttk::entry [$examplesLF getframe].size -state readonly -width 6\
+					      -textvariable ::Startup::examplesSize] \
 		-side left
 	pack [ttk::button $page.next -text "Next ==>" -command {set ::State Copyright}\
 				-state disabled] \
@@ -582,6 +733,7 @@ proc MainWindow {} {
 		variable installDevel no
 		variable installBinary yes
 		variable installDocs yes
+                variable installExamples no
                 variable hasSysBinaryArchive no
 	}
 	pack [ttk::labelframe $page.progressFrame -text "Selecting Archives to install..." \
@@ -590,7 +742,7 @@ proc MainWindow {} {
 	set pframe $page.progressFrame
 	set binaryLF [LabelFrame \
 			$pframe.binaryLF \
-			-text "Binary Archive:" -width 16]
+			-text "Binary Archive:" -width 20]
 	pack $binaryLF -expand yes -fill x
 	pack [ttk::checkbutton [$binaryLF getframe].check \
 				-text "Install?" \
@@ -599,7 +751,7 @@ proc MainWindow {} {
 		-side left -expand yes -fill x
 	set develLF [LabelFrame \
 			$pframe.develLF \
-			-text "Devel Archive:" -width 16]
+			-text "Devel Archive:" -width 20]
 	pack $develLF -expand yes -fill x
 	pack [ttk::checkbutton [$develLF getframe].check \
 				-text "Install?" \
@@ -608,12 +760,21 @@ proc MainWindow {} {
 		-side left -expand yes -fill x
 	set docLF [LabelFrame \
 			$pframe.docLF \
-			-text "Docs Archive:" -width 16]
+			-text "Docs Archive:" -width 20]
 	pack $docLF -expand yes -fill x
 	pack [ttk::checkbutton [$docLF getframe].check \
 				-text "Install?" \
 				-offvalue no -onvalue yes \
 				-variable ::InstallArchives::installDocs] \
+		-side left -expand yes -fill x
+	set examplesLF [LabelFrame \
+			$pframe.examplesLF \
+			-text "Examples Archive:" -width 20]
+	pack $examplesLF -expand yes -fill x
+	pack [ttk::checkbutton [$examplesLF getframe].check \
+				-text "Install?" \
+				-offvalue no -onvalue yes \
+				-variable ::InstallArchives::installExamples] \
 		-side left -expand yes -fill x
 	pack [ttk::button $page.next -text "Next ==>" -command {set ::State DestDisk}\
 				-state normal] \
@@ -815,7 +976,10 @@ while {![string equal $::State {Done}]} {
 	} 
 	if {$::InstallArchives::installDocs} {
 	  incr sn $::DocsArchiveSize
-	}
+        }
+        if {$::InstallArchives::installExamples} {
+          incr sn $::ExamplesArchiveSize
+        }
 	set ::DestDisk::spaceneeded "[HumanReadableNumber $sn]"
 	if {$sn == 0} {
 	  set ::State AdditionalArchives
@@ -838,6 +1002,9 @@ while {![string equal $::State {Done}]} {
 	}
 	if {$::InstallArchives::installDocs} {
 	  incr sn $::DocsArchiveSize
+	}
+	if {$::InstallArchives::installExamples} {
+	  incr sn $::ExamplesArchiveSize
 	}
 	set sn [expr {double($sn)}]
 	if {$::InstallArchives::installBinary} {
@@ -864,6 +1031,14 @@ while {![string equal $::State {Done}]} {
 	  set Installing::logstatus "Installing ($acount): [file tail $::DocsArchive]"
 	  $::DocsArchiveInstallProc $::DocsArchive "$::DestDisk::destdir" $::Installing::logtext
 	  incr inst $::DocsArchiveSize
+	  set ::Installing::progress [expr {int((double($inst) / $sn)*100)}]
+	  update
+	}
+	if {$::InstallArchives::installExamples} {
+	  incr acount
+	  set Installing::logstatus "Installing ($acount): [file tail $::ExamplesArchive]"
+	  $::ExamplesArchiveInstallProc $::ExamplesArchive "$::DestDisk::destdir" $::Installing::logtext
+	  incr inst $::ExamplesArchiveSize
 	  set ::Installing::progress [expr {int((double($inst) / $sn)*100)}]
 	  update
 	}

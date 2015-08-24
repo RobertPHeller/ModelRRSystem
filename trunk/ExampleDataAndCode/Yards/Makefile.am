@@ -8,6 +8,9 @@ pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/Yards
 noinst_DATA = html/index.html
 pkgdata_DATA =  latex/refman.pdf
 
+
+CLEANFILES= *.tag navheader.html                                                
+
 html/index.html latex/refman.pdf : Doxyfile main.h $(CODEFILES) \
 	$(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
 	-rm -rf latex/ html/

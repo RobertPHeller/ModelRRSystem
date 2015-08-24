@@ -33,6 +33,8 @@
 #*  
 #* 
 
+BUILT_SOURCES = $(TCLKIT) azatrax_wrap.cc Azatrax.h
+
 pkgincludedir = $(includedir)/$(PACKAGE)/Azatrax
 pkginclude_HEADERS = Azatrax.h mrd.h sl2.h sr4.h
 lib_LTLIBRARIES = libazatrax.la
@@ -60,15 +62,8 @@ libazatrax_la_LIBADD = $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
-BUILT_SOURCES = $(TCLKIT) azatrax_wrap.cc Azatrax.h
-
-if MACOSX
-bin_SCRIPTS = MRDTest.dmg MRDSensorLoop.dmg \
-		AzatraxDeviceMap.dmg SL2Test.dmg SR4Test.dmg
-else
 bin_SCRIPTS = MRDTest${EXEEXT} MRDSensorLoop${EXEEXT} \
 		AzatraxDeviceMap${EXEEXT} SL2Test${EXEEXT} SR4Test${EXEEXT}
-endif
 noinst_SCRIPTS = pkgIndex.tcl
 
 noinst_DATA = azatrax.potlist
@@ -238,6 +233,32 @@ MRDTest${EXEEXT}: MRDTest.src libazatrax.la $(MRDTestSCRIPTS) \
 		Messages $(top_builddir)/po/AzatraxProg/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap MRDTest${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf MRDTest.vfs
+if MACOSX
+# create application for Mac OSX                                               $
+	-rm -rf MRDTest.app
+	mkdir -p MRDTest.app/Contents/MacOS/
+	cp MRDTest$(EXEEXT) MRDTest.app/Contents/MacOS/
+	mkdir -p MRDTest.app/Contents/Resources/
+	-rm -rf MRDTest.iconset
+	mkdir MRDTest.iconset
+	sips -z 16 16     $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_512x512@2x.png
+	iconutil -c icns MRDTest.iconset
+	-rm -rf MRDTest.iconset
+	cp MRDTest.icns MRDTest.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit MRDTest 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o MRDTest.app/Contents/Info.plist \
+		MRDTest.plist
+	-rm -f MRDTest.plist MRDTest.icns
+endif
 
 SL2Test${EXEEXT}: SL2Test.src libazatrax.la $(SL2TestSCRIPTS) \
 		pkgIndex.tcl \
@@ -264,6 +285,32 @@ SL2Test${EXEEXT}: SL2Test.src libazatrax.la $(SL2TestSCRIPTS) \
 		Messages $(top_builddir)/po/AzatraxProg/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap SL2Test${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf SL2Test.vfs
+if MACOSX
+# create application for Mac OSX                                               $
+	-rm -rf SL2Test.app
+	mkdir -p SL2Test.app/Contents/MacOS/
+	cp SL2Test$(EXEEXT) SL2Test.app/Contents/MacOS/
+	mkdir -p SL2Test.app/Contents/Resources/
+	-rm -rf SL2Test.iconset
+	mkdir SL2Test.iconset
+	sips -z 16 16     $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_512x512@2x.png
+	iconutil -c icns SL2Test.iconset
+	-rm -rf SL2Test.iconset
+	cp SL2Test.icns SL2Test.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit SL2Test 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o SL2Test.app/Contents/Info.plist \
+		SL2Test.plist
+	-rm -f SL2Test.plist SL2Test.icns
+endif
 
 SR4Test${EXEEXT}: SR4Test.src libazatrax.la $(SR4TestSCRIPTS) \
 		pkgIndex.tcl \
@@ -290,6 +337,32 @@ SR4Test${EXEEXT}: SR4Test.src libazatrax.la $(SR4TestSCRIPTS) \
 		Messages $(top_builddir)/po/AzatraxProg/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap SR4Test${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf SR4Test.vfs
+if MACOSX
+# create application for Mac OSX                                               $
+	-rm -rf SR4Test.app
+	mkdir -p SR4Test.app/Contents/MacOS/
+	cp SR4Test$(EXEEXT) SR4Test.app/Contents/MacOS/
+	mkdir -p SR4Test.app/Contents/Resources/
+	-rm -rf SR4Test.iconset
+	mkdir SR4Test.iconset
+	sips -z 16 16     $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_512x512@2x.png
+	iconutil -c icns SR4Test.iconset
+	-rm -rf SR4Test.iconset
+	cp SR4Test.icns SR4Test.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit SR4Test 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o SR4Test.app/Contents/Info.plist \
+		SR4Test.plist
+	-rm -f SR4Test.plist SR4Test.icns
+endif
 
 MRDSensorLoop${EXEEXT}: MRDSensorLoop.src libazatrax.la $(MRDSensorLoopSCRIPTS) \
 		pkgIndex.tcl \
@@ -316,6 +389,32 @@ MRDSensorLoop${EXEEXT}: MRDSensorLoop.src libazatrax.la $(MRDSensorLoopSCRIPTS) 
 		Messages $(top_builddir)/po/AzatraxProg/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap MRDSensorLoop${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf MRDSensorLoop.vfs
+if MACOSX
+# create application for Mac OSX
+	-rm -rf MRDSensorLoop.app
+	mkdir -p MRDSensorLoop.app/Contents/MacOS/
+	cp MRDSensorLoop$(EXEEXT) MRDSensorLoop.app/Contents/MacOS/
+	mkdir -p MRDSensorLoop.app/Contents/Resources/
+	-rm -rf MRDSensorLoop.iconset
+	mkdir MRDSensorLoop.iconset
+	sips -z 16 16     $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_512x512@2x.png
+	iconutil -c icns MRDSensorLoop.iconset
+	-rm -rf MRDSensorLoop.iconset
+	cp MRDSensorLoop.icns MRDSensorLoop.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit MRDSensorLoop 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o MRDSensorLoop.app/Contents/Info.plist \
+		MRDSensorLoop.plist
+	-rm -f MRDSensorLoop.plist MRDSensorLoop.icns
+endif
 
 AzatraxDeviceMap${EXEEXT}: AzatraxDeviceMap.src libazatrax.la $(AzatraxDeviceMapSCRIPTS) \
 		pkgIndex.tcl \
@@ -346,80 +445,8 @@ AzatraxDeviceMap${EXEEXT}: AzatraxDeviceMap.src libazatrax.la $(AzatraxDeviceMap
 		Messages $(top_builddir)/po/AzatraxProg/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap AzatraxDeviceMap${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf AzatraxDeviceMap.vfs
-
 if MACOSX
-# create application for Mac OSX                                               $
-MRDTest.dmg: MRDTest$(EXEEXT)
-	-rm -rf MRDTest.app
-	mkdir -p MRDTest.app/Contents/MacOS/
-	cp MRDTest$(EXEEXT) MRDTest.app/Contents/MacOS/
-	mkdir -p MRDTest.app/Contents/Resources/
-	-rm -rf MRDTest.iconset
-	mkdir MRDTest.iconset
-	sips -z 16 16     $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_16x16.png
-	sips -z 32 32     $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_16x16@2x.png
-	sips -z 32 32     $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_32x32.png
-	sips -z 64 64     $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_32x32@2x.png
-	sips -z 128 128   $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_128x128.png
-	sips -z 256 256   $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_128x128@2x.png
-	sips -z 256 256   $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_256x256.png
-	sips -z 512 512   $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_256x256@2x.png
-	sips -z 512 512   $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_512x512.png
-	sips -z 1024 1024 $(srcdir)/MRDTest.png --out MRDTest.iconset/icon_512x512@2x.png
-	iconutil -c icns MRDTest.iconset
-	-rm -rf MRDTest.iconset
-	cp MRDTest.icns MRDTest.app/Contents/Resources/
-	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit MRDTest 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
-	plutil -convert binary1 -o MRDTest.app/Contents/Info.plist \
-		MRDTest.plist
-	-rm -f MRDTest.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r MRDTest.app dmg
-	ln -s /Applications dmg/
-	rm -f MRDTest.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname MRDTest.dmg MRDTest.dmg
-	-rm -rf dmg
-endif
-
-if MACOSX
-# create application for Mac OSX                                               $
-MRDSensorLoop.dmg: MRDSensorLoop$(EXEEXT)
-	-rm -rf MRDSensorLoop.app
-	mkdir -p MRDSensorLoop.app/Contents/MacOS/
-	cp MRDSensorLoop$(EXEEXT) MRDSensorLoop.app/Contents/MacOS/
-	mkdir -p MRDSensorLoop.app/Contents/Resources/
-	-rm -rf MRDSensorLoop.iconset
-	mkdir MRDSensorLoop.iconset
-	sips -z 16 16     $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_16x16.png
-	sips -z 32 32     $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_16x16@2x.png
-	sips -z 32 32     $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_32x32.png
-	sips -z 64 64     $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_32x32@2x.png
-	sips -z 128 128   $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_128x128.png
-	sips -z 256 256   $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_128x128@2x.png
-	sips -z 256 256   $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_256x256.png
-	sips -z 512 512   $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_256x256@2x.png
-	sips -z 512 512   $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_512x512.png
-	sips -z 1024 1024 $(srcdir)/MRDSensorLoop.png --out MRDSensorLoop.iconset/icon_512x512@2x.png
-	iconutil -c icns MRDSensorLoop.iconset
-	-rm -rf MRDSensorLoop.iconset
-	cp MRDSensorLoop.icns MRDSensorLoop.app/Contents/Resources/
-	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit MRDSensorLoop 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
-	plutil -convert binary1 -o MRDSensorLoop.app/Contents/Info.plist \
-		MRDSensorLoop.plist
-	-rm -f MRDSensorLoop.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r MRDSensorLoop.app dmg
-	ln -s /Applications dmg/
-	rm -f MRDSensorLoop.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname MRDSensorLoop.dmg MRDSensorLoop.dmg
-	-rm -rf dmg
-endif
-
-if MACOSX
-# create application for Mac OSX                                               $
-AzatraxDeviceMap.dmg: AzatraxDeviceMap$(EXEEXT)
+# create application for Mac OSX
 	-rm -rf AzatraxDeviceMap.app
 	mkdir -p AzatraxDeviceMap.app/Contents/MacOS/
 	cp AzatraxDeviceMap$(EXEEXT) AzatraxDeviceMap.app/Contents/MacOS/
@@ -442,95 +469,28 @@ AzatraxDeviceMap.dmg: AzatraxDeviceMap$(EXEEXT)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit AzatraxDeviceMap 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o AzatraxDeviceMap.app/Contents/Info.plist \
 		AzatraxDeviceMap.plist
-	-rm -f AzatraxDeviceMap.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r AzatraxDeviceMap.app dmg
-	ln -s /Applications dmg/
-	rm -f AzatraxDeviceMap.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname AzatraxDeviceMap.dmg AzatraxDeviceMap.dmg
-	-rm -rf dmg
+	-rm -f AzatraxDeviceMap.plist AzatraxDeviceMap.icns
 endif
 
 if MACOSX
-# create application for Mac OSX                                               $
-SL2Test.dmg: SL2Test$(EXEEXT)
-	-rm -rf SL2Test.app
-	mkdir -p SL2Test.app/Contents/MacOS/
-	cp SL2Test$(EXEEXT) SL2Test.app/Contents/MacOS/
-	mkdir -p SL2Test.app/Contents/Resources/
-	-rm -rf SL2Test.iconset
-	mkdir SL2Test.iconset
-	sips -z 16 16     $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_16x16.png
-	sips -z 32 32     $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_16x16@2x.png
-	sips -z 32 32     $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_32x32.png
-	sips -z 64 64     $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_32x32@2x.png
-	sips -z 128 128   $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_128x128.png
-	sips -z 256 256   $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_128x128@2x.png
-	sips -z 256 256   $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_256x256.png
-	sips -z 512 512   $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_256x256@2x.png
-	sips -z 512 512   $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_512x512.png
-	sips -z 1024 1024 $(srcdir)/SL2Test.png --out SL2Test.iconset/icon_512x512@2x.png
-	iconutil -c icns SL2Test.iconset
-	-rm -rf SL2Test.iconset
-	cp SL2Test.icns SL2Test.app/Contents/Resources/
-	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit SL2Test 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
-	plutil -convert binary1 -o SL2Test.app/Contents/Info.plist \
-		SL2Test.plist
-	-rm -f SL2Test.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r SL2Test.app dmg
-	ln -s /Applications dmg/
-	rm -f SL2Test.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname SL2Test.dmg SL2Test.dmg
-	-rm -rf dmg
-endif
-
-if MACOSX
-# create application for Mac OSX                                               $
-SR4Test.dmg: SR4Test$(EXEEXT)
-	-rm -rf SR4Test.app
-	mkdir -p SR4Test.app/Contents/MacOS/
-	cp SR4Test$(EXEEXT) SR4Test.app/Contents/MacOS/
-	mkdir -p SR4Test.app/Contents/Resources/
-	-rm -rf SR4Test.iconset
-	mkdir SR4Test.iconset
-	sips -z 16 16     $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_16x16.png
-	sips -z 32 32     $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_16x16@2x.png
-	sips -z 32 32     $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_32x32.png
-	sips -z 64 64     $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_32x32@2x.png
-	sips -z 128 128   $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_128x128.png
-	sips -z 256 256   $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_128x128@2x.png
-	sips -z 256 256   $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_256x256.png
-	sips -z 512 512   $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_256x256@2x.png
-	sips -z 512 512   $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_512x512.png
-	sips -z 1024 1024 $(srcdir)/SR4Test.png --out SR4Test.iconset/icon_512x512@2x.png
-	iconutil -c icns SR4Test.iconset
-	-rm -rf SR4Test.iconset
-	cp SR4Test.icns SR4Test.app/Contents/Resources/
-	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit SR4Test 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
-	plutil -convert binary1 -o SR4Test.app/Contents/Info.plist \
-		SR4Test.plist
-	-rm -f SR4Test.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r SR4Test.app dmg
-	ln -s /Applications dmg/
-	rm -f SR4Test.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname SR4Test.dmg SR4Test.dmg
-	-rm -rf dmg
-endif
-
-if MACOSX
-install-exec-local: MRDTest.dmg MRDSensorLoop.dmg AzatraxDeviceMap.dmg \
-			SL2Test.dmg SR4Test.dmg
+install-exec-local: MRDTest.app MRDSensorLoop.app AzatraxDeviceMap.app \
+			SL2Test.app SR4Test.app
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh MRDTest.app $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh MRDSensorLoop.app $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh AzatraxDeviceMap.app $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh SL2Test.app $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh SR4Test.app $(DESTDIR)$(bindir)
+
+MRDTest.app: MRDTest${EXEEXT}
+
+MRDSensorLoop.app: MRDSensorLoop${EXEEXT}
+
+AzatraxDeviceMap.app: AzatraxDeviceMap${EXEEXT}
+
+SL2Test.app: SL2Test${EXEEXT}
+
+SR4Test.app: SR4Test${EXEEXT}
 
 endif
 
@@ -546,7 +506,7 @@ endif
 	touch $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
 	cat   pkgIndex.tcl >>$(DESTDIR)$(pkglibdir)/pkgIndex.tcl
 	$(INSTALL_DATA) pkgIndex.tcl $(DESTDIR)$(pkglibdir)/pkgIndex_azatrax.tcl
-
+	
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
 
@@ -593,6 +553,12 @@ man1/AzatraxDeviceMap.1 : Doxyfile AzatraxDeviceMap.src
 
 clean-local:
 	-rm -rf man1
+if MACOSX
+	-rm -rf MRDTest.app MRDSensorLoop.app AzatraxDeviceMap.app \
+		SL2Test.app SR4Test.app
+	
+endif
+
 
 	
 Azatrax.h : Azatrax.h.in $(top_builddir)/config.status

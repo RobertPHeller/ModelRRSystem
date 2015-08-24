@@ -8,11 +8,7 @@ pkgdata_DATA =  xpressnet.tcl pkgIndex.tcl XPressNetThrottle.pot
 
 BUILT_SOURCES = $(TCLKIT)
 
-if MACOSX
-bin_SCRIPTS = XPressNetThrottle.dmg
-else
 bin_SCRIPTS = XPressNetThrottle${EXEEXT}
-endif
 
 desktopdir = $(datadir)/applications
 desktop_DATA = XPressNetThrottle.desktop
@@ -92,10 +88,8 @@ XPressNetThrottle${EXEEXT}: XPressNetThrottle.src \
 		Messages $(top_builddir)/po/XPressNetThrottle/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap XPressNetThrottle${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf XPressNetThrottle.vfs
-
 if MACOSX
 # create application for Mac OSX                                               $
-XPressNetThrottle.dmg: XPressNetThrottle$(EXEEXT)
 	-rm -rf XPressNetThrottle.app
 	mkdir -p XPressNetThrottle.app/Contents/MacOS/
 	cp XPressNetThrottle$(EXEEXT) XPressNetThrottle.app/Contents/MacOS/
@@ -118,18 +112,13 @@ XPressNetThrottle.dmg: XPressNetThrottle$(EXEEXT)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit XPressNetThrottle 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o XPressNetThrottle.app/Contents/Info.plist \
 		XPressNetThrottle.plist
-	-rm -f XPressNetThrottle.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r XPressNetThrottle.app dmg
-	ln -s /Applications dmg/
-	rm -f XPressNetThrottle.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname XPressNetThrottle.dmg XPressNetThrottle.dmg
-	-rm -rf dmg
+	-rm -f XPressNetThrottle.plist XPressNetThrottle.icns
 	
-install-exec-local: XPressNetThrottle.dmg
+install-exec-local: XPressNetThrottle.app
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh XPressNetThrottle.app $(DESTDIR)$(bindir)
+
+XPressNetThrottle.app: XPressNetThrottle${EXEEXT}
 
 endif
 
@@ -152,6 +141,9 @@ man1/XPressNetThrottle.1 : Doxyfile XPressNetThrottle.src
 
 clean-local:
 	-rm -rf man1
+if MACOSX
+	-rm -rf XPressNetThrottle.app
+endif
 
 FORCE:
 

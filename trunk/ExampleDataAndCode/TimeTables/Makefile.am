@@ -7,6 +7,8 @@ pkgdatadir = $(datadir)/$(PACKAGE)/ExampleDataAndCode/TimeTables
 noinst_DATA = html/index.html
 pkgdata_DATA =  latex/refman.pdf# pkgIndex.tcl
 
+CLEANFILES= *.tag navheader.html                                                
+
 html/index.html latex/refman.pdf : Doxyfile main.h $(CODEFILES) \
 	$(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
 	-rm -rf latex/ html/

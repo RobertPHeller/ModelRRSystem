@@ -42,11 +42,7 @@ DispatcherImages  = banner.gif search.gif load.gif largePrinter.gif \
 ExampleScripts = example1.tcl example2.tcl example3.tcl example4.tcl \
 		 example1.iow example2.iow example3.iow example4.iow
 
-if MACOSX
-bin_SCRIPTS = Dispatcher.dmg
-else
 bin_SCRIPTS = Dispatcher$(EXEEXT)
-endif
 
 pkgdataexdir = $(datadir)/$(PACKAGE)/Doc/DispatcherExamples
 pkgdataex_DATA = $(ExampleScripts) 
@@ -209,10 +205,8 @@ endif
 		Messages $(top_builddir)/po/Dispatcher/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap Dispatcher${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf Dispatcher.vfs Dispatcher.kit
-
 if MACOSX 
 # create application for Mac OSX                                                
-Dispatcher.dmg: Dispatcher$(EXEEXT)
 	-rm -rf Dispatcher.app
 	mkdir -p Dispatcher.app/Contents/MacOS/
 	cp Dispatcher$(EXEEXT) Dispatcher.app/Contents/MacOS/
@@ -235,21 +229,17 @@ Dispatcher.dmg: Dispatcher$(EXEEXT)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit Dispatcher 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o Dispatcher.app/Contents/Info.plist \
 		Dispatcher.plist
-	-rm -f Dispatcher.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r Dispatcher.app dmg
-	ln -s /Applications dmg/
-	rm -f Dispatcher.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname Dispatcher.dmg Dispatcher.dmg
-	-rm -rf dmg
+	-rm -f Dispatcher.plist Dispatcher.icns
 
-install-exec-local: Dispatcher.dmg
+install-exec-local: Dispatcher.app
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(top_srcdir)/BuildScripts/macappInstall.sh Dispatcher.app $(DESTDIR)$(bindir)
 
+Dispatcher.app: Dispatcher${BEXEEXT}
+
 endif
 	
+
 	
 $(top_builddir)/Doc/User/Dispatcher/index.html : FORCE
 	$(MAKE) -C $(top_builddir)/Doc/User Dispatcher/index.html
@@ -259,6 +249,8 @@ $(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
 
 ../../po/Dispatcher/msgfiles: FORCE
 	$(MAKE) -C ../../po/Dispatcher msgfiles
+
+
 
 FORCE:
 
@@ -294,6 +286,9 @@ man1/Dispatcher.1 : Doxyfile Dispatcher.src
 
 clean-local:
 	-rm -rf man1
+if MACOSX                                                                       
+	-rm -rf Dispatcher.app
+endif
 
 $(top_builddir)/Scripts/Common/Version.tcl: FORCE
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl

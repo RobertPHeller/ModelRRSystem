@@ -34,11 +34,8 @@
 #* 
 
 GTScripts = 
-if MACOSX                                                                       
-bin_SCRIPTS = GenericThrottle.dmg
-else
+
 bin_SCRIPTS = GenericThrottle$(EXEEXT)
-endif
 
 GIFS = 
 
@@ -132,10 +129,8 @@ GenericThrottle$(EXEEXT) : GenericThrottle.src $(GTLibFiles) $(GTCommonFiles) \
 #		lib/$(GTLib) $(GTLibFiles)
 #	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit GenericThrottle \
 #		$(GTLib)
-
 if MACOSX
 # create application for Mac OSX                                               $
-GenericThrottle.dmg: GenericThrottle$(EXEEXT)
 	-rm -rf GenericThrottle.app
 	mkdir -p GenericThrottle.app/Contents/MacOS/
 	cp GenericThrottle$(EXEEXT) GenericThrottle.app/Contents/MacOS/
@@ -158,18 +153,13 @@ GenericThrottle.dmg: GenericThrottle$(EXEEXT)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit GenericThrottle 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
 	plutil -convert binary1 -o GenericThrottle.app/Contents/Info.plist \
 		GenericThrottle.plist
-	-rm -f GenericThrottle.plist
-	-rm -rf dmg
-	mkdir dmg
-	cp -r GenericThrottle.app dmg
-	ln -s /Applications dmg/
-	rm -f GenericThrottle.dmg
-	hdiutil create -srcfolder dmg -format UDZO -volname GenericThrottle.dmg GenericThrottle.dmg
-	-rm -rf dmg
+	-rm -f GenericThrottle.plist GenericThrottle.icns
 	
-install-exec-local: GenericThrottle.dmg
+install-exec-local: GenericThrottle.app
 	$(INSTALL) -d $(DESTDIR)$(bindir)
-	$(top_srcdir)/BuildScripts/macappInstall.sh GenericThrottle.dmg $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh GenericThrottle.app $(DESTDIR)$(bindir)
+
+GenericThrottle.app: GenericThrottle${EXEEXT}
 
 endif
 
@@ -193,5 +183,7 @@ man1/GenericThrottle.1 : Doxyfile GenericThrottle.src
 
 clean-local:
 	-rm -rf man1
-
+if MACOSX
+	-rm -rf GenericThrottle.app
+endif
 
