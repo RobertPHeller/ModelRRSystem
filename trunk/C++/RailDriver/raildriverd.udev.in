@@ -227,6 +227,15 @@ fi
 
 /usr/bin/logger -i -t  $0 "Action: $1, DEVPATH = $2, `/usr/bin/printenv`"
 
+DEVPATH=/sys$2
+/usr/bin/logger -i -t  $0 "DEVPATH is $DEVPATH"
+while test ! -e $DEVPATH/busnum; do
+   DEVPATH=`dirname $DEVPATH`
+      /usr/bin/logger -i -t  $0 "DEVPATH is $DEVPATH"
+      done
+      
+busnum=`cat $DEVPATH/busnum`
+devnum=`cat $DEVPATH/devnum`
 
 /usr/bin/logger -i -t  $0 "busnum = $busnum, devnum = $devnum"
 
