@@ -276,7 +276,8 @@ snit::type RaildriverServer {
 	      ::log::log debug "*** $type Initialize (break): p = $p"
 	      break
 	    }
-	  }
+          }
+          ::log::logMsg [format [_ "listening on port %d."] $p]
 	  set RailDriver [::new_RaildriverIO $busnum $devnum]
 	  ::log::log debug "*** $type Initialize: RailDriver = $RailDriver"
 	  set pidfilename [format {/var/run/%s-%03d-%03d.pid} [file tail $::argv0] $busnum $devnum]

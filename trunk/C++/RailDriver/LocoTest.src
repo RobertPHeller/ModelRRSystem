@@ -139,7 +139,7 @@ array set IndepentBrakeValues {
 global Socket
 
 # Connect to server
-set Socket [socket sauron.deepsoft.com 41000]
+set Socket [socket localhost 41000]
 # Line buffering
 fconfigure $Socket -buffering line
 
