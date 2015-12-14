@@ -238,6 +238,7 @@ snit::type RaildriverServer {
 	# common RaildriverIO object for the Raildriver console that the
 	# Hotplug system detected and which caused the daemon to be started.
 	#   @param args Vector of command line args from main().
+        #
 	  if {[llength $args] > 0 && [lindex $args 0] eq "-debug"} {
 	    set debugnotvis 0
 	    set args [lrange $args 1 end]
@@ -248,8 +249,9 @@ snit::type RaildriverServer {
 	    foreach {Xbusnum Xdevnum} $args {break}
 	    scan $Xbusnum {%03d} busnum
 	    scan $Xdevnum {%03d} devnum
-	  } else {
-	    error "usage: $::argv0 \[-debug\] busnum devnum"
+          } else {
+            set busnum 0
+            set devnum 0
 	  }
 
 	  set logfilename [format {/var/log/%s-%03d-%03d.log} [file tail $::argv0] $busnum $devnum]

@@ -267,9 +267,13 @@ public:
 	  *   Finds and opens the device and initializes various data objects,
 	  *   generally preparing for I/O to the connnected rail driver
 	  *   console.
-	  *    @param thebus The bus number the device is on.
+	  *    @param thebus The bus number the device is on.  If zero (0) is
+	  *    passed, the first raildriver is opened by vendor and product id.
 	  *    @param thedevice The device number on the bus the device is on.
+	  *    If zero (0) is passed, the first raildriver is opened by vendor 
+	  *    and product id.
 	  *    @param outmessage Receives error messages.
+	  *    
 	  */
 	RaildriverIO(short int thebus, short int thedevice,char **outmessage = NULL);
 	/** @brief   Destructor.

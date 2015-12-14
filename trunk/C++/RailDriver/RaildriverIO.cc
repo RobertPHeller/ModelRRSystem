@@ -61,6 +61,7 @@ RaildriverIO::RaildriverIO(short int thebus, short int thedevice,char **outmessa
   libusb_device **list;			/* Device list */
   int status;		/* Status result codes. */
   static char buffer[1024];	/* for error messages */
+  int err = 0;
 
   bindmrrdomain();	// bind message catalog domain
 
@@ -77,84 +78,136 @@ RaildriverIO::RaildriverIO(short int thebus, short int thedevice,char **outmessa
 #ifdef DEBUG
   fprintf(stderr,"*** RaildriverIO::RaildriverIO: thebus = %03d, thedevice = %03d\n",thebus,thedevice);
 #endif
-  // Get device list
-  ssize_t cnt = libusb_get_device_list(NULL, &list);
-  ssize_t i = 0;
-  int err = 0;
+    if (thebus == 0 || thedevice == 0) {
+        rdHandle = libusb_open_device_with_vid_pid(NULL,PIEngineering,RailDriverModernDesktop);
+        if (rdHandle == NULL) {
+            if (outmessage != NULL) {
+                    sprintf(buffer,_("RaildriverIO::RaildriverIO: usb_open failed\n"));
+                    *outmessage = new char[strlen(buffer)+1];
+                    strcpy(*outmessage,buffer);
+            }
+            return;
+        }
+        rdriverdev = libusb_get_device(rdHandle);
+        struct libusb_device_descriptor descr;
+        if (!libusb_get_device_descriptor(rdriverdev,&descr)) {
+            uint8_t ic = 0;
+            // For all configurations on this device...
+            for (ic = 0; ic < descr.bNumConfigurations; ic++) {
+                struct libusb_config_descriptor *config;
+                if (!libusb_get_config_descriptor(rdriverdev,ic,&config)) {
+                    uint8_t j = 0;
+                    // For all interfaces on this configuration...
+                    for (j = 0; j < config->bNumInterfaces; j++) {
+                        const struct libusb_interface * interface = &config->interface[j];
+                        int k = 0;
+                        // For all alternive settings on this interface...
+                        for (k = 0; k < interface->num_altsetting; k++) {
+                            // Get this alternive setting.
+                            const libusb_interface_descriptor *ainterface = &interface->altsetting[k];
+                            // If this is the HID interface, get its interface number and
+                            // stash the device object. We found it.
 #ifdef DEBUG
-  fprintf(stderr,"*** RaildriverIO::RaildriverIO: cnt = %d\n",cnt);
+                            fprintf(stderr,"*** RaildriverIO::RaildriverIO: ainterface->bInterfaceClass = %d\n",ainterface->bInterfaceClass);
 #endif
-
-  if (cnt < 0) {
-    if (outmessage != NULL) {
-      sprintf(buffer,_("RaildriverIO::RaildriverIO: libusb_get_device_list failed: %d\n"),cnt);
-      	*outmessage = new char[strlen(buffer)+1];
-	strcpy(*outmessage,buffer);
-    }
-    return;
-  }
-  rdriverdev = NULL;
-  theInterface = -1;
-  
-  // For all devices...
-  for (i = 0; i < cnt; i++) {
-    libusb_device *dev = list[i];
+                            if (ainterface->bInterfaceClass == LIBUSB_CLASS_HID) {
+                                theInterface = ainterface->bInterfaceNumber;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        // Get device list
+        ssize_t cnt = libusb_get_device_list(NULL, &list);
+        ssize_t i = 0;
 #ifdef DEBUG
-    fprintf(stderr,"*** RaildriverIO::RaildriverIO: i = %d\n",i);
-    fprintf(stderr,"*** RaildriverIO::RaildriverIO: libusb_get_bus_number(dev) = %03d\n",libusb_get_bus_number(dev));
+        fprintf(stderr,"*** RaildriverIO::RaildriverIO: cnt = %d\n",cnt);
 #endif
-    // Is the bus number the same as the requested bus number?  If not, try the next bus.
-    if (libusb_get_bus_number(dev) != thebus) continue;
+        
+        if (cnt < 0) {
+            if (outmessage != NULL) {
+                sprintf(buffer,_("RaildriverIO::RaildriverIO: libusb_get_device_list failed: %d\n"),cnt);
+                *outmessage = new char[strlen(buffer)+1];
+                strcpy(*outmessage,buffer);
+            }
+            return;
+        }
+        rdriverdev = NULL;
+        theInterface = -1;
+        
+        // For all devices...
+        for (i = 0; i < cnt; i++) {
+            libusb_device *dev = list[i];
 #ifdef DEBUG
-    fprintf(stderr,"*** RaildriverIO::RaildriverIO: libusb_get_device_address(dev) = %03d\n",libusb_get_device_address(dev));
+            fprintf(stderr,"*** RaildriverIO::RaildriverIO: i = %d\n",i);
+            fprintf(stderr,"*** RaildriverIO::RaildriverIO: libusb_get_bus_number(dev) = %03d\n",libusb_get_bus_number(dev));
 #endif
-    
-    // Is the device number the same as the requested device number?
-    // If not, try the next device.
-    if (libusb_get_device_address(dev) != thedevice) continue;
-    struct libusb_device_descriptor descr;
-    if (!libusb_get_device_descriptor(dev,&descr)) {
-      
-      uint8_t ic = 0;
-      // For all configurations on this device...
-      for (ic = 0; ic < descr.bNumConfigurations; ic++) {
-	struct libusb_config_descriptor *config;
-	if (!libusb_get_config_descriptor(dev,ic,&config)) {
-	  uint8_t j = 0;
-	  // For all interfaces on this configuration...
-	  for (j = 0; j < config->bNumInterfaces; j++) {
-	    const struct libusb_interface * interface = &config->interface[j];
-	    int k = 0;
-	    // For all alternive settings on this interface...
-	    for (k = 0; k < interface->num_altsetting; k++) {
-	      // Get this alternive setting.
-	      const libusb_interface_descriptor *ainterface = &interface->altsetting[k];
-	      // If this is the HID interface, get its interface number and
-	      // stash the device object. We found it.
+            // Is the bus number the same as the requested bus number?  If not, try the next bus.
+            if (libusb_get_bus_number(dev) != thebus) continue;
 #ifdef DEBUG
-	      fprintf(stderr,"*** RaildriverIO::RaildriverIO: ainterface->bInterfaceClass = %d\n",ainterface->bInterfaceClass);
+            fprintf(stderr,"*** RaildriverIO::RaildriverIO: libusb_get_device_address(dev) = %03d\n",libusb_get_device_address(dev));
 #endif
-	      if (ainterface->bInterfaceClass == LIBUSB_CLASS_HID) {
-		theInterface = ainterface->bInterfaceNumber;
-		rdriverdev = dev;
-		break;
-	      }
-	    }
-	  }
-	}
-      }
-    }
-  }
-  if (rdriverdev != NULL) {
-    err = libusb_open(rdriverdev,&rdHandle);
-    // Die if open fails.
-    if (err) {
-      if (outmessage != NULL) {
-        sprintf(buffer,_("RaildriverIO::RaildriverIO: usb_open failed: %d\n"),err);
-	*outmessage = new char[strlen(buffer)+1];
-	strcpy(*outmessage,buffer);
-      }
-      return;
+            
+            // Is the device number the same as the requested device number?
+            // If not, try the next device.
+            if (libusb_get_device_address(dev) != thedevice) continue;
+            struct libusb_device_descriptor descr;
+            if (!libusb_get_device_descriptor(dev,&descr)) {
+                
+                uint8_t ic = 0;
+                // For all configurations on this device...
+                for (ic = 0; ic < descr.bNumConfigurations; ic++) {
+                    struct libusb_config_descriptor *config;
+                    if (!libusb_get_config_descriptor(dev,ic,&config)) {
+                        uint8_t j = 0;
+                        // For all interfaces on this configuration...
+                        for (j = 0; j < config->bNumInterfaces; j++) {
+                            const struct libusb_interface * interface = &config->interface[j];
+                            int k = 0;
+                            // For all alternive settings on this interface...
+                            for (k = 0; k < interface->num_altsetting; k++) {
+                                // Get this alternive setting.
+                                const libusb_interface_descriptor *ainterface = &interface->altsetting[k];
+                                // If this is the HID interface, get its interface number and
+                                // stash the device object. We found it.
+#ifdef DEBUG
+                                fprintf(stderr,"*** RaildriverIO::RaildriverIO: ainterface->bInterfaceClass = %d\n",ainterface->bInterfaceClass);
+#endif
+                                if (ainterface->bInterfaceClass == LIBUSB_CLASS_HID) {
+                                    theInterface = ainterface->bInterfaceNumber;
+                                    rdriverdev = dev;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (rdriverdev != NULL) {
+            err = libusb_open(rdriverdev,&rdHandle);
+            // Die if open fails.
+            if (err) {
+                if (outmessage != NULL) {
+                    sprintf(buffer,_("RaildriverIO::RaildriverIO: usb_open failed: %d\n"),err);
+                    *outmessage = new char[strlen(buffer)+1];
+                    strcpy(*outmessage,buffer);
+                }
+                return;
+            }
+        
+        } else {
+            if (outmessage != NULL) {
+                sprintf(buffer,_("RaildriverIO::RaildriverIO: Could not find the rail driver.\n"));
+                *outmessage = new char[strlen(buffer)+1];
+                strcpy(*outmessage,buffer);
+            }
+            return;
+        }
+        libusb_free_device_list(list, 1);
     }
 //#ifdef LIBUSB_HAS_DETACH_KERNEL_DRIVER_NP
     // Attempt to detach the kernel driver.
@@ -192,15 +245,6 @@ RaildriverIO::RaildriverIO(short int thebus, short int thedevice,char **outmessa
      * got the device.
      */
     SetLEDS("000");	
-  } else {
-    if (outmessage != NULL) {
-      sprintf(buffer,_("RaildriverIO::RaildriverIO: Could not find the rail driver.\n"));
-      *outmessage = new char[strlen(buffer)+1];
-      strcpy(*outmessage,buffer);
-    }
-    return;
-  }
-  libusb_free_device_list(list, 1);
 }
 
 // Destructor -- clean up allocated resources.

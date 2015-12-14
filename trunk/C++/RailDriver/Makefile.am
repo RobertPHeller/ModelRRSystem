@@ -118,14 +118,14 @@ sbin_SCRIPTS = raildriverd${EXEEXT}
 
 pkgdatadir = $(datadir)/$(PACKAGE)/RailDriver
 pkgdata_SCRIPTS = raildriverd.hotplug print-usb-usermap raildriverd.udev \
-			90-raildriver.rules 90-raildriver.rules-Ubuntu \
+			90-raildriver.rules \
 			ButtonLegends.cls
 BUILT_SOURCES       = $(TCLKIT) raildriverio_wrap.cc sigterm_wrap.cc \
 			RaildriverIO.h
 CLEANFILES	    = $(BUILT_SOURCES) LocoTest print-usb-usermap \
 			 raildriverd.hotplug raildriverio.potlist \
 			 raildriverd.pot 90-raildriver.rules \
-			 90-raildriver.rules-Ubuntu pkgIndex.tcl \
+			 pkgIndex.tcl \
 			 raildriverd.udev raildriverd${EXEEXT}
 noinst_DATA	    = raildriverd.pot
 bin_SCRIPTS	    = LocoTest
@@ -133,7 +133,7 @@ bin_SCRIPTS	    = LocoTest
 EXTRA_DIST	    = LocoTest.src raildriverd.src raildriverio.i  \
 			raildriverd.hotplug.in sigterm.i \
 			print-usb-usermap.src Doxyfile.in raildriverd.udev.in \
-			90-raildriver.rules.in 90-raildriver.rules-Ubuntu.in \
+			90-raildriver.rules.in \
 			ButtonLegends.cls RaildriverIO.h.in
 
 raildriverdSCRIPTS = $(top_srcdir)/Scripts/Common/gettext.tcl \
@@ -204,9 +204,6 @@ raildriverd.udev : raildriverd.udev.in $(top_builddir)/config.status
 	
 90-raildriver.rules : 90-raildriver.rules.in 
 	cp $(srcdir)/90-raildriver.rules.in ./90-raildriver.rules
-	
-90-raildriver.rules-Ubuntu : 90-raildriver.rules-Ubuntu.in 
-	cp $(srcdir)/90-raildriver.rules-Ubuntu.in ./90-raildriver.rules-Ubuntu
 	
 
 LocoTest : LocoTest.src $(top_builddir)/config_tcl.sed
