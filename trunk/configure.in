@@ -220,11 +220,30 @@ if test ${have_libusb1} = "yes"; then
   AC_SUBST(HAVE_LIBUSB1)
   libusbVer=`pkg-config --modversion libusb-1.0`
   AC_MSG_RESULT([libusb Version is $libusbVer])
+  case $target_os in
+    macos | darwin*)
+      AC_SUBST(HIDAPI_CFLAGS,[])
+      AC_SUBST(HIDAPI_C,[mac/hid.c])
+      AC_SUBST(HIDAPI_LIBS,[-framework IOKit -framework CoreFoundation])
+      ;;
+    linux-gnu*)
+      PKG_CHECK_MODULES([LIBUDEV],libudev)
+      AC_SUBST(HIDAPI_CFLAGS,$LIBUSB_CFLAGS)
+      AC_SUBST(HIDAPI_C,[linux/hid-libusb.c])
+      AC_SUBST(HIDAPI_LIBS,$LIBUSB_LIBS $LIBUDEV_LIBS)
+      ;;
+    mingw32 | winnt | windows* | cygwin)
+      AC_SUBST(HIDAPI_CFLAGS,[])
+      AC_SUBST(HIDAPI_C,[linux/windows/hid.c])
+      AC_SUBST(HIDAPI_LIBS,[-lsetupapi])
+      ;;
+    *) 
+      AC_MSG_ERROR([Unsupported Operating System: $target_os])
+      ;;
+  esac
 else
-  AC_MSG_WARN([You don't have libusb-1.0 installed, some parts of the system won't be built.])
+  AC_MSG_ERROR([You don't have libusb-1.0 installed!])
 fi
-
-AM_CONDITIONAL(DONT_HAVE_USB,test x$LIBUSB_CFLAGS = "x")
 
 AM_CONDITIONAL(CROSSCOMPILING,test ${cross_compiling} = "yes")
 if test ${cross_compiling} = "yes"; then
@@ -577,6 +596,9 @@ AC_CONFIG_FILES([config_tcl.sed \
 	  C++/Makefile \
 		C++/RailDriver/Makefile \
 		C++/RailDriver/Doxyfile \
+		C++/RailDriver/linux/Makefile \
+		C++/RailDriver/mac/Makefile \
+		C++/RailDriver/windows/Makefile \
 		C++/ParserClasses/Makefile \
 		C++/Azatrax/Makefile \
 		C++/Azatrax/Doxyfile \

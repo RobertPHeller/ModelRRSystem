@@ -33,26 +33,26 @@
 	</Company_Info>
 	<Program_Info>
 		<Program_Name>Model Railroad System</Program_Name>
-		<Program_Version>2.1.26</Program_Version>
-		<Program_Release_Month>11</Program_Release_Month>
-		<Program_Release_Day>12</Program_Release_Day>
-		<Program_Release_Year>2010</Program_Release_Year>
+		<Program_Version>2.1.36</Program_Version>
+		<Program_Release_Month>8</Program_Release_Month>
+		<Program_Release_Day>29</Program_Release_Day>
+		<Program_Release_Year>2015</Program_Release_Year>
 		<Program_Cost_Dollars></Program_Cost_Dollars>
 		<Program_Cost_Other></Program_Cost_Other>
 		<Program_Type>Freeware</Program_Type>
 		<Program_Release_Status>Minor Update</Program_Release_Status>
 		<Program_Install_Support>Install Only</Program_Install_Support>
-		<Program_OS_Support>Win95,Win98,Windows2000,WinXP,Unix,Linux</Program_OS_Support>
+		<Program_OS_Support>Win32,Unix,Linux,MacOSX</Program_OS_Support>
 		<Program_Language>English</Program_Language>
 		<Program_Category_Class>Home &amp; Hobby::Other</Program_Category_Class>
 		<File_Info>
-			<Filename_Versioned>MRRSystem-2.1.26-Win32BinOnly.zip</Filename_Versioned>
+			<Filename_Versioned>MRRSystem-2.1.36-Win32BinOnly.zip</Filename_Versioned>
 			<Filename_Previous></Filename_Previous>
                         <Filename_Generic>MRRSystem-current-Win32BinOnly.zip</Filename_Generic>    
                         <Filename_Long></Filename_Long>
-                        <File_Size_Bytes>32569629</File_Size_Bytes>
-                        <File_Size_K>31844</File_Size_K>
-                        <File_Size_MB>32</File_Size_MB>
+                        <File_Size_Bytes>74443060</File_Size_Bytes>
+                        <File_Size_K>72699</File_Size_K>
+                        <File_Size_MB>71</File_Size_MB>
                 </File_Info>
 		<Expire_Info>
                         <Has_Expire_Info>N</Has_Expire_Info>
@@ -98,10 +98,10 @@ Deepwoods Software is a software and system consultation company, specializing i
 			<Application_XML_File_URL>http://www.deepsoft.com/MRRPad.xml</Application_XML_File_URL>
 		</Application_URLs>
 		<Download_URLs>
-			<Primary_Download_URL>ftp://ftp.deepsoft.com/pub/deepwoods/Products/MRRSystem/MRRSystem-2.1.26-LinuxBinOnly.tar.bz2</Primary_Download_URL>
-			<Secondary_Download_URL>ftp://ftp.deepsoft.com/pub/deepwoods/Products/MRRSystem/MRRSystem-2.1.26-Win32BinOnly.zip</Secondary_Download_URL>
-			<Additional_Download_URL_1>ftp://ftp.deepsoft.com/pub/deepwoods/Products/MRRSystem/MRRSystem-2.1.26.tar.gz</Additional_Download_URL_1>
-			<Additional_Download_URL_2>ftp://ftp.deepsoft.com/pub/deepwoods/Products/MRRSystem/MRRSystem-2.1.26.zip</Additional_Download_URL_2>
+			<Primary_Download_URL>ftp://ftp.deepsoft.com/pub/deepwoods/Products/MRRSystem/MRRSystem-2.1.36-LinuxBinOnly.tar.bz2</Primary_Download_URL>
+			<Secondary_Download_URL>ftp://ftp.deepsoft.com/pub/deepwoods/Products/MRRSystem/MRRSystem-2.1.36-Win32BinOnly.zip</Secondary_Download_URL>
+			<Additional_Download_URL_1>ftp://ftp.deepsoft.com/pub/deepwoods/Products/MRRSystem/MRRSystem-2.1.36.tar.gz</Additional_Download_URL_1>
+			<Additional_Download_URL_2>ftp://ftp.deepsoft.com/pub/deepwoods/Products/MRRSystem/MRRSystem-2.1.36.zip</Additional_Download_URL_2>
 		</Download_URLs>
 	</Web_Info>
 		<Permissions>

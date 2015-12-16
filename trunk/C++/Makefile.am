@@ -55,7 +55,7 @@ EXTRA_DIST = gettext.h gettext.c
 
 #export shared_ext=$(SHLIB_SUFFIX)
 
-ALWAYSSUBDIRS = TTSupport FCFSupport Azatrax RailDriver RailDriverHIDAPI
+ALWAYSSUBDIRS = TTSupport FCFSupport Azatrax RailDriver
 
 if DONT_HAVE_BISONXX
 PARSER =
