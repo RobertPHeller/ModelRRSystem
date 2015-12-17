@@ -1,12 +1,7 @@
 ALWAYSCCPOTFILES = ../../C++/TTSupport/TTClasses.potlist \
-		   ../../C++/FCFSupport/FCFClasses.potlist
-if DONT_HAVE_USB
-AZATRAXPOT =
-RDRIVERPOT = 
-else
-AZATRAXPOT = ../../C++/Azatrax/azatrax.potlist
-RDRIVERPOT = ../../C++/RailDriver/raildriverio.potlist
-endif
+		   ../../C++/FCFSupport/FCFClasses.potlist \
+		   ../../C++/Azatrax/azatrax.potlist \
+                   ../../C++/RailDriver/raildriverio.potlist
 
 if DONT_HAVE_BISONXX
 PARSERPOT =
@@ -15,7 +10,7 @@ PARSERPOT = ../../C++/ParserClasses/mrr.potlist
 endif
 
 
-ALLCCPOTFILES = $(ALWAYSCCPOTFILES) $(RDRIVERPOT) $(AZATRAXPOT) $(PARSERPOT)
+ALLCCPOTFILES = $(ALWAYSCCPOTFILES) $(PARSERPOT)
 
 POFILES = $(wildcard *.po)
 
