@@ -129,19 +129,6 @@ snit::type RaildriverServer {
 	typevariable BASEPORT 41000
 	#**
 	# Base port to listen on
-        typevariable LIBUSB_ERROR_IO -1
-        typevariable LIBUSB_ERROR_INVALID_PARAM -2
-        typevariable LIBUSB_ERROR_ACCESS -3
-        typevariable LIBUSB_ERROR_NO_DEVICE -4
-        typevariable LIBUSB_ERROR_NOT_FOUND -5
-        typevariable LIBUSB_ERROR_BUSY -6
-        typevariable LIBUSB_ERROR_TIMEOUT -7
-        typevariable LIBUSB_ERROR_OVERFLOW -8
-        typevariable LIBUSB_ERROR_PIPE -9
-        typevariable LIBUSB_ERROR_INTERRUPTED -10
-        typevariable LIBUSB_ERROR_NO_MEM -11
-        typevariable LIBUSB_ERROR_NOT_SUPPORTED -12
-        typevariable LIBUSB_ERROR_OTHER -99
 	typevariable allMasks
 	typevariable allCodes {REVERSER THROTTLE AUTOBRAKE INDEPENDBRK BAILOFF 
 				WIPER HEADLIGHT DIGITAL1 DIGITAL2 DIGITAL3 
@@ -245,16 +232,13 @@ snit::type RaildriverServer {
 	  } else {
 	    set debugnotvis 1
 	  }
-	  if {[llength $args] > 1} {
-	    foreach {Xbusnum Xdevnum} $args {break}
-	    scan $Xbusnum {%03d} busnum
-	    scan $Xdevnum {%03d} devnum
+	  if {[llength $args] > 0} {
+	    set hidraw [lindex $args 0]
           } else {
-            set busnum 0
-            set devnum 0
+            set hidraw {}
 	  }
-
-	  set logfilename [format {/var/log/%s-%03d-%03d.log} [file tail $::argv0] $busnum $devnum]
+          
+	  set logfilename [format {/var/log/%s-%s.log} [file tail $::argv0] $hidraw]
 	  close stdin
 	  close stdout
 	  close stderr
@@ -269,7 +253,12 @@ snit::type RaildriverServer {
 	  ::log::lvSuppress debug $debugnotvis
 	  ::log::lvCmdForall [mytypemethod LogPuts]
 
-	  ::log::logMsg [_ "raildriverd starting"]
+          if {$hidraw eq {}} {
+              ::log::logMsg [_ "raildriverd starting (no hidraw passed)"]
+          } else {
+              ::log::logMsg [_ "raildriverd starting for $hidraw"]
+          }
+          ::log::log debug [list *** $type Initialize: args = $args]
 	  for {set p $BASEPORT} {true} {incr p 10} {
 	    ::log::log debug "*** $type Initialize: p = $p"
 	    if {![catch {socket -server [mytypemethod NewConnection] -myaddr 127.0.0.1 $p} listenSock]} {
@@ -278,9 +267,10 @@ snit::type RaildriverServer {
 	    }
           }
           ::log::logMsg [format [_ "listening on port %d."] $p]
-	  set RailDriver [::new_RaildriverIO $busnum $devnum]
-	  ::log::log debug "*** $type Initialize: RailDriver = $RailDriver"
-	  set pidfilename [format {/var/run/%s-%03d-%03d.pid} [file tail $::argv0] $busnum $devnum]
+	  #set RailDriver [::new_RaildriverIO $busnum $devnum]
+	  set RailDriver [::new_RaildriverIO $hidraw]
+          ::log::log debug "*** $type Initialize: RailDriver = $RailDriver"
+	  set pidfilename [format {/var/run/%s-%s.pid} [file tail $::argv0] $hidraw]
 	  set activeServers {}
 	  catch {
 		set fp [open $pidfilename w]
@@ -314,8 +304,8 @@ snit::type RaildriverServer {
 		$s SendEventData $sendmask
 	      }
 	    }
-	  } elseif {$status == $LIBUSB_ERROR_NO_DEVICE} {
-	    ::log::log debug "*** $type PollRailDriver: status is LIBUSB_ERROR_NO_DEVICE"
+	  } elseif {$status < 0} {
+	    ::log::log debug "*** $type PollRailDriver: status is $status"
 	    $type _Shutdown
 	  }
 	  ::log::log debug "*** $type PollRailDriver: (ReadInputs returns false) status = $status"

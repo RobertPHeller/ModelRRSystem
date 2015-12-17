@@ -201,20 +201,18 @@ thedaemon==sbindir=/raildriverd
 RETVAL=0
 
 start() {
-	busnum=$1
-	devnum=$2
+	hidraw=$1
 # For older kernels, uncomment the following two lines.
 #	/usr/bin/logger -i -t  $0 "Removing hid module"
 #	/sbin/modprobe -r hid
-	/usr/bin/logger -i -t  $0 "Starting daemon: $thedaemon ${busnum} ${devnum}"
-	$thedaemon ${busnum} ${devnum}&
+	/usr/bin/logger -i -t  $0 "Starting daemon: $thedaemon ${hidraw}"
+	$thedaemon ${hidraw}&
 	RETVAL=$?
 }
 
 stop() {
-	busnum=$1
-	devnum=$2
-	pidfile=`printf "/var/run/raildriverd-%03d-%03d.pid\n" $busnum $devnum`
+	hidraw=$1
+	pidfile=`printf "/var/run/raildriverd-%s.pid\n" $hidraw`
 	pid=`cat $pidfile`
 	/usr/bin/logger -i -t  $0 "Killing daemon for device $1: $pid"
 	kill -TERM $pid
@@ -229,27 +227,27 @@ fi
 
 DEVPATH=/sys$2
 /usr/bin/logger -i -t  $0 "DEVPATH is $DEVPATH"
-while test ! -e $DEVPATH/busnum; do
+while test ! -e $DEVPATH/*/hidraw; do
    DEVPATH=`dirname $DEVPATH`
-      /usr/bin/logger -i -t  $0 "DEVPATH is $DEVPATH"
-      done
-      
-busnum=`cat $DEVPATH/busnum`
-devnum=`cat $DEVPATH/devnum`
+   /usr/bin/logger -i -t  $0 "DEVPATH is $DEVPATH"
+done
 
-/usr/bin/logger -i -t  $0 "busnum = $busnum, devnum = $devnum"
+hidraw1=`echo $DEVPATH/*/hidraw/*`
+hidraw=`basename $hidraw1`
+      
+/usr/bin/logger -i -t  $0 "hidraw = $hidraw"
 
 # See how we were called.
 case "$1" in
   add)
-	if test -e `printf "/var/run/raildriverd-%03d-%03d.pid\n" $busnum $devnum`; then
+	if test -e `printf "/var/run/raildriverd-%s.pid\n" $hidraw`; then
 	  /usr/bin/logger -i -t  $0 "Already running!"
 	fi
-	stop $busnum $devnum
-	start $busnum $devnum
+	stop $hidraw
+	start $hidraw
 	;;
   remove)
-	stop $busnum $devnum
+	stop $hidraw
 	;;
   *)
 	echo "Usage: $0 {add|remove} PHYSDEVPATH"

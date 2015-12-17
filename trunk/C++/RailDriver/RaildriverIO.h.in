@@ -265,15 +265,11 @@ public:
 	  *   Finds and opens the device and initializes various data objects,
 	  *   generally preparing for I/O to the connnected rail driver
 	  *   console.
-	  *    @param thebus The bus number the device is on.  If zero (0) is
-	  *    passed, the first raildriver is opened by vendor and product id.
-	  *    @param thedevice The device number on the bus the device is on.
-	  *    If zero (0) is passed, the first raildriver is opened by vendor 
-	  *    and product id.
+	  *    @param hidraw The hidraw name or the empty string or NULL.
 	  *    @param outmessage Receives error messages.
 	  *    
 	  */
-	RaildriverIO(const char *path,char **outmessage = NULL);
+	RaildriverIO(const char *hidraw,char **outmessage = NULL);
 	/** @brief   Destructor.
 	  *
 	  * Closes the device and free up system resources.
@@ -685,7 +681,7 @@ private:
 	  *  This is the HID device structure for the
 	  * device.
 	  */
-	struct hid_device *rdriverdev;
+	hid_device *rdriverdev;
 	/** @brief  LED Command code.
 	  *
 	  *  This is the command code used to change the LED

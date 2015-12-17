@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Dec 16 15:19:09 2015
-#  Last Modified : <151216.1519>
+#  Last Modified : <151217.1040>
 #
 #  Description	
 #
@@ -43,4 +43,5 @@
 ##############################################################################
 
 
-EXTRA_DIST=hid-libusb.c
+EXTRA_DIST=hid-libusb.c hid.c
+

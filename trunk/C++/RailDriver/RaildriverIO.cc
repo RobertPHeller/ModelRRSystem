@@ -56,17 +56,19 @@ const int RaildriverIO::SpeakerCommand = 133;		// Command code to set the speake
 
 /* Constructor -- initialize things, find the device, open it and set things up.
  */
-RaildriverIO::RaildriverIO(const char *path,char **outmessage)
+RaildriverIO::RaildriverIO(const char *hidraw,char **outmessage)
 {
     int status;		/* Status result codes. */
     static char buffer[1024];	/* for error messages */
     int err = 0;
+    static char path[256];      /* for the path name */
     
     bindmrrdomain();	// bind message catalog domain
 
     if (path == NULL || *path == '\0') {
         rdriverdev = hid_open ( PIEngineering, RailDriverModernDesktop, NULL );
     } else {
+        sprintf(path,"/dev/%s",hidraw);
         rdriverdev = hid_open_path ( path );
     }
     
@@ -94,16 +96,14 @@ RaildriverIO::~RaildriverIO()
     hid_exit();
 }
 
-#define INPUTENDPOINT  0x81	/* Input endpoint: read report buffer */
-#define OUTPUTENDPOINT 0x02	/* Output endpoint: set LEDS, turn speaker on/off */
-
 // Poll the device's state.  Called repeatedly in the main thread.
 bool RaildriverIO::ReadInputs(RaildriverIO::Eventmask_bits &newMask, int &status)
 {
 	Eventmask_bits temp;		// Mask.
 	unsigned char reportbuffer[14];	// Buffer.
 	int i, xfered;			// Index, status.
-	bool result;			// Result value.
+        bool result;			// Result value.
+        wchar_t tempstring[64];
 
 #ifdef DEBUG
 	fprintf(stderr,"*** RaildriverIO::ReadInputs()\n");
@@ -111,9 +111,10 @@ bool RaildriverIO::ReadInputs(RaildriverIO::Eventmask_bits &newMask, int &status
 	newMask = NONE_M;		// Initially, nothing has changed.
 	// Read the device.
 	//xfered = 0;
-	status = libusb_interrupt_transfer(rdHandle, INPUTENDPOINT, (unsigned char *)reportbuffer,sizeof(reportbuffer),&xfered,100);
+
+        xfered = hid_read_timeout(rdriverdev,(unsigned char *)reportbuffer,sizeof(reportbuffer),100);
 #ifdef DEBUG
-	fprintf(stderr,"*** RaildriverIO::ReadInputs: after usb_interrupt_read: status = %d, xfered = %d\n",status,xfered);
+	fprintf(stderr,"*** RaildriverIO::ReadInputs: after xfered: xfered = %d\n",xfered);
 #endif
 	// If the read was successful, procede to update the mask and data
 	// buffer.
@@ -139,7 +140,8 @@ bool RaildriverIO::ReadInputs(RaildriverIO::Eventmask_bits &newMask, int &status
 #endif
 			}
 		}
-	}
+        }
+        status = hid_get_manufacturer_string(rdriverdev,tempstring,sizeof(tempstring)-1);
 #ifdef DEBUG
 	fprintf(stderr,"*** RaildriverIO::ReadInputs: after log\n");
 #endif
@@ -198,14 +200,14 @@ void RaildriverIO::SetLEDS(const char *ledstring,char **outmessage)
 		}
 	}
 	// Write out to Rail Driver.
-	
-	status = libusb_interrupt_transfer(rdHandle,OUTPUTENDPOINT,(unsigned char *)buff,sizeof(buff),&xfered,100);
+    
+        status = hid_write(rdriverdev,(unsigned char *)buff,sizeof(buff));
 #ifdef DEBUG
-	fprintf(stderr,"*** RaildriverIO::SetLEDS(): LEDs set, status = %%%%d, xfered = %%%%d\n",status,xfered);
+	fprintf(stderr,"*** RaildriverIO::SetLEDS(): LEDs set, status = %d, xfered = %d\n",status,xfered);
 #endif
-	if (status != 0) {
+	if (status < sizeof(buff)) {
 	  if (outmessage != NULL) {
-	    sprintf(buffer,_("RaildriverIO::SetLEDS: usb_interrupt_write failed: %d\n"),status);
+	    sprintf(buffer,_("RaildriverIO::SetLEDS: hid_write failed: %ls\n"),hid_error(rdriverdev));
 	    *outmessage = new char[strlen(buffer)+1];
 	    strcpy(*outmessage,buffer);
 	  }
@@ -223,10 +225,10 @@ void RaildriverIO::SpeakerOn(char **outmessage)
 	buff[0] = SpeakerCommand;	// Speaker command.
 	buff[6] = 1;			// On.
 	// Write out to Rail Driver.
-	status = libusb_interrupt_transfer(rdHandle,OUTPUTENDPOINT,(unsigned char *)buff,sizeof(buff),&xfered,100);
-	if (status != 0) {
+        status = hid_write(rdriverdev,(unsigned char *)buff,sizeof(buff));
+	if (status < sizeof(buff)) {
 	  if (outmessage != NULL) {
-	    sprintf(buffer,_("RaildriverIO::SpeakerOn: usb_interrupt_write failed: %d\n"),status);
+	    sprintf(buffer,_("RaildriverIO::SpeakerOn: hid_write failed: %ls\n"),hid_error(rdriverdev));
 	    *outmessage = new char[strlen(buffer)+1];
 	    strcpy(*outmessage,buffer);
 	  }
@@ -244,10 +246,10 @@ void RaildriverIO::SpeakerOff(char **outmessage)
 	buff[0] = SpeakerCommand;	// Speaker command
 	buff[6] = 0;			// Off.
 	// Write out to Rail Driver.
-	status = libusb_interrupt_transfer(rdHandle,OUTPUTENDPOINT,(unsigned char *)buff,sizeof(buff),&xfered,100);
-	if (status != 0) {
+	status = hid_write(rdriverdev,(unsigned char *)buff,sizeof(buff));
+	if (status < sizeof(buff)) {
 	  if (outmessage != NULL) {
-	    sprintf(buffer,_("RaildriverIO::SpeakerOff: usb_interrupt_write failed: %d\n"),status);
+	    sprintf(buffer,_("RaildriverIO::SpeakerOff: hid_write failed: %ls\n"),hid_error(rdriverdev));
 	    *outmessage = new char[strlen(buffer)+1];
 	    strcpy(*outmessage,buffer);
 	  }
