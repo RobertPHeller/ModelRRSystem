@@ -228,7 +228,7 @@ case $target_os in
   macos | darwin*)
     AC_SUBST(HIDAPI_CFLAGS,[])
     AC_SUBST(HIDAPI_C,[mac/hid.c])
-    AC_SUBST(HIDAPI_LIBS,[-framework IOKit -framework CoreFoundation])
+    AC_SUBST(HIDAPI_LIBS,["-framework IOKit -framework CoreFoundation"])
     ;;
   linux-gnu*)
     PKG_CHECK_MODULES([LIBUDEV],libudev)
@@ -239,7 +239,7 @@ case $target_os in
   mingw32 | winnt | windows* | cygwin)
     AC_SUBST(HIDAPI_CFLAGS,[])
     AC_SUBST(HIDAPI_C,[windows/hid.c])
-    AC_SUBST(HIDAPI_LIBS,[-lsetupapi])
+    AC_SUBST(HIDAPI_LIBS,["-lsetupapi"])
     ;;
   *) 
     AC_MSG_ERROR([Unsupported Operating System: $target_os])
