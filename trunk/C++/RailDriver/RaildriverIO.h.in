@@ -265,11 +265,11 @@ public:
 	  *   Finds and opens the device and initializes various data objects,
 	  *   generally preparing for I/O to the connnected rail driver
 	  *   console.
-	  *    @param hidraw The hidraw name or the empty string or NULL.
+	  *    @param path The path name or the empty string or NULL.
 	  *    @param outmessage Receives error messages.
 	  *    
 	  */
-	RaildriverIO(const char *hidraw,char **outmessage = NULL);
+	RaildriverIO(const char *path,char **outmessage = NULL);
 	/** @brief   Destructor.
 	  *
 	  * Closes the device and free up system resources.

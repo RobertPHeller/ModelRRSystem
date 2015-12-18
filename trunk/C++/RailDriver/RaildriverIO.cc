@@ -56,19 +56,17 @@ const int RaildriverIO::SpeakerCommand = 133;		// Command code to set the speake
 
 /* Constructor -- initialize things, find the device, open it and set things up.
  */
-RaildriverIO::RaildriverIO(const char *hidraw,char **outmessage)
+RaildriverIO::RaildriverIO(const char *path,char **outmessage)
 {
     int status;		/* Status result codes. */
     static char buffer[1024];	/* for error messages */
     int err = 0;
-    static char path[256];      /* for the path name */
     
     bindmrrdomain();	// bind message catalog domain
 
     if (path == NULL || *path == '\0') {
         rdriverdev = hid_open ( PIEngineering, RailDriverModernDesktop, NULL );
     } else {
-        sprintf(path,"/dev/%s",hidraw);
         rdriverdev = hid_open_path ( path );
     }
     

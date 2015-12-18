@@ -205,16 +205,16 @@ start() {
 # For older kernels, uncomment the following two lines.
 #	/usr/bin/logger -i -t  $0 "Removing hid module"
 #	/sbin/modprobe -r hid
-	/usr/bin/logger -i -t  $0 "Starting daemon: $thedaemon ${hidraw}"
-	$thedaemon ${hidraw}&
+	/usr/bin/logger -i -t  $0 "Starting daemon: $thedaemon /dev/${hidraw}"
+	$thedaemon /dev/${hidraw}&
 	RETVAL=$?
 }
 
 stop() {
 	hidraw=$1
-	pidfile=`printf "/var/run/raildriverd-%s.pid\n" $hidraw`
+	pidfile=`printf "/var/run/raildriverd-_dev_%s.pid\n" $hidraw`
 	pid=`cat $pidfile`
-	/usr/bin/logger -i -t  $0 "Killing daemon for device $1: $pid"
+	/usr/bin/logger -i -t  $0 "Killing daemon for device /dev/$hidraw: $pid"
 	kill -TERM $pid
 	RETVAL=$?
 }

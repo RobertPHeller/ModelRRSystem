@@ -233,12 +233,12 @@ snit::type RaildriverServer {
 	    set debugnotvis 1
 	  }
 	  if {[llength $args] > 0} {
-	    set hidraw [lindex $args 0]
+	    set path [lindex $args 0]
           } else {
-            set hidraw {}
-	  }
+            set path {}
+          }
           
-	  set logfilename [format {/var/log/%s-%s.log} [file tail $::argv0] $hidraw]
+	  set logfilename [format {/var/log/%s-%s.log} [file tail $::argv0] [regsub {/} $path {_}]]
 	  close stdin
 	  close stdout
 	  close stderr
@@ -253,10 +253,10 @@ snit::type RaildriverServer {
 	  ::log::lvSuppress debug $debugnotvis
 	  ::log::lvCmdForall [mytypemethod LogPuts]
 
-          if {$hidraw eq {}} {
-              ::log::logMsg [_ "raildriverd starting (no hidraw passed)"]
+          if {$path eq {}} {
+              ::log::logMsg [_ "raildriverd starting (no path passed)"]
           } else {
-              ::log::logMsg [_ "raildriverd starting for $hidraw"]
+              ::log::logMsg [_ "raildriverd starting for $path"]
           }
           ::log::log debug [list *** $type Initialize: args = $args]
 	  for {set p $BASEPORT} {true} {incr p 10} {
@@ -268,9 +268,9 @@ snit::type RaildriverServer {
           }
           ::log::logMsg [format [_ "listening on port %d."] $p]
 	  #set RailDriver [::new_RaildriverIO $busnum $devnum]
-	  set RailDriver [::new_RaildriverIO $hidraw]
+	  set RailDriver [::new_RaildriverIO $path]
           ::log::log debug "*** $type Initialize: RailDriver = $RailDriver"
-	  set pidfilename [format {/var/run/%s-%s.pid} [file tail $::argv0] $hidraw]
+	  set pidfilename [format {/var/run/%s-%s.pid} [file tail $::argv0] [regsub {/} $path {_}]]
 	  set activeServers {}
 	  catch {
 		set fp [open $pidfilename w]
