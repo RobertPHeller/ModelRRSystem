@@ -238,7 +238,8 @@ snit::type RaildriverServer {
             set path {}
           }
           
-	  set logfilename [format {/var/log/%s-%s.log} [file tail $::argv0] [regsub {/} $path {_}]]
+	  set logfilename [format {/var/log/%s-%s.log} [file tail $::argv0] [regsub -all {/} $path {_}]]
+          #puts stderr "*** $type Initialize: logfilename = $logfilename"
 	  close stdin
 	  close stdout
 	  close stderr
@@ -270,7 +271,7 @@ snit::type RaildriverServer {
 	  #set RailDriver [::new_RaildriverIO $busnum $devnum]
 	  set RailDriver [::new_RaildriverIO $path]
           ::log::log debug "*** $type Initialize: RailDriver = $RailDriver"
-	  set pidfilename [format {/var/run/%s-%s.pid} [file tail $::argv0] [regsub {/} $path {_}]]
+	  set pidfilename [format {/var/run/%s-%s.pid} [file tail $::argv0] [regsub -all {/} $path {_}]]
 	  set activeServers {}
 	  catch {
 		set fp [open $pidfilename w]
