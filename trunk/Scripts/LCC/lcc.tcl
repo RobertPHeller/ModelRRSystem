@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160202.1241>
+#  Last Modified : <160202.1346>
 #
 #  Description	
 #
@@ -189,3 +189,8 @@ namespace eval lcc {
   }
 }
   
+
+## @}
+
+package provide LCC 1.0
+
