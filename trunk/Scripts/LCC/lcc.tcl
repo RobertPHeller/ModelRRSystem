@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160213.1421>
+#  Last Modified : <160213.1424>
 #
 #  Description	
 #
@@ -589,12 +589,16 @@ namespace eval lcc {
             set gcmessage [GridConnectMessage create_fromCanMessage $message]
             puts $ttyfd [$gcmessage toString]
             #puts [$gcmessage toString]
+            set messageReceived 0
+            vwait [myvar messageReceived]
         }
+        variable messageReceived 0
         method _messageReader {} {
             if {[gets $ttyfd message]} {
                 set m [lcc::GridConnectReply %AUTO% -message $message]
                 set r [$m createReply]
                 lcc::peelCANheader [$r getHeader]
+                incr messageReceived
             } else {
                 $self destroy
             }
