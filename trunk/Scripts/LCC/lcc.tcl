@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160213.1518>
+#  Last Modified : <160213.1521>
 #
 #  Description	
 #
@@ -300,7 +300,7 @@ namespace eval lcc {
     
     snit::type GridConnectMessage {
         lcc::AbstractMRMessage
-        option -canmessage -type lcc::CanMessage -configuremethod _copyCM \
+        option -canmessage -configuremethod _copyCM \
               -cgetmethod error
         constructor {args} {
             set _nDataChars 28
@@ -312,6 +312,7 @@ namespace eval lcc {
             $self configurelist $args
         }
         method _copyCM {option m} {
+            lcc::CanMessage validate $m
             $self setExtended [$m isExtended]
             $self setHeader   [$m getHeader]
             $self setRtr      [$m isRtr]
