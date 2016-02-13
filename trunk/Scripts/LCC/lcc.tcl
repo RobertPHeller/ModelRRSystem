@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160213.1525>
+#  Last Modified : <160213.1526>
 #
 #  Description	
 #
@@ -267,12 +267,12 @@ namespace eval lcc {
         variable _isExtended
         variable _isRtr
         typemethod validate {o} {
-            puts stderr "*** $type validate $o"
+            #puts stderr "*** $type validate $o"
             if {[catch {$o info type} thetype]} {
-                puts stderr "*** $type validate: $thetype"
+                #puts stderr "*** $type validate: $thetype"
                 error "Not a $type: $o"
             } elseif {$thetype ne $type} {
-                puts stderr "*** $type validate: $thetype, $type"
+                #puts stderr "*** $type validate: $thetype, $type"
                 error "Not a $type: $o"
             } else {
                 return $o
@@ -315,7 +315,7 @@ namespace eval lcc {
             $self configurelist $args
         }
         method _copyCM {option m} {
-            puts stderr "*** $self _copyCM $option $m"
+            #puts stderr "*** $self _copyCM $option $m"
             lcc::CanMessage validate $m
             $self setExtended [$m isExtended]
             $self setHeader   [$m getHeader]
