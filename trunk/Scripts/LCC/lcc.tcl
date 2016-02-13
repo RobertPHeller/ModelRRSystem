@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160213.1521>
+#  Last Modified : <160213.1522>
 #
 #  Description	
 #
@@ -312,6 +312,7 @@ namespace eval lcc {
             $self configurelist $args
         }
         method _copyCM {option m} {
+            puts stderr "*** $self _copyCM $option $m"
             lcc::CanMessage validate $m
             $self setExtended [$m isExtended]
             $self setHeader   [$m getHeader]
