@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160213.1429>
+#  Last Modified : <160213.1431>
 #
 #  Description	
 #
@@ -600,6 +600,7 @@ namespace eval lcc {
             if {[gets $ttyfd message]} {
                 set m [lcc::GridConnectReply %AUTO% -message $message]
                 set r [$m createReply]
+                puts ": Message received: [$t toString]"
                 lcc::peelCANheader [$r getHeader]
                 incr messageReceived
             } else {
