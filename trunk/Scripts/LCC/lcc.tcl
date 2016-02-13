@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160213.1427>
+#  Last Modified : <160213.1429>
 #
 #  Description	
 #
@@ -171,7 +171,7 @@ namespace eval lcc {
         option -mti -readonly yes -default 0 -type ::lcc::twelvebits
         option -srcid -readonly yes -default 0 -type ::lcc::twelvebits
         constructor {args} {
-            puts stderr "*** $type create $self $args"
+            #puts stderr "*** $type create $self $args"
             $self configurelist $args
             set header [expr {(3 << 27) | (1 << 24)| ($options(-mti) << 12) | $options(-srcid)}]
         }
@@ -188,7 +188,7 @@ namespace eval lcc {
         option -length -readonly yes -default 0 -type {snit::integer -min 0 -max 8}
         option -data   -readonly yes -default {} -type {snit::listtype -minlen 0 -maxlen 8}
         constructor {args} {
-            puts stderr "*** $type create $self $args"
+            #puts stderr "*** $type create $self $args"
             set _header [from args -header 0]
             set _isExtended false
             set _isRtr false
@@ -205,7 +205,7 @@ namespace eval lcc {
                 set _dataChars [from args -data]
                 set _nDataChars [llength $_dataChars]
             }
-            puts stderr "*** $type create $self: [$self toString]"
+            #puts stderr "*** $type create $self: [$self toString]"
         }
         typemethod {Create header} {header} {
             return [$type %AUTO% -header $header]
@@ -524,21 +524,21 @@ namespace eval lcc {
         option -port -readonly yes -default "/dev/ttyACM0"
         option -nid  -readonly yes -default "00:01:02:03:04:05" -type lcc::nid
         method _peelnid {value} {
-            puts stderr "*** $self _peelnid $value"
+            #puts stderr "*** $self _peelnid $value"
             set nidlist [list]
             foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $value] 1 end] {
                 lappend nidlist [scan $oct %02x]
             }
-            puts stderr "*** $self _peelnid: nidlist = $nidlist"
+            #puts stderr "*** $self _peelnid: nidlist = $nidlist"
             # load the PRNG from the Node ID
             set lfsr1 [expr {([lindex $nidlist 0] << 16) | ([lindex $nidlist 1] << 8) | [lindex $nidlist 2]}]
             set lfsr2 [expr {([lindex $nidlist 3] << 16) | ([lindex $nidlist 4] << 8) | [lindex $nidlist 5]}]
-            puts stderr "*** $self _peelnid: lfsr1 = $lfsr1, lfsr2 = $lfsr2"
+            #puts stderr "*** $self _peelnid: lfsr1 = $lfsr1, lfsr2 = $lfsr2"
         }
         variable lfsr1 0
         variable lfsr2 0; # sequence value: lfsr1 is upper 24 bits, lfsr2 lower
         method getAlias {} {
-            puts stderr "*** $self getAlias: lfsr1 = $lfsr1, lfsr2 = $lfsr2"
+            #puts stderr "*** $self getAlias: lfsr1 = $lfsr1, lfsr2 = $lfsr2"
             # First, form 2^9*val
             set temp1 [expr {(($lfsr1<<9) | (($lfsr2>>15)&0x1FF)) & 0xFFFFFF}]
             set temp2 [expr {($lfsr2<<9) & 0xFFFFFF}]
@@ -566,7 +566,7 @@ namespace eval lcc {
                 error [_ "Failed to open port %s because %s." $options(-port) $theerror]
                 return
             }
-                  puts stderr "*** $type create: port opened: $ttyfd"
+            #puts stderr "*** $type create: port opened: $ttyfd"
             if {[catch {fconfigure $ttyfd -mode}]} {
                 close $ttyfd
                 catch {unset ttyfd}
