@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160213.1526>
+#  Last Modified : <160213.1529>
 #
 #  Description	
 #
@@ -591,14 +591,12 @@ namespace eval lcc {
             flush $ttyfd
             #puts [$gcmessage toString]
         }
-        variable messageReceived 0
         method _messageReader {} {
             if {[gets $ttyfd message]} {
                 gcreply configure -message $message
                 set r [$gcreply createReply]
                 #puts ": Message received: [$r toString]"
                 #lcc::peelCANheader [$r getHeader]
-                incr messageReceived
                 set handler [$self cget -eventhandler]
                 if {$handler ne {}} {
                     uplevel #0 [list $handler $r]
