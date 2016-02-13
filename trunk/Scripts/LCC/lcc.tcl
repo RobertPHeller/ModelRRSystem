@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160213.1417>
+#  Last Modified : <160213.1420>
 #
 #  Description	
 #
@@ -573,7 +573,7 @@ namespace eval lcc {
                 error [_ "%s is not a terminal port." $options(-port)]
                 return
             }
-            fileevent readable readable [mymethod _messageReader]
+            fileevent $ttyfd readable readable [mymethod _messageReader]
             set myalias [$self getAlias]
             set header [[MTIHeader %AUTO% -mti 0x0100 -srcid $myalias] getHeader]
             set message [CanMessage Create data $nidlist $header]
