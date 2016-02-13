@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160213.1432>
+#  Last Modified : <160213.1518>
 #
 #  Description	
 #
@@ -300,7 +300,8 @@ namespace eval lcc {
     
     snit::type GridConnectMessage {
         lcc::AbstractMRMessage
-        option -canmessage 
+        option -canmessage -type lcc::CanMessage -configuremethod _copyCM \
+              -cgetmethod error
         constructor {args} {
             set _nDataChars 28
             set _dataChars [list]
@@ -308,25 +309,24 @@ namespace eval lcc {
                 lappend _dataChars 0
             }
             $self setElement 0 ":"
+            $self configurelist $args
         }
-        typemethod create_fromCanMessage {m} {
-            lcc::CanMessage validate $m
-            set result [$type create %AUTO%]
-            $result setExtended [$m isExtended]
-            $result setHeader   [$m getHeader]
-            $result setRtr      [$m isRtr]
+        method _copyCM {option m} {
+            $self setExtended [$m isExtended]
+            $self setHeader   [$m getHeader]
+            $self setRtr      [$m isRtr]
             for {set i 0} {$i < [$m getNumDataElements]} {incr i} {
-                $result setByte [$m getElement $i] $i
+                $self setByte [$m getElement $i] $i
             }
-            if {[$result isExtended]} {
+            if {[$self isExtended]} {
                 set offset 11
             } else {
                 set offset 6
             }
-            $result setElement [expr {$offset + ([$m getNumDataElements] * 2)}] ";"
-            $result setNumDataElements [expr {$offset + 1 + ([$m getNumDataElements] * 2)}]
-            return $result
+            $self setElement [expr {$offset + ([$m getNumDataElements] * 2)}] ";"
+            $self setNumDataElements [expr {$offset + 1 + ([$m getNumDataElements] * 2)}]
         }
+        
         method setExtended {extended} {
             if {$extended} {
                 $self setElement 1 "X"
@@ -386,18 +386,20 @@ namespace eval lcc {
     snit::type GridConnectReply {
         lcc::AbstractMRMessage
         typevariable MAXLEN 27
-        option -message -readonly yes
+        option -message -configuremethod _copyGCM
         constructor {args} {
+            $self configurelist $args
             set _nDataChars 0
             set _dataChars [list]
             for {set i 0} {$i < $MAXLEN} {incr i} {
                 lappend _dataChars 0
             }
-            set s [from args -message ""]
+        }
+        method _copyGCM {option s} {
             if {[string length $s] > $MAXLEN} {
                 set s [string range $s 0 [expr {$MAXLEN - 1}]]
             }
-            #puts stderr "*** $type create $self: s = '$s'"
+            #puts stderr "*** $self _copyGCM: s = '$s'"
             set i 0
             foreach c [split $s {}] {
                 #puts stderr "*** $type create $self: c = '$c'"
@@ -551,15 +553,14 @@ namespace eval lcc {
             set lfsr2 [expr {$lfsr2 & 0xFFFFFF}]
             return [expr {($lfsr1 ^ $lfsr2 ^ ($lfsr1>>12) ^ ($lfsr2>>12) )&0xFFF}]
         }
-            
+        option -eventhandler -default {}
         
         constructor {args} {
-            
-            #      puts stderr "*** $type create $self $args
+            install gcmessage using GridConnectMessage %AUTO%
+            install gcreply   using GridConnectReply   %AUTO%
+            #puts stderr "*** $type create $self $args
             $self configurelist $args
             $self _peelnid $options(-nid)
-            install gcmessage using lcc::GridConnectMessage %AUTO%
-            install gcreply   using lcc::GridConnectReply   %AUTO%
             if {[catch {open $options(-port) r+} ttyfd]} {
                 set theerror $ttyfd
                 catch {unset ttyfd}
@@ -580,34 +581,32 @@ namespace eval lcc {
             set message [CanMessage Create data $nidlist $header]
             $message setExtended 1
             $message setRtr 0
-            set gcmessage [GridConnectMessage create_fromCanMessage $message]
+            $gcmessage configure -canmessage $message]
             puts $ttyfd [$gcmessage toString]
             flush $ttyfd
             #puts [$gcmessage toString]
-            set header [[MTIHeader %AUTO% -mti 0x490 -srcid $myalias] getHeader]
-            set message [CanMessage Create data $nidlist $header]
-            $message setExtended 1
-            $message setRtr 1
-            set gcmessage [GridConnectMessage create_fromCanMessage $message]
-            puts $ttyfd [$gcmessage toString]
-            flush $ttyfd
-            #puts [$gcmessage toString]
-            set messageReceived 0
-            vwait [myvar messageReceived]
         }
         variable messageReceived 0
         method _messageReader {} {
             if {[gets $ttyfd message]} {
-                set m [lcc::GridConnectReply %AUTO% -message $message]
-                set r [$m createReply]
-                puts ": Message received: [$r toString]"
-                lcc::peelCANheader [$r getHeader]
+                gcreply configure -message $message
+                set r [$gcreply createReply]
+                #puts ": Message received: [$r toString]"
+                #lcc::peelCANheader [$r getHeader]
                 incr messageReceived
+                set handler [$self cget -eventhandler]
+                if {$handler ne {}} {
+                    uplevel #0 [list $handler $r]
+                }
             } else {
                 $self destroy
             }
         }
-        
+        method sendmessage {canmessage} {
+            $gcmessage configure -canmessage $canmessage]
+            puts $ttyfd [$gcmessage toString]
+            flush $ttyfd
+        }
             
     }
     proc peelCANheader {header} {
