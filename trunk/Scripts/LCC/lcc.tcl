@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160213.1424>
+#  Last Modified : <160213.1427>
 #
 #  Description	
 #
@@ -573,6 +573,7 @@ namespace eval lcc {
                 error [_ "%s is not a terminal port." $options(-port)]
                 return
             }
+            fconfigure $ttyfd -buffering line -translation {crlf crlf}
             fileevent $ttyfd readable [mymethod _messageReader]
             set myalias [$self getAlias]
             set header [[MTIHeader %AUTO% -mti 0x0100 -srcid $myalias] getHeader]
@@ -581,6 +582,7 @@ namespace eval lcc {
             $message setRtr 0
             set gcmessage [GridConnectMessage create_fromCanMessage $message]
             puts $ttyfd [$gcmessage toString]
+            flush $ttyfd
             #puts [$gcmessage toString]
             set header [[MTIHeader %AUTO% -mti 0x490 -srcid $myalias] getHeader]
             set message [CanMessage Create data $nidlist $header]
@@ -588,6 +590,7 @@ namespace eval lcc {
             $message setRtr 1
             set gcmessage [GridConnectMessage create_fromCanMessage $message]
             puts $ttyfd [$gcmessage toString]
+            flush $ttyfd
             #puts [$gcmessage toString]
             set messageReceived 0
             vwait [myvar messageReceived]
