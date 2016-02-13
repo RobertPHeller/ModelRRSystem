@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160213.1524>
+#  Last Modified : <160213.1525>
 #
 #  Description	
 #
@@ -586,7 +586,7 @@ namespace eval lcc {
             set message [CanMessage Create data $nidlist $header]
             $message setExtended 1
             $message setRtr 0
-            $gcmessage configure -canmessage $message]
+            $gcmessage configure -canmessage $message
             puts $ttyfd [$gcmessage toString]
             flush $ttyfd
             #puts [$gcmessage toString]
