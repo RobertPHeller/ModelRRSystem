@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160211.1722>
+#  Last Modified : <160213.1417>
 #
 #  Description	
 #
@@ -163,7 +163,22 @@ namespace eval lcc {
             return $s
         }
     }
-
+    
+    snit::integer ::lcc::twelvebits -min 0 -max 0x0FFF
+    
+    snit::type MTIHeader {
+        variable header
+        option -mti -readonly yes -default 0 -type ::lcc::twelvebits
+        option -srcid -readonly yes -default 0 -type ::lcc::twelvebits
+        constructor {args} {
+            puts stderr "*** $type create $self $args"
+            $self configurelist $args
+            set header [expr {(3 << 27) | (1 << 24)| ($options(-mti) << 12) | $options(-srcid)}]
+        }
+        method getHeader {} {return $header}
+    }
+    
+    
     snit::type CanMessage {
         lcc::AbstractMRMessage
         variable _translated false
@@ -173,6 +188,7 @@ namespace eval lcc {
         option -length -readonly yes -default 0 -type {snit::integer -min 0 -max 8}
         option -data   -readonly yes -default {} -type {snit::listtype -minlen 0 -maxlen 8}
         constructor {args} {
+            puts stderr "*** $type create $self $args"
             set _header [from args -header 0]
             set _isExtended false
             set _isRtr false
@@ -189,6 +205,7 @@ namespace eval lcc {
                 set _dataChars [from args -data]
                 set _nDataChars [llength $_dataChars]
             }
+            puts stderr "*** $type create $self: [$self toString]"
         }
         typemethod {Create header} {header} {
             return [$type %AUTO% -header $header]
@@ -258,6 +275,27 @@ namespace eval lcc {
                 return $o
             }
         }
+        method toString {} {
+            set s [format {%08X } [$self getHeader]]
+            if {[$self isExtended]} {
+                append s {X }
+            } else {
+                append s {S }
+            }
+            if {[$self isRtr]} {
+                append s {R }
+            } else {
+                append s {N }
+            }
+            for {set i 0} {$i < $_nDataChars} {incr i} {
+                if {$i != 0} {
+                    append s " "
+                }
+                append s [format "%02X" [lindex $_dataChars $i]]
+            }
+            return $s
+        }
+            
     }
     
     snit::type GridConnectMessage {
@@ -454,7 +492,7 @@ namespace eval lcc {
             return [expr {($_nDataChars - ($_RTRoffset + 1)) / 2}]
         }
         method getByte {b} {
-            {($b >= 0) && ($b <= 7)} {
+            if {($b >= 0) && ($b <= 7)} {
                 set index [expr {$b * 2 + $_RTRoffset + 1}]
                 set hi [$self getHexDigit $index]
                 incr index
@@ -470,8 +508,131 @@ namespace eval lcc {
             return [scan [format %c $b] %x]
         }
     }
+    
+    snit::stringtype ::lcc::nid -regexp {^([[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]])$}
+    
+    snit::type LCC-Buffer-USB {
+        component gcmessage
+        component gcreply
+        variable ttyfd
+        variable nidlist 
+        variable myalias
+        typevariable NIDPATTERN 
+        typeconstructor {
+            set NIDPATTERN [::lcc::nid cget -regexp]
+        }
+        option -port -readonly yes -default "/dev/ttyACM0"
+        option -nid  -readonly yes -default "00:01:02:03:04:05" -type lcc::nid
+        method _peelnid {value} {
+            puts stderr "*** $self _peelnid $value"
+            set nidlist [list]
+            foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $value] 1 end] {
+                lappend nidlist [scan $oct %02x]
+            }
+            puts stderr "*** $self _peelnid: nidlist = $nidlist"
+            # load the PRNG from the Node ID
+            set lfsr1 [expr {([lindex $nidlist 0] << 16) | ([lindex $nidlist 1] << 8) | [lindex $nidlist 2]}]
+            set lfsr2 [expr {([lindex $nidlist 3] << 16) | ([lindex $nidlist 4] << 8) | [lindex $nidlist 5]}]
+            puts stderr "*** $self _peelnid: lfsr1 = $lfsr1, lfsr2 = $lfsr2"
+        }
+        variable lfsr1 0
+        variable lfsr2 0; # sequence value: lfsr1 is upper 24 bits, lfsr2 lower
+        method getAlias {} {
+            puts stderr "*** $self getAlias: lfsr1 = $lfsr1, lfsr2 = $lfsr2"
+            # First, form 2^9*val
+            set temp1 [expr {(($lfsr1<<9) | (($lfsr2>>15)&0x1FF)) & 0xFFFFFF}]
+            set temp2 [expr {($lfsr2<<9) & 0xFFFFFF}]
             
+            # add
+            set lfsr2 [expr {$lfsr2 + $temp2 + 0x7A4BA9}]
+            set lfsr1 [expr {$lfsr1 + $temp1 + 0x1B0CA3}]
+            # carry
+            set lfsr1 [expr {($lfsr1 & 0xFFFFFF) | (($lfsr2&0xFF000000) >> 24)}]
+            set lfsr2 [expr {$lfsr2 & 0xFFFFFF}]
+            return [expr {($lfsr1 ^ $lfsr2 ^ ($lfsr1>>12) ^ ($lfsr2>>12) )&0xFFF}]
+        }
             
+        
+        constructor {args} {
+            
+            #      puts stderr "*** $type create $self $args
+            $self configurelist $args
+            $self _peelnid $options(-nid)
+            install gcmessage using lcc::GridConnectMessage %AUTO%
+            install gcreply   using lcc::GridConnectReply   %AUTO%
+            if {[catch {open $options(-port) r+} ttyfd]} {
+                set theerror $ttyfd
+                catch {unset ttyfd}
+                error [_ "Failed to open port %s because %s." $options(-port) $theerror]
+                return
+            }
+                  puts stderr "*** $type create: port opened: $ttyfd"
+            if {[catch {fconfigure $ttyfd -mode}]} {
+                close $ttyfd
+                catch {unset ttyfd}
+                error [_ "%s is not a terminal port." $options(-port)]
+                return
+            }
+            fileevent readable readable [mymethod _messageReader]
+            set myalias [$self getAlias]
+            set header [[MTIHeader %AUTO% -mti 0x0100 -srcid $myalias] getHeader]
+            set message [CanMessage Create data $nidlist $header]
+            $message setExtended 1
+            $message setRtr 0
+            set gcmessage [GridConnectMessage create_fromCanMessage $message]
+            puts $ttyfd [$gcmessage toString]
+            #puts [$gcmessage toString]
+            set header [[MTIHeader %AUTO% -mti 0x490 -srcid $myalias] getHeader]
+            set message [CanMessage Create data $nidlist $header]
+            $message setExtended 1
+            $message setRtr 1
+            set gcmessage [GridConnectMessage create_fromCanMessage $message]
+            puts $ttyfd [$gcmessage toString]
+            #puts [$gcmessage toString]
+        }
+        method _messageReader {} {
+            if {[gets $ttyfd message]} {
+                set m [lcc::GridConnectReply %AUTO% -message $message]
+                set r [$m createReply]
+                lcc::peelCANheader [$r getHeader]
+            } else {
+                $self destroy
+            }
+        }
+        
+            
+    }
+    proc peelCANheader {header} {
+        set CANPrefix [expr {($header & wide(0x18000000)) >> 27}]
+        set CANFrameType [expr {($header & wide(0x07000000)) >> 24}]
+        set CAN_MTI [expr {($header & wide(0x00FFF000)) >> 12}]
+        set SRCID   [expr {($header & wide(0x00000FFF))}]
+        set CAN_StaticPriority [expr {($header & wide(0x00C00000)) >> 22}]
+        set CAN_TypeWithinPriority [expr {($header & wide(0x003E0000)) >> 17}]
+        set CAN_Simple [expr {($header & wide(0x00010000)) >> 16}]
+        set CAN_AP [expr {($header & wide(0x00008000)) >> 15}]
+        set CAN_EIDP [expr {($header & wide(0x00004000)) >> 14}]
+        set CAN_MB [expr {($header & wide(0x00003000)) >> 12}]
+        puts [format "%08X --" $header]
+        puts [format "  CANPrefix   : %0X" $CANPrefix]
+        puts [format "  CANFrameType: %0X" $CANFrameType]
+        puts [format "  CAN_MTI     : %03X" $CAN_MTI]
+        puts [format "    CAN_StaticPriority    : %0X" $CAN_StaticPriority]
+        puts [format "    CAN_TypeWithinPriority: %0X" $CAN_TypeWithinPriority]
+        puts [format "    CAN_Simple            : %0X" $CAN_Simple]
+        puts [format "    CAN_AP                : %0X" $CAN_AP]
+        puts [format "    CAN_EIDP              : %0X" $CAN_EIDP]
+        puts [format "    CAN_MB                : %0X" $CAN_MB]
+        puts [format "  SRCID  : %03X" $SRCID]
+        return [list header $header CANPrefix $CANPrefix \
+                CANFrameType $CANFrameType \
+                CAN_MTI [list $CAN_MTI \
+                         CAN_StaticPriority $CAN_StaticPriority \
+                         CAN_TypeWithinPriority $CAN_TypeWithinPriority \
+                         CAN_Simple $CAN_Simple CAN_AP $CAN_AP \
+                         CAN_EIDP $CAN_EIDP CAN_MB $CAN_MB] \
+                SRCID $SRCID]
+    }
 }
   
 
