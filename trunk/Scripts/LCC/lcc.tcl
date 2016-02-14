@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160213.1529>
+#  Last Modified : <160214.1045>
 #
 #  Description	
 #
@@ -164,20 +164,136 @@ namespace eval lcc {
         }
     }
     
+    snit::integer ::lcc::twobits -min 0 -max 0x03
+    snit::integer ::lcc::threebits -min 0 -max 0x07
+    snit::integer ::lcc::fivebits -min 0 -max 0x1F
     snit::integer ::lcc::twelvebits -min 0 -max 0x0FFF
+    snit::integer ::lcc::fifteenbits -min 0 -max 0x07FFF
+    snit::integer ::lcc::sixteenbits  -min 0 -max 0x0FFFF
     
-    snit::type MTIHeader {
-        variable header
-        option -mti -readonly yes -default 0 -type ::lcc::twelvebits
-        option -srcid -readonly yes -default 0 -type ::lcc::twelvebits
+    snit::type CANHeader {
+        option -openlcbframe -type snit::boolean -default yes
+        option -variablefield  -type ::lcc::fifteenbits -default 0
+        option -srcid -default 0 -type ::lcc::twelvebits
         constructor {args} {
             #puts stderr "*** $type create $self $args"
             $self configurelist $args
-            set header [expr {(3 << 27) | (1 << 24)| ($options(-mti) << 12) | $options(-srcid)}]
         }
-        method getHeader {} {return $header}
+        method getHeader {} {
+            set header [expr {(1 << 28)}];# reserved bit -- always 1
+            if {$options(-openlcbframe)} {
+                set header [expr {$header | (1 << 27)}]
+            }
+            set header [expr {$header | ($options(-variablefield) << 12)}]
+            set header [expr {$header | $options(-srcid)}]
+            return $header
+        }
+        method setHeader {header} {
+            if {($header & 0x08000000) == 0} {
+                set options(-openlcbframe) no
+            } else {
+                set options(-openlcbframe) yes
+            }
+            set options(-variablefield) [expr {($header & 0x07FFF000) >> 12}]
+            set options(-srcid) [expr {$header & 0x00000FFF}]
+        }
+        
+            
     }
-    
+    snit::type MTIHeader {
+        component canheader
+        delegate option -srcid to canheader
+        option -mti -default 0 -type ::lcc::twelvebits
+        option -frametype -default 1 -type ::lcc::threebits
+        constructor {args} {
+            #puts stderr "*** $type create $self $args"
+            install canheader using lcc::CANHeader %AUTO% -openlcbframe yes
+            $self configurelist $args
+        }
+        method getHeader {} {
+            $canheader configure -variablefield [expr {($options(-frametype) << 12)|$options(-mti)}]
+            set header [$canheader getHeader]
+            return $header
+        }
+        method setHeader {header} {
+            $canheader setHeader $header
+            set vfield [$canheader cget -variablefield]
+            set options(-frametype) [expr {($vfield & 0x7000) >> 12}]
+            set options(-mti) [expr {$vfield & 0x0FFF}]
+       }
+   }
+   
+   snit::type MTIDetail {
+       component mtiheader
+       option -special -type snit::boolean -default no
+       option -streamordatagram  -type snit::boolean -default no
+       option -priority -type snit::twobits -default 0
+       option -typewithin -type snit::fivebits -default 0
+       option -simple -type snit::boolean -default no
+       option -addressp -type snit::boolean -default no
+       option -eventp -type snit::boolean -default no
+       option -modifier -type snit::twobits -default 0
+       delegate option -srcid to mtiheader
+       option -destid -type snit::twelvebits -default 0
+       constructor {args} {
+           install mtiheader using MTIHeader %AUTO%
+           $self configurelist $args
+       }
+       method getHeader {} {
+           if {!$options(-streamordatagram) && !$options(-special)} {
+               ## frame type 1: Global & Addressed MTI
+               set mti_can [expr {$options(-priority) << 10}]
+               set mti_can [expr {$mti_can | ($options(-typewithin) << 5)}]
+               if {$options(-simple)} {
+                   set mti_can [expr {$mti_can | (1 << 4)}]
+               }
+               if {$options(-addressp)} {
+                   set mti_can [expr {$mti_can | (1 << 3)}]
+               }
+               if {$options(-eventp)} {
+                   set mti_can [expr {$mti_can | (1 << 2)}]
+               }
+               set mti_can [expr {$mti_can | $options(-modifier)}]
+               $mtiheader configure -mti $mti_can
+               return [$mtiheader getHeader]
+           } else {
+               ## frame types 2, 3, 4, 5, and 7
+               ## Datagram and Stream
+           }
+       }
+       method setHeader {header} {
+           $mtiheader setHeader $header
+           switch [$mtiheader cget -frametype] {
+               0 -
+               6 {
+                   # reserved
+               }
+               1 {
+                   # Global & Addressed MTI
+                   set options(-streamordatagram) no
+                   set options(-special) no
+                   set mti_can [$mtiheader cget -mti]
+                   set options(-priority)   [expr {($mti_can & 0x0C00) >> 10}]
+                   set options(-typewithin) [expr {($mti_can & 0x03E0) >> 5}]
+                   set options(-simple)     [expr {($mti_can & 0x0010) != 0}]
+                   set options(-addressp)   [expr {($mti_can & 0x0008) != 0}]
+                   set options(-eventp)     [expr {($mti_can & 0x0004) != 0}]
+                   set options(-modifier)   [expr {$mti_can & 0x0003}]
+               }
+               2 -
+               3 -
+               4 -
+               5 {
+                   # datagrams
+                   set options(-streamordatagram) yes
+               }
+               7 {
+                   # stream
+                   set options(-streamordatagram) yes
+               }
+           }
+       }
+   }
     
     snit::type CanMessage {
         lcc::AbstractMRMessage

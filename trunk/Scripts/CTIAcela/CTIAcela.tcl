@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jul 21 10:56:52 2015
-#  Last Modified : <150731.1249>
+#  Last Modified : <160204.1944>
 #
 #  Description	
 #
@@ -951,6 +951,7 @@ namespace eval ctiacela {
             # @returns a list of modules on the network.
             
             set response [$self _transmit [list $Opcodes(Poll)] N]
+            #puts stderr "*** $self Poll: response is $response"
             if {[lindex $response 0] == $Responses(Success)} {
                 set n [lindex $response 1]
                 set result [list]
