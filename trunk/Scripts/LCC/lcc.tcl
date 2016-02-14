@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160214.1045>
+#  Last Modified : <160214.1652>
 #
 #  Description	
 #
@@ -71,12 +71,21 @@ namespace eval lcc {
         #
         
         method getElement {n} {
+            ## @brief Get the nth data element.
+            # @param n The index of the element to retrieve.
+            # @return The data element.
             return [lindex $_dataChars $n]
         }
         method getNumDataElements {} {
+            ## @brief Get the number of data elements.
+            # @return The number of data elements.
             return $_nDataChars
         }
         method setElement {n v} {
+            ## @brief Set the nth data element.
+            # @param n The index of the element to set.
+            # @param v The value to store.
+            
             if {[catch {lcc::byte validate $v}]} {
                 if {[catch {snit::integer validate $v}]} {
                     set v [scan $v %c]
@@ -87,7 +96,9 @@ namespace eval lcc {
             lset _dataChars $n $v
         }
         variable _dataChars {}
+        ##  @brief The data bytes as a list.
         variable _nDataChars 0
+        ##  @brief The number of data bytes.
     }
     snit::macro ::lcc::AbstractMRMessage {} {
         ## @Brief Macro to create common methods and variables for an AbstractMRMessage
@@ -95,60 +106,126 @@ namespace eval lcc {
         
         lcc::AbstractMessage;# Include base AbstractMessage
         method setOpCode {i} {
+            ## @Brief Set the opcode (byte 0).
+            # @param i The opcode to store.
             lset _dataChars 0 $i
         }
         method getOpCode {} {
+            ## @Brief Get the opcode (byte 0).
+            # @return The opcode.
             return [lindex $_dataChars 0]
         }
         
         method getOpCodeHex {} {
+            ## @Brief Get the opcode (byte 0) in hex.
+            # @return The opcode in hex.
             return [format {0x%x} [$self getOpCode]]
         }
         variable mNeededMode 0
+        ## @Brief The needed mode
         method setNeededMode {pMode} {
+            ## @Brief Set the needed mode.
+            # @param pMode The mode to set.
             set mNeededMode $pMode
         }
         method getNeededMode {} {
+            ## @Brief Get the needed mode.
+            # @return The needed mode.
             return $mNeededMode
         }
-        method replyExpected {} {return true}
+        method replyExpected {} {
+            ## @Brief Returns reply expected flag.
+            # @return The reply expected flag.
+            return true
+        }
         variable _isBinary false
-        method isBinary {} {return $_isBinary}
-        method setBinary {b} {set _isBinary $b}
+        ## @Brief Binary flag.
+        method isBinary {} {
+            ## @Brief Returns binary flag.
+            # @return The binary flag.
+            return $_isBinary
+        }
+        method setBinary {b} {
+            ## @Brief Set the binary flag.
+            # @param b The binary flag.
+            set _isBinary $b
+        }
         typevariable SHORT_TIMEOUT 2000
+        ## @Brief Short timeout.
         typevariable LONG_TIMEOUT 60000
+        ## @Brief Long timeout.
         variable mTimeout 0
-        method setTimeout {t} {set mTimeout $t}
-        method getTimeout {} {return $mTimeout}
+        ## @Brief Current timeout. 
+        method setTimeout {t} {
+            ## @Brief Set the timeout.
+            # @param t The new timeout value (milisecs).
+            set mTimeout $t
+        }
+        method getTimeout {} {
+            ## @Brief Get the timeout.
+            # @return The current timeout value (milisecs).
+            return $mTimeout
+        }
         variable mRetries 0
-        method setRetries {i} {set mRetries $i}
-        method getRetries {} {return $mRetries}
+        ## @Brief The number of retries.
+        method setRetries {i} {
+            ## @Brief Set the number of retries.
+            # @param i The number of retries.
+            set mRetries $i
+        }
+        method getRetries {} {
+            ## @Brief Get the number of retries.
+            # @return The number of retries.
+            return $mRetries
+        }
         method addIntAsThree {val offset} {
+            ## @Brief Insert an integer as three decimal digits (with leading 0s).
+            # @param val The value (0-999).
+            # @param offset The index of the first digit.
+            
             set svals [scan [format {%03d} $val] %c%c%c]
             $self setElement $offset [lindex $svals 0]
             $self setElement [expr {$offset+1}] [lindex $svals 1]
             $self setElement [expr {$offset+2}] [lindex $svals 2]
         }
         method addIntAsTwoHex {val offset} {
+            ## @Brief Insert an integer as two hexadecimal digits (with leading 0s).
+            # @param val The value (0-255)
+            # @param offset The index of the first digit.
+            
             set svals [scan [format {%02X} $val] %c%c]
             $self setElement $offset [lindex $svals 0]
             $self setElement [expr {$offset+1}] [lindex $svals 1]
         }
         method addIntAsThreeHex {val offset} {
+            ## @Brief Insert an integer as three hexadecimal digits (with leading 0s).
+            # @param val The value (0-4095)
+            # @param offset The index of the first digit.
+            
             set svals [scan [format {%03X} $val] %c%c%c]
             $self setElement $offset [lindex $svals 0]
             $self setElement [expr {$offset+1}] [lindex $svals 1]
             $self setElement [expr {$offset+2}] [lindex $svals 2]
         }
         method addIntAsFourHex {val offset} {
+            ## @Brief Insert an integer as four hexadecimal digits (with leading 0s).
+            # @param val The value (0-65535)
+            # @param offset The index of the first digit.
+            
             set svals [scan [format {%04X} $val] %c%c%c%c]
             $self setElement $offset [lindex $svals 0]
             $self setElement [expr {$offset+1}] [lindex $svals 1]
             $self setElement [expr {$offset+2}] [lindex $svals 2]
             $self setElement [expr {$offset+3}] [lindex $svals 3]
         }
-        method setNumDataElements {n} {set _nDataChars $n}
+        method setNumDataElements {n} {
+            ## @Brief Set the number of data bytes.
+            # @param n The number of data bytes.
+            set _nDataChars $n
+        }
         method toString {} {
+            ## @Brief Return the data object as a string.
+            
             set s ""
             for {set i 0} {$i < $_nDataChars} {incr i} {
                 if {$_isBinary} {
@@ -164,193 +241,460 @@ namespace eval lcc {
         }
     }
     
-    snit::integer ::lcc::twobits -min 0 -max 0x03
-    snit::integer ::lcc::threebits -min 0 -max 0x07
-    snit::integer ::lcc::fivebits -min 0 -max 0x1F
-    snit::integer ::lcc::twelvebits -min 0 -max 0x0FFF
-    snit::integer ::lcc::fifteenbits -min 0 -max 0x07FFF
-    snit::integer ::lcc::sixteenbits  -min 0 -max 0x0FFFF
+    snit::integer twobits -min 0 -max 0x03
+    ## @typedef int twobits
+    # A 2 bit integer.
+    snit::integer threebits -min 0 -max 0x07
+    ## @typedef int threebits
+    # A 3 bit integer.
+    snit::integer fivebits -min 0 -max 0x1F
+    ## @typedef int fivebits
+    # A 5 bit integer.
+    snit::integer byte -min 0 -max 0x0FF
+    ## @typedef unsigned char byte
+    # An 8-bit unsigned byte.
+    snit::integer twelvebits -min 0 -max 0x0FFF
+    ## @typedef int twelvebits
+    # A 12 bit integer.
+    snit::integer fifteenbits -min 0 -max 0x07FFF
+    ## @typedef int fifteenbits
+    # A 15 bit integer.
+    snit::integer sixteenbits  -min 0 -max 0x0FFFF
+    ## @typedef int sixteenbits
+    # A 16 bit integer.
+    snit::integer headerword -min 0 -max 0x1FFFFFFF
+    ## @typedef int headerword
+    # A 29 bit integer.
+    snit::listtype eightbytes -minlen 0 -maxlen 8 -type lcc::byte
+    ## @typedef list eightbytes
+    # A list of bytes, from 0 to 8 elements.
+        
     
     snit::type CANHeader {
+        ## @brief CAN Header type.
+        # Creates a 29-bit CAN header.  The header is generated and decoded
+        # ``on the fly'' from/to the supplied options:
+        #
+        # @arg -openlcbframe A boolean flag to indicate an OpenLCB or
+        #        generic CAN frame.
+        # @arg -variablefield A 15 bit data field.
+        # @arg -srcid A 12 bit source id field.
+        
+        typevariable RESERVED_SHIFT 28
+        ## @privatesection @brief Bit 28 is reserved and always 1
         option -openlcbframe -type snit::boolean -default yes
+        typevariable OPENLCBFRAME_SHIFT 27
+        ## @brief Bit 27 is the OpenLCB bit: 1 == OpenLCB, 0 == other CAN
+        typevariable OPENLCBFRAME_MASK  0x08000000
+        ## @brief Bit 27 is the OpenLCB bit: 1 == OpenLCB, 0 == other CAN
         option -variablefield  -type ::lcc::fifteenbits -default 0
+        typevariable VARIABLEFIELD_SHIFT 12
+        ## @brief Bits 12-26 are the variable field.
+        typevariable VARIABLEFIELD_MASK  0x07FFF000
+        ## @brief Bits 12-26 are the variable field.
         option -srcid -default 0 -type ::lcc::twelvebits
+        typevariable SRCID_SHIFT 0
+        ## @brief Bits 0-11 are the source id.
+        typevariable SRCID_MASK  0x00000FFF
+        ## @brief Bits 0-11 are the source id.
         constructor {args} {
+            ## @publicsection @brief Constructor: create a 29-bit CAN header.
+            # Creates a CAN header object from the supplied options.
+            #
+            # @param name The name of the object.
+            # @param ... Options:
+            # @arg -openlcbframe Flag to indicate a OpenLCB frame or not.
+            #      Default yes, type boolean.
+            # @arg -variablefield Fifteen bit variable field.
+            #      Default 0, type 15-bit integer.
+            # @arg -srcid Twelve bit source id field.
+            #      Default 0, type 12-bit integer.
+            # @par
+            
             #puts stderr "*** $type create $self $args"
             $self configurelist $args
         }
         method getHeader {} {
-            set header [expr {(1 << 28)}];# reserved bit -- always 1
+            ## @brief Generate and return the 29-bit header.
+            # Creates a 29-bit header from the supplied options.
+            # @return The 29-bit CAN header.
+            set header [expr {(1 << $RESERVED_SHIFT)}];# reserved bit -- always 1
             if {$options(-openlcbframe)} {
-                set header [expr {$header | (1 << 27)}]
+                set header [expr {$header | (1 << $OPENLCBFRAME_SHIFT)}]
             }
-            set header [expr {$header | ($options(-variablefield) << 12)}]
+            set header [expr {$header | ($options(-variablefield) << $VARIABLEFIELD_SHIFT)}]
             set header [expr {$header | $options(-srcid)}]
             return $header
         }
         method setHeader {header} {
-            if {($header & 0x08000000) == 0} {
+            ## @brief Decode a 29-bit CAN header.
+            # The 29-bit CAN header is decoded and the various options set.
+            # @param header The 29-bit CAN header.
+            
+            if {($header & $OPENLCBFRAME_MASK) == 0} {
                 set options(-openlcbframe) no
             } else {
                 set options(-openlcbframe) yes
             }
-            set options(-variablefield) [expr {($header & 0x07FFF000) >> 12}]
-            set options(-srcid) [expr {$header & 0x00000FFF}]
+            set options(-variablefield) [expr {($header & $VARIABLEFIELD_MASK) >> $VARIABLEFIELD_SHIFT}]
+            set options(-srcid) [expr {$header & $SRCID_MASK}]
         }
         
             
     }
     snit::type MTIHeader {
+        ## @brief MTI Header type. 
+        # Creates a 29-bit CAN header, specific to OpenLCB. The header is 
+        # generated and decoded ``on the fly'' from/to the supplied options:
+        #
+        # @arg -srcid A 12 bit source id field. Delegated to the canheader 
+        #       component. @see lcc::CANHeader.
+        # @arg -mti The 12 bit CAN_MTI field. Default is 0, type is a 12-bit 
+        #       integer.
+        # @arg -frametype The three bit frame type field. Default is 0, type 
+        #       is a 3-bit integer.
+        
         component canheader
+        ## @privatesection @brief The CANHeader component.
+        # Handles the header at the CAN level.
         delegate option -srcid to canheader
         option -mti -default 0 -type ::lcc::twelvebits
+        typevariable MTI_CAN_SHIFT 0
+        ## @brief Bits 0-11 of the variable field are the MTI_CAN field.
+        typevariable MTI_CAN_MASK 0x0FFF
+        ## @brief Bits 0-11 of the variable field are the MTI_CAN field.
         option -frametype -default 1 -type ::lcc::threebits
+        typevariable FRAMETYPE_SHIFT 12
+        ## @brief Bits 12-14 of the variable field are the frame type field.
+        typevariable FRAMETYPE_MASK 0x7000
+        ## @brief Bits 12-14 of the variable field are the frame type field.
         constructor {args} {
+            ## @publicsection @brief Constructor: create a MTIHeader
+            # A 29-bit CAN Header specific to the OpenLCB is created.
+            #
+            # @param name The name of the instance.
+            # @param ... Options:
+            # @arg -srcid A 12 bit source id field.
+            # @arg -mti The 12 bit CAN_MTI field.
+            # @arg -frametype The three bit frame type field.
+            # @par
+            
             #puts stderr "*** $type create $self $args"
             install canheader using lcc::CANHeader %AUTO% -openlcbframe yes
             $self configurelist $args
         }
         method getHeader {} {
-            $canheader configure -variablefield [expr {($options(-frametype) << 12)|$options(-mti)}]
+            ## @brief Get the 29-bit header.
+            # Most of the heavy lifting is handled in the canheader component.
+            # @see lcc::CANHeader.
+            # @return The 29-bit header.
+            
+            $canheader configure -variablefield [expr {($options(-frametype) << $FRAMETYPE_SHIFT)|$options(-mti)}]
             set header [$canheader getHeader]
             return $header
         }
         method setHeader {header} {
+            ## @brief Decode the 29-bit header.
+            # Most of the heavy lifting is handled in the canheader component.
+            # @see lcc::CANHeader.
+            # @param header The 29-bit header.
+            
             $canheader setHeader $header
             set vfield [$canheader cget -variablefield]
-            set options(-frametype) [expr {($vfield & 0x7000) >> 12}]
-            set options(-mti) [expr {$vfield & 0x0FFF}]
-       }
-   }
+            set options(-frametype) [expr {($vfield & $FRAMETYPE_MASK) >> $FRAMETYPE_SHIFT}]
+            set options(-mti) [expr {$vfield & $MTI_CAN_MASK}]
+        }
+    }
    
-   snit::type MTIDetail {
-       component mtiheader
-       option -special -type snit::boolean -default no
-       option -streamordatagram  -type snit::boolean -default no
-       option -priority -type snit::twobits -default 0
-       option -typewithin -type snit::fivebits -default 0
-       option -simple -type snit::boolean -default no
-       option -addressp -type snit::boolean -default no
-       option -eventp -type snit::boolean -default no
-       option -modifier -type snit::twobits -default 0
-       delegate option -srcid to mtiheader
-       option -destid -type snit::twelvebits -default 0
-       constructor {args} {
-           install mtiheader using MTIHeader %AUTO%
-           $self configurelist $args
-       }
-       method getHeader {} {
-           if {!$options(-streamordatagram) && !$options(-special)} {
-               ## frame type 1: Global & Addressed MTI
-               set mti_can [expr {$options(-priority) << 10}]
-               set mti_can [expr {$mti_can | ($options(-typewithin) << 5)}]
-               if {$options(-simple)} {
-                   set mti_can [expr {$mti_can | (1 << 4)}]
-               }
-               if {$options(-addressp)} {
-                   set mti_can [expr {$mti_can | (1 << 3)}]
-               }
-               if {$options(-eventp)} {
-                   set mti_can [expr {$mti_can | (1 << 2)}]
-               }
-               set mti_can [expr {$mti_can | $options(-modifier)}]
-               $mtiheader configure -mti $mti_can
-               return [$mtiheader getHeader]
-           } else {
-               ## frame types 2, 3, 4, 5, and 7
-               ## Datagram and Stream
-           }
-       }
-       method setHeader {header} {
-           $mtiheader setHeader $header
-           switch [$mtiheader cget -frametype] {
-               0 -
-               6 {
-                   # reserved
-               }
-               1 {
-                   # Global & Addressed MTI
-                   set options(-streamordatagram) no
-                   set options(-special) no
-                   set mti_can [$mtiheader cget -mti]
-                   set options(-priority)   [expr {($mti_can & 0x0C00) >> 10}]
-                   set options(-typewithin) [expr {($mti_can & 0x03E0) >> 5}]
-                   set options(-simple)     [expr {($mti_can & 0x0010) != 0}]
-                   set options(-addressp)   [expr {($mti_can & 0x0008) != 0}]
-                   set options(-eventp)     [expr {($mti_can & 0x0004) != 0}]
-                   set options(-modifier)   [expr {$mti_can & 0x0003}]
-               }
-               2 -
-               3 -
-               4 -
-               5 {
-                   # datagrams
-                   set options(-streamordatagram) yes
-               }
-               7 {
-                   # stream
-                   set options(-streamordatagram) yes
-               }
-           }
-       }
-   }
+    snit::type MTIDetail {
+        ## @brief MTI Header type, detailed version.
+        # Creates a 29-bit CAN header, specific to OpenLCB. The header is 
+        # generated and decoded ``on the fly'' from/to the supplied options:
+        #
+        # @arg -srcid A 12 bit source id field. Delegated to the mtiheader 
+        #       component. @see lcc::CANHeader and lcc::MTIHeader.
+        # @arg -special A boolean flag indicating if this is a special frame.
+        #       Default is no.
+        # @arg -streamordatagram A boolean flag indicating if this is a stream
+        #       or datagram frame.  Default is false.
+        # @arg -priority A 2-bit integer specifying the frame's priority.
+        #       Default is 0.
+        # @arg -typewithin A 5-bit integer specifying the type withing the 
+        #       priority. Default is 0.
+        # @arg -simple A boolean flag indicating if the frame is a simple
+        #       protocol frame. Default is no.
+        # @arg -addressp A boolean flag indicating if an address is present.
+        #       Default is no.
+        # @arg -eventp A boolean flag indicating if an event is present.
+        #       Default is no.
+        # @arg -modifier The 2-bit modifier field. Default is 0.
+        # @arg -destid A 12-bit Desitination alias. Only used for stream and 
+        #       datagram frames. Default is 0.
+        
+        component mtiheader
+        ## @privatesection @brief the MTIHeader component.
+        # Contains a MTIHeader to perform heavy lifting.
+        option -special -type snit::boolean -default no
+        option -streamordatagram  -type snit::boolean -default no
+        option -priority -type snit::twobits -default 0
+        typevariable PRIORITY_SHIFT 10
+        ## @brief The priority is bits 10-11 of the MTI_CAN
+        typevariable PRIORITY_MASK 0x0C00
+        ## @brief The priority is bits 10-11 of the MTI_CAN
+        option -typewithin -type snit::fivebits -default 0
+        typevariable TYPEWITHIN_SHIFT 5
+        ## @brief The type within priority field is bits 5-9 of the MTI_CAN
+        typevariable TYPEWITHIN_MASK  0x03E0
+        ## @brief The type within priority field is bits 5-9 of the MTI_CAN.
+        option -simple -type snit::boolean -default no
+        typevariable SIMPLE_SHIFT 4
+        ## @brief The simple bit is bit 4 of the MTI_CAN.
+        typevariable SIMPLE_MASK 0x0010
+        ## @brief The simple bit is bit 4 of the MTI_CAN.
+        option -addressp -type snit::boolean -default no
+        typevariable ADDRESSP_SHIFT 3
+        ## @brief The address present bit is bit 3 of the MTI_CAN.
+        typevariable ADDRESSP_MASK 0x0008
+        ## @brief The address present bit is bit 3 of the MTI_CAN.
+        option -eventp -type snit::boolean -default no
+        typevariable EVENTP_SHIFT 2
+        ## @brief The event present bit is bit 2 of the MTI_CAN.
+        typevariable EVENTP_MASK 0x0004
+        ## @brief The event present bit is bit 2 of the MTI_CAN.
+        option -modifier -type snit::twobits -default 0
+        typevariable MODIFIER_SHIFT 0
+        ## @brief The modifier is bits 0-1 of the MTI_CAN.
+        typevariable MODIFIER_MASK 0x0003
+        ## @brief The modifier is bits 0-1 of the MTI_CAN.
+        delegate option -srcid to mtiheader
+        option -destid -type snit::twelvebits -default 0
+        constructor {args} {
+            ## @publicsection @brief Constructor: create a MTIDetail object.
+            # A 29-bit CAN Header specific to the OpenLCB is created, using
+            # details for a MTI frame.
+            #
+            # @param name The name of the instance.
+            # @param ... Options:
+            # @arg -srcid A 12 bit source id field.
+            # @arg -special A boolean flag indicating if this is a special frame.
+            # @arg -streamordatagram A boolean flag indicating if this is a stream
+            #       or datagram frame.
+            # @arg -priority A 2-bit integer specifying the frame's priority.
+            # @arg -typewithin A 5-bit integer specifying the type withing the 
+            # @arg -simple A boolean flag indicating if the frame is a simple
+            #       protocol frame.
+            # @arg -addressp A boolean flag indicating if an address is present.
+            # @arg -eventp A boolean flag indicating if an event is present.
+            # @arg -modifier The 2-bit modifier field.
+            # @arg -destid A 12-bit Desitination alias. Only used for stream and 
+            #       datagram frames.
+            # @par
+            
+            install mtiheader using MTIHeader %AUTO%
+            $self configurelist $args
+        }
+        method getHeader {} {
+            ## @brief Get the 29-bit header.
+            # Most of the heavy lifting is handled in the mtiheader component.
+            # @see lcc::CANHeader and lcc::MTIHeader.
+            # @return The 29-bit header.
+            
+            if {!$options(-streamordatagram) && !$options(-special)} {
+                ## frame type 1: Global & Addressed MTI
+                set mti_can [expr {$options(-priority) << $PRIORITY_SHIFT}]
+                set mti_can [expr {$mti_can | ($options(-typewithin) << $TYPEWITHIN_SHIFT)}]
+                if {$options(-simple)} {
+                    set mti_can [expr {$mti_can | (1 << $SIMPLE_SHIFT)}]
+                }
+                if {$options(-addressp)} {
+                    set mti_can [expr {$mti_can | (1 << $ADDRESSP_SHIFT)}]
+                }
+                if {$options(-eventp)} {
+                    set mti_can [expr {$mti_can | (1 << $EVENTP_SHIFT)}]
+                }
+                set mti_can [expr {$mti_can | $options(-modifier)}]
+                $mtiheader configure -mti $mti_can
+                return [$mtiheader getHeader]
+            } else {
+                ## frame types 2, 3, 4, 5, and 7
+                ## Datagram and Stream
+            }
+        }
+        method setHeader {header} {
+            ## @brief Decode the 29-bit header.
+            # Most of the heavy lifting is handled in the mtiheader component.
+            # @see lcc::CANHeader and lcc::MTIHeader.
+            # @param header The 29-bit header.
+            
+            $mtiheader setHeader $header
+            switch [$mtiheader cget -frametype] {
+                0 -
+                6 {
+                    # reserved
+                }
+                1 {
+                    # Global & Addressed MTI
+                    set options(-streamordatagram) no
+                    set options(-special) no
+                    set mti_can [$mtiheader cget -mti]
+                    set options(-priority)   [expr {($mti_can & $PRIORITY_MASK) >> $PRIORITY_SHIFT}]
+                    set options(-typewithin) [expr {($mti_can & $TYPEWITHIN_MASK) >> $TYPEWITHIN_SHIFT}]
+                    set options(-simple)     [expr {($mti_can & $SIMPLE_MASK) != 0}]
+                    set options(-addressp)   [expr {($mti_can & $ADDRESSP_MASK) != 0}]
+                    set options(-eventp)     [expr {($mti_can & $EVENTP_MASK) != 0}]
+                    set options(-modifier)   [expr {$mti_can & $MODIFIER_MASK}]
+                }
+                2 -
+                3 -
+                4 -
+                5 {
+                    # datagrams
+                    set options(-streamordatagram) yes
+                }
+                7 {
+                    # stream
+                    set options(-streamordatagram) yes
+                }
+            }
+        }
+    }
+    
+    
     
     snit::type CanMessage {
+        ## @brief A CAN Message, containing a 29-bit header and upto 8 bytes of
+        # data.
+        #
+        # Options:
+        # @arg -header The 29-bit header.  Readonly, used only during creation.
+        #       Default 0.
+        # @arg -length The length of the data.  Readonly, used only during 
+        #       creation. Default 0.
+        # @arg -data The initial data. Readonly, used only during creation. 
+        #       Default is the empty list.
+        # @arg -extended. Boolean flag to indicate an extended protocol frame.
+        #       Default is false.
+        # @arg -rtr. Boolean flag to indicate if a reply is expected. Default 
+        #       is false.
+        # @par
+        # Additional methods defined using the macros AbstractMessage and 
+        # AbstractMRMessage include:
+        #
+        # @arg getElement {n} -- Get the nth data element.
+        # @arg getNumDataElements {} -- Get the number of data elements.
+        # @arg setElement {n v} -- Set the nth data element.
+        # @arg setOpCode {i} -- Set the opcode (byte 0).
+        # @arg getOpCode {} --  Get the opcode (byte 0).
+        # @arg getOpCodeHex {} -- Get the opcode (byte 0) in hex.
+        # @arg setNeededMode {pMode} -- Set the needed mode.
+        # @arg getNeededMode {} -- Get the needed mode.
+        # @arg replyExpected {} -- Returns reply expected flag.
+        # @arg isBinary {} -- Returns binary flag.
+        # @arg setBinary {b} -- Set the binary flag.
+        # @arg setTimeout {t} -- Set the timeout.
+        # @arg getTimeout {} -- Get the timeout.
+        # @arg setRetries {i} -- Set the number of retries.
+        # @arg getRetries {} -- Get the number of retries.
+        # @arg addIntAsThree {val offset} -- Insert an integer as three 
+        #             decimal digits (with leading 0s).
+        # @arg addIntAsTwoHex {val offset} -- Insert an integer as two 
+        #             hexadecimal digits (with leading 0s).
+        # @arg addIntAsThreeHex {val offset} -- Insert an integer as three 
+        #             hexadecimal digits (with leading 0s).
+        # @arg addIntAsFourHex {val offset} -- Insert an integer as four 
+        #             hexadecimal digits (with leading 0s).
+        # @arg setNumDataElements {n} --  Set the number of data bytes.
+        # @arg toString {} -- Return the data object as a string.
+        # @par
+        # And these (private) instance variables:
+        # @arg _dataChars {}
+        # @arg _nDataChars 0
+        # @arg mNeededMode 0
+        # @arg _isBinary false
+        # @arg mTimeout 0
+        # @arg mRetries 0
+        # @par
+        # And these (private) static variables:
+        # @arg SHORT_TIMEOUT 2000
+        # @arg LONG_TIMEOUT 60000
+        # @par
+
         lcc::AbstractMRMessage
-        variable _translated false
-        method setTranslated {translated} {set _translated $translated}
-        method isTranslated {} {return $_translated}
-        option -header -readonly yes -default 0 -type snit::integer
-        option -length -readonly yes -default 0 -type {snit::integer -min 0 -max 8}
-        option -data   -readonly yes -default {} -type {snit::listtype -minlen 0 -maxlen 8}
+        
+        
+        option -header -readonly yes -default 0 -type lcc::headerword
+        option -length -readonly yes -default 0 \
+              -type {snit::integer -min 0 -max 8}
+        option -data   -readonly yes -default {} -type lcc::eightbytes
+        option -extended -type snit::boolean -default no
+        option -rtr -type snit::boolean -default no
         constructor {args} {
+            ## @brief Constructor: create a CANMessage object
+            # Creates a fresh CANMessage object, with possible initialization.
+            #
+            # @param name The name of the new instance.
+            # @param ... The options:
+            # @arg -header The 29-bit header.  Readonly, used only during 
+            #       creation.
+            # @arg -length The length of the data.  Readonly, used only during 
+            #       creation.
+            # @arg -data The initial data. Readonly, used only during creation.
+            # @arg -extended. Boolean flag to indicate an extended protocol 
+            #       frame.
+            # @arg -rtr. Boolean flag to indicate if a reply is expected.
+            # @par        
+            
+            
             #puts stderr "*** $type create $self $args"
             set _header [from args -header 0]
-            set _isExtended false
-            set _isRtr false
             set _nDataChars 8
             $self setBinary true
             set _dataChars [list 0 0 0 0 0 0 0 0]
-            if {[lsearch $args -length] >= 0} {
+            if {[lsearch $args -data] >= 0 && [lsearch $args -length] >= 0} {
+                $self setData [from args -data]
+                set _nDataChars [from args -length]
+            } elseif {[lsearch $args -data] >= 0} {
+                $self setData [from args -data]
+                set _nDataChars [llength $_dataChars]
+            } elseif {[lsearch $args -length] >= 0} {
                 set _nDataChars [from args -length]
                 set _dataChars [list]
                 for {set i 0} {$i < $_nDataChars} {incr i} {
                     lappend _dataChars 0
                 }
-            } elseif {[lsearch $args -data] >= 0} {
-                set _dataChars [from args -data]
-                set _nDataChars [llength $_dataChars]
             }
+            $self configurelist $args
             #puts stderr "*** $type create $self: [$self toString]"
         }
-        typemethod {Create header} {header} {
-            return [$type %AUTO% -header $header]
-        }
-        typemethod {Create length} {i header} {
-            return [$type %AUTO% -header $header -length $i]
-        }
-        typemethod {Create data} {d header} {
-            return [$type %AUTO% -header $header -data $d]
-        }
         typemethod copy {m} {
-            set result [$type %AUTO%]
-            $result setHeader [$m getHeader]
-            $result setExtended [$m isExtended]
-            $result setRtr [$m isRtr]
-            $result setBinary true
-            $result setNumDataElements [$m getNumDataElements]
-            $result setData [$m getData
+            ## @brief Copy constructor.
+            # Copies a CANMessage instance.
+            #
+            # @param m The CANMessage to make a copy of.
+            
+            $type validate $m
+            set result [$type %AUTO% -header [$m getHeader] \
+                        -data [$m getData] -length [$m getNumDataElements] \
+                        -extended [$m cget -extended] -rtr [$m cget -rtr]]
             return $result
         }
-        method hashCode {} {return $_header}
+        method hashCode {} {
+            ## @brief Return a hash code.
+            # @return The header as the object's hash code.
+            return $_header
+        }
         method equals {a} {
+            ## @brief  Equality check.
+            # CANMessages are equal if all of the bits are the same.
+            # @param a A CANMessage to compare to.
+            # @return A boolean value indication equality.
+            
             if {[$a info type] ne $type} {return false}
-            if {[$a getHeader] != $_header || 
-                [$a isRtr] != $_isRtr || 
-                [$a isExtended] != $_isExtended} {
-                return false
-            }
-                                                                    
+            if {[$a getHeader] != $_header} {return false}
+            if {[$a cget -rtr] && ![$self cget -rtr]} {return false}
+            if {![$a cget -rtr] && [$self cget -rtr]} {return false}
+            if {[$a cget -extended] && ![$self cget -extended]} {return false}
+            if {![$a cget -extended] && [$self cget -extended]} {return false}
             if {$_nDataChars != [$a getNumDataElements]} {
                 return false
             }
@@ -361,9 +705,22 @@ namespace eval lcc {
             }
             return true
         }
-        method replyExpected {} {return true}
-        method setNumDataElements {n} {set _nDataChars $n}
+        method replyExpected {} {
+            ## @brief Reply expected.
+            # @return A boolean flag indicating if a reply is expected.
+            return true
+        }
+        method setNumDataElements {n} {
+            ## @brief Set the number of data elements.
+            # Sets the number of data elements.
+            # @param n The number of data elements.
+            set _nDataChars $n
+        }
         method setData {d} {
+            ## @brief Set the data values.
+            # Copy data into the data vector.
+            # @param d Replacement data values.
+            
             set len [llength $_dataChars]
             if {[llength $d] < $len} {
                 set len [llength $d]
@@ -372,17 +729,27 @@ namespace eval lcc {
                 lset _dataChars $i [lindex $d $i]
             }
         }
-        method getData {} {return $_dataChars}
-        method getHeader {} {return $_header}
-        method setHeader {h} {set _header $h}
-        method isExtended {} {return $_isExtended}
-        method setExtended {b} {set _isExtended $b}
-        method isRtr {} {return $_isRtr}
-        method setRtr {b} {set _isRtr $b}
+        method getData {} {
+            ## Return the data vector.
+            # @return The data vector.
+            return $_dataChars
+        }
+        method getHeader {} {
+            ## Return the header.
+            # @return The header.
+            return $_header
+        }
+        method setHeader {h} {
+            ## Set the header.
+            # @param h The new header.
+            set _header $h
+        }
         variable _header
-        variable _isExtended
-        variable _isRtr
+        ## The header.
         typemethod validate {o} {
+            ## Validator typemethod.
+            # @param o The object to validate.
+            
             #puts stderr "*** $type validate $o"
             if {[catch {$o info type} thetype]} {
                 #puts stderr "*** $type validate: $thetype"
@@ -395,13 +762,16 @@ namespace eval lcc {
             }
         }
         method toString {} {
+            ## Method to create a string version of the message.
+            # @return A string representation of the message.
+            
             set s [format {%08X } [$self getHeader]]
-            if {[$self isExtended]} {
+            if {[$self cget -extended]} {
                 append s {X }
             } else {
                 append s {S }
             }
-            if {[$self isRtr]} {
+            if {[$self cget -rtr]} {
                 append s {R }
             } else {
                 append s {N }
@@ -418,10 +788,138 @@ namespace eval lcc {
     }
     
     snit::type GridConnectMessage {
+        ## @brief A Grid Connect formatted CAN message.
+        # This is an ASCII formatted version of a CAN message, used by some
+        # USB connected CAN interface devices.
+        #
+        # Options:
+        # @arg -canmessage A binary CANMessage to be converted to a Grid 
+        #       Connect message. A write only option.
+        # @arg -extended A boolean flag to indicate if this is an extended 
+        #       protocol message.  Default no.
+        # @arg -rtr A boolean flag to indicate if this is a reply exptected 
+        #       message.  Default no.
+        # @par
+        # Additional methods defined using the macros AbstractMessage and 
+        # AbstractMRMessage include:
+        #
+        # @arg getElement {n} -- Get the nth data element.
+        # @arg getNumDataElements {} -- Get the number of data elements.
+        # @arg setElement {n v} -- Set the nth data element.
+        # @arg setOpCode {i} -- Set the opcode (byte 0).
+        # @arg getOpCode {} --  Get the opcode (byte 0).
+        # @arg getOpCodeHex {} -- Get the opcode (byte 0) in hex.
+        # @arg setNeededMode {pMode} -- Set the needed mode.
+        # @arg getNeededMode {} -- Get the needed mode.
+        # @arg replyExpected {} -- Returns reply expected flag.
+        # @arg isBinary {} -- Returns binary flag.
+        # @arg setBinary {b} -- Set the binary flag.
+        # @arg setTimeout {t} -- Set the timeout.
+        # @arg getTimeout {} -- Get the timeout.
+        # @arg setRetries {i} -- Set the number of retries.
+        # @arg getRetries {} -- Get the number of retries.
+        # @arg addIntAsThree {val offset} -- Insert an integer as three 
+        #             decimal digits (with leading 0s).
+        # @arg addIntAsTwoHex {val offset} -- Insert an integer as two 
+        #             hexadecimal digits (with leading 0s).
+        # @arg addIntAsThreeHex {val offset} -- Insert an integer as three 
+        #             hexadecimal digits (with leading 0s).
+        # @arg addIntAsFourHex {val offset} -- Insert an integer as four 
+        #             hexadecimal digits (with leading 0s).
+        # @arg setNumDataElements {n} --  Set the number of data bytes.
+        # @arg toString {} -- Return the data object as a string.
+        # @par
+        # And these (private) instance variables:
+        # @arg _dataChars {}
+        # @arg _nDataChars 0
+        # @arg mNeededMode 0
+        # @arg _isBinary false
+        # @arg mTimeout 0
+        # @arg mRetries 0
+        # @par
+        # And these (private) static variables:
+        # @arg SHORT_TIMEOUT 2000
+        # @arg LONG_TIMEOUT 60000
+        # @par
+
         lcc::AbstractMRMessage
-        option -canmessage -configuremethod _copyCM \
-              -cgetmethod error
+        option -canmessage -configuremethod _copyCM
+        option -extended -type snit::boolean -configuremethod _set_extended \
+              -cgetmethod _get_extended -default no
+        method _set_extended {opt extended} {
+            ## @private @brief Configure method for the -extended option.
+            # Sets the extended flag character.
+            # @param opt Always -extended. Ignored.
+            # @param extended Boolean flag indicating extendedness.
+            
+            if {$extended} {
+                $self setElement 1 "X"
+            } else {
+                $self setElement 1 "S"
+            }
+        }
+        method _get_extended {opt} {
+            ## @private @brief CGet method for the -extended option.
+            # Gets the extended flag character.
+            # @param opt Always -extended. Ignored.
+            # @return A boolean flag indicating extendedness.
+            
+            set E [format {%c} [$self getElement 1]]
+            return [expr {$E eq "X"}]
+        }
+        option -rtr -type snit::boolean -default no \
+              -configurementhod _set_rtr -cgetmethod _get_rtr              
+        method _set_rtr {opt rtr} {
+            ## @private @brief Configure method for the -rtr option.
+            # Sets the rtr flag character.
+            # @param opt Always -rtr. Ignored.
+            # @param rtr Boolean flag indicating rtrness.
+            
+            if {[$self cget -extended]} {
+                set offset 10
+            } else {
+                set offset 5
+            }
+            if {$rtr} {
+                $self setElement $offset "R"
+            } else {
+                $self setElement $offset "N"
+            }
+        }
+        method _get_rtr {opt} {
+            ## @private @brief CGet method for the -rtr option.
+            # Gets the rtr flag character.
+            # @param opt Always -rtr. Ignored.
+            # @returnA boolean flag indicating rtrness.
+            
+            if {[$self cget -extended]} {
+                set offset 10
+            } else {
+                set offset 5
+            }
+            if {[$self getElement $offset] eq "R"} {
+                return true
+            } else {
+                return false
+            }
+        }
         constructor {args} {
+            ## @brief Constructor: create a Grid Connect Message object.
+            # Create a Grid Connect Message.  Typically, a CANMessage is
+            # configured with the -canmessage option and then the toString
+            # method is used to get a printable Grid Connect Message 
+            # string.
+            #
+            # @param name The name of the object.
+            # @param ... The options:
+            # @arg -canmessage A binary CANMessage to be converted to a Grid 
+            #       Connect message. A write only option.
+            # @arg -extended A boolean flag to indicate if this is an extended 
+            #       protocol message.
+            # @arg -rtr A boolean flag to indicate if this is a reply expected 
+            #       message.
+            # @par
+            
             set _nDataChars 28
             set _dataChars [list]
             for {set i 0} {$i < 28} {incr i} {
@@ -431,15 +929,22 @@ namespace eval lcc {
             $self configurelist $args
         }
         method _copyCM {option m} {
+            ## @private @brief Configure method for the -canmessage option.
+            # Copies in a CANMessage and in the process formats a Grid Connect
+            # Message string.
+            #
+            # @param option Always -canmessage. Ignored.
+            # @param m A CANMessage object.
+            
             #puts stderr "*** $self _copyCM $option $m"
             lcc::CanMessage validate $m
-            $self setExtended [$m isExtended]
+            $self configure -extended [$m cget -extended]
+            $self configure -rtr [$m cget -rtr]
             $self setHeader   [$m getHeader]
-            $self setRtr      [$m isRtr]
             for {set i 0} {$i < [$m getNumDataElements]} {incr i} {
                 $self setByte [$m getElement $i] $i
             }
-            if {[$self isExtended]} {
+            if {[$self cget -extended]} {
                 set offset 11
             } else {
                 set offset 6
@@ -447,20 +952,14 @@ namespace eval lcc {
             $self setElement [expr {$offset + ([$m getNumDataElements] * 2)}] ";"
             $self setNumDataElements [expr {$offset + 1 + ([$m getNumDataElements] * 2)}]
         }
-        
-        method setExtended {extended} {
-            if {$extended} {
-                $self setElement 1 "X"
-            } else {
-                $self setElement 1 "S"
-            }
-        }
-        method isExtended {} {
-            set E [format {%c} [$self getElement 1]]
-            return [expr {$E eq "X"}]
-        }
         method setHeader {header} {
-            if {[$self isExtended]} {
+            ## @brief Set the header.
+            # Sets the header.  The header is converted to hex digits and 
+            # stored in the data buffer.
+            #
+            # @param header The binary 29-bit header.
+            
+            if {[$self cget -extended]} {
                 $self setHexDigit [expr {($header >> 28) & 0x0F}] 2
                 $self setHexDigit [expr {($header >> 24) & 0x0F}] 3
                 $self setHexDigit [expr {($header >> 20) & 0x0F}] 4
@@ -475,19 +974,13 @@ namespace eval lcc {
                 $self setHexDigit [expr {$header & 0x0F}] 4
             }
         }
-        method setRtr {rtr} {
-            if {[$self isExtended]} {
-                set offset 10
-            } else {
-                set offset 5
-            }
-            if {$rtr} {
-                $self setElement $offset "R"
-            } else {
-                $self setElement $offset "N"
-            }
-        }
         method setByte {val n} {
+            ## @brief Set a data byte.
+            # Stores a data byte as two hex digits.
+            #
+            # @param val The data byte value, 0-255.
+            # @param n   The data index, 0-7.
+            
             if {($n >= 0) && ($n <= 7)} {
                 set index [expr {$n * 2 + ([$self isExtended] ? 11 : 6)}]
                 $self setHexDigit [expr {($val >> 4) & 0x0F}] $index
@@ -496,6 +989,12 @@ namespace eval lcc {
             }
         }
         method setHexDigit {val n} {
+            ## @brief Set a hex digit.
+            # Stores a single nibble (0-16) at the specified index as an ASCII
+            # hex digit.
+            # @param val The nibble (0-16) to store.
+            # @param n   The data index.
+            
             if {($val >= 0) && ($val <= 15)} {
                 lset _dataChars $n [scan [format %X $val] %c]
             } else {
@@ -699,7 +1198,7 @@ namespace eval lcc {
             fileevent $ttyfd readable [mymethod _messageReader]
             set myalias [$self getAlias]
             set header [[MTIHeader %AUTO% -mti 0x0100 -srcid $myalias] getHeader]
-            set message [CanMessage Create data $nidlist $header]
+            set message [CanMessage %AUTO% -data $nidlist -header $header]
             $message setExtended 1
             $message setRtr 0
             $gcmessage configure -canmessage $message
