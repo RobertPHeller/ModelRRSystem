@@ -8,9 +8,10 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160215.1108>
+#  Last Modified : <160215.1232>
 #
 #  Description	
+#  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
 #
 #  Notes
 #
@@ -1310,7 +1311,7 @@ namespace eval lcc {
             set NIDPATTERN [::lcc::nid cget -regexp]
         }
         option -port -readonly yes -default "/dev/ttyACM0"
-        option -nid  -readonly yes -default "00:01:02:03:04:05" -type lcc::nid
+        option -nid  -readonly yes -default "05:01:01:01:22:00" -type lcc::nid
         method _peelnid {value} {
             ## Peel the Node ID into bytes and initializing the 48 bit
             # random number seed for alias generation.
