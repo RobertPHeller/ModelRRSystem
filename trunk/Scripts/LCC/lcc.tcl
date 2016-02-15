@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160214.1652>
+#  Last Modified : <160214.2158>
 #
 #  Description	
 #
@@ -792,6 +792,10 @@ namespace eval lcc {
         # This is an ASCII formatted version of a CAN message, used by some
         # USB connected CAN interface devices.
         #
+        # This class is used to convert from @b binary CAN Messages to 
+        # @b ASCII Grid Connect messages. See GridConnectReply for converting
+        # from @b ASCII Grid Connect messages to @b binary CAN Messages.
+        #
         # Options:
         # @arg -canmessage A binary CANMessage to be converted to a Grid 
         #       Connect message. A write only option.
@@ -1004,18 +1008,97 @@ namespace eval lcc {
     }
     
     snit::type GridConnectReply {
+        ## @brief A Grid Connect formatted CAN message (reply).
+        # This is an ASCII formatted version of a CAN message, used by some 
+        # USB connected CAN interface devices.
+        #
+        # This class is used to convert to @b binary CAN Messages from 
+        # @b ASCII Grid Connect messages. See GridConnectMessage for converting
+        # to @b ASCII Grid Connect messages from @b binary CAN Messages.
+        #
+        # Options:
+        # @arg -extended A boolean flag to indicate if this is an extended 
+        #       protocol message.  Readonly and not settable.
+        # @arg -rtr A boolean flag to indicate if this is a reply exptected 
+        #       message.  Readonly and not settable.
+        # @arg -message A received GridConnectMessage to be converted to a
+        #       binary CanMessage.  Settable only.
+        # @par
+        # Additional methods defined using the macros AbstractMessage and 
+        # AbstractMRMessage include:
+        #
+        # @arg getElement {n} -- Get the nth data element.
+        # @arg getNumDataElements {} -- Get the number of data elements.
+        # @arg setElement {n v} -- Set the nth data element.
+        # @arg setOpCode {i} -- Set the opcode (byte 0).
+        # @arg getOpCode {} --  Get the opcode (byte 0).
+        # @arg getOpCodeHex {} -- Get the opcode (byte 0) in hex.
+        # @arg setNeededMode {pMode} -- Set the needed mode.
+        # @arg getNeededMode {} -- Get the needed mode.
+        # @arg replyExpected {} -- Returns reply expected flag.
+        # @arg isBinary {} -- Returns binary flag.
+        # @arg setBinary {b} -- Set the binary flag.
+        # @arg setTimeout {t} -- Set the timeout.
+        # @arg getTimeout {} -- Get the timeout.
+        # @arg setRetries {i} -- Set the number of retries.
+        # @arg getRetries {} -- Get the number of retries.
+        # @arg addIntAsThree {val offset} -- Insert an integer as three 
+        #             decimal digits (with leading 0s).
+        # @arg addIntAsTwoHex {val offset} -- Insert an integer as two 
+        #             hexadecimal digits (with leading 0s).
+        # @arg addIntAsThreeHex {val offset} -- Insert an integer as three 
+        #             hexadecimal digits (with leading 0s).
+        # @arg addIntAsFourHex {val offset} -- Insert an integer as four 
+        #             hexadecimal digits (with leading 0s).
+        # @arg setNumDataElements {n} --  Set the number of data bytes.
+        # @arg toString {} -- Return the data object as a string.
+        # @par
+        # And these (private) instance variables:
+        # @arg _dataChars {}
+        # @arg _nDataChars 0
+        # @arg mNeededMode 0
+        # @arg _isBinary false
+        # @arg mTimeout 0
+        # @arg mRetries 0
+        # @par
+        # And these (private) static variables:
+        # @arg SHORT_TIMEOUT 2000
+        # @arg LONG_TIMEOUT 60000
+        # @par
+        
         lcc::AbstractMRMessage
-        typevariable MAXLEN 27
-        option -message -configuremethod _copyGCM
-        constructor {args} {
-            $self configurelist $args
-            set _nDataChars 0
-            set _dataChars [list]
-            for {set i 0} {$i < $MAXLEN} {incr i} {
-                lappend _dataChars 0
-            }
+        option -extended -type snit::boolean -readonly true \
+              -cgetmethod _get_extended -default no
+        method _get_extended {opt} {
+            ## @private @brief CGet method for the -extended option.
+            # Gets the extended protocol flag for this message.
+            #
+            # @param opt Allways -extended. Ignored.
+            # @return The extended protocol flag for this message.
+            
+            set E [format {%c} [$self getElement 1]]
+            return [expr {$E eq "X"}]
         }
+        option -rtr -type snit::boolean -default no \
+              -readonly yes -cgetmethod _get_rtr              
+        method _get_rtr {opt} {
+            ## @private @brief CGet method for the -rtr option.
+            # Gets the reply flag for this message.
+            #
+            # @param opt Allways -rtr. Ignored.
+            # @return The reply flag for this message.
+            set R [format {%c} [$self getElement $_RTRoffset]]
+            return [expr {$R eq "R"}]
+        }
+        option -message -configuremethod _copyGCM
         method _copyGCM {option s} {
+            ## @private @brief Configure method for the -message option.
+            # Send in an ASCII Grid Connect Message for conversion.
+            #
+            # @param option Allways -message. Ignored.
+            # @param s The ASCII Grid Connect Message as a string.
+            #
+            
             if {[string length $s] > $MAXLEN} {
                 set s [string range $s 0 [expr {$MAXLEN - 1}]]
             }
@@ -1030,18 +1113,40 @@ namespace eval lcc {
             }
             set _nDataChars [string length $s]
         }
+        typevariable MAXLEN 27
+        ## @private The maximum length for a Grid Connect Message.
+        constructor {args} {
+            ## @brief Constructor: create a GridConnectReply instance.
+            # A GridConnectReply object is created.
+            #
+            # @param name The name of the new instance.
+            # @param ... The options:
+            # @arg -message An optional Grid Connect Message string.
+            # @par
+            set _nDataChars 0
+            set _dataChars [list]
+            for {set i 0} {$i < $MAXLEN} {incr i} {
+                lappend _dataChars 0
+            }
+            $self configurelist $args
+        }
         method createReply {} {
+            ## @brief Convert to a @b binary CanMessage object.
+            # Decode a Grid Connect Message into a binary CanMessage object.
+            #
+            # @return A CanMessage object.
+            
             set ret [lcc::CanMessage %AUTO%]
             if {![$self basicFormatCheck]} {
                 $ret setHeader 0
                 $ret setNumDataElements 0
                 return $ret
             }
-            if {[$self isExtended]} {
+            if {[$self cget -extended]} {
                 $ret setExtended true
             }
             $ret setHeader [$self getHeader]
-            if {[$self isRtr]} {
+            if {[$self cget -rtr]} {
                 $ret setRtr true
             }
             for {set i 0} {$i < [$self getNumBytes]} {incr i} {
@@ -1051,6 +1156,11 @@ namespace eval lcc {
             return $ret
         }
         method basicFormatCheck {} {
+            ## @private @brief Perform a basic format check.
+            # Check for a basicly correct formatted string.
+            # 
+            # @return A boolean flag indicating that the message passed a 
+            # basic format check.
             set E [format {%c} [$self getElement 1]]
             if {$E ne "X" && $E ne "S"} {
                 return false
@@ -1058,14 +1168,12 @@ namespace eval lcc {
                 return true
             }
         }
-        method skipPrefix {index} {
-            set colon [scan ":" %c]
-            while {[lindex $_dataChars $index] != $colon} {
-                incr index
-            }
-            return $index
-        }
         method setElement {n v} {
+            ## @brief Set the element.
+            # Set the element at the specified index.
+            # 
+            # @param n The index to set.
+            # @param v The value to set.
             if {[catch {lcc::byte validate $v}]} {
                 if {[catch {snit::integer validate $v}]} {
                     set v [scan $v %c]
@@ -1078,18 +1186,17 @@ namespace eval lcc {
                 set _nDataChars [expr {$n + 1}]
             }
         }
-        method isExtended {} {
-            set E [format {%c} [$self getElement 1]]
-            return [expr {$E eq "X"}]
-        }
-        method isRtr {} {
-            set R [format {%c} [$self getElement $_RTRoffset]]
-            return [expr {$R eq "R"}]
-        }
         method maxSize {} {
+            ## Return the maximum size of a Grid Connect Message.
+            # @return The maximum size of a Grid Connect Message.
             return $MAXLEN
         }
         method setData {d} {
+            ## @brief Set the data
+            # Copy the data bytes into the structure.
+            #
+            # @param d A list of data bytes (characters).
+            
             if {[llength $d] <= $MAXLEN} {
                 set len [llength $d]
             } else {
@@ -1100,7 +1207,14 @@ namespace eval lcc {
             }
         }
         variable _RTRoffset -1
+        ## @private The offset to the RTR flag.
         method getHeader {} {
+            ## @brief Extract the header as a 29-bit integer.
+            # Peel the hexadecimal digits between the simple/extended flag 
+            # character and the reply/noreply character as a 29-bit
+            # CAN header word.
+            #
+            # @return A 29-bit integer.
             set val 0
             for {set i 2} {$i <= 10} {incr i} {
                 set _RTRoffset $i
@@ -1111,9 +1225,16 @@ namespace eval lcc {
             return $val
         }
         method getNumBytes {} {
+            ## Return the number of data bytes.
+            #
+            # @return The number of data bytes.
             return [expr {($_nDataChars - ($_RTRoffset + 1)) / 2}]
         }
         method getByte {b} {
+            ## Return a selected data byte.
+            # 
+            # @param b The index of the byte (0-7) to return.
+            # @return The data bytes or 0.
             if {($b >= 0) && ($b <= 7)} {
                 set index [expr {$b * 2 + $_RTRoffset + 1}]
                 set hi [$self getHexDigit $index]
@@ -1126,26 +1247,75 @@ namespace eval lcc {
             return 0
         }
         method getHexDigit {index} {
+            ## Get one hexadecimal digit.
+            #
+            # @param index The low-level data index of the nibble to return.
+            # @return The nibble.
             set b [lindex $_dataChars $index]
             return [scan [format %c $b] %x]
         }
     }
     
-    snit::stringtype ::lcc::nid -regexp {^([[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]])$}
+    snit::stringtype nid -regexp {^([[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]])$}
+    ## @typedef string nid
+    # @brief Node ID regexp pattern.
+    # A Node Id is six bytes as pairs of hex digits separacted by colons (:).
     
-    snit::type LCC-Buffer-USB {
+
+    snit::type LCCBufferUSB {
+        ## @brief Connect to a RR-Cirkits LCC Buffer USB device.
+        # This class implements I/O to the CAN Bus via a RR-Cirkits LCC Buffer
+        # USB device. The LCC Buffer USB uses Grid Connect format messages to
+        # communicate with devices on the OpenLCB CAN bus.
+        #
+        # Options:
+        # @arg -port The name of the serial port.  Typically "/dev/ttyACMn"
+        # under Linux (using the cdc_acm driver).  This is a readonly option
+        # only processed at instance creation.
+        # @arg -nid The Node ID that the computer will assume in the format
+        # of  hh:hh:hh:hh:hh:hh which is a 48 bit number expressed as 6
+        # pairs of hexadecimal numbers separacted by colons (:).
+        # @arg -eventhandler This is a script prefix that is run on incoming 
+        # messages.  The current message as a binary CanMessage is appended.
+        # @par
+        
         component gcmessage
+        ## @privatesection @brief GridConnectMessage component.
+        # This component is used to encode CAN Messages in Grid Connect Message
+        # format for transmission.
         component gcreply
+        ## @brief GridConnectReply component.
+        # This component is used to decode received Grid Connect Messages into
+        # binary CAN Messages.
+        component mtidetail
+        ## @brief MTIDetail component.
+        # This component is used to extract and pack fields from and to a CAN
+        # header at a MTI detail level
+        component mtiheader
+        ## @brief MTIHeader component.
+        # This component is used to extract and pack fields from and to a CAN
+        # header at a MTI header level.
+        component canheader
+        ## @brief CANHeader component.
+        # This component is used to extract and pack fields from and to a CAN
+        # header at a CAN Header level.
         variable ttyfd
-        variable nidlist 
+        ## The tty I/O channel.
+        variable nidlist
+        ## The Node ID as a list of 6 bytes.
         variable myalias
+        ## My node alias.
         typevariable NIDPATTERN 
+        ## The regexp for breaking up the Node ID into bytes.
         typeconstructor {
             set NIDPATTERN [::lcc::nid cget -regexp]
         }
         option -port -readonly yes -default "/dev/ttyACM0"
         option -nid  -readonly yes -default "00:01:02:03:04:05" -type lcc::nid
         method _peelnid {value} {
+            ## Peel the Node ID into bytes and initializing the 48 bit
+            # random number seed for alias generation.
+            
             #puts stderr "*** $self _peelnid $value"
             set nidlist [list]
             foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $value] 1 end] {
@@ -1158,8 +1328,12 @@ namespace eval lcc {
             #puts stderr "*** $self _peelnid: lfsr1 = $lfsr1, lfsr2 = $lfsr2"
         }
         variable lfsr1 0
-        variable lfsr2 0; # sequence value: lfsr1 is upper 24 bits, lfsr2 lower
-        method getAlias {} {
+        ## Sequence value, upper 24 bits.
+        variable lfsr2 0
+        ## Sequence value, lower 24 bits.
+        method _getAlias {} {
+            ## Compute next alias.
+            
             #puts stderr "*** $self getAlias: lfsr1 = $lfsr1, lfsr2 = $lfsr2"
             # First, form 2^9*val
             set temp1 [expr {(($lfsr1<<9) | (($lfsr2>>15)&0x1FF)) & 0xFFFFFF}]
@@ -1174,12 +1348,35 @@ namespace eval lcc {
             return [expr {($lfsr1 ^ $lfsr2 ^ ($lfsr1>>12) ^ ($lfsr2>>12) )&0xFFF}]
         }
         option -eventhandler -default {}
-        
+        method getMyAlias {} {
+            ## @publicsection Return the current alias value.
+            # @return The 12 bit node id alias.
+            return $myalias
+        }
         constructor {args} {
+            ## @brief Constructor: create a connection to a Grid Connect USB serial device.
+            # Connect to the CAN bus via a Grid Connect USB serial port
+            # interface.
+            #
+            # @param name The name of the instance.
+            # @param ... The options:
+            # @arg -port The name of the serial port.  Typically "/dev/ttyACMn"
+            # under Linux (using the cdc_acm driver).
+            # @arg -nid The Node ID that the computer will assume in the format
+            # of  hh:hh:hh:hh:hh:hh which is a 48 bit number expressed as 6
+            # pairs of hexadecimal numbers separacted by colons (:).
+            # @arg -eventhandler This is a script prefix that is run on incoming 
+            # messages.  The current message as a binary CanMessage is appended.
+            # @par
+            
             install gcmessage using GridConnectMessage %AUTO%
             install gcreply   using GridConnectReply   %AUTO%
+            install mtidetail using MTIDetail          %AUTO%
+            install mtiheader using MTIHeader          %AUTO%
+            install canheader using CANHeader          %AUTO%
             #puts stderr "*** $type create $self $args
-            $self configurelist $args
+            set options(-port) [from args -port]
+            set options(-nid)  [from args -nid]
             $self _peelnid $options(-nid)
             if {[catch {open $options(-port) r+} ttyfd]} {
                 set theerror $ttyfd
@@ -1196,7 +1393,7 @@ namespace eval lcc {
             }
             fconfigure $ttyfd -buffering line -translation {crlf crlf}
             fileevent $ttyfd readable [mymethod _messageReader]
-            set myalias [$self getAlias]
+            set myalias [$self _getAlias]
             set header [[MTIHeader %AUTO% -mti 0x0100 -srcid $myalias] getHeader]
             set message [CanMessage %AUTO% -data $nidlist -header $header]
             $message setExtended 1
@@ -1205,27 +1402,70 @@ namespace eval lcc {
             puts $ttyfd [$gcmessage toString]
             flush $ttyfd
             #puts [$gcmessage toString]
+            $self configurelist $args
         }
         method _messageReader {} {
+            ## @privatesection @brief Message reader method.
+            # This method is the readable event handler for the serial port
+            # Messages are read and decoded.  If the message is an OpenLCB 
+            # message and is global or addressed to this station, it is passed
+            # on to the defined event handler.
+            #
             if {[gets $ttyfd message]} {
                 gcreply configure -message $message
                 set r [$gcreply createReply]
-                #puts ": Message received: [$r toString]"
-                #lcc::peelCANheader [$r getHeader]
-                set handler [$self cget -eventhandler]
-                if {$handler ne {}} {
-                    uplevel #0 [list $handler $r]
+                $canheader setHeader [$r getHeader]
+                if {[$canheader cget -openlcbframe]} {
+                    $mtiheader setHeader [$canheader getHeader]
+                    $mtidetail setHeader [$canheader getHeader]
+                    if {[$mtiheader cget -frametype] == 1 &&
+                        [$mtidetail cget -addressp]} {
+                        set destid [lrange [$r getData] 0 5]
+                        if {![listeq $destid $nidlist]} {
+                            return
+                        }
+                    }
+                    set handler [$self cget -eventhandler]
+                    if {$handler ne {}} {
+                        uplevel #0 "$handler $r"
+                    }
+                } else {
+                    # Not a OpenLCB message.
                 }
             } else {
                 $self destroy
             }
         }
-        method sendmessage {canmessage} {
+        method _sendmessage {canmessage} {
+            ## @brief Send a CAN Message.
+            # A CAN message is encoded as a Grid Connect message and 
+            # transmitted.
+            #
+            # @param canmessage The binary CAN message to be sent.
+            
             $gcmessage configure -canmessage $canmessage]
             puts $ttyfd [$gcmessage toString]
             flush $ttyfd
         }
+        proc listeq {a b} {
+            ## @brief Compare two lists.
+            # Compares two lists for equality.
+            #
+            # @param a First list to compare.
+            # @param b Second list to compare.
+            # @return A boolean value: true if the lists are the same, false 
+            # if not.
             
+            if {[llength $a] != [llength $b]} {
+                return false
+            }
+            foreach aele $a bele $b {
+                if {$aele != $bele} {
+                    return false
+                }
+            }
+            return true
+        }
     }
     proc peelCANheader {header} {
         set CANPrefix [expr {($header & wide(0x18000000)) >> 27}]
@@ -1258,6 +1498,7 @@ namespace eval lcc {
                          CAN_EIDP $CAN_EIDP CAN_MB $CAN_MB] \
                 SRCID $SRCID]
     }
+
 }
   
 
