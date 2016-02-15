@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160214.2158>
+#  Last Modified : <160215.1108>
 #
 #  Description	
 #
@@ -64,7 +64,33 @@ namespace eval lcc {
     # LCC 1.0
     #
     
-    snit::integer byte -min 0 -max 255
+    snit::integer twobits -min 0 -max 0x03
+    ## @typedef int twobits
+    # A 2 bit integer.
+    snit::integer threebits -min 0 -max 0x07
+    ## @typedef int threebits
+    # A 3 bit integer.
+    snit::integer fivebits -min 0 -max 0x1F
+    ## @typedef int fivebits
+    # A 5 bit integer.
+    snit::integer byte -min 0 -max 0x0FF
+    ## @typedef unsigned char byte
+    # An 8-bit unsigned byte.
+    snit::integer twelvebits -min 0 -max 0x0FFF
+    ## @typedef int twelvebits
+    # A 12 bit integer.
+    snit::integer fifteenbits -min 0 -max 0x07FFF
+    ## @typedef int fifteenbits
+    # A 15 bit integer.
+    snit::integer sixteenbits  -min 0 -max 0x0FFFF
+    ## @typedef int sixteenbits
+    # A 16 bit integer.
+    snit::integer headerword -min 0 -max 0x1FFFFFFF
+    ## @typedef int headerword
+    # A 29 bit integer.
+    snit::listtype eightbytes -minlen 0 -maxlen 8 -type lcc::byte
+    ## @typedef list eightbytes
+    # A list of bytes, from 0 to 8 elements.
     
     snit::macro ::lcc::AbstractMessage {} {
         ## @brief Define common variables and accessor methods
@@ -241,33 +267,6 @@ namespace eval lcc {
         }
     }
     
-    snit::integer twobits -min 0 -max 0x03
-    ## @typedef int twobits
-    # A 2 bit integer.
-    snit::integer threebits -min 0 -max 0x07
-    ## @typedef int threebits
-    # A 3 bit integer.
-    snit::integer fivebits -min 0 -max 0x1F
-    ## @typedef int fivebits
-    # A 5 bit integer.
-    snit::integer byte -min 0 -max 0x0FF
-    ## @typedef unsigned char byte
-    # An 8-bit unsigned byte.
-    snit::integer twelvebits -min 0 -max 0x0FFF
-    ## @typedef int twelvebits
-    # A 12 bit integer.
-    snit::integer fifteenbits -min 0 -max 0x07FFF
-    ## @typedef int fifteenbits
-    # A 15 bit integer.
-    snit::integer sixteenbits  -min 0 -max 0x0FFFF
-    ## @typedef int sixteenbits
-    # A 16 bit integer.
-    snit::integer headerword -min 0 -max 0x1FFFFFFF
-    ## @typedef int headerword
-    # A 29 bit integer.
-    snit::listtype eightbytes -minlen 0 -maxlen 8 -type lcc::byte
-    ## @typedef list eightbytes
-    # A list of bytes, from 0 to 8 elements.
         
     
     snit::type CANHeader {
@@ -872,7 +871,7 @@ namespace eval lcc {
             return [expr {$E eq "X"}]
         }
         option -rtr -type snit::boolean -default no \
-              -configurementhod _set_rtr -cgetmethod _get_rtr              
+              -configuremethod _set_rtr -cgetmethod _get_rtr              
         method _set_rtr {opt rtr} {
             ## @private @brief Configure method for the -rtr option.
             # Sets the rtr flag character.
@@ -1143,11 +1142,11 @@ namespace eval lcc {
                 return $ret
             }
             if {[$self cget -extended]} {
-                $ret setExtended true
+                $ret configure -extended true
             }
             $ret setHeader [$self getHeader]
             if {[$self cget -rtr]} {
-                $ret setRtr true
+                $ret configure -rtr true
             }
             for {set i 0} {$i < [$self getNumBytes]} {incr i} {
                 $ret setElement $i [$self getByte $i]
@@ -1273,8 +1272,8 @@ namespace eval lcc {
         # under Linux (using the cdc_acm driver).  This is a readonly option
         # only processed at instance creation.
         # @arg -nid The Node ID that the computer will assume in the format
-        # of  hh:hh:hh:hh:hh:hh which is a 48 bit number expressed as 6
-        # pairs of hexadecimal numbers separacted by colons (:).
+        # of @c hh:hh:hh:hh:hh:hh which is a 48 bit number expressed as 6
+        # pairs of hexadecimal digits separacted by colons (:).
         # @arg -eventhandler This is a script prefix that is run on incoming 
         # messages.  The current message as a binary CanMessage is appended.
         # @par
@@ -1363,8 +1362,8 @@ namespace eval lcc {
             # @arg -port The name of the serial port.  Typically "/dev/ttyACMn"
             # under Linux (using the cdc_acm driver).
             # @arg -nid The Node ID that the computer will assume in the format
-            # of  hh:hh:hh:hh:hh:hh which is a 48 bit number expressed as 6
-            # pairs of hexadecimal numbers separacted by colons (:).
+            # of @c hh:hh:hh:hh:hh:hh which is a 48 bit number expressed as 6
+            # pairs of hexadecimal digits separacted by colons (:).
             # @arg -eventhandler This is a script prefix that is run on incoming 
             # messages.  The current message as a binary CanMessage is appended.
             # @par
@@ -1393,11 +1392,12 @@ namespace eval lcc {
             }
             fconfigure $ttyfd -buffering line -translation {crlf crlf}
             fileevent $ttyfd readable [mymethod _messageReader]
-            set myalias [$self _getAlias]
+            while {[$self _reserveMyAlias]} {
+            }
             set header [[MTIHeader %AUTO% -mti 0x0100 -srcid $myalias] getHeader]
             set message [CanMessage %AUTO% -data $nidlist -header $header]
-            $message setExtended 1
-            $message setRtr 0
+            $message configure -extended 1
+            $message configure -rtr 0
             $gcmessage configure -canmessage $message
             puts $ttyfd [$gcmessage toString]
             flush $ttyfd
@@ -1431,10 +1431,81 @@ namespace eval lcc {
                     }
                 } else {
                     # Not a OpenLCB message.
+                    # Check for an Error Information Report
+                    set vf [$canheader cget -variablefield]
+                    if {$vf >= 0x0710 || $vf <= 0x0713} {
+                        # Was an Error Information Report -- flag it.
+                        incr _timeoutFlag -2
+                    } else {
+                        #### Node ID Alias Collision handling... NYI
+                    }
                 }
             } else {
                 $self destroy
             }
+        }
+        variable _timeoutFlag 0
+        ## Timeout or error message received flag.
+        method _reserveMyAlias {} {
+            ## @brief Reserve an alias.
+            # Sends out CID messages and eventually RID and AMD messages, if
+            # there are no errors.
+            # 
+            # @return A boolean value indicating a successfully reserved alias
+            # (true) or failure (false).
+            
+            # Generate a tentative alias.
+            set myalias [$self _getAlias]
+            
+            # Send out Check ID frames.
+            # CID1
+            $canheader configure -openlcbframe no \
+                  -variablefield [expr {(0x7 << 12) | [getBits 47 36 $nidlist]}] \
+                  -srcid $myalias
+            $self _sendmessage [CanMessage %AUTO% \
+                                -header [$canheader getHeader] -extended yes]
+            # CID2
+            $canheader configure -openlcbframe no \
+                  -variablefield [expr {(0x6 << 12) | [getBits 35 24 $nidlist]}] \
+                  -srcid $myalias
+            $self _sendmessage [CanMessage %AUTO% \
+                                -header [$canheader getHeader] -extended yes]
+            # CID3
+            $canheader configure -openlcbframe no \
+                  -variablefield [expr {(0x5 << 12) | [getBits 23 12 $nidlist]}] \
+                  -srcid $myalias
+            $self _sendmessage [CanMessage %AUTO% \
+                                -header [$canheader getHeader] -extended yes]
+            # CID4
+            $canheader configure -openlcbframe no \
+                  -variablefield [expr {(0x4 << 12) | [getBits 11 0 $nidlist]}] \
+                  -srcid $myalias
+            $self _sendmessage [CanMessage %AUTO% \
+                                -header [$canheader getHeader] -extended yes]
+            set _timeoutFlag 0
+            set timoutID [after 500 [mymethod _timedout]]
+            vwait [myvar _timeoutFlag]
+            if {$_timeoutFlag < 0} {
+                catch [after cancel $timoutID]
+                return false
+            }
+            # No errors after 500ms timeout.  We can reserve our alias.
+            # RID
+            $canheader configure -openlcbframe no \
+                  -variablefield 0x0700 -srcid $myalias
+            $self _sendmessage [CanMessage %AUTO% \
+                                -header [$canheader getHeader] -extended yes]
+            # AMD
+            $canheader configure -openlcbframe no \
+                  -variablefield 0x0701 -srcid $myalias
+            $self _sendmessage [CanMessage %AUTO% \
+                                -header [$canheader getHeader] -extended yes \
+                                -data $nidlist -length 6]
+            return true
+        }
+        method _timedout {} {
+            ## Timeout event.
+            incr _timeoutFlag
         }
         method _sendmessage {canmessage} {
             ## @brief Send a CAN Message.
@@ -1447,6 +1518,31 @@ namespace eval lcc {
             puts $ttyfd [$gcmessage toString]
             flush $ttyfd
         }
+        proc getBits {top bottom bytelist} {
+            ## @brief Get the selected bitfield.
+            # Extract the bits from a list of 6 8-bit (byte) numbers 
+            # representing a 48 bit number.
+            #
+            # @param top Topmost (highest) bit number.
+            # @param bottom Bottommost (lowest) bit number.
+            # @param bytelist List of 6 bytes.
+            # @return An integer value.
+            
+            set topbyteindex [expr {5 - ($top / 8)}]
+            set bottomindex  [expr {5 - ($bottom / 8)}]
+            set word 0
+            for {set i $topbyteindex} {$i <= $bottomindex} {incr i} {
+                set word [expr {($word << 8) | [lindex $bytelist $i]}]
+            }
+            set shift [expr {$bottom - (($bottom / 8)*8)}]
+            set word  [expr {$word >> $shift}]
+            set nbits [expr {($top - $bottom)+1}]
+            set mask  [expr {(1 << $nbits) - 1}]
+            set word  [expr {$word & $mask}]
+            return $word
+        }
+            
+            
         proc listeq {a b} {
             ## @brief Compare two lists.
             # Compares two lists for equality.
