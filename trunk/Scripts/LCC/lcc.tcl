@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160215.1232>
+#  Last Modified : <160215.1533>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -1395,14 +1395,11 @@ namespace eval lcc {
             fileevent $ttyfd readable [mymethod _messageReader]
             while {[$self _reserveMyAlias]} {
             }
-            set header [[MTIHeader %AUTO% -mti 0x0100 -srcid $myalias] getHeader]
-            set message [CanMessage %AUTO% -data $nidlist -header $header]
-            $message configure -extended 1
-            $message configure -rtr 0
-            $gcmessage configure -canmessage $message
-            puts $ttyfd [$gcmessage toString]
-            flush $ttyfd
-            #puts [$gcmessage toString]
+            mtiheader -configure -mti 0x0100 -srcid $myalias
+            set message [CanMessage %AUTO% -data $nidlist \
+                         -header [$mtiheader getHeader] \
+                         -extended true -rtr false]
+            $self _sendmessage $message
             $self configurelist $args
         }
         method _messageReader {} {
@@ -1423,6 +1420,7 @@ namespace eval lcc {
                         [$mtidetail cget -addressp]} {
                         set destid [lrange [$r getData] 0 5]
                         if {![listeq $destid $nidlist]} {
+                            # The message is not addressed to me, discard it.
                             return
                         }
                     }
@@ -1442,6 +1440,7 @@ namespace eval lcc {
                     }
                 }
             } else {
+                # Error reading -- probably EOF / disconnect.
                 $self destroy
             }
         }
@@ -1487,6 +1486,8 @@ namespace eval lcc {
             set timoutID [after 500 [mymethod _timedout]]
             vwait [myvar _timeoutFlag]
             if {$_timeoutFlag < 0} {
+                # Received an error report.  Cancel the timeout and return
+                # false.
                 catch [after cancel $timoutID]
                 return false
             }
