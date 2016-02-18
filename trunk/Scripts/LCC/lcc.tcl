@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160218.1601>
+#  Last Modified : <160218.1741>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -1461,13 +1461,16 @@ namespace eval lcc {
                 puts stderr "*** $self _messageReader: message is $message"
                 set r [$gcreply createReply]
                 $canheader setHeader [$r getHeader]
+                puts stderr "*** $self _messageReader: canheader : [$canheader configure]"
                 if {[$canheader cget -openlcbframe]} {
                     $mtiheader setHeader [$canheader getHeader]
                     $mtidetail setHeader [$canheader getHeader]
+                    puts stderr "*** $self _messageReader: mtiheader : [$mtiheader configure]"
+                    puts stderr "*** $self _messageReader: mtidetail : [$mtidetail configure]"
                     if {[$mtiheader cget -frametype] == 1 &&
                         [$mtidetail cget -addressp]} {
-                        set destid [lrange [$r getData] 0 5]
-                        if {![listeq $destid $nidlist]} {
+                        set destid [expr {(([lindex [$r getData] 0] & 0x0F) << 8) | [lindex [$r getData] 1]}]
+                        if {$destid != $myalias} {
                             # The message is not addressed to me, discard it.
                             return
                         }
@@ -1720,6 +1723,69 @@ snit::type TestProgram {
         $logmessages insert end "     AddressP   : [$mtidetail cget -addressp]\n"
         $logmessages insert end "     EventP     : [$mtidetail cget -eventp]\n"
         $logmessages insert end "     Modifier   : [format {%X} [$mtidetail cget -modifier]]\n"
+        if {[$mtiheader cget -mti] == 0x0668} {
+            # Protocol Support Report
+            set report [lrange [$canmessage getData] 2 4]
+            set protocols [list]
+            if {([lindex $report 0] & 0x80) != 0} {
+                lappend protocols Simple
+            }
+            if {([lindex $report 0] & 0x40) != 0} {
+                lappend protocols Datagram
+            }
+            if {([lindex $report 0] & 0x20) != 0} {
+                lappend protocols Stream
+            }
+            if {([lindex $report 0] & 0x10) != 0} {
+                lappend protocols MemoryConfig
+            }
+            if {([lindex $report 0] & 0x08) != 0} {
+                lappend protocols Reservation
+            }
+            if {([lindex $report 0] & 0x04) != 0} {
+                lappend protocols EventExchange
+            }
+            if {([lindex $report 0] & 0x02) != 0} {
+                lappend protocols Itentification
+            }
+            if {([lindex $report 0] & 0x01) != 0} {
+                lappend protocols TeachLearn
+            }
+            
+            if {([lindex $report 1] & 0x80) != 0} {
+                lappend protocols RemoteButton
+            }
+            if {([lindex $report 1] & 0x40) != 0} {
+                lappend protocols AbbreviatedDefaultCDI
+            }
+            if {([lindex $report 1] & 0x20) != 0} {
+                lappend protocols Display
+            }
+            if {([lindex $report 1] & 0x10) != 0} {
+                lappend protocols SimpleNodeInfo
+            }
+            if {([lindex $report 1] & 0x08) != 0} {
+                lappend protocols CDI
+            }
+            if {([lindex $report 1] & 0x04) != 0} {
+                lappend protocols Traction
+            }
+            if {([lindex $report 1] & 0x02) != 0} {
+                lappend protocols FDI
+            }
+            if {([lindex $report 1] & 0x01) != 0} {
+                lappend protocols DCC
+            }
+            
+            if {([lindex $report 2] & 0x80) != 0} {
+                lappend protocols SimpleTrainNode
+            }
+            if {([lindex $report 2] & 0x40) != 0} {
+                lappend protocols FunctionConfiguration
+            }
+            $logmessages insert end "[format {Node %03X supports: %s} [$mtiheader cget -srcid] $protocols]\n"
+        }
+            
     }
     typemethod runcommand {} {
         set thecommand [$command get]
