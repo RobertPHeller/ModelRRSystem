@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160215.1533>
+#  Last Modified : <160218.1601>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -436,12 +436,12 @@ namespace eval lcc {
         # Contains a MTIHeader to perform heavy lifting.
         option -special -type snit::boolean -default no
         option -streamordatagram  -type snit::boolean -default no
-        option -priority -type snit::twobits -default 0
+        option -priority -type lcc::twobits -default 0
         typevariable PRIORITY_SHIFT 10
         ## @brief The priority is bits 10-11 of the MTI_CAN
         typevariable PRIORITY_MASK 0x0C00
         ## @brief The priority is bits 10-11 of the MTI_CAN
-        option -typewithin -type snit::fivebits -default 0
+        option -typewithin -type lcc::fivebits -default 0
         typevariable TYPEWITHIN_SHIFT 5
         ## @brief The type within priority field is bits 5-9 of the MTI_CAN
         typevariable TYPEWITHIN_MASK  0x03E0
@@ -461,13 +461,13 @@ namespace eval lcc {
         ## @brief The event present bit is bit 2 of the MTI_CAN.
         typevariable EVENTP_MASK 0x0004
         ## @brief The event present bit is bit 2 of the MTI_CAN.
-        option -modifier -type snit::twobits -default 0
+        option -modifier -type lcc::twobits -default 0
         typevariable MODIFIER_SHIFT 0
         ## @brief The modifier is bits 0-1 of the MTI_CAN.
         typevariable MODIFIER_MASK 0x0003
         ## @brief The modifier is bits 0-1 of the MTI_CAN.
         delegate option -srcid to mtiheader
-        option -destid -type snit::twelvebits -default 0
+        option -destid -type lcc::twelvebits -default 0
         constructor {args} {
             ## @publicsection @brief Constructor: create a MTIDetail object.
             # A 29-bit CAN Header specific to the OpenLCB is created, using
@@ -986,7 +986,7 @@ namespace eval lcc {
             # @param n   The data index, 0-7.
             
             if {($n >= 0) && ($n <= 7)} {
-                set index [expr {$n * 2 + ([$self isExtended] ? 11 : 6)}]
+                set index [expr {$n * 2 + ([$self cget -extended] ? 11 : 6)}]
                 $self setHexDigit [expr {($val >> 4) & 0x0F}] $index
                 incr index
                 $self setHexDigit [expr {$val& 0x0F}] $index
@@ -1393,14 +1393,61 @@ namespace eval lcc {
             }
             fconfigure $ttyfd -buffering line -translation {crlf crlf}
             fileevent $ttyfd readable [mymethod _messageReader]
-            while {[$self _reserveMyAlias]} {
+            while {![$self _reserveMyAlias]} {
             }
-            mtiheader -configure -mti 0x0100 -srcid $myalias
+            $mtiheader configure -mti 0x0100 -srcid $myalias
             set message [CanMessage %AUTO% -data $nidlist \
                          -header [$mtiheader getHeader] \
                          -extended true -rtr false]
             $self _sendmessage $message
             $self configurelist $args
+        }
+        method verifynode {args} {
+            set address [from args -address {}]
+            if {$address eq {}} {
+                $mtiheader configure -mti 0x0490 -srcid $myalias
+                set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
+                             -extended true -rtr false]
+            } else {
+                $mtiheader configure -mti 0x498 -srcid $myalias
+                set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
+                             -extended true -rtr false -data $address \
+                             -length 6]
+            }
+            $self _sendmessage $message
+        }
+        method protosupport {address} {
+            puts stderr "*** $self protosupport $address"
+            $mtiheader configure -mti 0x0828 -srcid $myalias
+            set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
+                         -extended true -rtr false -data $address \
+                         -length 6]
+            puts stderr "*** $self protosupport: message is [$message toString]"
+            $self _sendmessage $message
+        }
+        method identifyevents {args} {
+            puts stderr "*** $self identifyevents $args"
+            set address [from args -address {}]
+            puts stderr "*** $self identifyevents: address = $address"
+            if {$address eq {}} {
+                $mtiheader configure -mti 0x0970 -srcid $myalias
+                set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
+                             -extended true -rtr false]
+            } else {
+                $mtiheader configure -mti 0x968 -srcid $myalias
+                set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
+                             -extended true -rtr false -data $address \
+                             -length 6]
+            }
+            $self _sendmessage $message
+        }
+        method identifyconsumer {event} {
+            puts stderr "*** $self identifyconsumer $event"
+            $mtiheader configure -mti 0x08F4 -srcid $myalias
+            set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
+                         -extended true -rtr false -data $event -length 8]
+            puts stderr "*** $self identifyconsumer: message is [$message toString]"
+            $self _sendmessage $message
         }
         method _messageReader {} {
             ## @privatesection @brief Message reader method.
@@ -1410,7 +1457,8 @@ namespace eval lcc {
             # on to the defined event handler.
             #
             if {[gets $ttyfd message]} {
-                gcreply configure -message $message
+                $gcreply configure -message $message
+                puts stderr "*** $self _messageReader: message is $message"
                 set r [$gcreply createReply]
                 $canheader setHeader [$r getHeader]
                 if {[$canheader cget -openlcbframe]} {
@@ -1516,7 +1564,8 @@ namespace eval lcc {
             #
             # @param canmessage The binary CAN message to be sent.
             
-            $gcmessage configure -canmessage $canmessage]
+            puts stderr "*** $self _sendmessage [$canmessage toString]"
+            $gcmessage configure -canmessage $canmessage
             puts $ttyfd [$gcmessage toString]
             flush $ttyfd
         }
@@ -1602,5 +1651,96 @@ namespace eval lcc {
 
 ## @}
 
+
 package provide LCC 1.0
+
+lappend auto_path [file join [file dirname [file dirname \
+                                            [file normalize [info script]]]] \
+                                            Common] \
+      [file dirname [file normalize [info script]]]
+
+puts stderr "*** auto_path = $auto_path"
+
+package require Tk
+package require tile
+package require snit
+package require MainWindow
+package require ScrollWindow
+package require ROText
+package require snitStdMenuBar
+package require LabelFrames
+
+
+snit::type TestProgram {
+    pragma -hastypeinfo false
+    pragma -hastypedestroy false
+    pragma -hasinstances false
+    
+    typecomponent mainWindow
+    typecomponent logmessages
+    typecomponent commandLF
+    typecomponent   command
+    typecomponent lcc
+    
+    typeconstructor {
+        set mainWindow [mainwindow .main -scrolling yes -height 600 -width 800]
+        pack $mainWindow -expand yes -fill both
+        $mainWindow menu entryconfigure file "Exit" -command {exit}
+        set logmessages [ROText [$mainWindow scrollwindow getframe].logmessages]
+        $mainWindow scrollwindow setwidget $logmessages
+        set main [winfo parent [$mainWindow scrollwindow getframe]]
+        set commandLF [LabelFrame $main.commandLF -text "Command:"]
+        pack $commandLF -expand yes -fill x
+        set clf [$commandLF  getframe]
+        set command [ttk::entry $clf.command]
+        pack $command -side left -fill x
+        bind $command <Return> [mytypemethod runcommand]
+        set button [ttk::button $clf.button -text "Enter" \
+                    -command [mytypemethod runcommand]]
+        pack $button -side right
+        set lcc [lcc::LCCBufferUSB %AUTO% -eventhandler [mytypemethod eventhandler]]
+        $mainWindow showit
+    }
+    typemethod eventhandler {canmessage} {
+        set mtiheader [lcc::MTIHeader %AUTO%]
+        $mtiheader setHeader [$canmessage getHeader]
+        set mtidetail [lcc::MTIDetail %AUTO%]
+        $mtidetail setHeader [$canmessage getHeader]
+        $logmessages insert end "CAN: [$canmessage toString]\n"
+        $logmessages insert end "  MTI Header:\n"
+        $logmessages insert end "     Frametype: [format {  %X} [$mtiheader cget -frametype]]\n"
+        $logmessages insert end "     CAN-MTI  : [format {%03X} [$mtiheader cget -mti]]\n"
+        $logmessages insert end "     SrcID    : [format {%03X} [$mtiheader cget -srcid]]\n"
+        $logmessages insert end "  MTI Detail:\n"
+        $logmessages insert end "     Special?   : [$mtidetail cget -special]\n"
+        $logmessages insert end "     Stream?    : [$mtidetail cget -streamordatagram]\n"
+        $logmessages insert end "     Priority   : [format {%X} [$mtidetail cget -priority]]\n"
+        $logmessages insert end "     Type Within: [format {%X} [$mtidetail cget -typewithin]]\n"
+        $logmessages insert end "     Simple?    : [$mtidetail cget -simple]\n"
+        $logmessages insert end "     AddressP   : [$mtidetail cget -addressp]\n"
+        $logmessages insert end "     EventP     : [$mtidetail cget -eventp]\n"
+        $logmessages insert end "     Modifier   : [format {%X} [$mtidetail cget -modifier]]\n"
+    }
+    typemethod runcommand {} {
+        set thecommand [$command get]
+        $logmessages insert end "Command entered: $thecommand\n"
+        switch [lindex $thecommand 0] {
+            verify {
+                $lcc verifynode
+            }
+            protosupport {
+                $lcc protosupport [lrange $thecommand 1 end]
+            }
+            identifyevents {
+                $lcc identifyevents -address [lrange $thecommand 1 end]
+            }
+            identifyconsumer {
+                $lcc identifyconsumer [lrange $thecommand 1 end]
+            }
+        }
+    }
+}
+
+        
+
 
