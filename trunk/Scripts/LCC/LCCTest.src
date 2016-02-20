@@ -38,6 +38,8 @@ snit::type LCCTest {
         set lcc [lcc::LCCBufferUSB %AUTO% -eventhandler [mytypemethod eventhandler]]
         $mainWindow showit
     }
+    typevariable datagrambuffers -array {}
+
     typemethod eventhandler {canmessage} {
         set mtiheader [lcc::MTIHeader %AUTO%]
         $mtiheader setHeader [$canmessage getHeader]
@@ -49,14 +51,138 @@ snit::type LCCTest {
         $logmessages insert end "     CAN-MTI  : [format {%03X} [$mtiheader cget -mti]]\n"
         $logmessages insert end "     SrcID    : [format {%03X} [$mtiheader cget -srcid]]\n"
         $logmessages insert end "  MTI Detail:\n"
-        $logmessages insert end "     Special?   : [$mtidetail cget -special]\n"
-        $logmessages insert end "     Stream?    : [$mtidetail cget -streamordatagram]\n"
-        $logmessages insert end "     Priority   : [format {%X} [$mtidetail cget -priority]]\n"
-        $logmessages insert end "     Type Within: [format {%X} [$mtidetail cget -typewithin]]\n"
-        $logmessages insert end "     Simple?    : [$mtidetail cget -simple]\n"
-        $logmessages insert end "     AddressP   : [$mtidetail cget -addressp]\n"
-        $logmessages insert end "     EventP     : [$mtidetail cget -eventp]\n"
-        $logmessages insert end "     Modifier   : [format {%X} [$mtidetail cget -modifier]]\n"
+        if {[$mtidetail cget -streamordatagram]} {
+            $logmessages insert end "     Content    : [$mtidetail cget -datagramcontent]\n"   
+            $logmessages insert end "     Destid     : [format {%03X} [$mtidetail cget -destid]]\n"
+        } else {
+            $logmessages insert end "     Special?   : [$mtidetail cget -special]\n"
+            $logmessages insert end "     Stream?    : [$mtidetail cget -streamordatagram]\n"
+            $logmessages insert end "     Priority   : [format {%X} [$mtidetail cget -priority]]\n"
+            $logmessages insert end "     Type Within: [format {%X} [$mtidetail cget -typewithin]]\n"
+            $logmessages insert end "     Simple?    : [$mtidetail cget -simple]\n"
+            $logmessages insert end "     AddressP   : [$mtidetail cget -addressp]\n"
+            $logmessages insert end "     EventP     : [$mtidetail cget -eventp]\n"
+            $logmessages insert end "     Modifier   : [format {%X} [$mtidetail cget -modifier]]\n"
+        }
+        set datacomplete no
+        if {[$mtidetail cget -streamordatagram]} {
+            set srcid [$mtiheader cget -srcid]
+            switch [$mtidetail cget -datagramcontent] {
+                complete {
+                    set datagrambuffers($srcid) [$canmessage getData]
+                    set datacomplete yes
+                }
+                first {
+                    set datagrambuffers($srcid) [$canmessage getData]
+                }
+                middle {
+                    eval [list lappend datagrambuffers($srcid)] [$canmessage getData]
+                }
+                last {
+                    eval [list lappend datagrambuffers($srcid)] [$canmessage getData]
+                    set datacomplete yes
+                }
+            }
+            if {$datacomplete} {
+                $lcc DatagramAck $srcid
+                $logmessages insert end "Datagram Received:"
+                foreach b $datagrambuffers($srcid) {
+                     $logmessages insert end [format { %02X} $b]
+                }
+                $logmessages insert end "\n"
+                switch [format {0x%02X} [lindex $datagrambuffers($srcid) 1]] {
+                    0x82 {
+                        # Get Config Options Reply
+                        set availcmds [expr {([lindex $datagrambuffers($srcid) 2] << 8) | [lindex $datagrambuffers($srcid) 3]}]
+                        set writelens [lindex $datagrambuffers($srcid) 4]
+                        set highest   [lindex $datagrambuffers($srcid) 5]
+                        set lowest    [lindex $datagrambuffers($srcid) 6]
+                        $logmessages insert end "Get Config Options Reply:\n"
+                        $logmessages insert end "    Available Commands:\n"
+                        if {($availcmds & 0x08000) != 0} {
+                            $logmessages insert end "        Write under mask\n"
+                        }
+                        if {($availcmds & 0x04000) != 0} {
+                            $logmessages insert end "        Unaligned reads allowed\n"
+                        }
+                        if {($availcmds & 0x02000) != 0} {
+                            $logmessages insert end "        Unaligned writes allowed\n"
+                        }
+                        if {($availcmds & 0x00800) != 0} {
+                            $logmessages insert end "        Read from address space 0xFC\n"
+                        }
+                        if {($availcmds & 0x00400) != 0} {
+                            $logmessages insert end "        Read from address space 0xFB\n"
+                        }
+                        if {($availcmds & 0x00200) != 0} {
+                            $logmessages insert end "        Write to address space 0xFB\n"
+                        }
+                        $logmessages insert end "    Write lengths:\n"
+                        if {($writelens & 0x080) != 0} {
+                            $logmessages insert end "        1 byte write\n"
+                        }
+                        if {($writelens & 0x040) != 0} {
+                            $logmessages insert end "        2 byte write\n"
+                        }
+                        if {($writelens & 0x020) != 0} {
+                            $logmessages insert end "        4 byte writes\n"
+                        }
+                        if {($writelens & 0x010) != 0} {
+                            $logmessages insert end "        64 byte writes (full only)\n"
+                        }
+                        if {($writelens & 0x002) != 0} {
+                            $logmessages insert end "        arbitrary writes\n"
+                        }
+                        if {($writelens & 0x001) != 0} {
+                            $logmessages insert end "        stream writes\n"
+                        }
+                        $logmessages insert end "[format {    Highest address space: %02X} $highest]\n"
+                        $logmessages insert end "[format {    Lowest address space: %02X} $lowest]\n"
+                    }
+                    0x86 -
+                    0x87 {
+                        # Get Address Space Information Reply
+                        set present [expr {[lindex $datagrambuffers($srcid) 1] == 0x87}]
+                        set space   [lindex $datagrambuffers($srcid) 2]
+                        set highest [expr {[lindex $datagrambuffers($srcid) 3] << 24}]
+                        set highest [expr {$highest | ([lindex $datagrambuffers($srcid) 4] << 16)}]
+                        set highest [expr {$highest | ([lindex $datagrambuffers($srcid) 5] << 8)}]
+                        set highest [expr {$highest | [lindex $datagrambuffers($srcid) 6]}]
+                        set flags   [lindex $datagrambuffers($srcid) 7]
+                        if {($flags & 0x02) != 0} {
+                            set lowest [expr {[lindex $datagrambuffers($srcid) 8] << 24}]
+                            set lowest [expr {$lowest | ([lindex $datagrambuffers($srcid) 9] << 16)}]
+                            set lowest [expr {$lowest | ([lindex $datagrambuffers($srcid) 10] << 8)}]
+                            set lowest [expr {$lowest | [lindex $datagrambuffers($srcid) 11]}]
+                            set descroff 12
+                        } else {
+                            set lowest 0
+                            set descroff 8
+                        }
+                        set writable [expr {($flags & 0x01) == 0}]
+                        set descr {}
+                        foreach d [lrange $datagrambuffers($srcid) $descroff end] {
+                            append descr [format %c $d]
+                        }
+                        $logmessages insert end "Address Space Info Reply:\n"
+                        $logmessages insert end "[format {    Space: %02x} $space]\n"
+                        if {$present} {
+                            $logmessages insert end "    Is present.\n"
+                            $logmessages insert end "[format {    Low address: %08X} $lowest]\n"
+                            $logmessages insert end "[format {    High address: %08X} $highest]\n"
+                            if {$writable} {
+                                $logmessages insert end "    Is writable.\n"
+                            } else {
+                                $logmessages insert end "    Is not writable.\n"
+                            }
+                            if {$descr ne ""} {$logmessages insert end "[format {    Description: %s} $descr]\n"}
+                        } else {
+                            $logmessages insert end "    Is not present.\n"
+                        }
+                    }
+                }
+            }
+        }
         if {[$mtiheader cget -mti] == 0x0668} {
             # Protocol Support Report
             set report [lrange [$canmessage getData] 2 4]
@@ -118,6 +244,14 @@ snit::type LCCTest {
                 lappend protocols FunctionConfiguration
             }
             $logmessages insert end "[format {Node %03X supports: %s} [$mtiheader cget -srcid] $protocols]\n"
+        } elseif {[$mtiheader cget -mti] == 0x0A28} {
+            # Datagram Received OK
+            $logmessages insert end "[format {Datagram Received OK from Node %03X, flags: %02X} [$mtiheader cget -srcid] [lindex [$canmessage getData] 2]]\n"
+        } elseif {[$mtiheader cget -mti] == 0x0A48} {
+            # Datagram Rejected
+            set error [expr {[lindex [$canmessage getData] 2] << 8}]
+            set error [expr {$error | [lindex [$canmessage getData] 3]}]
+            $logmessages insert end "[format {Datagram Rejected  from Node %03X, error: %04X} [$mtiheader cget -srcid] $error]\n"
         }
             
     }
@@ -153,6 +287,16 @@ snit::type LCCTest {
                     $logmessages insert end "[format {The NID of 0x%03X is %s} $alias [$lcc getNIDofAlias $alias]]\n"
                 }
             }
+            getConfigOptions {
+                $lcc getConfigOptions [lindex $thecommand 1]
+            }
+            getAddrSpaceInfo {
+                $lcc getAddrSpaceInfo [lindex $thecommand 1] [lindex $thecommand 2]
+            }
+            DatagramRead {
+                $lcc DatagramRead [lindex $thecommand 1] [lindex $thecommand 2] [lindex $thecommand 3] [lindex $thecommand 4]
+            }
+                            
         }
     }
 }

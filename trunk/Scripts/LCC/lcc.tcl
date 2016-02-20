@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160219.1513>
+#  Last Modified : <160220.1300>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -74,6 +74,12 @@ namespace eval lcc {
     snit::integer fivebits -min 0 -max 0x1F
     ## @typedef int fivebits
     # A 5 bit integer.
+    snit::integer sixbits -min 0 -max 0x3F
+    ## @typedef int sixbits
+    # A 6 bit integer.
+    snit::integer length -min 1 -max 64
+    ## @typedef int length
+    # An integer from 1 to 64
     snit::integer byte -min 0 -max 0x0FF
     ## @typedef unsigned char byte
     # An 8-bit unsigned byte.
@@ -92,6 +98,23 @@ namespace eval lcc {
     snit::listtype eightbytes -minlen 0 -maxlen 8 -type lcc::byte
     ## @typedef list eightbytes
     # A list of bytes, from 0 to 8 elements.
+    snit::enum datagramcontent -values {
+        ## @enum datagramcontent
+        # Datagram and stream types.
+        #
+        {}
+        ## Not a datagram or stream.
+        complete 
+        ## One frame datagram.
+        first 
+        ## First frame datagram.
+        middle 
+        ## Middle frame datagram.
+        last 
+        ## Last frame datagram.
+        stream
+        ## Stream frame.
+    }
     
     snit::macro ::lcc::AbstractMessage {} {
         ## @brief Define common variables and accessor methods
@@ -430,6 +453,9 @@ namespace eval lcc {
         # @arg -modifier The 2-bit modifier field. Default is 0.
         # @arg -destid A 12-bit Desitination alias. Only used for stream and 
         #       datagram frames. Default is 0.
+        # @arg -datagramcontent An enumerated type defining the datagram 
+        #       or stream content type.  Default is {} (not a datagram or 
+        #       stream).
         
         component mtiheader
         ## @privatesection @brief the MTIHeader component.
@@ -468,6 +494,11 @@ namespace eval lcc {
         ## @brief The modifier is bits 0-1 of the MTI_CAN.
         delegate option -srcid to mtiheader
         option -destid -type lcc::twelvebits -default 0
+        typevariable DESTID_SHIFT 0
+        ## @brief The destid is bits 0-11 of the MTI_CAN.
+        typevariable DESTID_MASK 0x0FFF
+        ## @brief The destid is bits 0-11 of the MTI_CAN.
+        option -datagramcontent -type lcc::datagramcontent -default {}
         constructor {args} {
             ## @publicsection @brief Constructor: create a MTIDetail object.
             # A 29-bit CAN Header specific to the OpenLCB is created, using
@@ -488,6 +519,8 @@ namespace eval lcc {
             # @arg -modifier The 2-bit modifier field.
             # @arg -destid A 12-bit Desitination alias. Only used for stream and 
             #       datagram frames.
+            # @arg -datagramcontent An enumerated type defining the datagram 
+            #       or stream content type.
             # @par
             
             install mtiheader using MTIHeader %AUTO%
@@ -514,11 +547,32 @@ namespace eval lcc {
                 }
                 set mti_can [expr {$mti_can | $options(-modifier)}]
                 $mtiheader configure -mti $mti_can
-                return [$mtiheader getHeader]
             } else {
                 ## frame types 2, 3, 4, 5, and 7
                 ## Datagram and Stream
+                $mtiheader configure -mti [expr {$options(-destid) & 0x0FFF}]
+                switch $options(-datagramcontent) {
+                    complete {
+                        $mtiheader configure -frametype 2
+                    }
+                    first {
+                        $mtiheader configure -frametype 3
+                    }
+                    middle {
+                        $mtiheader configure -frametype 4
+                    }
+                    last {
+                        $mtiheader configure -frametype 5
+                    }
+                    stream {
+                        $mtiheader configure -frametype 7
+                    }
+                    default {
+                        error [_ "Illegal datagram content type: %s" $options(-datagramcontent)]
+                    }
+                }
             }
+            return [$mtiheader getHeader]
         }
         method setHeader {header} {
             ## @brief Decode the 29-bit header.
@@ -550,10 +604,19 @@ namespace eval lcc {
                 5 {
                     # datagrams
                     set options(-streamordatagram) yes
+                    set options(-destid)  [expr {[$mtiheader cget -mti] & $DESTID_MASK}]
+                    switch [$mtiheader cget -frametype] {
+                        2 {set options(-datagramcontent) complete}
+                        3 {set options(-datagramcontent) first}
+                        4 {set options(-datagramcontent) middle}
+                        5 {set options(-datagramcontent) last}
+                    }
                 }
                 7 {
                     # stream
                     set options(-streamordatagram) yes
+                    set options(-destid)  [expr {[$mtiheader cget -mti] & $DESTID_MASK}]
+                    set options(-datagramcontent) stream
                 }
             }
         }
@@ -1399,7 +1462,7 @@ namespace eval lcc {
             fileevent $ttyfd readable [mymethod _messageReader]
             while {![$self _reserveMyAlias]} {
             }
-            $mtiheader configure -mti 0x0100 -srcid $myalias
+            $mtiheader configure -mti 0x0100 -srcid $myalias -frametype 1
             set message [CanMessage %AUTO% -data $nidlist \
                          -header [$mtiheader getHeader] \
                          -extended true]
@@ -1457,12 +1520,12 @@ namespace eval lcc {
             
             set address [from args -address 0]
             if {$address == 0} {
-                $mtiheader configure -mti 0x0490 -srcid $myalias
+                $mtiheader configure -mti 0x0490 -srcid $myalias -frametype 1
                 set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
                              -extended true]
             } else {
                 lcc::twelvebits validate $address
-                $mtiheader configure -mti 0x498 -srcid $myalias
+                $mtiheader configure -mti 0x498 -srcid $myalias -frametype 1
                 set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
                              -extended true -data [list \
                                                    [expr {($address & 0x0F00) >> 8}] \
@@ -1478,7 +1541,7 @@ namespace eval lcc {
             
             lcc::twelvebits validate $address
             puts stderr "*** $self protosupport $address"
-            $mtiheader configure -mti 0x0828 -srcid $myalias
+            $mtiheader configure -mti 0x0828 -srcid $myalias -frametype 1
             set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
                          -extended true -data [list \
                                                [expr {($address & 0x0F00) >> 8}] \
@@ -1496,13 +1559,14 @@ namespace eval lcc {
             
             puts stderr "*** $self identifyevents $args"
             set address [from args -address 0]
+            lcc::twelvebits validate $address
             puts stderr "*** $self identifyevents: address = $address"
             if {$address == 0} {
-                $mtiheader configure -mti 0x0970 -srcid $myalias
+                $mtiheader configure -mti 0x0970 -srcid $myalias -frametype 1
                 set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
                              -extended true]
             } else {
-                $mtiheader configure -mti 0x968 -srcid $myalias
+                $mtiheader configure -mti 0x968 -srcid $myalias -frametype 1
                 set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
                              -extended true -data  [list \
                                                     [expr {($address & 0x0F00) >> 8}] \
@@ -1517,12 +1581,86 @@ namespace eval lcc {
             # @param event Eight byte event number.
             
             puts stderr "*** $self identifyconsumer $event"
-            $mtiheader configure -mti 0x08F4 -srcid $myalias
+            $mtiheader configure -mti 0x08F4 -srcid $myalias -frametype 1
             set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
                          -extended true -data $event -length 8]
             puts stderr "*** $self identifyconsumer: message is [$message toString]"
             $self _sendmessage $message
         }
+        method getConfigOptions {address} {
+            ## Send Get configuration options datagram command
+            puts stderr "*** $self getConfigOptions $address"
+            lcc::twelvebits validate $address
+            $mtidetail configure -streamordatagram yes -destid $address \
+                  -datagramcontent complete -srcid $myalias
+            puts "*** $self  getConfigOptions \[$mtidetail getHeader\] = [$mtidetail getHeader]"
+            set message [CanMessage %AUTO% -header [$mtidetail getHeader] \
+                         -extended true -data [list 0x20 0x80] -length 2]
+            puts stderr "*** $self  getConfigOptions message is [$message toString]"
+            $self _sendmessage $message
+        }
+        method getAddrSpaceInfo {address space} {
+            ## Send Address Space Information datagram command
+            puts stderr "*** $self getAddrSpaceInfo $address $space"
+            lcc::twelvebits validate $address
+            $mtidetail configure -streamordatagram yes -destid $address \
+                  -datagramcontent complete -srcid $myalias
+            set message [CanMessage %AUTO% -header [$mtidetail getHeader] \
+                         -extended true -data [list 0x20 0x84 $space] \
+                         -length 3]
+            puts stderr "*** $self getAddrSpaceInfo message is [$message toString]"
+            $self _sendmessage $message
+        }
+        method DatagramAck {address} {
+            ## Send Datagram OK message
+            #
+            # @param address Destination address.
+            
+            lcc::twelvebits validate $address
+            puts stderr "*** $self DatagramAck $address"
+            $mtiheader configure -mti 0x0A28 -srcid $myalias -frametype 1
+            set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
+                         -extended true -data [list \
+                                               [expr {($address & 0x0F00) >> 8}] \
+                                               [expr {$address & 0x00FF}] \
+                                               0x00] \
+                         -length 3]
+            puts stderr "*** $self DatagramAck message is [$message toString]"
+            $self _sendmessage $message
+        }
+        method DatagramRead {destination space address length} {
+            lcc::twelvebits validate $destination
+            lcc::byte validate $space
+            lcc::sixteenbits validate $address
+            lcc::length validate $length
+            
+            $mtidetail configure -streamordatagram yes -destid $destination \
+                  -datagramcontent complete -srcid $myalias
+            set data [list 0x20]
+            set spacein6 no
+            if {$space == 0xFD} {
+                lappend data 0x41
+            } elseif {$space == 0xFE} {
+                lappend data 0x42
+            } elseif {$space == 0xFF} {
+                lappend data 0x43
+            } else {
+                lappend data 0x40
+                set spacein6 yes
+            }
+            lappend data [expr {($address & 0xFF000000) >> 24}]
+            lappend data [expr {($address & 0x00FF0000) >> 16}]
+            lappend data [expr {($address & 0x0000FF00) >>  8}]
+            lappend data [expr {($address & 0x000000FF) >>  0}]
+            if {$spacein6} {lappend data $space}
+            lappend data $length
+            set message [CanMessage %AUTO% -header [$mtidetail getHeader] \
+                         -extended true -data $data -length [llength $data]]
+            puts stderr "*** $self DatagramRead message is [$message toString]"
+            $self _sendmessage $message
+        }
+                         
+            
         method _messageReader {} {
             ## @privatesection @brief Message reader method.
             # This method is the readable event handler for the serial port
@@ -1544,6 +1682,12 @@ namespace eval lcc {
                     if {[$mtiheader cget -frametype] == 1 &&
                         [$mtidetail cget -addressp]} {
                         set destid [expr {(([lindex [$r getData] 0] & 0x0F) << 8) | [lindex [$r getData] 1]}]
+                        if {$destid != $myalias} {
+                            # The message is not addressed to me, discard it.
+                            return
+                        }
+                    } elseif {[$mtidetail cget -streamordatagram]} {
+                        set destid [$mtidetail cget -destid]
                         if {$destid != $myalias} {
                             # The message is not addressed to me, discard it.
                             return
