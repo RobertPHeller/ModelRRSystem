@@ -1,0 +1,162 @@
+package require Tk
+package require tile
+package require snit
+package require MainWindow
+package require ScrollWindow
+package require ROText
+package require snitStdMenuBar
+package require LabelFrames
+package require LCC
+
+snit::type LCCTest {
+    pragma -hastypeinfo false
+    pragma -hastypedestroy false
+    pragma -hasinstances false
+    
+    typecomponent mainWindow
+    typecomponent logmessages
+    typecomponent commandLF
+    typecomponent   command
+    typecomponent lcc
+    
+    typeconstructor {
+        set mainWindow [mainwindow .main -scrolling yes -height 600 -width 800]
+        pack $mainWindow -expand yes -fill both
+        $mainWindow menu entryconfigure file "Exit" -command {exit}
+        set logmessages [ROText [$mainWindow scrollwindow getframe].logmessages]
+        $mainWindow scrollwindow setwidget $logmessages
+        set main [winfo parent [$mainWindow scrollwindow getframe]]
+        set commandLF [LabelFrame $main.commandLF -text "Command:"]
+        pack $commandLF -expand yes -fill x
+        set clf [$commandLF  getframe]
+        set command [ttk::entry $clf.command]
+        pack $command -side left -fill x
+        bind $command <Return> [mytypemethod runcommand]
+        set button [ttk::button $clf.button -text "Enter" \
+                    -command [mytypemethod runcommand]]
+        pack $button -side right
+        set lcc [lcc::LCCBufferUSB %AUTO% -eventhandler [mytypemethod eventhandler]]
+        $mainWindow showit
+    }
+    typemethod eventhandler {canmessage} {
+        set mtiheader [lcc::MTIHeader %AUTO%]
+        $mtiheader setHeader [$canmessage getHeader]
+        set mtidetail [lcc::MTIDetail %AUTO%]
+        $mtidetail setHeader [$canmessage getHeader]
+        $logmessages insert end "CAN: [$canmessage toString]\n"
+        $logmessages insert end "  MTI Header:\n"
+        $logmessages insert end "     Frametype: [format {  %X} [$mtiheader cget -frametype]]\n"
+        $logmessages insert end "     CAN-MTI  : [format {%03X} [$mtiheader cget -mti]]\n"
+        $logmessages insert end "     SrcID    : [format {%03X} [$mtiheader cget -srcid]]\n"
+        $logmessages insert end "  MTI Detail:\n"
+        $logmessages insert end "     Special?   : [$mtidetail cget -special]\n"
+        $logmessages insert end "     Stream?    : [$mtidetail cget -streamordatagram]\n"
+        $logmessages insert end "     Priority   : [format {%X} [$mtidetail cget -priority]]\n"
+        $logmessages insert end "     Type Within: [format {%X} [$mtidetail cget -typewithin]]\n"
+        $logmessages insert end "     Simple?    : [$mtidetail cget -simple]\n"
+        $logmessages insert end "     AddressP   : [$mtidetail cget -addressp]\n"
+        $logmessages insert end "     EventP     : [$mtidetail cget -eventp]\n"
+        $logmessages insert end "     Modifier   : [format {%X} [$mtidetail cget -modifier]]\n"
+        if {[$mtiheader cget -mti] == 0x0668} {
+            # Protocol Support Report
+            set report [lrange [$canmessage getData] 2 4]
+            set protocols [list]
+            if {([lindex $report 0] & 0x80) != 0} {
+                lappend protocols Simple
+            }
+            if {([lindex $report 0] & 0x40) != 0} {
+                lappend protocols Datagram
+            }
+            if {([lindex $report 0] & 0x20) != 0} {
+                lappend protocols Stream
+            }
+            if {([lindex $report 0] & 0x10) != 0} {
+                lappend protocols MemoryConfig
+            }
+            if {([lindex $report 0] & 0x08) != 0} {
+                lappend protocols Reservation
+            }
+            if {([lindex $report 0] & 0x04) != 0} {
+                lappend protocols EventExchange
+            }
+            if {([lindex $report 0] & 0x02) != 0} {
+                lappend protocols Itentification
+            }
+            if {([lindex $report 0] & 0x01) != 0} {
+                lappend protocols TeachLearn
+            }
+            
+            if {([lindex $report 1] & 0x80) != 0} {
+                lappend protocols RemoteButton
+            }
+            if {([lindex $report 1] & 0x40) != 0} {
+                lappend protocols AbbreviatedDefaultCDI
+            }
+            if {([lindex $report 1] & 0x20) != 0} {
+                lappend protocols Display
+            }
+            if {([lindex $report 1] & 0x10) != 0} {
+                lappend protocols SimpleNodeInfo
+            }
+            if {([lindex $report 1] & 0x08) != 0} {
+                lappend protocols CDI
+            }
+            if {([lindex $report 1] & 0x04) != 0} {
+                lappend protocols Traction
+            }
+            if {([lindex $report 1] & 0x02) != 0} {
+                lappend protocols FDI
+            }
+            if {([lindex $report 1] & 0x01) != 0} {
+                lappend protocols DCC
+            }
+            
+            if {([lindex $report 2] & 0x80) != 0} {
+                lappend protocols SimpleTrainNode
+            }
+            if {([lindex $report 2] & 0x40) != 0} {
+                lappend protocols FunctionConfiguration
+            }
+            $logmessages insert end "[format {Node %03X supports: %s} [$mtiheader cget -srcid] $protocols]\n"
+        }
+            
+    }
+    typemethod runcommand {} {
+        set thecommand [$command get]
+        $logmessages insert end "Command entered: $thecommand\n"
+        switch [lindex $thecommand 0] {
+            verify {
+                $lcc verifynode
+            }
+            protosupport {
+                $lcc protosupport [lindex $thecommand 1]
+            }
+            identifyevents {
+                $lcc identifyevents -address [lindex $thecommand 1]
+            }
+            identifyconsumer {
+                $lcc identifyconsumer [lindex $thecommand 1]
+            }
+            getAliasOfNID {
+                set alias [$lcc getAliasOfNID [lindex $thecommand 1]]
+                $logmessages insert end "[format {The alias of %s is 0x%03X} [lindex $thecommand 1] $alias]\n"
+            }
+            getNIDOfAlias {
+                set nid [$lcc getNIDOfAlias [lindex $thecommand 1]]
+                $logmessages insert end "[format {The NID of 0x%03X is %s} [lindex $thecommand 1] $nid]\n"
+            }
+            dumpMaps {
+                foreach nid [$lcc getAllNIDs] {
+                    $logmessages insert end "[format {The alias of %s is 0x%03X} $nid [$lcc getAliasOfNID $nid]]\n"
+                }
+                foreach alias [$lcc getAllAliases] {
+                    $logmessages insert end "[format {The NID of 0x%03X is %s} $alias [$lcc getNIDofAlias $alias]]\n"
+                }
+            }
+        }
+    }
+}
+
+        
+
+

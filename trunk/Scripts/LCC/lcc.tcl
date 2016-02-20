@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160218.1741>
+#  Last Modified : <160219.1513>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -1305,6 +1305,10 @@ namespace eval lcc {
         ## The Node ID as a list of 6 bytes.
         variable myalias
         ## My node alias.
+        variable aliasMap -array {}
+        ## Alias to NID map
+        variable nidMap -array {}
+        ## NID to alias map
         typevariable NIDPATTERN 
         ## The regexp for breaking up the Node ID into bytes.
         typeconstructor {
@@ -1398,54 +1402,124 @@ namespace eval lcc {
             $mtiheader configure -mti 0x0100 -srcid $myalias
             set message [CanMessage %AUTO% -data $nidlist \
                          -header [$mtiheader getHeader] \
-                         -extended true -rtr false]
+                         -extended true]
             $self _sendmessage $message
             $self configurelist $args
+            # Send an AME
+            $canheader configure -openlcbframe no \
+                  -variablefield 0x0702 -srcid $myalias
+            $self _sendmessage [CanMessage %AUTO% \
+                                -header [$canheader getHeader] -extended yes]
+        }
+        method getAliasOfNID {nid} {
+            ## Fetch the alias of a NID
+            #
+            # @param nid A full NID of the form hh:hh:hh:hh:hh:hh
+            # @return The node's alias or the empty string if not known.
+            lcc::nid validate $nid
+            if {[info exists aliasMap($nid)]} {
+                return $aliasMap($nid)
+            } else {
+                return {}
+            }
+        }
+        method getNIDofAlias {alias} {
+            ## Get the NID of the alias.
+            #
+            # @param alias The alias to look up.
+            # @return The NID of the alias or the empty string if not known.
+            if {[info exists nidMap($alias)]} {
+                 return $nidMap($alias)
+            } else {
+                return {}
+            }
+        }
+        method getAllNIDs {} {
+            ## Get all known NIDs
+            #
+            # @return All known NIDS.
+            
+            return [array names aliasMap]
+        }
+        method getAllAliases {} {
+            ## Get all known aliases
+            #
+            # @return All known aliases.
+            
+            return [array names nidMap]
         }
         method verifynode {args} {
-            set address [from args -address {}]
-            if {$address eq {}} {
+            ## Send Verify node message.
+            #
+            # @param ... Options:
+            # @arg -address Optional address to use, as a twelve bit number list.
+            # @par
+            
+            set address [from args -address 0]
+            if {$address == 0} {
                 $mtiheader configure -mti 0x0490 -srcid $myalias
                 set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
-                             -extended true -rtr false]
+                             -extended true]
             } else {
+                lcc::twelvebits validate $address
                 $mtiheader configure -mti 0x498 -srcid $myalias
                 set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
-                             -extended true -rtr false -data $address \
-                             -length 6]
+                             -extended true -data [list \
+                                                   [expr {($address & 0x0F00) >> 8}] \
+                                                   [expr {$address & 0x00FF}]] \
+                             -length 2]
             }
             $self _sendmessage $message
         }
         method protosupport {address} {
+            ## Send Protocol Support Inquiry message
+            #
+            # @param address Twelve bit alias address.
+            
+            lcc::twelvebits validate $address
             puts stderr "*** $self protosupport $address"
             $mtiheader configure -mti 0x0828 -srcid $myalias
             set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
-                         -extended true -rtr false -data $address \
-                         -length 6]
+                         -extended true -data [list \
+                                               [expr {($address & 0x0F00) >> 8}] \
+                                               [expr {$address & 0x00FF}]] \
+                         -length 2]
             puts stderr "*** $self protosupport: message is [$message toString]"
             $self _sendmessage $message
         }
         method identifyevents {args} {
+            ## Send Identify Events message
+            #
+            # @param ... Options:
+            # @arg -address Optional address to use, as a two byte list.
+            # @par
+            
             puts stderr "*** $self identifyevents $args"
-            set address [from args -address {}]
+            set address [from args -address 0]
             puts stderr "*** $self identifyevents: address = $address"
-            if {$address eq {}} {
+            if {$address == 0} {
                 $mtiheader configure -mti 0x0970 -srcid $myalias
                 set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
-                             -extended true -rtr false]
+                             -extended true]
             } else {
                 $mtiheader configure -mti 0x968 -srcid $myalias
                 set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
-                             -extended true -rtr false -data $address \
-                             -length 6]
+                             -extended true -data  [list \
+                                                    [expr {($address & 0x0F00) >> 8}] \
+                                                    [expr {$address & 0x00FF}]] \
+                             -length 2]
             }
             $self _sendmessage $message
         }
         method identifyconsumer {event} {
+            ## Send Identify Consumer message
+            #
+            # @param event Eight byte event number.
+            
             puts stderr "*** $self identifyconsumer $event"
             $mtiheader configure -mti 0x08F4 -srcid $myalias
             set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
-                         -extended true -rtr false -data $event -length 8]
+                         -extended true -data $event -length 8]
             puts stderr "*** $self identifyconsumer: message is [$message toString]"
             $self _sendmessage $message
         }
@@ -1483,10 +1557,27 @@ namespace eval lcc {
                     # Not a OpenLCB message.
                     # Check for an Error Information Report
                     set vf [$canheader cget -variablefield]
-                    if {$vf >= 0x0710 || $vf <= 0x0713} {
+                    puts stderr "[format {*** %s _messageReader: vf = 0x%04X} $self $vf]"
+                    if {$vf == 0x0701} {
+                        # AMD frame
+                        puts stderr "*** $self _messageReader: received AMD frame"
+                        set srcalias [$canheader cget -srcid]
+                        set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
+                        puts stderr "[format {*** %s _messageReader: srcalias = 0x%03X, srcnid = %s} $self $srcalias $srcnid]"
+                        set nidMap($srcalias) $srcnid
+                        set aliasMap($srcnid) $srcalias
+                    } elseif {$vf == 0x0702} {
+                        # AME frame
+                        if {[listeq [lrange [$r getData] 0 5] {0 0 0 0 0 0}] || [listeq [lrange [$r getData] 0 5] $nidlist]} {
+                            $canheader configure -openlcbframe no \
+                                  -variablefield 0x0701 -srcid $myalias
+                            $self _sendmessage [CanMessage %AUTO% -header [$canheader getHeader] -extended yes -data $nidlist -length 6]
+                        }
+                    } elseif {$vf >= 0x0710 || $vf <= 0x0713} {
                         # Was an Error Information Report -- flag it.
                         incr _timeoutFlag -2
                     } else {
+                        
                         #### Node ID Alias Collision handling... NYI
                     }
                 }
@@ -1554,6 +1645,8 @@ namespace eval lcc {
             $self _sendmessage [CanMessage %AUTO% \
                                 -header [$canheader getHeader] -extended yes \
                                 -data $nidlist -length 6]
+            set nidMap($myalias) [$self cget -nid]
+            set aliasMap([$self cget -nid]) $myalias
             return true
         }
         method _timedout {} {
@@ -1656,157 +1749,4 @@ namespace eval lcc {
 
 
 package provide LCC 1.0
-
-lappend auto_path [file join [file dirname [file dirname \
-                                            [file normalize [info script]]]] \
-                                            Common] \
-      [file dirname [file normalize [info script]]]
-
-puts stderr "*** auto_path = $auto_path"
-
-package require Tk
-package require tile
-package require snit
-package require MainWindow
-package require ScrollWindow
-package require ROText
-package require snitStdMenuBar
-package require LabelFrames
-
-
-snit::type TestProgram {
-    pragma -hastypeinfo false
-    pragma -hastypedestroy false
-    pragma -hasinstances false
-    
-    typecomponent mainWindow
-    typecomponent logmessages
-    typecomponent commandLF
-    typecomponent   command
-    typecomponent lcc
-    
-    typeconstructor {
-        set mainWindow [mainwindow .main -scrolling yes -height 600 -width 800]
-        pack $mainWindow -expand yes -fill both
-        $mainWindow menu entryconfigure file "Exit" -command {exit}
-        set logmessages [ROText [$mainWindow scrollwindow getframe].logmessages]
-        $mainWindow scrollwindow setwidget $logmessages
-        set main [winfo parent [$mainWindow scrollwindow getframe]]
-        set commandLF [LabelFrame $main.commandLF -text "Command:"]
-        pack $commandLF -expand yes -fill x
-        set clf [$commandLF  getframe]
-        set command [ttk::entry $clf.command]
-        pack $command -side left -fill x
-        bind $command <Return> [mytypemethod runcommand]
-        set button [ttk::button $clf.button -text "Enter" \
-                    -command [mytypemethod runcommand]]
-        pack $button -side right
-        set lcc [lcc::LCCBufferUSB %AUTO% -eventhandler [mytypemethod eventhandler]]
-        $mainWindow showit
-    }
-    typemethod eventhandler {canmessage} {
-        set mtiheader [lcc::MTIHeader %AUTO%]
-        $mtiheader setHeader [$canmessage getHeader]
-        set mtidetail [lcc::MTIDetail %AUTO%]
-        $mtidetail setHeader [$canmessage getHeader]
-        $logmessages insert end "CAN: [$canmessage toString]\n"
-        $logmessages insert end "  MTI Header:\n"
-        $logmessages insert end "     Frametype: [format {  %X} [$mtiheader cget -frametype]]\n"
-        $logmessages insert end "     CAN-MTI  : [format {%03X} [$mtiheader cget -mti]]\n"
-        $logmessages insert end "     SrcID    : [format {%03X} [$mtiheader cget -srcid]]\n"
-        $logmessages insert end "  MTI Detail:\n"
-        $logmessages insert end "     Special?   : [$mtidetail cget -special]\n"
-        $logmessages insert end "     Stream?    : [$mtidetail cget -streamordatagram]\n"
-        $logmessages insert end "     Priority   : [format {%X} [$mtidetail cget -priority]]\n"
-        $logmessages insert end "     Type Within: [format {%X} [$mtidetail cget -typewithin]]\n"
-        $logmessages insert end "     Simple?    : [$mtidetail cget -simple]\n"
-        $logmessages insert end "     AddressP   : [$mtidetail cget -addressp]\n"
-        $logmessages insert end "     EventP     : [$mtidetail cget -eventp]\n"
-        $logmessages insert end "     Modifier   : [format {%X} [$mtidetail cget -modifier]]\n"
-        if {[$mtiheader cget -mti] == 0x0668} {
-            # Protocol Support Report
-            set report [lrange [$canmessage getData] 2 4]
-            set protocols [list]
-            if {([lindex $report 0] & 0x80) != 0} {
-                lappend protocols Simple
-            }
-            if {([lindex $report 0] & 0x40) != 0} {
-                lappend protocols Datagram
-            }
-            if {([lindex $report 0] & 0x20) != 0} {
-                lappend protocols Stream
-            }
-            if {([lindex $report 0] & 0x10) != 0} {
-                lappend protocols MemoryConfig
-            }
-            if {([lindex $report 0] & 0x08) != 0} {
-                lappend protocols Reservation
-            }
-            if {([lindex $report 0] & 0x04) != 0} {
-                lappend protocols EventExchange
-            }
-            if {([lindex $report 0] & 0x02) != 0} {
-                lappend protocols Itentification
-            }
-            if {([lindex $report 0] & 0x01) != 0} {
-                lappend protocols TeachLearn
-            }
-            
-            if {([lindex $report 1] & 0x80) != 0} {
-                lappend protocols RemoteButton
-            }
-            if {([lindex $report 1] & 0x40) != 0} {
-                lappend protocols AbbreviatedDefaultCDI
-            }
-            if {([lindex $report 1] & 0x20) != 0} {
-                lappend protocols Display
-            }
-            if {([lindex $report 1] & 0x10) != 0} {
-                lappend protocols SimpleNodeInfo
-            }
-            if {([lindex $report 1] & 0x08) != 0} {
-                lappend protocols CDI
-            }
-            if {([lindex $report 1] & 0x04) != 0} {
-                lappend protocols Traction
-            }
-            if {([lindex $report 1] & 0x02) != 0} {
-                lappend protocols FDI
-            }
-            if {([lindex $report 1] & 0x01) != 0} {
-                lappend protocols DCC
-            }
-            
-            if {([lindex $report 2] & 0x80) != 0} {
-                lappend protocols SimpleTrainNode
-            }
-            if {([lindex $report 2] & 0x40) != 0} {
-                lappend protocols FunctionConfiguration
-            }
-            $logmessages insert end "[format {Node %03X supports: %s} [$mtiheader cget -srcid] $protocols]\n"
-        }
-            
-    }
-    typemethod runcommand {} {
-        set thecommand [$command get]
-        $logmessages insert end "Command entered: $thecommand\n"
-        switch [lindex $thecommand 0] {
-            verify {
-                $lcc verifynode
-            }
-            protosupport {
-                $lcc protosupport [lrange $thecommand 1 end]
-            }
-            identifyevents {
-                $lcc identifyevents -address [lrange $thecommand 1 end]
-            }
-            identifyconsumer {
-                $lcc identifyconsumer [lrange $thecommand 1 end]
-            }
-        }
-    }
-}
-
-        
-
 
