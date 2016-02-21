@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160220.1300>
+#  Last Modified : <160221.1604>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -795,7 +795,7 @@ namespace eval lcc {
         method getData {} {
             ## Return the data vector.
             # @return The data vector.
-            return $_dataChars
+            return [lrange $_dataChars 0 [expr {$_nDataChars - 1}]]
         }
         method getHeader {} {
             ## Return the header.
@@ -1626,6 +1626,16 @@ namespace eval lcc {
                                                0x00] \
                          -length 3]
             puts stderr "*** $self DatagramAck message is [$message toString]"
+            $self _sendmessage $message
+        }
+        method getSimpleNodeInfo {address} {
+            lcc::twelvebits validate $address
+            $mtiheader configure -mti 0x0DE8 -srcid $myalias -frametype 1
+            set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
+                         -extended true -data [list \
+                                               [expr {($address & 0x0F00) >> 8}] \
+                                               [expr {$address & 0x00FF}]] \
+                         -length 2]
             $self _sendmessage $message
         }
         method DatagramRead {destination space address length} {

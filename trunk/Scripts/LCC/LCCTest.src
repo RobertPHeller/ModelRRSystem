@@ -42,6 +42,8 @@ snit::type LCCTest {
     typevariable datagrambuffers -array {}
     typevariable memoryspaceinfos -array {}
     typevariable _readcompleteFlag 0
+    typevariable simplenodeinfo -array {}
+    typevariable simplenodeinfo_meta -array {}
     typemethod eventhandler {canmessage} {
         set mtiheader [lcc::MTIHeader %AUTO%]
         $mtiheader setHeader [$canmessage getHeader]
@@ -253,14 +255,50 @@ snit::type LCCTest {
             $logmessages insert end "[format {Node %03X supports: %s} [$mtiheader cget -srcid] $protocols]\n"
         } elseif {[$mtiheader cget -mti] == 0x0A28} {
             # Datagram Received OK
-            $logmessages insert end "[format {Datagram Received OK from Node %03X, flags: %02X} [$mtiheader cget -srcid] [lindex [$canmessage getData] 2]]\n"
+            set flags [lindex [$canmessage getData] 2]
+            if {$flags eq ""} {set flags 0}
+            $logmessages insert end "[format {Datagram Received OK from Node %03X, flags: %02X} [$mtiheader cget -srcid] $flags]\n"
         } elseif {[$mtiheader cget -mti] == 0x0A48} {
             # Datagram Rejected
             set error [expr {[lindex [$canmessage getData] 2] << 8}]
             set error [expr {$error | [lindex [$canmessage getData] 3]}]
             $logmessages insert end "[format {Datagram Rejected  from Node %03X, error: %04X} [$mtiheader cget -srcid] $error]\n"
+        } elseif {[$mtiheader cget -mti] == 0x0A08} {
+            # Simple node information reply
+            set from [$mtiheader cget -srcid]
+            set flags [expr {([lindex [$canmessage getData] 0] & 0x030) >> 4}]
+            puts stderr "[format {*** %s eventhandler: fddd is %02x%02x} $type [lindex [$canmessage getData] 0] [lindex [$canmessage getData] 1]]"
+            puts stderr "*** $type eventhandler: flags = $flags"
+            switch $flags {
+                0 {
+                   # Single frame
+                   eval [list lappend simplenodeinfo($from)] [lrange [$canmessage getData] 2 end]
+                   set simplenodeinfo_meta($from,v1) [lindex $simplenodeinfo($from) 0]
+                   if {$simplenodeinfo_meta($from,v1) == 1} {
+                       set simplenodeinfo_meta($from,v1) 4
+                   }
+                   set simplenodeinfo_meta($from,expectedNULs) [expr {$simplenodeinfo_meta($from,v1) + 2}]
+                   $logmessages insert end "simplenodeinfo($from) = $simplenodeinfo($from)\n"
+                   if {[countNUL $simplenodeinfo($from)] >= $simplenodeinfo_meta($from,expectedNULs)} {
+                       incr _readcompleteFlag
+                   }
+                }
+                1 {
+                   # First of multiple frames
+                   set simplenodeinfo($from) [lrange [$canmessage getData] 2 end]
+                }
+                2 {
+                   # Middle of multiple frames
+                   eval [list lappend simplenodeinfo($from)] [lrange [$canmessage getData] 2 end]
+                }
+                3 {
+                   # Last of multiple frames
+                   eval [list lappend simplenodeinfo($from)] [lrange [$canmessage getData] 2 end]
+                   $logmessages insert end "simplenodeinfo($from) = $simplenodeinfo($from)\n"
+                   incr _readcompleteFlag
+                }
+            }
         }
-            
     }
     typevariable CDIs_text -array {}
     typevariable CDIs_xml  -array {}
@@ -302,6 +340,43 @@ snit::type LCCTest {
             getAddrSpaceInfo {
                 $lcc getAddrSpaceInfo [lindex $thecommand 1] [lindex $thecommand 2]
             }
+            getSimpleNodeInfo {
+                set _readcompleteFlag 0
+                set address [expr {[lindex $thecommand 1]}]
+                set simplenodeinfo($address) [list]
+                $lcc getSimpleNodeInfo $address
+                vwait [mytypevar _readcompleteFlag]
+                $logmessages insert end "[format {The Simple Node Info of %03X is:} $address]\n"
+                set strings1 [lindex $simplenodeinfo($address) 0]
+                # If version 1, then 4 strings (???), other wise version == number of strings
+                if {$strings1 == 1} {set strings1 4}
+                set i 1
+                set names1 {manufact model hvers svers}
+                for {set istring 0} {$istring < $strings1} {incr istring} {
+                    set s ""
+                    while {[lindex $simplenodeinfo($address) $i] != 0} {
+                        append s [format %c [lindex $simplenodeinfo($address) $i]]
+                        incr i
+                    }
+                    $logmessages insert end "[format {    %s: %s} [lindex $names1 $istring] $s]\n"
+                    incr i
+                }
+                set strings2 [lindex $simplenodeinfo($address) $i]
+                if {$strings2 == 1} {set strings2 2}
+                # If version 1, then 2 strings (???), other wise version == number of strings
+                incr i
+                set names2 {name descr}
+                for {set istring 0} {$istring < $strings2} {incr istring} {
+                    set s ""
+                    while {[lindex $simplenodeinfo($address) $i] != 0} {
+                        append s [format %c [lindex $simplenodeinfo($address) $i]]
+                        incr i
+                    }
+                    $logmessages insert end "[format {    %s: %s} [lindex $names2 $istring] $s]\n"
+                    incr i
+                }
+            }
+                
             DatagramRead {
                 $lcc DatagramRead [lindex $thecommand 1] [lindex $thecommand 2] [lindex $thecommand 3] [lindex $thecommand 4]
             }
@@ -365,12 +440,32 @@ snit::type LCCTest {
                     $logmessages insert end "\{$CDIs_text($sourceaddress)\}\n"
                     set CDIs_xml($sourceaddress) [ParseXML %AUTO% \
                                                   $CDIs_text($sourceaddress)]
+                    $type GenerateConfigForm $sourceaddress $CDIs_xml($sourceaddress)
                 } else {
                     # No CDI...
                 }
             }            
         }
     }
+    proc countNUL {list} {
+       set count 0
+       set start 0
+       while {[set i [lsearch -start $start $list 0]] >= 0} {
+           incr count
+           set start [expr {$i + 1}]
+       }
+       return $count
+   }
+   typemethod GenerateConfigForm {destid CDI_XML} {
+      puts stderr "*** $type GenerateConfigForm $destid $CDI_XML"
+      #$CDI_XML displayTree
+      set cdi [$CDI_XML getElementsByTagName cdi]
+      puts stderr "*** $type GenerateConfigForm: cdi = $cdi: [$cdi configure]"
+      
+      foreach c [$cdi children] {
+          puts stderr "*** $type GenerateConfigForm: c = $c: [$c configure]"
+      } 
+   }
 }
 
         
