@@ -168,7 +168,7 @@ snit::type LCCTest {
                         }
                         $logmessages insert end "Address Space Info Reply:\n"
                         $logmessages insert end "[format {    Space: %02x} $space]\n"
-                        memoryspaceinfos($srcid,[format {%02X} $space],present) $present
+                        set memoryspaceinfos($srcid,[format {%02X} $space],present) $present
                         if {$present} {
                             $logmessages insert end "    Is present.\n"
                             $logmessages insert end "[format {    Low address: %08X} $lowest]\n"
@@ -179,9 +179,9 @@ snit::type LCCTest {
                                 $logmessages insert end "    Is not writable.\n"
                             }
                             if {$descr ne ""} {$logmessages insert end "[format {    Description: %s} $descr]\n"}
-                            memoryspaceinfos($srcid,[format {%02X} $space],lowest) $lowest
-                            memoryspaceinfos($srcid,[format {%02X} $space],highest) $heighest
-                            memoryspaceinfos($srcid,[format {%02X} $space],writable) $writable
+                            set memoryspaceinfos($srcid,[format {%02X} $space],lowest) $lowest
+                            set memoryspaceinfos($srcid,[format {%02X} $space],highest) $highest
+                            set memoryspaceinfos($srcid,[format {%02X} $space],writable) $writable
                         } else {
                             $logmessages insert end "    Is not present.\n"
                         }
@@ -306,17 +306,25 @@ snit::type LCCTest {
                 $lcc DatagramRead [lindex $thecommand 1] [lindex $thecommand 2] [lindex $thecommand 3] [lindex $thecommand 4]
             }
             ReadCDI {
-                sourceaddress [lindex $thecommand 1]
+                set sourceaddress [expr {[lindex $thecommand 1]}]
+                puts stderr "*** $type runcommand (ReadCDI): sourceaddress = $sourceaddress"
                 set _readcompleteFlag 0
                 $lcc getAddrSpaceInfo $sourceaddress 0x0FF
+                puts stderr "*** $type runcommand (ReadCDI): after $lcc getAddrSpaceInfo $sourceaddress 0x0FF"
+                puts stderr "*** $type runcommand (ReadCDI): about to vwait on [mytypevar _readcompleteFlag]"
                 vwait [mytypevar _readcompleteFlag]
-                if {$memoryspaceinfos($sourceaddress,FF,$present} {
+                puts stderr "*** $type runcommand (ReadCDI): after vwait: memoryspaceinfos() contains these indexes: [array names memoryspaceinfos]"
+                if {$memoryspaceinfos($sourceaddress,FF,present)} {
                     set start $memoryspaceinfos($sourceaddress,FF,lowest)
-                    set end   $memoryspaceinfos($sourceaddress,FF,highest)
+                    set end   [expr {$memoryspaceinfos($sourceaddress,FF,highest) + 64}]
+                    puts stderr "[format {*** $type runcommand (ReadCDI): start = %08X} $start]"
+                    puts stderr "[format {*** $type runcommand (ReadCDI): end = %08X} $end]"
                     set CDIs_text($sourceaddress) {}
                     for {set address $start} {$address < $end} {incr address $size} {
+                        puts stderr "[format {*** $type runcommand (ReadCDI): address = %08X (end = %08X)} $address $end]"
                         set size [expr {$end - $address}]
                         if {$size > 64} {set size 64}
+                        puts stderr "[format {*** $type runcommand (ReadCDI): size = %d} $size]"
                         $lcc DatagramRead $sourceaddress 0x0FF $address $size
                         vwait [mytypevar _readcompleteFlag]
                         set status [lindex $datagrambuffers($sourceaddress) 1]
@@ -325,14 +333,17 @@ snit::type LCCTest {
                             set respaddress [expr {$respaddress | ([lindex $datagrambuffers($sourceaddress) 3] << 16)}]
                             set respaddress [expr {$respaddress | ([lindex $datagrambuffers($sourceaddress) 4] << 8)}]
                             set respaddress [expr {$respaddress | [lindex $datagrambuffers($sourceaddress) 5]}]
+                            puts stderr "[format {*** $type runcommand (ReadCDI): respaddress = %08X - address = %08X} $respaddress $address]"
                             if {$respaddress == $address} {
                                 set bytes [lrange $datagrambuffers($sourceaddress) 6 end]
                                 set count 0
                                 foreach b $bytes {
+                                    if {$b == 0} {break}
                                     append CDIs_text($sourceaddress) [format {%c} $b]
                                     incr count
                                     if {$count >= $size} {break}
                                 }
+                                puts stderr "[format {*** $type runcommand (ReadCDI): count = %d (size = %d)} $count $size]"
                             } else {
                                 # ??? (bad return address)
                             }
@@ -347,11 +358,13 @@ snit::type LCCTest {
                             }
                             $logmessages insert end "$message\n"
                         }
+                        puts stderr "[format {*** $type runcommand (ReadCDI): next address = %08X} [expr {$address + $size}]]]"
+
                     }
+                    $logmessages insert end "[format {CDI for %03X is} $sourceaddress]\n"
+                    $logmessages insert end "\{$CDIs_text($sourceaddress)\}\n"
                     set CDIs_xml($sourceaddress) [ParseXML %AUTO% \
                                                   $CDIs_text($sourceaddress)]
-                    $logmessages insert end "[format {CDI for %03X is} $sourceaddress]\n"
-                    $logmessages insert end "$CDIs_text($sourceaddress)\n"
                 } else {
                     # No CDI...
                 }

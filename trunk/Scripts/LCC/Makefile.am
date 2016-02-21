@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160220.1527>
+#  Last Modified : <160221.1050>
 #
 #  Description	
 #
@@ -97,6 +97,8 @@ LCCTest${EXEEXT}: LCCTest.src $(LCCTestSCRIPTS)
 	-rm -f  LCCTest.kit
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit LCCTest \
 		lib $(SNITLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit LCCTest \
+		lib $(URILIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit LCCTest \
 		lib/Common $(LCCTestSCRIPTS)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit LCCTest \
