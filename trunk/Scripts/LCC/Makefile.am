@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160219.1315>
+#  Last Modified : <160220.1527>
 #
 #  Description	
 #
@@ -70,6 +70,7 @@ LCCTestSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
 		$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
                 $(top_srcdir)/Scripts/Common/snitLFs.tcl \
                 $(top_srcdir)/Scripts/Common/snitrotext.tcl \
+                $(top_srcdir)/Scripts/Common/ParseXML.tcl \
                 $(top_srcdir)/Scripts/LCC/lcc.tcl \
 		$(top_builddir)/Scripts/Common/Version.tcl \
 		$(top_srcdir)/Scripts/Common/questhead.xbm \
@@ -102,6 +103,8 @@ LCCTest${EXEEXT}: LCCTest.src $(LCCTestSCRIPTS)
 		Common
 	$(UNZIP) -qq -d LCCTest.vfs/lib \
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
+	$(UNZIP) -qq -d LCCTest.vfs/lib \
+		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap LCCTest${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf LCCTest.vfs
 if MACOSX

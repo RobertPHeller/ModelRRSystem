@@ -7,6 +7,7 @@ package require ROText
 package require snitStdMenuBar
 package require LabelFrames
 package require LCC
+package require ParseXML
 
 snit::type LCCTest {
     pragma -hastypeinfo false
@@ -39,7 +40,8 @@ snit::type LCCTest {
         $mainWindow showit
     }
     typevariable datagrambuffers -array {}
-
+    typevariable memoryspaceinfos -array {}
+    typevariable _readcompleteFlag 0
     typemethod eventhandler {canmessage} {
         set mtiheader [lcc::MTIHeader %AUTO%]
         $mtiheader setHeader [$canmessage getHeader]
@@ -166,6 +168,7 @@ snit::type LCCTest {
                         }
                         $logmessages insert end "Address Space Info Reply:\n"
                         $logmessages insert end "[format {    Space: %02x} $space]\n"
+                        memoryspaceinfos($srcid,[format {%02X} $space],present) $present
                         if {$present} {
                             $logmessages insert end "    Is present.\n"
                             $logmessages insert end "[format {    Low address: %08X} $lowest]\n"
@@ -176,11 +179,15 @@ snit::type LCCTest {
                                 $logmessages insert end "    Is not writable.\n"
                             }
                             if {$descr ne ""} {$logmessages insert end "[format {    Description: %s} $descr]\n"}
+                            memoryspaceinfos($srcid,[format {%02X} $space],lowest) $lowest
+                            memoryspaceinfos($srcid,[format {%02X} $space],highest) $heighest
+                            memoryspaceinfos($srcid,[format {%02X} $space],writable) $writable
                         } else {
                             $logmessages insert end "    Is not present.\n"
                         }
                     }
                 }
+                incr _readcompleteFlag
             }
         }
         if {[$mtiheader cget -mti] == 0x0668} {
@@ -255,6 +262,8 @@ snit::type LCCTest {
         }
             
     }
+    typevariable CDIs_text -array {}
+    typevariable CDIs_xml  -array {}
     typemethod runcommand {} {
         set thecommand [$command get]
         $logmessages insert end "Command entered: $thecommand\n"
@@ -296,7 +305,57 @@ snit::type LCCTest {
             DatagramRead {
                 $lcc DatagramRead [lindex $thecommand 1] [lindex $thecommand 2] [lindex $thecommand 3] [lindex $thecommand 4]
             }
-                            
+            ReadCDI {
+                sourceaddress [lindex $thecommand 1]
+                set _readcompleteFlag 0
+                $lcc getAddrSpaceInfo $sourceaddress 0x0FF
+                vwait [mytypevar _readcompleteFlag]
+                if {$memoryspaceinfos($sourceaddress,FF,$present} {
+                    set start $memoryspaceinfos($sourceaddress,FF,lowest)
+                    set end   $memoryspaceinfos($sourceaddress,FF,highest)
+                    set CDIs_text($sourceaddress) {}
+                    for {set address $start} {$address < $end} {incr address $size} {
+                        set size [expr {$end - $address}]
+                        if {$size > 64} {set size 64}
+                        $lcc DatagramRead $sourceaddress 0x0FF $address $size
+                        vwait [mytypevar _readcompleteFlag]
+                        set status [lindex $datagrambuffers($sourceaddress) 1]
+                        if {$status == 0x53} {
+                            set respaddress [expr {[lindex $datagrambuffers($sourceaddress) 2] << 24}]
+                            set respaddress [expr {$respaddress | ([lindex $datagrambuffers($sourceaddress) 3] << 16)}]
+                            set respaddress [expr {$respaddress | ([lindex $datagrambuffers($sourceaddress) 4] << 8)}]
+                            set respaddress [expr {$respaddress | [lindex $datagrambuffers($sourceaddress) 5]}]
+                            if {$respaddress == $address} {
+                                set bytes [lrange $datagrambuffers($sourceaddress) 6 end]
+                                set count 0
+                                foreach b $bytes {
+                                    append CDIs_text($sourceaddress) [format {%c} $b]
+                                    incr count
+                                    if {$count >= $size} {break}
+                                }
+                            } else {
+                                # ??? (bad return address)
+                            }
+                        } else {
+                            # error...
+                            set error [expr {[lindex $datagrambuffers($sourceaddress) 2] << 8}]
+                            set error [expr {$error | [lindex $datagrambuffers($sourceaddress) 3]}]
+                            $logmessages insert end "[format {Read Reply error %04X} $error]"
+                            set message { }
+                            foreach b [lrange $datagrambuffers($sourceaddress) 4 end] {
+                                append message [format %c $b]
+                            }
+                            $logmessages insert end "$message\n"
+                        }
+                    }
+                    set CDIs_xml($sourceaddress) [ParseXML %AUTO% \
+                                                  $CDIs_text($sourceaddress)]
+                    $logmessages insert end "[format {CDI for %03X is} $sourceaddress]\n"
+                    $logmessages insert end "$CDIs_text($sourceaddress)\n"
+                } else {
+                    # No CDI...
+                }
+            }            
         }
     }
 }
