@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jul 11 10:02:32 2013
-#  Last Modified : <140225.1347>
+#  Last Modified : <160223.1307>
 #
 #  Description	
 #
@@ -56,11 +56,11 @@ snit::widgetadaptor ScrollableFrame {
         ttk::style layout $type [ttk::style layout TFrame]
         ttk::style configure $type -highlightthickness 0 -borderwidth 0 \
               -relief flat
-        bind $type <Configure> [mytypemethod _resize %W]
+        bind $type <Configure> [mytypemethod _resize %W %w %h]
         bind $type <<ThemeChanged>> [mytypemethod _themeChanged %W]
     }
-    typemethod _resize {w} {
-        $w _resize_
+    typemethod _resize {w width height} {
+        $w _resize_ $width $height
     }
     typemethod _themeChanged {w} {
         $w _themeChanged_
@@ -87,6 +87,7 @@ snit::widgetadaptor ScrollableFrame {
                        -relief {} flat]
     }
     method _configure_sizes {o v} {
+        #puts stderr "*** $self _configure_sizes $o $v"        
         set options($o) $v
         set cw $options(-constrainedwidth)
         set modcw no
@@ -115,7 +116,7 @@ snit::widgetadaptor ScrollableFrame {
             }
             set upd 1
         }
-        
+        #puts stderr "*** $self _configure_sizes: upd = $upd"
         if { $upd } {
             $hull itemconfigure win -width $w -height $h
         }
@@ -175,17 +176,22 @@ snit::widgetadaptor ScrollableFrame {
             $hull yview moveto $y
         }
     }
-    method _resize_ {} {
-        #puts stderr "*** $self _resize_"
+    method _resize_ {width height} {
+        #puts stderr "*** $self _resize_ $width $height"
         if {$options(-constrainedwidth)} {
+            #puts stderr "*** $self _resize_: updating  win -width to [winfo width $win]"
             $hull itemconfigure win -width [winfo width $win]
         }
         if {$options(-constrainedheight)} {
+            #puts stderr "*** $self _resize_: updating  win -height to [winfo height $win]"
             $hull itemconfigure win -height [winfo height $win]
         }
+        #puts stderr "*** $self _resize_: win size is [$hull itemcget win -width] [$hull itemcget win -height]"
     }
     method _frameConfigure {width height} {
         #puts stderr "*** $self _frameConfigure $width $height"
+        #puts stderr "*** $self _frameConfigure: uframe is [winfo width $uframe] [winfo height $uframe]"
+        #puts stderr "*** $self _frameConfigure: win is [winfo width $win] [winfo height $win]"
         if {[winfo height $uframe] < [winfo height $win]} {
             set height [winfo height $win]
         }
