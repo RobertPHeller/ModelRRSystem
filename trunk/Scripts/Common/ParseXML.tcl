@@ -129,17 +129,20 @@ snit::type SimpleDOMElement {
     }
     return {}
   }
-  method getElementsByTagName {thetag} {
+  method getElementsByTagName {thetag args} {
     ## Method to return all of the elements under this element with the 
     # specified tag name.
     # @param thetag The tag to match.
     # @return A list of element object with the matching tag.
     set result {}
+    set depth [from args -depth -1]
     if {"$thetag" eq $options(-tag)} {
       lappend result $self
     }
+    if {$depth == 0} {return $result}
+    if {$depth > 0} {incr depth -1}
     foreach child $_children {
-      set elts [$child getElementsByTagName $thetag]
+      set elts [$child getElementsByTagName $thetag -depth $depth]
       foreach e $elts {lappend result $e}
     }
     return $result
