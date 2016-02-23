@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160221.1604>
+#  Last Modified : <160223.1739>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -115,7 +115,58 @@ namespace eval lcc {
         stream
         ## Stream frame.
     }
+    snit::listtype databuf -minlen 1 -maxlen 64 -type lcc::byte
+    ## @typedef list databuf
+    # A list of bytes, from 1 ro 64 elements
     
+    snit::listtype eventidlist -minlen 8 -maxlen 8 -type lcc::byte
+    snit::stringtype eventidstring -regexp {^([[:xdigit:]]{2})\.([[:xdigit:]]{2})\.([[:xdigit:]]{2})\.([[:xdigit:]]{2})\.([[:xdigit:]]{2})\.([[:xdigit:]]{2})\.([[:xdigit:]]{2})\.([[:xdigit:]]{2})$}
+    
+    snit::type EventID {
+        typevariable EVENTIDFMT "%02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X"
+        option -eventidstring -type lcc::eventidstring \
+              -default {00.00.00.00.00.00.00.00} \
+              -configuremethod _setEventID \
+              -cgetmethod _getEventID
+        option -eventidlist   -type lcc::eventidlist \
+              -default {0 0 0 0 0 0 0 0} \
+              -configuremethod _setEventID \
+              -cgetmethod _getEventID
+        variable _eventID {0 0 0 0 0 0 0 0}
+        method _setEventID {option value} {
+            switch -- $option {
+                -eventidstring {
+                    set _eventID [scan $value [string tolower $EVENTIDFMT]]
+                }
+                -eventidlist {
+                    set _eventID $value
+                }
+            }
+        }
+        method _getEventID {option} {
+            switch -- $option {
+                -eventidstring {
+                    return [eval [list format [string toupper $EVENTIDFMT]] $_eventID]
+                }
+                -eventidlist {
+                    return $_eventID
+                }
+            }
+        }
+        constructor {args} {
+            $self configurelist $args
+        }
+        typemethod validate {object} {
+            if {[catch {$object info type} thetype]} {
+                error [_ "%s is not an Event ID" $object]
+            } elseif {$type ne $thetype} {
+                error [_ "%s is not an Event ID" $object]
+            } else {
+                return $object
+            }
+        }
+    }
+
     snit::macro ::lcc::AbstractMessage {} {
         ## @brief Define common variables and accessor methods
         #
@@ -1540,14 +1591,14 @@ namespace eval lcc {
             # @param address Twelve bit alias address.
             
             lcc::twelvebits validate $address
-            puts stderr "*** $self protosupport $address"
+            #puts stderr "*** $self protosupport $address"
             $mtiheader configure -mti 0x0828 -srcid $myalias -frametype 1
             set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
                          -extended true -data [list \
                                                [expr {($address & 0x0F00) >> 8}] \
                                                [expr {$address & 0x00FF}]] \
                          -length 2]
-            puts stderr "*** $self protosupport: message is [$message toString]"
+            #puts stderr "*** $self protosupport: message is [$message toString]"
             $self _sendmessage $message
         }
         method identifyevents {args} {
@@ -1557,10 +1608,10 @@ namespace eval lcc {
             # @arg -address Optional address to use, as a two byte list.
             # @par
             
-            puts stderr "*** $self identifyevents $args"
+            #puts stderr "*** $self identifyevents $args"
             set address [from args -address 0]
             lcc::twelvebits validate $address
-            puts stderr "*** $self identifyevents: address = $address"
+            #puts stderr "*** $self identifyevents: address = $address"
             if {$address == 0} {
                 $mtiheader configure -mti 0x0970 -srcid $myalias -frametype 1
                 set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
@@ -1580,35 +1631,37 @@ namespace eval lcc {
             #
             # @param event Eight byte event number.
             
-            puts stderr "*** $self identifyconsumer $event"
+            #puts stderr "*** $self identifyconsumer $event"
             $mtiheader configure -mti 0x08F4 -srcid $myalias -frametype 1
             set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
                          -extended true -data $event -length 8]
-            puts stderr "*** $self identifyconsumer: message is [$message toString]"
+            #puts stderr "*** $self identifyconsumer: message is [$message toString]"
             $self _sendmessage $message
         }
         method getConfigOptions {address} {
             ## Send Get configuration options datagram command
-            puts stderr "*** $self getConfigOptions $address"
+            
+            #puts stderr "*** $self getConfigOptions $address"
             lcc::twelvebits validate $address
             $mtidetail configure -streamordatagram yes -destid $address \
                   -datagramcontent complete -srcid $myalias
-            puts "*** $self  getConfigOptions \[$mtidetail getHeader\] = [$mtidetail getHeader]"
+            #puts "*** $self  getConfigOptions \[$mtidetail getHeader\] = [$mtidetail getHeader]"
             set message [CanMessage %AUTO% -header [$mtidetail getHeader] \
                          -extended true -data [list 0x20 0x80] -length 2]
-            puts stderr "*** $self  getConfigOptions message is [$message toString]"
+            #puts stderr "*** $self  getConfigOptions message is [$message toString]"
             $self _sendmessage $message
         }
         method getAddrSpaceInfo {address space} {
             ## Send Address Space Information datagram command
-            puts stderr "*** $self getAddrSpaceInfo $address $space"
+            
+            #puts stderr "*** $self getAddrSpaceInfo $address $space"
             lcc::twelvebits validate $address
             $mtidetail configure -streamordatagram yes -destid $address \
                   -datagramcontent complete -srcid $myalias
             set message [CanMessage %AUTO% -header [$mtidetail getHeader] \
                          -extended true -data [list 0x20 0x84 $space] \
                          -length 3]
-            puts stderr "*** $self getAddrSpaceInfo message is [$message toString]"
+            #puts stderr "*** $self getAddrSpaceInfo message is [$message toString]"
             $self _sendmessage $message
         }
         method DatagramAck {address} {
@@ -1617,7 +1670,7 @@ namespace eval lcc {
             # @param address Destination address.
             
             lcc::twelvebits validate $address
-            puts stderr "*** $self DatagramAck $address"
+            #puts stderr "*** $self DatagramAck $address"
             $mtiheader configure -mti 0x0A28 -srcid $myalias -frametype 1
             set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
                          -extended true -data [list \
@@ -1625,7 +1678,7 @@ namespace eval lcc {
                                                [expr {$address & 0x00FF}] \
                                                0x00] \
                          -length 3]
-            puts stderr "*** $self DatagramAck message is [$message toString]"
+            #puts stderr "*** $self DatagramAck message is [$message toString]"
             $self _sendmessage $message
         }
         method getSimpleNodeInfo {address} {
@@ -1636,6 +1689,14 @@ namespace eval lcc {
                                                [expr {($address & 0x0F00) >> 8}] \
                                                [expr {$address & 0x00FF}]] \
                          -length 2]
+            $self _sendmessage $message
+        }
+        method produceevent {eventid} {
+            lcc::EventID validate $eventid
+            set data [$eventid cget -eventidlist]
+            $mtiheader configure -mti 0x05B4 -srcid $myalias -frametype 1
+            set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
+                         -extended true -data $data -length 8]
             $self _sendmessage $message
         }
         method DatagramRead {destination space address length} {
@@ -1666,8 +1727,64 @@ namespace eval lcc {
             lappend data $length
             set message [CanMessage %AUTO% -header [$mtidetail getHeader] \
                          -extended true -data $data -length [llength $data]]
-            puts stderr "*** $self DatagramRead message is [$message toString]"
+            #puts stderr "*** $self DatagramRead message is [$message toString]"
             $self _sendmessage $message
+        }
+        method DatagramWrite {destination space address databuffer} {
+            lcc::twelvebits validate $destination
+            lcc::byte validate $space
+            lcc::sixteenbits validate $address
+            lcc::databuf validate $databuffer
+            
+            $mtidetail configure -streamordatagram yes -destid $destination \
+                  -datagramcontent complete -srcid $myalias
+            set data [list 0x20]
+            set spacein6 no
+            if {$space == 0xFD} {
+                lappend data 0x01
+            } elseif {$space == 0xFE} {
+                lappend data 0x02
+            } elseif {$space == 0xFF} {
+                lappend data 0x03
+            } else {
+                lappend data 0x00
+                set spacein6 yes
+            }
+            lappend data [expr {($address & 0xFF000000) >> 24}]
+            lappend data [expr {($address & 0x00FF0000) >> 16}]
+            lappend data [expr {($address & 0x0000FF00) >>  8}]
+            lappend data [expr {($address & 0x000000FF) >>  0}]
+            if {$spacein6} {lappend data $space}
+            foreach b $databuffer {lappend data $b}
+            if {[llength $data] <= 8} {
+                set message [CanMessage %AUTO% -header [$mtidetail getHeader] \
+                             -extended true -data $data -length [llength $data]]
+                #puts stderr "*** $self DatagramWrite message is [$message toString]"
+                $self _sendmessage $message
+            } else {
+                $mtidetail configure -datagramcontent first
+                set message [CanMessage %AUTO% -header [$mtidetail getHeader] \
+                             -extended true -data [lrange $data 0 7] \
+                             -length 8]
+                #puts stderr "*** $self DatagramWrite message is [$message toString]"
+                $self _sendmessage $message
+                set remainder [lrange $data 8 end]
+                while {[llength $remainder] > 8} {
+                    $mtidetail configure -datagramcontent middle
+                    set message [CanMessage %AUTO% -header [$mtidetail getHeader] \
+                                 -extended true -data [lrange $remainder 0 7] \
+                                 -length 8]
+                    #puts stderr "*** $self DatagramWrite message is [$message toString]"
+                    $self _sendmessage $message
+                    set remainder [lrange $remainder 8 end]
+                }
+                $mtidetail configure -datagramcontent last
+                set message [CanMessage %AUTO% -header [$mtidetail getHeader] \
+                                 -extended true -data $remainder \
+                                 -length [llength $remainder]]
+                #puts stderr "*** $self DatagramWrite message is [$message toString]"
+                $self _sendmessage $message
+            }
         }
                          
             
@@ -1680,15 +1797,15 @@ namespace eval lcc {
             #
             if {[gets $ttyfd message]} {
                 $gcreply configure -message $message
-                puts stderr "*** $self _messageReader: message is $message"
+                #puts stderr "*** $self _messageReader: message is $message"
                 set r [$gcreply createReply]
                 $canheader setHeader [$r getHeader]
-                puts stderr "*** $self _messageReader: canheader : [$canheader configure]"
+                #puts stderr "*** $self _messageReader: canheader : [$canheader configure]"
                 if {[$canheader cget -openlcbframe]} {
                     $mtiheader setHeader [$canheader getHeader]
                     $mtidetail setHeader [$canheader getHeader]
-                    puts stderr "*** $self _messageReader: mtiheader : [$mtiheader configure]"
-                    puts stderr "*** $self _messageReader: mtidetail : [$mtidetail configure]"
+                    #puts stderr "*** $self _messageReader: mtiheader : [$mtiheader configure]"
+                    #puts stderr "*** $self _messageReader: mtidetail : [$mtidetail configure]"
                     if {[$mtiheader cget -frametype] == 1 &&
                         [$mtidetail cget -addressp]} {
                         set destid [expr {(([lindex [$r getData] 0] & 0x0F) << 8) | [lindex [$r getData] 1]}]
@@ -1711,13 +1828,13 @@ namespace eval lcc {
                     # Not a OpenLCB message.
                     # Check for an Error Information Report
                     set vf [$canheader cget -variablefield]
-                    puts stderr "[format {*** %s _messageReader: vf = 0x%04X} $self $vf]"
+                    #puts stderr "[format {*** %s _messageReader: vf = 0x%04X} $self $vf]"
                     if {$vf == 0x0701} {
                         # AMD frame
-                        puts stderr "*** $self _messageReader: received AMD frame"
+                        #puts stderr "*** $self _messageReader: received AMD frame"
                         set srcalias [$canheader cget -srcid]
                         set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
-                        puts stderr "[format {*** %s _messageReader: srcalias = 0x%03X, srcnid = %s} $self $srcalias $srcnid]"
+                        #puts stderr "[format {*** %s _messageReader: srcalias = 0x%03X, srcnid = %s} $self $srcalias $srcnid]"
                         set nidMap($srcalias) $srcnid
                         set aliasMap($srcnid) $srcalias
                     } elseif {$vf == 0x0702} {
@@ -1814,7 +1931,7 @@ namespace eval lcc {
             #
             # @param canmessage The binary CAN message to be sent.
             
-            puts stderr "*** $self _sendmessage [$canmessage toString]"
+            #puts stderr "*** $self _sendmessage [$canmessage toString]"
             $gcmessage configure -canmessage $canmessage
             puts $ttyfd [$gcmessage toString]
             flush $ttyfd

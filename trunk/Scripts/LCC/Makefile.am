@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160221.1050>
+#  Last Modified : <160223.0949>
 #
 #  Description	
 #
@@ -45,14 +45,14 @@
 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
-EXTRA_DIST = lcc.tcl lcctest.src
+EXTRA_DIST = lcc.tcl lcctest.src ConfigurationEditor.tcl
 
 pkgdatadir = $(datadir)/$(PACKAGE)/LCC
 pkgdata_DATA = lcc.tcl pkgIndex.tcl
 
 CLEANFILES = pkgIndex.tcl
 
-pkgIndex.tcl : lcc.tcl
+pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl
 	for f in $(notdir $^) ; do \
 	   if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi;\
 	done
@@ -68,9 +68,11 @@ LCCTestSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
 		$(top_srcdir)/Scripts/Common/mainwindow.tcl \
 		$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
 		$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+		$(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
                 $(top_srcdir)/Scripts/Common/snitLFs.tcl \
                 $(top_srcdir)/Scripts/Common/snitrotext.tcl \
                 $(top_srcdir)/Scripts/Common/ParseXML.tcl \
+                $(top_srcdir)/Scripts/LCC/ConfigurationEditor.tcl \
                 $(top_srcdir)/Scripts/LCC/lcc.tcl \
 		$(top_builddir)/Scripts/Common/Version.tcl \
 		$(top_srcdir)/Scripts/Common/questhead.xbm \
