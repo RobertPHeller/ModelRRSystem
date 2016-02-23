@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon May 13 20:08:01 2013
-#  Last Modified : <130523.1000>
+#  Last Modified : <160223.1434>
 #
 #  Description	
 #
@@ -69,7 +69,8 @@ snit::widget ScrolledWindow {
               -takefocus 0 -orient horizontal
         install vscroll using ttk::scrollbar $win.vscroll \
               -takefocus 0 -orient vertical
-        $self configurelist $args
+        $self _setdata both both se;# prime with defaults
+        $self configurelist $args;# update with actual, if any
         
         if {$options(-managed)} {
             set hsb(packed) $hsb(present)
