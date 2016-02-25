@@ -37,7 +37,7 @@ snit::type LCCTest {
         set button [ttk::button $clf.button -text "Enter" \
                     -command [mytypemethod runcommand]]
         pack $button -side right
-        set lcc [lcc::LCCBufferUSB %AUTO% -eventhandler [mytypemethod eventhandler]]
+        set lcc [eval [list lcc::LCCBufferUSB %AUTO% -eventhandler [mytypemethod eventhandler]] $::argv]
         $mainWindow showit
     }
     typevariable datagrambuffers -array {}

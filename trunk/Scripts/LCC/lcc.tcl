@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160223.1739>
+#  Last Modified : <160224.1438>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -123,7 +123,16 @@ namespace eval lcc {
     snit::stringtype eventidstring -regexp {^([[:xdigit:]]{2})\.([[:xdigit:]]{2})\.([[:xdigit:]]{2})\.([[:xdigit:]]{2})\.([[:xdigit:]]{2})\.([[:xdigit:]]{2})\.([[:xdigit:]]{2})\.([[:xdigit:]]{2})$}
     
     snit::type EventID {
+        ## @brief An event id structure.
+        #
+        # @param ... The options:
+        # @arg -eventidstring The event ID as a string.
+        # @arg -eventidlist The event ID as a list.
+        
         typevariable EVENTIDFMT "%02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X"
+        ## @privatesection @brief Event ID format string.
+        # Event format string, used for both format and scan.
+        
         option -eventidstring -type lcc::eventidstring \
               -default {00.00.00.00.00.00.00.00} \
               -configuremethod _setEventID \
@@ -133,7 +142,18 @@ namespace eval lcc {
               -configuremethod _setEventID \
               -cgetmethod _getEventID
         variable _eventID {0 0 0 0 0 0 0 0}
+        ## @brief Internal representation of an event id, as an 8 byte list.
         method _setEventID {option value} {
+            ## @brief Set (as in configure) the event ID.
+            # Converts the value argument to the internal representation of
+            # the event id,
+            #
+            # @param option Either -eventidstring or -eventidlist.  If it is
+            #               -eventidstring, the string is parsed and converted
+            #               to a list of 8 bytes.  If it is -eventidlist the
+            #               list is just stored.
+            # @param value Either an eventidstring or an eventidlist.
+            #
             switch -- $option {
                 -eventidstring {
                     set _eventID [scan $value [string tolower $EVENTIDFMT]]
@@ -144,6 +164,15 @@ namespace eval lcc {
             }
         }
         method _getEventID {option} {
+            ## @brief Get (as in cget) the event id.
+            # The event id is returned, either as a string or a list.
+            #
+            # @param option Either -eventidstring or -eventidlist.  If it is
+            #               -eventidstring, the event id list is formatted as
+            #               a string.  If it is -eventidlist the event id list
+            #               is just returned.
+            # @return The eventid as a string or a list.
+            
             switch -- $option {
                 -eventidstring {
                     return [eval [list format [string toupper $EVENTIDFMT]] $_eventID]
@@ -154,9 +183,23 @@ namespace eval lcc {
             }
         }
         constructor {args} {
+            ## @publicsection Constuctor: create the event id.
+            # Create an eventid structure.
+            #
+            # @param name The name of the structure.
+            # @param ... The options:
+            # @arg -eventidstring The event ID as a string.
+            # @arg -eventidlist The event ID as a list.
+            
             $self configurelist $args
         }
         typemethod validate {object} {
+            ## @brief Validation method.
+            # Validate EventID objects.
+            # 
+            # @param object The object to type check.
+            # @return The object or raise an error.
+            
             if {[catch {$object info type} thetype]} {
                 error [_ "%s is not an Event ID" $object]
             } elseif {$type ne $thetype} {
@@ -1626,15 +1669,17 @@ namespace eval lcc {
             }
             $self _sendmessage $message
         }
-        method identifyconsumer {event} {
+        method identifyconsumer {eventid} {
             ## Send Identify Consumer message
             #
-            # @param event Eight byte event number.
+            # @param eventid Event ID object.
             
+            lcc::EventID validate $eventid
             #puts stderr "*** $self identifyconsumer $event"
             $mtiheader configure -mti 0x08F4 -srcid $myalias -frametype 1
             set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
-                         -extended true -data $event -length 8]
+                         -extended true -data [$eventid cget -eventidlist] \
+                         -length 8]
             #puts stderr "*** $self identifyconsumer: message is [$message toString]"
             $self _sendmessage $message
         }
@@ -1682,6 +1727,11 @@ namespace eval lcc {
             $self _sendmessage $message
         }
         method getSimpleNodeInfo {address} {
+            ## Send Simple Node Info request message.
+            # 
+            # @param address Alias of the node to fetch the Simple Node Info 
+            # from.
+            
             lcc::twelvebits validate $address
             $mtiheader configure -mti 0x0DE8 -srcid $myalias -frametype 1
             set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
@@ -1692,6 +1742,10 @@ namespace eval lcc {
             $self _sendmessage $message
         }
         method produceevent {eventid} {
+            ## Send a PCRE message.
+            #
+            # @param eventid The EventID to send.
+            
             lcc::EventID validate $eventid
             set data [$eventid cget -eventidlist]
             $mtiheader configure -mti 0x05B4 -srcid $myalias -frametype 1
@@ -1700,6 +1754,13 @@ namespace eval lcc {
             $self _sendmessage $message
         }
         method DatagramRead {destination space address length} {
+            ## Send Datagram Read message.
+            #
+            # @param destination Alias of the node to read from.
+            # @param space Space number.
+            # @param address Address to start reading from.
+            # @param length Number of bytes to read (1-64).
+            
             lcc::twelvebits validate $destination
             lcc::byte validate $space
             lcc::sixteenbits validate $address
@@ -1731,6 +1792,13 @@ namespace eval lcc {
             $self _sendmessage $message
         }
         method DatagramWrite {destination space address databuffer} {
+            ## Send a Datagram Write message.
+            # 
+            # @param destination Alias of the node to read from.
+            # @param space Space number.
+            # @param address Address to start reading from.
+            # @param databuffer Buffer of up to 64 bytes of data to send.
+            
             lcc::twelvebits validate $destination
             lcc::byte validate $space
             lcc::sixteenbits validate $address
@@ -1786,8 +1854,6 @@ namespace eval lcc {
                 $self _sendmessage $message
             }
         }
-                         
-            
         method _messageReader {} {
             ## @privatesection @brief Message reader method.
             # This method is the readable event handler for the serial port

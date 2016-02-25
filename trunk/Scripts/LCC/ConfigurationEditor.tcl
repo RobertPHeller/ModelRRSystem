@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <160223.1731>
+#  Last Modified : <160225.0824>
 #
 #  Description	
 #
@@ -53,16 +53,46 @@ package require ButtonBox
 package require LCC
 
 namespace eval lcc {
+    ## 
+    # @section ConfigurationEditor Package provided
+    #
+    # ConfigurationEditor 1.0
     
     snit::widget ConfigurationEditor {
+        ## @brief Generate OpenLCB Memory Configuration Window.
+        # Create a toplevel to configure a node's Memory using that
+        # node's (parsed) CDI.  This GUI uses tabbed notebook
+        # widgets for segments and replicated groups to reduce the amount
+        # of scrolling (and because a ginormous scrollable frame dies with
+        # a X11 Pixmap allocation error).
+        #
+        # @param Options:
+        # @arg -cdi The parsed CDI xml. Required and there is no default.
+        # @arg -alias The alias of the node to be configured.  Required 
+        #             and there is no default.
+        # @arg -transport The transport object.  Needs to implement 
+        #                 Datagram Read, Datagram Write, and Datagram Ack,
+        #                 and have an -eventhandler option.
+        # @arg -class Delegated to the toplevel.
+        # @arg -menu  Delegated to the toplevel
+        # @arg -height Delegated to the ScrollableFrame
+        # @arg -areaheight Delegated to the ScrollableFrame
+        # @arg -width Delegated to the ScrollableFrame
+        # @arg -areawidth Delegated to the ScrollableFrame
+        
+        
+        
         widgetclass ConfigurationEditor
         hulltype tk::toplevel 
         
         delegate option -class to hull
         delegate option -menu to hull
         component main
+        ## @privatesection Main Frame.
         component scroll
+        ## Scrolled Window.
         component editframe
+        ## Scrollable Frame
         
         option -cdi -readonly yes
         option -alias -readonly yes -type lcc::twelvebits -default 0
@@ -76,8 +106,11 @@ namespace eval lcc {
         
         
         variable cdi
+        ## CDI XML Object.
         variable _ioComplete
+        ## I/O Completion Flag.
         variable status
+        ## Status variable.
         
         typevariable _menu {
             "[_m {Menu|&File}]" {file:menu} {file} 0 {
@@ -88,8 +121,24 @@ namespace eval lcc {
                 {command "[_m {Menu|Edit|C&lear}]" {edit:clear edit:havesel} "[_ {Clear selection}]" {} -command {StdMenuBar EditClear}}
             }
         }
+        ## Generic menu.
         
         constructor {args} {
+            ## @publicsection @brief Constructor: create the configuration editor.
+            # Construct a memory configuration window to edit the configuration
+            # memory of an OpenLCB node.  The window is created from the 
+            # toplevel up.
+            #
+            # @param name Widget path.
+            # @param ... Options:
+            # @arg -class Delegated to the toplevel.
+            # @arg -menu  Delegated to the toplevel
+            # @arg -height Delegated to the ScrollableFrame
+            # @arg -areaheight Delegated to the ScrollableFrame
+            # @arg -width Delegated to the ScrollableFrame
+            # @arg -areawidth Delegated to the ScrollableFrame
+            # @par
+            
             if {[lsearch $args -cdi] < 0} {
                 error [_ "The -cdi option is required!"]
             }
@@ -123,6 +172,8 @@ namespace eval lcc {
 #            $self _processXMLnode $cdi [$main getframe] -1 address
         }
         typevariable idheaders -array {}
+        ## @privatesection Locale versions of the identification headers.
+        
         typeconstructor {
             set idheaders(manufacturer) [_m "Label|Manufacturer"]
             set idheaders(model) [_m "Label|Model"]
@@ -130,12 +181,32 @@ namespace eval lcc {
             set idheaders(softwareVersion) [_m "Label|Software Version"]
         }
         variable _readall -array {}
+        ## Holds all of the Read buttons for each segment.  This allows for
+        # Reading all of the variables in a segment.
         variable _segmentnumber 0
+        ## Segement number, used to insure unique widget names.
         variable _groupnumber 0
+        ## Group number, used to insure unique widget names.
         variable _intnumber 0
+        ## Integer number, used to insure unique widget names.
         variable _stringnumber 0
+        ## String number, used to insure unique widget names.
         variable _eventidnumber 0
+        ## Eventid number, used to insure unique widget names.
         method _processXMLnode {n frame space address_var} {
+            ## @brief Process one node in the XML tree.
+            # Process a single node in the XML tree.  Will recurse to process
+            # Children nodes.
+            # 
+            # Ttk::labelframes are used for variables with names. Ttk::notebooks, except 
+            # segments and groups.  A ttk::labelframe is also used for the
+            # information block.
+            #
+            # @param n The node.
+            # @param frame The parent frame.
+            # @param space The current space.
+            # @param address_var The name of the address variable.
+            
             #puts stderr "*** $self _processXMLnode $n $frame $space $address_var"
             upvar $address_var address
             
@@ -231,15 +302,19 @@ namespace eval lcc {
                                  -text $description]
                         pack $lab -expand yes -fill x
                     }
+                    set groupnotebook {}
                     foreach c [$n children] {
                         set tag [$c cget -tag]
-                        if {[lsearch {name description group} $tag] >= 0} {continue}
-                        $self _processXMLnode $c $segmentframe $space address
-                    }
-                    set groupnotebook [ttk::notebook $segmentframe.groups]
-                    pack $groupnotebook -expand yes -fill both
-                    foreach g [$n getElementsByTagName group -depth 1] {
-                        $self _processXMLnode $g $groupnotebook $space address
+                        if {[lsearch {name description} $tag] >= 0} {continue}
+                        if {[$c cget -tag] eq "group"} {
+                            if {$groupnotebook eq {}} {
+                                set groupnotebook [ttk::notebook $segmentframe.groups]
+                                pack $groupnotebook -expand yes -fill both
+                            }
+                            $self _processXMLnode $c $groupnotebook $space address
+                        } else {
+                            $self _processXMLnode $c $segmentframe $space address
+                        }
                     }
                     set readall [ttk::button $segmentframe.readall \
                                  -text [_m "Label|Read All"] \
@@ -546,6 +621,8 @@ namespace eval lcc {
             #update idle
         }
         method _close {} {
+            ## @brief Close the window. 
+            # The window is withdrawn.
             wm withdraw $win
         }
         variable oldeventhandler {}

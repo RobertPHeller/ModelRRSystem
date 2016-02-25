@@ -12,7 +12,8 @@ CMriTcls = $(top_srcdir)/Scripts/CMri/cmri.tcl
 
 CTIAcelaTcls = $(top_srcdir)/Scripts/CTIAcela/CTIAcela.tcl
 
-LCCTcls = $(top_srcdir)/Scripts/LCC/lcc.tcl
+LCCTcls = $(top_srcdir)/Scripts/LCC/lcc.tcl \
+          $(top_srcdir)/Scripts/LCC/ConfigurationEditor.tcl
 
 #MRDHeaders = $(top_builddir)/C++/MRD/mrd.h
 
@@ -75,7 +76,9 @@ COMMON_TCL_INTERNALS_TCLS = $(top_srcdir)/Scripts/Common/CommonTclGroup.h \
 			    $(top_srcdir)/Scripts/Common/splash.tcl \
 			    $(top_srcdir)/Scripts/Common/mainwindow.tcl \
 			    $(top_srcdir)/Scripts/Common/CabWidgets.tcl \
-			    $(top_srcdir)/Scripts/Common/gettext.tcl
+			    $(top_srcdir)/Scripts/Common/gettext.tcl \
+			    $(top_srcdir)/Scripts/Common/ParseXML.tcl
+			    
 GRSUPPORT_TCL_INTERNALS_TCLS = $(top_srcdir)/Scripts/GRSupport/GRSupportTclGroup.h \
 			       $(top_srcdir)/Scripts/GRSupport/grsupport2.tcl \
 			       $(top_srcdir)/Scripts/GRSupport/Instruments2.tcl \
