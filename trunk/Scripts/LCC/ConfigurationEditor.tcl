@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <160225.0824>
+#  Last Modified : <160228.1058>
 #
 #  Description	
 #
@@ -50,6 +50,7 @@ package require ScrollWindow
 package require MainFrame
 package require snitStdMenuBar
 package require ButtonBox
+package require ScrollTabNotebook
 package require LCC
 
 namespace eval lcc {
@@ -373,7 +374,8 @@ namespace eval lcc {
                         set repnamefmt {%d}
                     }
                     if {$replication > 1} {
-                        set replnotebook [ttk::notebook $groupframe.replnotebook]
+                        #set replnotebook [ttk::notebook $groupframe.replnotebook]
+                        set replnotebook [ScrollTabNotebook $groupframe.replnotebook]
                         pack $replnotebook  -expand yes -fill both
                         for {set i 1} {$i <= $replication} {incr i} {
                             #set replscrollframe [ScrolledWindow \
