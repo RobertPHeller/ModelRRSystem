@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160223.0949>
+#  Last Modified : <160301.1156>
 #
 #  Description	
 #
@@ -45,7 +45,9 @@
 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
-EXTRA_DIST = lcc.tcl lcctest.src ConfigurationEditor.tcl
+EXTRA_DIST = lcc.tcl lcctest.src ConfigurationEditor.tcl OpenLCB.tcl
+
+bin_SCRIPTS = OpenLCB${EXEEXT}
 
 pkgdatadir = $(datadir)/$(PACKAGE)/LCC
 pkgdata_DATA = lcc.tcl pkgIndex.tcl
@@ -72,6 +74,7 @@ LCCTestSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
                 $(top_srcdir)/Scripts/Common/snitLFs.tcl \
                 $(top_srcdir)/Scripts/Common/snitrotext.tcl \
                 $(top_srcdir)/Scripts/Common/ParseXML.tcl \
+                $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
                 $(top_srcdir)/Scripts/LCC/ConfigurationEditor.tcl \
                 $(top_srcdir)/Scripts/LCC/lcc.tcl \
 		$(top_builddir)/Scripts/Common/Version.tcl \
@@ -142,6 +145,94 @@ install-exec-local: LCCTest.app
 	$(top_srcdir)/BuildScripts/macappInstall.sh LCCTest.app $(DESTDIR)$(bindir)
 
 LCCTest.app: LCCTest${EXEEXT}
+
+endif
+
+OpenLCBSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+                $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
+                $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+                $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+                $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+		$(top_srcdir)/Scripts/Common/gettext.tcl \
+		$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+		$(top_srcdir)/Scripts/Common/mainwindow.tcl \
+		$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+		$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+		$(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
+                $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+                $(top_srcdir)/Scripts/Common/snitrotext.tcl \
+                $(top_srcdir)/Scripts/Common/ParseXML.tcl \
+                $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
+                $(top_srcdir)/Scripts/LCC/ConfigurationEditor.tcl \
+                $(top_srcdir)/Scripts/LCC/lcc.tcl \
+		$(top_builddir)/Scripts/Common/Version.tcl \
+		$(top_srcdir)/Scripts/Common/questhead.xbm \
+		$(top_srcdir)/Scripts/Common/unknown.xpm
+		
+
+OpenLCB.pot: OpenLCB.tcl lcc.tcl \
+		$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
+	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
+		-k_m -L Tcl $(addprefix $(subdir)/,OpenLCB.tcl lcc.tcl) \
+		Scripts/Common/snitStdMenuBar.tcl|\
+	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
+	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
+	    -e 's/FIRST AUTHOR <EMAIL@ADDRESS>,/Robert Heller <heller@deepsoft.com>/g' \
+	    -e 's/SOME DESCRIPTIVE TITLE/Messages for OpenLCB/g' \
+	    -e "s/YEAR/`date +%Y`/g" \
+	    -e 's/CHARSET/ascii/g' >OpenLCB.pot
+
+OpenLCB${EXEEXT}: OpenLCB.tcl $(OpenLCBSCRIPTS)
+	-rm -f  OpenLCB.kit
+	-rm -rf  OpenLCB.vfs
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB.tcl
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap OpenLCB.kit
+	-rm -f  OpenLCB.kit
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB \
+		lib $(SNITLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB \
+		lib $(URILIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
+		lib/Common $(OpenLCBSCRIPTS)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB \
+		Common
+	$(UNZIP) -qq -d OpenLCB.vfs/lib \
+		$(top_srcdir)/BuildData/$(IMG_ZIP)
+	$(UNZIP) -qq -d OpenLCB.vfs/lib \
+		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
+	-rm -rf OpenLCB.vfs
+if MACOSX
+# create application for Mac OSX                                               $
+	-rm -rf OpenLCB.app
+	mkdir -p OpenLCB.app/Contents/MacOS/
+	cp OpenLCB$(EXEEXT) OpenLCB.app/Contents/MacOS/
+	mkdir -p OpenLCB.app/Contents/Resources/
+	-rm -rf OpenLCB.iconset
+	mkdir OpenLCB.iconset
+	sips -z 16 16     $(srcdir)/OpenLCB.png --out OpenLCB.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/OpenLCB.png --out OpenLCB.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/OpenLCB.png --out OpenLCB.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/OpenLCB.png --out OpenLCB.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/OpenLCB.png --out OpenLCB.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/OpenLCB.png --out OpenLCB.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/OpenLCB.png --out OpenLCB.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/OpenLCB.png --out OpenLCB.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/OpenLCB.png --out OpenLCB.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/OpenLCB.png --out OpenLCB.iconset/icon_512x512@2x.png
+	iconutil -c icns OpenLCB.iconset
+	-rm -rf OpenLCB.iconset
+	cp OpenLCB.icns OpenLCB.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit OpenLCB 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o OpenLCB.app/Contents/Info.plist \
+		OpenLCB.plist
+	-rm -f OpenLCB.plist OpenLCB.icns
+
+install-exec-local: OpenLCB.app
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh OpenLCB.app $(DESTDIR)$(bindir)
+
+OpenLCB.app: OpenLCB${EXEEXT}
 
 endif
 
