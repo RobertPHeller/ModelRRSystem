@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Feb 27 15:54:05 2016
-#  Last Modified : <160302.1532>
+#  Last Modified : <160302.1537>
 #
 #  Description	
 #
@@ -689,7 +689,9 @@ static unsigned char right_bits[] = {
             $self _draw_page $select 0
             set padx [lindex $pages_opts($select,-padding) 0]
             set pady [lindex $pages_opts($select,-padding) 1]
-            grid $select -column 0 -in $win -row $_clientRow -padx $padx -pady $pady
+            set sticky $pages_opts($select,-sticky)
+            grid $select -column 0 -in $win -row $_clientRow \
+                  -padx $padx -pady $pady -sticky $sticky
         }
     }
     method _redraw {} {
@@ -716,7 +718,9 @@ static unsigned char right_bits[] = {
         if {$select ne ""} {
             set padx [lindex $pages_opts($select,-padding) 0]
             set pady [lindex $pages_opts($select,-padding) 1]
-            grid $select -column 0 -in $win -row $_clientRow -padx $padx -pady $pady
+            set sticky $pages_opts($select,-sticky)
+            grid $select -column 0 -in $win -row $_clientRow -padx $padx \
+                  -pady $pady -sticky $sticky
         }
         $self _compute_height
         foreach page $pages {
