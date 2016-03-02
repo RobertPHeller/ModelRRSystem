@@ -77,7 +77,8 @@ COMMON_TCL_INTERNALS_TCLS = $(top_srcdir)/Scripts/Common/CommonTclGroup.h \
 			    $(top_srcdir)/Scripts/Common/mainwindow.tcl \
 			    $(top_srcdir)/Scripts/Common/CabWidgets.tcl \
 			    $(top_srcdir)/Scripts/Common/gettext.tcl \
-			    $(top_srcdir)/Scripts/Common/ParseXML.tcl
+			    $(top_srcdir)/Scripts/Common/ParseXML.tcl \
+			    $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl
 			    
 GRSUPPORT_TCL_INTERNALS_TCLS = $(top_srcdir)/Scripts/GRSupport/GRSupportTclGroup.h \
 			       $(top_srcdir)/Scripts/GRSupport/grsupport2.tcl \
