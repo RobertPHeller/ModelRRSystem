@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Feb 27 15:54:05 2016
-#  Last Modified : <160302.1537>
+#  Last Modified : <160302.1820>
 #
 #  Description	
 #
@@ -112,6 +112,8 @@ snit::widget ScrollTabNotebook {
     ## Tab radius and bevelsize type checker.
     typevariable _paddingtype
     ## Tab padding type checker.
+    typevariable _warrow 12
+    ## Width of an arrow button.
     
     typevariable _left {
 #define left_width 16
@@ -629,6 +631,11 @@ static unsigned char right_bits[] = {
         return $x
     }
     method _xview {inc} {
+        ## Shift the tabs to the left or right.
+        #
+        # @param inc The shift increment, negative to the left, positive to 
+        # the right.
+        
         #puts stderr "*** $self _xview $inc"
         if {$inc == -1} {
             set lbase [expr {$base - 1}]
@@ -645,6 +652,11 @@ static unsigned char right_bits[] = {
     }
     
     method _highlight {flag page} {
+        ## Turn highlighting on or off for the specified tab.
+        #
+        # @param flag Flag to indicate turning highlighting on or off.
+        # @param page The page whose tab to turn highlighting on or off.
+        
         if {$pages_opts($page,-state) eq "disabled"} {return}
         switch $flag {
             on {
@@ -1075,8 +1087,9 @@ static unsigned char right_bits[] = {
             }
         }
     }
-    typevariable _warrow 12
     method _draw_arrows {} {
+        ## Draw the arrow buttons if needed.
+        
         #puts stderr "*** $self _draw_arrows"
         set w [expr {[winfo width $tabs] - 1}]
         set h [expr {$_hpage -1}]
@@ -1098,6 +1111,8 @@ static unsigned char right_bits[] = {
         }
     }
     method _resize {} {
+        ## Resize the widget.
+        
         if {!$realized} {
             if {[set width [$self cget -width]] == 0 ||
                 [set height [$self cget -height]] == 0 } {
