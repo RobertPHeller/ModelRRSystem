@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160301.1242>
+#  Last Modified : <160303.1745>
 #
 #  Description	
 #
@@ -80,7 +80,8 @@ package require LabelFrames
 package require LCC
 package require ParseXML
 package require ConfigurationEditor
-
+package require EventDialogs
+package require ConfigDialogs
 
 
 snit::type OpenLCB {
@@ -99,6 +100,7 @@ snit::type OpenLCB {
     typevariable simplenodeinfo_meta -array {}
     typevariable datagrambuffers -array {}
     typevariable memoryspaceinfos -array {}
+    typevariable configoptions -array {}
     typevariable _readcompleteFlag 0
     typevariable simplenodeinfo -array {}
     typevariable simplenodeinfo_meta -array {}
@@ -195,6 +197,7 @@ snit::type OpenLCB {
             }
         }
         $nodetree tag bind protocol_CDI <ButtonPress-1> [mytypemethod _ReadCDI %x %y]
+        $nodetree tag bind protocol_MemoryConfig <ButtonPress-1> [mytypemethod _MemoryConfig %x %y]
         $mainWindow showit
     }
     typevariable CDIs_text -array {}
@@ -285,6 +288,38 @@ snit::type OpenLCB {
             wm deiconify $CDIs_FormTLs($sourceaddress)
         }
     }
+    typemethod _MemoryConfig {x y} {
+        #puts stderr "*** $type _MemoryConfig $x $y"
+        set id [$nodetree identify row $x $y]
+        #puts stderr "*** $type _MemoryConfig: id = $id"
+        set nid [regsub {_protocols_MemoryConfig} $id {}]
+        #puts stderr "*** $type _MemoryConfig: nid = $nid"
+        set sourceaddress [$lcc getAliasOfNID $nid]
+        #puts stderr [format {*** %s _MemoryConfig: alias = 0x%03X} $type $sourceaddress]
+        set count 10
+        while {![info exists configoptions($sourceaddress,available)] && $count > 0} {
+            set _readcompleteFlag 0
+            $lcc getConfigOptions $sourceaddress
+            vwait [mytypevar _readcompleteFlag]
+            incr count -1
+        }
+        if {![info exists configoptions($sourceaddress,available)]} {
+            tk_messageBox -icon warning \
+                  -message [_ "Could not get configuration options for %s!" $nid] \
+                  -type ok
+        } else {
+            lcc::ConfigOptions .configopts${sourceaddress}%AUTO% \
+                  -nid $nid \
+                  -available $configoptions($sourceaddress,available) \
+                  -writelengths $configoptions($sourceaddress,writelens) \
+                  -highest $configoptions($sourceaddress,highest) \
+                  -lowest $configoptions($sourceaddress,lowest) \
+                  -name "$configoptions($sourceaddress,name)"
+        }
+        lcc::ConfigMemory .configmem${sourceaddress}%AUTO% \
+              -destaddress $nid \
+              -transport $lcc
+    }
     
     typemethod eventhandler {canmessage} {
         #puts stderr "*** $type eventhandler [$canmessage toString]"
@@ -319,10 +354,15 @@ snit::type OpenLCB {
                 switch [format {0x%02X} [lindex $datagrambuffers($srcid) 1]] {
                     0x82 {
                         # Get Config Options Reply
-                        set availcmds [expr {([lindex $datagrambuffers($srcid) 2] << 8) | [lindex $datagrambuffers($srcid) 3]}]
-                        set writelens [lindex $datagrambuffers($srcid) 4]
-                        set highest   [lindex $datagrambuffers($srcid) 5]
-                        set lowest    [lindex $datagrambuffers($srcid) 6]
+                        set configoptions($srcid,available) [expr {([lindex $datagrambuffers($srcid) 2] << 8) | [lindex $datagrambuffers($srcid) 3]}]
+                        set configoptions($srcid,writelens) [lindex $datagrambuffers($srcid) 4]
+                        set configoptions($srcid,highest)   [lindex $datagrambuffers($srcid) 5]
+                        set configoptions($srcid,lowest)    [lindex $datagrambuffers($srcid) 6]
+                        set configoptions($srcid,name) ""
+                        set stringdata [lrange $datagrambuffers($srcid) 7 end]
+                        foreach c $stringdata {
+                            append configoptions($srcid,name) [format %c $c]
+                        }
                     }
                     0x86 -
                     0x87 {
@@ -462,7 +502,16 @@ snit::type OpenLCB {
                    incr _readcompleteFlag
                 }
             }
+        } elseif {[$mtiheader cget -mti] == 0x05B4} {
+            # event received (PCER message)
+            set eventID [lrange [$canmessage getData] 0 7]
+            set srcid [$mtiheader cget -srcid]
+            lcc::EventReceived .eventreceived${srcid}%AUTO% \
+                  -srcid [$lcc getNIDofAlias $srcid] \
+                  -eventid [lcc::EventID %AUTO% \
+                            -eventidlist $eventID]
         }
+            
     }
     typemethod getSimpleNodeInfo {address} {
         set _readcompleteFlag 0

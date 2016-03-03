@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160301.1156>
+#  Last Modified : <160303.1440>
 #
 #  Description	
 #
@@ -45,7 +45,8 @@
 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
-EXTRA_DIST = lcc.tcl lcctest.src ConfigurationEditor.tcl OpenLCB.tcl
+EXTRA_DIST = lcc.tcl lcctest.src ConfigurationEditor.tcl eventDialogs.tcl \
+		ConfigDialogs.tcl OpenLCB.tcl
 
 bin_SCRIPTS = OpenLCB${EXEEXT}
 
@@ -54,7 +55,8 @@ pkgdata_DATA = lcc.tcl pkgIndex.tcl
 
 CLEANFILES = pkgIndex.tcl
 
-pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl
+pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
+		ConfigDialogs.tcl
 	for f in $(notdir $^) ; do \
 	   if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi;\
 	done
@@ -165,6 +167,8 @@ OpenLCBSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
                 $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
                 $(top_srcdir)/Scripts/LCC/ConfigurationEditor.tcl \
                 $(top_srcdir)/Scripts/LCC/lcc.tcl \
+                $(top_srcdir)/Scripts/LCC/eventDialogs.tcl \
+                $(top_srcdir)/Scripts/LCC/ConfigDialogs.tcl \
 		$(top_builddir)/Scripts/Common/Version.tcl \
 		$(top_srcdir)/Scripts/Common/questhead.xbm \
 		$(top_srcdir)/Scripts/Common/unknown.xpm
