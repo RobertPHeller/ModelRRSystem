@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Mar 3 14:36:20 2016
-#  Last Modified : <160303.1641>
+#  Last Modified : <160305.0846>
 #
 #  Description	
 #
@@ -63,9 +63,9 @@ namespace eval lcc {
         # @par
         
         component source
-        ## @privatesection LabelEntry (RO) containing the source address
+        ## @privatesection LabelEntry (RO) containing the source address.
         component eventid
-        ## LabelEntry (RO) containing the eventId
+        ## LabelEntry (RO) containing the eventId.
         option -srcid -readonly yes -type lcc::nid -default 00:00:00:00:00:00
         option -eventid -readonly yes -type lcc::EventID
         constructor {args} {
@@ -103,6 +103,51 @@ namespace eval lcc {
         }
     }
     snit::widgetadaptor SendEvent {
+        ## Send Event Dialog -- send PCRE message.
+        #
+        # Options:
+        # @arg -transport The transport to use.
+        # @par
+        
+        delegate method draw to hull
+        component eventid
+        ## @privatesection LabelEntry containing the eventId.
+        option -transport -readonly yes -default {}
+        constructor {args} {
+            ## @publicsection Construct a SendEvent dialog.
+            #
+            # @param name Pathname of the widget.
+            # @param ... Options:
+            # @arg -transport LCC Transport object.
+            # @par
+            
+            installhull using Dialog -separator 0 \
+                  -modal none -parent . -place center \
+                  -side bottom \
+                  -title {Configuration R/W Tool 00:00:00:00:00:00} \
+                  -transient 1 -anchor e \
+                  -class ConfigMemory
+            $hull add close -text Close -underline 0 -command [mymethod _Close]
+            $hull add send  -text Send  -underline 0 -command [mymethod _Send]
+            if {[lsearch $args -transport] < 0} {
+                error [_ "The -transport option is required!"]
+            }
+            $self configurelist $args
+            set dframe [$hull getframe]
+            install eventid using LabelEntry $dframe.eventid \
+                  -label "Event ID: " -text "00.00.00.00.00.00.00.00" \
+                  -editable yes
+            pack $eventid -fill x
+            $hull draw
+        }
+        method _Close {} {
+            $hull withdraw
+        }
+        method _Send {} {
+            [$self cget -transport] produceevent [lcc::EventID %AUTO% -eventidstring [$eventid cget -text]]
+        }
+            
+            
     }
     
 }

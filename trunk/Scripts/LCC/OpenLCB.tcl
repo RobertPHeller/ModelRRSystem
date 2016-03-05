@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160303.1745>
+#  Last Modified : <160305.0850>
 #
 #  Description	
 #
@@ -92,6 +92,7 @@ snit::type OpenLCB {
     typecomponent mainWindow
     typecomponent   nodetree
     typecomponent lcc
+    typecomponent sendevent
     
     typevariable nodetree_cols {nodeid}
     typevariable mynid {}
@@ -109,6 +110,10 @@ snit::type OpenLCB {
         set mainWindow [mainwindow .main -scrolling yes -height 600 -width 800]
         pack $mainWindow -expand yes -fill both
         $mainWindow menu entryconfigure file "Exit" -command [mytypemethod _carefulExit]
+        $mainWindow menu insert file "Print..." command \
+              -label [_m "Label|File|Send Event"] \
+              -command [mytypemethod _SendEvent]
+        set sendevent {}
         set nodetree [ttk::treeview \
                       [$mainWindow scrollwindow getframe].nodetree \
                       -columns $nodetree_cols \
@@ -199,6 +204,13 @@ snit::type OpenLCB {
         $nodetree tag bind protocol_CDI <ButtonPress-1> [mytypemethod _ReadCDI %x %y]
         $nodetree tag bind protocol_MemoryConfig <ButtonPress-1> [mytypemethod _MemoryConfig %x %y]
         $mainWindow showit
+    }
+    typemethod _SendEvent {} {
+        if {[info exists sendevent] && [winfo exists $sendevent]} {
+            $sendevent draw
+        } else {
+            set sendevent [lcc::SendEvent .sendevent%AUTO% -transport $lcc]
+        }
     }
     typevariable CDIs_text -array {}
     typevariable CDIs_xml  -array {}
