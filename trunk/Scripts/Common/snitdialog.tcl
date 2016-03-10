@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri May 24 09:50:47 2013
-#  Last Modified : <140330.0920>
+#  Last Modified : <160310.1059>
 #
 #  Description	
 #
@@ -60,7 +60,7 @@ snit::widgetadaptor Dialog {
     option -cancel -default {}
     option -parent -default {} -type snit::window
     option -side -default layoutdefault -readonly yes \
-          -type {snit::enum -values {bottom left top right}}
+          -type {snit::enum -values {bottom left top right layoutdefault}}
     option -anchor -default c -readonly yes \
           -type {snit::enum -values {n e w s c}}
     option -class -default Dialog -readonly yes
@@ -149,7 +149,6 @@ snit::widgetadaptor Dialog {
         #puts stderr "*** $type create $self $args"
         set options(-style) [from args -style]
         set options(-class) [from args -class]
-        #parray options
         installhull using tk::toplevel -class $options(-class) \
               -relief [ttk::style lookup $options(-style) -relief] \
               -borderwidth [ttk::style lookup $options(-style) -borderwidth]
@@ -228,7 +227,7 @@ snit::widgetadaptor Dialog {
         set result $res
     }
     method draw {{focus ""} {overrideredirect no} {geometry ""}} {
-        #puts stderr "*** $self draw $focus $overrideredirect $geometry"
+        #puts stderr [list *** $self draw $focus $overrideredirect $geometry]
         set parent $options(-parent)
         #puts stderr "*** $self draw: parent = $parent"
         #puts stderr "*** $self draw: realized = $realized"
