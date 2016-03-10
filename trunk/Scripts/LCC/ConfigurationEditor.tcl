@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <160228.1058>
+#  Last Modified : <160310.1354>
 #
 #  Description	
 #
@@ -69,11 +69,11 @@ namespace eval lcc {
         #
         # @param Options:
         # @arg -cdi The parsed CDI xml. Required and there is no default.
-        # @arg -alias The alias of the node to be configured.  Required 
+        # @arg -nid The Node ID of the node to be configured.  Required 
         #             and there is no default.
         # @arg -transport The transport object.  Needs to implement 
-        #                 Datagram Read, Datagram Write, and Datagram Ack,
-        #                 and have an -eventhandler option.
+        # @c SendDatagram, @c DatagramReceivedOK, and @c DatagramRejected
+        # methods and have an @c -datagramhandler option.
         # @arg -class Delegated to the toplevel.
         # @arg -menu  Delegated to the toplevel
         # @arg -height Delegated to the ScrollableFrame
@@ -96,7 +96,7 @@ namespace eval lcc {
         ## Scrollable Frame
         
         option -cdi -readonly yes
-        option -alias -readonly yes -type lcc::twelvebits -default 0
+        option -nid -readonly yes -type lcc::nid -default 0
         option -transport -readonly yes -default {}
         #option -height -type {snit::pixels -min 100}
         delegate option -height to editframe
@@ -143,8 +143,8 @@ namespace eval lcc {
             if {[lsearch $args -cdi] < 0} {
                 error [_ "The -cdi option is required!"]
             }
-            if {[lsearch $args -alias] < 0} {
-                error [_ "The -alias option is required!"]
+            if {[lsearch $args -nid] < 0} {
+                error [_ "The -nid option is required!"]
             }
             if {[lsearch $args -transport] < 0} {
                 error [_ "The -transport option is required!"]
@@ -627,74 +627,90 @@ namespace eval lcc {
             # The window is withdrawn.
             wm withdraw $win
         }
-        variable oldeventhandler {}
-        variable datagrambuffer
-        variable _datagramrejecterror
+        variable olddatagramhandler {}
+        variable datagrambuffer {}
+        variable _datagramrejecterror 0
         variable writeReplyCheck no
-        method _eventhandler {canmessage} {
-            set mtiheader [lcc::MTIHeader %AUTO%]
-            $mtiheader setHeader [$canmessage getHeader]
-            set srcid [$mtiheader cget -srcid]
-            if {$srcid != [$self cget -alias]} {
-                if {$oldeventhandler ne {}} {
-                    uplevel #0 "$oldeventhandler $canmessage"
-                    return
-                }
-            }
-            set mtidetail [lcc::MTIDetail %AUTO%]
-            $mtidetail setHeader [$canmessage getHeader]
-            set datacomplete no
-            if {[$mtidetail cget -streamordatagram]} {
-                switch [$mtidetail cget -datagramcontent] {
-                    complete {
-                        set datagrambuffer [$canmessage getData]
-                        set datacomplete yes
+        method _datagramhandler {command sourcenid args} {
+            set data $args
+            switch $command {
+                datagramcontent {
+                    if {$sourcenid ne [$self cget -nid]} {
+                        if {$olddatagramhandler eq {}} {
+                            [$self cget -transport] DatagramRejected $sourcenid 0x1000
+                        } else {
+                            uplevel #0 $olddatagramhandler $command $sourcenid $data
+                        }
                     }
-                    first {
-                        set datagrambuffer [$canmessage getData]
-                    }
-                    middle {
-                        eval [list lappend datagrambuffer] [$canmessage getData]
-                    }
-                    last {
-                        eval [list lappend datagrambuffer] [$canmessage getData]
-                        set datacomplete yes
-                    }
-                }
-                if {$datacomplete} {
-                    [$self cget -transport] DatagramAck $srcid
+                    [$self cget -transport] DatagramReceivedOK $sourcenid
+                    set datagrambuffer $data
                     incr _ioComplete
                 }
-            } elseif {[$mtiheader cget -mti] == 0x0A28} {
-                # datagram received ok
-                if {!$writeReplyCheck} {return}
-                if {[$canmessage getNumDataElements] == 1} {
-                    set flags [$canmessage getElement 0]
-                } else {
-                    set flags 0
+                datagramreceivedok {
+                    if {$sourcenid ne [$self cget -nid]} {
+                        if {$olddatagramhandler ne {}} {
+                            uplevel #0 $olddatagramhandler $command $sourcenid $data
+                        }
+                    } else {
+                        if {!$writeReplyCheck} {return}
+                        if {[llength $data] == 1} {
+                            set flags [lindex $data 0]
+                        } else {
+                            set flags 0
+                        }
+                        if {($flags & 0x80) == 0} {
+                            incr _ioComplete;# no WriteReply pending -- write is presumed to be OK
+                        }
+                    }
                 }
-                if {($flags & 0x80) == 0} {
-                    incr _ioComplete;# no WriteReply pending -- write is presumed to be OK
+                datagramrejected {
+                    if {$sourcenid ne [$self cget -nid]} {
+                        if {$olddatagramhandler ne {}} {
+                            uplevel #0 $olddatagramhandler $command $sourcenid $data
+                        }
+                    } else {
+                        # datagram rejected
+                        set _datagramrejecterror [expr {([lindex $data 0] << 8) | [lindex $data 1]}]
+                        incr _ioComplete -1 ;# no further messages expected
+                    }
                 }
-            } elseif {[$mtiheader cget -mti] == 0x0A48} {
-                # datagram rejected
-                set _datagramrejecterror [expr {([$canmessage getElement 0] << 8) | [$canmessage getElement 1]}]
-                incr _ioComplete -1 ;# no further messages expected
             }
         }
-        method _intComboRead {widget space address size} {
-            upvar #0 ${widget}_VM valuemap
-            set oldeventhandler [[$self cget -transport] cget -eventhandler]
-            [$self cget -transport] configure -eventhandler [mymethod _eventhandler]
+        method _readmemory {space address length status_var} {
+            lcc::byte validate $space
+            lcc::sixteenbits validate $address
+            lcc::length validate $length
+            upvar $status_var status
+            
+            set data [list 0x20]
+            set spacein6 no
+            if {$space == 0xFD} {
+                lappend data 0x41
+            } elseif {$space == 0xFE} {
+                lappend data 0x42
+            } elseif {$space == 0xFF} {
+                lappend data 0x43
+            } else {
+                lappend data 0x40
+                set spacein6 yes
+            }
+            lappend data [expr {($address & 0xFF000000) >> 24}]
+            lappend data [expr {($address & 0x00FF0000) >> 16}]
+            lappend data [expr {($address & 0x0000FF00) >>  8}]
+            lappend data [expr {($address & 0x000000FF) >>  0}]
+            if {$spacein6} {lappend data $space}
+            lappend data $length
             set _ioComplete 0
             set writeReplyCheck no
-            [$self cget -transport] DatagramRead [$self cget -alias] $space $address $size
+            set olddatagramhandler [[$self cget -transport] cget -datagramhandler]
+            [$self cget -transport] configure -datagramhandler [mymethod _datagramhandler]
+            [$self cget -transport] SendDatagram [$self cget -nid] $data
             vwait [myvar _ioComplete]
-            [$self cget -transport] configure -eventhandler $oldeventhandler
+            [$self cget -transport] configure -datagramhandler $olddatagramhandler
             if {$_ioComplete < 0} {
                 ## datagram rejected message received
                 # code in_datagramrejecterror
-                return
+                return {}
             }
             set status [lindex $datagrambuffer 1]
             set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
@@ -725,53 +741,52 @@ namespace eval lcc {
             }
             set data [lrange $datagrambuffer $dataoffset end]
             if {$status == 0x50} {
-                # OK
-                if {[llength $data] > $size} {
-                    set data [lrange $data 0 [expr {$size - 1}]]
+                if {[llength $data] > $length} {
+                    set data [lrange $data 0 [expr {$length - 1}]]
                 }
-                set value 0
-                foreach b $data {
-                    set value [expr {($value << 8) | $b}]
-                }
-                foreach v [array names valuemap] {
-                    if {$valuemap($v) == $value} {
-                        $widget set $v
-                        return
-                    }
-                }
-            } elseif {$status == 0x58} {
-                # Failure
-                set errorcode [expr {([lindex $data 0] << 8) | [lindex $data 1]}]
-                set errormessage {}
-                foreach c [lrange $data 2 end] {
-                    if {$c == 0} {break}
-                    append errormessage [format %c $c]
-                }
-                
+                return $data
+            } else {
+                return 
             }
         }
-        method _intComboWrite {widget space address size min max} {
-            upvar #0 ${widget}_VM valuemap
-            set value $valuemap([$widget get])
-            set data [list]
-            for {set shift [expr {($size - 1) * 8}]} {$shift >= 0} {incr shift -8} {
-                lappend data [expr {($value >> $shift) & 0xFF}]
+        method _writememory {space address databuffer} {
+            lcc::byte validate $space
+            lcc::sixteenbits validate $address
+            lcc::databuf validate $databuffer
+
+            set data [list 0x20]
+            set spacein6 no
+            if {$space == 0xFD} {
+                lappend data 0x01
+            } elseif {$space == 0xFE} {
+                lappend data 0x02
+            } elseif {$space == 0xFF} {
+                lappend data 0x03
+            } else {
+                lappend data 0x00
+                set spacein6 yes
             }
-            set oldeventhandler [[$self cget -transport] cget -eventhandler]
-            [$self cget -transport] configure -eventhandler [mymethod _eventhandler]
+            lappend data [expr {($address & 0xFF000000) >> 24}]
+            lappend data [expr {($address & 0x00FF0000) >> 16}]
+            lappend data [expr {($address & 0x0000FF00) >>  8}]
+            lappend data [expr {($address & 0x000000FF) >>  0}]
+            if {$spacein6} {lappend data $space}
+            foreach b $databuffer {lappend data $b}
             set datagrambuffer {}
             set _ioComplete 0
             set writeReplyCheck yes
-            [$self cget -transport] DatagramWrite [$self cget -alias] $space $address $data
+            set olddatagramhandler [[$self cget -transport] cget -datagramhandler]
+            [$self cget -transport] configure -datagramhandler [mymethod _datagramhandler]
+            [$self cget -transport] SendDatagram [$self cget -nid] $data
             vwait [myvar _ioComplete]
-            [$self cget -transport] configure -eventhandler $oldeventhandler
+            [$self cget -transport] configure -datagramhandler $olddatagramhandler
             if {$_ioComplete < 0} {
                 ## datagram rejected message received
-                # code in_datagramrejecterror
-                return
+                # code in _datagramrejecterror
+                return $_datagramrejecterror
             } elseif {$datagrambuffer eq {}} {
                 ## No write reply -- assume the write succeeded
-                return
+                return 0
             }
             set status [lindex $datagrambuffer 1]
             set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
@@ -800,11 +815,25 @@ namespace eval lcc {
             if {$respspace != $space} {
                 ## wrong space ...
             }
-            set data [lrange $datagrambuffer $dataoffset end]
-            if {$status == 0x10} {
-                ## OK
-            } elseif {$status == 0x18} {
-                ## Failure
+            return [lrange $datagrambuffer $dataoffset end]
+        }
+        method _intComboRead {widget space address size} {
+            upvar #0 ${widget}_VM valuemap
+            set data [$self _readmemory $space $address $size status]
+            if {$status == 0x50} {
+                # OK
+                set value 0
+                foreach b $data {
+                    set value [expr {($value << 8) | $b}]
+                }
+                foreach v [array names valuemap] {
+                    if {$valuemap($v) == $value} {
+                        $widget set $v
+                        return
+                    }
+                }
+            } elseif {$status == 0x58} {
+                # Failure
                 set errorcode [expr {([lindex $data 0] << 8) | [lindex $data 1]}]
                 set errormessage {}
                 foreach c [lrange $data 2 end] {
@@ -813,47 +842,36 @@ namespace eval lcc {
                 }
             }
         }
-        method _intSpinRead {widget space address size} {
-            set oldeventhandler [[$self cget -transport] cget -eventhandler]
-            [$self cget -transport] configure -eventhandler [mymethod _eventhandler]
-            set _ioComplete 0
-            set writeReplyCheck no
-            [$self cget -transport] DatagramRead [$self cget -alias] $space $address $size
-            vwait [myvar _ioComplete]
-            [$self cget -transport] configure -eventhandler $oldeventhandler
-            if {$_ioComplete < 0} {
-                ## datagram rejected message received
-                # code in_datagramrejecterror
-                return
+        method _intComboWrite {widget space address size min max} {
+            upvar #0 ${widget}_VM valuemap
+            set value $valuemap([$widget get])
+            set data [list]
+            for {set shift [expr {($size - 1) * 8}]} {$shift >= 0} {incr shift -8} {
+                lappend data [expr {($value >> $shift) & 0xFF}]
             }
-            set status [lindex $datagrambuffer 1]
-            set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
-            set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
-            if {$respaddr != $address} {
-                ## wrong address...
-            }
-            if {$status == 0x50 || $status == 0x58} {
-                set respspace [lindex $datagrambuffer 6]
-                set dataoffset 7
+            set retdata [$self _writememory $space $address $data]
+            if {[llength $retdata] == 1} {
+                if {$retdata == 0} {
+                    ## OK
+                    return
+                } else {
+                    set errorcode $retdata
+                    set errormessage {}
+                }
             } else {
-                set dataoffset 6
-                if {$status == 0x51 || $status == 0x59} {
-                    set respspace 0xFD
-                    set status [expr {$status & 0xF8}]
-                } elseif {$status == 0x52  || $status == 0x5A} {
-                    set respspace 0xFE
-                    set status [expr {$status & 0xF8}]
-                } elseif {$status == 0x53  || $status == 0x5B} {
-                    set respspace 0xFF
-                    set status [expr {$status & 0xF8}]
+                set errorcode [expr {([lindex $retdata 0] << 8) | [lindex $retdata 1]}]
+                set errormessage {}
+                foreach c [lrange $data 2 end] {
+                    if {$c == 0} {break}
+                    append errormessage [format %c $c]
                 }
             }
-            if {$respspace != $space} {
-                ## wrong space ...
-            }
-            set data [lrange $datagrambuffer $dataoffset end]
+            tk_messageBox -type ok -icon error \
+                  -message [_ "There was an error: %d (%s)" \
+                            $errorcode $errormessage]
+        }
+        method _intSpinRead {widget space address size} {
+            set data [$self _readmemory $space $address $size status]
             if {$status == 0x50} {
                 # OK
                 if {[llength $data] > $size} {
@@ -885,115 +903,40 @@ namespace eval lcc {
             for {set shift [expr {($size - 1) * 8}]} {$shift >= 0} {incr shift -8} {
                 lappend data [expr {($value >> $shift) & 0xFF}]
             }
-            set oldeventhandler [[$self cget -transport] cget -eventhandler]
-            [$self cget -transport] configure -eventhandler [mymethod _eventhandler]
-            set datagrambuffer {}
-            set _ioComplete 0
-            set writeReplyCheck yes
-            [$self cget -transport] DatagramWrite [$self cget -alias] $space $address $data
-            vwait [myvar _ioComplete]
-            [$self cget -transport] configure -eventhandler $oldeventhandler
-            if {$_ioComplete < 0} {
-                ## datagram rejected message received
-                # code in_datagramrejecterror
-                return
-            } elseif {$datagrambuffer eq {}} {
-                ## No write reply -- assume the write succeeded
-                return
-            }
-            set status [lindex $datagrambuffer 1]
-            set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
-            set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
-            if {$respaddr != $address} {
-                ## wrong address...
-            }
-            if {$status == 0x10 || $status == 0x18} {
-                set respspace [lindex $datagrambuffer 6]
-                set dataoffset 7
-            } else {
-                set dataoffset 6
-                if {$status == 0x11 || $status == 0x19} {
-                    set respspace 0xFD
-                    set status [expr {$status & 0xF8}]
-                } elseif {$status == 0x12  || $status == 0x1A} {
-                    set respspace 0xFE
-                    set status [expr {$status & 0xF8}]
-                } elseif {$status == 0x13  || $status == 0x1B} {
-                    set respspace 0xFF
-                    set status [expr {$status & 0xF8}]
+            set retdata [$self _writememory $space $address $data]
+            if {[llength $retdata] == 1} {
+                if {$retdata == 0} {
+                    ## OK
+                    return
+                } else {
+                    set errorcode $retdata
+                    set errormessage {}
                 }
-            }
-            if {$respspace != $space} {
-                ## wrong space ...
-            }
-            set data [lrange $datagrambuffer $dataoffset end]
-            if {$status == 0x10} {
-                ## OK
-            } elseif {$status == 0x18} {
-                ## Failure
-                set errorcode [expr {([lindex $data 0] << 8) | [lindex $data 1]}]
+            } else {
+                set errorcode [expr {([lindex $retdata 0] << 8) | [lindex $retdata 1]}]
                 set errormessage {}
                 foreach c [lrange $data 2 end] {
                     if {$c == 0} {break}
                     append errormessage [format %c $c]
                 }
             }
+            tk_messageBox -type ok -icon error \
+                  -message [_ "There was an error: %d (%s)" \
+                            $errorcode $errormessage]
         }
         method _stringComboRead {widget space address size} {
             upvar #0 ${widget}_VM valuemap
             set resultstring {}
-            set oldeventhandler [[$self cget -transport] cget -eventhandler]
-            [$self cget -transport] configure -eventhandler [mymethod _eventhandler]
             for {set off 0} {$off < $size} {incr off 64} {
                 set remain [expr {$size - $off}]
                 if {$remain > 64} {set remain 64}
                 set a [expr {$address + $off}]
-                set _ioComplete 0
-                set writeReplyCheck no
-                [$self cget -transport] DatagramRead [$self cget -alias] $space $a $remain
-                vwait [myvar _ioComplete]
-                if {$_ioComplete < 0} {
-                    ## datagram rejected message received
-                    # code in_datagramrejecterror
-                    [$self cget -transport] configure -eventhandler $oldeventhandler
-                    return
-                }
-                set status [lindex $datagrambuffer 1]
-                set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
-                set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
-                set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
-                set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
-                if {$respaddr != $address} {
-                    ## wrong address...
-                }
-                if {$status == 0x50 || $status == 0x58} {
-                    set respspace [lindex $datagrambuffer 6]
-                    set dataoffset 7
-                } else {
-                    set dataoffset 6
-                    if {$status == 0x51 || $status == 0x59} {
-                        set respspace 0xFD
-                        set status [expr {$status & 0xF8}]
-                    } elseif {$status == 0x52  || $status == 0x5A} {
-                        set respspace 0xFE
-                        set status [expr {$status & 0xF8}]
-                    } elseif {$status == 0x53  || $status == 0x5B} {
-                        set respspace 0xFF
-                        set status [expr {$status & 0xF8}]
-                    }
-                }
-                if {$respspace != $space} {
-                    ## wrong space ...
-                }
-                set data [lrange $datagrambuffer $dataoffset end]
+                set data [$self _readmemory $space $a $remain status]
                 if {$status == 0x50} {
                     # OK
-                    if {[llength $data] > $size} {
-                        set data [lrange $data 0 [expr {$size - 1}]]
+                    if {[llength $data] > $remain} {
+                        set data [lrange $data 0 [expr {$remain - 1}]]
                     }
-                    set value 0
                     foreach b $data {
                         if {$b == 0} {break}
                         append resultstring [format %c $b]
@@ -1009,7 +952,6 @@ namespace eval lcc {
                     break
                 }
             }
-            [$self cget -transport] configure -eventhandler $oldeventhandler
             foreach v [array names valuemap] {
                 if {$valuemap($v) eq $resultstring} {
                     $widget set $v
@@ -1031,124 +973,44 @@ namespace eval lcc {
                 set fulldata [lrange $fulldata 0 [expr {$size - 2}]]
                 lappend fulldata 0
             }
-            set oldeventhandler [[$self cget -transport] cget -eventhandler]
-            [$self cget -transport] configure -eventhandler [mymethod _eventhandler]
             for {set off 0} {$off < $size} {incr off 64} {
                 set remain [expr {$size - $off}]
                 if {$remain > 64} {set remain 64}
                 set a [expr {$address + $off}]
-                set datagrambuffer {}
-                set _ioComplete 0
-                set writeReplyCheck yes
-                [$self cget -transport] DatagramWrite [$self cget -alias] $space $a [lrange $fulldata $off [expr {($off + $remain) - 1}]]
-                vwait [myvar _ioComplete]
-                [$self cget -transport] configure -eventhandler $oldeventhandler
-                if {$_ioComplete < 0} {
-                    ## datagram rejected message received
-                    # code in_datagramrejecterror
-                    [$self cget -transport] configure -eventhandler $oldeventhandler
-                    return
-                } elseif {$datagrambuffer eq {}} {
-                    ## No write reply -- assume the write succeeded
-                    continue
-                }
-                set status [lindex $datagrambuffer 1]
-                set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
-                set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
-                set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
-                set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
-                if {$respaddr != $address} {
-                    ## wrong address...
-                }
-                if {$status == 0x10 || $status == 0x18} {
-                    set respspace [lindex $datagrambuffer 6]
-                    set dataoffset 7
-                } else {
-                    set dataoffset 6
-                    if {$status == 0x11 || $status == 0x19} {
-                        set respspace 0xFD
-                        set status [expr {$status & 0xF8}]
-                    } elseif {$status == 0x12  || $status == 0x1A} {
-                        set respspace 0xFE
-                        set status [expr {$status & 0xF8}]
-                    } elseif {$status == 0x13  || $status == 0x1B} {
-                        set respspace 0xFF
-                        set status [expr {$status & 0xF8}]
+                set retdata [$self _writememory $space $a [lrange $fulldata $off [expr {($off + $remain) - 1}]]]
+                if {[llength $retdata] == 1} {
+                    if {$retdata == 0} {
+                        ## OK
+                        continue
+                    } else {
+                        set errorcode $retdata
+                        set errormessage {}
                     }
-                }
-                if {$respspace != $space} {
-                    ## wrong space ...
-                }
-                set data [lrange $datagrambuffer $dataoffset end]
-                if {$status == 0x10} {
-                    ## OK
-                    continue
-                } elseif {$status == 0x18} {
-                    ## Failure
-                    set errorcode [expr {([lindex $data 0] << 8) | [lindex $data 1]}]
+                } else {
+                    set errorcode [expr {([lindex $retdata 0] << 8) | [lindex $retdata 1]}]
                     set errormessage {}
                     foreach c [lrange $data 2 end] {
                         if {$c == 0} {break}
                         append errormessage [format %c $c]
                     }
-                    [$self cget -transport] configure -eventhandler $oldeventhandler
-                    return
                 }
+                tk_messageBox -type ok -icon error \
+                      -message [_ "There was an error: %d (%s)" \
+                                $errorcode $errormessage]
             }
-            [$self cget -transport] configure -eventhandler $oldeventhandler
         }
         method _stringEntryRead {widget space address size} {
             set resultstring {}
-            set oldeventhandler [[$self cget -transport] cget -eventhandler]
-            [$self cget -transport] configure -eventhandler [mymethod _eventhandler]
             for {set off 0} {$off < $size} {incr off 64} {
                 set remain [expr {$size - $off}]
                 if {$remain > 64} {set remain 64}
                 set a [expr {$address + $off}]
-                set _ioComplete 0
-                set writeReplyCheck no
-                [$self cget -transport] DatagramRead [$self cget -alias] $space $a $remain
-                vwait [myvar _ioComplete]
-                if {$_ioComplete < 0} {
-                    ## datagram rejected message received
-                    # code in_datagramrejecterror
-                    [$self cget -transport] configure -eventhandler $oldeventhandler
-                    return
-                }
-                set status [lindex $datagrambuffer 1]
-                set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
-                set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
-                set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
-                set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
-                if {$respaddr != $address} {
-                    ## wrong address...
-                }
-                if {$status == 0x50 || $status == 0x58} {
-                    set respspace [lindex $datagrambuffer 6]
-                    set dataoffset 7
-                } else {
-                    set dataoffset 6
-                    if {$status == 0x51 || $status == 0x59} {
-                        set respspace 0xFD
-                        set status [expr {$status & 0xF8}]
-                    } elseif {$status == 0x52  || $status == 0x5A} {
-                        set respspace 0xFE
-                        set status [expr {$status & 0xF8}]
-                    } elseif {$status == 0x53  || $status == 0x5B} {
-                        set respspace 0xFF
-                        set status [expr {$status & 0xF8}]
-                    }
-                }
-                if {$respspace != $space} {
-                    ## wrong space ...
-                }
-                set data [lrange $datagrambuffer $dataoffset end]
+                set data [$self _readmemory $space $a $remain status]
                 if {$status == 0x50} {
                     # OK
-                    if {[llength $data] > $size} {
-                        set data [lrange $data 0 [expr {$size - 1}]]
+                    if {[llength $data] > $remain} {
+                        set data [lrange $data 0 [expr {$remain - 1}]]
                     }
-                    set value 0
                     foreach b $data {
                         if {$b == 0} {break}
                         append resultstring [format %c $b]
@@ -1164,7 +1026,6 @@ namespace eval lcc {
                     break
                 }
             }
-            [$self cget -transport] configure -eventhandler $oldeventhandler
             $widget delete 0 end
             $widget insert end $resultstring
         }
@@ -1182,114 +1043,35 @@ namespace eval lcc {
                 set fulldata [lrange $fulldata 0 [expr {$size - 2}]]
                 lappend fulldata 0
             }
-            set oldeventhandler [[$self cget -transport] cget -eventhandler]
-            [$self cget -transport] configure -eventhandler [mymethod _eventhandler]
             for {set off 0} {$off < $size} {incr off 64} {
                 set remain [expr {$size - $off}]
                 if {$remain > 64} {set remain 64}
                 set a [expr {$address + $off}]
-                set datagrambuffer {}
-                set _ioComplete 0
-                set writeReplyCheck yes
-                [$self cget -transport] DatagramWrite [$self cget -alias] $space $a [lrange $fulldata $off [expr {($off + $remain) - 1}]]
-                vwait [myvar _ioComplete]
-                [$self cget -transport] configure -eventhandler $oldeventhandler
-                if {$_ioComplete < 0} {
-                    ## datagram rejected message received
-                    # code in_datagramrejecterror
-                    [$self cget -transport] configure -eventhandler $oldeventhandler
-                    return
-                } elseif {$datagrambuffer eq {}} {
-                    ## No write reply -- assume the write succeeded
-                    continue
-                }
-                set status [lindex $datagrambuffer 1]
-                set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
-                set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
-                set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
-                set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
-                if {$respaddr != $address} {
-                    ## wrong address...
-                }
-                if {$status == 0x10 || $status == 0x18} {
-                    set respspace [lindex $datagrambuffer 6]
-                    set dataoffset 7
-                } else {
-                    set dataoffset 6
-                    if {$status == 0x11 || $status == 0x19} {
-                        set respspace 0xFD
-                        set status [expr {$status & 0xF8}]
-                    } elseif {$status == 0x12  || $status == 0x1A} {
-                        set respspace 0xFE
-                        set status [expr {$status & 0xF8}]
-                    } elseif {$status == 0x13  || $status == 0x1B} {
-                        set respspace 0xFF
-                        set status [expr {$status & 0xF8}]
+                set retdata [$self _writememory $space $a [lrange $fulldata $off [expr {($off + $remain) - 1}]]]
+                if {[llength $retdata] == 1} {
+                    if {$retdata == 0} {
+                        ## OK
+                        continue
+                    } else {
+                        set errorcode $retdata
+                        set errormessage {}
                     }
-                }
-                if {$respspace != $space} {
-                    ## wrong space ...
-                }
-                set data [lrange $datagrambuffer $dataoffset end]
-                if {$status == 0x10} {
-                    ## OK
-                    continue
-                } elseif {$status == 0x18} {
-                    ## Failure
-                    set errorcode [expr {([lindex $data 0] << 8) | [lindex $data 1]}]
+                } else {
+                    set errorcode [expr {([lindex $retdata 0] << 8) | [lindex $retdata 1]}]
                     set errormessage {}
                     foreach c [lrange $data 2 end] {
                         if {$c == 0} {break}
                         append errormessage [format %c $c]
                     }
-                    [$self cget -transport] configure -eventhandler $oldeventhandler
-                    return
                 }
+                tk_messageBox -type ok -icon error \
+                      -message [_ "There was an error: %d (%s)" \
+                                $errorcode $errormessage]
             }
-            [$self cget -transport] configure -eventhandler $oldeventhandler
         }
         method _eventidComboRead {widget space address size} {
             upvar #0 ${widget}_VM valuemap
-            set oldeventhandler [[$self cget -transport] cget -eventhandler]
-            [$self cget -transport] configure -eventhandler [mymethod _eventhandler]
-            set _ioComplete 0
-            set writeReplyCheck no
-            [$self cget -transport] DatagramRead [$self cget -alias] $space $address $size
-            vwait [myvar _ioComplete]
-            [$self cget -transport] configure -eventhandler $oldeventhandler
-            if {$_ioComplete < 0} {
-                ## datagram rejected message received
-                # code in_datagramrejecterror
-                return
-            }
-            set status [lindex $datagrambuffer 1]
-            set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
-            set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
-            if {$respaddr != $address} {
-                ## wrong address...
-            }
-            if {$status == 0x50 || $status == 0x58} {
-                set respspace [lindex $datagrambuffer 6]
-                set dataoffset 7
-            } else {
-                set dataoffset 6
-                if {$status == 0x51 || $status == 0x59} {
-                    set respspace 0xFD
-                    set status [expr {$status & 0xF8}]
-                } elseif {$status == 0x52  || $status == 0x5A} {
-                    set respspace 0xFE
-                    set status [expr {$status & 0xF8}]
-                } elseif {$status == 0x53  || $status == 0x5B} {
-                    set respspace 0xFF
-                    set status [expr {$status & 0xF8}]
-                }
-            }
-            if {$respspace != $space} {
-                ## wrong space ...
-            }
-            set data [lrange $datagrambuffer $dataoffset end]
+            set data [$self _readmemory $space $address $size status]
             if {$status == 0x50} {
                 # OK
                 if {[llength $data] > $size} {
@@ -1318,103 +1100,29 @@ namespace eval lcc {
             upvar #0 ${widget}_VM valuemap
             set evid [lcc::EventID %AUTO% -eventidstring $valuemap([$widget get])]
             set data [$evid cget -eventidlist]
-            set oldeventhandler [[$self cget -transport] cget -eventhandler]
-            [$self cget -transport] configure -eventhandler [mymethod _eventhandler]
-            set datagrambuffer {}
-            set _ioComplete 0
-            set writeReplyCheck yes
-            [$self cget -transport] DatagramWrite [$self cget -alias] $space $address $data
-            vwait [myvar _ioComplete]
-            [$self cget -transport] configure -eventhandler $oldeventhandler
-            if {$_ioComplete < 0} {
-                ## datagram rejected message received
-                # code in_datagramrejecterror
-                return
-            } elseif {$datagrambuffer eq {}} {
-                ## No write reply -- assume the write succeeded
-                return
-            }
-            set status [lindex $datagrambuffer 1]
-            set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
-            set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
-            if {$respaddr != $address} {
-                ## wrong address...
-            }
-            if {$status == 0x10 || $status == 0x18} {
-                set respspace [lindex $datagrambuffer 6]
-                set dataoffset 7
-            } else {
-                set dataoffset 6
-                if {$status == 0x11 || $status == 0x19} {
-                    set respspace 0xFD
-                    set status [expr {$status & 0xF8}]
-                } elseif {$status == 0x12  || $status == 0x1A} {
-                    set respspace 0xFE
-                    set status [expr {$status & 0xF8}]
-                } elseif {$status == 0x13  || $status == 0x1B} {
-                    set respspace 0xFF
-                    set status [expr {$status & 0xF8}]
+            set retdata [$self _writememory $space $address $data]
+            if {[llength $retdata] == 1} {
+                if {$retdata == 0} {
+                    ## OK
+                    return
+                } else {
+                    set errorcode $retdata
+                    set errormessage {}
                 }
-            }
-            if {$respspace != $space} {
-                ## wrong space ...
-            }
-            set data [lrange $datagrambuffer $dataoffset end]
-            if {$status == 0x10} {
-                ## OK
-            } elseif {$status == 0x18} {
-                ## Failure
-                set errorcode [expr {([lindex $data 0] << 8) | [lindex $data 1]}]
+            } else {
+                set errorcode [expr {([lindex $retdata 0] << 8) | [lindex $retdata 1]}]
                 set errormessage {}
                 foreach c [lrange $data 2 end] {
                     if {$c == 0} {break}
                     append errormessage [format %c $c]
                 }
             }
+            tk_messageBox -type ok -icon error \
+                  -message [_ "There was an error: %d (%s)" \
+                            $errorcode $errormessage]
         }
         method _eventidEntryRead {widget space address size} {
-            set oldeventhandler [[$self cget -transport] cget -eventhandler]
-            [$self cget -transport] configure -eventhandler [mymethod _eventhandler]
-            set _ioComplete 0
-            set writeReplyCheck no
-            [$self cget -transport] DatagramRead [$self cget -alias] $space $address $size
-            vwait [myvar _ioComplete]
-            [$self cget -transport] configure -eventhandler $oldeventhandler
-            if {$_ioComplete < 0} {
-                ## datagram rejected message received
-                # code in_datagramrejecterror
-                return
-            }
-            set status [lindex $datagrambuffer 1]
-            set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
-            set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
-            if {$respaddr != $address} {
-                ## wrong address...
-            }
-            if {$status == 0x50 || $status == 0x58} {
-                set respspace [lindex $datagrambuffer 6]
-                set dataoffset 7
-            } else {
-                set dataoffset 6
-                if {$status == 0x51 || $status == 0x59} {
-                    set respspace 0xFD
-                    set status [expr {$status & 0xF8}]
-                } elseif {$status == 0x52  || $status == 0x5A} {
-                    set respspace 0xFE
-                    set status [expr {$status & 0xF8}]
-                } elseif {$status == 0x53  || $status == 0x5B} {
-                    set respspace 0xFF
-                    set status [expr {$status & 0xF8}]
-                }
-            }
-            if {$respspace != $space} {
-                ## wrong space ...
-            }
-            set data [lrange $datagrambuffer $dataoffset end]
+            set data [$self _readmemory $space $address $size status]
             if {$status == 0x50} {
                 # OK
                 if {[llength $data] > $size} {
@@ -1438,61 +1146,26 @@ namespace eval lcc {
         method _eventidEntryWrite {widget space address size} {
             set evid [lcc::EventID %AUTO% -eventidstring [$widget get]]
             set data [$evid cget -eventidlist]
-            set oldeventhandler [[$self cget -transport] cget -eventhandler]
-            [$self cget -transport] configure -eventhandler [mymethod _eventhandler]
-            set datagrambuffer {}
-            set _ioComplete 0
-            set writeReplyCheck yes
-            [$self cget -transport] DatagramWrite [$self cget -alias] $space $address $data
-            vwait [myvar _ioComplete]
-            [$self cget -transport] configure -eventhandler $oldeventhandler
-            if {$_ioComplete < 0} {
-                ## datagram rejected message received
-                # code in_datagramrejecterror
-                return
-            } elseif {$datagrambuffer eq {}} {
-                ## No write reply -- assume the write succeeded
-                return
-            }
-            set status [lindex $datagrambuffer 1]
-            set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
-            set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
-            if {$respaddr != $address} {
-                ## wrong address...
-            }
-            if {$status == 0x10 || $status == 0x18} {
-                set respspace [lindex $datagrambuffer 6]
-                set dataoffset 7
-            } else {
-                set dataoffset 6
-                if {$status == 0x11 || $status == 0x19} {
-                    set respspace 0xFD
-                    set status [expr {$status & 0xF8}]
-                } elseif {$status == 0x12  || $status == 0x1A} {
-                    set respspace 0xFE
-                    set status [expr {$status & 0xF8}]
-                } elseif {$status == 0x13  || $status == 0x1B} {
-                    set respspace 0xFF
-                    set status [expr {$status & 0xF8}]
+            set retdata [$self _writememory $space $address $data]
+            if {[llength $retdata] == 1} {
+                if {$retdata == 0} {
+                    ## OK
+                    return
+                } else {
+                    set errorcode $retdata
+                    set errormessage {}
                 }
-            }
-            if {$respspace != $space} {
-                ## wrong space ...
-            }
-            set data [lrange $datagrambuffer $dataoffset end]
-            if {$status == 0x10} {
-                ## OK
-            } elseif {$status == 0x18} {
-                ## Failure
-                set errorcode [expr {([lindex $data 0] << 8) | [lindex $data 1]}]
+            } else {
+                set errorcode [expr {([lindex $retdata 0] << 8) | [lindex $retdata 1]}]
                 set errormessage {}
                 foreach c [lrange $data 2 end] {
                     if {$c == 0} {break}
                     append errormessage [format %c $c]
                 }
             }
+            tk_messageBox -type ok -icon error \
+                  -message [_ "There was an error: %d (%s)" \
+                            $errorcode $errormessage]
         }
         method _readall {space} {
             if {![catch {set _readall($space)} rbs]} {

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160224.1438>
+#  Last Modified : <160310.1425>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -51,8 +51,14 @@
 #
 # @{
 
-#package require gettext
 package require snit
+
+package require gettext
+package require Tk
+package require tile
+package require Dialog
+package require LabelFrames
+
 
 namespace eval lcc {
     ## @brief Namespace that holds the LCC interface code.
@@ -98,6 +104,9 @@ namespace eval lcc {
     snit::listtype eightbytes -minlen 0 -maxlen 8 -type lcc::byte
     ## @typedef list eightbytes
     # A list of bytes, from 0 to 8 elements.
+    snit::listtype bytelist72 -minlen 0 -maxlen 72 -type lcc::byte
+    ## @typedef list bytelist72
+    # A list of bytes, from 0 to 72 elements.
     snit::enum datagramcontent -values {
         ## @enum datagramcontent
         # Datagram and stream types.
@@ -115,6 +124,17 @@ namespace eval lcc {
         stream
         ## Stream frame.
     }
+    snit::enum eventvalidity -values {
+        ## @enum eventvalidity
+        # Event validity.
+        valid
+        ## Currently valid.
+        invalid
+        ## Currently invalid.
+        unknown
+        ## Currently unknown.
+    }
+    
     snit::listtype databuf -minlen 1 -maxlen 64 -type lcc::byte
     ## @typedef list databuf
     # A list of bytes, from 1 ro 64 elements
@@ -209,6 +229,21 @@ namespace eval lcc {
             }
         }
     }
+    
+    snit::type EventID_or_null {
+        ## @typedef EventID EventID_or_null
+        # @brief An EventID or empty string.
+        
+        pragma -hastypeinfo false
+        pragma -hastypedestroy false
+        pragma -hasinstances false
+        
+        typemethod validate {value} {
+            if {$value eq {}} {return $value}
+            lcc::EventID validate $value
+        }
+    }
+    
 
     snit::macro ::lcc::AbstractMessage {} {
         ## @brief Define common variables and accessor methods
@@ -1417,6 +1452,22 @@ namespace eval lcc {
     ## @typedef string nid
     # @brief Node ID regexp pattern.
     # A Node Id is six bytes as pairs of hex digits separacted by colons (:).
+    snit::type nid_or_null {
+        ## @typedef string nid_or_null
+        # @brief Node ID regexp pattern or the empty string.
+        # A Node Id is six bytes as pairs of hex digits separacted by colons (:).
+        
+        pragma -hastypeinfo false
+        pragma -hastypedestroy false
+        pragma -hasinstances false
+        
+        typemethod validate {value} {
+            if {$value eq {}} {return $value}
+            lcc::nid validate $value
+        }
+    }
+    
+    
     
 
     snit::type LCCBufferUSB {
@@ -1861,7 +1912,7 @@ namespace eval lcc {
             # message and is global or addressed to this station, it is passed
             # on to the defined event handler.
             #
-            if {[gets $ttyfd message]} {
+            if {[gets $ttyfd message] >= 0} {
                 $gcreply configure -message $message
                 #puts stderr "*** $self _messageReader: message is $message"
                 set r [$gcreply createReply]
@@ -2047,6 +2098,1313 @@ namespace eval lcc {
             return true
         }
     }
+    
+    snit::type GridConnectTransport {
+    }
+    
+    
+    
+    snit::type CanTransport {
+        ## @brief Logical transport of CAN Messages.
+        # CAN Bus abstraction layer
+        #
+        # Options:
+        # @arg -transportlayer The physical transport layer (eg 
+        #         GridConnectTransport over USB serial, etc.)
+        # @arg -readhandler The read handler for incoming messages.
+        
+        component transport
+        ## @privatesection Transport Layer component
+        delegate method * to transport
+        option -transportlayer -readonly yes \
+              -configuremethod _transportlayerconf
+        method _transportlayerconf {opt value} {
+            ## Set the transport layer component.
+            #
+            # @param opt Always -transportlayer
+            # @param value The physical transport object.
+            
+            set transport $value
+        }
+        delegate option -readhandler to transport
+        
+        constructor {args} {
+            ## @public section
+            $self configurelist $args
+            if {![info exists transport]} {
+                error [_ The -transportlayer is a required option.]
+            }
+        }
+    }
+    
+    snit::type OpenLCBMessage {
+        lcc::AbstractMRMessage
+        option -mti -readonly yes -default 0 -type lcc::sixteenbits
+        option -sourcenid -type lcc::nid
+        option -destnid -type lcc::nid_or_null
+        option -eventid -type lcc::EventID_or_null
+        option -data -type lcc::bytelist72 -configuremethod _configuredata \
+              -cgetmethod _cgetdata
+        method _configuredata {option value} {
+            set _nDataChars [llength $value]
+            set _dataChars $value
+        }
+        method _cgetdata {option} {
+            return $_dataChars
+        }
+        constructor {args} {
+            $self configurelist $args
+        }
+        method toString {} {
+            set result {#<OpenLCBMessage}
+            append result [format { -mti 0x%04X} [$self cget -mti]]
+            append result [format { -sourcenid %s} [$self cget -sourcenid]]
+            if {([$self cget -mti] & 0x08) != 0} {
+                append result [format { -destnid %s} [$self cget -destnid]]
+            }
+            if {([$self cget -mti] & 0x04) != 0} {
+                append result [format { -eventid %s} [[$self cget -eventid] cget -eventstring]]
+            }
+            for {set i 0} {$i < $_nDataChars} {incr i} {
+                append result [format { %02X} [$self getElement $i]]
+            }
+            append result {>}
+            return $result
+        }
+    }
+    
+    snit::type CANGridConnectOverUSBSerial {
+        ## Connect to a CAN bus using GridConnect formatted message over a USB 
+        # Serial port
+        #
+        # Options:
+        # @arg -port The name of the serial port.  Typically "/dev/ttyACMn"
+        # under Linux (using the cdc_acm driver).  This is a readonly option
+        # only processed at instance creation.
+        # @arg -nid The Node ID that the computer will assume in the format
+        # of @c hh:hh:hh:hh:hh:hh which is a 48 bit number expressed as 6
+        # pairs of hexadecimal digits separacted by colons (:).
+        # @par
+        
+        component gcmessage
+        ## @privatesection @brief GridConnectMessage component.
+        # This component is used to encode CAN Messages in Grid Connect Message
+        # format for transmission.
+        component gcreply
+        ## @brief GridConnectReply component.
+        # This component is used to decode received Grid Connect Messages into
+        # binary CAN Messages.
+        component mtidetail
+        ## @brief MTIDetail component.
+        # This component is used to extract and pack fields from and to a CAN
+        # header at a MTI detail level
+        component mtiheader
+        ## @brief MTIHeader component.
+        # This component is used to extract and pack fields from and to a CAN
+        # header at a MTI header level.
+        component canheader
+        ## @brief CANHeader component.
+        # This component is used to extract and pack fields from and to a CAN
+        # header at a CAN Header level.
+        variable messagehandler {}
+        ## Message handler.
+        variable datagrambuffers -array {}
+        ## Datagram buffers.
+        variable messagebuffers -array {}
+        ## General message buffers (for multi frame messages)
+        variable simplenodeflags -array {}
+        ## Simple node info flags
+        variable ttyfd
+        ## The tty I/O channel.
+        variable nidlist
+        ## The Node ID as a list of 6 bytes.
+        variable myalias
+        ## My node alias.
+        variable aliasMap -array {}
+        ## Alias to NID map
+        variable nidMap -array {}
+        ## NID to alias map
+        typevariable NIDPATTERN 
+        ## The regexp for breaking up the Node ID into bytes.
+        typeconstructor {
+            set NIDPATTERN [::lcc::nid cget -regexp]
+        }
+        variable _timeout 0
+        ## Timeout flag.
+        option -port -readonly yes -default "/dev/ttyACM0"
+        option -nid  -readonly yes -default "05:01:01:01:22:00" -type lcc::nid
+        method _peelnid {value} {
+            ## Peel the Node ID into bytes and initializing the 48 bit
+            # random number seed for alias generation.
+            
+            #puts stderr "*** $self _peelnid $value"
+            set nidlist [list]
+            foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $value] 1 end] {
+                lappend nidlist [scan $oct %02x]
+            }
+            #puts stderr "*** $self _peelnid: nidlist = $nidlist"
+            # load the PRNG from the Node ID
+            set lfsr1 [expr {([lindex $nidlist 0] << 16) | ([lindex $nidlist 1] << 8) | [lindex $nidlist 2]}]
+            set lfsr2 [expr {([lindex $nidlist 3] << 16) | ([lindex $nidlist 4] << 8) | [lindex $nidlist 5]}]
+            #puts stderr "*** $self _peelnid: lfsr1 = $lfsr1, lfsr2 = $lfsr2"
+        }
+        variable lfsr1 0
+        ## Sequence value, upper 24 bits.
+        variable lfsr2 0
+        ## Sequence value, lower 24 bits.
+        method _getAlias {} {
+            ## Compute next alias.
+            
+            #puts stderr "*** $self getAlias: lfsr1 = $lfsr1, lfsr2 = $lfsr2"
+            # First, form 2^9*val
+            set temp1 [expr {(($lfsr1<<9) | (($lfsr2>>15)&0x1FF)) & 0xFFFFFF}]
+            set temp2 [expr {($lfsr2<<9) & 0xFFFFFF}]
+            
+            # add
+            set lfsr2 [expr {$lfsr2 + $temp2 + 0x7A4BA9}]
+            set lfsr1 [expr {$lfsr1 + $temp1 + 0x1B0CA3}]
+            # carry
+            set lfsr1 [expr {($lfsr1 & 0xFFFFFF) | (($lfsr2&0xFF000000) >> 24)}]
+            set lfsr2 [expr {$lfsr2 & 0xFFFFFF}]
+            return [expr {($lfsr1 ^ $lfsr2 ^ ($lfsr1>>12) ^ ($lfsr2>>12) )&0xFFF}]
+        }
+        method getMyAlias {} {
+            ## @publicsection Return the current alias value.
+            # @return The 12 bit node id alias.
+            return $myalias
+        }
+        constructor {args} {
+            ## @brief Constructor: create a connection to a Grid Connect USB serial device.
+            # Connect to the CAN bus via a Grid Connect USB serial port
+            # interface.
+            #
+            # @param name The name of the instance.
+            # @param ... The options:
+            # @arg -port The name of the serial port.  Typically "/dev/ttyACMn"
+            # under Linux (using the cdc_acm driver).
+            # @arg -nid The Node ID that the computer will assume in the format
+            # of @c hh:hh:hh:hh:hh:hh which is a 48 bit number expressed as 6
+            # pairs of hexadecimal digits separacted by colons (:).
+            # @arg -eventhandler This is a script prefix that is run on incoming 
+            # messages.  The current message as a binary CanMessage is appended.
+            # @par
+            
+            install gcmessage using GridConnectMessage %AUTO%
+            install gcreply   using GridConnectReply   %AUTO%
+            install mtidetail using MTIDetail          %AUTO%
+            install mtiheader using MTIHeader          %AUTO%
+            install canheader using CANHeader          %AUTO%
+            #puts stderr "*** $type create $self $args
+            set options(-port) [from args -port]
+            set options(-nid)  [from args -nid]
+            $self _peelnid $options(-nid)
+            if {[catch {open $options(-port) r+} ttyfd]} {
+                set theerror $ttyfd
+                catch {unset ttyfd}
+                error [_ "Failed to open port %s because %s." $options(-port) $theerror]
+                return
+            }
+            #puts stderr "*** $type create: port opened: $ttyfd"
+            if {[catch {fconfigure $ttyfd -mode}]} {
+                close $ttyfd
+                catch {unset ttyfd}
+                error [_ "%s is not a terminal port." $options(-port)]
+                return
+            }
+            fconfigure $ttyfd -buffering line -translation {crlf crlf}
+            fileevent $ttyfd readable [mymethod _messageReader]
+            while {![$self _reserveMyAlias]} {
+            }
+            $self configurelist $args
+        }
+        method getAliasOfNID {nid} {
+            ## Fetch the alias of a NID
+            #
+            # @param nid A full NID of the form hh:hh:hh:hh:hh:hh
+            # @return The node's alias or the empty string if not known.
+            lcc::nid validate $nid
+            if {[info exists aliasMap($nid)]} {
+                return $aliasMap($nid)
+            } else {
+                return {}
+            }
+        }
+        method getNIDofAlias {alias} {
+            ## Get the NID of the alias.
+            #
+            # @param alias The alias to look up.
+            # @return The NID of the alias or the empty string if not known.
+            if {[info exists nidMap($alias)]} {
+                 return $nidMap($alias)
+            } else {
+                return {}
+            }
+        }
+        method getAllNIDs {} {
+            ## Get all known NIDs
+            #
+            # @return All known NIDS.
+            
+            return [array names aliasMap]
+        }
+        method getAllAliases {} {
+            ## Get all known aliases
+            #
+            # @return All known aliases.
+            
+            return [array names nidMap]
+        }
+        method populateAliasMap {} {
+            ## Send an AME
+            $canheader configure -openlcbframe no \
+                  -variablefield 0x0702 -srcid $myalias
+            set _timeoutFlag 0
+            after 5000 [mymethod _timedout]
+            $self _sendmessage [CanMessage %AUTO% \
+                                -header [$canheader getHeader] -extended yes]
+            vwait [myvar _timeoutFlag]
+        }
+        method setMessageHandler {handler} {
+            ## Set the message handler.  Generally called from the upper level
+            # class to gain access to incoming messages asyncronously.
+            #
+            # @param handler The new handler procedure.
+            # @return The old handler or the empty string if there was no old 
+            # handler.
+            set oldhandler $messagehandler
+            set messagehandler $handler
+            return $oldhandler
+        }
+        method sendMessage {args} {
+            ## Send a message on the OpenLCB bus.
+            # @param ... Message options.  See OpenLCBMessage for possible 
+            # options.
+            
+            set message [eval [list lcc::OpenLCBMessage %AUTO% \
+                               -sourcenid [$self cget -nid]] $args]
+            #puts stderr "*** $self sendMessage: message is [$message toString]"
+            if {([$message cget -mti] & 0x1000) != 0} {
+                ## Datagram
+                $self _sendDatagram $message
+            } else {
+                set datalen [llength [$message cget -data]]
+                if {([$message cget -mti] & 0x0008) != 0} {
+                    ## Address present
+                    incr datalen 2
+                }
+                if {([$message cget -mti] & 0x0004) != 0} {
+                    ## Event present
+                    incr datalen 8
+                }
+                set mtiheader [lcc::MTIHeader %AUTO% -srcid $myalias -mti [expr {[$message cget -mti] & 0x0FFF}] -frametype 1]
+                
+                if {$datalen <= 8} {
+                    ## Frame will be complete in one frame
+                    set canmessage [lcc::CanMessage %AUTO% \
+                                    -header [$mtiheader getHeader] \
+                                    -extended yes \
+                                    -length $datalen]
+                    set dindex 0
+                    if {([$message cget -mti] & 0x0008) != 0} {
+                        set destalias [$self getAliasOfNID [$message cget -destnid]]
+                        $canmessage setElement $dindex [expr {($destalias & 0x0F00) >> 8}]
+                        incr dindex
+                        $canmessage setElement $dindex [expr {$destalias & 0x0FF}]
+                        incr dindex
+                    }
+                    if {([$message cget -mti] & 0x0004) != 0} {
+                        set evlist [[$message cget -eventid] cget -eventidlist]
+                        foreach ebyte $evlist {
+                            $canmessage setElement $dindex $ebyte
+                            incr dindex
+                        }
+                    }
+                    foreach dbyte [$message cget -data] {
+                        $canmessage setElement $dindex $dbyte
+                        incr dindex
+                    }
+                    #puts stderr "*** $self sendMessage: canmessage = [$canmessage toString]"
+                    $self _sendmessage $canmessage
+                } else {
+                    ## send as multiple frames.
+                    set databuffer [$message cget -data]
+                    if {([$message cget -mti] & 0x0008) != 0} {
+                        set destalias [$self getAliasOfNID [$message cget -destnid]]
+                    } else {
+                        set destalias 0;# unaddress multi-frame message?
+                    }
+                    set flags 0x01;# first frame
+                    set bindex 0
+                    set remain [llength $databuffer]
+                    while {$remain > ($bindex + 6)} {
+                        set canmessage [lcc::CanMessage %AUTO% \
+                                        -header [$mtiheader getHeader] \
+                                        -extended yes -length 8]
+                        $canmessage setElement 0 [expr {($flags << 4) | (($destalias & 0x0F00) >> 8)}]
+                        $canmessage setElement 1 [expr {$destalias & 0x0FF}]
+                        set dindex 2
+                        while {$dindex <= 7} {
+                            $canmessage setElement $dindex [lindex $databuffer $bindex]
+                            incr dindex
+                            incr bindex
+                            incr remain -1
+                        }
+                        $self _sendmessage $canmessage
+                        set flags 0x02;# middle frames
+                    }
+                    set canmessage [lcc::CanMessage %AUTO% \
+                                    -header [$mtiheader getHeader] \
+                                    -extended yes -length [expr {$remain + 2}]]
+                    set flags 0x03;# last frame
+                    $canmessage setElement 0 [expr {($flags << 4) | (($destalias & 0x0F00) >> 8)}]
+                    $canmessage setElement 1 [expr {$destalias & 0x0FF}]
+                    set dindex 2
+                    while {$remain > 0} {
+                        $canmessage setElement $dindex [lindex $databuffer $bindex]
+                        incr dindex
+                        incr bindex
+                        incr remain -1
+                    }
+                    $self _sendmessage $canmessage
+                }
+            }
+        }
+        method _sendDatagram {message} {
+            ## @privatesection Send a datagram message.
+            # A possibly multi-part datagram message is sent.
+            #
+            # @param message The OpenLCB message to send.
+            
+            set destalias [$self getAliasOfNID [$message cget -destnid]]
+            set databuffer [$message cget -data]
+            $mtidetail configure -streamordatagram yes -destid $destalias \
+                  -srcid $myalias
+            set remain [llength $databuffer]
+            set dindex 0
+            if {$remain <= 8} {
+                $mtidetail configure -datagramcontent complete
+                set message [CanMessage %AUTO% -header [$mtidetail getHeader] \
+                             -extended true \
+                             -data [lrange $databuffer $dindex end] \
+                             -length $remain]
+                $self _sendmessage $message
+            } else {
+                $mtidetail configure -datagramcontent first
+                while {$remain > 8} {
+                    set eblock [expr {$dindex + 7}]
+                    incr remain -8
+                    set message [CanMessage %AUTO% -header [$mtidetail getHeader] \
+                                 -extended true \
+                                 -data [lrange $databuffer $dindex $eblock] \
+                                 -length 8]
+                    $self _sendmessage $message
+                    incr dindex 8
+                    $mtidetail configure -datagramcontent middle
+                }
+                $mtidetail configure -datagramcontent last
+                set message [CanMessage %AUTO% -header [$mtidetail getHeader] \
+                             -extended true \
+                             -data [lrange $databuffer $dindex end] \
+                             -length $remain]
+                $self _sendmessage $message
+            }
+        }
+        variable _timeoutFlag 0
+        ## Timeout or error message received flag.
+        method _reserveMyAlias {} {
+            ## @brief Reserve an alias.
+            # Sends out CID messages and eventually RID and AMD messages, if
+            # there are no errors.
+            # 
+            # @return A boolean value indicating a successfully reserved alias
+            # (true) or failure (false).
+            
+            # Generate a tentative alias.
+            set myalias [$self _getAlias]
+            #puts stderr "*** $self _reserveMyAlias: myalias = $myalias"
+            
+            # Send out Check ID frames.
+            # CID1
+            $canheader configure -openlcbframe no \
+                  -variablefield [expr {(0x7 << 12) | [getBits 47 36 $nidlist]}] \
+                  -srcid $myalias
+            $self _sendmessage [CanMessage %AUTO% \
+                                -header [$canheader getHeader] -extended yes]
+            # CID2
+            $canheader configure -openlcbframe no \
+                  -variablefield [expr {(0x6 << 12) | [getBits 35 24 $nidlist]}] \
+                  -srcid $myalias
+            $self _sendmessage [CanMessage %AUTO% \
+                                -header [$canheader getHeader] -extended yes]
+            # CID3
+            $canheader configure -openlcbframe no \
+                  -variablefield [expr {(0x5 << 12) | [getBits 23 12 $nidlist]}] \
+                  -srcid $myalias
+            $self _sendmessage [CanMessage %AUTO% \
+                                -header [$canheader getHeader] -extended yes]
+            # CID4
+            $canheader configure -openlcbframe no \
+                  -variablefield [expr {(0x4 << 12) | [getBits 11 0 $nidlist]}] \
+                  -srcid $myalias
+            $self _sendmessage [CanMessage %AUTO% \
+                                -header [$canheader getHeader] -extended yes]
+            set _timeoutFlag 0
+            set timoutID [after 500 [mymethod _timedout]]
+            vwait [myvar _timeoutFlag]
+            if {$_timeoutFlag < 0} {
+                # Received an error report.  Cancel the timeout and return
+                # false.
+                catch [after cancel $timoutID]
+                return false
+            }
+            # No errors after 500ms timeout.  We can reserve our alias.
+            # RID
+            $canheader configure -openlcbframe no \
+                  -variablefield 0x0700 -srcid $myalias
+            $self _sendmessage [CanMessage %AUTO% \
+                                -header [$canheader getHeader] -extended yes]
+            # AMD
+            $canheader configure -openlcbframe no \
+                  -variablefield 0x0701 -srcid $myalias
+            $self _sendmessage [CanMessage %AUTO% \
+                                -header [$canheader getHeader] -extended yes \
+                                -data $nidlist -length 6]
+            set nidMap($myalias) [$self cget -nid]
+            set aliasMap([$self cget -nid]) $myalias
+            return true
+        }
+        method _timedout {} {
+            ## Timeout method.  Called on timeout.
+            
+            #puts stderr "*** $self _timedout"
+            incr _timeoutFlag
+        }
+        method _flags0 {srcid r doff} {
+            ## Method to deal with possible multipart messages, with partitular
+            # handling of multi-part Simple Node Info messages.
+            #
+            # @param srcid The source alias of the message.
+            
+            if {[$mtiheader cget -mti] == 0x0A08} {
+                if {[info exists simplenodeflags($srcid,v1)]} {
+                    eval [list lappend messagebuffers($srcid)] [lrange [$r getData] $doff end]
+                    if {[countNUL $messagebuffers($srcid)] < $simplenodeflags($srcid,v1)} {
+                        return no
+                    }
+                } else {
+                    set messagebuffers($srcid) [lrange [$r getData] $doff end]
+                    set simplenodeflags($srcid,v1) [lindex $messagebuffers($srcid) 0]
+                    if {$simplenodeflags($srcid,v1) == 1} {
+                        set simplenodeflags($srcid,v1) 4
+                    }  
+                }
+                #puts stderr "*** $self _flags0: messagebuffers($srcid) contains $messagebuffers($srcid)"
+                set i 1
+                for {set j 0} \
+                      {$j < $simplenodeflags($srcid,v1)} \
+                      {incr j} {
+                    set k [lsearch -start $i -exact $messagebuffers($srcid) 0]
+                    #puts stderr "*** $self _flags0: i = $i, j = $j, k = $k"
+                    if {$k < 0} {return no}
+                    set i [expr {$k + 1}]
+                }
+                #puts stderr "*** $self _flags0: length of messagebuffers($srcid) is [llength $messagebuffers($srcid)]"
+                #puts stderr "*** $self _flags0: i = $i"
+                if {$i >= [llength $$messagebuffers($srcid)]} {
+                    return no
+                }
+                set simplenodeflags($srcid,v2) [lindex $messagebuffers($srcid) $i]
+                if {$simplenodeflags($srcid,v2) == 1} {
+                    set simplenodeflags($srcid,v2) 2
+                }
+                if {[countNUL $messagebuffers($srcid)] < ($simplenodeflags($srcid,v1) + $simplenodeflags($srcid,v2))} {
+                    return no
+                }
+                unset simplenodeflags($srcid,v1)
+                unset simplenodeflags($srcid,v2)
+                return yes
+            } else {
+                set messagebuffers($srcid) [lrange [$r getData] $doff end]
+                return yes
+            }
+        }
+        method _messageReader {} {
+            ## Handling incoming messages.  Handle control (CAN) messages
+            # here.  OpenLCB messages are assembled possibly from multiple CAN
+            # messages and then dispatched to the upper level message handler.
+            
+            if {[gets $ttyfd message] >= 0} {
+                #puts stderr "*** $self _messageReader: message = $message"
+                $gcreply configure -message $message
+                set r [$gcreply createReply]
+                $canheader setHeader [$r getHeader]
+                #puts stderr "*** $self _messageReader: canheader : [$canheader configure]"
+                #puts stderr "*** $self _messageReader: r = [$r toString]"
+                if {[$canheader cget -openlcbframe]} {
+                    $mtiheader setHeader [$canheader getHeader]
+                    $mtidetail setHeader [$canheader getHeader]
+                    #puts stderr "*** $self _messageReader: mtiheader : [$mtiheader configure]"
+                    #puts stderr "*** $self _messageReader: mtidetail : [$mtidetail configure]"
+                    set srcid [$canheader cget -srcid]
+                    set flagbits 0
+                    set destid 0
+                    set doff 0
+                    if {[$mtiheader cget -frametype] == 1} {
+                        if {[$mtidetail cget -addressp]} {
+                            set doff 2
+                            set destid [expr {(([lindex [$r getData] 0] & 0x0F) << 8) | [lindex [$r getData] 1]}]
+                            set flagbits [expr {([lindex [$r getData] 0] & 0xF0) >> 4}]
+                            if {$destid != $myalias} {
+                                # The message is not addressed to me, discard it.
+                                return
+                            }
+                        }
+                        if {$flagbits == 0x00} {
+                            #puts stderr "*** $self _messageReader: doff = $doff"
+                            set datacomplete [$self _flags0 $srcid $r $doff]
+                            #puts stderr "*** $self _messageReader: $r getData is [$r getData]"
+                            #puts stderr "*** $self _messageReader: messagebuffers($srcid) contains $messagebuffers($srcid)"
+                        } elseif {$flagbits == 0x01} {
+                            set messagebuffers($srcid) [lrange [$r getData] 2 end]
+                        } elseif {$flagbits == 0x03} {
+                            eval [list lappend messagebuffers($srcid)] [lrange [$r getData] 2 end]
+                        } elseif {$flagbits == 0x02} {
+                            eval [list lappend messagebuffers($srcid)] [lrange [$r getData] 2 end]
+                            set datacomplete yes
+                        }
+                        if {$datacomplete} {
+                            if {$messagehandler ne {}} {
+                                set m [lcc::OpenLCBMessage %AUTO% \
+                                       -mti [$mtiheader cget -mti] \
+                                       -sourcenid [$self getNIDofAlias $srcid] \
+                                       -data      $messagebuffers($srcid)]
+                                set doff 0
+                                if {[$mtidetail cget -eventp]} {
+                                    set evstart $doff
+                                    set evend   [expr {$doff + 7}]
+                                    incr doff 8
+                                    set edata [lrange $messagebuffers($srcid) $evstart $evend]
+                                    set eid [lcc::EventID %AUTO% -eventidlist $edata]
+                                    $m configure -eventid $eid
+                                    $m configure -data [lrange $messagebuffers($srcid) $doff end]
+                                }
+                                unset messagebuffers($srcid)           
+                                uplevel #0 $messagehandler $m
+                            }
+                        }
+                    } elseif {[$mtidetail cget -streamordatagram]} {
+                        set destid [$mtidetail cget -destid]
+                        if {$destid != $myalias} {
+                            # The message is not addressed to me, discard it.
+                            return
+                        }
+                        set datacomplete no
+                        switch [$mtidetail cget -datagramcontent] {
+                            complete {
+                                set datagrambuffers($srcid) [$r getData]
+                                set datacomplete yes
+                            }
+                            first {
+                                set datagrambuffers($srcid) [$r getData]
+                            }
+                            middle {
+                                eval [list lappend datagrambuffers($srcid)] [$r getData]
+                            }
+                            last {
+                                eval [list lappend datagrambuffers($srcid)] [$r getData]
+                                set datacomplete yes
+                            }
+                        }
+                        if {$datacomplete} {
+                            set m [lcc::OpenLCBMessage %AUTO% -mti 0x1C48 \
+                                   -sourcenid [$self getNIDofAlias $srcid] \
+                                   -destnid   [$self getNIDofAlias $destid] \
+                                   -data      $datagrambuffers($srcid)]
+                            unset datagrambuffers($srcid)
+                            if {$messagehandler ne {}} {
+                                uplevel #0 $messagehandler $m
+                            }
+                        }
+                    }
+                } else {
+                    # Not a OpenLCB message.
+                    # Check for an Error Information Report
+                    set vf [$canheader cget -variablefield]
+                    #puts stderr "[format {*** %s _messageReader: vf = 0x%04X} $self $vf]"
+                    if {$vf == 0x0701} {
+                        # AMD frame
+                        #puts stderr "*** $self _messageReader: received AMD frame"
+                        set srcalias [$canheader cget -srcid]
+                        set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
+                        #puts stderr "[format {*** %s _messageReader: srcalias = 0x%03X, srcnid = %s} $self $srcalias $srcnid]"
+                        set nidMap($srcalias) $srcnid
+                        set aliasMap($srcnid) $srcalias
+                    } elseif {$vf == 0x0702} {
+                        # AME frame
+                        if {[listeq [lrange [$r getData] 0 5] {0 0 0 0 0 0}] || [listeq [lrange [$r getData] 0 5] $nidlist]} {
+                            $canheader configure -openlcbframe no \
+                                  -variablefield 0x0701 -srcid $myalias
+                            $self _sendmessage [CanMessage %AUTO% \
+                                                -header [$canheader getHeader] \
+                                                -extended yes \
+                                                -data $nidlist -length 6]
+                        }
+                    } elseif {$vf >= 0x0710 || $vf <= 0x0713} {
+                        # Was an Error Information Report -- flag it.
+                        incr _timeoutFlag -2
+                    } else {
+                        
+                        #### Node ID Alias Collision handling... NYI
+                    }
+                }
+            } else {
+                # Error reading -- probably EOF / disconnect.
+                $self destroy
+            }
+        }
+        method _sendmessage {canmessage} {
+            ## Send a low-level CAN bus message using the Grid Connect format.
+            # 
+            # @param canmessage The (binary) CANMessage to send.
+            
+            $gcmessage configure -canmessage $canmessage
+            puts $ttyfd [$gcmessage toString]
+            flush $ttyfd
+        }
+        proc getBits {top bottom bytelist} {
+            ## @brief Get the selected bitfield.
+            # Extract the bits from a list of 6 8-bit (byte) numbers 
+            # representing a 48 bit number.
+            #
+            # @param top Topmost (highest) bit number.
+            # @param bottom Bottommost (lowest) bit number.
+            # @param bytelist List of 6 bytes.
+            # @return An integer value.
+            
+            set topbyteindex [expr {5 - ($top / 8)}]
+            set bottomindex  [expr {5 - ($bottom / 8)}]
+            set word 0
+            for {set i $topbyteindex} {$i <= $bottomindex} {incr i} {
+                set word [expr {($word << 8) | [lindex $bytelist $i]}]
+            }
+            set shift [expr {$bottom - (($bottom / 8)*8)}]
+            set word  [expr {$word >> $shift}]
+            set nbits [expr {($top - $bottom)+1}]
+            set mask  [expr {(1 << $nbits) - 1}]
+            set word  [expr {$word & $mask}]
+            return $word
+        }
+        proc countNUL {list} {
+            set count 0
+            set start 0
+            while {[set i [lsearch -start $start $list 0]] >= 0} {
+                incr count
+                set start [expr {$i + 1}]
+            }
+            return $count
+        }
+        
+        typemethod findAvailableComPorts {} {
+            switch $::tcl_platform(platform) {
+                windows {
+                    ### Enumerate USB TTYs devs (COM??:) under MS-Windows?
+                    package require registry
+                    set keyname "HKEY_LOCAL_MACHINE\\HARDWARE\\DEVICEMAP\\SERIALCOMM"
+                    if {[catch {registry values $keyname} rtn]} {
+                        return {}
+                    } else {
+                        set coms {}
+                        foreach i $rtn {
+                            lappend coms [registry get $keyname $i]
+                        }
+                        return $coms
+                    }
+                }
+                unix {
+                    if {$::tcl_platform(os) eq "Linux"} {
+                        ## Linux
+                        return [glob -nocomplain /dev/ttyUSB* /dev/ttyACM*]
+                    } elseif {$::tcl_platform(os) eq "Darwin"} {
+                        ## MacOSX
+                        return [glob -nocomplain /dev/cu.*]
+                    }
+                }
+            }
+        }
+        typecomponent portandnidDialog
+        typecomponent   portLCombo
+        typecomponent   nidLEntry
+        typemethod buildPortandnidDialog {} {
+            if {[info exists portandnidDialog] && 
+                [winfo exists $portandnidDialog]} {
+                return $portandnidDialog
+            }
+            set portandnidDialog [Dialog .portandnidDialog%AUTO% \
+                                  -title [_ "Select port and Node ID for %s" $type] \
+                                  -modal local \
+                                  -cancel 1 \
+                                  -default 0 \
+                                  -bitmap questhead \
+                                  -transient yes]
+            $portandnidDialog add open \
+                  -text [_m "Label|Open"] \
+                  -command [mytypemethod _OpenTransport]
+            $portandnidDialog add cancel \
+                  -text [_m "Label|Cancel"] \
+                  -command [mytypemethod _CancelOpenTransport]
+            set df [$portandnidDialog getframe]
+            set availableports [$type findAvailableComPorts]
+            set portLCombo [LabelComboBox $df.portLCombo \
+                            -label [_m "Label|Port:"] \
+                            -values $availableports \
+                            -editable no]
+            $portLCombo set [lindex $availableports 0]
+            pack $portLCombo -fill x
+            set nidLEntry [LabelEntry $df.nidLEntry \
+                           -label [_m "Label|Node ID:"]]
+            $nidLEntry configure -text "05:01:01:01:22:00"
+            pack $nidLEntry -fill x
+            return $portandnidDialog
+        }
+        typemethod _CancelOpenTransport {} {
+            $portandnidDialog withdraw
+            return [$portandnidDialog enddialog {}]
+        }
+        typemethod _OpenTransport {} {
+            set port [$portLCombo get]
+            set nid  [$nidLEntry get]
+            lcc::nid validate $nid
+            $portandnidDialog withdraw
+            return [$portandnidDialog enddialog [list -port $port -nid $nid]]
+        }
+        typemethod drawOptionsDialog {args} {
+            #puts stderr "*** $type drawOptionsDialog $args"
+            set dia [$type buildPortandnidDialog]
+            $dia configure -parent [from args -parent .]
+            #puts stderr "*** $type drawOptionsDialog: dia = $dia"
+            return [$dia draw]
+        }
+    }    
+    
+    snit::type OpenLCBNode {
+        ## @brief Connect to a OpenLCB interface.
+        # This class implements the high level interface to the  OpenLCB 
+        # network.
+        #
+        # Options:
+        # @arg -transport The transport layer constuctor.
+        # @arg -eventhandler This is a script prefix that is run for event 
+        # processing messages.
+        # This is a command with the procedure signature of
+        # @code
+        # proc eventhandler {command eventid {{validity {}}}} {...}
+        # @endcode
+        # The command is one of consumerrangeidentified, consumeridentified, 
+        # producerrangeidentified, produceridentified, learnevents, report, 
+        # identifyconsumer, identifyproducer, or identifyevents.
+        # @arg -datagramhandler This is a script prefix that is run for
+        # datagram messages.
+        # This is a command with the procedure signature of
+        # @code
+        # proc datagramehandler {command sourcenid args} {...}
+        # @endcode
+        # The command argument is one of datagramreceivedok, datagramrejected, 
+        # or datagramcontent
+        # @arg -generalmessagehandler This is a script prefix that is run for
+        # general messages.
+        # This is a command with the procedure signature of
+        # @code
+        # proc generalmessagehandler {message} {...}
+        # @endcode
+        # The message is an lcc::OpenLCBMessage object.  The procedure should 
+        # reference the -mti option of the message object to determine what 
+        # sort message it is.
+        # @par
+        # Additional options are passed to the transport layer constructor.
+        
+        
+        
+        
+        component transport
+        ## @privatesection The logical transport layer component.
+        delegate method getAllNIDs to transport
+        delegate option -nid to transport
+        #variable _iocomplete 0
+        #variable _timeout 0
+        typevariable protocolsupport [list 0xC5 0x10 0x00]
+        ## Simple Datagram EventExchange Teach/Learn SimpleNodeInfo
+        typevariable simplenodeinfo {}
+        ## Simple node info payload.
+        option -transport -readonly yes
+        option -eventhandler -default {}
+        option -datagramhandler -default {}
+        option -generalmessagehandler -default {}
+        typeconstructor {
+            ## Initialize the simple node info request payload.
+            set simplenodeinfo [list 4]
+            foreach s {{Deepwoods Software} {Model Railroad System} {N/A} {2.1.37}} {
+                foreach ch [split $s {}] {
+                    lappend simplenodeinfo [scan $ch {%c}]
+                }
+                lappend simplenodeinfo 0
+            }
+            lappend simplenodeinfo 2 0 0
+        }
+        constructor {args} {
+            ## @publicsection Constructor: construct a OpenLCBNode object.
+            # Open a connection to the OpenLCB network.
+            #
+            # @param name The name of the OpenLCBNode object.
+            # @param ... Options:
+            # @arg -transport The transport layer constuctor. This option is
+            # required.
+            # @arg -eventhandler This is a script prefix that is run for event 
+            # processing messages.
+            # This is a command with the procedure signature of
+            # @code
+            # proc eventhandler {command eventid {{validity {}}}} {...}
+            # @endcode
+            # The command is one of consumerrangeidentified, 
+            # consumeridentified, producerrangeidentified, produceridentified, 
+            # learnevents, report, identifyconsumer, identifyproducer, or 
+            # identifyevents.
+            # @arg -datagramehandler This is a script prefix that is run for
+            # datagram messages.
+            # This is a command with the procedure signature of
+            # @code
+            # proc datagramehandler {command sourcenid data} {...}
+            # @endcode
+            # The command argument is one of datagramreceivedok, datagramrejected, 
+            # or datagramcontent
+            # @arg -generalmessagehandler This is a script prefix that is run for
+            # general messages.
+            # This is a command with the procedure signature of
+            # @code
+            # proc generalmessagehandler {message} {...}
+            # @endcode
+            # The message is an lcc::OpenLCBMessage object.  The procedure should 
+            # reference the -mti option of the message object to determine what 
+            # sort message it is.
+            # @par
+            # Additional options are passed to the transport layer constructor.
+            
+            if {[lsearch -exact $args -transport] < 0} {
+                error [_ "The -transport option is required!"]
+            }
+            set options(-transport) [from args -transport]
+            set options(-eventhandler) [from args -eventhandler]
+            set options(-datagramhandler) [from args -datagramhandler]
+            set options(-generalmessagehandler) [from args \
+                                                 -generalmessagehandler]
+            set transport [eval [list $options(-transport) %AUTO%] $args]
+            $self SendInitComplete 
+            catch {$transport populateAliasMap}
+            $transport setMessageHandler [mymethod _messageHandler]
+        }
+        method SendInitComplete {} {
+            ## Send an initialization complete message.
+            $transport sendMessage -mti 0x0100 -data [nidlist [$transport cget -nid]]
+        }
+        method SendVerifyNodeID {{nid {}}} {
+            ## Send a verify node id message.
+            #
+            # @param nid The (optional) Node ID to send the message to.
+            # If ommited, a global verify node id message is sent.
+            
+            if {$nid eq {}} {
+                $transport sendMessage -mti 0x0490
+            } else {
+                lcc::nid validate $nid
+                $transport sendMessage -mti 0x498 -destnid $nid
+            }
+        }
+        method ProtocolSupportRequest {nid} {
+            ## Send a Protocol Support Request to the specified node.
+            #
+            # @param nid The Node ID to send the message to.
+            
+            lcc::nid validate $nid
+            $transport sendMessage -mti 0x0828 -destnid $nid
+        }
+        method ProduceEvent {eventid} {
+            ## Send an event message.
+            # @param eventid The event id to send.
+            
+            lcc::EventID validate $eventid
+            $transport  sendMessage -mti 0x05B4 -eventid $eventid
+        }
+        method IdentifyConsumer {eventid} {
+            ## Send an identify consumer message.
+            # @param eventid The event id to send.
+            
+            lcc::EventID validate $eventid
+            $transport  sendMessage -mti 0x08F4 \
+                  -data [$eventid cget -eventidlist]
+        }
+        method ConsumerIdentified {eventid validity} {
+            ## Send a consumer identified message.
+            # @param eventid The event id to send.
+            # @param validity The validity of the eventid: one of the words 
+            # valid, invalid, or unknown.
+            
+            lcc::EventID validate $eventid
+            lcc::eventvalidity validate $validity
+            switch $validity {
+                valid {
+                    $transport  sendMessage -mti 0x04C4 -eventid $eventid
+                }
+                invalid {
+                    $transport  sendMessage -mti 0x04C5 -eventid $eventid
+                }
+                unknown {
+                    $transport  sendMessage -mti 0x04C7 -eventid $eventid
+                }
+            }
+        }
+        method ConsumerRangeIdentified {eventidrange} {
+            ## Send a consumer range identified message.
+            # @param eventidrange The event id range identified.
+            
+            lcc::EventID validate $eventidrange
+            $transport  sendMessage -mti 0x04A4 -eventid $eventid
+        }
+        method IdentifyProducer {eventid} {
+            ## Send an identify producer message.
+            # @param eventid The event id to send.
+            
+            lcc::EventID validate $eventid
+            $transport  sendMessage -mti 0x0914 -eventid $eventid
+        }
+        method ProducerIdentified {eventid validity} {
+            ## Send a producer identified message.
+            # @param eventid The event id to send.
+            # @param validity The validity of the eventid: one of the words 
+            # valid, invalid, or unknown.
+            
+            lcc::EventID validate $eventid
+            lcc::eventvalidity validate $validity
+            switch $validity {
+                valid {
+                    $transport  sendMessage -mti 0x0544 -eventid $eventid
+                }
+                invalid {
+                    $transport  sendMessage -mti 0x0545 -eventid $eventid
+                }
+                unknown {
+                    $transport  sendMessage -mti 0x0547 -eventid $eventid
+                }
+            }
+        }
+        method ProducerRangeIdentified {eventidrange} {
+            ## Send a producer range identified message.
+            # @param eventidrange The event id range identified.
+            
+            lcc::EventID validate $eventidrange
+            $transport  sendMessage -mti 0x0524 -eventid $eventidrange
+        }
+        method IdentifyEvents {{nid {}}} {
+            ## Send an identify events message.
+            # @param nid The (optional) Node ID to send the message to.
+            # If ommited, a global verify node id message is sent.
+             
+            if {$nid eq {}} {
+                $transport  sendMessage -mti 0x0970
+            } else {
+                $transport  sendMessage -mti 0x968 -destnid $nid
+            }
+        }
+        method LearnEvent {eventid} {
+            ## Send a learn event message.
+            # @param eventid  The event id to learn.
+            
+            lcc::EventID validate $eventid
+            $transport  sendMessage -mti 0x0594 -eventid $eventid
+        }
+        method SendDatagram {nid data} {
+            ## Send a datagram message to the specificed Node ID.
+            # @param nid The Node ID to send the message to.
+            # @param data The data to send (1 to 64 bytes).
+            lcc::nid validate $nid
+            $transport  sendMessage -mti 0x1C48 -destnid $nid -data $data
+        }
+        method DatagramReceivedOK {nid {flags 0}} {
+            ## Send a datagram received ok message.
+            # @param nid The Node ID to send the message to.
+            # @param flags The (optional) flags to send.
+            
+            lcc::nid validate $nid
+            lcc::byte validate $flags
+            $transport  sendMessage -mti 0x0A28 -destnid $nid \
+                  -data [list $flags]
+        }
+        method DatagramRejected {nid errorcode} {
+            ## Send a datagram rejected message.
+            # @param nid The Node ID to send the message to.
+            # @param errorcode The error code to send.
+            
+            lcc::nid validate $nid
+            lcc::sixteenbits validate $errorcode
+            $transport  sendMessage -mti 0x0A48 -destnid $nid \
+                  -data [list [expr {($errorcode >> 8) & 0x0FF}] \
+                         [expr {$errorcode & 0x0FF}]]
+        }
+        method SendSimpleNodeInfoRequest {nid} {
+            ## Send a simple node info request message.
+            # @param nid The Node ID to send the message to.
+            
+            lcc::nid validate $nid
+            $transport  sendMessage -mti 0x0DE8 -destnid $nid
+        }
+        method SendSupportedProtocolsRequest {nid} {
+            ## Send a Supported protocols request message.
+            # @param nid The Node ID to send the message to.
+            
+            lcc::nid validate $nid
+            $transport  sendMessage -mti 0x0828 -destnid $nid
+        }
+        method SendMySupportedProtocols {nid} {
+            ## Send my supported protocols message.
+            # @param nid The Node ID to send the message to.
+            
+            lcc::nid validate $nid
+            $transport  sendMessage -mti 0x0668 -destnid $nid \
+                  -data $protocolsupport
+        }
+        method ReturnMySupportedProtocols {} {
+            ## Return my protocol support bitvector (three bytes).
+            #
+            # @return A protocol support bitvector (three bytes).
+            return $protocolsupport
+        }
+        method SendMySimpleNodeInfo {nid} {
+            ## Send my simple node info message.
+            # @param nid The Node ID to send the message to.
+            
+            lcc::nid validate $nid
+            $transport  sendMessage -mti 0x0A08 -destnid $nid \
+                  -data $simplenodeinfo
+        }
+        method ReturnMySimpleNodeInfo {} {
+            ## Return my Simple Node Info payload.
+            #
+            # @return A Simple Node Info payload.
+            
+            return $simplenodeinfo
+        }
+        method SendMyNodeVerifcation {} {
+            ## Send my node verification message
+            $transport  sendMessage -mti 0x0170 \
+                  -data [nidlist [$transport cget -nid]]
+        }
+        proc nidlist {nid} {
+            ## @privatesection Break a Node ID string into a list of bytes.
+            # @param nid The Node ID to split up.
+            
+            set nidlist [list]
+            foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] \
+                                 $nid] 1 end] {
+                lappend nidlist [scan $oct %02x]
+            }
+            return $nidlist
+        }
+        method _messageHandler {message} {
+            ## Generic message handler.
+            # @param message The received OpenLCB message.
+            
+            #puts stderr "*** $self _messageHandler [$message toString]"
+            switch [format {0x%04X} [$message cget -mti]] {
+                0x04A4 {
+                    ## Consumer range identified
+                    set eventhandler [$self cget -eventhandler]
+                    if {$eventhandler eq {}} {return}
+                    set eventidrange [lcc::EventID %AUTO% \
+                                      -eventidlist [$message cget -data]]
+                    uplevel #0 $eventhandler consumerrangeidentified \
+                          $eventidrange
+                }
+                
+                0x04C4 -
+                0x04C5 -
+                0x04C7 {
+                    ## Consumer identified
+                    set eventhandler [$self cget -eventhandler]
+                    if {$eventhandler eq {}} {return}
+                    set eventid [lcc::EventID %AUTO% \
+                                 -eventidlist [$message cget -data]]
+                    switch [format {0x%04X} [$message cget -mti]] {
+                        0x04C4 {
+                            uplevel #0 $eventhandler consumeridentified \
+                                  $eventid valid
+                        }
+                        0x04C5 {
+                            uplevel #0 $eventhandler consumeridentified \
+                                  $eventid invalid
+                        }
+                        0x04C7 {
+                            uplevel #0 $eventhandler consumeridentified \
+                                  $eventid unknown
+                        }
+                    }
+                }
+                0x0524 {
+                    ## Producer range identified
+                    set eventhandler [$self cget -eventhandler]
+                    if {$eventhandler eq {}} {return}
+                    set eventidrange [lcc::EventID %AUTO% \
+                                      -eventidlist [$message cget -data]]
+                    uplevel #0 $eventhandler producerrangeidentified \
+                          $eventidrange
+                }
+                0x0544 -
+                0x0545 -
+                0x0547 {
+                    ## Producer identified
+                    set eventhandler [$self cget -eventhandler]
+                    if {$eventhandler eq {}} {return}
+                    set eventid [lcc::EventID %AUTO% \
+                                 -eventidlist [$message cget -data]]
+                    switch [format {0x%04X} [$message cget -mti]] {
+                        0x0544 {
+                            uplevel #0 $eventhandler produceridentified \
+                                  $eventid valid
+                        }
+                        0x0545 {
+                            uplevel #0 $eventhandler produceridentified \
+                                  $eventid invalid
+                        }
+                        0x0547 {
+                            uplevel #0 $eventhandler produceridentified \
+                                  $eventid unknown
+                        }
+                    }
+                }
+                0x0594 {
+                    ## Learn events
+                    set eventhandler [$self cget -eventhandler]
+                    if {$eventhandler eq {}} {return}
+                    set eventid [lcc::EventID %AUTO% \
+                                 -eventidlist [$message cget -data]]
+                    uplevel #0 $eventhandler learnevents $eventid
+                }
+                0x05B4 {
+                    ## PCER
+                    set eventhandler [$self cget -eventhandler]
+                    if {$eventhandler eq {}} {return}
+                    set eventid [lcc::EventID %AUTO% \
+                                 -eventidlist [$message cget -data]]
+                    uplevel #0 $eventhandler report $eventid
+                }
+                0x08F4 {
+                    ## Identify Consumer
+                    set eventhandler [$self cget -eventhandler]
+                    if {$eventhandler eq {}} {return}
+                    set eventid [lcc::EventID %AUTO% \
+                                 -eventidlist [$message cget -data]]
+                    uplevel #0 $eventhandler identifyconsumer $eventid
+                }
+                0x0914 {
+                    ## Identify producer
+                    set eventhandler [$self cget -eventhandler]
+                    if {$eventhandler eq {}} {return}
+                    set eventid [lcc::EventID %AUTO% \
+                                 -eventidlist [$message cget -data]]
+                    uplevel #0 $eventhandler identifyproducer $eventid
+                }
+                0x0968 -
+                0x0970 {
+                    ## Identify events
+                    set eventhandler [$self cget -eventhandler]
+                    if {$eventhandler eq {}} {return}
+                    uplevel #0 $eventhandler identifyevents {}
+                }
+                
+                0x0A28 {
+                    ## Datagram received ok
+                    set datagramhandler [$self cget -datagramhandler]
+                    if {$datagramhandler eq {}} {return}
+                    uplevel #0 $datagramhandler datagramreceivedok \
+                          [$message cget -sourcenid] [$message cget -data]
+                }
+                0x0A48 {
+                    ## Datagram rejected
+                    set datagramhandler [$self cget -datagramhandler]
+                    if {$datagramhandler eq {}} {return}
+                    uplevel #0 $datagramhandler datagramrejected \
+                          [$message cget -sourcenid] [$message cget -data]
+                }
+                0x1C48 {
+                    ## Datagram content
+                    set datagramhandler [$self cget -datagramhandler]
+                    if {$datagramhandler eq {}} {
+                        $self DatagramRejected \
+                              [$message cget -sourcenid] \
+                              0x1000
+                        return
+                    }
+                    uplevel #0 $datagramhandler datagramcontent \
+                          [$message cget -sourcenid] [$message cget -data]
+                }
+                default {
+                    set generalmessagehandler [$self cget \
+                                               -generalmessagehandler]
+                    if {$generalmessagehandler eq {}} {return}
+                    uplevel #0 $generalmessagehandler $message
+                }
+            }
+        }
+        typecomponent selectTransportConstructorDialog
+        typecomponent    constructorCombo
+        ## Transport constructor selection dialog.
+        typevariable transportConstructors -array {
+            "Grid Connect CAN over USBSerial" lcc::CANGridConnectOverUSBSerial 
+        }
+        ## Array of transport constructors
+        typemethod _buildSelectTransportConstructorDialog {} {
+            if {[info exists selectTransportConstructorDialog] && 
+                [winfo exists $selectTransportConstructorDialog]} {
+                return $selectTransportConstructorDialog
+            }
+            set selectTransportConstructorDialog \
+                  [Dialog .selectTransportConstructorDialog%AUTO% \
+                   -title [_ "Select OpenLCB Transport Constructor"] \
+                   -modal local \
+                   -cancel 1 \
+                   -default 0 \
+                   -bitmap questhead \
+                   -transient yes]
+            $selectTransportConstructorDialog add select \
+                  -text [_m "Label|Select"] \
+                  -command [mytypemethod _SelectTransport]
+            $selectTransportConstructorDialog add cancel \
+                  -text [_m "Label|Cancel"] \
+                  -command [mytypemethod _CancelSelectTransport]
+            set df [$selectTransportConstructorDialog getframe]
+            set constructorCombo [LabelComboBox $df.constructorCombo \
+                                  -label "Constructor:" \
+                                  -values [array names transportConstructors] \
+                                  -editable no]
+            $constructorCombo set [lindex [$constructorCombo cget -values] 0]
+            pack $constructorCombo -fill x
+            return $selectTransportConstructorDialog
+        }
+        typemethod selectTransportConstructor {args} {
+            #puts stderr "*** $type selectTransportConstructor $args"
+            set dia [$type _buildSelectTransportConstructorDialog]
+            #puts stderr "*** $type selectTransportConstructor: dia = $dia"
+            $dia configure -parent [from args -parent .]
+            return [$dia draw]
+        }
+        typemethod _CancelSelectTransport {} {
+            $selectTransportConstructorDialog withdraw
+            return [$selectTransportConstructorDialog enddialog {}]
+        }
+        typemethod _SelectTransport {} {
+            set cons $transportConstructors([$constructorCombo get])
+            $selectTransportConstructorDialog withdraw
+            return [$selectTransportConstructorDialog enddialog $cons]
+        }
+    }
+    
     proc peelCANheader {header} {
         set CANPrefix [expr {($header & wide(0x18000000)) >> 27}]
         set CANFrameType [expr {($header & wide(0x07000000)) >> 24}]
