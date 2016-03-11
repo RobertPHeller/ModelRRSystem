@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160310.1425>
+#  Last Modified : <160311.1352>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -231,14 +231,17 @@ namespace eval lcc {
     }
     
     snit::type EventID_or_null {
-        ## @typedef EventID EventID_or_null
-        # @brief An EventID or empty string.
+        ## @brief An EventID or empty string.
         
         pragma -hastypeinfo false
         pragma -hastypedestroy false
         pragma -hasinstances false
         
         typemethod validate {value} {
+            ## Validate a possible EventID, but allow a null string value.
+            #
+            # @param value The value to validate.
+            
             if {$value eq {}} {return $value}
             lcc::EventID validate $value
         }
@@ -1453,8 +1456,7 @@ namespace eval lcc {
     # @brief Node ID regexp pattern.
     # A Node Id is six bytes as pairs of hex digits separacted by colons (:).
     snit::type nid_or_null {
-        ## @typedef string nid_or_null
-        # @brief Node ID regexp pattern or the empty string.
+        ## @brief Node ID regexp pattern or the empty string.
         # A Node Id is six bytes as pairs of hex digits separacted by colons (:).
         
         pragma -hastypeinfo false
@@ -1462,14 +1464,16 @@ namespace eval lcc {
         pragma -hasinstances false
         
         typemethod validate {value} {
+            ## Validate a Node ID, but allow a null string.
+            #
+            # @param value The value to validate, can be null.
+            
             if {$value eq {}} {return $value}
             lcc::nid validate $value
         }
     }
     
     
-    
-
     snit::type LCCBufferUSB {
         ## @brief Connect to a RR-Cirkits LCC Buffer USB device.
         # This class implements I/O to the CAN Bus via a RR-Cirkits LCC Buffer
@@ -2099,11 +2103,6 @@ namespace eval lcc {
         }
     }
     
-    snit::type GridConnectTransport {
-    }
-    
-    
-    
     snit::type CanTransport {
         ## @brief Logical transport of CAN Messages.
         # CAN Bus abstraction layer
@@ -2112,7 +2111,8 @@ namespace eval lcc {
         # @arg -transportlayer The physical transport layer (eg 
         #         GridConnectTransport over USB serial, etc.)
         # @arg -readhandler The read handler for incoming messages.
-        
+        # @par
+
         component transport
         ## @privatesection Transport Layer component
         delegate method * to transport
@@ -2129,7 +2129,15 @@ namespace eval lcc {
         delegate option -readhandler to transport
         
         constructor {args} {
-            ## @public section
+            ## @publicsection Construct a CanTransport object.
+            # 
+            # @param name The name of the transport object.
+            # @param ... Options:
+            # @arg -transportlayer The physical transport layer (eg 
+            #         GridConnectTransport over USB serial, etc.)
+            # @arg -readhandler The read handler for incoming messages.
+            # @par
+            
             $self configurelist $args
             if {![info exists transport]} {
                 error [_ The -transportlayer is a required option.]
@@ -2138,24 +2146,63 @@ namespace eval lcc {
     }
     
     snit::type OpenLCBMessage {
+        ## @brief OpenLCB Message type.
+        #
+        # Options (fields):
+        # @arg -mti The MTI Header bitfield.
+        # @arg -sourcenid The source Node ID.
+        # @arg -destnid The destination Node ID or null if this is not an 
+        #               addressed message.
+        # @arg -eventid The Event ID or null if there is no Event ID 
+        #               associated with this message.
+        # @arg -data Any additional data associated with this message.
+        # @par
+        
         lcc::AbstractMRMessage
-        option -mti -readonly yes -default 0 -type lcc::sixteenbits
+        option -mti -default 0 -type lcc::sixteenbits
         option -sourcenid -type lcc::nid
         option -destnid -type lcc::nid_or_null
         option -eventid -type lcc::EventID_or_null
         option -data -type lcc::bytelist72 -configuremethod _configuredata \
               -cgetmethod _cgetdata
         method _configuredata {option value} {
+            ## @privatesection Configure method for data.
+            #
+            # @param option Always @c -data.
+            # @param value A list of bytes, upto 72 elements.
+            
             set _nDataChars [llength $value]
             set _dataChars $value
         }
         method _cgetdata {option} {
+            ## Cget method for data.
+            #
+            # @param option Always @c -data.
+            # @return Data vector (a list of bytes).
+            
             return $_dataChars
         }
         constructor {args} {
+            ## @publicsection Construct a OpenLCB Message oject.
+            #
+            # @param name The name of the object
+            # @param ... Options (fields):
+            # @arg -mti The MTI Header bitfield.
+            # @arg -sourcenid The source Node ID.
+            # @arg -destnid The destination Node ID or null if this is not an 
+            #               addressed message.
+            # @arg -eventid The Event ID or null if there is no Event ID 
+            #               associated with this message.
+            # @arg -data Any additional data associated with this message.
+            # @par
+            
             $self configurelist $args
         }
         method toString {} {
+            ## Return the object as a printable string.
+            #
+            # @return A string representation of the object.
+            
             set result {#<OpenLCBMessage}
             append result [format { -mti 0x%04X} [$self cget -mti]]
             append result [format { -sourcenid %s} [$self cget -sourcenid]]
@@ -2795,6 +2842,11 @@ namespace eval lcc {
             return $word
         }
         proc countNUL {list} {
+            ## Count NUL bytes in a byte buffer.
+            #
+            # @param list The list of bytes to search.
+            # @return The number of NUL (0) bytes in the list.
+            
             set count 0
             set start 0
             while {[set i [lsearch -start $start $list 0]] >= 0} {
@@ -2805,6 +2857,12 @@ namespace eval lcc {
         }
         
         typemethod findAvailableComPorts {} {
+            ## @brief Return a list of available (USB) serial ports.
+            # This method does a platform specific search for possible 
+            # serial ports to use to communicate over the CAN bus.
+            #
+            # @returns A list of serial port device names.
+            
             switch $::tcl_platform(platform) {
                 windows {
                     ### Enumerate USB TTYs devs (COM??:) under MS-Windows?
@@ -2832,9 +2890,17 @@ namespace eval lcc {
             }
         }
         typecomponent portandnidDialog
+        ## Dialog to ask the user for a port and Node ID.
         typecomponent   portLCombo
+        ## LabelComboBox containing all possible serial port devices.
         typecomponent   nidLEntry
+        ## LabelEntry containing the Node ID.
         typemethod buildPortandnidDialog {} {
+            ## Function to construct the Dialog to ask the user for a port 
+            # and Node ID.
+            #
+            # @return The Dialog box object.
+            
             if {[info exists portandnidDialog] && 
                 [winfo exists $portandnidDialog]} {
                 return $portandnidDialog
@@ -2867,10 +2933,22 @@ namespace eval lcc {
             return $portandnidDialog
         }
         typemethod _CancelOpenTransport {} {
+            ## @brief Function bound to the @c Cancel button.
+            # Closes the dialog box and returns the empty string.
+            #
+            # @return The empty string.
+            
             $portandnidDialog withdraw
             return [$portandnidDialog enddialog {}]
         }
         typemethod _OpenTransport {} {
+            ## @brief Function bound to the @c Open button.
+            # Closes the dialog box and returns the options needed to open the
+            # transport.
+            #
+            # @return An option argument list with the @c -nid and @c -port 
+            # options.
+            
             set port [$portLCombo get]
             set nid  [$nidLEntry get]
             lcc::nid validate $nid
@@ -2878,6 +2956,15 @@ namespace eval lcc {
             return [$portandnidDialog enddialog [list -port $port -nid $nid]]
         }
         typemethod drawOptionsDialog {args} {
+            ## @publicsection @brief Pop up the Options Dialog box.
+            # Pops up the Options Dialog box and collects the options needed
+            # to open the CANGridConnectOverUSBSerial object.
+            #
+            # @param ... Options:
+            # @arg -parent Set the parent for this dialog box.
+            # @par
+            # @return Either the null string or an options list.
+            
             #puts stderr "*** $type drawOptionsDialog $args"
             set dia [$type buildPortandnidDialog]
             $dia configure -parent [from args -parent .]
@@ -2922,9 +3009,6 @@ namespace eval lcc {
         # @par
         # Additional options are passed to the transport layer constructor.
         
-        
-        
-        
         component transport
         ## @privatesection The logical transport layer component.
         delegate method getAllNIDs to transport
@@ -2939,8 +3023,13 @@ namespace eval lcc {
         option -eventhandler -default {}
         option -datagramhandler -default {}
         option -generalmessagehandler -default {}
+        typevariable transportConstructors -array {}
+        ## Array of transport constructors
         typeconstructor {
-            ## Initialize the simple node info request payload.
+            ## Initialize the simple node info request payload and 
+            # transportConstructors array.
+            
+            # simplenodeinfo payload
             set simplenodeinfo [list 4]
             foreach s {{Deepwoods Software} {Model Railroad System} {N/A} {2.1.37}} {
                 foreach ch [split $s {}] {
@@ -2949,6 +3038,10 @@ namespace eval lcc {
                 lappend simplenodeinfo 0
             }
             lappend simplenodeinfo 2 0 0
+
+            # transportConstructors array
+            set transportConstructors([_ "Grid Connect CAN over USBSerial"]) \
+                  lcc::CANGridConnectOverUSBSerial
         }
         constructor {args} {
             ## @publicsection Constructor: construct a OpenLCBNode object.
@@ -3353,13 +3446,14 @@ namespace eval lcc {
             }
         }
         typecomponent selectTransportConstructorDialog
+        ## Dialog box to select the transport constructor.
         typecomponent    constructorCombo
-        ## Transport constructor selection dialog.
-        typevariable transportConstructors -array {
-            "Grid Connect CAN over USBSerial" lcc::CANGridConnectOverUSBSerial 
-        }
-        ## Array of transport constructors
+        ## LabelComboBox to select a transport constructor.
         typemethod _buildSelectTransportConstructorDialog {} {
+            ## Build a dialog box to select the transport constructor.
+            #
+            # @return A transport constructor selection dialog box.
+            
             if {[info exists selectTransportConstructorDialog] && 
                 [winfo exists $selectTransportConstructorDialog]} {
                 return $selectTransportConstructorDialog
@@ -3387,21 +3481,40 @@ namespace eval lcc {
             pack $constructorCombo -fill x
             return $selectTransportConstructorDialog
         }
+        typemethod _CancelSelectTransport {} {
+            ## @brief Bound to the @c Cancel button.  
+            # Closes the transport constructor dialog box and return the null 
+            # string.
+            #
+            # @return The null string.
+            
+            $selectTransportConstructorDialog withdraw
+            return [$selectTransportConstructorDialog enddialog {}]
+        }
+        typemethod _SelectTransport {} {
+            ## @brief Bound to the @c Select button.
+            # Closes the transport constructor dialog box and returns the
+            # selected transport constructor.
+            #
+            # @return The transport constructor name.
+            
+            set cons $transportConstructors([$constructorCombo get])
+            $selectTransportConstructorDialog withdraw
+            return [$selectTransportConstructorDialog enddialog $cons]
+        }
         typemethod selectTransportConstructor {args} {
+            ## @oublicsection Pop up a select transport constructor dialog box.
+            #
+            # @param ... Options:
+            # @arg -parent The parent window for this dialog box.
+            # @par
+            # @return Either the null string or the transport constructor.
+            
             #puts stderr "*** $type selectTransportConstructor $args"
             set dia [$type _buildSelectTransportConstructorDialog]
             #puts stderr "*** $type selectTransportConstructor: dia = $dia"
             $dia configure -parent [from args -parent .]
             return [$dia draw]
-        }
-        typemethod _CancelSelectTransport {} {
-            $selectTransportConstructorDialog withdraw
-            return [$selectTransportConstructorDialog enddialog {}]
-        }
-        typemethod _SelectTransport {} {
-            set cons $transportConstructors([$constructorCombo get])
-            $selectTransportConstructorDialog withdraw
-            return [$selectTransportConstructorDialog enddialog $cons]
         }
     }
     

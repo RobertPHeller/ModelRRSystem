@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Mar 3 14:38:10 2016
-#  Last Modified : <160310.1530>
+#  Last Modified : <160311.1406>
 #
 #  Description	
 #
@@ -41,6 +41,7 @@
 #*****************************************************************************
 
 
+package require gettext
 package require Tk
 package require tile
 package require snit
@@ -100,78 +101,93 @@ namespace eval lcc {
             
             installhull using Dialog -separator 0 \
                   -modal none -parent . -place center \
-                  -side bottom -title {Memory Configuration Options} \
+                  -side bottom -title [_ "Memory Configuration Options"] \
                   -transient 1 -anchor e \
                   -class ConfigOptions
             $hull add close -text Close -underline 0 -command [mymethod _Close]
             $self configurelist $args
             set dframe [$hull getframe]
             install nodeid using LabelEntry $dframe.nodeid \
-                  -label "Node ID:" -text [$self cget -nid] -editable no
+                  -label [_m "Label|Node ID:"] -text [$self cget -nid] -editable no
             pack $nodeid -fill x
             install available using LabelFrame $dframe.available \
-                  -text "Available Commands:"
+                  -text [_ "Label|Available Commands:"]
             pack $available -fill x
             set avail [$self cget -available]
             pack [ttk::label [$available getframe].bits \
                   -text [format {0x%04X} $avail] \
                   -relief sunken] -side left -fill x -anchor w
             if {($avail & 0x8000) != 0} {
-                pack [ttk::label [$available getframe].wmask -text "Write under mask."] -fill x
+            pack [ttk::label [$available getframe].wmask \
+                  -text [_ "Write under mask."]] -fill x
             }
             if {($avail & 0x4000) != 0} {
-                pack [ttk::label [$available getframe].unalignedread -text "Unaligned Reads supported."] -fill x
+                pack [ttk::label [$available getframe].unalignedread \
+                      -text [_ "Unaligned Reads supported."]] -fill x
             }
             if {($avail & 0x2000) != 0} {
-                pack [ttk::label [$available getframe].unalignedwrite -text "Unaligned Writes supported."] -fill x
+                pack [ttk::label [$available getframe].unalignedwrite \
+                      -text [_ "Unaligned Writes supported."]] -fill x
             }
             if {($avail & 0x800) != 0} {
-                pack [ttk::label [$available getframe].readFC -text "Read from address space 0xFC available."] -fill x
+                pack [ttk::label [$available getframe].readFC \
+                      -text [_ "Read from address space 0xFC available."]] \
+                      -fill x
             }
             if {($avail & 0x400) != 0} {
-                pack [ttk::label [$available getframe].readFB -text "Read from address space 0xFB available."] -fill x
+                pack [ttk::label [$available getframe].readFB \
+                      -text [_ "Read from address space 0xFB available."]] \
+                      -fill x
             }
             if {($avail & 0x200) != 0} {
-                pack [ttk::label [$available getframe].writeFB -text "Write to address space 0xFB available."] -fill x
+                pack [ttk::label [$available getframe].writeFB \
+                      -text [_ "Write to address space 0xFB available."]] \
+                      -fill x
             }
             install writelengths using LabelFrame $dframe.writelengths \
-                  -text "Write Lengths:"
+                  -text [_m "Label|Write Lengths:"]
             pack $writelengths -fill x
             set wlen [$self cget -writelengths]
             pack [ttk::label [$writelengths getframe].bits \
                   -text [format {0x%02X} $wlen] \
                   -relief sunken] -side left -fill x -anchor w
             if {($wlen & 0x80) != 0} {
-                pack [ttk::label [$writelengths getframe].b1 -text "1 byte writes."] -fill x
+            pack [ttk::label [$writelengths getframe].b1 \
+                  -text [_ "1 byte writes."]] -fill x
             }
             if {($wlen & 0x40) != 0} {
-                pack [ttk::label [$writelengths getframe].b2 -text "2 byte writes."] -fill x
+                pack [ttk::label [$writelengths getframe].b2 \
+                      -text [_ "2 byte writes."]] -fill x
             }
             if {($wlen & 0x20) != 0} {
-                pack [ttk::label [$writelengths getframe].b4 -text "4 byte writes."] -fill x
+                pack [ttk::label [$writelengths getframe].b4 \
+                      -text [_ "4 byte writes."]] -fill x
             }
             if {($wlen & 0x10) != 0} {
-                pack [ttk::label [$writelengths getframe].b64 -text "64 byte writes."] -fill x
+                pack [ttk::label [$writelengths getframe].b64 \
+                      -text [_ "64 byte writes."]] -fill x
             }
             if {($wlen & 0x02) != 0} {
-                pack [ttk::label [$writelengths getframe].arb -text "arbitary write of any length."] -fill x
+                pack [ttk::label [$writelengths getframe].arb \
+                      -text [_ "Arbitary write of any length."]] -fill x
             }
             if {($wlen & 0x01) != 0} {
-                pack [ttk::label [$writelengths getframe].stream -text "stream writes supported."] -fill x
+                pack [ttk::label [$writelengths getframe].stream \
+                      -text [_ "Stream writes supported."]] -fill x
             }
             install highest using LabelEntry $dframe.highest \
-                  -label "Highest address space: " \
+                  -label [_m "Label|Highest address space:"] \
                   -text [format {%02X} [$self cget -highest]] \
                   -editable no
             pack $highest -fill x
             install lowest using LabelEntry $dframe.lowest \
-                  -label "Lowest address space: " \
+                  -label [_m "Label|Lowest address space:"] \
                   -text [format {%02X} [$self cget -lowest]] \
                   -editable no
             pack $lowest -fill x
             if {"[$self cget -name]" ne {}} {
                 install name using LabelEntry $dframe.name \
-                      -label "Name string: " \
+                      -label [_m "Label|Name string:"] \
                       -text "[$self cget -name]" \
                       -editable no
                 pack $name -fill x
@@ -179,11 +195,15 @@ namespace eval lcc {
             $hull draw
         }
         method _Close {} {
+            ## Close and destroy the dialog box.
+            
             destroy $win
         }
     }
     snit::widgetadaptor ConfigMemory {
-        ## Configure memory.
+        ## @brief Configure memory.
+        # Create a dialog box that reads and writes the configuration memory 
+        # of an OpenLCB node.
         #
         # Options:
         # @arg -destnid Node ID to send to.
@@ -201,15 +221,31 @@ namespace eval lcc {
         component space
         ## Space select
         
+        typevariable _spaces [list 0xFF 0xFD 0xFE 0]
+        ## Space values.
+        
         option -destnid -readonly yes -type lcc::nid -default 00:00:00:00:00:00
         option -transport -readonly yes -default {}
         variable _ioComplete
         ## I/O Completion Flag.
         variable olddatagramhandler {}
+        ## Old datagram handler.
         variable datagrambuffer {}
+        ## Datagram message buffer
         variable _datagramrejecterror 0
+        ## Last datagram rejection error.
         variable writeReplyCheck no
+        ## Flag to check for a write reply.
         method _datagramhandler {command sourcenid args} {
+            ## @brief Datagram message handler.
+            # This method is called when a datagram type message arrives.
+            # 
+            # @param command One of datagramreceivedok, datagramrejected, or 
+            #                datagramcontent.
+            # @param sourcenid The Node ID of the node sending the datagram.
+            # @param ... The data buffer, if any.
+            #
+            
             set data $args
             switch $command {
                 datagramcontent {
@@ -255,6 +291,16 @@ namespace eval lcc {
             }
         }
         method _readmemory {_space _address length status_var} {
+            ## @brief Method to read a block of configuration memory.
+            # Read a block of memory, return the data bytes.  The variable
+            # named by the @c status_var is side effected with the status code.
+            #
+            # @param _space The memory space to read from.
+            # @param _address The address to start reading from.
+            # @param length The number of bytes to read.
+            # @param status_var The name of a status variable.
+            # @return The data block read.
+            
             lcc::byte validate $_space
             lcc::sixteenbits validate $_address
             lcc::length validate $length
@@ -324,10 +370,20 @@ namespace eval lcc {
                 }
                 return $data
             } else {
-                return 
+                return {} 
             }
         }
         method _writememory {_space _address databuffer} {
+            ## @brief Write a block of data to configuration memory.
+            # This method writes a block of memory to configuration memory of
+            # an OpenLCB node.
+            #
+            # @param _space The memory space to write to.
+            # @param _address The address to start writing to.
+            # @param databuffer The list of bytes to write.
+            # @return The result status: 0 if successful, otherwise an error 
+            # code.
+            
             lcc::byte validate $_space
             lcc::sixteenbits validate $_address
             lcc::databuf validate $databuffer
@@ -426,37 +482,41 @@ namespace eval lcc {
             wm title [winfo toplevel $win] [_ "Configuration R/W Tool %s" [$self cget -destnid]]
             set dframe [$hull getframe]
             install readlist using LabelEntry $dframe.readlist \
-                  -label "Read:" -editable no
+                  -label [_m "Label|Read:"] -editable no
             pack $readlist -fill x
             install writelist using LabelEntry $dframe.writelist \
-                  -label "Write:"
+                  -label [_m "Label|Write:"]
             pack $writelist -fill x
             install count  using LabelEntry $dframe.count \
-                  -label "Count:" -text 40
+                  -label [_m "Label|Count:"] -text 40
             pack $count  -fill x
             install address using LabelEntry $dframe.address \
-                  -label "Address:" -text [format {%06X} 0]
+                  -label [_m "Label|Address:"] -text [format {%06X} 0]
             pack $address -fill x 
             install space using LabelComboBox $dframe.space \
-                  -label "Space:" -values {CDI Config All none} -editable no
+                  -label [_m "Label|Space:"] \
+                  -values [list [_m "Label|CDI"] [_m "Label|Config"] \
+                           [_m "Label|All"] [_m "Label|none"]] -editable no
             pack $space -fill x
             $space set CDI
             $hull draw
         }
         method _Close {} {
+            ## Close and destroy the dialog box.
+            
             destroy $win
         }
         method _Read {} {
+            ## @brief Bound to the @c Read button.
+            # Read a block of memory and display the results.
+            
             set _address [scan [$address cget -text] %x]
             set _size    [scan [$count   cget -text] %d]
             if {$_size > 64} {set _size 64}
             if {$_size < 1} {set _size 1}
-            switch [$space cget -text] {
-                CDI {set _space 0xFF}
-                All {set _space 0xFE}
-                Config {set _space 0xFD}
-                none {set _space 0x00}
-            }
+            set _space [lindex $_spaces [lsearch -exact \
+                                         [$space cget -values] \
+                                         [$space cget -text]]]
             set data [$self _readmemory $_space $_address $_size status]
             if {$status == 0x50} {
                 # OK
@@ -480,13 +540,13 @@ namespace eval lcc {
             }
         }
         method _Write {} {
+            ## @brief Bound to the @c Write button.
+            # Write a block of memory.
+            
             set _address [scan [$address cget -text] %x]
-            switch [$space cget -text] {
-                CDI {set _space 0xFF}
-                All {set _space 0xFE}
-                Config {set _space 0xFD}
-                none {set _space 0x00}
-            }
+            set _space [lindex $_spaces [lsearch -exact \
+                                         [$space cget -values] \
+                                         [$space cget -text]]]
             set sdata [$writelist cget -text]
             set hbytes [split $sdata { }]
             set data [list]

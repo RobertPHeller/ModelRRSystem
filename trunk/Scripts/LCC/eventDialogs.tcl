@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Mar 3 14:36:20 2016
-#  Last Modified : <160310.0941>
+#  Last Modified : <160311.1407>
 #
 #  Description	
 #
@@ -84,12 +84,14 @@ namespace eval lcc {
             $self configurelist $args
             set dframe [$hull getframe]
             install eventid using LabelEntry $dframe.eventid \
-                  -label "Event ID: " -text [[$self cget -eventid] cget -eventidstring] \
+                  -label [_m "Label|Event ID:"] \
+                  -text [[$self cget -eventid] cget -eventidstring] \
                   -editable no
             pack $eventid -fill x
             $hull draw
         }
         method _Close {} {
+            ## Close and destroy the dialog box.
             destroy $win
         }
     }
@@ -126,15 +128,21 @@ namespace eval lcc {
             $self configurelist $args
             set dframe [$hull getframe]
             install eventid using LabelEntry $dframe.eventid \
-                  -label "Event ID: " -text "00.00.00.00.00.00.00.00" \
+                  -label [_m "Label|Event ID:"] \
+                  -text "00.00.00.00.00.00.00.00" \
                   -editable yes
             pack $eventid -fill x
             $hull draw
         }
         method _Close {} {
+            ## Close the window.
+            
             $hull withdraw
         }
         method _Send {} {
+            ## @brief Bound to the @c Send button.
+            # Send an event.
+            
             [$self cget -transport] ProduceEvent [lcc::EventID %AUTO% -eventidstring [$eventid cget -text]]
         }
             
