@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160303.1440>
+#  Last Modified : <160311.1418>
 #
 #  Description	
 #
@@ -46,14 +46,23 @@
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
 EXTRA_DIST = lcc.tcl lcctest.src ConfigurationEditor.tcl eventDialogs.tcl \
-		ConfigDialogs.tcl OpenLCB.tcl
+		ConfigDialogs.tcl OpenLCB.tcl OpenLCB.desktop OpenLCB.png \
+		Doxyfile.in
 
 bin_SCRIPTS = OpenLCB${EXEEXT}
 
 pkgdatadir = $(datadir)/$(PACKAGE)/LCC
-pkgdata_DATA = lcc.tcl pkgIndex.tcl
+pkgdata_DATA = lcc.tcl pkgIndex.tcl ConfigDialogs.tcl eventDialogs.tcl \
+		ConfigurationEditor.tcl OpenLCB.pot
+desktopdir = $(datadir)/applications
+desktop_DATA = OpenLCB.desktop
 
-CLEANFILES = pkgIndex.tcl
+pixmapdir = $(datadir)/pixmaps
+pixmap_DATA = OpenLCB.png
+
+man_MANS = man1/OpenLCB.1
+
+CLEANFILES = pkgIndex.tcl OpenLCB${EXEEXT} OpenLCB.pot
 
 pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		ConfigDialogs.tcl
@@ -84,18 +93,6 @@ LCCTestSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
 		$(top_srcdir)/Scripts/Common/unknown.xpm
 		
 
-LCCTest.pot: LCCTest.src lcc.tcl \
-		$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
-	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
-		-k_m -L Tcl $(addprefix $(subdir)/,LCCTest.src lcc.tcl) \
-		Scripts/Common/snitStdMenuBar.tcl|\
-	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
-	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
-	    -e 's/FIRST AUTHOR <EMAIL@ADDRESS>,/Robert Heller <heller@deepsoft.com>/g' \
-	    -e 's/SOME DESCRIPTIVE TITLE/Messages for LCCTest/g' \
-	    -e "s/YEAR/`date +%Y`/g" \
-	    -e 's/CHARSET/ascii/g' >LCCTest.pot
-
 LCCTest${EXEEXT}: LCCTest.src $(LCCTestSCRIPTS)
 	-rm -f  LCCTest.kit
 	-rm -rf  LCCTest.vfs
@@ -116,39 +113,6 @@ LCCTest${EXEEXT}: LCCTest.src $(LCCTestSCRIPTS)
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap LCCTest${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf LCCTest.vfs
-if MACOSX
-# create application for Mac OSX                                               $
-	-rm -rf LCCTest.app
-	mkdir -p LCCTest.app/Contents/MacOS/
-	cp LCCTest$(EXEEXT) LCCTest.app/Contents/MacOS/
-	mkdir -p LCCTest.app/Contents/Resources/
-	-rm -rf LCCTest.iconset
-	mkdir LCCTest.iconset
-	sips -z 16 16     $(srcdir)/LCCTest.png --out LCCTest.iconset/icon_16x16.png
-	sips -z 32 32     $(srcdir)/LCCTest.png --out LCCTest.iconset/icon_16x16@2x.png
-	sips -z 32 32     $(srcdir)/LCCTest.png --out LCCTest.iconset/icon_32x32.png
-	sips -z 64 64     $(srcdir)/LCCTest.png --out LCCTest.iconset/icon_32x32@2x.png
-	sips -z 128 128   $(srcdir)/LCCTest.png --out LCCTest.iconset/icon_128x128.png
-	sips -z 256 256   $(srcdir)/LCCTest.png --out LCCTest.iconset/icon_128x128@2x.png
-	sips -z 256 256   $(srcdir)/LCCTest.png --out LCCTest.iconset/icon_256x256.png
-	sips -z 512 512   $(srcdir)/LCCTest.png --out LCCTest.iconset/icon_256x256@2x.png
-	sips -z 512 512   $(srcdir)/LCCTest.png --out LCCTest.iconset/icon_512x512.png
-	sips -z 1024 1024 $(srcdir)/LCCTest.png --out LCCTest.iconset/icon_512x512@2x.png
-	iconutil -c icns LCCTest.iconset
-	-rm -rf LCCTest.iconset
-	cp LCCTest.icns LCCTest.app/Contents/Resources/
-	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit LCCTest 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
-	plutil -convert binary1 -o LCCTest.app/Contents/Info.plist \
-		LCCTest.plist
-	-rm -f LCCTest.plist LCCTest.icns
-
-install-exec-local: LCCTest.app
-	$(INSTALL) -d $(DESTDIR)$(bindir)
-	$(top_srcdir)/BuildScripts/macappInstall.sh LCCTest.app $(DESTDIR)$(bindir)
-
-LCCTest.app: LCCTest${EXEEXT}
-
-endif
 
 OpenLCBSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
                 $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
@@ -175,9 +139,11 @@ OpenLCBSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
 		
 
 OpenLCB.pot: OpenLCB.tcl lcc.tcl \
+                ConfigDialogs.tcl eventDialogs.tcl ConfigurationEditor.tcl \
 		$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
-		-k_m -L Tcl $(addprefix $(subdir)/,OpenLCB.tcl lcc.tcl) \
+		-k_m \
+		-L Tcl $(addprefix $(subdir)/,OpenLCB.tcl lcc.tcl ConfigDialogs.tcl eventDialogs.tcl ConfigurationEditor.tcl) \
 		Scripts/Common/snitStdMenuBar.tcl|\
 	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
 	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
@@ -186,7 +152,9 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl \
 	    -e "s/YEAR/`date +%Y`/g" \
 	    -e 's/CHARSET/ascii/g' >OpenLCB.pot
 
-OpenLCB${EXEEXT}: OpenLCB.tcl $(OpenLCBSCRIPTS)
+OpenLCB${EXEEXT}: OpenLCB.tcl $(OpenLCBSCRIPTS) \
+	$(top_builddir)/Doc/User/OpenLCB/index.html \
+	$(top_builddir)/po/OpenLCB/msgfiles
 	-rm -f  OpenLCB.kit
 	-rm -rf  OpenLCB.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB.tcl
@@ -204,6 +172,10 @@ OpenLCB${EXEEXT}: OpenLCB.tcl $(OpenLCBSCRIPTS)
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(UNZIP) -qq -d OpenLCB.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
+		Help $(top_builddir)/Doc/User/OpenLCB/*
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
+		Messages $(top_builddir)/po/OpenLCB/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf OpenLCB.vfs
 if MACOSX
@@ -245,3 +217,24 @@ $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
 
 	
+$(top_builddir)/Doc/User/OpenLCB/index.html: FORCE
+	$(MAKE) -C $(top_builddir)/Doc/User OpenLCB/index.html
+
+$(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
+	$(MAKE) -C $(top_builddir)/BuildData tclkit${BEXEEXT}
+
+../../po/OpenLCB/msgfiles: FORCE
+	$(MAKE) -C ../../po/OpenLCB msgfiles
+
+FORCE:
+
+
+man1/OpenLCB.1 : Doxyfile OpenLCB.tcl
+	-rm -rf man1
+	$(DOXYGEN)
+
+clean-local:
+	-rm -rf man1
+if MACOSX
+	-rm -rf OpenLCB.app
+endif
