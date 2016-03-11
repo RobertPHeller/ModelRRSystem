@@ -13,6 +13,8 @@ CMriTcls = $(top_srcdir)/Scripts/CMri/cmri.tcl
 CTIAcelaTcls = $(top_srcdir)/Scripts/CTIAcela/CTIAcela.tcl
 
 LCCTcls = $(top_srcdir)/Scripts/LCC/lcc.tcl \
+          $(top_srcdir)/Scripts/LCC/ConfigDialogs.tcl \
+          $(top_srcdir)/Scripts/LCC/eventDialogs.tcl \
           $(top_srcdir)/Scripts/LCC/ConfigurationEditor.tcl
 
 #MRDHeaders = $(top_builddir)/C++/MRD/mrd.h
