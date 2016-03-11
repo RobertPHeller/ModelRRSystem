@@ -80,6 +80,14 @@ USERMAN_UNIVERSALTEST_FIGS = UTMain.png UTNewCard.png UTOutputTest.png \
 		UTWrapAround.png UTOutputTestSmall.png
 DOXYFILES += Doxyfile.$(UNIVERSALTEST).in
 
+USERMAN_OPENLCB_PART = OpenLCBReference.h
+OPENLCB_HS = OpenLCB.h OpenLCBReference.h
+OPENLCB = OpenLCB
+OPENLCBHBase = OpenLCB
+OPENLCB_HTML = $(OPENLCBHBase)/index.html
+USERMAN_OPENLCB_FIGS = 
+DOXYFILES += Doxyfile.$(OPENLCB).in
+
 USERMAN_XPRESSNETTHROTTLE_PART = XPressNetThrottleReference.h
 XPRESSNETTHROTTLE_HS = XPressNetThrottle.h  XPressNetThrottleReference.h
 XPRESSNETTHROTTLE = XPressNetThrottle
@@ -208,7 +216,7 @@ USERMAN_MAINPROGRAM_FIGS =
 DOXYFILES += Doxyfile.$(MAINPROGRAM).in
 
 USERMAN_HS = Preface.h Introduction.h \
-	$(USERMAN_UNIVERSALTEST_PART)  \
+	$(USERMAN_UNIVERSALTEST_PART) $(USERMAN_OPENLCB_PART) \
 	$(USERMAN_XPRESSNETTHROTTLE_PART) $(USERMAN_GENERICTHROTTLE_PART) \
 	$(USERMAN_TIMETABLE_PART) $(USERMAN_FCF_PART) $(USERMAN_CALC_PART) \
 	$(USERMAN_CAMERA_PART) $(USERMAN_DISPATCHER_PART) \
@@ -218,7 +226,8 @@ USERMAN_FIGS = $(USERMAN_TIMETABLE_FIGS) $(USERMAN_FCF_FIGS) \
 	$(USERMAN_CALC_FIGS) $(USERMAN_CAMERA_FIGS) $(USERMAN_DISPATCHER_FIGS) \
 	$(USERMAN_MAINPROGRAM_FIGS) $(USERMAN_DISPATCHER_DEPS) \
 	$(USERMAN_AZATRAX_PROG_FIGS) $(USERMAN_UNIVERSALTEST_FIGS) \
-	$(USERMAN_XPRESSNETTHROTTLE_FIGS) $(USERMAN_GENERICTHROTTLE_FIGS)
+	$(USERMAN_XPRESSNETTHROTTLE_FIGS) $(USERMAN_GENERICTHROTTLE_FIGS) \
+	$(USERMAN_OPENLCB_FIGS)
 USERMAN = UserManual
 USERMAN_PDF = $(USERMAN).pdf
 USERMANHBase = UserManual
@@ -231,7 +240,7 @@ EXTRA_DIST = $(USERMAN_HS) $(USERMAN_FIGS) $(TIMETABLE_HS) $(FCF_HS) \
 	     $(CALC_HS) $(CAMERA_HS) $(DISPATCHER_HS) COPYING.h \
 	     $(UNIVERSALTEST_HS) $(MAINPROGRAM_HS) $(AZATRAX_PROG_HS) \
 	     $(XPRESSNETTHROTTLE_HS) $(GENERICTHROTTLE_HS) footer.tex \
-	     $(DOXYFILES) Makefile.UserManual.in
+	     $(OPENLCB_HS) $(DOXYFILES) Makefile.UserManual.in
 
 pkgdatadir = $(datadir)/$(PACKAGE)/Doc
 
@@ -239,17 +248,12 @@ pkgdata_DATA = $(USERMAN_PDF) Help.h
 noinst_DATA  = $(USERMAN_HTML) $(TIMETABLE_HTML) $(FCF_HTML) $(CALC_HTML) \
 	       $(CAMERA_HTML) $(DISPATCHER_HTML) $(UNIVERSALTEST_HTML) \
 	       $(AZATRAX_PROG_HTML) $(MAINPROGRAM_HTML) \
-	       $(XPRESSNETTHROTTLE_HTML) $(GENERICTHROTTLE_HTML)
+	       $(XPRESSNETTHROTTLE_HTML) $(GENERICTHROTTLE_HTML) \
+	       $(OPENLCB_HTML)
 
 
 CLEANFILES = *_Version.h $(USERMAN_PDF) 
 
-clean-local:
-	-rm -rf $(AZATRAX_PROGHBase) $(UNIVERSALTESTHBase) \
-		$(XPRESSNETTHROTTLEHBase) $(GENERICTHROTTLEHBase) \
-		$(TIMETABLEHBase) $(FCFHBase) $(CALCHBase) \
-		$(CAMERAHBase) $(DISPATCHERHBase) $(MAINPROGRAMHBase) \
-		$(USERMANHBase) latex
 
 $(USERMAN)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version' >$(USERMAN)_Version.h
@@ -307,10 +311,25 @@ $(UNIVERSALTEST_HTML) : COPYING.h Help.h $(UNIVERSALTEST_HS) \
 		Doxyfile.$(UNIVERSALTEST)
 	-rm -rf $(UNIVERSALTESTHBase)/
 	$(DOXYGEN) Doxyfile.$(UNIVERSALTEST)
-	for p in $(USERMAN_AZATRAX_PROG_FIGS); do \
+	for p in $(USERMAN_UNIVERSALTEST_FIGS); do \
 	   if test ! \( -f $(UNIVERSALTESTHBase)/$$p \); then cp $(srcdir)/$$p $(UNIVERSALTESTHBase)/; fi; \
 	done
 	-rm -f $(UNIVERSALTESTHBase)/pages.html
+
+$(OPENLCB)_Version.h : $(top_builddir)/config.status
+	echo '/** @page Version Version'               >$(OPENLCB)_Version.h
+	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(OPENLCB)_Version.h
+	echo "  */" >>$(OPENLCB)_Version.h
+
+$(OPENLCB_HTML) : COPYING.h Help.h $(OPENLCB_HS) \
+		$(USERMAN_OPENLCB_FIGS) $(OPENLCB)_Version.h \
+		Doxyfile.$(OPENLCB)
+	-rm -rf $(OPENLCBHBase)/
+	$(DOXYGEN) Doxyfile.$(OPENLCB)
+	for p in $(USERMAN_OPENLCB_FIGS); do \
+	   if test ! \( -f $(OPENLCBHBase)/$$p \); then cp $(srcdir)/$$p $(OPENLCBHBase)/; fi; \
+	done
+	-rm -f $(OPENLCBHBase)/pages.html
 
 $(XPRESSNETTHROTTLE)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(XPRESSNETTHROTTLE)_Version.h
@@ -464,4 +483,4 @@ clean-local:
 		$(XPRESSNETTHROTTLEHBase) $(GENERICTHROTTLEHBase) \
 		$(TIMETABLEHBase) $(FCFHBase) $(CALCHBase) \
 		$(CAMERAHBase) $(DISPATCHERHBase) $(MAINPROGRAMHBase) \
-		$(USERMANHBase) latex
+		$(USERMANHBase) $(OPENLCBHBase) latex
