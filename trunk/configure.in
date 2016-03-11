@@ -652,6 +652,7 @@ AC_CONFIG_FILES([config_tcl.sed \
                 Doc/User/Doxyfile.GenericThrottle \
                 Doc/User/Doxyfile.MainProgram \
                 Doc/User/Doxyfile.UniversalTest \
+                Doc/User/Doxyfile.OpenLCB \
                 Doc/User/Doxyfile.XPressNetThrottle \
 		Doc/doxygen/Makefile \
 		Doc/doxygen/Doxyfile \
@@ -669,6 +670,7 @@ AC_CONFIG_FILES([config_tcl.sed \
 	  	po/TimeTable2/Makefile \
 	  	po/GenericThrottle/Makefile \
 	  	po/UniversalTest/Makefile \
+	  	po/OpenLCB/Makefile \
 	  	po/XPressNetThrottle/Makefile \
 	  	po/AzatraxProg/Makefile \
 	  	po/mrrsystem/Makefile \
