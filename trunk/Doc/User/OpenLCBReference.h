@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Mar 11 14:47:43 2016
-//  Last Modified : <160312.1331>
+//  Last Modified : <160312.1430>
 //
 //  Description	
 //
@@ -49,6 +49,17 @@
  * @addindex CAN
  * @addindex LCC
  * 
+ * @section startup Start up
+ * @subsection cliopts Command Line Options
+ * @subsection guistart GUI Startup
+ * @section maingui Main GUI Elements
+ * @subsection conf Configuration Tools
+ * @subsubsection ConfigOptions Memory Configuration Options
+ * @subsubsection ConfigMemory Configuration R/W Tool
+ * @subsubsection ConfigurationEditor CDI Configuration Tool
+ * @subsection event Event Tools
+ * @subsubsection sendevent Send Event Tool
+ * @subsubsection receivedevent Received Events
  */
 
 #endif // __OPENLCBREFERENCE_H
