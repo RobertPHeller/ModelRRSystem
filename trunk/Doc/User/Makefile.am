@@ -85,7 +85,11 @@ OPENLCB_HS = OpenLCB.h OpenLCBReference.h
 OPENLCB = OpenLCB
 OPENLCBHBase = OpenLCB
 OPENLCB_HTML = $(OPENLCBHBase)/index.html
-USERMAN_OPENLCB_FIGS = 
+USERMAN_OPENLCB_FIGS = OpenLCB_CANGCUSB_Options.png OpenLCB_CDITool.png \
+        OpenLCB_MainWindow.png OpenLCB_MainWindow_OpenTrees.png \
+        OpenLCB_MemoryConfigOpts.png OpenLCB_ReadWriteConfigMemory.png \
+        OpenLCB_SelectTransport.png
+
 DOXYFILES += Doxyfile.$(OPENLCB).in
 
 USERMAN_XPRESSNETTHROTTLE_PART = XPressNetThrottleReference.h

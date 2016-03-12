@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Mar 11 14:47:43 2016
-//  Last Modified : <160311.1448>
+//  Last Modified : <160312.1331>
 //
 //  Description	
 //
@@ -42,7 +42,13 @@
 
 #ifndef __OPENLCBREFERENCE_H
 #define __OPENLCBREFERENCE_H
-/** @page openlcb Open LCB Program Reference
+/** @page openlcb OpenLCB Program Reference
+ * The OpenLCB Program is used for configuring OpenLCB nodes and for testing
+ * an OpenLCB network.
+ * @addindex OpenLCB
+ * @addindex CAN
+ * @addindex LCC
+ * 
  */
 
 #endif // __OPENLCBREFERENCE_H
