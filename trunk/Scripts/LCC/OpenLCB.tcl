@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160312.1230>
+#  Last Modified : <160312.1359>
 #
 #  Description	
 #
@@ -190,13 +190,13 @@ snit::type OpenLCB {
                       -show tree]
         $mainWindow scrollwindow setwidget $nodetree
         update idle
-        puts stderr "*** $type typeconstructor: ::argv is $::argv"
+        #puts stderr "*** $type typeconstructor: ::argv is $::argv"
         set transportConstructorName [from ::argv -transportname ""]
-        puts stderr "*** $type typeconstructor: transportConstructorName is $transportConstructorName"
+        #puts stderr "*** $type typeconstructor: transportConstructorName is $transportConstructorName"
         set transportConstructor {}
         if {$transportConstructorName ne ""} {
             set transportConstructors [info commands ::lcc::$transportConstructorName]
-            puts stderr "*** $type typeconstructor: transportConstructors is $transportConstructors"
+            #puts stderr "*** $type typeconstructor: transportConstructors is $transportConstructors"
             if {[llength $transportConstructors] > 0} {
                 set transportConstructor [lindex $transportConstructors 0]
             }
@@ -244,9 +244,10 @@ snit::type OpenLCB {
         $transport SendVerifyNodeID
         #puts stderr "*** $type typeconstructor: done."
     }
-    typemethod _eventHandler {command eventid {{validity {}}}} {
+    typemethod _eventHandler {command eventid {validity {}}} {
+        #puts stderr "*** $type _eventHandler $command $eventid $validity"
         if {$command eq "report"} {
-            lcc::EventReceived .eventreceived${srcid}%AUTO% \
+            lcc::EventReceived .eventreceived%AUTO% \
                   -eventid $eventid
         }
     }

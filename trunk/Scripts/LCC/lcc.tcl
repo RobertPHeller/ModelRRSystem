@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160312.1215>
+#  Last Modified : <160312.1355>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -2210,7 +2210,7 @@ namespace eval lcc {
                 append result [format { -destnid %s} [$self cget -destnid]]
             }
             if {([$self cget -mti] & 0x04) != 0} {
-                append result [format { -eventid %s} [[$self cget -eventid] cget -eventstring]]
+                append result [format { -eventid %s} [[$self cget -eventid] cget -eventidstring]]
             }
             for {set i 0} {$i < $_nDataChars} {incr i} {
                 append result [format { %02X} [$self getElement $i]]
@@ -3326,8 +3326,7 @@ namespace eval lcc {
                     ## Consumer range identified
                     set eventhandler [$self cget -eventhandler]
                     if {$eventhandler eq {}} {return}
-                    set eventidrange [lcc::EventID %AUTO% \
-                                      -eventidlist [$message cget -data]]
+                    set eventidrange [$message cget -eventid]
                     uplevel #0 $eventhandler consumerrangeidentified \
                           $eventidrange
                 }
@@ -3338,8 +3337,7 @@ namespace eval lcc {
                     ## Consumer identified
                     set eventhandler [$self cget -eventhandler]
                     if {$eventhandler eq {}} {return}
-                    set eventid [lcc::EventID %AUTO% \
-                                 -eventidlist [$message cget -data]]
+                    set eventid [$message cget -eventid]]
                     switch [format {0x%04X} [$message cget -mti]] {
                         0x04C4 {
                             uplevel #0 $eventhandler consumeridentified \
@@ -3359,8 +3357,7 @@ namespace eval lcc {
                     ## Producer range identified
                     set eventhandler [$self cget -eventhandler]
                     if {$eventhandler eq {}} {return}
-                    set eventidrange [lcc::EventID %AUTO% \
-                                      -eventidlist [$message cget -data]]
+                    set eventidrange [$message cget -eventid]
                     uplevel #0 $eventhandler producerrangeidentified \
                           $eventidrange
                 }
@@ -3370,8 +3367,7 @@ namespace eval lcc {
                     ## Producer identified
                     set eventhandler [$self cget -eventhandler]
                     if {$eventhandler eq {}} {return}
-                    set eventid [lcc::EventID %AUTO% \
-                                 -eventidlist [$message cget -data]]
+                    set eventid [$message cget -eventid]
                     switch [format {0x%04X} [$message cget -mti]] {
                         0x0544 {
                             uplevel #0 $eventhandler produceridentified \
@@ -3391,32 +3387,28 @@ namespace eval lcc {
                     ## Learn events
                     set eventhandler [$self cget -eventhandler]
                     if {$eventhandler eq {}} {return}
-                    set eventid [lcc::EventID %AUTO% \
-                                 -eventidlist [$message cget -data]]
+                    set eventid [$message cget -eventid]
                     uplevel #0 $eventhandler learnevents $eventid
                 }
                 0x05B4 {
                     ## PCER
                     set eventhandler [$self cget -eventhandler]
                     if {$eventhandler eq {}} {return}
-                    set eventid [lcc::EventID %AUTO% \
-                                 -eventidlist [$message cget -data]]
+                    set eventid [$message cget -eventid]
                     uplevel #0 $eventhandler report $eventid
                 }
                 0x08F4 {
                     ## Identify Consumer
                     set eventhandler [$self cget -eventhandler]
                     if {$eventhandler eq {}} {return}
-                    set eventid [lcc::EventID %AUTO% \
-                                 -eventidlist [$message cget -data]]
+                    set eventid [$message cget -eventid]
                     uplevel #0 $eventhandler identifyconsumer $eventid
                 }
                 0x0914 {
                     ## Identify producer
                     set eventhandler [$self cget -eventhandler]
                     if {$eventhandler eq {}} {return}
-                    set eventid [lcc::EventID %AUTO% \
-                                 -eventidlist [$message cget -data]]
+                    set eventid [$message cget -eventid]
                     uplevel #0 $eventhandler identifyproducer $eventid
                 }
                 0x0968 -
