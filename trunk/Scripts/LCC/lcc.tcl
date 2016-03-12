@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160311.1352>
+#  Last Modified : <160312.1215>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -2955,6 +2955,17 @@ namespace eval lcc {
             $portandnidDialog withdraw
             return [$portandnidDialog enddialog [list -port $port -nid $nid]]
         }
+        typemethod requiredOpts {} {
+            ## @publicsection @brief Return the default option list.
+            # Returns the default options for the options dialog.
+            #
+            # @return The option value list.
+            
+            $type buildPortandnidDialog
+            return [list \
+                    -port [$portLCombo cget -text] \
+                    -nid [$nidLEntry cget -text]]
+        }
         typemethod drawOptionsDialog {args} {
             ## @publicsection @brief Pop up the Options Dialog box.
             # Pops up the Options Dialog box and collects the options needed
@@ -2962,12 +2973,17 @@ namespace eval lcc {
             #
             # @param ... Options:
             # @arg -parent Set the parent for this dialog box.
+            # @arg -port The default serial port name for the serial port 
+            #            option.
+            # @arg -nid The default Node ID to use for the Node ID option.
             # @par
             # @return Either the null string or an options list.
             
             #puts stderr "*** $type drawOptionsDialog $args"
             set dia [$type buildPortandnidDialog]
             $dia configure -parent [from args -parent .]
+            $portLCombo configure -text [from args -port [$portLCombo cget -text]]
+            $nidLEntry configure -text [from args -nid [$nidLEntry cget -text]]
             #puts stderr "*** $type drawOptionsDialog: dia = $dia"
             return [$dia draw]
         }
@@ -3023,11 +3039,11 @@ namespace eval lcc {
         option -eventhandler -default {}
         option -datagramhandler -default {}
         option -generalmessagehandler -default {}
-        typevariable transportConstructors -array {}
+        typevariable _transportConstructors -array {}
         ## Array of transport constructors
         typeconstructor {
             ## Initialize the simple node info request payload and 
-            # transportConstructors array.
+            # _transportConstructors array.
             
             # simplenodeinfo payload
             set simplenodeinfo [list 4]
@@ -3039,8 +3055,8 @@ namespace eval lcc {
             }
             lappend simplenodeinfo 2 0 0
 
-            # transportConstructors array
-            set transportConstructors([_ "Grid Connect CAN over USBSerial"]) \
+            # _transportConstructors array
+            set _transportConstructors([_ "Grid Connect CAN over USBSerial"]) \
                   lcc::CANGridConnectOverUSBSerial
         }
         constructor {args} {
@@ -3475,7 +3491,7 @@ namespace eval lcc {
             set df [$selectTransportConstructorDialog getframe]
             set constructorCombo [LabelComboBox $df.constructorCombo \
                                   -label "Constructor:" \
-                                  -values [array names transportConstructors] \
+                                  -values [array names _transportConstructors] \
                                   -editable no]
             $constructorCombo set [lindex [$constructorCombo cget -values] 0]
             pack $constructorCombo -fill x
@@ -3498,7 +3514,7 @@ namespace eval lcc {
             #
             # @return The transport constructor name.
             
-            set cons $transportConstructors([$constructorCombo get])
+            set cons $_transportConstructors([$constructorCombo get])
             $selectTransportConstructorDialog withdraw
             return [$selectTransportConstructorDialog enddialog $cons]
         }
@@ -3515,6 +3531,18 @@ namespace eval lcc {
             #puts stderr "*** $type selectTransportConstructor: dia = $dia"
             $dia configure -parent [from args -parent .]
             return [$dia draw]
+        }
+        typemethod transportConstructors {} {
+            ## Return the list of known available transport constructors.
+            #
+            # @return The list of known available transport constructors as a
+            #    description name list.
+            
+            set result {}
+            foreach c [array names _transportConstructors] {
+                lappend result $c $_transportConstructors($c)
+            }
+            return $result
         }
     }
     

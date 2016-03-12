@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160310.1537>
+#  Last Modified : <160312.1230>
 #
 #  Description	
 #
@@ -46,7 +46,7 @@
 #
 # @section SYNOPSIS
 #
-# OpenLCB [X11 Resource Options] [-port portdev] [-nid NodeID]
+# OpenLCB [X11 Resource Options] -- [Other options]
 #
 # @section DESCRIPTION
 #
@@ -59,9 +59,27 @@
 #
 # @section OPTIONS
 #
-# @arg -port Specifies the serial port device. Default is /dev/ttyACM0.
-# @arg -nid  Specifies the Node ID to use. Default is 05:01:01:01:22:00.
+# @subsection x11resource X11 Resource Options
+#
+# @arg -colormap: Colormap for main window
+# @arg -display:  Display to use
+# @arg -geometry: Initial geometry for window
+# @arg -name:     Name to use for application
+# @arg -sync:     Use synchronous mode for display server
+# @arg -visual:   Visual for main window
+# @arg -use:      Id of window in which to embed application
 # @par
+#
+# @subsection other Other options
+#
+# @arg -transportname The name of the transport constructor.  A shell wildcard
+#                     is allowed (but needs to be quoted or escaped).
+# @arg -listconstructors Print a list of available constructors and exit.
+# @arg -help Print a short help message and exit.
+# @par
+#
+# Additional options, specific to the transport constructor can also be 
+# specified.
 #
 # @section AUTHOR
 # Robert Heller \<heller\@deepsoft.com\>
@@ -77,6 +95,7 @@ package require MainWindow
 package require ScrollWindow
 package require ROText
 package require snitStdMenuBar
+package require HTMLHelp 2.0
 package require LabelFrames
 package require LCC
 package require ParseXML
@@ -84,6 +103,14 @@ package require ConfigurationEditor
 package require EventDialogs
 package require ConfigDialogs
 
+
+global HelpDir
+set HelpDir [file join [file dirname [file dirname [file dirname \
+							[info script]]]] Help]
+#puts stderr "*** HelpDir = $HelpDir"
+set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirname \
+							[info script]]]] Messages]]
+#puts stderr "*** msgfiles = $msgfiles"
 
 snit::type OpenLCB {
     pragma -hastypeinfo false
@@ -98,13 +125,63 @@ snit::type OpenLCB {
     typevariable nodetree_cols {nodeid}
     typevariable mynid {}
     typevariable transport
+    typemethod usage {} {
+        puts stdout [_ "Usage: %s \[X11 Resource Options\] -- \[Other options\]" $::argv0]
+        puts stdout {}
+        puts stdout [_ "X11 Resource Options:"]
+        puts stdout [_ " -colormap: Colormap for main window"]
+        puts stdout [_ "-display:  Display to use"]
+        puts stdout [_ "-geometry: Initial geometry for window"]
+        puts stdout [_ "-name:     Name to use for application"]
+        puts stdout [_ "-sync:     Use synchronous mode for display server"]
+        puts stdout [_ "-visual:   Visual for main window"]
+        puts stdout [_ "-use:      Id of window in which to embed application"]
+        puts stdout {}
+        puts stdout [_ "Other options:"]
+        puts stdout [_ "-transportname: The name of the transport constructor."]
+        puts stdout [_ "-listconstructors: Print a list of available constructors and exit."]
+        puts stdout [_ "-help: Print this help message and exit."]
+        puts stdout [_ "Additional options for the transport constructor can also be specified."]
+    }
     typeconstructor {
+        set listconstructorsP [lsearch $::argv -listconstructors]
+        set helpP [lsearch $::argv -help]
+        if {$listconstructorsP >= 0} {
+            wm withdraw .
+            set transportConstructorList [lcc::OpenLCBNode \
+                                          transportConstructors]
+            puts stdout [_ "Constructors available:"]
+            foreach {descr name} $transportConstructorList {
+                puts stdout [format "%s: %s" [namespace tail $name] $descr]
+            }
+            $type usage
+            exit
+        }
+        if {$helpP >= 0} {
+            wm withdraw .
+            $type usage
+            exit
+        }
         set mainWindow [mainwindow .main -scrolling yes -height 600 -width 800]
         pack $mainWindow -expand yes -fill both
         $mainWindow menu entryconfigure file "Exit" -command [mytypemethod _carefulExit]
         $mainWindow menu insert file "Print..." command \
               -label [_m "Label|File|Send Event"] \
               -command [mytypemethod _SendEvent]
+        $mainWindow menu entryconfigure help "On Help..." -command {HTMLHelp help Help}
+        $mainWindow menu delete help "On Keys..."
+        $mainWindow menu delete help "Index..."
+        $mainWindow menu delete help "Tutorial..."
+        $mainWindow menu entryconfigure help "On Version" -command {HTMLHelp help Version}
+        $mainWindow menu entryconfigure help "Warranty" -command {HTMLHelp help Warranty}
+        $mainWindow menu entryconfigure help "Copying" -command {HTMLHelp help Copying}
+        $mainWindow menu add help command \
+              -label [_m "Menu|Help|Reference Manual"] \
+              -command {HTMLHelp help "OpenLCB Reference"}
+        
+        
+        HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
+        
         set sendevent {}
         set nodetree [ttk::treeview \
                       [$mainWindow scrollwindow getframe].nodetree \
@@ -113,8 +190,38 @@ snit::type OpenLCB {
                       -show tree]
         $mainWindow scrollwindow setwidget $nodetree
         update idle
-        set transportConstructor [lcc::OpenLCBNode selectTransportConstructor -parent [winfo toplevel $mainWindow]]
-        set transportOpts [$transportConstructor drawOptionsDialog -parent [winfo toplevel $mainWindow]]
+        puts stderr "*** $type typeconstructor: ::argv is $::argv"
+        set transportConstructorName [from ::argv -transportname ""]
+        puts stderr "*** $type typeconstructor: transportConstructorName is $transportConstructorName"
+        set transportConstructor {}
+        if {$transportConstructorName ne ""} {
+            set transportConstructors [info commands ::lcc::$transportConstructorName]
+            puts stderr "*** $type typeconstructor: transportConstructors is $transportConstructors"
+            if {[llength $transportConstructors] > 0} {
+                set transportConstructor [lindex $transportConstructors 0]
+            }
+        }
+        if {$transportConstructor eq {}} {
+            set transportConstructor [lcc::OpenLCBNode \
+                                      selectTransportConstructor \
+                                      -parent [winfo toplevel $mainWindow]]
+        }
+        if {$transportConstructor eq {}} {
+            exit
+        }
+        set reqOpts [$transportConstructor requiredOpts]
+        set transportOpts [list]    
+        foreach {o d} $reqOpts {
+            if {[lsearch $::argv $o] >= 0} {
+                lappend transportOpts $o [from ::argv $o $d]
+            }
+        }
+        if {[llength $reqOpts] > [llength $transportOpts]} {
+            set transportOpts [eval [list $transportConstructor \
+                                     drawOptionsDialog \
+                                     -parent [winfo toplevel $mainWindow]] \
+                                     $transportOpts]
+        }
         set transport [eval [list lcc::OpenLCBNode %AUTO% \
                              -transport $transportConstructor\
                              -eventhandler [mytypemethod _eventHandler] \
@@ -129,7 +236,7 @@ snit::type OpenLCB {
         #puts stderr "*** $type typeconstructor: $mynid inserted."
         $type _insertSimpleNodeInfo $mynid [$transport ReturnMySimpleNodeInfo]
         $type _insertSupportedProtocols $mynid [$transport ReturnMySupportedProtocols]
-        
+        #
         $nodetree tag bind protocol_CDI <ButtonPress-1> [mytypemethod _ReadCDI %x %y]
         $nodetree tag bind protocol_MemoryConfig <ButtonPress-1> [mytypemethod _MemoryConfig %x %y]
         $mainWindow showit
