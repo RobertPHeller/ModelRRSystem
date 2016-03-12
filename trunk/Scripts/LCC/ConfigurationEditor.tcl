@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <160310.1354>
+#  Last Modified : <160312.1407>
 #
 #  Description	
 #
@@ -157,7 +157,7 @@ namespace eval lcc {
             }
             set cdi [lindex $cdis]
             wm protocol $win WM_DELETE_WINDOW [mymethod _close]
-            install main using MainFrame $win.main -menu [subst $_menu] \
+            Install main using MainFrame $win.main -menu [subst $_menu] \
                   -textvariable [myvar status]
             pack $main -expand yes -fill both
             set f [$main getframe]
@@ -168,6 +168,7 @@ namespace eval lcc {
                   [$scroll getframe].editframe -constrainedwidth yes
             $scroll setwidget $editframe
             $self configurelist $args
+            wm title $win [_ CDI Configuration Tool for Node ID %s [$self cget -nid]]
             set address 0
             $self _processXMLnode $cdi [$editframe getframe] -1 address
 #            $self _processXMLnode $cdi [$main getframe] -1 address
