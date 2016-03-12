@@ -1,5 +1,3 @@
-#ifndef _MAINWINDOW.TC_H_
-#define _MAINWINDOW.TC_H_
 #* 
 #* ------------------------------------------------------------------
 #* mainwindow.tcl - General purpose main window
@@ -649,5 +647,4 @@ snit::widgetadaptor mainwindow {
 ## @}
 
 package provide MainWindow 1.0
-#endif /* _MAINWINDOW.TC_H_ */
 
