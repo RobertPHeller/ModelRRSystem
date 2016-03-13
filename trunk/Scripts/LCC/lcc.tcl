@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160312.1355>
+#  Last Modified : <160313.1600>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -2359,6 +2359,7 @@ namespace eval lcc {
                 return
             }
             fconfigure $ttyfd -buffering line -translation {crlf crlf}
+            #puts stderr [list *** $type create $self fconfigure $ttyfd = [fconfigure $ttyfd]]
             fileevent $ttyfd readable [mymethod _messageReader]
             while {![$self _reserveMyAlias]} {
             }
