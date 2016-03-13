@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Mar 3 14:38:10 2016
-#  Last Modified : <160311.1406>
+#  Last Modified : <160312.2250>
 #
 #  Description	
 #
@@ -111,7 +111,7 @@ namespace eval lcc {
                   -label [_m "Label|Node ID:"] -text [$self cget -nid] -editable no
             pack $nodeid -fill x
             install available using LabelFrame $dframe.available \
-                  -text [_ "Label|Available Commands:"]
+                  -text [_m "Label|Available Commands:"]
             pack $available -fill x
             set avail [$self cget -available]
             pack [ttk::label [$available getframe].bits \
