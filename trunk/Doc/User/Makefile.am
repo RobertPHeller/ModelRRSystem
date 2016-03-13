@@ -88,7 +88,8 @@ OPENLCB_HTML = $(OPENLCBHBase)/index.html
 USERMAN_OPENLCB_FIGS = OpenLCB_CANGCUSB_Options.png OpenLCB_CDITool.png \
         OpenLCB_MainWindow.png OpenLCB_MainWindow_OpenTrees.png \
         OpenLCB_MemoryConfigOpts.png OpenLCB_ReadWriteConfigMemory.png \
-        OpenLCB_SelectTransport.png
+        OpenLCB_SelectTransport.png OpenLCB_ReadWriteConfigMemory_Small.png \
+        OpenLCB_CDITool_Small.png
 
 DOXYFILES += Doxyfile.$(OPENLCB).in
 
