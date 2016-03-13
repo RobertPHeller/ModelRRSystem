@@ -613,6 +613,7 @@ WARN_LOGFILE           =
 INPUT                  = @srcdir@/Preface.h \
                          @srcdir@/Introduction.h \
                          @srcdir@/UniversalTestReference.h \
+                         @srcdir@/OpenLCBReference.h \
                          @srcdir@/AzatraxProgReference.h \
                          @srcdir@/XPressNetThrottleReference.h \
                          @srcdir@/GenericThrottleReference.h \
