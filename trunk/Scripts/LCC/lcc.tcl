@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160313.1600>
+#  Last Modified : <160314.0934>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -2231,6 +2231,8 @@ namespace eval lcc {
         # @arg -nid The Node ID that the computer will assume in the format
         # of @c hh:hh:hh:hh:hh:hh which is a 48 bit number expressed as 6
         # pairs of hexadecimal digits separacted by colons (:).
+        # @arg -promisciousmode Promiscious mode flag.  If true all messages
+        # are handled, whether they are addressed to this node or not.
         # @par
         
         component gcmessage
@@ -2280,6 +2282,7 @@ namespace eval lcc {
         ## Timeout flag.
         option -port -readonly yes -default "/dev/ttyACM0"
         option -nid  -readonly yes -default "05:01:01:01:22:00" -type lcc::nid
+        option -promisciousmode -default no -type snit::boolean
         method _peelnid {value} {
             ## Peel the Node ID into bytes and initializing the 48 bit
             # random number seed for alias generation.
@@ -2334,6 +2337,8 @@ namespace eval lcc {
             # pairs of hexadecimal digits separacted by colons (:).
             # @arg -eventhandler This is a script prefix that is run on incoming 
             # messages.  The current message as a binary CanMessage is appended.
+            # @arg -promisciousmode Promiscious mode flag.  If true all messages
+            # are handled, whether they are addressed to this node or not.
             # @par
             
             install gcmessage using GridConnectMessage %AUTO%
@@ -2633,46 +2638,49 @@ namespace eval lcc {
             #
             # @param srcid The source alias of the message.
             
+            #puts stderr "*** $self _flags0 $srcid [$r toString] $doff"
+            set mti [$mtiheader cget -mti]
+            #puts stderr [format {*** %s _flags0: mti = 0x%04X} $self $mti]
             if {[$mtiheader cget -mti] == 0x0A08} {
                 if {[info exists simplenodeflags($srcid,v1)]} {
-                    eval [list lappend messagebuffers($srcid)] [lrange [$r getData] $doff end]
-                    if {[countNUL $messagebuffers($srcid)] < $simplenodeflags($srcid,v1)} {
+                    eval [list lappend messagebuffers($srcid,$mti)] [lrange [$r getData] $doff end]
+                    if {[countNUL $messagebuffers($srcid,$mti)] < $simplenodeflags($srcid,v1)} {
                         return no
                     }
                 } else {
-                    set messagebuffers($srcid) [lrange [$r getData] $doff end]
-                    set simplenodeflags($srcid,v1) [lindex $messagebuffers($srcid) 0]
+                    set messagebuffers($srcid,$mti) [lrange [$r getData] $doff end]
+                    set simplenodeflags($srcid,v1) [lindex $messagebuffers($srcid,$mti) 0]
                     if {$simplenodeflags($srcid,v1) == 1} {
                         set simplenodeflags($srcid,v1) 4
                     }  
                 }
-                #puts stderr "*** $self _flags0: messagebuffers($srcid) contains $messagebuffers($srcid)"
+                #puts stderr "*** $self _flags0: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
                 set i 1
                 for {set j 0} \
                       {$j < $simplenodeflags($srcid,v1)} \
                       {incr j} {
-                    set k [lsearch -start $i -exact $messagebuffers($srcid) 0]
+                    set k [lsearch -start $i -exact $messagebuffers($srcid,$mti) 0]
                     #puts stderr "*** $self _flags0: i = $i, j = $j, k = $k"
                     if {$k < 0} {return no}
                     set i [expr {$k + 1}]
                 }
-                #puts stderr "*** $self _flags0: length of messagebuffers($srcid) is [llength $messagebuffers($srcid)]"
+                #puts stderr "*** $self _flags0: length of messagebuffers($srcid,$mti) is [llength $messagebuffers($srcid,$mti)]"
                 #puts stderr "*** $self _flags0: i = $i"
-                if {$i >= [llength $$messagebuffers($srcid)]} {
+                if {$i >= [llength $$messagebuffers($srcid,$mti)]} {
                     return no
                 }
-                set simplenodeflags($srcid,v2) [lindex $messagebuffers($srcid) $i]
+                set simplenodeflags($srcid,v2) [lindex $messagebuffers($srcid,$mti) $i]
                 if {$simplenodeflags($srcid,v2) == 1} {
                     set simplenodeflags($srcid,v2) 2
                 }
-                if {[countNUL $messagebuffers($srcid)] < ($simplenodeflags($srcid,v1) + $simplenodeflags($srcid,v2))} {
+                if {[countNUL $messagebuffers($srcid,$mti)] < ($simplenodeflags($srcid,v1) + $simplenodeflags($srcid,v2))} {
                     return no
                 }
                 unset simplenodeflags($srcid,v1)
                 unset simplenodeflags($srcid,v2)
                 return yes
             } else {
-                set messagebuffers($srcid) [lrange [$r getData] $doff end]
+                set messagebuffers($srcid,$mti) [lrange [$r getData] $doff end]
                 return yes
             }
         }
@@ -2698,11 +2706,12 @@ namespace eval lcc {
                     set destid 0
                     set doff 0
                     if {[$mtiheader cget -frametype] == 1} {
+                        set mti [$mtiheader cget -mti]
                         if {[$mtidetail cget -addressp]} {
                             set doff 2
                             set destid [expr {(([lindex [$r getData] 0] & 0x0F) << 8) | [lindex [$r getData] 1]}]
                             set flagbits [expr {([lindex [$r getData] 0] & 0xF0) >> 4}]
-                            if {$destid != $myalias} {
+                            if {$destid != $myalias && ![$self cget -promisciousmode]} {
                                 # The message is not addressed to me, discard it.
                                 return
                             }
@@ -2711,13 +2720,13 @@ namespace eval lcc {
                             #puts stderr "*** $self _messageReader: doff = $doff"
                             set datacomplete [$self _flags0 $srcid $r $doff]
                             #puts stderr "*** $self _messageReader: $r getData is [$r getData]"
-                            #puts stderr "*** $self _messageReader: messagebuffers($srcid) contains $messagebuffers($srcid)"
+                            #puts stderr "*** $self _messageReader: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
                         } elseif {$flagbits == 0x01} {
-                            set messagebuffers($srcid) [lrange [$r getData] 2 end]
+                            set messagebuffers($srcid,$mti) [lrange [$r getData] 2 end]
                         } elseif {$flagbits == 0x03} {
-                            eval [list lappend messagebuffers($srcid)] [lrange [$r getData] 2 end]
+                            eval [list lappend messagebuffers($srcid,$mti)] [lrange [$r getData] 2 end]
                         } elseif {$flagbits == 0x02} {
-                            eval [list lappend messagebuffers($srcid)] [lrange [$r getData] 2 end]
+                            eval [list lappend messagebuffers($srcid,$mti)] [lrange [$r getData] 2 end]
                             set datacomplete yes
                         }
                         if {$datacomplete} {
@@ -2725,24 +2734,28 @@ namespace eval lcc {
                                 set m [lcc::OpenLCBMessage %AUTO% \
                                        -mti [$mtiheader cget -mti] \
                                        -sourcenid [$self getNIDofAlias $srcid] \
-                                       -data      $messagebuffers($srcid)]
+                                       -data      $messagebuffers($srcid,$mti)]
+                                if {$destid != 0} {
+                                    $m configure \
+                                          -destnid [$self getNIDofAlias $destid]
+                                }
                                 set doff 0
                                 if {[$mtidetail cget -eventp]} {
                                     set evstart $doff
                                     set evend   [expr {$doff + 7}]
                                     incr doff 8
-                                    set edata [lrange $messagebuffers($srcid) $evstart $evend]
+                                    set edata [lrange $messagebuffers($srcid,$mti) $evstart $evend]
                                     set eid [lcc::EventID %AUTO% -eventidlist $edata]
                                     $m configure -eventid $eid
-                                    $m configure -data [lrange $messagebuffers($srcid) $doff end]
+                                    $m configure -data [lrange $messagebuffers($srcid,$mti) $doff end]
                                 }
-                                unset messagebuffers($srcid)           
+                                unset messagebuffers($srcid,$mti)           
                                 uplevel #0 $messagehandler $m
                             }
                         }
                     } elseif {[$mtidetail cget -streamordatagram]} {
                         set destid [$mtidetail cget -destid]
-                        if {$destid != $myalias} {
+                        if {$destid != $myalias && ![$self cget -promisciousmode]} {
                             # The message is not addressed to me, discard it.
                             return
                         }
@@ -3578,4 +3591,5 @@ namespace eval lcc {
 
 
 package provide LCC 1.0
+
 

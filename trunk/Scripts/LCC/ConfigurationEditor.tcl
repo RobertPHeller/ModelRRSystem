@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <160312.1407>
+#  Last Modified : <160314.1004>
 #
 #  Description	
 #
@@ -157,7 +157,7 @@ namespace eval lcc {
             }
             set cdi [lindex $cdis]
             wm protocol $win WM_DELETE_WINDOW [mymethod _close]
-            Install main using MainFrame $win.main -menu [subst $_menu] \
+            install main using MainFrame $win.main -menu [subst $_menu] \
                   -textvariable [myvar status]
             pack $main -expand yes -fill both
             set f [$main getframe]

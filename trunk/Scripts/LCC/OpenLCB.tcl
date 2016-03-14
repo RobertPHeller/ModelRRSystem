@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160312.1359>
+#  Last Modified : <160314.1003>
 #
 #  Description	
 #
@@ -113,19 +113,29 @@ set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirn
 #puts stderr "*** msgfiles = $msgfiles"
 
 snit::type OpenLCB {
+    #*************************************************************************
+    # OpenLCB Main program -- provide node configuration and event monitoring.
+    #
+    # Displays available nodes in a tree list form, allowing for node 
+    # configuration, event monitoring, and event generation for test purposes.
+    #
+    #*************************************************************************
+    
     pragma -hastypeinfo false
     pragma -hastypedestroy false
     pragma -hasinstances false
     
-    typecomponent mainWindow
-    typecomponent   nodetree
-    typecomponent transport
-    typecomponent sendevent
+    typecomponent mainWindow;# Main window
+    typecomponent   nodetree;# Tree list of nodes
+    typecomponent transport; # Transport layer
+    typecomponent sendevent; # Event generation dialog
     
-    typevariable nodetree_cols {nodeid}
-    typevariable mynid {}
-    typevariable transport
+    typevariable nodetree_cols {nodeid};# Columns
+    typevariable mynid {};   # My Node ID
+    
     typemethod usage {} {
+        #* Print a usage message.
+        
         puts stdout [_ "Usage: %s \[X11 Resource Options\] -- \[Other options\]" $::argv0]
         puts stdout {}
         puts stdout [_ "X11 Resource Options:"]
@@ -143,9 +153,37 @@ snit::type OpenLCB {
         puts stdout [_ "-help: Print this help message and exit."]
         puts stdout [_ "Additional options for the transport constructor can also be specified."]
     }
+    #* Protocol display strings.
+    typevariable protocolstrings -array {}
     typeconstructor {
+        #* Type constructor -- create all of the one time computed stuff.
+        #* This includes processing the CLI, building the main window and 
+        #* opening a connection to the OpenLCB bus(s).
+        
+        #* Set up protocol strings.        
+        set protocolstrings(Simple) [_m "Label|Simple"]
+        set protocolstrings(Datagram) [_m "Label|Datagram"]
+        set protocolstrings(Stream) [_m "Label|Stream"]
+        set protocolstrings(MemoryConfig) [_m "Label|Memory Configuration"]
+        set protocolstrings(Reservation) [_m "Label|Reservation"]
+        set protocolstrings(EventExchange) [_m "Label|Event Exchange"]
+        set protocolstrings(Itentification) [_m "Label|Identification"]
+        set protocolstrings(TeachLearn) [_m "Label|Teach / Learn"]
+        set protocolstrings(RemoteButton) [_m "Label|Remote Button"]
+        set protocolstrings(AbbreviatedDefaultCDI) [_m "Label|Abbreviated Default CDI"]
+        set protocolstrings(Display) [_m "Label|Display"]
+        set protocolstrings(SimpleNodeInfo) [_m "Label|Simple Node Information"]
+        set protocolstrings(CDI) [_m "Label|CDI"]
+        set protocolstrings(Traction) [_m "Label|Traction"]
+        set protocolstrings(FDI) [_m "Label|FDI"]
+        set protocolstrings(DCC) [_m "Label|DCC"]
+        set protocolstrings(SimpleTrainNode) [_m "Label|Simple Train Node"]
+        set protocolstrings(FunctionConfiguration) [_m "Label|Function Configuration"]
+        
+        # Process the command line options.
+        # Does the user want a list of available transport constructors?
+        
         set listconstructorsP [lsearch $::argv -listconstructors]
-        set helpP [lsearch $::argv -help]
         if {$listconstructorsP >= 0} {
             wm withdraw .
             set transportConstructorList [lcc::OpenLCBNode \
@@ -157,13 +195,20 @@ snit::type OpenLCB {
             $type usage
             exit
         }
+        
+        # Does the user want help?  
+        set helpP [lsearch $::argv -help]
         if {$helpP >= 0} {
             wm withdraw .
             $type usage
             exit
         }
+        
+        # Build main GUI window.
         set mainWindow [mainwindow .main -scrolling yes -height 600 -width 800]
         pack $mainWindow -expand yes -fill both
+        # Update menus: bind to Exit item, add Send Event, flesh out the Help
+        # menu.
         $mainWindow menu entryconfigure file "Exit" -command [mytypemethod _carefulExit]
         $mainWindow menu insert file "Print..." command \
               -label [_m "Label|File|Send Event"] \
@@ -179,36 +224,47 @@ snit::type OpenLCB {
               -label [_m "Menu|Help|Reference Manual"] \
               -command {HTMLHelp help "OpenLCB Reference"}
         
-        
+        # Hook in help files.
         HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
         
-        set sendevent {}
+        # Create node tree widget.
         set nodetree [ttk::treeview \
                       [$mainWindow scrollwindow getframe].nodetree \
                       -columns $nodetree_cols \
                       -selectmode browse \
                       -show tree]
+        # Bind scrollbars.
         $mainWindow scrollwindow setwidget $nodetree
+        # Needed to get dialog boxes to behave.
         update idle
+        # Lazy eval for send event.
+        set sendevent {}
         #puts stderr "*** $type typeconstructor: ::argv is $::argv"
+        # Try to get transport constructor from the CLI.
         set transportConstructorName [from ::argv -transportname ""]
         #puts stderr "*** $type typeconstructor: transportConstructorName is $transportConstructorName"
+        # Assume there isn't one specified on the command line.
         set transportConstructor {}
         if {$transportConstructorName ne ""} {
+            # The user speficied something.  Get the actual name, if any.
             set transportConstructors [info commands ::lcc::$transportConstructorName]
             #puts stderr "*** $type typeconstructor: transportConstructors is $transportConstructors"
             if {[llength $transportConstructors] > 0} {
                 set transportConstructor [lindex $transportConstructors 0]
             }
         }
+        # Was something found?  If not, pop up a dialog box to get an answer.
         if {$transportConstructor eq {}} {
             set transportConstructor [lcc::OpenLCBNode \
                                       selectTransportConstructor \
                                       -parent [winfo toplevel $mainWindow]]
         }
+        # Canceled? Give up.
         if {$transportConstructor eq {}} {
             exit
         }
+        # Deal with constructor required opts.  Try the command line, fall 
+        # back to a dialog box.
         set reqOpts [$transportConstructor requiredOpts]
         set transportOpts [list]    
         foreach {o d} $reqOpts {
@@ -222,29 +278,39 @@ snit::type OpenLCB {
                                      -parent [winfo toplevel $mainWindow]] \
                                      $transportOpts]
         }
+        # Open the transport.
         set transport [eval [list lcc::OpenLCBNode %AUTO% \
                              -transport $transportConstructor\
                              -eventhandler [mytypemethod _eventHandler] \
                              -generalmessagehandler [mytypemethod _messageHandler]] \
                              $transportOpts]
         #puts stderr "*** $type typeconstructor: transport = $transport"
+        # Get our Node ID.
         set mynid [$transport cget -nid]
         #puts stderr "*** $type typeconstructor: mynid = $mynid"
+        # Start the tree with ourselves.
         $nodetree insert {} end -id $mynid \
               -text $mynid \
               -open no
         #puts stderr "*** $type typeconstructor: $mynid inserted."
+        # Insert our child nodes.
         $type _insertSimpleNodeInfo $mynid [$transport ReturnMySimpleNodeInfo]
         $type _insertSupportedProtocols $mynid [$transport ReturnMySupportedProtocols]
         #
+        # Bind Actions to selected protocols.
         $nodetree tag bind protocol_CDI <ButtonPress-1> [mytypemethod _ReadCDI %x %y]
         $nodetree tag bind protocol_MemoryConfig <ButtonPress-1> [mytypemethod _MemoryConfig %x %y]
+        # Pop the main window on the screen.
         $mainWindow showit
         update idle
+        # Find out who else is out there.
         $transport SendVerifyNodeID
         #puts stderr "*** $type typeconstructor: done."
     }
     typemethod _eventHandler {command eventid {validity {}}} {
+        #* Event handler -- when a PCER message is received, pop up an
+        #* event received pop up.
+        
         #puts stderr "*** $type _eventHandler $command $eventid $validity"
         if {$command eq "report"} {
             lcc::EventReceived .eventreceived%AUTO% \
@@ -252,10 +318,26 @@ snit::type OpenLCB {
         }
     }
     typemethod _messageHandler {message} {
+        #* Message handler -- handle incoming messages.
+        #* Certain messages are processed:
+        #*
+        #* Verified Node ID -- Insert a node id entry in the tree view.
+        #*                     A SimpleNodeInfoRequest is also sent to the
+        #*                     new node.
+        #* Verify Node ID   -- Send our Verified Node ID.
+        #* Protocol Support Inquiry -- Send our Supported Protocols.
+        #* Protocol Support Reply -- Insert the Supported Protocols for the 
+        #*                     node.
+        #* Simple Node Information Request -- Send our Simple Node Info.
+        #* Simple Node Information Reply -- Insert the  Simple Node Information
+        #*                     Then send a Protocol Support Inquiry to the 
+        #*                     node.
+        #* All other messages are not processed.
+        
         switch [format {0x%04X} [$message cget -mti]] {
             0x0170 -
             0x0171 {
-                ## Verified Node ID
+                #* Verified Node ID
                 set nid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] \
                          [$message cget -data]]
                 $nodetree insert {} end -id $nid -text $nid -open no
@@ -263,34 +345,37 @@ snit::type OpenLCB {
             }
             0x0490 -
             0x0498 {
-                ## Verify Node ID
+                #* Verify Node ID
                 $transport SendMyNodeVerifcation
             }
             0x0828 {
-                ## Protocol Support Inquiry
+                #* Protocol Support Inquiry
                 $transport SendMySupportedProtocols [$message cget -sourcenid]
             }
             0x0668 {
-                ## Protocol Support Reply
+                #* Protocol Support Reply
                 set report [$message cget -data]
                 set nid    [$message cget -sourcenid]
                 $type _insertSupportedProtocols $nid $report
             }
             0x0DE8 {
-                ## Simple Node Information Request
+                #* Simple Node Information Request
                 $transport SendMySimpleNodeInfo [$message cget -sourcenid]
             }
             0x0A08 {
-                ## Simple Node Information Reply
+                #* Simple Node Information Reply
                 set payload [$message cget -data]
                 set nid     [$message cget -sourcenid]
                 $type _insertSimpleNodeInfo $nid $payload
+                $transport SendSupportedProtocolsRequest $nid
             }
             default {
             }
         }
     }
     typemethod _insertSimpleNodeInfo {nid infopayload} {
+        #* Insert the SimpleNodeInfo for nid into the tree view.
+
         #puts stderr "*** $type _insertSimpleNodeInfo $nid $infopayload"
         $nodetree insert $nid end -id ${nid}_simplenodeinfo \
               -text {Simple Node Info} \
@@ -339,29 +424,10 @@ snit::type OpenLCB {
             incr i
         }
         #puts stderr "*** $type _insertSimpleNodeInfo: done"
-        $transport SendSupportedProtocolsRequest $nid
-    }
-    typevariable protocolstrings -array {
-        Simple "Label|Simple"
-        Datagram "Label|Datagram"
-        Stream "Label|Stream"
-        MemoryConfig "Label|Memory Configuration"
-        Reservation "Label|Reservation"
-        EventExchange "Label|Event Exchange"
-        Itentification "Label|Identification"
-        TeachLearn "Label|Teach / Learn"
-        RemoteButton "Label|Remote Button"
-        AbbreviatedDefaultCDI "Label|Abbreviated Default CDI"
-        Display "Label|Display"
-        SimpleNodeInfo "Label|Simple Node Information"
-        CDI "Label|CDI"
-        Traction "Label|Traction"
-        FDI "Label|FDI"
-        DCC "Label|DCC"
-        SimpleTrainNode "Label|Simple Train Node"
-        FunctionConfiguration "Label|Function Configuration"
     }
     typemethod _insertSupportedProtocols {nid report} {
+        #* Insert Supported Protocols if node into tree view.
+
         #puts stderr "*** $type _insertSupportedProtocols $nid $report"
         set protocols [list]
         if {([lindex $report 0] & 0x80) != 0} {
@@ -430,13 +496,15 @@ snit::type OpenLCB {
                 #puts stderr [list *** $type _insertSupportedProtocols: p = $p]
                 $nodetree insert ${nid}_protocols end \
                       -id ${nid}_protocols_$p \
-                      -text [_m $protocolstrings($p)] \
+                      -text $protocolstrings($p) \
                       -open no \
                       -tag protocol_$p
             }
         }
     }
     typemethod _SendEvent {} {
+        #* Generate a PCER message.
+
         if {[info exists sendevent] && [winfo exists $sendevent]} {
             $sendevent draw
         } else {
@@ -444,10 +512,14 @@ snit::type OpenLCB {
         }
     }
     
-    typevariable _datagramdata 
-    typevariable _currentnid    
-    typevariable _iocomplete
+    typevariable _datagramdata;# Datagram data buffer. 
+    typevariable _currentnid;  # Node ID of the node we currently expect 
+                               # datagrams from.
+    
+    typevariable _iocomplete;  # I/O completion flag.
     typemethod _datagramHandler {command sourcenid args} {
+        #* Datagram handler.
+
         set data $args
         switch $command {
             datagramreceivedok {
@@ -462,7 +534,6 @@ snit::type OpenLCB {
                 if {$sourcenid ne $_currentnid} {
                     $transport DatagramRejected $sourcenid 0x1000
                 } else {
-                    
                     set _datagramdata $data
                     $transport DatagramReceivedOK $sourcenid
                     incr _iocomplete
@@ -470,10 +541,15 @@ snit::type OpenLCB {
             }
         }
     }
+    #* CDI text for nodes (indexed by Node IDs).
     typevariable CDIs_text -array {}
+    #* CDI parsed XML trees (indexed by Node IDs).
     typevariable CDIs_xml  -array {}
+    #* CDI Forms (indexed by Node IDs).
     typevariable CDIs_FormTLs -array {}
     typemethod _ReadCDI {x y} {
+        #* Read in a CDI for the node at x,y
+        
         #puts stderr "*** $type _ReadCDI $x $y"
         set id [$nodetree identify row $x $y]
         #puts stderr "*** $type _ReadCDI: id = $id"
@@ -579,6 +655,8 @@ snit::type OpenLCB {
         }
     }
     typemethod _MemoryConfig {x y} {
+        #* Configure the memory for the node at x,y
+
         #puts stderr "*** $type _MemoryConfig $x $y"
         set id [$nodetree identify row $x $y]
         #puts stderr "*** $type _MemoryConfig: id = $id"
@@ -630,9 +708,13 @@ snit::type OpenLCB {
     }
     
     typemethod _carefulExit {} {
+        #* Exit method.
+
         exit
     }
     proc countNUL {list} {
+        #* Procedure to count the NUL bytes in list.
+        
         set count 0
         set start 0
         while {[set i [lsearch -start $start $list 0]] >= 0} {
