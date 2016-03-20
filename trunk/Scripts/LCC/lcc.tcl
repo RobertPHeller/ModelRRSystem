@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160314.0934>
+#  Last Modified : <160317.1044>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -593,7 +593,11 @@ namespace eval lcc {
         ## @privatesection @brief the MTIHeader component.
         # Contains a MTIHeader to perform heavy lifting.
         option -special -type snit::boolean -default no
+        typevariable SPECIAL_MASK 0x2000
+        ## @brief The Special bit is bit 13
         option -streamordatagram  -type snit::boolean -default no
+        typevariable STREAMDG_MASK 0x1000
+        ## @brief The Stream or Datagram bit is bit 12
         option -priority -type lcc::twobits -default 0
         typevariable PRIORITY_SHIFT 10
         ## @brief The priority is bits 10-11 of the MTI_CAN
@@ -658,11 +662,14 @@ namespace eval lcc {
             install mtiheader using MTIHeader %AUTO%
             $self configurelist $args
         }
-        method getHeader {} {
-            ## @brief Get the 29-bit header.
+        method getHeader {{CANp 1}} {
+            ## @brief Get the 29-bit CAN header or 16-bit MTI.
             # Most of the heavy lifting is handled in the mtiheader component.
             # @see lcc::CANHeader and lcc::MTIHeader.
-            # @return The 29-bit header.
+            #
+            # @param CANp Specify whether we want a 29-bit CAN header or a 
+            # 16-bit MTI.
+            # @return The 29-bit CAN header or 16-bit MTI.
             
             if {!$options(-streamordatagram) && !$options(-special)} {
                 ## frame type 1: Global & Addressed MTI
@@ -704,7 +711,18 @@ namespace eval lcc {
                     }
                 }
             }
-            return [$mtiheader getHeader]
+            if {$CANp} {
+                return [$mtiheader getHeader]
+            } else {
+                set mti16 [$mtiheader cget -mti]
+                if {$options(-streamordatagram)} {
+                    set mti16 [expr {$mti16 | $STREAMDG_MASK}]
+                }
+                if {$options(-special)} {
+                    set mti16 [expr {$mti16 | $SPECIAL_MASK}]
+                }
+                return $mti16
+            }
         }
         method setHeader {header} {
             ## @brief Decode the 29-bit header.
@@ -751,6 +769,16 @@ namespace eval lcc {
                     set options(-datagramcontent) stream
                 }
             }
+        }
+        method setMTI16Header {MTI} {
+            set options(-streamordatagram) [expr {($MTI & $STREAMDG_MASK) != 0}]
+            set options(-special)    [expr {($MTI & $SPECIAL_MASK) != 0}]
+            set options(-priority)   [expr {($MTI & $PRIORITY_MASK) >> $PRIORITY_SHIFT}]
+            set options(-typewithin) [expr {($MTI & $TYPEWITHIN_MASK) >> $TYPEWITHIN_SHIFT}]
+            set options(-simple)     [expr {($MTI & $SIMPLE_MASK) != 0}]
+            set options(-addressp)   [expr {($MTI & $ADDRESSP_MASK) != 0}]
+            set options(-eventp)     [expr {($MTI & $EVENTP_MASK) != 0}]
+            set options(-modifier)   [expr {$MTI & $MODIFIER_MASK}]
         }
     }
     
@@ -1474,6 +1502,7 @@ namespace eval lcc {
     }
     
     
+    if 0 {    
     snit::type LCCBufferUSB {
         ## @brief Connect to a RR-Cirkits LCC Buffer USB device.
         # This class implements I/O to the CAN Bus via a RR-Cirkits LCC Buffer
@@ -2102,7 +2131,8 @@ namespace eval lcc {
             return true
         }
     }
-    
+    }
+
     snit::type CanTransport {
         ## @brief Logical transport of CAN Messages.
         # CAN Bus abstraction layer
@@ -3001,7 +3031,212 @@ namespace eval lcc {
             #puts stderr "*** $type drawOptionsDialog: dia = $dia"
             return [$dia draw]
         }
-    }    
+    }
+    
+    snit::type OpenLCBOverTcp {
+        ## Connect to a OpenLCB over Tcp/Ip.
+        #
+        # Options:
+        # @arg -host The name of the host (or IP address) to connect to. The
+        #            default is localhost.
+        # @arg -port The Tcp/Ip port number to connect with.  The default is
+        #            12000.
+        # @arg -nid The Node ID that the computer will assume in the format
+        # of @c hh:hh:hh:hh:hh:hh which is a 48 bit number expressed as 6
+        # pairs of hexadecimal digits separacted by colons (:).
+        # @arg -promisciousmode Promiscious mode flag.  If true all messages
+        # are handled, whether they are addressed to this node or not.
+        # @par
+        
+        component mtidetail
+        ## @privatesection @brief MTIDetail component.
+        # This component is used to extract and pack fields from and to a MTI
+        # header at a MTI detail level.
+        variable messagehandler {}
+        ## Message handler.
+        variable datagrambuffers -array {}
+        ## Datagram buffers.
+        variable messagebuffers -array {}
+        ## General message buffers (for multi frame messages) 
+        variable sock
+        ## The socket I/O channel.
+        typevariable NIDPATTERN 
+        ## The regexp for breaking up the Node ID into bytes.
+        typeconstructor {
+            set NIDPATTERN [::lcc::nid cget -regexp]
+        }
+        variable _timeout 0
+        ## Timeout flag.
+        option -host -readonly yes -default "localhost"
+        option -port -readonly yes -default 12000
+        option -nid  -readonly yes -default "05:01:01:01:22:00" -type lcc::nid
+        option -promisciousmode -default no -type snit::boolean
+        constructor {args} {
+            ## @publicsection @brief Constructor: Connect to a Tcp/Ip OpenLCB network.
+            # Create a connection to a Tcp/Ip network.
+            #
+            # @param name The name of the instance.
+            # @param ... The options:
+            # @arg -host The name of the host (or IP address) to connect to. The
+            #            default is localhost.
+            # @arg -port The Tcp/Ip port number to connect with.  The default is
+            #            12000.
+            # @arg -nid The Node ID that the computer will assume in the format
+            # of @c hh:hh:hh:hh:hh:hh which is a 48 bit number expressed as 6
+            # pairs of hexadecimal digits separacted by colons (:).
+            # @arg -promisciousmode Promiscious mode flag.  If true all messages
+            # are handled, whether they are addressed to this node or not.
+            # @par
+            
+            install mtidetail using MTIDetail          %AUTO%
+            set options(-host) [from args -host]
+            set options(-port) [from args -port]
+            set options(-nid)  [from args -nid]
+            if {[catch {socket $options(-host) $options(-port)} sock]} {
+                set theerror $sock
+                catch {unset sock}
+                error [_ "Failed to open %s:%d because %s." $options(-host) $options(-port) $theerror]
+                return
+            }
+            fconfigure $sock -buffering none -encoding binary \
+                  -translation {binary binary} 
+            fileevent $sock readable [mymethod _messageReader]
+            $self configurelist $args
+        }
+        method setMessageHandler {handler} {
+            ## Set the message handler.  Generally called from the upper level
+            # class to gain access to incoming messages asyncronously.
+            #
+            # @param handler The new handler procedure.
+            # @return The old handler or the empty string if there was no old 
+            # handler.
+            set oldhandler $messagehandler
+            set messagehandler $handler
+            return $oldhandler
+        }
+        method sendMessage {args} {
+            ## Send a message on the OpenLCB bus.
+            # @param ... Message options.  See OpenLCBMessage for possible 
+            # options.
+            
+            set message [eval [list lcc::OpenLCBMessage %AUTO% \
+                               -sourcenid [$self cget -nid]] $args]
+            #puts stderr "*** $self sendMessage: message is [$message toString]"
+            set preamble 0x8000;# Common OpenLCB bit.
+            set messageData [_makeBinaryMessage $message]
+            set totallength [expr {[llength $messageData] + (48/8) + (48/8)}]
+            set tlbytes [list \
+                         [expr {($totallength & 0xFF0000) >> 16}] \
+                         [expr {($totallength & 0xFF00) >> 8}] \
+                         [expr {$totallength & 0xFF}]]
+            set sourcenid [list]
+            foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] [$self cget -nid]] 1 end] {
+                lappend sourcenid $oct
+            }
+            set seqnum [expr {[clock milliseconds] & wide(0x0FFFFFFFFFFFF)}]
+            set sqbytes [list \
+                         [expr {($seqnum & wide(0x0FF0000000000)) >> 40}] \
+                         [expr {($seqnum &   wide(0x0FF00000000)) >> 32}] \
+                         [expr {($seqnum &     wide(0x0FF000000)) >> 24}] \
+                         [expr {($seqnum &       wide(0x0FF0000)) >> 16}] \
+                         [expr {($seqnum &         wide(0x0FF00)) >>  8}] \
+                         [expr {($seqnum &           wide(0x0FF))      }]]
+            set messageBlock [binary format {Sc3c6c6c*} $preamble $tlbytes $sourcenid $sqbytes $messageData]
+            puts $sock $messageBlock
+        }
+        
+        method _messageReader {} {
+            set buffer [read $sock 2];# Preamble
+            binary scan $buffer S preamble
+            set preamble [expr {$preamble & 0x0FFFF}]
+            if {($preamble & 0x8000) == 0} {
+                # Link control message ...
+            } else {
+                set buffer [read $sock 3];# total length (24 bits)
+                binary scan $buffer c3 tlist
+                set totallength [expr {([lindex $tlist 0] & 0x0FF) << 16}]
+                set totallength [expr {$totallength | (([lindex $tlist 1] & 0x0FF) << 8)}]
+                set totallength [expr {$totallength | ([lindex $tlist 2] & 0x0FF)}]
+                set buffer [read $sock $totallength]
+                binary scan $buffer c6c6c* orignidlist_s seqlist openlcbmessage_s
+                set orignidlist [list]
+                foreach b $orignidlist_s {
+                    lappend orignidlist [expr {$b & 0x0FF}]
+                }
+                set orignid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] $orignidlist]
+                set seqnum [expr {           wide([lindex $seqlist 0] &  0x0FF) << 40}]
+                set seqnum [expr {$seqnum | wide(([lindex $seqlist 1] &  0x0FF) << 32)}]
+                set seqnum [expr {$seqnum | wide(([lindex $seqlist 2] &  0x0FF) << 24)}]
+                set seqnum [expr {$seqnum | wide(([lindex $seqlist 3] &  0x0FF) << 16)}]
+                set seqnum [expr {$seqnum | wide(([lindex $seqlist 4] &  0x0FF) <<  8)}]
+                set seqnum [expr {$seqnum |  wide([lindex $seqlist 5] &  0x0FF)}]
+                set openlcbmessage [list]
+                foreach b $openlcbmessage_s {
+                    lappend openlcbmessage [expr {$b & 0x0FF}]
+                }
+                set openlcbMessage [$self _unpackBinaryMessage $openlcbmessage]
+                if {![$self cget -promisciousmode]} {
+                    set dest [$openlcbMessage cget -destnid]
+                    if {$dest ne "" && $dest ne [$self cget -nid]} {
+                        return
+                    }
+                }
+                if {$messagehandler ne {}} {
+                    uplevel #0 $messagehandler $openlcbMessage
+                }
+            }
+        }
+        method _unpackBinaryMessage {messagebuffer} {
+            set MTI [expr {([lindex $messagebuffer 0] << 8) | [lindex $messagebuffer 1]}]
+            $mtidetail setMTI16Header $mti
+            set sourcenid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange $messagebuffer 2 7]]
+            set result [lcc::OpenLCBMessage %AUTO%  -sourcenid $sourcenid \
+                        -mti $MTI]
+            set dataoff 8
+            if {[$mtidetail cget -addressp]} {
+                set destend [expr {$dataoff + 5}]
+                set destid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange $messagebuffer $dataoff $destend]]
+                set dataoff [expr {$destend + 1}]
+                $result configure -destnid $destid
+            }
+            if {[$mtidetail cget -eventp]} {
+                set eventend [expr {$dataoff + 7}]
+                set eventid [lcc::EventID %AUTO% -eventidlist [lrange $messagebuffer $dataoff $eventend]]
+                $result configure -eventid $eventid
+                set dataoff [expr {$eventend + 1}]
+            }
+            $result configure -data [lrange $messagebuffer $dataoff end]
+            return $result
+        }
+
+        proc _makeBinaryMessage {openlcbMessage} {
+            set buffer    [list]
+            set mti       [$openlcbMessage cget -mti]
+            $mtidetail setMTI16Header $mti
+            lappend buffer [expr {($mti & 0xFF00) >> 8}]
+            lappend buffer [expr {$mti & 0xFF}]
+            set sourcenid [$openlcbMessage cget -sourcenid]
+            foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $sourcenid] 1 end] {
+                lappend buffer $oct
+            }
+            if {[$mtidetail cget -addressp]} {
+                set destnid [$openlcbMessage cget -destnid]
+                foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $destnid] 1 end] {
+                    lappend buffer $oct
+                }
+            }
+            if {[$mtidetail cget -eventp]} {
+                set evlist [[$openlcbMessage cget -eventid] cget -eventidlist]
+                foreach oct $evlist {
+                    lappend buffer $oct
+                }
+            }
+            foreach oct [$openlcbMessage cget -data] {
+                lappend buffer $oct
+            }
+            return $buffer
+        }
+    }
     
     snit::type OpenLCBNode {
         ## @brief Connect to a OpenLCB interface.
