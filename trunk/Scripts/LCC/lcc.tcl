@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160317.1044>
+#  Last Modified : <160322.1507>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -2132,7 +2132,101 @@ namespace eval lcc {
         }
     }
     }
-
+    
+    snit::type CanAlias {
+        ## Implements a CAN Alias.
+        #
+        # Options:
+        # @arg -nid The Node ID that the computer will assume in the format
+        # of @c hh:hh:hh:hh:hh:hh which is a 48 bit number expressed as 6
+        # pairs of hexadecimal digits separacted by colons (:).
+        # @par
+        
+        option -nid  -readonly yes -default "05:01:01:01:22:00" -type lcc::nid
+        option -defalias -readonly yes  -type lcc::twelvebits -default 0
+        variable lfsr1 0
+        ## Sequence value, upper 24 bits.
+        variable lfsr2 0
+        ## Sequence value, lower 24 bits.
+        variable nidlist {0 0 0 0 0 0}
+        ## The Node ID as a list of 6 bytes.
+        variable myalias 0
+        ## My node alias.
+        method getNextAlias {} {
+            ## Compute next alias.
+            
+            #puts stderr "*** $self getAlias: lfsr1 = $lfsr1, lfsr2 = $lfsr2"
+            # First, form 2^9*val
+            set temp1 [expr {(($lfsr1<<9) | (($lfsr2>>15)&0x1FF)) & 0xFFFFFF}]
+            set temp2 [expr {($lfsr2<<9) & 0xFFFFFF}]
+            
+            # add
+            set lfsr2 [expr {$lfsr2 + $temp2 + 0x7A4BA9}]
+            set lfsr1 [expr {$lfsr1 + $temp1 + 0x1B0CA3}]
+            # carry
+            set lfsr1 [expr {($lfsr1 & 0xFFFFFF) | (($lfsr2&0xFF000000) >> 24)}]
+            set lfsr2 [expr {$lfsr2 & 0xFFFFFF}]
+            set myalias [expr {($lfsr1 ^ $lfsr2 ^ ($lfsr1>>12) ^ ($lfsr2>>12) )&0xFFF}]
+            return $myalias
+        }
+        method _peelnid {value} {
+            ## Peel the Node ID into bytes and initializing the 48 bit
+            # random number seed for alias generation.
+            
+            #puts stderr "*** $self _peelnid $value"
+            set nidlist [list]
+            foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $value] 1 end] {
+                lappend nidlist [scan $oct %02x]
+            }
+            #puts stderr "*** $self _peelnid: nidlist = $nidlist"
+            # load the PRNG from the Node ID
+            set lfsr1 [expr {([lindex $nidlist 0] << 16) | ([lindex $nidlist 1] << 8) | [lindex $nidlist 2]}]
+            set lfsr2 [expr {([lindex $nidlist 3] << 16) | ([lindex $nidlist 4] << 8) | [lindex $nidlist 5]}]
+            #puts stderr "*** $self _peelnid: lfsr1 = $lfsr1, lfsr2 = $lfsr2"
+        }
+        constructor {args} {
+            ## @publicsection Construct a CAN Alias.
+            #
+            # @param name The NodeID
+            # @param ... Options
+            # @arg -nid The Node ID that the computer will assume in the format
+            # of @c hh:hh:hh:hh:hh:hh which is a 48 bit number expressed as 6
+            # pairs of hexadecimal digits separacted by colons (:).
+            # @par
+            
+            set options(-nid)  [from args -nid]
+            lcc::nid validate $options(-nid)
+            $self _peelnid $options(-nid)
+            if {[lsearch $args -defalias] >= 0} {
+                set myalias [from args -defalias]
+            }
+        }
+        method getMyAlias {} {
+            ## Return the current alias value. 
+            # @return The 12 bit node id alias.
+            
+            return $myalias
+        }
+        method getMyNIDList {} {
+            ## Return the NID list
+            # @return The 6 byte list containing the NID.
+            
+            return $nidlist
+        }
+        typemethod validate {object} {
+            ## Validate the object as a CanAlias object.
+            #
+            # @param object A possible CanAlias object.
+            
+            if {[catch {$object info type} otype]} {
+                error [_ "%s is not a %s object." $object $type]
+            } elseif {$otype ne $type} {
+                error [_ "%s is not a %s object." $object $type]
+            } else {
+                return $object
+            }
+        }
+    }
     snit::type CanTransport {
         ## @brief Logical transport of CAN Messages.
         # CAN Bus abstraction layer
@@ -2248,6 +2342,20 @@ namespace eval lcc {
             append result {>}
             return $result
         }
+        typemethod validate {object} {
+            ## Validate an OpenLCBMessage.
+            #
+            # @param object A possible OpenLCBMessage object.
+            #
+            
+            if {[catch {$object info type} otype]} {
+                error [_ "%s is not an %s object: %s" $object $type]
+            } elseif {$otype ne $type} {
+                error [_ "%s is not an %s object: %s" $object $type]
+            } else {
+                return $object
+            }
+        }
     }
     
     snit::type CANGridConnectOverUSBSerial {
@@ -2295,66 +2403,25 @@ namespace eval lcc {
         ## Simple node info flags
         variable ttyfd
         ## The tty I/O channel.
-        variable nidlist
-        ## The Node ID as a list of 6 bytes.
-        variable myalias
-        ## My node alias.
-        variable aliasMap -array {}
-        ## Alias to NID map
-        variable nidMap -array {}
-        ## NID to alias map
+        component mycanalias
+        ## My CanAlias component.
+        delegate method * to mycanalias
         typevariable NIDPATTERN 
         ## The regexp for breaking up the Node ID into bytes.
         typeconstructor {
             set NIDPATTERN [::lcc::nid cget -regexp]
         }
+        variable aliasMap -array {}
+        ## @privatesection Alias to NID map
+        variable nidMap -array {}
+        ## NID to alias map
         variable _timeout 0
         ## Timeout flag.
         option -port -readonly yes -default "/dev/ttyACM0"
-        option -nid  -readonly yes -default "05:01:01:01:22:00" -type lcc::nid
+        delegate option -nid  to mycanalias
         option -promisciousmode -default no -type snit::boolean
-        method _peelnid {value} {
-            ## Peel the Node ID into bytes and initializing the 48 bit
-            # random number seed for alias generation.
-            
-            #puts stderr "*** $self _peelnid $value"
-            set nidlist [list]
-            foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $value] 1 end] {
-                lappend nidlist [scan $oct %02x]
-            }
-            #puts stderr "*** $self _peelnid: nidlist = $nidlist"
-            # load the PRNG from the Node ID
-            set lfsr1 [expr {([lindex $nidlist 0] << 16) | ([lindex $nidlist 1] << 8) | [lindex $nidlist 2]}]
-            set lfsr2 [expr {([lindex $nidlist 3] << 16) | ([lindex $nidlist 4] << 8) | [lindex $nidlist 5]}]
-            #puts stderr "*** $self _peelnid: lfsr1 = $lfsr1, lfsr2 = $lfsr2"
-        }
-        variable lfsr1 0
-        ## Sequence value, upper 24 bits.
-        variable lfsr2 0
-        ## Sequence value, lower 24 bits.
-        method _getAlias {} {
-            ## Compute next alias.
-            
-            #puts stderr "*** $self getAlias: lfsr1 = $lfsr1, lfsr2 = $lfsr2"
-            # First, form 2^9*val
-            set temp1 [expr {(($lfsr1<<9) | (($lfsr2>>15)&0x1FF)) & 0xFFFFFF}]
-            set temp2 [expr {($lfsr2<<9) & 0xFFFFFF}]
-            
-            # add
-            set lfsr2 [expr {$lfsr2 + $temp2 + 0x7A4BA9}]
-            set lfsr1 [expr {$lfsr1 + $temp1 + 0x1B0CA3}]
-            # carry
-            set lfsr1 [expr {($lfsr1 & 0xFFFFFF) | (($lfsr2&0xFF000000) >> 24)}]
-            set lfsr2 [expr {$lfsr2 & 0xFFFFFF}]
-            return [expr {($lfsr1 ^ $lfsr2 ^ ($lfsr1>>12) ^ ($lfsr2>>12) )&0xFFF}]
-        }
-        method getMyAlias {} {
-            ## @publicsection Return the current alias value.
-            # @return The 12 bit node id alias.
-            return $myalias
-        }
         constructor {args} {
-            ## @brief Constructor: create a connection to a Grid Connect USB serial device.
+            ## @publicsection @brief Constructor: create a connection to a Grid Connect USB serial device.
             # Connect to the CAN bus via a Grid Connect USB serial port
             # interface.
             #
@@ -2378,8 +2445,7 @@ namespace eval lcc {
             install canheader using CANHeader          %AUTO%
             #puts stderr "*** $type create $self $args
             set options(-port) [from args -port]
-            set options(-nid)  [from args -nid]
-            $self _peelnid $options(-nid)
+            install mycanalias using CanAlias %AUTO% -nid [from args -nid]
             if {[catch {open $options(-port) r+} ttyfd]} {
                 set theerror $ttyfd
                 catch {unset ttyfd}
@@ -2437,10 +2503,30 @@ namespace eval lcc {
             
             return [array names nidMap]
         }
+        method updateAliasMap {nid alias} {
+            ## Update the alias map with the specificed Node ID and Alias.
+            #
+            # @param nid An OpenLCB Node ID.
+            # @param alias A 12-bit CAN Alias.
+            #
+            
+            foreach a [array names nidMap] {
+                if {$nidMap($a) eq $nid} {
+                    unset nidMap($a)
+                }
+            }
+            foreach n [array names aliasMap] {
+                if {$aliasMap($n) == $alias} {
+                    unset aliasMap($n)
+                }
+            }
+            set nidMap($alias) $nid
+            set aliasMap($nid) $alias
+        }
         method populateAliasMap {} {
             ## Send an AME
             $canheader configure -openlcbframe no \
-                  -variablefield 0x0702 -srcid $myalias
+                  -variablefield 0x0702 -srcid [$self getMyAlias]
             set _timeoutFlag 0
             after 5000 [mymethod _timedout]
             $self _sendmessage [CanMessage %AUTO% \
@@ -2465,7 +2551,14 @@ namespace eval lcc {
             
             set message [eval [list lcc::OpenLCBMessage %AUTO% \
                                -sourcenid [$self cget -nid]] $args]
-            #puts stderr "*** $self sendMessage: message is [$message toString]"
+            $self sendOpenLCBMessage $message
+        }
+        method sendOpenLCBMessage {message} {
+            ## Send a message on the OpenLCB bus.
+            # @param message An OpenLCBMessage.
+            
+            lcc::OpenLCBMessage validate $message
+            #puts stderr "*** $self sendOpenLCBMessage: message is [$message toString]"
             if {([$message cget -mti] & 0x1000) != 0} {
                 ## Datagram
                 $self _sendDatagram $message
@@ -2479,7 +2572,7 @@ namespace eval lcc {
                     ## Event present
                     incr datalen 8
                 }
-                set mtiheader [lcc::MTIHeader %AUTO% -srcid $myalias -mti [expr {[$message cget -mti] & 0x0FFF}] -frametype 1]
+                set mtiheader [lcc::MTIHeader %AUTO% -srcid [$self getMyAlias] -mti [expr {[$message cget -mti] & 0x0FFF}] -frametype 1]
                 
                 if {$datalen <= 8} {
                     ## Frame will be complete in one frame
@@ -2561,7 +2654,7 @@ namespace eval lcc {
             set destalias [$self getAliasOfNID [$message cget -destnid]]
             set databuffer [$message cget -data]
             $mtidetail configure -streamordatagram yes -destid $destalias \
-                  -srcid $myalias
+                  -srcid [$self getMyAlias]
             set remain [llength $databuffer]
             set dindex 0
             if {$remain <= 8} {
@@ -2592,43 +2685,54 @@ namespace eval lcc {
                 $self _sendmessage $message
             }
         }
-        variable _timeoutFlag 0
-        ## Timeout or error message received flag.
         method _reserveMyAlias {} {
-            ## @brief Reserve an alias.
-            # Sends out CID messages and eventually RID and AMD messages, if
-            # there are no errors.
-            # 
+            ## Reserve my alias.
+            #
             # @return A boolean value indicating a successfully reserved alias
             # (true) or failure (false).
             
+            return [$self reserveAlias $mycanalias]
+        }
+        variable _timeoutFlag 0
+        ## Timeout or error message received flag.
+        method reserveAlias {canalias} {
+            ## @publicsection @brief Reserve an alias.
+            # Sends out CID messages and eventually RID and AMD messages, if
+            # there are no errors.
+            # 
+            # @param canalias A CanAlias object.
+            # @return A boolean value indicating a successfully reserved alias
+            # (true) or failure (false).
+            
+            lcc::CanAlias validate $canalias
+            set nidlist [$canalias getMyNIDList]
             # Generate a tentative alias.
-            set myalias [$self _getAlias]
-            #puts stderr "*** $self _reserveMyAlias: myalias = $myalias"
+            set alias [$canalias getNextAlias]
+            #puts stderr [format "*** $self reserveAlias: alias = 0x%03X" $alias]
             
             # Send out Check ID frames.
             # CID1
             $canheader configure -openlcbframe no \
                   -variablefield [expr {(0x7 << 12) | [getBits 47 36 $nidlist]}] \
-                  -srcid $myalias
+                  -srcid $alias
             $self _sendmessage [CanMessage %AUTO% \
                                 -header [$canheader getHeader] -extended yes]
             # CID2
             $canheader configure -openlcbframe no \
                   -variablefield [expr {(0x6 << 12) | [getBits 35 24 $nidlist]}] \
-                  -srcid $myalias
+                  -srcid $alias
             $self _sendmessage [CanMessage %AUTO% \
                                 -header [$canheader getHeader] -extended yes]
             # CID3
             $canheader configure -openlcbframe no \
                   -variablefield [expr {(0x5 << 12) | [getBits 23 12 $nidlist]}] \
-                  -srcid $myalias
+                  -srcid $alias
             $self _sendmessage [CanMessage %AUTO% \
                                 -header [$canheader getHeader] -extended yes]
             # CID4
             $canheader configure -openlcbframe no \
                   -variablefield [expr {(0x4 << 12) | [getBits 11 0 $nidlist]}] \
-                  -srcid $myalias
+                  -srcid $alias
             $self _sendmessage [CanMessage %AUTO% \
                                 -header [$canheader getHeader] -extended yes]
             set _timeoutFlag 0
@@ -2643,21 +2747,21 @@ namespace eval lcc {
             # No errors after 500ms timeout.  We can reserve our alias.
             # RID
             $canheader configure -openlcbframe no \
-                  -variablefield 0x0700 -srcid $myalias
+                  -variablefield 0x0700 -srcid $alias
             $self _sendmessage [CanMessage %AUTO% \
                                 -header [$canheader getHeader] -extended yes]
             # AMD
             $canheader configure -openlcbframe no \
-                  -variablefield 0x0701 -srcid $myalias
+                  -variablefield 0x0701 -srcid $alias
             $self _sendmessage [CanMessage %AUTO% \
                                 -header [$canheader getHeader] -extended yes \
                                 -data $nidlist -length 6]
-            set nidMap($myalias) [$self cget -nid]
-            set aliasMap([$self cget -nid]) $myalias
+            
+            $self updateAliasMap [$self cget -nid] [$self getMyAlias]
             return true
         }
         method _timedout {} {
-            ## Timeout method.  Called on timeout.
+            ## @privatesection Timeout method.  Called on timeout.
             
             #puts stderr "*** $self _timedout"
             incr _timeoutFlag
@@ -2741,7 +2845,7 @@ namespace eval lcc {
                             set doff 2
                             set destid [expr {(([lindex [$r getData] 0] & 0x0F) << 8) | [lindex [$r getData] 1]}]
                             set flagbits [expr {([lindex [$r getData] 0] & 0xF0) >> 4}]
-                            if {$destid != $myalias && ![$self cget -promisciousmode]} {
+                            if {$destid != [$self getMyAlias] && ![$self cget -promisciousmode]} {
                                 # The message is not addressed to me, discard it.
                                 return
                             }
@@ -2785,7 +2889,7 @@ namespace eval lcc {
                         }
                     } elseif {[$mtidetail cget -streamordatagram]} {
                         set destid [$mtidetail cget -destid]
-                        if {$destid != $myalias && ![$self cget -promisciousmode]} {
+                        if {$destid != [$self getMyAlias] && ![$self cget -promisciousmode]} {
                             # The message is not addressed to me, discard it.
                             return
                         }
@@ -2828,13 +2932,13 @@ namespace eval lcc {
                         set srcalias [$canheader cget -srcid]
                         set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
                         #puts stderr "[format {*** %s _messageReader: srcalias = 0x%03X, srcnid = %s} $self $srcalias $srcnid]"
-                        set nidMap($srcalias) $srcnid
-                        set aliasMap($srcnid) $srcalias
+                        $self updateAliasMap $srcnid $srcalias
                     } elseif {$vf == 0x0702} {
+                        set nidlist [$mycanalias getMyNIDList]
                         # AME frame
                         if {[listeq [lrange [$r getData] 0 5] {0 0 0 0 0 0}] || [listeq [lrange [$r getData] 0 5] $nidlist]} {
                             $canheader configure -openlcbframe no \
-                                  -variablefield 0x0701 -srcid $myalias
+                                  -variablefield 0x0701 -srcid [$self getMyAlias]
                             $self _sendmessage [CanMessage %AUTO% \
                                                 -header [$canheader getHeader] \
                                                 -extended yes \
