@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160322.1507>
+#  Last Modified : <160324.0953>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -2559,6 +2559,13 @@ namespace eval lcc {
             
             lcc::OpenLCBMessage validate $message
             #puts stderr "*** $self sendOpenLCBMessage: message is [$message toString]"
+            if {([$message cget -mti] & 0x0008) != 0} {
+                set destnid [$message cget -destnid]
+                set destalias [$self getAliasOfNID $destnid]
+                if {$destalias eq {}} {
+                    error [_ "Message cannot be routed to %s -- alias not available!" $destnid]
+                }
+            }
             if {([$message cget -mti] & 0x1000) != 0} {
                 ## Datagram
                 $self _sendDatagram $message
@@ -2572,8 +2579,15 @@ namespace eval lcc {
                     ## Event present
                     incr datalen 8
                 }
-                set mtiheader [lcc::MTIHeader %AUTO% -srcid [$self getMyAlias] -mti [expr {[$message cget -mti] & 0x0FFF}] -frametype 1]
-                
+                set sourcenid [$message cget -sourcenid]
+                set sourcealias [$self getAliasOfNID $sourcenid]
+                if {$sourcealias eq {}} {
+                    set tempcanalias [CanAlias %AUTO% -nid $sourcenid]
+                    while {![$self reserveAlias $tempcanalias]} {
+                    }
+                    set sourcealias [$tempcanalias getMyAlias]
+                }
+                set mtiheader [lcc::MTIHeader %AUTO% -srcid $sourcealias -mti [expr {[$message cget -mti] & 0x0FFF}] -frametype 1]
                 if {$datalen <= 8} {
                     ## Frame will be complete in one frame
                     set canmessage [lcc::CanMessage %AUTO% \
@@ -2653,8 +2667,16 @@ namespace eval lcc {
             
             set destalias [$self getAliasOfNID [$message cget -destnid]]
             set databuffer [$message cget -data]
+            set sourcenid [$message cget -sourcenid]
+            set sourcealias [$self getAliasOfNID $sourcenid]
+            if {$sourcealias eq {}} {
+                set tempcanalias [CanAlias %AUTO% -nid $sourcenid]
+                while {![$self reserveAlias $tempcanalias]} {
+                }
+                set sourcealias [$tempcanalias getMyAlias]
+            }
             $mtidetail configure -streamordatagram yes -destid $destalias \
-                  -srcid [$self getMyAlias]
+                  -srcid $sourcealias
             set remain [llength $databuffer]
             set dindex 0
             if {$remain <= 8} {
@@ -2757,7 +2779,7 @@ namespace eval lcc {
                                 -header [$canheader getHeader] -extended yes \
                                 -data $nidlist -length 6]
             
-            $self updateAliasMap [$self cget -nid] [$self getMyAlias]
+            $self updateAliasMap [$canalias cget -nid] $alias
             return true
         }
         method _timedout {} {
