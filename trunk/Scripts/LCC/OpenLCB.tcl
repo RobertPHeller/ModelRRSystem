@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160314.1003>
+#  Last Modified : <160609.0957>
 #
 #  Description	
 #
@@ -547,14 +547,21 @@ snit::type OpenLCB {
     typevariable CDIs_xml  -array {}
     #* CDI Forms (indexed by Node IDs).
     typevariable CDIs_FormTLs -array {}
+    proc hexdump {fp header data} {
+        puts -nonewline $fp $header
+        foreach byte $data {
+            puts -nonewline $fp [format " %02X" $byte]
+        }
+        puts $fp {}
+    }
     typemethod _ReadCDI {x y} {
         #* Read in a CDI for the node at x,y
         
-        #puts stderr "*** $type _ReadCDI $x $y"
+        puts stderr "*** $type _ReadCDI $x $y"
         set id [$nodetree identify row $x $y]
-        #puts stderr "*** $type _ReadCDI: id = $id"
+        puts stderr "*** $type _ReadCDI: id = $id"
         set nid [regsub {_protocols_CDI} $id {}]
-        #puts stderr "*** $type _ReadCDI: nid = $nid"
+        puts stderr "*** $type _ReadCDI: nid = $nid"
         if {![info exists CDIs_text($nid)] ||
             $CDIs_text($nid) eq ""} {
             $transport configure -datagramhandler [mytypemethod _datagramHandler]
@@ -579,6 +586,8 @@ snit::type OpenLCB {
                 set lowest [expr {$lowest | ([lindex $_datagramdata 10] << 8)}]
                 set lowest [expr {$lowest | [lindex $_datagramdata 11]}]
             }
+            puts stderr [format {*** %s _ReadCDI: lowest = %08X} $type $lowest]
+            puts stderr [format {*** %s _ReadCDI: highest = %08X} $type $highest]
             set start $lowest
             set end   [expr {$highest + 64}]
             set CDIs_text($nid) {}
@@ -598,6 +607,8 @@ snit::type OpenLCB {
                 vwait [mytypevar _iocomplete]
                 $transport configure -datagramhandler {}
                 unset _currentnid
+                puts stderr [format {*** %s _ReadCDI: address = %08X} $type $address]
+                hexdump stderr [format "*** %s _ReadCDI: datagram received: " $type] $_datagramdata
                 set status [lindex $_datagramdata 1]
                 if {$status == 0x53} {
                     set respaddress [expr {[lindex $_datagramdata 2] << 24}]
