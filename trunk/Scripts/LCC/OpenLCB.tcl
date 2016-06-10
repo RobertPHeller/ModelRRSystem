@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160609.0957>
+#  Last Modified : <160610.0645>
 #
 #  Description	
 #
@@ -591,7 +591,8 @@ snit::type OpenLCB {
             set start $lowest
             set end   [expr {$highest + 64}]
             set CDIs_text($nid) {}
-            for {set address $start} {$address < $end} {incr address $size} {
+            set EOS_Seen no
+            for {set address $start} {$address < $end && !$EOS_Seen} {incr address $size} {
                 set size [expr {$end - $address}]
                 if {$size > 64} {set size 64}
                 set data [list 0x20 0x43 \
@@ -619,7 +620,10 @@ snit::type OpenLCB {
                         set bytes [lrange $_datagramdata 6 end]
                         set count 0
                         foreach b $bytes {
-                            if {$b == 0} {break}
+                            if {$b == 0} {
+                                set EOS_Seen yes
+                                break
+                            }
                             append CDIs_text($nid) [format {%c} $b]
                             incr count
                             if {$count >= $size} {break}
