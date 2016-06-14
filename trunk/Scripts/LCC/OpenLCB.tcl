@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160610.0645>
+#  Last Modified : <160614.0925>
 #
 #  Description	
 #
@@ -236,6 +236,9 @@ snit::type OpenLCB {
         # Bind scrollbars.
         $mainWindow scrollwindow setwidget $nodetree
         # Needed to get dialog boxes to behave.
+        if {$::tcl_platform(platform) eq "windows"} {
+            $mainWindow showit;# Dumb M$-Windows
+        }
         update idle
         # Lazy eval for send event.
         set sendevent {}
