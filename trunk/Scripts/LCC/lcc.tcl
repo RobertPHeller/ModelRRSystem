@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160324.0953>
+#  Last Modified : <160623.1915>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -107,6 +107,9 @@ namespace eval lcc {
     snit::listtype bytelist72 -minlen 0 -maxlen 72 -type lcc::byte
     ## @typedef list bytelist72
     # A list of bytes, from 0 to 72 elements.
+    snit::listtype bytelist -type lcc::byte
+    ## @typedef list bytelist
+    # A list of bytes, unbounded.
     snit::enum datagramcontent -values {
         ## @enum datagramcontent
         # Datagram and stream types.
@@ -2287,16 +2290,17 @@ namespace eval lcc {
         option -sourcenid -type lcc::nid
         option -destnid -type lcc::nid_or_null
         option -eventid -type lcc::EventID_or_null
-        option -data -type lcc::bytelist72 -configuremethod _configuredata \
+        option -data -type lcc::bytelist -configuremethod _configuredata \
               -cgetmethod _cgetdata
         method _configuredata {option value} {
             ## @privatesection Configure method for data.
             #
             # @param option Always @c -data.
-            # @param value A list of bytes, upto 72 elements.
+            # @param value A list of bytes.
             
             set _nDataChars [llength $value]
             set _dataChars $value
+            puts stderr "*** $self _configuredata: _nDataChars is $_nDataChars"
         }
         method _cgetdata {option} {
             ## Cget method for data.
