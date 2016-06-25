@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160614.0925>
+#  Last Modified : <160625.1307>
 #
 #  Description	
 #
@@ -324,6 +324,10 @@ snit::type OpenLCB {
         #* Message handler -- handle incoming messages.
         #* Certain messages are processed:
         #*
+        #* Initialization Complete Messages -- Insert a node id entry in the 
+        #*                                     tree view.
+        #*                                     A SimpleNodeInfoRequest is also 
+        #*                                     sent to the new node.
         #* Verified Node ID -- Insert a node id entry in the tree view.
         #*                     A SimpleNodeInfoRequest is also sent to the
         #*                     new node.
@@ -338,9 +342,11 @@ snit::type OpenLCB {
         #* All other messages are not processed.
         
         switch [format {0x%04X} [$message cget -mti]] {
+            0x0100 -
+            0x0101 -
             0x0170 -
             0x0171 {
-                #* Verified Node ID
+                #* Verified Node ID & Initialization Complete messages.
                 set nid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] \
                          [$message cget -data]]
                 $nodetree insert {} end -id $nid -text $nid -open no

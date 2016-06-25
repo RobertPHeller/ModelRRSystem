@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160311.1504>
+#  Last Modified : <160625.1118>
 #
 #  Description	
 #
@@ -49,7 +49,7 @@ EXTRA_DIST = lcc.tcl lcctest.src ConfigurationEditor.tcl eventDialogs.tcl \
 		ConfigDialogs.tcl OpenLCB.tcl OpenLCB.desktop OpenLCB.png \
 		Doxyfile.in
 
-bin_SCRIPTS = OpenLCB${EXEEXT}
+bin_SCRIPTS = OpenLCB${EXEEXT} OpenLCBTcpHub${EXEEXT}
 
 pkgdatadir = $(datadir)/$(PACKAGE)/LCC
 pkgdata_DATA = lcc.tcl pkgIndex.tcl ConfigDialogs.tcl eventDialogs.tcl \
@@ -60,9 +60,10 @@ desktop_DATA = OpenLCB.desktop
 pixmapdir = $(datadir)/pixmaps
 pixmap_DATA = OpenLCB.png
 
-man_MANS = man1/OpenLCB.1
+man_MANS = man1/OpenLCB.1 man1/OpenLCBTcpHub.1
 
-CLEANFILES = pkgIndex.tcl OpenLCB${EXEEXT} OpenLCB.pot
+CLEANFILES = pkgIndex.tcl OpenLCB${EXEEXT} OpenLCB.pot \
+			  OpenLCBTcpHub${EXEEXT}
 
 pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		ConfigDialogs.tcl
@@ -138,12 +139,12 @@ OpenLCBSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
 		$(top_srcdir)/Scripts/Common/unknown.xpm
 		
 
-OpenLCB.pot: OpenLCB.tcl lcc.tcl \
+OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl \
                 ConfigDialogs.tcl eventDialogs.tcl ConfigurationEditor.tcl \
 		$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m \
-		-L Tcl $(addprefix $(subdir)/,OpenLCB.tcl lcc.tcl ConfigDialogs.tcl eventDialogs.tcl ConfigurationEditor.tcl) \
+		-L Tcl $(addprefix $(subdir)/,OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl ConfigDialogs.tcl eventDialogs.tcl ConfigurationEditor.tcl) \
 		Scripts/Common/snitStdMenuBar.tcl|\
 	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
 	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
@@ -212,6 +213,26 @@ OpenLCB.app: OpenLCB${EXEEXT}
 
 endif
 
+OpenLCBTcpHubSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
+			$(top_srcdir)/Scripts/LCC/lcc.tcl 
+			
+OpenLCBTcpHub${EXEEXT}: OpenLCBTcpHub.tcl $(OpenLCBTcpHubSCRIPTS) \
+	$(top_builddir)/po/OpenLCB/msgfiles
+	-rm -f  OpenLCBTcpHub.kit
+	-rm -rf  OpenLCBTcpHub.vfs
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCBTcpHub.tcl
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap OpenLCBTcpHub.kit
+	-rm -f  OpenLCBTcpHub.kit
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCBTcpHub \
+		lib $(SNITLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCBTcpHub \
+		lib/Common $(OpenLCBTcpHubSCRIPTS)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCBTcpHub \
+		Common
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCBTcpHub \
+		Messages $(top_builddir)/po/OpenLCB/*.msg
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCBTcpHub${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
+	-rm -rf OpenLCBTcpHub.vfs
 
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
@@ -229,12 +250,13 @@ $(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
 FORCE:
 
 
-man1/OpenLCB.1 : Doxyfile OpenLCB.tcl
+man1/OpenLCB.1 man1/OpenLCBTcpHub.1 : Doxyfile OpenLCB.tcl OpenLCBTcpHub.tcl
 	-rm -rf man1
-	$(DOXYGEN)
+	$(DOXYGEN) Doxyfile
+	
 
 clean-local:
-	-rm -rf man1
+	-rm -rf man1 man8
 if MACOSX
 	-rm -rf OpenLCB.app
 endif
