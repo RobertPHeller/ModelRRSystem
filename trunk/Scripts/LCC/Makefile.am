@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160625.1118>
+#  Last Modified : <160626.0941>
 #
 #  Description	
 #
@@ -214,7 +214,8 @@ OpenLCB.app: OpenLCB${EXEEXT}
 endif
 
 OpenLCBTcpHubSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
-			$(top_srcdir)/Scripts/LCC/lcc.tcl 
+			$(top_srcdir)/Scripts/LCC/lcc.tcl \
+			$(top_builddir)/Scripts/Common/Version.tcl
 			
 OpenLCBTcpHub${EXEEXT}: OpenLCBTcpHub.tcl $(OpenLCBTcpHubSCRIPTS) \
 	$(top_builddir)/po/OpenLCB/msgfiles
@@ -225,6 +226,8 @@ OpenLCBTcpHub${EXEEXT}: OpenLCBTcpHub.tcl $(OpenLCBTcpHubSCRIPTS) \
 	-rm -f  OpenLCBTcpHub.kit
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCBTcpHub \
 		lib $(SNITLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCBTcpHub \
+		lib $(TCLLOGLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCBTcpHub \
 		lib/Common $(OpenLCBTcpHubSCRIPTS)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCBTcpHub \

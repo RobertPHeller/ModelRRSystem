@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160625.1302>
+#  Last Modified : <160626.1026>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -2300,7 +2300,7 @@ namespace eval lcc {
             
             set _nDataChars [llength $value]
             set _dataChars $value
-            puts stderr "*** $self _configuredata: _nDataChars is $_nDataChars"
+            #puts stderr "*** $self _configuredata: _nDataChars is $_nDataChars"
         }
         method _cgetdata {option} {
             ## Cget method for data.
