@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160626.1026>
+#  Last Modified : <160626.2110>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -230,6 +230,22 @@ namespace eval lcc {
             } else {
                 return $object
             }
+        }
+        method match {other} {
+            lcc::EventID_or_null validate $other
+            if {$other eq {}} {
+                return false
+            } elseif {[listeq $_eventID [$other cget -eventidlist]]} {
+                return true
+            } else {
+                return false
+            }
+        }
+        proc listeq {l1 l2} {
+            foreach a $l1 b $l2 {
+                if {$a != $b} {return false}
+            }
+            return true
         }
     }
     
