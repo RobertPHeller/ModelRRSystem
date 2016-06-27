@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160626.1506>
+#  Last Modified : <160627.1336>
 #
 #  Description	
 #
@@ -240,7 +240,23 @@ OpenLCBTcpHub${EXEEXT}: OpenLCBTcpHub.tcl $(OpenLCBTcpHubSCRIPTS) \
 OpenLCB_MRD2SCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 			$(top_srcdir)/Scripts/LCC/lcc.tcl \
 			$(top_builddir)/Scripts/Common/Version.tcl \
-			$(top_srcdir)/Scripts/Common/ParseXML.tcl
+			$(top_srcdir)/Scripts/Common/ParseXML.tcl \
+			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+	                $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
+	                $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+	                $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+	                $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+			$(top_srcdir)/Scripts/Common/gettext.tcl \
+			$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+			$(top_srcdir)/Scripts/Common/mainwindow.tcl \
+			$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+			$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+			$(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
+	                $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+	                $(top_srcdir)/Scripts/Common/snitrotext.tcl \
+	                $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
+			$(top_srcdir)/Scripts/Common/questhead.xbm \
+			$(top_srcdir)/Scripts/Common/unknown.xpm
 
 AzatraxSupportFiles =  $(top_builddir)/C++/Azatrax/.libs/libazatrax$(SHLIB_SUFFIX) \
 		    $(top_builddir)/C++/Azatrax/pkgIndex.tcl
@@ -265,6 +281,8 @@ OpenLCB_MRD2${EXEEXT}: OpenLCB_MRD2.tcl $(OpenLCB_MRD2SCRIPTS) \
 		lib/Common $(OpenLCB_MRD2SCRIPTS)
 	$(UNZIP) -qq -d OpenLCB_MRD2.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
+	$(UNZIP) -qq -d OpenLCB_MRD2.vfs/lib \
+		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_MRD2 \
 		Common
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_MRD2 \
