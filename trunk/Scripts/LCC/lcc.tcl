@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160324.0953>
+#  Last Modified : <160626.2110>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -54,10 +54,10 @@
 package require snit
 
 package require gettext
-package require Tk
-package require tile
-package require Dialog
-package require LabelFrames
+#package require Tk
+#package require tile
+#package require Dialog
+#package require LabelFrames
 
 
 namespace eval lcc {
@@ -107,6 +107,9 @@ namespace eval lcc {
     snit::listtype bytelist72 -minlen 0 -maxlen 72 -type lcc::byte
     ## @typedef list bytelist72
     # A list of bytes, from 0 to 72 elements.
+    snit::listtype bytelist -type lcc::byte
+    ## @typedef list bytelist
+    # A list of bytes, unbounded.
     snit::enum datagramcontent -values {
         ## @enum datagramcontent
         # Datagram and stream types.
@@ -227,6 +230,22 @@ namespace eval lcc {
             } else {
                 return $object
             }
+        }
+        method match {other} {
+            lcc::EventID_or_null validate $other
+            if {$other eq {}} {
+                return false
+            } elseif {[listeq $_eventID [$other cget -eventidlist]]} {
+                return true
+            } else {
+                return false
+            }
+        }
+        proc listeq {l1 l2} {
+            foreach a $l1 b $l2 {
+                if {$a != $b} {return false}
+            }
+            return true
         }
     }
     
@@ -2287,16 +2306,17 @@ namespace eval lcc {
         option -sourcenid -type lcc::nid
         option -destnid -type lcc::nid_or_null
         option -eventid -type lcc::EventID_or_null
-        option -data -type lcc::bytelist72 -configuremethod _configuredata \
+        option -data -type lcc::bytelist -configuremethod _configuredata \
               -cgetmethod _cgetdata
         method _configuredata {option value} {
             ## @privatesection Configure method for data.
             #
             # @param option Always @c -data.
-            # @param value A list of bytes, upto 72 elements.
+            # @param value A list of bytes.
             
             set _nDataChars [llength $value]
             set _dataChars $value
+            #puts stderr "*** $self _configuredata: _nDataChars is $_nDataChars"
         }
         method _cgetdata {option} {
             ## Cget method for data.
@@ -3071,6 +3091,11 @@ namespace eval lcc {
             #
             # @return The Dialog box object.
             
+            package require Tk
+            package require tile
+            package require Dialog
+            package require LabelFrames
+            
             if {[info exists portandnidDialog] && 
                 [winfo exists $portandnidDialog]} {
                 return $portandnidDialog
@@ -3249,7 +3274,7 @@ namespace eval lcc {
                                -sourcenid [$self cget -nid]] $args]
             #puts stderr "*** $self sendMessage: message is [$message toString]"
             set preamble 0x8000;# Common OpenLCB bit.
-            set messageData [_makeBinaryMessage $message]
+            set messageData [$self _makeBinaryMessage $message]
             set totallength [expr {[llength $messageData] + (48/8) + (48/8)}]
             set tlbytes [list \
                          [expr {($totallength & 0xFF0000) >> 16}] \
@@ -3257,7 +3282,7 @@ namespace eval lcc {
                          [expr {$totallength & 0xFF}]]
             set sourcenid [list]
             foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] [$self cget -nid]] 1 end] {
-                lappend sourcenid $oct
+                lappend sourcenid [scan $oct %02x]
             }
             set seqnum [expr {[clock milliseconds] & wide(0x0FFFFFFFFFFFF)}]
             set sqbytes [list \
@@ -3268,7 +3293,8 @@ namespace eval lcc {
                          [expr {($seqnum &         wide(0x0FF00)) >>  8}] \
                          [expr {($seqnum &           wide(0x0FF))      }]]
             set messageBlock [binary format {Sc3c6c6c*} $preamble $tlbytes $sourcenid $sqbytes $messageData]
-            puts $sock $messageBlock
+            puts -nonewline $sock $messageBlock
+            flush $sock
         }
         
         method _messageReader {} {
@@ -3313,8 +3339,9 @@ namespace eval lcc {
             }
         }
         method _unpackBinaryMessage {messagebuffer} {
+            puts stderr "*** $self _unpackBinaryMessage $messagebuffer"
             set MTI [expr {([lindex $messagebuffer 0] << 8) | [lindex $messagebuffer 1]}]
-            $mtidetail setMTI16Header $mti
+            $mtidetail setMTI16Header $MTI
             set sourcenid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange $messagebuffer 2 7]]
             set result [lcc::OpenLCBMessage %AUTO%  -sourcenid $sourcenid \
                         -mti $MTI]
@@ -3335,7 +3362,8 @@ namespace eval lcc {
             return $result
         }
 
-        proc _makeBinaryMessage {openlcbMessage} {
+        method _makeBinaryMessage {openlcbMessage} {
+            puts stderr "*** $self _makeBinaryMessage $openlcbMessage"
             set buffer    [list]
             set mti       [$openlcbMessage cget -mti]
             $mtidetail setMTI16Header $mti
@@ -3343,12 +3371,12 @@ namespace eval lcc {
             lappend buffer [expr {$mti & 0xFF}]
             set sourcenid [$openlcbMessage cget -sourcenid]
             foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $sourcenid] 1 end] {
-                lappend buffer $oct
+                lappend buffer [scan $oct %02x]
             }
             if {[$mtidetail cget -addressp]} {
                 set destnid [$openlcbMessage cget -destnid]
                 foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $destnid] 1 end] {
-                    lappend buffer $oct
+                    lappend buffer [scan $oct %02x]
                 }
             }
             if {[$mtidetail cget -eventp]} {
@@ -3361,6 +3389,116 @@ namespace eval lcc {
                 lappend buffer $oct
             }
             return $buffer
+        }
+        typecomponent portnidandhostDialog
+        ## Dialog to ask the user for a port, host, and Node ID.
+        typecomponent   portLSpin
+        ## LabelSpinBox containing possible network ports.
+        typecomponent   hostLEntry
+        ## LabelEntry containing the hostname.
+        typecomponent   nidLEntry
+        ## LabelEntry containing the Node ID. 
+        typemethod buildPortnidandhostDialog {} {
+            ## Function to construct the Dialog to ask the user for a port,
+            # host, and Node ID.
+            #
+            # @return The Dialog box object.
+            
+            package require Tk
+            package require tile
+            package require Dialog
+            package require LabelFrames
+            
+            if {[info exists portnidandhostDialog] &&
+                [winfo exists $portnidandhostDialog]} {
+                return $portnidandhostDialog
+            }
+            set portnidandhostDialog [Dialog .portnidandhostDialog%AUTO% \
+                                      -title [_ "Select port, host, and Node ID for %s" $type] \
+                                      -modal local \
+                                      -cancel 1 \
+                                      -default 0 \
+                                      -bitmap questhead \
+                                      -transient yes]
+            $portnidandhostDialog add open \
+                  -text [_m "Label|Open"] \
+                  -command [mytypemethod _OpenTransport]
+            $portnidandhostDialog add cancel \
+                  -text [_m "Label|Cancel"] \
+                  -command [mytypemethod _CancelOpenTransport]
+            set df [$portnidandhostDialog getframe]
+            set portLSpin [LabelSpinBox $df.portLSpin \
+                           -label [_m "Label|Port:"] \
+                           -range {1000 999999 1}]
+            $portLSpin set 12000
+            pack $portLSpin -fill x
+            set hostLEntry [LabelEntry $df.hostLEntry \
+                            -label [_m "Label|Host:"]]
+            $hostLEntry configure -text "localhost"
+            pack $hostLEntry -fill x
+            set nidLEntry [LabelEntry $df.nidLEntry \
+                           -label [_m "Label|Node ID:"]]
+            $nidLEntry configure -text "05:01:01:01:22:00"
+            pack $nidLEntry -fill x
+            return $portnidandhostDialog
+        }
+        typemethod _CancelOpenTransport {} {
+            ## @brief Function bound to the @c Cancel button.
+            # Closes the dialog box and returns the empty string.
+            #
+            # @return The empty string.
+            
+            $portnidandhostDialog withdraw
+            return [$portnidandhostDialog enddialog {}]
+        }
+        typemethod _OpenTransport {} {
+            ## @brief Function bound to the @c Open button.
+            # Closes the dialog box and returns the options needed to open the
+            # transport.
+            #
+            # @return An option argument list with the @c -nid and @c -port 
+            # options.
+            
+            set port [$portLSpin get]
+            set nid  [$nidLEntry get]
+            set host [$hostLEntry get]
+            lcc::nid validate $nid
+            $portnidandhostDialog withdraw
+            return [$portnidandhostDialog enddialog [list -port $port -nid $nid -host $host]]
+        }
+        typemethod requiredOpts {} {
+            ## @publicsection @brief Return the default option list.
+            # Returns the default options for the options dialog.
+            #
+            # @return The option value list.
+            
+            $type buildPortnidandhostDialog
+            return [list \
+                    -port [$portLSpin cget -text] \
+                    -nid [$nidLEntry cget -text] \
+                    -host [$hostLEntry cget -text]]
+        }
+        typemethod drawOptionsDialog {args} {
+            ## @publicsection @brief Pop up the Options Dialog box.
+            # Pops up the Options Dialog box and collects the options needed
+            # to open the OpenLCBOverTcp object.
+            #
+            # @param ... Options:
+            # @arg -parent Set the parent for this dialog box.
+            # @arg -port The default Tcp/Ip port number option.
+            # @arg -host The default Tcp/Ip hostname option.
+            # @arg -nid The default Node ID to use for the Node ID option.
+            # @par
+            # @return Either the null string or an options list.
+            
+            #puts stderr "*** $type drawOptionsDialog $args"
+            set dia [$type buildPortnidandhostDialog]
+            $dia configure -parent [from args -parent .]
+            $portLSpin configure -text [from args -port [$portLSpin cget -text]]
+            $nidLEntry configure -text [from args -nid [$nidLEntry cget -text]]
+            $hostLEntry configure -text [from args -host [$hostLEntry cget -text]]
+            #puts stderr "*** $type drawOptionsDialog: dia = $dia"
+            return [$dia draw]
         }
     }
     
@@ -3433,6 +3571,8 @@ namespace eval lcc {
             # _transportConstructors array
             set _transportConstructors([_ "Grid Connect CAN over USBSerial"]) \
                   lcc::CANGridConnectOverUSBSerial
+            set _transportConstructors([_ "OpenLCB over Tcp"]) \
+                  lcc::OpenLCBOverTcp
         }
         constructor {args} {
             ## @publicsection Constructor: construct a OpenLCBNode object.
@@ -3836,6 +3976,11 @@ namespace eval lcc {
             ## Build a dialog box to select the transport constructor.
             #
             # @return A transport constructor selection dialog box.
+            
+            package require Tk
+            package require tile
+            package require Dialog
+            package require LabelFrames
             
             if {[info exists selectTransportConstructorDialog] && 
                 [winfo exists $selectTransportConstructorDialog]} {

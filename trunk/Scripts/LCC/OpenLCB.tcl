@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160610.0645>
+#  Last Modified : <160625.2024>
 #
 #  Description	
 #
@@ -155,6 +155,17 @@ snit::type OpenLCB {
     }
     #* Protocol display strings.
     typevariable protocolstrings -array {}
+    proc hidpiP {w} {
+        set scwidth [winfo screenwidth $w]
+        set scmmwidth [winfo screenmmwidth $w]
+        set scinchwidth [expr {$scmmwidth / 25.4}]
+        set scdpiw [expr {$scwidth / $scinchwidth}]
+        set scheight [winfo screenheight $w]
+        set scmmheight [winfo screenmmheight $w]
+        set scinchheight [expr {$scmmheight / 25.4}]
+        set scdpih [expr {$scheight / $scinchheight}]
+        return [expr {($scdpiw > 100) || ($scdpih > 100)}]
+    }
     typeconstructor {
         #* Type constructor -- create all of the one time computed stuff.
         #* This includes processing the CLI, building the main window and 
@@ -235,7 +246,35 @@ snit::type OpenLCB {
                       -show tree]
         # Bind scrollbars.
         $mainWindow scrollwindow setwidget $nodetree
-        # Needed to get dialog boxes to behave.
+        
+        #ttk::style configure Treeview ?options?
+        #
+        #-background color
+        #Configures the background color of rows that contain data values
+        #-fieldbackground color
+        #Configures the background color of the unused portion of a treeview widget (any area not covered by rows of data).
+        #-font fontSpec
+        #Configures the font for the contents of the tree (not the heading)
+        #-foreground color
+        #Configures the foreground for the contents of the tree
+        #-indent pixels
+        #Adjusts the indentation amount of child elements below parent elements within the tree column.
+        #-padding [list pixels ...]
+        #Additional padding to include inside the border of the widget body, including the heading
+        #-rowheight pixels
+        #Adjusts the rowheight (spacing between rows) in the treeview, distance is in pixels.
+        
+        # Double row spacing for High DPI displays (M$ stupidity).
+        if {[hidpiP $nodetree]} {
+            set f [ttk::style lookup Treeview -font]
+            set ls [font metrics $f -displayof $nodetree -linespace]
+            ttk::style configure Treeview -rowheight [expr {$ls * 2}]
+        }
+        
+        # Needed to get dialog boxes to behave (M$ stupidity).
+        if {$::tcl_platform(platform) eq "windows"} {
+            $mainWindow showit;# Dumb M$-Windows
+        }
         update idle
         # Lazy eval for send event.
         set sendevent {}
@@ -321,6 +360,10 @@ snit::type OpenLCB {
         #* Message handler -- handle incoming messages.
         #* Certain messages are processed:
         #*
+        #* Initialization Complete Messages -- Insert a node id entry in the 
+        #*                                     tree view.
+        #*                                     A SimpleNodeInfoRequest is also 
+        #*                                     sent to the new node.
         #* Verified Node ID -- Insert a node id entry in the tree view.
         #*                     A SimpleNodeInfoRequest is also sent to the
         #*                     new node.
@@ -335,9 +378,11 @@ snit::type OpenLCB {
         #* All other messages are not processed.
         
         switch [format {0x%04X} [$message cget -mti]] {
+            0x0100 -
+            0x0101 -
             0x0170 -
             0x0171 {
-                #* Verified Node ID
+                #* Verified Node ID & Initialization Complete messages.
                 set nid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] \
                          [$message cget -data]]
                 $nodetree insert {} end -id $nid -text $nid -open no
