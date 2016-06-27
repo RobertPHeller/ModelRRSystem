@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160625.2024>
+#  Last Modified : <160627.1146>
 #
 #  Description	
 #
@@ -153,8 +153,6 @@ snit::type OpenLCB {
         puts stdout [_ "-help: Print this help message and exit."]
         puts stdout [_ "Additional options for the transport constructor can also be specified."]
     }
-    #* Protocol display strings.
-    typevariable protocolstrings -array {}
     proc hidpiP {w} {
         set scwidth [winfo screenwidth $w]
         set scmmwidth [winfo screenmmwidth $w]
@@ -170,26 +168,6 @@ snit::type OpenLCB {
         #* Type constructor -- create all of the one time computed stuff.
         #* This includes processing the CLI, building the main window and 
         #* opening a connection to the OpenLCB bus(s).
-        
-        #* Set up protocol strings.        
-        set protocolstrings(Simple) [_m "Label|Simple"]
-        set protocolstrings(Datagram) [_m "Label|Datagram"]
-        set protocolstrings(Stream) [_m "Label|Stream"]
-        set protocolstrings(MemoryConfig) [_m "Label|Memory Configuration"]
-        set protocolstrings(Reservation) [_m "Label|Reservation"]
-        set protocolstrings(EventExchange) [_m "Label|Event Exchange"]
-        set protocolstrings(Itentification) [_m "Label|Identification"]
-        set protocolstrings(TeachLearn) [_m "Label|Teach / Learn"]
-        set protocolstrings(RemoteButton) [_m "Label|Remote Button"]
-        set protocolstrings(AbbreviatedDefaultCDI) [_m "Label|Abbreviated Default CDI"]
-        set protocolstrings(Display) [_m "Label|Display"]
-        set protocolstrings(SimpleNodeInfo) [_m "Label|Simple Node Information"]
-        set protocolstrings(CDI) [_m "Label|CDI"]
-        set protocolstrings(Traction) [_m "Label|Traction"]
-        set protocolstrings(FDI) [_m "Label|FDI"]
-        set protocolstrings(DCC) [_m "Label|DCC"]
-        set protocolstrings(SimpleTrainNode) [_m "Label|Simple Train Node"]
-        set protocolstrings(FunctionConfiguration) [_m "Label|Function Configuration"]
         
         # Process the command line options.
         # Does the user want a list of available transport constructors?
@@ -321,8 +299,11 @@ snit::type OpenLCB {
         set transport [eval [list lcc::OpenLCBNode %AUTO% \
                              -transport $transportConstructor\
                              -eventhandler [mytypemethod _eventHandler] \
-                             -generalmessagehandler [mytypemethod _messageHandler]] \
-                             $transportOpts]
+                             -generalmessagehandler [mytypemethod _messageHandler] \
+                             -softwaremodel "OpenLCB GUI" \
+                             -softwareversion "1.0" \
+                             -additionalprotocols {Datagram EventExchange} \
+                             ] $transportOpts]
         #puts stderr "*** $type typeconstructor: transport = $transport"
         # Get our Node ID.
         set mynid [$transport cget -nid]
@@ -472,65 +453,9 @@ snit::type OpenLCB {
     }
     typemethod _insertSupportedProtocols {nid report} {
         #* Insert Supported Protocols if node into tree view.
-
+        
+        set protocols [lcc::OpenLCBProtocols GetProtocolNames $report]
         #puts stderr "*** $type _insertSupportedProtocols $nid $report"
-        set protocols [list]
-        if {([lindex $report 0] & 0x80) != 0} {
-            lappend protocols Simple
-        }
-        if {([lindex $report 0] & 0x40) != 0} {
-            lappend protocols Datagram
-        }
-        if {([lindex $report 0] & 0x20) != 0} {
-            lappend protocols Stream
-        }
-        if {([lindex $report 0] & 0x10) != 0} {
-            lappend protocols MemoryConfig
-        }
-        if {([lindex $report 0] & 0x08) != 0} {
-            lappend protocols Reservation
-        }
-        if {([lindex $report 0] & 0x04) != 0} {
-            lappend protocols EventExchange
-        }
-        if {([lindex $report 0] & 0x02) != 0} {
-            lappend protocols Itentification
-        }
-        if {([lindex $report 0] & 0x01) != 0} {
-            lappend protocols TeachLearn
-        }
-        
-        if {([lindex $report 1] & 0x80) != 0} {
-            lappend protocols RemoteButton
-        }
-        if {([lindex $report 1] & 0x40) != 0} {
-            lappend protocols AbbreviatedDefaultCDI
-        }
-        if {([lindex $report 1] & 0x20) != 0} {
-            lappend protocols Display
-        }
-        if {([lindex $report 1] & 0x10) != 0} {
-            lappend protocols SimpleNodeInfo
-        }
-        if {([lindex $report 1] & 0x08) != 0} {
-            lappend protocols CDI
-        }
-        if {([lindex $report 1] & 0x04) != 0} {
-            lappend protocols Traction
-        }
-        if {([lindex $report 1] & 0x02) != 0} {
-            lappend protocols FDI
-        }
-        if {([lindex $report 1] & 0x01) != 0} {
-            lappend protocols DCC
-        }
-        
-        if {([lindex $report 2] & 0x80) != 0} {
-            lappend protocols SimpleTrainNode
-        }
-        if {([lindex $report 2] & 0x40) != 0} {
-            lappend protocols FunctionConfiguration
-        }
         
         #puts stderr "*** $type _insertSupportedProtocols: protocols are $protocols"
         if {[llength $protocols] > 0} {
@@ -541,7 +466,7 @@ snit::type OpenLCB {
                 #puts stderr [list *** $type _insertSupportedProtocols: p = $p]
                 $nodetree insert ${nid}_protocols end \
                       -id ${nid}_protocols_$p \
-                      -text $protocolstrings($p) \
+                      -text [lcc::OpenLCBProtocols ProtocolLabelString $p] \
                       -open no \
                       -tag protocol_$p
             }

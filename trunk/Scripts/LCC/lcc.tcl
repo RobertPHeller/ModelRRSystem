@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160626.2110>
+#  Last Modified : <160627.1433>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -54,6 +54,8 @@
 package require snit
 
 package require gettext
+package require Version
+#puts stderr "*** MRRSystem namespace: [info vars MRRSystem::*]"
 #package require Tk
 #package require tile
 #package require Dialog
@@ -3125,6 +3127,7 @@ namespace eval lcc {
                            -label [_m "Label|Node ID:"]]
             $nidLEntry configure -text "05:01:01:01:22:00"
             pack $nidLEntry -fill x
+            update idle
             return $portandnidDialog
         }
         typemethod _CancelOpenTransport {} {
@@ -3440,6 +3443,7 @@ namespace eval lcc {
                            -label [_m "Label|Node ID:"]]
             $nidLEntry configure -text "05:01:01:01:22:00"
             pack $nidLEntry -fill x
+            update idle
             return $portnidandhostDialog
         }
         typemethod _CancelOpenTransport {} {
@@ -3502,6 +3506,177 @@ namespace eval lcc {
         }
     }
     
+    snit::type OpenLCBProtocols {
+        ## Supported LCC Protocol name type
+        
+        pragma -hastypeinfo false -hastypedestroy false -hasinstances false
+        
+        typevariable protocolstrings -array {}
+        ## Protocol display strings.
+        typevariable bitstype
+        ## Protocol payload type.
+        typeconstructor {
+            ## Type constructor -- create all of the one time computed stuff.
+            # Set up protocol strings.        
+        
+            set protocolstrings(Simple) [_m "Label|Simple"]
+            set protocolstrings(Datagram) [_m "Label|Datagram"]
+            set protocolstrings(Stream) [_m "Label|Stream"]
+            set protocolstrings(MemoryConfig) [_m "Label|Memory Configuration"]
+            set protocolstrings(Reservation) [_m "Label|Reservation"]
+            set protocolstrings(EventExchange) [_m "Label|Event Exchange"]
+            set protocolstrings(Itentification) [_m "Label|Identification"]
+            set protocolstrings(TeachLearn) [_m "Label|Teach / Learn"]
+            set protocolstrings(RemoteButton) [_m "Label|Remote Button"]
+            set protocolstrings(AbbreviatedDefaultCDI) [_m "Label|Abbreviated Default CDI"]
+            set protocolstrings(Display) [_m "Label|Display"]
+            set protocolstrings(SimpleNodeInfo) [_m "Label|Simple Node Information"]
+            set protocolstrings(CDI) [_m "Label|CDI"]
+            set protocolstrings(Traction) [_m "Label|Traction"]
+            set protocolstrings(FDI) [_m "Label|FDI"]
+            set protocolstrings(DCC) [_m "Label|DCC"]
+            set protocolstrings(SimpleTrainNode) [_m "Label|Simple Train Node"]
+            set protocolstrings(FunctionConfiguration) [_m "Label|Function Configuration"]
+            set bitstype [snit::listtype %AUTO% -minlen 3 -maxlen 3 \
+                          -type lcc::byte]
+        }
+        typemethod validate {object} {
+            ## Validate a protocol name.
+            #
+            # @param object Protocol name to validate.
+            if {[lsearch -exact [array names protocolstrings] $object] < 0} {
+                error [_ "%s is not a valid protocol name!" $object]
+            } else {
+                return $object
+            }
+        }
+        typemethod InsertProtocolBit {bits protocol} {
+            ## Insert a protocol bit.
+            # 
+            # @param bits Protocol bit vector.
+            # @param protocol Protocol bit to insert.
+            # @return An updated protocol bit vector.
+            
+            $type validate $protocol
+            $bitstype validate $bits
+            switch $protocol {
+                Simple {return [lreplace $bits 0 0 \
+                                [expr {[lindex $bits 0] | 0x80}]]}
+                Datagram {return [lreplace $bits 0 0 \
+                                [expr {[lindex $bits 0] | 0x40}]]}
+                Stream {return [lreplace $bits 0 0 \
+                                [expr {[lindex $bits 0] | 0x20}]]}
+                MemoryConfig {return [lreplace $bits 0 0 \
+                                [expr {[lindex $bits 0] | 0x10}]]}
+                Reservation {return [lreplace $bits 0 0 \
+                                [expr {[lindex $bits 0] | 0x08}]]}
+                EventExchange {return [lreplace $bits 0 0 \
+                                [expr {[lindex $bits 0] | 0x04}]]}
+                Itentification {return [lreplace $bits 0 0 \
+                                [expr {[lindex $bits 0] | 0x02}]]}
+                TeachLearn {return [lreplace $bits 0 0 \
+                                [expr {[lindex $bits 0] | 0x01}]]}
+                RemoteButton {return [lreplace $bits 1 1 \
+                                [expr {[lindex $bits 1] | 0x80}]]}
+                AbbreviatedDefaultCDI {return [lreplace $bits 1 1 \
+                                [expr {[lindex $bits 1] | 0x40}]]}
+                Display {return [lreplace $bits 1 1 \
+                                [expr {[lindex $bits 1] | 0x20}]]}
+                SimpleNodeInfo {return [lreplace $bits 1 1 \
+                                [expr {[lindex $bits 1] | 0x10}]]}
+                CDI {return [lreplace $bits 1 1 \
+                                [expr {[lindex $bits 1] | 0x08}]]}
+                Traction {return [lreplace $bits 1 1 \
+                                [expr {[lindex $bits 1] | 0x04}]]}
+                FDI {return [lreplace $bits 1 1 \
+                                [expr {[lindex $bits 1] | 0x02}]]}
+                DCC {return [lreplace $bits 1 1 \
+                                [expr {[lindex $bits 1] | 0x01}]]}
+                SimpleTrainNode {return [lreplace $bits 2 2 \
+                                [expr {[lindex $bits 2] | 0x80}]]}
+                FunctionConfiguration {
+                    return [lreplace $bits 2 2 \
+                            [expr {[lindex $bits 2] | 0x40}]]
+                }
+            }
+        }
+        typemethod GetProtocolNames {report} {
+            ## Return a list of protocol names.
+            #
+            # @param report Protocol bit vector.
+            # @return A list of protocol names.
+            
+            $bitstype validate $report
+            set protocols [list]
+            if {([lindex $report 0] & 0x80) != 0} {
+                lappend protocols Simple
+            }
+            if {([lindex $report 0] & 0x40) != 0} {
+                lappend protocols Datagram
+            }
+            if {([lindex $report 0] & 0x20) != 0} {
+                lappend protocols Stream
+            }
+            if {([lindex $report 0] & 0x10) != 0} {
+                lappend protocols MemoryConfig
+            }
+            if {([lindex $report 0] & 0x08) != 0} {
+                lappend protocols Reservation
+            }
+            if {([lindex $report 0] & 0x04) != 0} {
+                lappend protocols EventExchange
+            }
+            if {([lindex $report 0] & 0x02) != 0} {
+                lappend protocols Itentification
+            }
+            if {([lindex $report 0] & 0x01) != 0} {
+                lappend protocols TeachLearn
+            }
+            
+            if {([lindex $report 1] & 0x80) != 0} {
+                lappend protocols RemoteButton
+            }
+            if {([lindex $report 1] & 0x40) != 0} {
+                lappend protocols AbbreviatedDefaultCDI
+            }
+            if {([lindex $report 1] & 0x20) != 0} {
+                lappend protocols Display
+            }
+            if {([lindex $report 1] & 0x10) != 0} {
+                lappend protocols SimpleNodeInfo
+            }
+            if {([lindex $report 1] & 0x08) != 0} {
+                lappend protocols CDI
+            }
+            if {([lindex $report 1] & 0x04) != 0} {
+                lappend protocols Traction
+            }
+            if {([lindex $report 1] & 0x02) != 0} {
+                lappend protocols FDI
+            }
+            if {([lindex $report 1] & 0x01) != 0} {
+                lappend protocols DCC
+            }
+            
+            if {([lindex $report 2] & 0x80) != 0} {
+                lappend protocols SimpleTrainNode
+            }
+            if {([lindex $report 2] & 0x40) != 0} {
+                lappend protocols FunctionConfiguration
+            }
+            return $protocols
+        }
+        typemethod ProtocolLabelString {protocolname} {
+            ## Return a protocol label string.
+            #
+            # @param protocolname The protocol name.
+            # @return A human readable protocol label string.
+            
+            $type validate $protocolname
+            return $protocolstrings($protocolname)
+        }
+    }
+    
     snit::type OpenLCBNode {
         ## @brief Connect to a OpenLCB interface.
         # This class implements the high level interface to the  OpenLCB 
@@ -3544,30 +3719,60 @@ namespace eval lcc {
         delegate option -nid to transport
         #variable _iocomplete 0
         #variable _timeout 0
-        typevariable protocolsupport [list 0xC5 0x10 0x00]
-        ## Simple Datagram EventExchange Teach/Learn SimpleNodeInfo
-        typevariable simplenodeinfo {}
-        ## Simple node info payload.
         option -transport -readonly yes
         option -eventhandler -default {}
         option -datagramhandler -default {}
         option -generalmessagehandler -default {}
         typevariable _transportConstructors -array {}
         ## Array of transport constructors
-        typeconstructor {
-            ## Initialize the simple node info request payload and 
-            # _transportConstructors array.
-            
-            # simplenodeinfo payload
+        variable protocolsupport [list 0x80 0x10 0x00]
+        ## Protocol support: Simple Protocol subset and SimpleNodeInfo by default.
+        method AddProtocolSupport {protocolname} {
+            lcc::OpenLCBProtocols validate $protocolname
+            set protocolsupport [lcc::OpenLCBProtocols InsertProtocolBit $protocolsupport $protocolname]
+        }
+        variable simplenodeinfo {}
+        ## Simple node info payload.
+        option -softwaremodel -default {} -type {snit::stringtype -maxlen 40} \
+              -configuremethod _generatesimplenodeinfo
+        option -softwareversion -default {} \
+              -type {snit::stringtype -maxlen 20} \
+              -configuremethod _generatesimplenodeinfo
+        option -manufactorname -default {Deepwoods Software} \
+              -type {snit::stringtype -maxlen 40} \
+              -configuremethod _generatesimplenodeinfo
+        option -manufactorversion -default {} \
+              -type {snit::stringtype -maxlen 20}  \
+              -configuremethod _generatesimplenodeinfo
+        option -nodename -default {} -type {snit::stringtype -maxlen 62}  \
+              -configuremethod _generatesimplenodeinfo
+        option -nodedescription -default {} \
+              -type {snit::stringtype -maxlen 63} \
+              -configuremethod _generatesimplenodeinfo
+        method _generatesimplenodeinfo {option value} {
+            set options($option) $value
             set simplenodeinfo [list 4]
-            foreach s {{Deepwoods Software} {Model Railroad System} {N/A} {2.1.37}} {
+            foreach s [list [$self cget -manufactorname] \
+                       [$self cget -softwaremodel] \
+                       [$self cget -manufactorversion] \
+                       [$self cget -softwareversion]] {
                 foreach ch [split $s {}] {
                     lappend simplenodeinfo [scan $ch {%c}]
                 }
                 lappend simplenodeinfo 0
             }
-            lappend simplenodeinfo 2 0 0
-
+            lappend simplenodeinfo 2
+            foreach s [list [$self cget -nodename] [$self cget -nodedescription]] {
+                foreach ch [split $s {}] {
+                    lappend simplenodeinfo [scan $ch {%c}]
+                }
+                lappend simplenodeinfo 0
+            }
+        }
+        typeconstructor {
+            ## Initialize the simple node info request payload and 
+            # _transportConstructors array.
+            
             # _transportConstructors array
             set _transportConstructors([_ "Grid Connect CAN over USBSerial"]) \
                   lcc::CANGridConnectOverUSBSerial
@@ -3620,6 +3825,16 @@ namespace eval lcc {
             set options(-datagramhandler) [from args -datagramhandler]
             set options(-generalmessagehandler) [from args \
                                                  -generalmessagehandler]
+            set options(-softwaremodel) [from args -softwaremodel]
+            set options(-softwareversion) [from args -softwareversion]
+            set options(-manufactorname) [from args -manufactorname]
+            set options(-manufactorversion) [from args -manufactorversion $::MRRSystem::VERSION]
+            set options(-nodename) [from args -nodename]
+            $self _generatesimplenodeinfo -nodedescription [from args -nodedescription]
+            set additionalProtocols [from args -additionalprotocols]
+            foreach p $additionalProtocols {
+                $self AddProtocolSupport $p
+            }
             set transport [eval [list $options(-transport) %AUTO%] $args]
             $self SendInitComplete 
             catch {$transport populateAliasMap}
@@ -3982,6 +4197,8 @@ namespace eval lcc {
             package require Dialog
             package require LabelFrames
             
+            #puts stderr "$type _buildSelectTransportConstructorDialog: \[info exists selectTransportConstructorDialog\] => [info exists selectTransportConstructorDialog]"
+            #catch {puts stderr "$type _buildSelectTransportConstructorDialog: \[winfo exists $selectTransportConstructorDialog\] => [winfo exists $selectTransportConstructorDialog]"}
             if {[info exists selectTransportConstructorDialog] && 
                 [winfo exists $selectTransportConstructorDialog]} {
                 return $selectTransportConstructorDialog
@@ -4007,6 +4224,7 @@ namespace eval lcc {
                                   -editable no]
             $constructorCombo set [lindex [$constructorCombo cget -values] 0]
             pack $constructorCombo -fill x
+            update idle
             return $selectTransportConstructorDialog
         }
         typemethod _CancelSelectTransport {} {
@@ -4038,9 +4256,9 @@ namespace eval lcc {
             # @par
             # @return Either the null string or the transport constructor.
             
-            #puts stderr "*** $type selectTransportConstructor $args"
+            puts stderr "*** $type selectTransportConstructor $args"
             set dia [$type _buildSelectTransportConstructorDialog]
-            #puts stderr "*** $type selectTransportConstructor: dia = $dia"
+            puts stderr "*** $type selectTransportConstructor: dia = $dia"
             $dia configure -parent [from args -parent .]
             return [$dia draw]
         }
