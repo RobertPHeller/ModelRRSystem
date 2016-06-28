@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <160627.1554>
+#  Last Modified : <160628.1104>
 #
 #  Description	
 #
@@ -40,7 +40,36 @@
 #
 #*****************************************************************************
 
-set argv0 [file join  [file dirname [info nameofexecutable]] OpenLCBTcpHub]
+## @defgroup OpenLCB_MRD2 OpenLCB_MRD2
+# @brief OpenLCB MRD2 psuedo node
+#
+# @section SYNOPSIS
+#
+# OpenLCB_MRD2 [-configure] [-debug] [-configuration confgile]
+#
+# @section DESCRIPTION
+#
+# This program is a daemon that implements a OpenLCB psuedo node for one or 
+# more Azatrax MRD2 devices.  
+#
+# @section PARAMETERS
+#
+# none
+#
+# @section OPTIONS
+#
+# @arg -configure Enter an interactive GUI configuration tool.  This tool
+# creates or edits an XML configuration file.
+# @arg -configuration confgile Sets the name of the configuration (XML) file. 
+# The default is mrd2conf.xml.
+# @arg -debug Turns on debug logging.
+# @par
+#
+# @section AUTHOR
+# Robert Heller \<heller\@deepsoft.com\>
+#
+
+set argv0 [file join  [file dirname [info nameofexecutable]] OpenLCB_MRD2]
 
 package require Azatrax;#  require the Azatrax package
 package require snit;#     require the SNIT OO framework
@@ -53,6 +82,31 @@ set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirn
 
 
 snit::type OpenLCB_MRD2 {
+    #** This class implements a OpenLCB interface to one or more 
+    # Azatrax MRD2 devices.
+    #
+    # Each instance manages one device.  The typemethods implement the overall
+    # OpenLCB node.
+    #
+    # Instance options:
+    # @arg -sense1on Event ID to send when Sense 1 is activated.
+    # @arg -sense1off Event ID to send when Sense 1 is deactivated.
+    # @arg -sense2on Event ID to send when Sense 2 is activated.
+    # @arg -sense2off Event ID to send when Sense 2 is deactivated.
+    # @arg -latch1on Event ID to send when Latch 1 is activated.
+    # @arg -latch1off Event ID to send when Latch 1 is deactivated.
+    # @arg -latch2on Event ID to send when Latch 2 is activated.
+    # @arg -latch2off Event ID to send when Latch 2 is deactivated.
+    # @arg -setchan1 Event ID to trigger channel 1.
+    # @arg -setchan2 Event ID to trigger channel 2.
+    # @arg -sensorserial Serial number of the device to connect to.
+    # @arg -description Description of the device.
+    # @par
+    #
+    # @section AUTHOR
+    # Robert Heller \<heller\@deepsoft.com\>
+    #
+    
     typecomponent transport; #        Transport layer
     typecomponent configuration;#     Parsed  XML configuration
     typevariable  devicelist {};#     Device list
@@ -60,13 +114,21 @@ snit::type OpenLCB_MRD2 {
     typevariable  eventsconsumed {};# Events consumed.
     typevariable  producers {};#      Devices that produce events
     typevariable  eventsproduced {};# Events produced.
+    typevariable  defaultpollinterval 500;# Default poll interval
+    typevariable  pollinterval 500;#  Poll interval
     
     typeconstructor {
+        #** @brief Global static initialization.
+        #
+        # Process command line.  Runs the GUI configuration tool or connects to
+        # the OpenLCB network and manages MRD2 devices, consuming or producing
+        # events.
+        
         global argv
         global argc
         global argv0
         
-        puts stderr "*** $type typeconstructor: argv = $argv"
+        #puts stderr "*** $type typeconstructor: argv = $argv"
         set configureator no
         set configureIdx [lsearch -exact $argv -configure]
         if {$configureIdx >= 0} {
@@ -80,7 +142,7 @@ snit::type OpenLCB_MRD2 {
             set argv [lreplace $argv $debugIdx $debugIdx]
         }
         set conffile [from argv -configuration "mrd2conf.xml"]
-        puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
+        #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
         if {$configureator} {
             $type ConfiguratorGUI $conffile
             return
@@ -97,23 +159,23 @@ snit::type OpenLCB_MRD2 {
             exit 98
         }
         set transcons [$configuration getElementsByTagName "transport"]
-        puts stderr "*** $type typeconstructor: transcons:"
+        #puts stderr "*** $type typeconstructor: transcons:"
         $transcons display stderr "    "
         set constructor [$transcons getElementsByTagName "constructor"]
         if {$constructor eq {}} {
             error [_ "Transport constructor missing!"]
             exit 97
         }
-        puts stderr "*** $type typeconstructor: constructor:"
+        #puts stderr "*** $type typeconstructor: constructor:"
         $constructor display stderr "    "
         set options [$transcons getElementsByTagName "options"]
         set transportOpts {}
         if {$options ne {}} {
-            puts stderr "*** $type typeconstructor:  options:"
+            #puts stderr "*** $type typeconstructor:  options:"
             $options display stderr "    "
             set transportOpts [$options data]
         } else {
-            puts stderr "*** $type typeconstructor: no options."
+            #puts stderr "*** $type typeconstructor: no options."
         }
         
         set transportConstructors [info commands ::lcc::[$constructor data]]
@@ -149,6 +211,12 @@ snit::type OpenLCB_MRD2 {
             error [_ "Could not open OpenLCBNode: %s" $transport]
             exit 95
         }
+        set pollele [$configuration getElementsByTagName "pollinterval"]
+        if {[llength $pollele] > 0} {
+            set pollele [lindex $pollele 0]
+            set pollinterval [$pollele data]
+        }
+        
         foreach device [$configuration getElementsByTagName "device"] {
             set devicecommand [list $type create %AUTO%]
             set consume no
@@ -195,16 +263,59 @@ snit::type OpenLCB_MRD2 {
             error [_ "No devices specified!"]
             exit 93
         }
-        after 500 [mytypemethod _poll]
+        set logfilename [format {%s.log} [file tail $argv0]]
+        close stdin
+        close stdout
+        close stderr
+        set null /dev/null
+        if {$::tcl_platform(platform) eq "windows"} {
+            set null nul
+        }
+        open $null r
+        open $null w
+        set logchan [open $logfilename w]
+        fconfigure $logchan  -buffering none
+        
+        ::log::lvChannelForall $logchan
+        ::log::lvSuppress info 0
+        ::log::lvSuppress notice 0
+        ::log::lvSuppress debug $debugnotvis
+        ::log::lvCmdForall [mytypemethod LogPuts]
+        
+        ::log::logMsg [_ "%s starting" $type]
+        
+        foreach ev $eventsconsumed {
+            $transport ConsumerIdentified $ev unknown
+        }
+        foreach ev $eventsproduced {
+            $transport ProducerIdentified $ev unknown
+        }
+        
+        after $pollinterval [mytypemethod _poll]
+    }
+    typemethod LogPuts {level message} {
+        #** Log output function.
+        #
+        # @param level Level of log message.
+        # @param message The message text.
+        
+        puts [::log::lv2channel $level] "[clock format [clock seconds] -format {%b %d %T}] \[[pid]\] $level $message"
     }
     typemethod _poll {} {
+        #** Polling function.  Polls all of the sensors.
+        
         foreach p $producers {
             $p Poll
         }
-        after 500 [mytypemethod _poll]
+        after $pollinterval [mytypemethod _poll]
     }
     typemethod _eventHandler {command eventid {validity {}}} {
-        #* Event handler -- when a PCER message is received
+        #* Event Exchange handler.  Handle Event Exchange messages.
+        #
+        # @param command The type of event operation.
+        # @param eventid The eventid.
+        # @param validity The validity of the event.
+        
         switch $command {
             consumerrangeidentified {
             }
@@ -217,10 +328,26 @@ snit::type OpenLCB_MRD2 {
             learnevents {
             }
             identifyconsumer {
+                foreach ev $eventsconsumed {
+                    if {[$eventid match $ev]} {
+                        $transport ConsumerIdentified $ev unknown
+                    }
+                }
             }
             identifyproducer {
+                foreach ev $eventsproduced {
+                    if {[$eventid match $ev]} {
+                        $transport ProducerIdentified $ev unknown
+                    }
+                }
             }
             identifyevents {
+                foreach ev $eventsconsumed {
+                    $transport ConsumerIdentified $ev unknown
+                }
+                foreach ev $eventsproduced {
+                    $transport ProducerIdentified $ev unknown
+                }
             }
             report {
                 foreach c $consumers {
@@ -233,6 +360,10 @@ snit::type OpenLCB_MRD2 {
         }
     }
     typemethod _messageHandler {message} {
+        #** General message handler.
+        #
+        # @param message The OpenLCB message
+        
         switch [format {0x%04X} [$message cget -mti]] {
             0x0490 -
             0x0498 {
@@ -252,6 +383,9 @@ snit::type OpenLCB_MRD2 {
         }
     }
     
+    
+    #*** Configuration GUI
+    
     typecomponent main;# Main Frame.
     typecomponent scroll;# Scrolled Window.
     typecomponent editframe;# Scrollable Frame
@@ -259,12 +393,14 @@ snit::type OpenLCB_MRD2 {
     typevariable    transopts {};# transport options
     typevariable    id_name {};# node name
     typevariable    id_description {};# node description
+    typevariable    pollinginterval 500;# polling interval.
     typecomponent   devices;# Device list
     typevariable    devicecount 0;# device count
     
     typevariable status {};# Status line
     typevariable conffilename {};# Configuration File Name
     
+    #** Menu.
     typevariable _menu {
         "[_m {Menu|&File}]" {file:menu} {file} 0 {
             {command "[_m {Menu|File|&Save and Exit}]" {file:saveexit} "[_ {Save and exit}]" {Ctrl s} -command "[mytypemethod _saveexit]"}
@@ -276,8 +412,15 @@ snit::type OpenLCB_MRD2 {
         }
     }
     
-    typevariable default_confXML {<xml version="1.0" encoding="ISO-8859-1"?><OpenLCB_MRD2/></xml>}
+    # Default (empty) XML Configuration.
+    typevariable default_confXML {<OpenLCB_MRD2/>}
     typemethod ConfiguratorGUI {conffile} {
+        #** Configuration GUI
+        # 
+        # Create the Configuration tool GUI.
+        #
+        # @param conffile Name of the configuration file.
+        
         package require Tk
         package require tile
         package require ParseXML
@@ -383,6 +526,18 @@ snit::type OpenLCB_MRD2 {
                 set id_description [$descrele data]
             }
         }
+        
+        set pollintervalLE [LabelSpinBox $frame.pollintervalLE \
+                            -label [_m "Label|Poll Interfal"] \
+                            -textvariable [mytypevar pollinginterval] \
+                            -range {100 5000 10}]
+        pack $pollintervalLE -fill x -expand yes
+        set pollele [$cdi getElementsByTagName "pollinterval"]
+        if {[llength $pollele] > 0} {
+            set pollele [lindex $pollele 0]
+            set pollinginterval [$pollele data]
+        }
+        
         set devices [ScrollTabNotebook $frame.devices]
         pack $devices -expand yes -fill both
         foreach device [$cdi getElementsByTagName "device"] {
@@ -394,6 +549,9 @@ snit::type OpenLCB_MRD2 {
         pack $adddevice -fill x
     }
     typemethod _saveexit {} {
+        #** Save and exit.  Bound to the Save & Exit file menu item.
+        # Saves the contents of the GUI as an XML file.
+        
         set cdis [$configuration getElementsByTagName OpenLCB_MRD2 -depth 1]
         set cdi [lindex $cdis 0]
         set transcons [$cdi getElementsByTagName "transport"]
@@ -410,7 +568,7 @@ snit::type OpenLCB_MRD2 {
         set coptions [$transcons getElementsByTagName "options"]
         if {[llength $coptions] < 1} {
             set coptions [SimpleDOMElement %AUTO% -tag "options"]
-            $transcons addchild $constructor
+            $transcons addchild $coptions
         }
         $coptions setdata $transopts
         
@@ -431,6 +589,13 @@ snit::type OpenLCB_MRD2 {
             $ident addchild $descrele
         }
         $descrele setdata $id_description
+        set pollele [$cdi getElementsByTagName "pollinterval"]
+        if {[llength $pollele] < 1} {
+            set pollele [SimpleDOMElement %AUTO% -tag "pollinterval"]
+            $cdi addchild $pollele
+        }
+        $pollele setdata $pollinginterval
+        
         foreach device [$cdi getElementsByTagName "device"] {
             $type _copy_from_gui_to_XML $device
         }
@@ -441,6 +606,10 @@ snit::type OpenLCB_MRD2 {
         ::exit
     }
     typemethod _copy_from_gui_to_XML {device} {
+        #** Copy from the GUI to the Device XML
+        # 
+        # @param device Device XML element.
+        
         set fr [$device attribute frame]
         set frbase $devices.$fr
         set serial [$device getElementsByTagName "serial"]
@@ -615,9 +784,14 @@ snit::type OpenLCB_MRD2 {
         
     }
     typemethod _exit {} {
+        #** Exit function.  Bound to the Exit file menu item.
+        # Does not save the configuration data!
+        
         ::exit
     }
     typemethod _seltransc {} {
+        #** Select a transport constructor.
+        
         set result [lcc::OpenLCBNode selectTransportConstructor]
         if {$result ne {}} {
             if {$result ne $transconstructorname} {set transopts {}}
@@ -625,6 +799,8 @@ snit::type OpenLCB_MRD2 {
         }
     }
     typemethod _seltransopt {} {
+        #** Select transport constructor options.
+        
         if {$transconstructorname ne ""} {
             set transportConstructors [info commands ::lcc::$transconstructorname]
             #puts stderr "*** $type typeconstructor: transportConstructors is $transportConstructors"
@@ -643,6 +819,10 @@ snit::type OpenLCB_MRD2 {
         }
     }
     typemethod _create_and_populate_device {device} {
+        #** Create a tab for a  device and populate it.
+        #
+        # @param device The device XML element.
+        
         incr devicecount
         set fr device$devicecount
         set f [$device attribute frame]
@@ -751,6 +931,8 @@ snit::type OpenLCB_MRD2 {
         pack $deldevice -fill x
     }
     typemethod _addblankdevice {} {
+        #** Create a new blank device.
+        
         set cdis [$configuration getElementsByTagName OpenLCB_MRD2 -depth 1]
         set cdi [lindex $cdis 0]
         set device [SimpleDOMElement %AUTO% -tag "device"]
@@ -758,6 +940,10 @@ snit::type OpenLCB_MRD2 {
         $type _create_and_populate_device $device
     }
     typemethod _deleteDevice {device} {
+        #** Delete a device
+        #
+        # @param device The device's XML element.
+        
         set fr [$device attribute frame]
         set cdis [$configuration getElementsByTagName OpenLCB_MRD2 -depth 1]
         set cdi [lindex $cdis 0]
@@ -784,6 +970,24 @@ snit::type OpenLCB_MRD2 {
     option    -sensorserial -readonly yes -default {}
     option    -description -readonly yes -default {}
     constructor {args} {
+        # Construct an instance for a MRD2 device.
+        #
+        # @param ... Options:
+        # @arg -sense1on Event ID to send when Sense 1 is activated.
+        # @arg -sense1off Event ID to send when Sense 1 is deactivated.
+        # @arg -sense2on Event ID to send when Sense 2 is activated.
+        # @arg -sense2off Event ID to send when Sense 2 is deactivated.
+        # @arg -latch1on Event ID to send when Latch 1 is activated.
+        # @arg -latch1off Event ID to send when Latch 1 is deactivated.
+        # @arg -latch2on Event ID to send when Latch 2 is activated.
+        # @arg -latch2off Event ID to send when Latch 2 is deactivated.
+        # @arg -setchan1 Event ID to trigger channel 1.
+        # @arg -setchan2 Event ID to trigger channel 2.
+        # @arg -sensorserial Serial number of the device to connect to.
+        # @arg -description Description of the device.
+        # @par
+        # 
+        
         set options(-sensorserial) [from args -sensorserial]
         if {$options(-sensorserial) eq {}} {
             error [_ "The -sensorserial option is required!"]
@@ -798,6 +1002,8 @@ snit::type OpenLCB_MRD2 {
         $self configurelist $args
     }
     method Poll {} {
+        #** Poll the device.
+        
         set events [list]
         $sensor GetStateData
         if {$old_s1 != [$sensor Sense_1]} {
@@ -838,6 +1044,10 @@ snit::type OpenLCB_MRD2 {
         }
     }
     method consumeEvent {event} {
+        #** Handle an incoming event.
+        #
+        # @param event The event to handle.
+        
         #puts stderr "*** $self consumeEvent $event"
         $sensor GetStateData
         #puts stderr "*** $self consumeEvent: HasRelays: [$sensor HasRelays]"
