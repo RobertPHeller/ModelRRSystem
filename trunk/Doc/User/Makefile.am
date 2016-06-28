@@ -278,7 +278,8 @@ $(USERMAN_HTML) $(USERMAN_PDF) : $(USERMAN_HS) $(USERMAN_FIGS) $(BIBLIO) \
 	../../C++/RailDriver/raildriverd.src \
 	../../Scripts/Satellite/SatelliteDaemon.src \
 	../../Scripts/LCC/OpenLCBTcpHub.tcl \
-	../../Scripts/LCC/OpenLCB_MRD2.tcl
+	../../Scripts/LCC/OpenLCB_MRD2.tcl \
+	../doxygen/tcldoxyfilter.sh
 	-rm -rf $(USERMANHBase)/
 	-rm -rf latex
 	$(DOXYGEN) Doxyfile.UserManual
@@ -485,6 +486,9 @@ uninstall-hook:
 	  rm -f "$(DESTDIR)$(pkgdatadir)/$(USERMANHBase)/$$f"; \
 	done
 
+
+../doxygen/tcldoxyfilter.sh: ../doxygen/tcldoxyfilter.sh.in
+	make -C ../doxygen tcldoxyfilter.sh
 
 clean-local:
 	-rm -rf $(AZATRAX_PROGHBase) $(UNIVERSALTESTHBase) \
