@@ -626,6 +626,8 @@ INPUT                  = @srcdir@/Preface.h \
                          @srcdir@/DispatcherExamples.h \
                          @top_srcdir@/Scripts/Satellite/SatelliteDaemon.src \
                          @top_srcdir@/C++/RailDriver/raildriverd.src \
+                         @top_srcdir@/Scripts/LCC/OpenLCBTcpHub.tcl \
+                         @top_srcdir@/Scripts/LCC/OpenLCB_MRD2.tcl \
                          @srcdir@/Help.h \
                          @builddir@/UserManual_Version.h @srcdir@/COPYING.h
 
