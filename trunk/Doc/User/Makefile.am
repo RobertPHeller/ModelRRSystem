@@ -220,6 +220,7 @@ MAINPROGRAM_HTML = $(MAINPROGRAMHBase)/index.html
 USERMAN_MAINPROGRAM_FIGS =
 DOXYFILES += Doxyfile.$(MAINPROGRAM).in
 
+
 USERMAN_HS = Preface.h Introduction.h \
 	$(USERMAN_UNIVERSALTEST_PART) $(USERMAN_OPENLCB_PART) \
 	$(USERMAN_XPRESSNETTHROTTLE_PART) $(USERMAN_GENERICTHROTTLE_PART) \
@@ -275,7 +276,10 @@ $(USERMAN)_Version.h : $(top_builddir)/config.status
 $(USERMAN_HTML) $(USERMAN_PDF) : $(USERMAN_HS) $(USERMAN_FIGS) $(BIBLIO) \
 	footer.tex $(USERMAN)_Version.h COPYING.h Doxyfile.$(USERMAN) \
 	../../C++/RailDriver/raildriverd.src \
-	../../Scripts/Satellite/SatelliteDaemon.src
+	../../Scripts/Satellite/SatelliteDaemon.src \
+	../../Scripts/LCC/OpenLCBTcpHub.tcl \
+	../../Scripts/LCC/OpenLCB_MRD2.tcl \
+	../doxygen/tcldoxyfilter.sh
 	-rm -rf $(USERMANHBase)/
 	-rm -rf latex
 	$(DOXYGEN) Doxyfile.UserManual
@@ -482,6 +486,9 @@ uninstall-hook:
 	  rm -f "$(DESTDIR)$(pkgdatadir)/$(USERMANHBase)/$$f"; \
 	done
 
+
+../doxygen/tcldoxyfilter.sh: ../doxygen/tcldoxyfilter.sh.in
+	make -C ../doxygen tcldoxyfilter.sh
 
 clean-local:
 	-rm -rf $(AZATRAX_PROGHBase) $(UNIVERSALTESTHBase) \

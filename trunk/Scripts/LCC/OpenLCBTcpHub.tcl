@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <160626.1044>
+#  Last Modified : <160628.1121>
 #
 #  Description	
 #
@@ -41,7 +41,7 @@
 #*****************************************************************************
 
 
-## @defgroup OpenLCBTcpHub OpenLCBTcpHub
+## @page OpenLCBTcpHub OpenLCB Tcp/Ip Hub Server
 # @brief OpenLCB Tcp Hub daemon.
 #
 # @section SYNOPSIS

@@ -230,7 +230,7 @@ OPTIMIZE_OUTPUT_VHDL   = NO
 # (default is Fortran), use: inc=Fortran f=C. Note that for custom extensions
 # you also need to set FILE_PATTERNS otherwise the files are not read by doxygen.
 
-EXTENSION_MAPPING      = "tcl=C++" "src="C++"
+EXTENSION_MAPPING      = "tcl=C++" "src=C++"
 
 # If you use STL classes (i.e. std::string, std::vector, etc.) but do not want
 # to include (a tag file for) the STL sources as input, then you should
@@ -626,6 +626,8 @@ INPUT                  = @srcdir@/Preface.h \
                          @srcdir@/DispatcherExamples.h \
                          @top_srcdir@/Scripts/Satellite/SatelliteDaemon.src \
                          @top_srcdir@/C++/RailDriver/raildriverd.src \
+                         @top_srcdir@/Scripts/LCC/OpenLCBTcpHub.tcl \
+                         @top_srcdir@/Scripts/LCC/OpenLCB_MRD2.tcl \
                          @srcdir@/Help.h \
                          @builddir@/UserManual_Version.h @srcdir@/COPYING.h
 

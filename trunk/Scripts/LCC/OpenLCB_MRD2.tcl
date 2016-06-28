@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <160628.1104>
+#  Last Modified : <160628.1121>
 #
 #  Description	
 #
@@ -40,7 +40,7 @@
 #
 #*****************************************************************************
 
-## @defgroup OpenLCB_MRD2 OpenLCB_MRD2
+## @page OpenLCB_MRD2 OpenLCB MRD2 Psuedo node
 # @brief OpenLCB MRD2 psuedo node
 #
 # @section SYNOPSIS
