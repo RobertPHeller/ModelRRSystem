@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Feb 27 15:54:05 2016
-#  Last Modified : <160302.1820>
+#  Last Modified : <160629.1156>
 #
 #  Description	
 #
@@ -345,11 +345,15 @@ static unsigned char right_bits[] = {
             set index end
         }
         if {$index < 0} {return}
+        set newselect [lsearch $pages $select]
+        $tabs delete p:[lindex $pages $index]
         set pages [lreplace $pages $index $index]
         $self _compute_width
         if {[lsearch $pages $select] < 0} {
             grid forget $select
             set select {}
+            #if {$newselect >= [llength $pages]} {incr newselect -1}
+            #if {[llength $pages] > 0} {$self select $newselect}
         }
         if {$index < $base} {
             incr base -1
@@ -416,7 +420,7 @@ static unsigned char right_bits[] = {
         # @return The numeric index of the tab specified by tabid.
         
         if {[string is integer -strict $tabid]} {
-            if {$tabid >= 0 || < [llength $pages]} {
+            if {$tabid >= 0 && $tabid < [llength $pages]} {
                 return $tabid
             } else {
                 error [_ "Out of range: %d" $tabid]
@@ -1049,6 +1053,7 @@ static unsigned char right_bits[] = {
                 $tabs itemconfigure $page:img -image $img
             }
             if {$compound eq "text"} {
+                $tabs coords $page:text $xtext $ytext
                 $tabs delete $page:img
             } elseif {$compound ne "image"} {
                 $tabs coords $page:text $xtext $ytext
