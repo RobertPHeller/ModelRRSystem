@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <160314.1004>
+#  Last Modified : <160629.1443>
 #
 #  Description	
 #
@@ -211,7 +211,7 @@ namespace eval lcc {
             
             #puts stderr "*** $self _processXMLnode $n $frame $space $address_var"
             upvar $address_var address
-            
+            #puts stderr "*** $self _processXMLnode: tag is [$n cget -tag] at address [format %04x $address]"
             switch [$n cget -tag] {
                 cdi {
                     set id [$n getElementsByTagName identification -depth 1]
@@ -339,7 +339,7 @@ namespace eval lcc {
                     } else {
                         set name {}
                     }
-                    #puts stderr "$self _processXMLnode (group branch): name is $name (length is [llength $name])\n"
+                    #puts stderr "$self _processXMLnode (group branch): name is $name (length is [llength $name]), address = [format %04x $address], offset is [format %04x $offset]\n"
                     if {[winfo class $frame] eq "TNotebook"} {
                         #set groupscrollframe [ScrolledWindow \
                         #                      $frame.group$_groupnumber \
