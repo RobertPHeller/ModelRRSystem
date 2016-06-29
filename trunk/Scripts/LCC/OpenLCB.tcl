@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160629.1354>
+#  Last Modified : <160629.1612>
 #
 #  Description	
 #
@@ -534,8 +534,10 @@ snit::type OpenLCB {
         puts stderr "*** $type _ReadCDI: id = $id"
         set nid [regsub {_protocols_CDI} $id {}]
         puts stderr "*** $type _ReadCDI: nid = $nid"
+        puts stderr "*** $type _ReadCDI: \[info exists CDIs_text($nid)\] => [info exists CDIs_text($nid)]"
         if {![info exists CDIs_text($nid)] ||
             $CDIs_text($nid) eq ""} {
+            puts stderr "*** $type _ReadCDI: Going to read CDI for $nid"
             $transport configure -datagramhandler [mytypemethod _datagramHandler]
             set data [list 0x20 0x84 0x0FF]
             set _iocomplete 0
@@ -617,27 +619,35 @@ snit::type OpenLCB {
                 
             }
             set CDIs_xml($nid) [ParseXML %AUTO% $CDIs_text($nid)]
+            puts stderr "*** $type _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"
             set CDIs_FormTLs($nid) \
                   [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
                    -cdi $CDIs_xml($nid) -nid $nid -transport $transport]
+            puts stderr "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
         } elseif {![info exists CDIs_xml($nid)] ||
             $CDIs_xml($nid) eq {}} {
+            
             set CDIs_xml($nid) [ParseXML %AUTO% \
                                           $CDIs_text($nid)]
+            puts stderr "*** $type _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"
             set CDIs_FormTLs($nid) \
                   [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
                    -cdi $CDIs_xml($nid) \
                    -nid $nid \
                    -transport $transport ]
+            puts stderr "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
         } elseif {![info exists CDIs_FormTLs($nid)] ||
                   $CDIs_FormTLs($nid) eq {} ||
                   ![winfo exists $CDIs_FormTLs($nid)]} {
+            puts stderr "*** $type _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"
             set CDIs_FormTLs($nid) \
                   [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
                    -cdi $CDIs_xml($nid) \
                    -nid $nid \
                    -transport $transport ]
+            puts stderr "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
         } else {
+            puts stderr "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
             wm deiconify $CDIs_FormTLs($nid)
         }
     }
