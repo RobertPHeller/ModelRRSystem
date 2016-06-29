@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160627.1146>
+#  Last Modified : <160629.1354>
 #
 #  Description	
 #
@@ -454,6 +454,8 @@ snit::type OpenLCB {
     typemethod _insertSupportedProtocols {nid report} {
         #* Insert Supported Protocols if node into tree view.
         
+        if {[llength $report] < 3} {lappend report 0 0 0}
+        if {[llength $report] > 3} {set report [lrange $report 0 2]}
         set protocols [lcc::OpenLCBProtocols GetProtocolNames $report]
         #puts stderr "*** $type _insertSupportedProtocols $nid $report"
         
