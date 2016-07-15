@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <160628.1121>
+#  Last Modified : <160715.1018>
 #
 #  Description	
 #
@@ -473,7 +473,8 @@ snit::type OpenLCB_MRD2 {
                         -textvariable [mytypevar transconstructorname]]
         pack $transcname -side left -fill x -expand yes
         set transcnamesel [ttk::button $cframe.transcnamesel \
-                           -text "Select" -command [mytypemethod _seltransc]]
+                           -text [_m "Label|Select"] \
+                           -command [mytypemethod _seltransc]]
         pack $transcnamesel -side right
         set transoptsframe [LabelFrame $transconsframe.transoptsframe \
                               -text [_m "Label|Constructor Opts"]]
@@ -484,7 +485,8 @@ snit::type OpenLCB_MRD2 {
                         -textvariable [mytypevar transopts]]
         pack $transoptsentry -side left -fill x -expand yes
         set tranoptssel [ttk::button $oframe.tranoptssel \
-                           -text "Select" -command [mytypemethod _seltransopt]]
+                         -text [_m "Label|Select"] \
+                         -command [mytypemethod _seltransopt]]
         pack $tranoptssel -side right
         
         set transcons [$cdi getElementsByTagName "transport"]
