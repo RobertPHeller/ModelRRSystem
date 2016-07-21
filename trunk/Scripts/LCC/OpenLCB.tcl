@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160629.1612>
+#  Last Modified : <160721.1452>
 #
 #  Description	
 #
@@ -402,10 +402,10 @@ snit::type OpenLCB {
     typemethod _insertSimpleNodeInfo {nid infopayload} {
         #* Insert the SimpleNodeInfo for nid into the tree view.
 
-        #puts stderr "*** $type _insertSimpleNodeInfo $nid $infopayload"
-        $nodetree insert $nid end -id ${nid}_simplenodeinfo \
+        puts stderr "*** $type _insertSimpleNodeInfo $nid $infopayload"
+        if {[catch {$nodetree insert $nid end -id ${nid}_simplenodeinfo \
               -text {Simple Node Info} \
-              -open no
+              -open no}]} {return}
         set strings1 [lindex $infopayload 0]
         if {$strings1 == 1} {set strings1 4}
         set i 1
@@ -418,7 +418,10 @@ snit::type OpenLCB {
         for {set istring 0} {$istring < $strings1} {incr istring} {
             set s ""
             while {[lindex $infopayload $i] != 0} {
-                append s [format %c [lindex $infopayload $i]]
+                set c [lindex $infopayload $i]
+                puts stderr "*** $type _insertSimpleNodeInfo: strings1: i = $i, c = '$c'"
+                if {$c eq ""} {break}
+                append s [format %c $c]
                 incr i
             }
             if {$s ne ""} {
@@ -429,6 +432,7 @@ snit::type OpenLCB {
             }
             incr i
         }
+        if {$i >= [llength $infopayload]} {return}
         set strings2 [lindex $infopayload $i]
         if {$strings2 == 1} {set strings2 2}
         # If version 1, then 2 strings (???), other wise version == number of strings
@@ -438,7 +442,10 @@ snit::type OpenLCB {
         for {set istring 0} {$istring < $strings2} {incr istring} {
             set s ""
             while {[lindex $infopayload $i] != 0} {
-                append s [format %c [lindex $infopayload $i]]
+                set c [lindex $infopayload $i]
+                puts stderr "*** $type _insertSimpleNodeInfo: strings2: i = $i, c = '$c'"
+                if {$c eq ""} {break}
+                append s [format %c $c]
                 incr i
             }
             if {$s ne ""} {
@@ -457,13 +464,13 @@ snit::type OpenLCB {
         if {[llength $report] < 3} {lappend report 0 0 0}
         if {[llength $report] > 3} {set report [lrange $report 0 2]}
         set protocols [lcc::OpenLCBProtocols GetProtocolNames $report]
-        #puts stderr "*** $type _insertSupportedProtocols $nid $report"
+        puts stderr "*** $type _insertSupportedProtocols $nid $report"
         
-        #puts stderr "*** $type _insertSupportedProtocols: protocols are $protocols"
+        puts stderr "*** $type _insertSupportedProtocols: protocols are $protocols"
         if {[llength $protocols] > 0} {
-            $nodetree insert $nid end -id ${nid}_protocols \
+            if {[catch {$nodetree insert $nid end -id ${nid}_protocols \
                  -text {Protocols Supported} \
-                 -open no
+                 -open no}]} {return}
             foreach p $protocols {
                 #puts stderr [list *** $type _insertSupportedProtocols: p = $p]
                 $nodetree insert ${nid}_protocols end \

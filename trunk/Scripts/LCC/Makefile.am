@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160627.1336>
+#  Last Modified : <160721.1200>
 #
 #  Description	
 #
@@ -47,9 +47,11 @@ TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
 EXTRA_DIST = lcc.tcl lcctest.src ConfigurationEditor.tcl eventDialogs.tcl \
 		ConfigDialogs.tcl OpenLCB.tcl OpenLCB.desktop OpenLCB.png \
-		Doxyfile.in
+		Doxyfile.in OpenLCBGCTcpHub.tcl OpenLCBTcpHub.tcl \
+		OpenLCB_MRD2.tcl
 
-bin_SCRIPTS = OpenLCB${EXEEXT} OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT}
+bin_SCRIPTS = OpenLCB${EXEEXT} OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
+	OpenLCBGCTcpHub${EXEEXT}
 
 pkgdatadir = $(datadir)/$(PACKAGE)/LCC
 pkgdata_DATA = lcc.tcl pkgIndex.tcl ConfigDialogs.tcl eventDialogs.tcl \
@@ -60,10 +62,12 @@ desktop_DATA = OpenLCB.desktop
 pixmapdir = $(datadir)/pixmaps
 pixmap_DATA = OpenLCB.png
 
-man_MANS = man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1
+man_MANS = man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
+	man1/OpenLCBGCTcpHub.1
 
 CLEANFILES = pkgIndex.tcl OpenLCB${EXEEXT} OpenLCB.pot \
-			  OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT}
+			  OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
+			  OpenLCBGCTcpHub${EXEEXT}
 
 pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		ConfigDialogs.tcl
@@ -237,6 +241,30 @@ OpenLCBTcpHub${EXEEXT}: OpenLCBTcpHub.tcl $(OpenLCBTcpHubSCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCBTcpHub${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf OpenLCBTcpHub.vfs
 
+OpenLCBGCTcpHubSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
+			$(top_srcdir)/Scripts/LCC/lcc.tcl \
+			$(top_builddir)/Scripts/Common/Version.tcl
+			
+OpenLCBGCTcpHub${EXEEXT}: OpenLCBGCTcpHub.tcl $(OpenLCBGCTcpHubSCRIPTS) \
+	$(top_builddir)/po/OpenLCB/msgfiles
+	-rm -f  OpenLCBGCTcpHub.kit
+	-rm -rf  OpenLCBGCTcpHub.vfs
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCBGCTcpHub.tcl
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap OpenLCBGCTcpHub.kit
+	-rm -f  OpenLCBGCTcpHub.kit
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCBGCTcpHub \
+		lib $(SNITLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCBGCTcpHub \
+		lib $(TCLLOGLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCBGCTcpHub \
+		lib/Common $(OpenLCBGCTcpHubSCRIPTS)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCBGCTcpHub \
+		Common
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCBGCTcpHub \
+		Messages $(top_builddir)/po/OpenLCB/*.msg
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCBGCTcpHub${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
+	-rm -rf OpenLCBGCTcpHub.vfs
+
 OpenLCB_MRD2SCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 			$(top_srcdir)/Scripts/LCC/lcc.tcl \
 			$(top_builddir)/Scripts/Common/Version.tcl \
@@ -308,8 +336,9 @@ $(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
 FORCE:
 
 
-man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1: Doxyfile OpenLCB.tcl \
-		OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl
+man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
+	man1/OpenLCBGCTcpHub.1: Doxyfile OpenLCB.tcl \
+		OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl OpenLCBGCTcpHub.tcl
 	-rm -rf man1
 	$(DOXYGEN) Doxyfile
 	
