@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <160721.1401>
+#  Last Modified : <160721.1457>
 #
 #  Description	
 #
@@ -469,6 +469,7 @@ snit::type OpenLCBGCTcpHub {
             $self destroy
         }
     }
+    
 }
 
 
