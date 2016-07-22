@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160715.1050>
+#  Last Modified : <160721.1448>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -289,6 +289,7 @@ namespace eval lcc {
             # @param n The index of the element to set.
             # @param v The value to store.
             
+            puts stderr "*** $self setElement $n $v"
             if {[catch {lcc::byte validate $v}]} {
                 if {[catch {snit::integer validate $v}]} {
                     set v [scan $v %c]
@@ -296,6 +297,7 @@ namespace eval lcc {
                     set v [expr {$v & 0x0FF}]
                 }
             }
+            puts stderr "*** $self setElement _dataChars is [llength $_dataChars] long, updating the element at index $n"
             lset _dataChars $n $v
         }
         variable _dataChars {}
@@ -425,6 +427,9 @@ namespace eval lcc {
             ## @Brief Set the number of data bytes.
             # @param n The number of data bytes.
             set _nDataChars $n
+            while {[llength $_dataChars] < $_nDataChars} {
+                lappend _dataChars 0
+            }
         }
         method toString {} {
             ## @Brief Return the data object as a string.
@@ -1197,8 +1202,8 @@ namespace eval lcc {
             } else {
                 set offset 6
             }
-            $self setElement [expr {$offset + ([$m getNumDataElements] * 2)}] ";"
             $self setNumDataElements [expr {$offset + 1 + ([$m getNumDataElements] * 2)}]
+            $self setElement [expr {$offset + ([$m getNumDataElements] * 2)}] ";"
         }
         method setHeader {header} {
             ## @brief Set the header.
@@ -2894,6 +2899,7 @@ namespace eval lcc {
                                 return
                             }
                         }
+                        set datacomplete no
                         if {$flagbits == 0x00} {
                             #puts stderr "*** $self _messageReader: doff = $doff"
                             set datacomplete [$self _flags0 $srcid $r $doff]
@@ -2908,6 +2914,12 @@ namespace eval lcc {
                             set datacomplete yes
                         }
                         if {$datacomplete} {
+                            if {[$self getNIDofAlias $srcid] eq "" && 
+                                [$mtiheader cget -mti] == 0x0100} {
+                                # InitComplete message.  Capture the NID.
+                                set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
+                                $self updateAliasMap $srcnid $srcid
+                            }
                             if {$messagehandler ne {}} {
                                 set m [lcc::OpenLCBMessage %AUTO% \
                                        -mti [$mtiheader cget -mti] \
@@ -3876,7 +3888,7 @@ namespace eval lcc {
             set nidlist [$canalias getMyNIDList]
             # Generate a tentative alias.
             set alias [$canalias getNextAlias]
-            #puts stderr [format "*** $self reserveAlias: alias = 0x%03X" $alias]
+            puts stderr [format "*** $self reserveAlias: alias = 0x%03X" $alias]
             
             # Send out Check ID frames.
             # CID1
@@ -3940,9 +3952,9 @@ namespace eval lcc {
             #
             # @param srcid The source alias of the message.
             
-            #puts stderr "*** $self _flags0 $srcid [$r toString] $doff"
+            puts stderr "*** $self _flags0 $srcid [$r toString] $doff"
             set mti [$mtiheader cget -mti]
-            #puts stderr [format {*** %s _flags0: mti = 0x%04X} $self $mti]
+            puts stderr [format {*** %s _flags0: mti = 0x%04X} $self $mti]
             if {[$mtiheader cget -mti] == 0x0A08} {
                 if {[info exists simplenodeflags($srcid,v1)]} {
                     eval [list lappend messagebuffers($srcid,$mti)] [lrange [$r getData] $doff end]
@@ -3956,7 +3968,7 @@ namespace eval lcc {
                         set simplenodeflags($srcid,v1) 4
                     }  
                 }
-                #puts stderr "*** $self _flags0: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
+                puts stderr "*** $self _flags0: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
                 set i 1
                 for {set j 0} \
                       {$j < $simplenodeflags($srcid,v1)} \
@@ -3966,8 +3978,8 @@ namespace eval lcc {
                     if {$k < 0} {return no}
                     set i [expr {$k + 1}]
                 }
-                #puts stderr "*** $self _flags0: length of messagebuffers($srcid,$mti) is [llength $messagebuffers($srcid,$mti)]"
-                #puts stderr "*** $self _flags0: i = $i"
+                puts stderr "*** $self _flags0: length of messagebuffers($srcid,$mti) is [llength $messagebuffers($srcid,$mti)]"
+                puts stderr "*** $self _flags0: i = $i"
                 if {$i >= [llength $$messagebuffers($srcid,$mti)]} {
                     return no
                 }
@@ -3992,17 +4004,17 @@ namespace eval lcc {
             # messages and then dispatched to the upper level message handler.
             
             if {[gets $socket message] >= 0} {
-                #puts stderr "*** $self _messageReader: message = $message"
+                puts stderr "*** $self _messageReader: message = $message"
                 $gcreply configure -message $message
                 set r [$gcreply createReply]
                 $canheader setHeader [$r getHeader]
-                #puts stderr "*** $self _messageReader: canheader : [$canheader configure]"
-                #puts stderr "*** $self _messageReader: r = [$r toString]"
+                puts stderr "*** $self _messageReader: canheader : [$canheader configure]"
+                puts stderr "*** $self _messageReader: r = [$r toString]"
                 if {[$canheader cget -openlcbframe]} {
                     $mtiheader setHeader [$canheader getHeader]
                     $mtidetail setHeader [$canheader getHeader]
-                    #puts stderr "*** $self _messageReader: mtiheader : [$mtiheader configure]"
-                    #puts stderr "*** $self _messageReader: mtidetail : [$mtidetail configure]"
+                    puts stderr "*** $self _messageReader: mtiheader : [$mtiheader configure]"
+                    puts stderr "*** $self _messageReader: mtidetail : [$mtidetail configure]"
                     set srcid [$canheader cget -srcid]
                     set flagbits 0
                     set destid 0
@@ -4018,11 +4030,12 @@ namespace eval lcc {
                                 return
                             }
                         }
+                        set datacomplete no
                         if {$flagbits == 0x00} {
-                            #puts stderr "*** $self _messageReader: doff = $doff"
+                            puts stderr "*** $self _messageReader: doff = $doff"
                             set datacomplete [$self _flags0 $srcid $r $doff]
-                            #puts stderr "*** $self _messageReader: $r getData is [$r getData]"
-                            #puts stderr "*** $self _messageReader: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
+                            puts stderr "*** $self _messageReader: $r getData is [$r getData]"
+                            puts stderr "*** $self _messageReader: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
                         } elseif {$flagbits == 0x01} {
                             set messagebuffers($srcid,$mti) [lrange [$r getData] 2 end]
                         } elseif {$flagbits == 0x03} {
@@ -4032,6 +4045,13 @@ namespace eval lcc {
                             set datacomplete yes
                         }
                         if {$datacomplete} {
+                            puts stderr "*** $self _messageReader: datacomplete: \[$self getNIDofAlias $srcid\] is '[$self getNIDofAlias $srcid]', \[$mtiheader cget -mti\] = [format 0x%04x [$mtiheader cget -mti]]"
+                            if {[$self getNIDofAlias $srcid] eq "" && 
+                                [$mtiheader cget -mti] == 0x0100} {
+                                # InitComplete message.  Capture the NID.
+                                set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
+                                $self updateAliasMap $srcnid $srcid
+                            }
                             if {$messagehandler ne {}} {
                                 set m [lcc::OpenLCBMessage %AUTO% \
                                        -mti [$mtiheader cget -mti] \
@@ -4093,13 +4113,13 @@ namespace eval lcc {
                     # Not a OpenLCB message.
                     # Check for an Error Information Report
                     set vf [$canheader cget -variablefield]
-                    #puts stderr "[format {*** %s _messageReader: vf = 0x%04X} $self $vf]"
+                    puts stderr "[format {*** %s _messageReader: vf = 0x%04X} $self $vf]"
                     if {$vf == 0x0701} {
                         # AMD frame
-                        #puts stderr "*** $self _messageReader: received AMD frame"
+                        puts stderr "*** $self _messageReader: received AMD frame"
                         set srcalias [$canheader cget -srcid]
                         set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
-                        #puts stderr "[format {*** %s _messageReader: srcalias = 0x%03X, srcnid = %s} $self $srcalias $srcnid]"
+                        puts stderr "[format {*** %s _messageReader: srcalias = 0x%03X, srcnid = %s} $self $srcalias $srcnid]"
                         $self updateAliasMap $srcnid $srcalias
                     } elseif {$vf == 0x0702} {
                         set nidlist [$mycanalias getMyNIDList]
@@ -4171,7 +4191,21 @@ namespace eval lcc {
             }
             return $count
         }
-        
+        proc listeq {l1 l2} {
+            ## @brief Compare two lists.
+            # Compares two lists for equality.
+            #
+            # @param a First list to compare.
+            # @param b Second list to compare.
+            # @return A boolean value: true if the lists are the same, false 
+            # if not.
+            
+            foreach a $l1 b $l2 {
+                if {$a != $b} {return false}
+            }
+            return true
+        }
+
         typecomponent portnidandhostDialog
         ## Dialog to ask the user for a port, host, and Node ID.
         typecomponent   portLSpin
