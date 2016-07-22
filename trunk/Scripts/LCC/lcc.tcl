@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160722.1515>
+#  Last Modified : <160722.1521>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -4050,7 +4050,7 @@ namespace eval lcc {
                             set datacomplete yes
                         }
                         if {$datacomplete} {
-                            puts stderr "*** $self _messageReader: datacomplete: messagebuffers([format 0x%03x,0x%03x $srcid $mti]) contains $messagebuffers($srcid,$mti)"
+                            #puts stderr "*** $self _messageReader: datacomplete: messagebuffers([format 0x%03x,0x%03x $srcid $mti]) contains $messagebuffers($srcid,$mti)"
                             if {[$self getNIDofAlias $srcid] eq "" && 
                                 ([$mtiheader cget -mti] == 0x0100 ||
                                  [$mtiheader cget -mti] == 0x0101 || 
