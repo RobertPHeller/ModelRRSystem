@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <160715.1018>
+#  Last Modified : <160722.1212>
 #
 #  Description	
 #
@@ -76,6 +76,7 @@ package require snit;#     require the SNIT OO framework
 package require LCC;#      require the OpenLCB code
 package require ParseXML;# require the XML parsing code (for the conf file)
 package require gettext;#  require the localized message handler
+package require log;#      require the logging package.
 
 set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirname \
 							[info script]]]] Messages]]
@@ -128,21 +129,42 @@ snit::type OpenLCB_MRD2 {
         global argc
         global argv0
         
-        #puts stderr "*** $type typeconstructor: argv = $argv"
-        set configureator no
-        set configureIdx [lsearch -exact $argv -configure]
-        if {$configureIdx >= 0} {
-            set configureator yes
-            set argv [lreplace $argv $configureIdx $configureIdx]
-        }
         set debugnotvis 1
         set debugIdx [lsearch -exact $argv -debug]
         if {$debugIdx >= 0} {
             set debugnotvis 0
             set argv [lreplace $argv $debugIdx $debugIdx]
         }
+        set logfilename [format {%s.log} [file tail $argv0]]
+        close stdin
+        close stdout
+        close stderr
+        set null /dev/null
+        if {$::tcl_platform(platform) eq "windows"} {
+            set null nul
+        }
+        open $null r
+        open $null w
+        set logchan [open $logfilename w]
+        fconfigure $logchan  -buffering none
+        
+        ::log::lvChannelForall $logchan
+        ::log::lvSuppress info 0
+        ::log::lvSuppress notice 0
+        ::log::lvSuppress debug $debugnotvis
+        ::log::lvCmdForall [mytypemethod LogPuts]
+        
+        ::log::logMsg [_ "%s starting" $type]
+        
+        ::log::log debug "*** $type typeconstructor: argv = $argv"
+        set configureator no
+        set configureIdx [lsearch -exact $argv -configure]
+        if {$configureIdx >= 0} {
+            set configureator yes
+            set argv [lreplace $argv $configureIdx $configureIdx]
+        }
         set conffile [from argv -configuration "mrd2conf.xml"]
-        #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
+        ::log::log debug "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
         if {$configureator} {
             $type ConfiguratorGUI $conffile
             return
@@ -159,23 +181,17 @@ snit::type OpenLCB_MRD2 {
             exit 98
         }
         set transcons [$configuration getElementsByTagName "transport"]
-        #puts stderr "*** $type typeconstructor: transcons:"
-        $transcons display stderr "    "
         set constructor [$transcons getElementsByTagName "constructor"]
         if {$constructor eq {}} {
             error [_ "Transport constructor missing!"]
             exit 97
         }
-        #puts stderr "*** $type typeconstructor: constructor:"
-        $constructor display stderr "    "
         set options [$transcons getElementsByTagName "options"]
         set transportOpts {}
         if {$options ne {}} {
-            #puts stderr "*** $type typeconstructor:  options:"
-            $options display stderr "    "
             set transportOpts [$options data]
         } else {
-            #puts stderr "*** $type typeconstructor: no options."
+            ::log::log debug "*** $type typeconstructor: no options."
         }
         
         set transportConstructors [info commands ::lcc::[$constructor data]]
@@ -251,7 +267,7 @@ snit::type OpenLCB_MRD2 {
                 lappend eventsconsumed $ev
             }
             if {!$consume && !$produce} {
-                puts stderr [_ "Useless device (S# %s) (neither consumes or produces events)" [$serial data]]
+                ::log::log warning [_ "Useless device (S# %s) (neither consumes or produces events)" [$serial data]]
                 continue
             }
             set dev [eval $devicecommand]
@@ -263,27 +279,6 @@ snit::type OpenLCB_MRD2 {
             error [_ "No devices specified!"]
             exit 93
         }
-        set logfilename [format {%s.log} [file tail $argv0]]
-        close stdin
-        close stdout
-        close stderr
-        set null /dev/null
-        if {$::tcl_platform(platform) eq "windows"} {
-            set null nul
-        }
-        open $null r
-        open $null w
-        set logchan [open $logfilename w]
-        fconfigure $logchan  -buffering none
-        
-        ::log::lvChannelForall $logchan
-        ::log::lvSuppress info 0
-        ::log::lvSuppress notice 0
-        ::log::lvSuppress debug $debugnotvis
-        ::log::lvCmdForall [mytypemethod LogPuts]
-        
-        ::log::logMsg [_ "%s starting" $type]
-        
         foreach ev $eventsconsumed {
             $transport ConsumerIdentified $ev unknown
         }
@@ -351,8 +346,8 @@ snit::type OpenLCB_MRD2 {
             }
             report {
                 foreach c $consumers {
-                    #puts stderr "*** $type _eventHandler: device is [$c cget -sensorserial]"
-                    #puts stderr "*** $type _eventHandler: event is [$eventid cget -eventidstring]"
+                    ::log::log debug "*** $type _eventHandler: device is [$c cget -sensorserial]"
+                    ::log::log debug "*** $type _eventHandler: event is [$eventid cget -eventidstring]"
                     $c consumeEvent $eventid
                     
                 }
@@ -805,7 +800,7 @@ snit::type OpenLCB_MRD2 {
         
         if {$transconstructorname ne ""} {
             set transportConstructors [info commands ::lcc::$transconstructorname]
-            #puts stderr "*** $type typeconstructor: transportConstructors is $transportConstructors"
+            ::log::log debug "*** $type typeconstructor: transportConstructors is $transportConstructors"
             if {[llength $transportConstructors] > 0} {
                 set transportConstructor [lindex $transportConstructors 0]
             }
@@ -1050,19 +1045,19 @@ snit::type OpenLCB_MRD2 {
         #
         # @param event The event to handle.
         
-        #puts stderr "*** $self consumeEvent $event"
+        ::log::log debug "*** $self consumeEvent $event"
         $sensor GetStateData
-        #puts stderr "*** $self consumeEvent: HasRelays: [$sensor HasRelays]"
+        ::log::log debug "*** $self consumeEvent: HasRelays: [$sensor HasRelays]"
         if {![$sensor HasRelays]} {return false}
-        #puts stderr "*** $self consumeEvent: setchan1 event is [$self cget -setchan1]"
+        ::log::log debug "*** $self consumeEvent: setchan1 event is [$self cget -setchan1]"
         if {[$event match [$self cget -setchan1]]} {
-            #puts stderr "*** $self consumeEvent: setchan1 event matches!"
+            ::log::log debug "*** $self consumeEvent: setchan1 event matches!"
             $sensor SetChan1
             return true
         }
-        #puts stderr "*** $self consumeEvent: setchan2 event is [$self cget -setchan2]"
+        ::log::log debug "*** $self consumeEvent: setchan2 event is [$self cget -setchan2]"
         if {[$event match [$self cget -setchan2]]} {
-            #puts stderr "*** $self consumeEvent: setchan2 event matches!"
+            ::log::log debug "*** $self consumeEvent: setchan2 event matches!"
             $sensor SetChan2
             return true
         }

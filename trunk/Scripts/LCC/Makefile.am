@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160721.1200>
+#  Last Modified : <160722.1152>
 #
 #  Description	
 #
@@ -145,10 +145,11 @@ OpenLCBSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
 
 OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
                 ConfigDialogs.tcl eventDialogs.tcl ConfigurationEditor.tcl \
+                OpenLCBGCTcpHub.tcl \
 		$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m \
-		-L Tcl $(addprefix $(subdir)/,OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl ConfigDialogs.tcl eventDialogs.tcl ConfigurationEditor.tcl) \
+		-L Tcl $(addprefix $(subdir)/,OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl ConfigDialogs.tcl eventDialogs.tcl ConfigurationEditor.tcl OpenLCBGCTcpHub.tcl) \
 		Scripts/Common/snitStdMenuBar.tcl|\
 	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
 	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
