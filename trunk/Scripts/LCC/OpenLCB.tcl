@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160721.1452>
+#  Last Modified : <160722.1443>
 #
 #  Description	
 #
@@ -363,11 +363,15 @@ snit::type OpenLCB {
             0x0101 -
             0x0170 -
             0x0171 {
+                # I'm fine, how are you?
+                $transport SendMyNodeVerifcation
                 #* Verified Node ID & Initialization Complete messages.
                 set nid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] \
                          [$message cget -data]]
-                $nodetree insert {} end -id $nid -text $nid -open no
-                $transport SendSimpleNodeInfoRequest $nid
+                if {![$nodetree exists $nid]} {
+                    $nodetree insert {} end -id $nid -text $nid -open no
+                    $transport SendSimpleNodeInfoRequest $nid
+                }
             }
             0x0490 -
             0x0498 {
@@ -403,9 +407,9 @@ snit::type OpenLCB {
         #* Insert the SimpleNodeInfo for nid into the tree view.
 
         puts stderr "*** $type _insertSimpleNodeInfo $nid $infopayload"
-        if {[catch {$nodetree insert $nid end -id ${nid}_simplenodeinfo \
+        $nodetree insert $nid end -id ${nid}_simplenodeinfo \
               -text {Simple Node Info} \
-              -open no}]} {return}
+              -open no
         set strings1 [lindex $infopayload 0]
         if {$strings1 == 1} {set strings1 4}
         set i 1
@@ -468,9 +472,9 @@ snit::type OpenLCB {
         
         puts stderr "*** $type _insertSupportedProtocols: protocols are $protocols"
         if {[llength $protocols] > 0} {
-            if {[catch {$nodetree insert $nid end -id ${nid}_protocols \
+            $nodetree insert $nid end -id ${nid}_protocols \
                  -text {Protocols Supported} \
-                 -open no}]} {return}
+                 -open no
             foreach p $protocols {
                 #puts stderr [list *** $type _insertSupportedProtocols: p = $p]
                 $nodetree insert ${nid}_protocols end \

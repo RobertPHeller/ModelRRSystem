@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <160721.1457>
+#  Last Modified : <160722.1215>
 #
 #  Description	
 #
@@ -171,7 +171,7 @@ snit::type OpenLCBGCTcpHub {
         # @arg -except Connection instance(s) not to send to.
         # @par
         
-        ::log::log debug "*** $type Broadcast $message $args"
+        ::log::log debug "*** $type Broadcast $message $args" 
         set except [from args -except {}]
         foreach n $_allNodes {
             if {[lsearch -exact $except $n] < 0} {
@@ -189,7 +189,7 @@ snit::type OpenLCBGCTcpHub {
         # @arg -except Connection instance(s) not to send to.
         # @par
 
-        ::log::log debug "*** $type SendTo $destination $message $args"
+        ::log::log debug "*** $type SendTo [format {0x%03x} $destination] $message $args"
         set except [from args -except {}]
         foreach n $_routeTable($destination) {
             if {[lsearch -exact $except $n] < 0} {
@@ -205,6 +205,7 @@ snit::type OpenLCBGCTcpHub {
         # @param routeobj The connection instance to route messages to for the
         # specificed destination.
         
+        ::log::log debug [format "*** %s UpdateRoute 0x%03x %s" $type $destination $routeobj]
         if {[catch {set _routeTable($destination)} routes]} {
             lappend _routeTable($destination) $routeobj
         } elseif {[lsearch -exact $routes $routeobj] < 0} {
@@ -212,7 +213,7 @@ snit::type OpenLCBGCTcpHub {
         }
         ::log::log debug "*** $type UpdateRoute: _routeTable contains:"
         foreach dest [array names _routeTable] {
-            ::log::log debug "*** $type UpdateRoute:   $dest => $_routeTable($dest)"
+            ::log::log debug [format "*** %s UpdateRoute:   0x%03x => %s" $type $dest  $_routeTable($dest)]
         }
         
     }
@@ -431,18 +432,18 @@ snit::type OpenLCBGCTcpHub {
     method _messageReader {} {
         #** Message reader handler.
         if {[gets $channel message] >= 0} {
-            #puts stderr "*** $self _messageReader: message = $message"
+            ::log::log debug "*** $self _messageReader: message = $message"
             $gcreply configure -message $message
             set r [$gcreply createReply]
             $canheader setHeader [$r getHeader]
             $type UpdateRoute [$canheader cget -srcid] $self
-            #puts stderr "*** $self _messageReader: canheader : [$canheader configure]"
-            #puts stderr "*** $self _messageReader: r = [$r toString]"
+            ::log::log debug "*** $self _messageReader: canheader : [$canheader configure]"
+            ::log::log debug "*** $self _messageReader: r = [$r toString]"
             if {[$canheader cget -openlcbframe]} {
                 $mtiheader setHeader [$canheader getHeader]
                 $mtidetail setHeader [$canheader getHeader]
-                #puts stderr "*** $self _messageReader: mtiheader : [$mtiheader configure]"
-                #puts stderr "*** $self _messageReader: mtidetail : [$mtidetail configure]"
+                ::log::log debug  "*** $self _messageReader: mtiheader : [$mtiheader configure]"
+                ::log::log debug "*** $self _messageReader: mtidetail : [$mtidetail configure]"
                 set srcid [$canheader cget -srcid]
                 set destid 0
                 if {[$mtiheader cget -frametype] == 1} {

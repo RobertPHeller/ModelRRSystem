@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160721.1448>
+#  Last Modified : <160722.1515>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -289,7 +289,7 @@ namespace eval lcc {
             # @param n The index of the element to set.
             # @param v The value to store.
             
-            puts stderr "*** $self setElement $n $v"
+            #puts stderr "*** $self setElement $n $v"
             if {[catch {lcc::byte validate $v}]} {
                 if {[catch {snit::integer validate $v}]} {
                     set v [scan $v %c]
@@ -297,7 +297,7 @@ namespace eval lcc {
                     set v [expr {$v & 0x0FF}]
                 }
             }
-            puts stderr "*** $self setElement _dataChars is [llength $_dataChars] long, updating the element at index $n"
+            #puts stderr "*** $self setElement _dataChars is [llength $_dataChars] long, updating the element at index $n"
             lset _dataChars $n $v
         }
         variable _dataChars {}
@@ -2554,11 +2554,11 @@ namespace eval lcc {
             ## Send an AME
             $canheader configure -openlcbframe no \
                   -variablefield 0x0702 -srcid [$self getMyAlias]
-            set _timeoutFlag 0
-            after 5000 [mymethod _timedout]
+            #set _timeoutFlag 0
+            #after 5000 [mymethod _timedout]
             $self _sendmessage [CanMessage %AUTO% \
                                 -header [$canheader getHeader] -extended yes]
-            vwait [myvar _timeoutFlag]
+            #vwait [myvar _timeoutFlag]
         }
         method setMessageHandler {handler} {
             ## Set the message handler.  Generally called from the upper level
@@ -2653,7 +2653,7 @@ namespace eval lcc {
                     set flags 0x01;# first frame
                     set bindex 0
                     set remain [llength $databuffer]
-                    while {$remain > ($bindex + 6)} {
+                    while {$remain > 6} {
                         set canmessage [lcc::CanMessage %AUTO% \
                                         -header [$mtiheader getHeader] \
                                         -extended yes -length 8]
@@ -2667,12 +2667,12 @@ namespace eval lcc {
                             incr remain -1
                         }
                         $self _sendmessage $canmessage
-                        set flags 0x02;# middle frames
+                        set flags 0x03;# middle frames
                     }
                     set canmessage [lcc::CanMessage %AUTO% \
                                     -header [$mtiheader getHeader] \
                                     -extended yes -length [expr {$remain + 2}]]
-                    set flags 0x03;# last frame
+                    set flags 0x02;# last frame
                     $canmessage setElement 0 [expr {($flags << 4) | (($destalias & 0x0F00) >> 8)}]
                     $canmessage setElement 1 [expr {$destalias & 0x0FF}]
                     set dindex 2
@@ -2915,7 +2915,10 @@ namespace eval lcc {
                         }
                         if {$datacomplete} {
                             if {[$self getNIDofAlias $srcid] eq "" && 
-                                [$mtiheader cget -mti] == 0x0100} {
+                                ([$mtiheader cget -mti] == 0x0100 ||
+                                 [$mtiheader cget -mti] == 0x0101 || 
+                                 [$mtiheader cget -mti] == 0x0170 ||
+                                 [$mtiheader cget -mti] == 0x0171)} {
                                 # InitComplete message.  Capture the NID.
                                 set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
                                 $self updateAliasMap $srcnid $srcid
@@ -2939,9 +2942,9 @@ namespace eval lcc {
                                     $m configure -eventid $eid
                                     $m configure -data [lrange $messagebuffers($srcid,$mti) $doff end]
                                 }
-                                unset messagebuffers($srcid,$mti)           
                                 uplevel #0 $messagehandler $m
                             }
+                            unset messagebuffers($srcid,$mti)           
                         }
                     } elseif {[$mtidetail cget -streamordatagram]} {
                         set destid [$mtidetail cget -destid]
@@ -3354,7 +3357,7 @@ namespace eval lcc {
             }
         }
         method _unpackBinaryMessage {messagebuffer} {
-            puts stderr "*** $self _unpackBinaryMessage $messagebuffer"
+            #puts stderr "*** $self _unpackBinaryMessage $messagebuffer"
             set MTI [expr {([lindex $messagebuffer 0] << 8) | [lindex $messagebuffer 1]}]
             $mtidetail setMTI16Header $MTI
             set sourcenid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange $messagebuffer 2 7]]
@@ -3378,7 +3381,7 @@ namespace eval lcc {
         }
 
         method _makeBinaryMessage {openlcbMessage} {
-            puts stderr "*** $self _makeBinaryMessage $openlcbMessage"
+            #puts stderr "*** $self _makeBinaryMessage $openlcbMessage"
             set buffer    [list]
             set mti       [$openlcbMessage cget -mti]
             $mtidetail setMTI16Header $mti
@@ -3685,11 +3688,11 @@ namespace eval lcc {
             ## Send an AME
             $canheader configure -openlcbframe no \
                   -variablefield 0x0702 -srcid [$self getMyAlias]
-            set _timeoutFlag 0
-            after 5000 [mymethod _timedout]
+            #set _timeoutFlag 0
+            #after 5000 [mymethod _timedout]
             $self _sendmessage [CanMessage %AUTO% \
                                 -header [$canheader getHeader] -extended yes]
-            vwait [myvar _timeoutFlag]
+            #vwait [myvar _timeoutFlag]
         }
         method setMessageHandler {handler} {
             ## Set the message handler.  Generally called from the upper level
@@ -3784,7 +3787,7 @@ namespace eval lcc {
                     set flags 0x01;# first frame
                     set bindex 0
                     set remain [llength $databuffer]
-                    while {$remain > ($bindex + 6)} {
+                    while {$remain >  6} {
                         set canmessage [lcc::CanMessage %AUTO% \
                                         -header [$mtiheader getHeader] \
                                         -extended yes -length 8]
@@ -3798,12 +3801,12 @@ namespace eval lcc {
                             incr remain -1
                         }
                         $self _sendmessage $canmessage
-                        set flags 0x02;# middle frames
+                        set flags 0x03;# middle frames
                     }
                     set canmessage [lcc::CanMessage %AUTO% \
                                     -header [$mtiheader getHeader] \
                                     -extended yes -length [expr {$remain + 2}]]
-                    set flags 0x03;# last frame
+                    set flags 0x02;# last frame
                     $canmessage setElement 0 [expr {($flags << 4) | (($destalias & 0x0F00) >> 8)}]
                     $canmessage setElement 1 [expr {$destalias & 0x0FF}]
                     set dindex 2
@@ -3888,7 +3891,7 @@ namespace eval lcc {
             set nidlist [$canalias getMyNIDList]
             # Generate a tentative alias.
             set alias [$canalias getNextAlias]
-            puts stderr [format "*** $self reserveAlias: alias = 0x%03X" $alias]
+            #puts stderr [format "*** $self reserveAlias: alias = 0x%03X" $alias]
             
             # Send out Check ID frames.
             # CID1
@@ -3952,9 +3955,9 @@ namespace eval lcc {
             #
             # @param srcid The source alias of the message.
             
-            puts stderr "*** $self _flags0 $srcid [$r toString] $doff"
+            #puts stderr "*** $self _flags0 $srcid [$r toString] $doff"
             set mti [$mtiheader cget -mti]
-            puts stderr [format {*** %s _flags0: mti = 0x%04X} $self $mti]
+            #puts stderr [format {*** %s _flags0: mti = 0x%04X} $self $mti]
             if {[$mtiheader cget -mti] == 0x0A08} {
                 if {[info exists simplenodeflags($srcid,v1)]} {
                     eval [list lappend messagebuffers($srcid,$mti)] [lrange [$r getData] $doff end]
@@ -3968,7 +3971,7 @@ namespace eval lcc {
                         set simplenodeflags($srcid,v1) 4
                     }  
                 }
-                puts stderr "*** $self _flags0: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
+                #puts stderr "*** $self _flags0: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
                 set i 1
                 for {set j 0} \
                       {$j < $simplenodeflags($srcid,v1)} \
@@ -3978,8 +3981,8 @@ namespace eval lcc {
                     if {$k < 0} {return no}
                     set i [expr {$k + 1}]
                 }
-                puts stderr "*** $self _flags0: length of messagebuffers($srcid,$mti) is [llength $messagebuffers($srcid,$mti)]"
-                puts stderr "*** $self _flags0: i = $i"
+                #puts stderr "*** $self _flags0: length of messagebuffers($srcid,$mti) is [llength $messagebuffers($srcid,$mti)]"
+                #puts stderr "*** $self _flags0: i = $i"
                 if {$i >= [llength $$messagebuffers($srcid,$mti)]} {
                     return no
                 }
@@ -4004,23 +4007,25 @@ namespace eval lcc {
             # messages and then dispatched to the upper level message handler.
             
             if {[gets $socket message] >= 0} {
-                puts stderr "*** $self _messageReader: message = $message"
+                #puts stderr "*** $self _messageReader: message = $message"
                 $gcreply configure -message $message
                 set r [$gcreply createReply]
                 $canheader setHeader [$r getHeader]
-                puts stderr "*** $self _messageReader: canheader : [$canheader configure]"
-                puts stderr "*** $self _messageReader: r = [$r toString]"
+                #puts stderr "*** $self _messageReader: canheader : [$canheader configure]"
+                #puts stderr "*** $self _messageReader: r = [$r toString]"
                 if {[$canheader cget -openlcbframe]} {
                     $mtiheader setHeader [$canheader getHeader]
                     $mtidetail setHeader [$canheader getHeader]
-                    puts stderr "*** $self _messageReader: mtiheader : [$mtiheader configure]"
-                    puts stderr "*** $self _messageReader: mtidetail : [$mtidetail configure]"
+                    #puts stderr "*** $self _messageReader: mtiheader : [$mtiheader configure]"
+                    #puts stderr "*** $self _messageReader: mtidetail : [$mtidetail configure]"
                     set srcid [$canheader cget -srcid]
+                    #puts stderr [format "*** $self _messageReader: srcid = 0x%03x" $srcid]
                     set flagbits 0
                     set destid 0
                     set doff 0
                     if {[$mtiheader cget -frametype] == 1} {
                         set mti [$mtiheader cget -mti]
+                        #puts stderr [format "*** $self _messageReader: mti = 0x%03x" $mti]
                         if {[$mtidetail cget -addressp]} {
                             set doff 2
                             set destid [expr {(([lindex [$r getData] 0] & 0x0F) << 8) | [lindex [$r getData] 1]}]
@@ -4032,10 +4037,10 @@ namespace eval lcc {
                         }
                         set datacomplete no
                         if {$flagbits == 0x00} {
-                            puts stderr "*** $self _messageReader: doff = $doff"
+                            #puts stderr "*** $self _messageReader: doff = $doff"
                             set datacomplete [$self _flags0 $srcid $r $doff]
-                            puts stderr "*** $self _messageReader: $r getData is [$r getData]"
-                            puts stderr "*** $self _messageReader: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
+                            #puts stderr "*** $self _messageReader: $r getData is [$r getData]"
+                            #puts stderr "*** $self _messageReader: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
                         } elseif {$flagbits == 0x01} {
                             set messagebuffers($srcid,$mti) [lrange [$r getData] 2 end]
                         } elseif {$flagbits == 0x03} {
@@ -4045,10 +4050,13 @@ namespace eval lcc {
                             set datacomplete yes
                         }
                         if {$datacomplete} {
-                            puts stderr "*** $self _messageReader: datacomplete: \[$self getNIDofAlias $srcid\] is '[$self getNIDofAlias $srcid]', \[$mtiheader cget -mti\] = [format 0x%04x [$mtiheader cget -mti]]"
+                            puts stderr "*** $self _messageReader: datacomplete: messagebuffers([format 0x%03x,0x%03x $srcid $mti]) contains $messagebuffers($srcid,$mti)"
                             if {[$self getNIDofAlias $srcid] eq "" && 
-                                [$mtiheader cget -mti] == 0x0100} {
-                                # InitComplete message.  Capture the NID.
+                                ([$mtiheader cget -mti] == 0x0100 ||
+                                 [$mtiheader cget -mti] == 0x0101 || 
+                                 [$mtiheader cget -mti] == 0x0170 ||
+                                 [$mtiheader cget -mti] == 0x0171)} {
+                                # InitComplete or Verified Node ID message.  Capture the NID.
                                 set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
                                 $self updateAliasMap $srcnid $srcid
                             }
@@ -4071,9 +4079,9 @@ namespace eval lcc {
                                     $m configure -eventid $eid
                                     $m configure -data [lrange $messagebuffers($srcid,$mti) $doff end]
                                 }
-                                unset messagebuffers($srcid,$mti)           
                                 uplevel #0 $messagehandler $m
                             }
+                            unset messagebuffers($srcid,$mti)           
                         }
                     } elseif {[$mtidetail cget -streamordatagram]} {
                         set destid [$mtidetail cget -destid]
@@ -4113,13 +4121,13 @@ namespace eval lcc {
                     # Not a OpenLCB message.
                     # Check for an Error Information Report
                     set vf [$canheader cget -variablefield]
-                    puts stderr "[format {*** %s _messageReader: vf = 0x%04X} $self $vf]"
+                    #puts stderr "[format {*** %s _messageReader: vf = 0x%04X} $self $vf]"
                     if {$vf == 0x0701} {
                         # AMD frame
-                        puts stderr "*** $self _messageReader: received AMD frame"
+                        #puts stderr "*** $self _messageReader: received AMD frame"
                         set srcalias [$canheader cget -srcid]
                         set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
-                        puts stderr "[format {*** %s _messageReader: srcalias = 0x%03X, srcnid = %s} $self $srcalias $srcnid]"
+                        #puts stderr "[format {*** %s _messageReader: srcalias = 0x%03X, srcnid = %s} $self $srcalias $srcnid]"
                         $self updateAliasMap $srcnid $srcalias
                     } elseif {$vf == 0x0702} {
                         set nidlist [$mycanalias getMyNIDList]
@@ -4152,6 +4160,7 @@ namespace eval lcc {
             
             $gcmessage configure -canmessage $canmessage
             puts $socket [$gcmessage toString]
+            #puts stderr "*** $self _sendmessage: message sent: [$gcmessage toString]"
             flush $socket
         }
         proc getBits {top bottom bytelist} {
@@ -5071,9 +5080,9 @@ namespace eval lcc {
             # @par
             # @return Either the null string or the transport constructor.
             
-            puts stderr "*** $type selectTransportConstructor $args"
+            #puts stderr "*** $type selectTransportConstructor $args"
             set dia [$type _buildSelectTransportConstructorDialog]
-            puts stderr "*** $type selectTransportConstructor: dia = $dia"
+            #puts stderr "*** $type selectTransportConstructor: dia = $dia"
             $dia configure -parent [from args -parent .]
             return [$dia draw]
         }
