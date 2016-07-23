@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160722.1521>
+#  Last Modified : <160723.1526>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -3620,7 +3620,7 @@ namespace eval lcc {
                 return
             }
             #puts stderr "*** $type create: port opened: $socket"
-            fconfigure $socket -buffering line -translation {crlf crlf}
+            fconfigure $socket -buffering line -translation auto
             #puts stderr [list *** $type create $self fconfigure $socket = [fconfigure $socket]]
             fileevent $socket readable [mymethod _messageReader]
             while {![$self _reserveMyAlias]} {
@@ -4005,7 +4005,7 @@ namespace eval lcc {
             ## Handling incoming messages.  Handle control (CAN) messages
             # here.  OpenLCB messages are assembled possibly from multiple CAN
             # messages and then dispatched to the upper level message handler.
-            
+            #puts stderr "*** $self _messageReader entered."
             if {[gets $socket message] >= 0} {
                 #puts stderr "*** $self _messageReader: message = $message"
                 $gcreply configure -message $message

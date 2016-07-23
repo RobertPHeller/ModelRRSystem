@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <160722.1215>
+#  Last Modified : <160723.1441>
 #
 #  Description	
 #
@@ -266,7 +266,7 @@ snit::type OpenLCBGCTcpHub {
         install mtiheader using lcc::MTIHeader          %AUTO%
         install canheader using lcc::CANHeader          %AUTO%
         lappend _allNodes $self
-        fconfigure $channel -buffering line -translation {crlf crlf}
+        fconfigure $channel -buffering line -translation auto
         fileevent $channel readable [mymethod _messageReader]
         #$self populateAliasMap
         #$self configurelist $args
@@ -431,6 +431,7 @@ snit::type OpenLCBGCTcpHub {
         
     method _messageReader {} {
         #** Message reader handler.
+        ::log::log debug "*** $self _messageReader entered."
         if {[gets $channel message] >= 0} {
             ::log::log debug "*** $self _messageReader: message = $message"
             $gcreply configure -message $message
