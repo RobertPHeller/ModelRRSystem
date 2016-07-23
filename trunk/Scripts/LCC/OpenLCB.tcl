@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160722.1443>
+#  Last Modified : <160723.1937>
 #
 #  Description	
 #
@@ -76,6 +76,7 @@
 #                     is allowed (but needs to be quoted or escaped).
 # @arg -listconstructors Print a list of available constructors and exit.
 # @arg -help Print a short help message and exit.
+# @arg -debug Turn on debug output.
 # @par
 #
 # Additional options, specific to the transport constructor can also be 
@@ -133,6 +134,23 @@ snit::type OpenLCB {
     typevariable nodetree_cols {nodeid};# Columns
     typevariable mynid {};   # My Node ID
     
+    typevariable _debug no;# Debug flag
+    
+    proc putdebug {message} {
+        if {$_debug} {
+            puts stderr $message
+        }
+    }
+        proc hexdump { header data} {
+        if {$_debug} {
+            puts -nonewline stderr $header
+            foreach byte $data {
+                puts -nonewline stderr [format " %02X" $byte]
+            }
+            puts stderr {}
+        }
+    }
+
     typemethod usage {} {
         #* Print a usage message.
         
@@ -151,6 +169,7 @@ snit::type OpenLCB {
         puts stdout [_ "-transportname: The name of the transport constructor."]
         puts stdout [_ "-listconstructors: Print a list of available constructors and exit."]
         puts stdout [_ "-help: Print this help message and exit."]
+        puts stdout [_ "-debug: Enable debug output."]
         puts stdout [_ "Additional options for the transport constructor can also be specified."]
     }
     proc hidpiP {w} {
@@ -192,6 +211,12 @@ snit::type OpenLCB {
             $type usage
             exit
         }
+        set debugIdx [lsearch $::argv -debug]
+        if {$debugIdx >= 0} {
+            set _debug yes
+            set ::argv [lreplace $::argv $debugIdx $debugIdx]
+        }
+        
         
         # Build main GUI window.
         set mainWindow [mainwindow .main -scrolling yes -height 600 -width 800]
@@ -256,16 +281,16 @@ snit::type OpenLCB {
         update idle
         # Lazy eval for send event.
         set sendevent {}
-        #puts stderr "*** $type typeconstructor: ::argv is $::argv"
+        putdebug "*** $type typeconstructor: ::argv is $::argv"
         # Try to get transport constructor from the CLI.
         set transportConstructorName [from ::argv -transportname ""]
-        #puts stderr "*** $type typeconstructor: transportConstructorName is $transportConstructorName"
+        putdebug "*** $type typeconstructor: transportConstructorName is $transportConstructorName"
         # Assume there isn't one specified on the command line.
         set transportConstructor {}
         if {$transportConstructorName ne ""} {
             # The user speficied something.  Get the actual name, if any.
             set transportConstructors [info commands ::lcc::$transportConstructorName]
-            #puts stderr "*** $type typeconstructor: transportConstructors is $transportConstructors"
+            putdebug "*** $type typeconstructor: transportConstructors is $transportConstructors"
             if {[llength $transportConstructors] > 0} {
                 set transportConstructor [lindex $transportConstructors 0]
             }
@@ -304,15 +329,15 @@ snit::type OpenLCB {
                              -softwareversion "1.0" \
                              -additionalprotocols {Datagram EventExchange} \
                              ] $transportOpts]
-        #puts stderr "*** $type typeconstructor: transport = $transport"
+        putdebug "*** $type typeconstructor: transport = $transport"
         # Get our Node ID.
         set mynid [$transport cget -nid]
-        #puts stderr "*** $type typeconstructor: mynid = $mynid"
+        putdebug "*** $type typeconstructor: mynid = $mynid"
         # Start the tree with ourselves.
         $nodetree insert {} end -id $mynid \
               -text $mynid \
               -open no
-        #puts stderr "*** $type typeconstructor: $mynid inserted."
+        putdebug "*** $type typeconstructor: $mynid inserted."
         # Insert our child nodes.
         $type _insertSimpleNodeInfo $mynid [$transport ReturnMySimpleNodeInfo]
         $type _insertSupportedProtocols $mynid [$transport ReturnMySupportedProtocols]
@@ -325,13 +350,13 @@ snit::type OpenLCB {
         update idle
         # Find out who else is out there.
         $transport SendVerifyNodeID
-        #puts stderr "*** $type typeconstructor: done."
+        putdebug "*** $type typeconstructor: done."
     }
     typemethod _eventHandler {command eventid {validity {}}} {
         #* Event handler -- when a PCER message is received, pop up an
         #* event received pop up.
         
-        #puts stderr "*** $type _eventHandler $command $eventid $validity"
+        putdebug "*** $type _eventHandler $command $eventid $validity"
         if {$command eq "report"} {
             lcc::EventReceived .eventreceived%AUTO% \
                   -eventid $eventid
@@ -406,7 +431,7 @@ snit::type OpenLCB {
     typemethod _insertSimpleNodeInfo {nid infopayload} {
         #* Insert the SimpleNodeInfo for nid into the tree view.
 
-        puts stderr "*** $type _insertSimpleNodeInfo $nid $infopayload"
+        putdebug "*** $type _insertSimpleNodeInfo $nid $infopayload"
         $nodetree insert $nid end -id ${nid}_simplenodeinfo \
               -text {Simple Node Info} \
               -open no
@@ -423,7 +448,7 @@ snit::type OpenLCB {
             set s ""
             while {[lindex $infopayload $i] != 0} {
                 set c [lindex $infopayload $i]
-                puts stderr "*** $type _insertSimpleNodeInfo: strings1: i = $i, c = '$c'"
+                putdebug "*** $type _insertSimpleNodeInfo: strings1: i = $i, c = '$c'"
                 if {$c eq ""} {break}
                 append s [format %c $c]
                 incr i
@@ -447,7 +472,7 @@ snit::type OpenLCB {
             set s ""
             while {[lindex $infopayload $i] != 0} {
                 set c [lindex $infopayload $i]
-                puts stderr "*** $type _insertSimpleNodeInfo: strings2: i = $i, c = '$c'"
+                putdebug "*** $type _insertSimpleNodeInfo: strings2: i = $i, c = '$c'"
                 if {$c eq ""} {break}
                 append s [format %c $c]
                 incr i
@@ -460,7 +485,7 @@ snit::type OpenLCB {
             }
             incr i
         }
-        #puts stderr "*** $type _insertSimpleNodeInfo: done"
+        putdebug "*** $type _insertSimpleNodeInfo: done"
     }
     typemethod _insertSupportedProtocols {nid report} {
         #* Insert Supported Protocols if node into tree view.
@@ -468,15 +493,15 @@ snit::type OpenLCB {
         if {[llength $report] < 3} {lappend report 0 0 0}
         if {[llength $report] > 3} {set report [lrange $report 0 2]}
         set protocols [lcc::OpenLCBProtocols GetProtocolNames $report]
-        puts stderr "*** $type _insertSupportedProtocols $nid $report"
+        putdebug "*** $type _insertSupportedProtocols $nid $report"
         
-        puts stderr "*** $type _insertSupportedProtocols: protocols are $protocols"
+        putdebug "*** $type _insertSupportedProtocols: protocols are $protocols"
         if {[llength $protocols] > 0} {
             $nodetree insert $nid end -id ${nid}_protocols \
                  -text {Protocols Supported} \
                  -open no
             foreach p $protocols {
-                #puts stderr [list *** $type _insertSupportedProtocols: p = $p]
+                putdebug [list *** $type _insertSupportedProtocols: p = $p]
                 $nodetree insert ${nid}_protocols end \
                       -id ${nid}_protocols_$p \
                       -text [lcc::OpenLCBProtocols ProtocolLabelString $p] \
@@ -530,25 +555,18 @@ snit::type OpenLCB {
     typevariable CDIs_xml  -array {}
     #* CDI Forms (indexed by Node IDs).
     typevariable CDIs_FormTLs -array {}
-    proc hexdump {fp header data} {
-        puts -nonewline $fp $header
-        foreach byte $data {
-            puts -nonewline $fp [format " %02X" $byte]
-        }
-        puts $fp {}
-    }
     typemethod _ReadCDI {x y} {
         #* Read in a CDI for the node at x,y
         
-        puts stderr "*** $type _ReadCDI $x $y"
+        putdebug "*** $type _ReadCDI $x $y"
         set id [$nodetree identify row $x $y]
-        puts stderr "*** $type _ReadCDI: id = $id"
+        putdebug "*** $type _ReadCDI: id = $id"
         set nid [regsub {_protocols_CDI} $id {}]
-        puts stderr "*** $type _ReadCDI: nid = $nid"
-        puts stderr "*** $type _ReadCDI: \[info exists CDIs_text($nid)\] => [info exists CDIs_text($nid)]"
+        putdebug "*** $type _ReadCDI: nid = $nid"
+        putdebug "*** $type _ReadCDI: \[info exists CDIs_text($nid)\] => [info exists CDIs_text($nid)]"
         if {![info exists CDIs_text($nid)] ||
             $CDIs_text($nid) eq ""} {
-            puts stderr "*** $type _ReadCDI: Going to read CDI for $nid"
+            putdebug "*** $type _ReadCDI: Going to read CDI for $nid"
             $transport configure -datagramhandler [mytypemethod _datagramHandler]
             set data [list 0x20 0x84 0x0FF]
             set _iocomplete 0
@@ -571,8 +589,8 @@ snit::type OpenLCB {
                 set lowest [expr {$lowest | ([lindex $_datagramdata 10] << 8)}]
                 set lowest [expr {$lowest | [lindex $_datagramdata 11]}]
             }
-            puts stderr [format {*** %s _ReadCDI: lowest = %08X} $type $lowest]
-            puts stderr [format {*** %s _ReadCDI: highest = %08X} $type $highest]
+            putdebug [format {*** %s _ReadCDI: lowest = %08X} $type $lowest]
+            putdebug [format {*** %s _ReadCDI: highest = %08X} $type $highest]
             set start $lowest
             set end   [expr {$highest + 64}]
             set CDIs_text($nid) {}
@@ -593,8 +611,8 @@ snit::type OpenLCB {
                 vwait [mytypevar _iocomplete]
                 $transport configure -datagramhandler {}
                 unset _currentnid
-                puts stderr [format {*** %s _ReadCDI: address = %08X} $type $address]
-                hexdump stderr [format "*** %s _ReadCDI: datagram received: " $type] $_datagramdata
+                putdebug [format {*** %s _ReadCDI: address = %08X} $type $address]
+                hexdump [format "*** %s _ReadCDI: datagram received: " $type] $_datagramdata
                 set status [lindex $_datagramdata 1]
                 if {$status == 0x53} {
                     set respaddress [expr {[lindex $_datagramdata 2] << 24}]
@@ -630,46 +648,46 @@ snit::type OpenLCB {
                 
             }
             set CDIs_xml($nid) [ParseXML %AUTO% $CDIs_text($nid)]
-            puts stderr "*** $type _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"
+            putdebug "*** $type _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"
             set CDIs_FormTLs($nid) \
                   [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
                    -cdi $CDIs_xml($nid) -nid $nid -transport $transport]
-            puts stderr "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
+            putdebug "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
         } elseif {![info exists CDIs_xml($nid)] ||
             $CDIs_xml($nid) eq {}} {
             
             set CDIs_xml($nid) [ParseXML %AUTO% \
                                           $CDIs_text($nid)]
-            puts stderr "*** $type _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"
+            putdebug "*** $type _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"
             set CDIs_FormTLs($nid) \
                   [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
                    -cdi $CDIs_xml($nid) \
                    -nid $nid \
                    -transport $transport ]
-            puts stderr "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
+            putdebug "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
         } elseif {![info exists CDIs_FormTLs($nid)] ||
                   $CDIs_FormTLs($nid) eq {} ||
                   ![winfo exists $CDIs_FormTLs($nid)]} {
-            puts stderr "*** $type _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"
+            putdebug "*** $type _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"
             set CDIs_FormTLs($nid) \
                   [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
                    -cdi $CDIs_xml($nid) \
                    -nid $nid \
                    -transport $transport ]
-            puts stderr "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
+            putdebug "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
         } else {
-            puts stderr "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
+            putdebug "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
             wm deiconify $CDIs_FormTLs($nid)
         }
     }
     typemethod _MemoryConfig {x y} {
         #* Configure the memory for the node at x,y
 
-        #puts stderr "*** $type _MemoryConfig $x $y"
+        putdebug "*** $type _MemoryConfig $x $y"
         set id [$nodetree identify row $x $y]
-        #puts stderr "*** $type _MemoryConfig: id = $id"
+        putdebug "*** $type _MemoryConfig: id = $id"
         set nid [regsub {_protocols_MemoryConfig} $id {}]
-        #puts stderr "*** $type _MemoryConfig: nid = $nid"
+        putdebug "*** $type _MemoryConfig: nid = $nid"
         set count 10
         $transport configure -datagramhandler [mytypemethod _datagramHandler]
         set _iocomplete 0
