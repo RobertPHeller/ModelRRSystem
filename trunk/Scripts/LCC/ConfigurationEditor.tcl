@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <160629.1443>
+#  Last Modified : <160723.1945>
 #
 #  Description	
 #
@@ -156,6 +156,7 @@ namespace eval lcc {
                 error [_ "There is no CDI container in %s" $options(-cdi)]
             }
             set cdi [lindex $cdis]
+            #puts stderr "*** $type create $self: win = $win, about to wm protocol $win WM_DELETE_WINDOW ..."
             wm protocol $win WM_DELETE_WINDOW [mymethod _close]
             install main using MainFrame $win.main -menu [subst $_menu] \
                   -textvariable [myvar status]
@@ -168,7 +169,8 @@ namespace eval lcc {
                   [$scroll getframe].editframe -constrainedwidth yes
             $scroll setwidget $editframe
             $self configurelist $args
-            wm title $win [_ CDI Configuration Tool for Node ID %s [$self cget -nid]]
+            #puts stderr "*** $type create $self: win = $win, about to wm title $win ..."
+            wm title $win [_ "CDI Configuration Tool for Node ID %s" [$self cget -nid]]
             set address 0
             $self _processXMLnode $cdi [$editframe getframe] -1 address
 #            $self _processXMLnode $cdi [$main getframe] -1 address
