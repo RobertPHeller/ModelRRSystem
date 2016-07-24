@@ -89,7 +89,8 @@ USERMAN_OPENLCB_FIGS = OpenLCB_CANGCUSB_Options.png OpenLCB_CDITool.png \
         OpenLCB_MainWindow.png OpenLCB_MainWindow_OpenTrees.png \
         OpenLCB_MemoryConfigOpts.png OpenLCB_ReadWriteConfigMemory.png \
         OpenLCB_SelectTransport.png OpenLCB_ReadWriteConfigMemory_Small.png \
-        OpenLCB_CDITool_Small.png
+        OpenLCB_CDITool_Small.png  OpenLCB_SendEvent.png \
+        OpenLCB_EventReceived.png
 
 DOXYFILES += Doxyfile.$(OPENLCB).in
 
@@ -279,6 +280,7 @@ $(USERMAN_HTML) $(USERMAN_PDF) : $(USERMAN_HS) $(USERMAN_FIGS) $(BIBLIO) \
 	../../Scripts/Satellite/SatelliteDaemon.src \
 	../../Scripts/LCC/OpenLCBTcpHub.tcl \
 	../../Scripts/LCC/OpenLCB_MRD2.tcl \
+	../../Scripts/LCC/OpenLCBGCTcpHub.tcl \
 	../doxygen/tcldoxyfilter.sh
 	-rm -rf $(USERMANHBase)/
 	-rm -rf latex

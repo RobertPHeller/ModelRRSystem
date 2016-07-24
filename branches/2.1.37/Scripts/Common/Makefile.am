@@ -75,7 +75,8 @@ CommonScripts = CTCPanel.tcl ReadConfiguration.tcl \
 		snitdialog.tcl snitHTMLHelp.tcl snitLFs.tcl snitmainframe.tcl \
 		snitscrollableframe.tcl snitscrollw.tcl snitStdMenuBar.tcl \
 		snitrotext.tcl snitlistbox.tcl snitpagesmanager.tcl \
-		snittree.tcl snitCabWidgets.tcl snitScrollNotebook.tcl
+		snittree.tcl snitCabWidgets.tcl snitScrollNotebook.tcl \
+		ParseXML.tcl
 
 pkgdatadir = $(datadir)/$(PACKAGE)/Common
 pkgdata_DATA = $(CommonScripts) pkgIndex.tcl \
