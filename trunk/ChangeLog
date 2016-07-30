@@ -1,3 +1,13 @@
+Sun Jul 24 14:17:07 2016
+
+  2.1.37 Released:
+  
+  Update Rail Driver code to use HIDAPI, thus making it work across all 
+  platforms.
+  Add OpenLCB code.
+  Minor bugfixes.
+
+
 Mon Aug 24 08:44:22 2015
 
   2.1.36 Released:

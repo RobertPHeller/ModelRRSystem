@@ -628,6 +628,7 @@ INPUT                  = @srcdir@/Preface.h \
                          @top_srcdir@/C++/RailDriver/raildriverd.src \
                          @top_srcdir@/Scripts/LCC/OpenLCBTcpHub.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_MRD2.tcl \
+                         @top_srcdir@/Scripts/LCC/OpenLCBGCTcpHub.tcl \
                          @srcdir@/Help.h \
                          @builddir@/UserManual_Version.h @srcdir@/COPYING.h
 

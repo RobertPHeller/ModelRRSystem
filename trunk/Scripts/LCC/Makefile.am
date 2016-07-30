@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160722.1152>
+#  Last Modified : <160724.1146>
 #
 #  Description	
 #
@@ -45,7 +45,7 @@
 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
-EXTRA_DIST = lcc.tcl lcctest.src ConfigurationEditor.tcl eventDialogs.tcl \
+EXTRA_DIST = lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		ConfigDialogs.tcl OpenLCB.tcl OpenLCB.desktop OpenLCB.png \
 		Doxyfile.in OpenLCBGCTcpHub.tcl OpenLCBTcpHub.tcl \
 		OpenLCB_MRD2.tcl
@@ -76,49 +76,6 @@ pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 	done
 	echo "pkg_mkIndex . $(notdir $^)" | $(TCLKIT)
 	
-LCCTestSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
-                $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
-                $(top_srcdir)/Scripts/Common/snitdialog.tcl \
-                $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
-                $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
-		$(top_srcdir)/Scripts/Common/gettext.tcl \
-		$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
-		$(top_srcdir)/Scripts/Common/mainwindow.tcl \
-		$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
-		$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
-		$(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
-                $(top_srcdir)/Scripts/Common/snitLFs.tcl \
-                $(top_srcdir)/Scripts/Common/snitrotext.tcl \
-                $(top_srcdir)/Scripts/Common/ParseXML.tcl \
-                $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
-                $(top_srcdir)/Scripts/LCC/ConfigurationEditor.tcl \
-                $(top_srcdir)/Scripts/LCC/lcc.tcl \
-		$(top_builddir)/Scripts/Common/Version.tcl \
-		$(top_srcdir)/Scripts/Common/questhead.xbm \
-		$(top_srcdir)/Scripts/Common/unknown.xpm
-		
-
-LCCTest${EXEEXT}: LCCTest.src $(LCCTestSCRIPTS)
-	-rm -f  LCCTest.kit
-	-rm -rf  LCCTest.vfs
-	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/LCCTest.src
-	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap LCCTest.kit
-	-rm -f  LCCTest.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit LCCTest \
-		lib $(SNITLIB)
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit LCCTest \
-		lib $(URILIB)
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit LCCTest \
-		lib/Common $(LCCTestSCRIPTS)
-	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit LCCTest \
-		Common
-	$(UNZIP) -qq -d LCCTest.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
-	$(UNZIP) -qq -d LCCTest.vfs/lib \
-		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
-	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap LCCTest${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
-	-rm -rf LCCTest.vfs
-
 OpenLCBSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
                 $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
                 $(top_srcdir)/Scripts/Common/snitdialog.tcl \
