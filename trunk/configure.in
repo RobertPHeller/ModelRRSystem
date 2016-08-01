@@ -212,13 +212,13 @@ if test ${cross_compiling} = "yes"; then
   export PKG_CONFIG_LIBDIR="${xcprefix}/lib/pkgconfig:${xcprefix}/share/pkgconfig"
   dnl AC_MSG_NOTICE([PKG_CONFIG_LIBDIR is $PKG_CONFIG_PATH])
 fi
-
+F
 PKG_CHECK_EXISTS(libusb-1.0,[have_libusb1="yes"],[have_libusb1="no"])
 if test ${have_libusb1} = "yes"; then
   AC_DEFINE(HAVE_LIBUSB1,1, [Indicates if we have Libusb1 or not.])
   PKG_CHECK_MODULES([LIBUSB],libusb-1.0)
   AC_SUBST(HAVE_LIBUSB1)
-  libusbVer=`pkg-config --modversion libusb-1.0`
+  libusbVer=`$PKG_CONFIG --modversion libusb-1.0`
   AC_MSG_RESULT([libusb Version is $libusbVer])
 else
   AC_MSG_ERROR([You don't have libusb-1.0 installed!])
@@ -226,7 +226,7 @@ fi
 
 case $target_os in
   macos | darwin*)
-    AC_SUBST(HIDAPI_CFLAGS,[])
+    AC_SUBST(HIDAPI_CFLAGS,[''])
     AC_SUBST(HIDAPI_C,[mac/hid.c])
     AC_SUBST(HIDAPI_LIBS,["-framework IOKit -framework CoreFoundation"])
     ;;
@@ -236,8 +236,8 @@ case $target_os in
     AC_SUBST(HIDAPI_C,[linux/hid.c])
     AC_SUBST(HIDAPI_LIBS,$LIBUDEV_LIBS)
     ;;
-  mingw32 | winnt | windows* | cygwin)
-    AC_SUBST(HIDAPI_CFLAGS,[])
+  mingw32* | winnt | windows* | cygwin)
+    AC_SUBST(HIDAPI_CFLAGS,[''])
     AC_SUBST(HIDAPI_C,[windows/hid.c])
     AC_SUBST(HIDAPI_LIBS,["-lsetupapi"])
     ;;
@@ -491,7 +491,7 @@ case $target_os in
      AC_SUBST(NEED_APP_BUNDLE,[false])
      ;;
 
-   mingw32 | winnt | windows* | cygwin)
+   mingw32* | winnt | windows* | cygwin)
      AC_SUBST(IMG_ZIP, Img-1.4-win32.zip)
      AC_SUBST(TCLKITRUN, tclkit-win32.exe)
      AC_SUBST(EXEEXT, .exe)
@@ -529,7 +529,7 @@ case $build_os in
      esac
      ;;
 
-   mingw32 | winnt | windows* | cygwin)
+   mingw32* | winnt | windows* | cygwin)
      AC_SUBST(BEXEEXT, .exe)
      AC_SUBST(TCLKITBSRC, tclkit-win32.exe)
      ;;

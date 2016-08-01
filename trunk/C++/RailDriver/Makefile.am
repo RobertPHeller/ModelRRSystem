@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Dec 16 14:39:16 2015
-#  Last Modified : <151217.1039>
+#  Last Modified : <160801.0953>
 #
 #  Description	
 #
@@ -55,9 +55,9 @@ pkginclude_HEADERS = RaildriverIO.h $(HIDAPI_HEADER)
 INCLUDES = -I$(top_builddir) -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)
 lib_LTLIBRARIES = libraildriverio.la
 libraildriverio_la_SOURCES = RaildriverIO.cc $(pkginclude_HEADERS) \
-	../gettext.h hid.c
+	../gettext.h
 libraildriverio_la_XGETTEXTFILES = $(libraildriverio_la_SOURCES)
-nodist_libraildriverio_la_SOURCES = raildriverio_wrap.cc ../gettext.c
+nodist_libraildriverio_la_SOURCES = raildriverio_wrap.cc ../gettext.c  hid.c
 libraildriverio_la_CFLAGS =  -DUSE_TCL_STUBS $(INCLUDES) -Wall $(HIDAPI_CFLAGS) $(KIT_EXTRA_CFLAGS)
 libraildriverio_la_CXXFLAGS = $(libraildriverio_la_CFLAGS)
 if CROSSCOMPILING
@@ -65,7 +65,7 @@ libraildriverio_la_LDFLAGS = -no-undefined   -g -avoid-version  $(TCL_STUB_LIB_S
 else
 libraildriverio_la_LDFLAGS =   -g -version-info 0:0:0  $(TCL_STUB_LIB_SPEC) $(HIDAPI_LIBS)
 endif
-libraildriverio_la_LIBADD = $(TCL_STUB_LIB_SPEC)  $(HIDAPI_LIBS)
+libraildriverio_la_LIBADD = $(INTLLIBS) $(TCL_STUB_LIB_SPEC)  $(HIDAPI_LIBS)
 xlibdir = $(libdir)/$(PACKAGE)/RailDriverNotInstalled
 xlib_LTLIBRARIES = libsigterm.la
 libsigterm_la_SOURCES = sigterm_wrap.cc
@@ -75,7 +75,7 @@ libsigterm_la_LDFLAGS = -no-undefined -g -avoid-version  $(TCL_STUB_LIB_SPEC)
 else
 libsigterm_la_LDFLAGS = -g -version-info 0:0:0  $(TCL_STUB_LIB_SPEC)
 endif
-libsigterm_la_LIBADD = $(TCL_STUB_LIB_SPEC)
+libsigterm_la_LIBADD = $(INTLLIBS) $(TCL_STUB_LIB_SPEC)
 
 hid.c : $(HIDAPI_SOURCE)
 	cp $(srcdir)/$(HIDAPI_SOURCE) hid.c

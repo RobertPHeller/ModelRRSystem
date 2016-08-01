@@ -48,7 +48,7 @@ libdiskfree_la_LDFLAGS = -no-undefined  -g -avoid-version
 else
 libdiskfree_la_LDFLAGS = -g -version-info 0:0:0
 endif
-libdiskfree_la_LIBADD = $(TCL_STUB_LIB_SPEC)
+libdiskfree_la_LIBADD = $(INTLLIBS) $(TCL_STUB_LIB_SPEC)
 libdiskfree_la_CFLAGS = -DUSE_TCL_STUBS $(INCLUDES) $(KIT_EXTRA_CFLAGS)
 setupSCRIPTS = $(top_builddir)/Scripts/Common/Version.tcl \
 		$(top_srcdir)/Scripts/Common/snitpagesmanager.tcl \
