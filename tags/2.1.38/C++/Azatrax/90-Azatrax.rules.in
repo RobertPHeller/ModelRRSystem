@@ -1,0 +1,2 @@
+# Azatrax devices -- give them world permissions
+BUS=="usb", SYSFS{idVendor}=="265f", MODE="0666"
