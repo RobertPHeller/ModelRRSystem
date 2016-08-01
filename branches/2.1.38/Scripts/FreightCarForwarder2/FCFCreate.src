@@ -1,0 +1,387 @@
+#* 
+#* ------------------------------------------------------------------
+#* FCFCreate.src - Program to create the collection of data files needed by FCF2
+#* Created by Robert Heller on Wed Nov 14 19:27:15 2007
+#* ------------------------------------------------------------------
+#* Modification History: $Log$
+#* Modification History: Revision 1.1  2007/11/30 13:56:51  heller
+#* Modification History: Novemeber 30, 2007 lockdown.
+#* Modification History:
+#* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+#* Modification History: Add it copyright notice headers
+#* Modification History:
+#* ------------------------------------------------------------------
+#* Contents:
+#* ------------------------------------------------------------------
+#*  
+#*     Model RR System, Version 2
+#*     Copyright (C) 1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software
+#* 			51 Locke Hill Road
+#* 			Wendell, MA 01379-9728
+#* 
+#*     This program is free software; you can redistribute it and/or modify
+#*     it under the terms of the GNU General Public License as published by
+#*     the Free Software Foundation; either version 2 of the License, or
+#*     (at your option) any later version.
+#* 
+#*     This program is distributed in the hope that it will be useful,
+#*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#*     GNU General Public License for more details.
+#* 
+#*     You should have received a copy of the GNU General Public License
+#*     along with this program; if not, write to the Free Software
+#*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#* 
+#*  
+#* 
+
+#* $Id$
+
+## @defgroup FCFCreate FCFCreate
+# @brief Freight Car Forwarder (V2) Dataset creater
+#
+# @section SYNOPIS
+#
+# FCFCreate [X11 Resource Options]
+#
+# @section DESCRIPTION
+#
+# The Freight Car Forwarder uses a collection of data files that describe the
+# collection of available rolling stock (freight cars), the available 
+# industries (both sources and destinations of goods and materials that need 
+# to be moved over the rails), and the available scheduled trains. The FCFCreate
+# program helps you to create these files
+#
+# Each freight car is of a specific type, which implies the sort of goods or
+# materials it can carry.  Each industry accepts certain types of cars as empty
+# cars (cars the industry will load) and certain types of cars as loaded (cars
+# that it will unload).  Industries have an associated yard, which in turn are 
+# part of a division.  This allows for sensible scheduling on the proper trains,
+# both the local switch moves as well as the mainline freights.
+#
+# @section PARAMETERS
+#
+# @section AUTHOR
+# Robert Heller \<heller\@deepsoft.com\>
+#
+
+set argv0 [file join [file dirname [info nameofexecutable]] FCFCreate] 
+
+package require Version
+namespace eval MRRSystem {variable FCFCLASSES_VERSION}
+package require gettext
+package require Tk
+package require tile
+package require snit
+package require snitStdMenuBar
+package require HTMLHelp 2.0
+package require Splash
+package require MainWindow
+package require ScrollableFrame
+
+global ImageDir 
+set ImageDir [file join [file dirname [file dirname [info script]]] \
+			FreightCarForwarder2]
+global CommonImageDir 
+set CommonImageDir [file join [file dirname [file dirname [info script]]] \
+			Common]
+global HelpDir
+set HelpDir [file join [file dirname [file dirname [file dirname \
+                                                        [info script]]]] Help]
+
+set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirname \
+                                                        [info script]]]] Messages]]
+#puts stderr "*** msgfiles = $msgfiles"
+
+image create photo banner -file [file join $ImageDir banner.gif]
+# Image used as a banner for all dialog boxes.
+# [index] banner!image
+
+image create photo DeepwoodsBanner -format gif -file [file join $CommonImageDir DeepwoodsBanner.gif]
+# Deepwoods banner image.  Used in the splash screen.
+# [index] DeepwoodsBanner!image
+
+global argcTest IsSlave
+set argcTest 0
+set IsSlave 0
+set HasSystemFile 0
+
+for {set ia 0} {$ia < $argc} {incr ia} {
+  switch -glob -- "[lindex $argv $ia]" {
+    -isslave* {
+      set IsSlave 1
+      incr argcTest
+      fconfigure stdin -buffering line
+      fconfigure stdout -buffering line
+    }
+    -console {
+	catch {console show}
+    }
+    -psn* {
+    }
+    -* {
+    	puts stderr [_ "usage: %s \[wish options\] -- \[-isslave\] \[-console\]" $argv0]
+	exit 96
+    }
+    default {
+	if {$HasSystemFile == 0} {
+	  set SystemFile "[lindex $argv $ia]"
+	  incr HasSystemFile
+	} else {
+	  puts stderr [_ "usage: %s \[wish options\] -- \[-isslave\] \[-console\]" $argv0]
+	  exit 96
+	}
+    }
+  }
+}
+
+global HelpDir
+
+proc SplashScreen {} {
+  # Build the ``Splash Screen'' -- A popup window that tells the user what 
+  # we are all about.  It gives the version and brief copyright information.
+  #
+  # The upper part of the splash screen gives the brief information, with
+  # directions on how to get detailed information.  The lower part contains
+  # an image banner for Deepwoods Software.
+  # [index] SplashScreen!procedure
+
+  splash .mrrSplash \
+	-title [_ "Model Railroad Freight Car Forwarder data creation program, \
+Copyright (C) 2007-2011 Robert Heller D/B/A Deepwoods Software Model Railroad \
+The Freight Car Forwarder data creation program comes with ABSOLUTELY NO \
+WARRANTY; for details select 'Warranty...' under the Help menu.  This is free \
+software, and you are welcome to redistribute it under certain conditions; \
+select 'Copying...' under the Help menu. System patch level: %s." \
+$MRRSystem::SYSTEMVERSION] \
+	-icon banner -image DeepwoodsBanner -background {#2ba2bf} \
+	-titleforeground white -statusforeground {black}
+}
+
+proc SplashWorkMessage {message percent} {
+  global IsSlave
+  if {!$IsSlave} {
+    .mrrSplash update "$message" $percent
+    update
+  }
+}
+
+if {!$IsSlave} {
+  SplashScreen
+  update
+}
+
+SplashWorkMessage [_ "Building Main window"] 0
+
+
+proc MainWindow {} {
+  global CommonImageDir Main
+  global NoteBook MainWindow
+
+  wm protocol . WM_DELETE_WINDOW {CarefulExit}
+  if {!$::IsSlave} {wm withdraw .}
+  wm title . [_ "Freight Car Forwarder Data file creater"]
+
+  global FocusNowhere Main
+  set FocusNowhere [canvas .focusNowhere]
+
+  pack [set Main [mainwindow .main -dontwithdraw $::IsSlave -scrolling no]] \
+             -expand yes -fill both
+  $Main toolbar add tools
+  $Main toolbar show tools
+  $Main menu entryconfigure file [_m "Menu|File|New"] \
+	-dynamichelp [_ "Reset all forms"] \
+	-command     FCFCreReset
+  image create photo NewButtonImage -file [file join $CommonImageDir new.gif]
+  $Main toolbar addbutton tools new  -image NewButtonImage \
+	-helptext [_ "Reset all forms"] \
+	-command     FCFCreReset
+  $Main menu entryconfigure file [_m "Menu|File|Open..."] -state disabled
+  $Main menu entryconfigure file [_m "Menu|File|Save"] -state disabled
+  $Main menu entryconfigure file [_m "Menu|File|Save As..."] \
+	-dynamichelp [_ "Save files to directory"] \
+	-command     FCFCreSaveAs
+  image create photo SaveAsButtonImage -file [file join $CommonImageDir save.gif]
+  $Main toolbar addbutton tools saveas -image SaveAsButtonImage \
+	-helptext [_ "Save files to directory"] \
+	-command     FCFCreSaveAs
+  $Main menu entryconfigure file [_m "Menu|File|Print..."] -state disabled
+  $Main menu entryconfigure file [_m "Menu|File|Close"] -command {CarefulExit} \
+					-accelerator {Ctrl-Q}
+  $Main menu entryconfigure file [_m "Menu|File|Exit"] -command {CarefulExit}
+  image create photo CloseButtonImage -file [file join $CommonImageDir close.gif]
+  $Main toolbar addbutton tools close -image CloseButtonImage \
+		-command {CarefulExit}
+  set MainWindow [$Main scrollwindow getframe]
+  pack [set NoteBook [ttk::notebook $MainWindow.noteBook]] \
+	-fill both -expand yes
+
+  $Main buttons hide
+  $Main menu delete help [_m "Menu|Help|On Keys..."]
+  $Main menu delete help [_m "Menu|Help|Index..."]
+  $Main menu add help command \
+	-label [_m "Menu|Help|Reference Manual"] \
+	-command "HTMLHelp help {Freight Car Forwarder (V2) Reference}"
+  $Main menu entryconfigure help [_m "Menu|Help|On Help..."] \
+	-command "HTMLHelp help Help"
+  $Main menu entryconfigure help [_m "Menu|Help|Tutorial..."] \
+	-command "HTMLHelp help {Freight Car Forwarder (V2) Tutorial}"
+  $Main menu entryconfigure help [_m "Menu|Help|On Version"] \
+	-command "HTMLHelp help Version"
+  $Main menu entryconfigure help [_m "Menu|Help|Copying"] \
+	-command "HTMLHelp help Copying"
+  $Main menu entryconfigure help [_m "Menu|Help|Warranty"] \
+	-command "HTMLHelp help Warranty"
+
+  if {$::tcl_platform(os) eq "Darwin"} {
+      $Main menu add help command -label [_m "Menu|Help|About"] \
+            -command ::tk::mac::standardAboutPanel
+  }
+  HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
+}
+
+MainWindow
+
+proc CarefulExit {{answer no}} {
+  if {!$answer} {
+    set answer "[tk_messageBox -icon question -type yesno -message [_ "Really Exit?"]]"
+  }
+  switch -exact $answer {
+    no {return}
+    yes {
+	global IsSlave
+	flush stderr
+	if {$IsSlave} {
+	  puts stdout "101 Exit"
+	  flush stdout
+	  set ans [gets stdin]
+	}
+        exit
+    }
+  }
+}
+
+SplashWorkMessage [_ "Loading system file code"] 14
+set FCFCreSystemLoaded [expr ![catch {package require FCFCreSystem} message]]
+if {!$FCFCreSystemLoaded} {
+  puts stderr "*** package require FCFCreSystem => $message"
+} else {
+  FCFCreSystem::FCFCreSystem $NoteBook
+}
+
+SplashWorkMessage [_ "Loading industries file code"] 28
+set FCFCreIndustriesLoaded [expr ![catch {package require FCFCreIndustries} message]]
+if {!$FCFCreIndustriesLoaded} {
+  puts stderr "*** package require FCFCreIndustries => $message"
+} else {
+  FCFCreIndustries::FCFCreIndustries $NoteBook
+}
+
+SplashWorkMessage [_ "Loading trains file code"] 42
+set FCFCreTrainsLoaded [expr ![catch {package require FCFCreTrains} message]]
+if {!$FCFCreTrainsLoaded} {
+  puts stderr "*** package require FCFCreTrains => $message"
+} else {
+  FCFCreTrains::FCFCreTrains $NoteBook
+}
+
+SplashWorkMessage [_ "Loading owners file code"] 56
+set FCFCreOwnersLoaded [expr ![catch {package require FCFCreOwners} message]]
+if {!$FCFCreOwnersLoaded} {
+  puts stderr "*** package require FCFCreOwners => $message"
+} else {
+  FCFCreOwners::FCFCreOwners $NoteBook
+}
+
+SplashWorkMessage [_ "Loading orders file code"] 70
+set FCFCreOrdersLoaded [expr ![catch {package require FCFCreOrders} message]]
+if {!$FCFCreOrdersLoaded} {
+  puts stderr "*** package require FCFCreOrders => $message"
+} else {
+  FCFCreOrders::FCFCreOrders $NoteBook
+}
+
+SplashWorkMessage [_ "Loading cars file code"] 84
+set FCFCreCarsLoaded [expr ![catch {package require FCFCreCars} message]]
+if {!$FCFCreCarsLoaded} {
+  puts stderr "*** package require FCFCreCars => $message"
+} else {
+  FCFCreCars::FCFCreCars $NoteBook
+  FCFCreCars::FCFCreCarTypes $NoteBook
+}
+
+proc FCFCreReset {} {
+  FCFCreSystem::ResetForm
+  FCFCreIndustries::ResetForm
+  FCFCreTrains::ResetForm
+  FCFCreOrders::ResetForm
+  FCFCreOwners::ResetForm
+  FCFCreCars::ResetForm
+  FCFCreCars::ResetCarTypesForm
+}
+
+proc FCFCreSaveAs {{directory {}}} {
+  if {[string length "$directory"] == 0} {
+    set directory [tk_chooseDirectory -initialdir "$directory" -parent . \
+				      -title [_ "Folder to store data files in"]]
+  }
+  if {[string length "$directory"] == 0} {return}
+  FCFCreSystem::WriteSystemFile "$directory"  
+}
+
+#$NoteBook compute_size
+
+$NoteBook select $FCFCreSystem::SystemPage
+
+update idle
+set extraX 0
+foreach s [$Main slideout list] {
+  set rw [$Main slideout reqwidth $s]
+  if {$rw > $extraX} {set extraX $rw}
+}
+
+
+if {!$IsSlave} {$Main showit $extraX}
+
+wm geometry . 800x600
+
+catch {SplashWorkMessage {Done} 100}
+
+if {$IsSlave} {
+  fileevent stdin readable {
+    if {[gets stdin line] < 0} {CarefulExit yes}
+    switch -- "$line" {
+      {201 Exit} {CarefulExit yes}
+      default {}
+    }
+  }
+}
+
+
+if {$::tcl_platform(os) eq "Darwin"} {
+    proc ::tk::mac::ReopenApplication {} {
+        if {[wm state .] eq "withdrawn"} {
+            wm state . normal
+        } else {
+            wm deiconify .
+        }
+    }
+    proc ::tk::mac::Quit {} {
+        CarefulExit
+    }
+    proc ::tk::mac::OnHide {} {
+        wm withdraw .
+    }
+    proc ::tk::mac::OnShow {} {
+        if {[wm state .] eq "withdrawn"} {
+            wm state . normal
+        } else {
+            wm deiconify .
+        }
+    }
+    
+    proc ::tk::mac::ShowHelp {} {
+        HTMLHelp help {Freight Car Forwarder (V2) Reference}
+    }
+}

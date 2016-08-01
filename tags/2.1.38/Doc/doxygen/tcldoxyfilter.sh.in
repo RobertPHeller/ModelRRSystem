@@ -1,0 +1,2 @@
+#!/bin/sh
+@abs_top_builddir@/BuildData/tclkit@BEXEEXT@ @abs_top_srcdir@/Doc/Support/tcl2dox.kit $*

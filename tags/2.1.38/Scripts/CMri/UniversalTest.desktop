@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=CMR/I Universal Test Program
+Comment=CMR/I Universal Test Program
+Exec=UniversalTest
+Icon=UniversalTest.png
+Encoding=UTF-8
+Categories=Application;Model-Railroad-System
+
