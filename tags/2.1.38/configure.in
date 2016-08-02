@@ -212,7 +212,7 @@ if test ${cross_compiling} = "yes"; then
   export PKG_CONFIG_LIBDIR="${xcprefix}/lib/pkgconfig:${xcprefix}/share/pkgconfig"
   dnl AC_MSG_NOTICE([PKG_CONFIG_LIBDIR is $PKG_CONFIG_PATH])
 fi
-F
+
 PKG_CHECK_EXISTS(libusb-1.0,[have_libusb1="yes"],[have_libusb1="no"])
 if test ${have_libusb1} = "yes"; then
   AC_DEFINE(HAVE_LIBUSB1,1, [Indicates if we have Libusb1 or not.])
