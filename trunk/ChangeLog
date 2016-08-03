@@ -1,3 +1,12 @@
+Mon Aug  1 13:43:28 2016
+
+  2.1.38 Released:
+  
+  Minor makefile fix for Rail Driver (move computed source file no the nodist
+  list).
+  Update for new Win32 build infrastructure (mxe.cc).
+
+
 Sun Jul 24 14:17:07 2016
 
   2.1.37 Released:
