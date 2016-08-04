@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160723.1526>
+#  Last Modified : <160804.1146>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -103,6 +103,9 @@ namespace eval lcc {
     snit::integer headerword -min 0 -max 0x1FFFFFFF
     ## @typedef int headerword
     # A 29 bit integer.
+    snit::integer uint32 -min 0 -max 0xFFFFFFFF
+    ## @typedef int uint32
+    # A 32 bit unsigned integer.
     snit::listtype eightbytes -minlen 0 -maxlen 8 -type lcc::byte
     ## @typedef list eightbytes
     # A list of bytes, from 0 to 8 elements.

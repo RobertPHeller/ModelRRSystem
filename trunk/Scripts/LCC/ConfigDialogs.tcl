@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Mar 3 14:38:10 2016
-#  Last Modified : <160312.2250>
+#  Last Modified : <160804.1405>
 #
 #  Description	
 #
@@ -104,7 +104,7 @@ namespace eval lcc {
                   -side bottom -title [_ "Memory Configuration Options"] \
                   -transient 1 -anchor e \
                   -class ConfigOptions
-            $hull add close -text Close -underline 0 -command [mymethod _Close]
+            $hull add close -text [_m "Label|Close"] -underline 0 -command [mymethod _Close]
             $self configurelist $args
             set dframe [$hull getframe]
             install nodeid using LabelEntry $dframe.nodeid \
@@ -302,7 +302,7 @@ namespace eval lcc {
             # @return The data block read.
             
             lcc::byte validate $_space
-            lcc::sixteenbits validate $_address
+            lcc::uint32 validate $_address
             lcc::length validate $length
             upvar $status_var status
             
@@ -334,6 +334,7 @@ namespace eval lcc {
             if {$_ioComplete < 0} {
                 ## datagram rejected message received
                 # code in_datagramrejecterror
+                set status 0
                 return {}
             }
             set status [lindex $datagrambuffer 1]
@@ -385,7 +386,7 @@ namespace eval lcc {
             # code.
             
             lcc::byte validate $_space
-            lcc::sixteenbits validate $_address
+            lcc::uint32 validate $_address
             lcc::databuf validate $databuffer
 
             set data [list 0x20]
@@ -467,9 +468,11 @@ namespace eval lcc {
                   -title {Configuration R/W Tool 00:00:00:00:00:00} \
                   -transient 1 -anchor e \
                   -class ConfigMemory
-            $hull add close -text Close -underline 0 -command [mymethod _Close]
-            $hull add read  -text Read  -underline 0 -command [mymethod _Read]
-            $hull add write -text Write -underline 0 -command [mymethod _Write]
+            $hull add close -text [_m "Label|Close"] -underline 0 -command [mymethod _Close]
+            $hull add read  -text [_m "Label|Read"]  -underline 0 -command [mymethod _Read]
+            $hull add write -text [_m "Label|Write"] -underline 0 -command [mymethod _Write]
+            $hull add dump  -text [_m "Label|Dump to File"] -underline 0 -command [mymethod _Dump]
+            $hull add restore -text [_m "Label|Restore from File"] -underline 0 -command [mymethod _Restore]
             if {[lsearch $args -transport] < 0} {
                 error [_ "The -transport option is required!"]
             }
@@ -579,6 +582,204 @@ namespace eval lcc {
             tk_messageBox -type ok -icon error \
                   -message [_ "There was an error: %d (%s)" \
                             $errorcode $errormessage]
+        }
+        method _getAddressRange {thespace} {
+            ## @brief Get the address range of the specified space.
+            # This performs a Get Address Space Information Command and
+            # then returns the address range info.
+            #
+            # @param thespace The space.
+            
+            set data [list 0x20 0x84 $thespace]
+            set _ioComplete 0
+            set writeReplyCheck no
+            set olddatagramhandler [[$self cget -transport] cget -datagramhandler]
+            [$self cget -transport] configure -datagramhandler [mymethod _datagramhandler]
+            [$self cget -transport] SendDatagram [$self cget -destnid] $data
+            vwait [myvar _ioComplete]
+            [$self cget -transport] configure -datagramhandler $olddatagramhandler
+            if {$_ioComplete < 0} {
+                ## datagram rejected message received
+                # code in_datagramrejecterror
+                set status 0
+                return {}
+            }
+            #puts stderr "*** $self _getAddressRange: datagrambuffer is $datagrambuffer"
+            set command [lindex $datagrambuffer 1]
+            if {$command == 0x86} {return {}}
+            set asp     [lindex $datagrambuffer 2]
+            set lowest 0x00000000
+            set highest [expr {[lindex $datagrambuffer 3] << 24}]
+            set highest [expr {$highest | ([lindex $datagrambuffer 4] << 16)}]
+            set highest [expr {$highest | ([lindex $datagrambuffer 5] << 8)}]
+            set highest [expr {$highest | [lindex $datagrambuffer 6]}]
+            set flags [lindex $datagrambuffer 7]
+            if {($flags & 0x02) != 0} {
+                set lowest [expr {[lindex $datagrambuffer 8] << 24}]
+                set lowest [expr {$lowest | ([lindex $datagrambuffer 9] << 16)}]
+                set lowest [expr {$lowest | ([lindex $datagrambuffer 10] << 8)}]
+                set lowest [expr {$lowest | [lindex $datagrambuffer 11]}]
+            }
+            return [$self _checkRange $lowest $highest]
+        }
+        variable _lowestAddress 0
+        variable _highestAddress 0
+        variable _rangeDialog {}
+        method _checkRange {lowest highest} {
+            if {![winfo exists $_rangeDialog]} {
+                set _rangeDialog [Dialog $win.checkRange -separator 0 \
+                                  -modal local -parent $win -place center \
+                                  -side bottom \
+                                  -title {Address Range to dump} \
+                                  -transient 1 -anchor e -class AddressCheck]
+                $_rangeDialog add ok -text [_m "Label|OK"] -command [mymethod _rangeOK]
+                set dframe [$_rangeDialog getframe]
+                pack [LabelEntry $dframe.l -label [_m "Label|Lowest"] -textvariable [myvar _lowestAddress]] -fill x -expand yes
+                pack [LabelEntry $dframe.h -label [_m "Label|Highest"] -textvariable [myvar _highestAddress]] -fill x -expand yes
+            }
+            set _lowestAddress [format "%08x" $lowest]
+            set _highestAddress [format "%08x" $highest]
+            return [$_rangeDialog draw]
+        }
+        method _rangeOK {} {
+            scan $_lowestAddress %x lowest
+            scan $_highestAddress %x highest
+            $_rangeDialog withdraw
+            $_rangeDialog enddialog [list $lowest $highest]
+        }            
+        method _Dump {} {
+            ## @brief Bound to the @c Dump button.
+            # Dump the configuration memory to a file.  Either as text (if 
+            # space is CDI) or Hex (if space is NOT CDI).
+            set _space [lindex $_spaces [lsearch -exact \
+                                         [$space cget -values] \
+                                         [$space cget -text]]]
+            set addrrange [$self _getAddressRange $_space]
+            if {$addrrange eq {}} {return}
+            #puts stderr "*** $self _Dump: addrrange is $addrrange"
+            if {$_space == 0xFF} {
+                $self _dumpAsText $_space [lindex $addrrange 0] [lindex $addrrange 1]
+            } else {
+                $self _dumpAsHex $_space [lindex $addrrange 0] [lindex $addrrange 1]
+            }
+        }
+        method _dumpAsText {thespace startaddress endaddress} {
+            ## @brief Dump a space as text (typically the CDI).
+            # Dump a device's memory as a text file.  This is typically
+            # the device's CDI.
+            #
+            # @param thespace The space.
+            # @param startaddress The start address
+            # @param endaddress The end address
+            #
+            
+            set filename [tk_getSaveFile -defaultextension .xml \
+                          -filetypes { {{XML Files} {.xml} }
+                                       {{Text Files} {.txt} }
+                                       {{All Files} * } } \
+                          -initialdir [pwd] \
+                          -initialfile cdi.xml \
+                          -parent $win \
+                          -title "Select a file to save the dump in"]
+            if {$filename eq ""} {return}
+            if {[catch {open $filename w} outfp]} {
+                tk_messageBox -type ok -icon error \
+                      -message [_ "Could not open %s because %s" $filename $outfp]
+                return
+            }
+            set seenNUL false
+            for {set a $startaddress} {$a <= $endaddress && !$seenNUL} {incr a 64} {
+                set data [$self _readmemory $thespace $a 64 status]
+                if {$status == 0x50} {
+                    foreach d $data {
+                        if {$d == 0} {
+                            set seenNUL true
+                            break
+                        }
+                        puts -nonewline $outfp "[format %c $d]"
+                    }
+                }
+            }
+            close $outfp
+        }
+        method _dumpAsHex {thespace startaddress endaddress} {
+            ## @brief Dump a space as hex (typically the configuration memory).
+            # Dump a device's memory as a hex file.  This is typically
+            # the device's configuration memory.
+            #
+            # @param thespace The space.
+            # @param startaddress The start address
+            # @param endaddress The end address
+            #
+            
+            set filename [tk_getSaveFile -defaultextension .hex \
+                          -filetypes { {{Hex Files} {.hex} }
+                                       {{Text Files} {.txt} }
+                                       {{All Files} * } } \
+                          -initialdir [pwd] \
+                          -initialfile config.hex \
+                          -parent $win \
+                          -title "Select a file to save the dump in"]
+            if {$filename eq ""} {return}
+            if {[catch {open $filename w} outfp]} {
+                tk_messageBox -type ok -icon error \
+                      -message [_ "Could not open %s because %s" $filename $outfp]
+                return
+            }
+            for {set a $startaddress} {$a <= $endaddress} {incr a 64} {
+                set data [$self _readmemory $thespace $a 64 status]
+                if {$status == 0x50} {
+                    puts -nonewline $outfp "[format %08X $a]"
+                    foreach d $data {
+                        puts -nonewline $outfp "[format { %02X} $d]"
+                    }
+                    puts $outfp {}
+                }
+            }
+            close $outfp
+        }
+        method _Restore {} {
+            ## @brief Bound to the @c Restore button.
+            # Reload configuration memory from a hex dump file.
+            set _space [lindex $_spaces [lsearch -exact \
+                                         [$space cget -values] \
+                                         [$space cget -text]]]
+            if {$_space != 0xFD} {
+                tk_messageBox -type ok -icon error \
+                      -message [_ "Can only restore configuration memory!"]
+                return
+            }
+            set filename [tk_getOpenFile -defaultextension .hex \
+                          -filetypes { {{Hex Files} {.hex} }
+                                       {{Text Files} {.txt} }
+                                       {{All Files} * } } \
+                          -initialdir [pwd] \
+                          -initialfile config.hex \
+                          -parent $win \
+                          -title "Select a file to restore a dump from"]
+            if {$filename eq ""} {return}
+            if {[catch {open $filename r} infp]} {
+                tk_messageBox -type ok -icon error \
+                      -message [_ "Could not open %s because %s" $filename $outfp]
+                return
+            }
+            while {[gets $infp line] >= 0} {
+                if {[regexp {^([[:xdigit:]]+)[[:space:]]+([[:xdigit:][:space:]]+)$} $line -> hexaddr hexdata] < 1} {
+                    tk_messageBox -type ok -icon warning \
+                          -message [_ "Syntax error in line %s, skipped." $line]
+                    continue
+                }
+                scan $hexaddr %x addr
+                set data [list]
+                foreach hb [split $hexdata] {
+                    #puts stderr "*** $self _Restore: hb = $hb"
+                    if {[scan $hb %x b] > 0} {
+                        lappend data $b
+                    }
+                }
+                #puts stderr "*** $self _Restore: $self _writememory $_space $addr $data"
+                $self _writememory $_space $addr $data
+            }
         }
     }
 }
