@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <160723.1945>
+#  Last Modified : <160804.1422>
 #
 #  Description	
 #
@@ -74,6 +74,8 @@ namespace eval lcc {
         # @arg -transport The transport object.  Needs to implement 
         # @c SendDatagram, @c DatagramReceivedOK, and @c DatagramRejected
         # methods and have an @c -datagramhandler option.
+        # @arg -displayonly A flag indicating that the CDI is just to be
+        # displayed.  The default is false.
         # @arg -class Delegated to the toplevel.
         # @arg -menu  Delegated to the toplevel
         # @arg -height Delegated to the ScrollableFrame
@@ -96,8 +98,9 @@ namespace eval lcc {
         ## Scrollable Frame
         
         option -cdi -readonly yes
-        option -nid -readonly yes -type lcc::nid -default 0
+        option -nid -readonly yes -type lcc::nid -default "05:01:01:01:22:00"
         option -transport -readonly yes -default {}
+        option -displayonly -readonly yes -type snit::boolean -default false
         #option -height -type {snit::pixels -min 100}
         delegate option -height to editframe
         delegate option -areaheight to editframe
@@ -132,6 +135,14 @@ namespace eval lcc {
             #
             # @param name Widget path.
             # @param ... Options:
+            # @arg -cdi The parsed CDI xml. Required and there is no default.
+            # @arg -nid The Node ID of the node to be configured.  Required 
+            #             and there is no default.
+            # @arg -transport The transport object.  Needs to implement 
+            # @c SendDatagram, @c DatagramReceivedOK, and @c DatagramRejected
+            # methods and have an @c -datagramhandler option.
+            # @arg -displayonly A flag indicating that the CDI is just to be
+            # displayed.  The default is false.
             # @arg -class Delegated to the toplevel.
             # @arg -menu  Delegated to the toplevel
             # @arg -height Delegated to the ScrollableFrame
@@ -143,11 +154,14 @@ namespace eval lcc {
             if {[lsearch $args -cdi] < 0} {
                 error [_ "The -cdi option is required!"]
             }
-            if {[lsearch $args -nid] < 0} {
-                error [_ "The -nid option is required!"]
-            }
-            if {[lsearch $args -transport] < 0} {
-                error [_ "The -transport option is required!"]
+            set options(-displayonly) [from args -displayonly]
+            if {!$options(-displayonly)} {
+                if {[lsearch $args -nid] < 0} {
+                    error [_ "The -nid option is required!"]
+                }
+                if {[lsearch $args -transport] < 0} {
+                    error [_ "The -transport option is required!"]
+                }
             }
             set options(-cdi) [from args -cdi]
             ParseXML validate $options(-cdi)
@@ -213,7 +227,7 @@ namespace eval lcc {
             
             #puts stderr "*** $self _processXMLnode $n $frame $space $address_var"
             upvar $address_var address
-            #puts stderr "*** $self _processXMLnode: tag is [$n cget -tag] at address [format %04x $address]"
+            #puts stderr "*** $self _processXMLnode: tag is [$n cget -tag] at address [format %08x $address]"
             switch [$n cget -tag] {
                 cdi {
                     set id [$n getElementsByTagName identification -depth 1]
@@ -324,7 +338,9 @@ namespace eval lcc {
                                  -text [_m "Label|Read All"] \
                                  -command [mymethod _readall $space]]
                     pack $readall -fill x -anchor center
-
+                    if {$options(-displayonly)} {
+                        $readall configure -state disabled
+                    }
                 }
                 group {
                     incr _groupnumber
@@ -341,7 +357,7 @@ namespace eval lcc {
                     } else {
                         set name {}
                     }
-                    #puts stderr "$self _processXMLnode (group branch): name is $name (length is [llength $name]), address = [format %04x $address], offset is [format %04x $offset]\n"
+                    #puts stderr "$self _processXMLnode (group branch): name is $name (length is [llength $name]), address = [format %08x $address], offset is [format %04x $offset]\n"
                     if {[winfo class $frame] eq "TNotebook"} {
                         #set groupscrollframe [ScrolledWindow \
                         #                      $frame.group$_groupnumber \
@@ -499,6 +515,9 @@ namespace eval lcc {
                     lappend _readall($space) $rb
                     $readwrite add ttk::button write -text [_m "Label|Write"] \
                           -command [mymethod $writermethod $widget $space $address $size $min $max]
+                    if {$options(-displayonly)} {
+                        $readwrite configure -state disabled
+                    }
                     incr address $size
                 }
                 string {
@@ -559,6 +578,9 @@ namespace eval lcc {
                     lappend _readall($space) $rb
                     $readwrite add ttk::button write -text [_m "Label|Write"] \
                           -command [mymethod $writermethod $widget $space $address $size]
+                    if {$options(-displayonly)} {
+                        $readwrite configure -state disabled
+                    }
                     incr address $size
                 }
                 eventid {
@@ -620,6 +642,9 @@ namespace eval lcc {
                     lappend _readall($space) $rb
                     $readwrite add ttk::button write -text [_m "Label|Write"] \
                           -command [mymethod $writermethod $widget $space $address $size]
+                    if {$options(-displayonly)} {
+                        $readwrite configure -state disabled
+                    }
                     incr address $size
                 }
             }

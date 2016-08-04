@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160723.1937>
+#  Last Modified : <160804.1420>
 #
 #  Description	
 #
@@ -237,7 +237,9 @@ snit::type OpenLCB {
         $mainWindow menu add help command \
               -label [_m "Menu|Help|Reference Manual"] \
               -command {HTMLHelp help "OpenLCB Reference"}
-        
+        $mainWindow menu add view command \
+              -label [_m "Menu|View|Display CDI from XML file"] \
+              -command [mytypemethod _ViewCDI]
         # Hook in help files.
         HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
         
@@ -679,6 +681,34 @@ snit::type OpenLCB {
             putdebug "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
             wm deiconify $CDIs_FormTLs($nid)
         }
+    }
+    typemethod _ViewCDI {} {
+        set cdifile [tk_getOpenFile -defaultextension .xml \
+                     -filetypes { {{XML Files} {.xml} }
+                                  {{Text Files} {.txt} }
+                                  {{All Files} * } } \
+                     -initialdir [pwd] \
+                     -initialfile cdi.xml \
+                     -parent . \
+                     -title "Select a CDI XML file to display"]
+        if {$cdifile eq {}} {return}
+        if {[catch {open $cdifile r} infp]} {
+            tk_messageBox -type ok -icon error \
+                  -message [_ "Could not open %s because %s" $cdifile $infp]
+            return
+        }
+        set CDIs_text($cdifile) [read $infp]
+        close $infp
+        set CDIs_xml($cdifile) [ParseXML %AUTO% $CDIs_text($cdifile)]
+        if {[info exists CDIs_FormTLs($cdifile)] && 
+            [winfo exists $CDIs_FormTLs($cdifile)]} {
+            $CDIs_FormTLs($cdifile) destroy
+        }
+        set CDIs_FormTLs($cdifile) \
+              [lcc::ConfigurationEditor \
+               .cdi[regsub -all {.} [file tail $cdifile] {}]%AUTO% \
+               -cdi $CDIs_xml($cdifile) \
+               -displayonly true]
     }
     typemethod _MemoryConfig {x y} {
         #* Configure the memory for the node at x,y
