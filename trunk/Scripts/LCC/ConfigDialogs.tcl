@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Mar 3 14:38:10 2016
-#  Last Modified : <160804.1405>
+#  Last Modified : <160807.1012>
 #
 #  Description	
 #
@@ -230,6 +230,8 @@ namespace eval lcc {
         ## I/O Completion Flag.
         variable olddatagramhandler {}
         ## Old datagram handler.
+        variable oldgeneralmessagehandler {}
+        ## Old general message handler
         variable datagrambuffer {}
         ## Datagram message buffer
         variable _datagramrejecterror 0
@@ -286,6 +288,31 @@ namespace eval lcc {
                         # datagram rejected
                         set _datagramrejecterror [expr {([lindex $data 0] << 8) | [lindex $data 1]}]
                         incr _ioComplete -1 ;# no further messages expected
+                    }
+                }
+            }
+        }
+        method _messagehandler {message} {
+            ## Message handler -- handle incoming messages.
+            # Certain messages are processed:
+            #
+            # Initialization Complete Messages -- This is a possible response 
+            # to freeze, unfreeze, reset, or reinitialize commands.
+            #
+            switch [format {0x%04X} [$message cget -mti]] {
+                0x0100 -
+                0x0101 {
+                    if {[$message cget -sourcenid] ne [$self cget -destnid]} {
+                        if {$oldgeneralmessagehandler ne {}} {
+                            uplevel #0 $oldgeneralmessagehandler $message
+                        }
+                    } else {
+                        incr _ioComplete ;# Response from freeze, unfreeze, reset, or reinitialize command.
+                    }
+                }
+                default {
+                    if {$oldgeneralmessagehandler ne {}} {
+                        uplevel #0 $oldgeneralmessagehandler $message
                     }
                 }
             }
@@ -451,6 +478,135 @@ namespace eval lcc {
                 ## wrong space ...
             }
             return [lrange $datagrambuffer $dataoffset end]
+        }
+        
+        method _lock {} {
+            puts stderr "*** $self _lock"
+            set data [list 0x20 0x88]
+            foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] [[$self cget -transport] cget -nid]] 1 end] {
+                lappend data [scan $oct %02x]
+            }
+            set datagrambuffer {}
+            set _ioComplete 0
+            set writeReplyCheck yes
+            set olddatagramhandler [[$self cget -transport] cget -datagramhandler]
+            [$self cget -transport] configure -datagramhandler [mymethod _datagramhandler]
+            [$self cget -transport] SendDatagram [$self cget -destnid] $data
+            vwait [myvar _ioComplete]
+            [$self cget -transport] configure -datagramhandler $olddatagramhandler
+            if {$_ioComplete < 0} {
+                puts stderr "*** $self _lock returns -1"
+                return -1
+            }
+            #set status [lindex $datagrambuffer 1]
+            set reservedNIDIndx 2
+            foreach n [[$self cget -transport] getMyNIDList] {
+                if {$n != [lindex $datagrambuffer $reservedNIDIndx]} {
+                    puts stderr "*** $self _lock returns 0"
+                    return 0
+                }
+                incr reservedNIDIndx
+            }
+            puts stderr "*** $self _lock returns 1"
+            return 1
+        }
+        method _unlock {} {
+            puts stderr "*** $self _unlock"
+            set data [list 0x20 0x88 0 0 0 0 0 0]
+            set datagrambuffer {}
+            set _ioComplete 0
+            set writeReplyCheck yes
+            set olddatagramhandler [[$self cget -transport] cget -datagramhandler]
+            [$self cget -transport] configure -datagramhandler [mymethod _datagramhandler]
+            [$self cget -transport] SendDatagram [$self cget -destnid] $data
+            vwait [myvar _ioComplete]
+            [$self cget -transport] configure -datagramhandler $olddatagramhandler
+            if {$_ioComplete < 0} {
+                puts stderr "*** $self _unlock returns -1"
+                return -1
+            }
+            puts stderr "*** $self _unlock returns 1"
+            return 1
+        }
+        method _freeze {thespace} {
+            puts stderr "*** $self _freeze $thespace"
+            lcc::byte validate $thespace
+            set data [list 0x20 0xA1 $thespace]
+            set _ioComplete 0
+            set writeReplyCheck yes
+            set olddatagramhandler [[$self cget -transport] cget -datagramhandler]
+            set oldgeneralmessagehandler [[$self cget -transport] cget -generalmessagehandler]
+            [$self cget -transport] configure -datagramhandler [mymethod _datagramhandler]
+            [$self cget -transport] configure -generalmessagehandler [mymethod _messagehandler]
+            [$self cget -transport] SendDatagram [$self cget -destnid] $data
+            vwait [myvar _ioComplete]
+            [$self cget -transport] configure -datagramhandler $olddatagramhandler
+            [$self cget -transport] configure -generalmessagehandler $oldgeneralmessagehandler
+            if {$_ioComplete < 0} {
+                puts stderr "*** $self _freeze returns -1"
+                return -1
+            }
+            puts stderr "*** $self _freeze returns 1"
+            return 1
+        }
+        method _unfreeze {thespace} {
+            puts stderr "*** $self _unfreeze $thespace"
+            lcc::byte validate $thespace
+            set data [list 0x20 0xA0 $thespace]
+            set _ioComplete 0
+            set writeReplyCheck yes
+            set olddatagramhandler [[$self cget -transport] cget -datagramhandler]
+            set oldgeneralmessagehandler [[$self cget -transport] cget -generalmessagehandler]
+            [$self cget -transport] configure -datagramhandler [mymethod _datagramhandler]
+            [$self cget -transport] configure -generalmessagehandler [mymethod _messagehandler]
+            [$self cget -transport] SendDatagram [$self cget -destnid] $data
+            vwait [myvar _ioComplete]
+            [$self cget -transport] configure -datagramhandler $olddatagramhandler
+            [$self cget -transport] configure -generalmessagehandler $oldgeneralmessagehandler
+            if {$_ioComplete < 0} {
+                puts stderr "*** $self _unfreeze returns -1"
+                return -1
+            }
+            puts stderr "*** $self _unfreeze returns 1"
+            return 1
+        }
+        method _reset {} {
+            set data [list 0x20 0xA9]
+            set _ioComplete 0
+            set writeReplyCheck yes
+            set olddatagramhandler [[$self cget -transport] cget -datagramhandler]
+            set oldgeneralmessagehandler [[$self cget -transport] cget -generalmessagehandler]
+            [$self cget -transport] configure -datagramhandler [mymethod _datagramhandler]
+            [$self cget -transport] configure -generalmessagehandler [mymethod _messagehandler]
+            [$self cget -transport] SendDatagram [$self cget -destnid] $data
+            vwait [myvar _ioComplete]
+            [$self cget -transport] configure -datagramhandler $olddatagramhandler
+            [$self cget -transport] configure -generalmessagehandler $oldgeneralmessagehandler
+            if {$_ioComplete < 0} {
+                return -1
+            }
+            return 1            
+        }
+        method _reinitialize {} {
+            set data [list 0x20 0xAA]
+            foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] [$self cget -destnid]] 1 end] {
+                lappend data [scan $oct %02x]
+            }
+            set _ioComplete 0
+            set writeReplyCheck yes
+            set olddatagramhandler [[$self cget -transport] cget -datagramhandler]
+            set oldgeneralmessagehandler [[$self cget -transport] cget -generalmessagehandler]
+            [$self cget -transport] configure -datagramhandler [mymethod _datagramhandler]
+            [$self cget -transport] configure -generalmessagehandler [mymethod _messagehandler]
+            [$self cget -transport] SendDatagram [$self cget -destnid] $data
+            vwait [myvar _ioComplete]
+            [$self cget -transport] configure -datagramhandler $olddatagramhandler
+            [$self cget -transport] configure -generalmessagehandler $oldgeneralmessagehandler
+            if {$_ioComplete < 0} {
+                return -1
+            }
+            return 1            
+            
         }
         
         constructor {args} {
@@ -763,6 +919,37 @@ namespace eval lcc {
                       -message [_ "Could not open %s because %s" $filename $outfp]
                 return
             }
+            set locked no
+            while {!$locked} {
+                switch [$self _lock] {
+                    -1 {
+                        if {[tk_messageBox -type okcancel -icon question \
+                             -message [_ "Failed to lock node, continue?"]] eq "ok"} {
+                            break
+                        } else {
+                            close $infp
+                            return
+                        }
+                    }
+                    0 {
+                        set retrycheck [tk_messageBox -type okcancel \
+                                        -icon info \
+                                        -message [_ "Device Busy, retrying in 30 seconds."]]
+                        if {$retrycheck eq "cancel"} {
+                            close $infp
+                            return
+                        } else {
+                            after 30000
+                        }
+                    }
+                    1 {
+                        set locked yes
+                    }
+                }
+            }
+            puts stderr "*** $self _Restore: locked = $locked"
+            set temperature [$self _freeze $_space]
+            puts stderr "*** $self _Restore: temperature = $temperature"
             while {[gets $infp line] >= 0} {
                 if {[regexp {^([[:xdigit:]]+)[[:space:]]+([[:xdigit:][:space:]]+)$} $line -> hexaddr hexdata] < 1} {
                     tk_messageBox -type ok -icon warning \
@@ -780,6 +967,9 @@ namespace eval lcc {
                 #puts stderr "*** $self _Restore: $self _writememory $_space $addr $data"
                 $self _writememory $_space $addr $data
             }
+            if {$temperature > 0} {$self _unfreeze $_space}
+            if {$locked} {$self _unlock}
+            close $infp
         }
     }
 }
