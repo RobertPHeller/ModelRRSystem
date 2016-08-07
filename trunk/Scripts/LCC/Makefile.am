@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160724.1146>
+#  Last Modified : <160807.1039>
 #
 #  Description	
 #
@@ -48,10 +48,13 @@ TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 EXTRA_DIST = lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		ConfigDialogs.tcl OpenLCB.tcl OpenLCB.desktop OpenLCB.png \
 		Doxyfile.in OpenLCBGCTcpHub.tcl OpenLCBTcpHub.tcl \
-		OpenLCB_MRD2.tcl
+		OpenLCB_MRD2.tcl OpenLCB_PiGPIO.tcl
 
 bin_SCRIPTS = OpenLCB${EXEEXT} OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
 	OpenLCBGCTcpHub${EXEEXT}
+if HAVE_WIRINGPI
+bin_SCRIPTS += OpenLCB_PiGPIO${EXEEXT}
+endif
 
 pkgdatadir = $(datadir)/$(PACKAGE)/LCC
 pkgdata_DATA = lcc.tcl pkgIndex.tcl ConfigDialogs.tcl eventDialogs.tcl \
@@ -64,10 +67,13 @@ pixmap_DATA = OpenLCB.png
 
 man_MANS = man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
 	man1/OpenLCBGCTcpHub.1
+if HAVE_WIRINGPI
+man_MANS += man1/OpenLCB_PiGPIO.1
+endif
 
 CLEANFILES = pkgIndex.tcl OpenLCB${EXEEXT} OpenLCB.pot \
 			  OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
-			  OpenLCBGCTcpHub${EXEEXT}
+			  OpenLCBGCTcpHub${EXEEXT} OpenLCB_PiGPIO${EXEEXT}
 
 pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		ConfigDialogs.tcl
@@ -102,11 +108,11 @@ OpenLCBSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
 
 OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
                 ConfigDialogs.tcl eventDialogs.tcl ConfigurationEditor.tcl \
-                OpenLCBGCTcpHub.tcl \
+                OpenLCBGCTcpHub.tcl OpenLCB_PiGPIO.tcl \
 		$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m \
-		-L Tcl $(addprefix $(subdir)/,OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl ConfigDialogs.tcl eventDialogs.tcl ConfigurationEditor.tcl OpenLCBGCTcpHub.tcl) \
+		-L Tcl $(addprefix $(subdir)/,OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl ConfigDialogs.tcl eventDialogs.tcl ConfigurationEditor.tcl OpenLCBGCTcpHub.tcl OpenLCB_PiGPIO.tcl) \
 		Scripts/Common/snitStdMenuBar.tcl|\
 	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
 	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
@@ -278,6 +284,62 @@ OpenLCB_MRD2${EXEEXT}: OpenLCB_MRD2.tcl $(OpenLCB_MRD2SCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB_MRD2${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf OpenLCB_MRD2.vfs
 
+OpenLCB_PiGPIOSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
+			$(top_srcdir)/Scripts/LCC/lcc.tcl \
+			$(top_builddir)/Scripts/Common/Version.tcl \
+			$(top_srcdir)/Scripts/Common/ParseXML.tcl \
+			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+	                $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
+	                $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+	                $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+	                $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+			$(top_srcdir)/Scripts/Common/gettext.tcl \
+			$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+			$(top_srcdir)/Scripts/Common/mainwindow.tcl \
+			$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+			$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+			$(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
+	                $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+	                $(top_srcdir)/Scripts/Common/snitrotext.tcl \
+	                $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
+			$(top_srcdir)/Scripts/Common/questhead.xbm \
+			$(top_srcdir)/Scripts/Common/unknown.xpm
+
+WiringPiSupportFiles =  $(top_builddir)/C++/wiringPi/.libs/libtclwiringpi$(SHLIB_SUFFIX) \
+			$(top_builddir)/C++/wiringPi/pkgIndex.tcl
+WiringPiDependFiles = $(top_builddir)/C++/wiringPi/libtclwiringpi.la \
+			$(top_builddir)/C++/wiringPi/pkgIndex.tcl
+			
+
+OpenLCB_PiGPIO${EXEEXT}: OpenLCB_PiGPIO.tcl $(OpenLCB_PiGPIOSCRIPTS) \
+	$(top_builddir)/po/OpenLCB/msgfiles $(WiringPiDependFiles)
+	-rm -f  OpenLCB_PiGPIO.kit
+	-rm -rf  OpenLCB_PiGPIO.vfs
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB_PiGPIO.tcl
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap OpenLCB_PiGPIO.kit
+	-rm -f  OpenLCB_PiGPIO.kit
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB_PiGPIO \
+		lib $(SNITLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB_PiGPIO \
+		lib $(TCLLOGLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB_PiGPIO \
+		lib $(URILIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiGPIO \
+		lib/Common $(OpenLCB_PiGPIOSCRIPTS)
+	$(UNZIP) -qq -d OpenLCB_PiGPIO.vfs/lib \
+		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
+	$(UNZIP) -qq -d OpenLCB_PiGPIO.vfs/lib \
+		$(top_srcdir)/BuildData/$(IMG_ZIP)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_PiGPIO \
+		Common
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiGPIO \
+		lib/WiringPi $(WiringPiSupportFiles)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiGPIO \
+		Messages $(top_builddir)/po/OpenLCB/*.msg
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB_PiGPIO${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
+	-rm -rf OpenLCB_PiGPIO.vfs
+	
+
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
 
@@ -295,8 +357,9 @@ FORCE:
 
 
 man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
-	man1/OpenLCBGCTcpHub.1: Doxyfile OpenLCB.tcl \
-		OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl OpenLCBGCTcpHub.tcl
+	man1/OpenLCBGCTcpHub.1 man1/OpenLCB_PiGPIO.1: Doxyfile OpenLCB.tcl \
+		OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl OpenLCBGCTcpHub.tcl \
+		OpenLCB_PiGPIO.tcl
 	-rm -rf man1
 	$(DOXYGEN) Doxyfile
 	
@@ -313,3 +376,6 @@ $(top_builddir)/C++/Azatrax/libazatrax.la : \
 	$(top_srcdir)/C++/Azatrax/*.i
 	$(MAKE) -C $(top_builddir)/C++/Azatrax
 
+$(top_builddir)/C++/wiringPi/libtclwiringpi.la : \
+	$(top_srcdir)/C++/wiringPi/*.i
+	$(MAKE) -C $(top_builddir)/C++/wiringPi

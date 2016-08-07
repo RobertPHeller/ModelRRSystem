@@ -292,10 +292,10 @@ proc FindArchivesAndComputeSizes_WINDOWS {} {
 #  puts stderr "*** FindArchivesAndComputeSizes_WINDOWS: ::CDDir = $::CDDir"
   set ::BinaryArchive [file join $::CDDir \
                        MRRSystem-${::MRRSystem::VERSION}-Win32BinOnly.zip]
-  set ::SysBinaryArchive [file join $::CDDir \
-                          i686-w64-mingw32-4.6-DLLS.zip]
-  set ::SysBinaryArchiveDest "C:/windows/system/"
-  set ::InstallArchives::hasSysBinaryArchive yes
+  #set ::SysBinaryArchive [file join $::CDDir \
+  #                        i686-w64-mingw32-4.6-DLLS.zip]
+  #set ::SysBinaryArchiveDest "C:/windows/system/"
+  set ::InstallArchives::hasSysBinaryArchive no
   set ::BinaryArchiveInstallProc WindowsInstallVFSZIP
   set ::DevelArchive [file join $::CDDir \
 	MRRSystem-${::MRRSystem::VERSION}-Win32BinDevel.zip]
