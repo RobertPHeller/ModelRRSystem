@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160804.1420>
+#  Last Modified : <160808.0933>
 #
 #  Description	
 #
@@ -653,7 +653,8 @@ snit::type OpenLCB {
             putdebug "*** $type _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"
             set CDIs_FormTLs($nid) \
                   [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
-                   -cdi $CDIs_xml($nid) -nid $nid -transport $transport]
+                   -cdi $CDIs_xml($nid) -nid $nid -transport $transport \
+                   -debugprint [myproc putdebug]]
             putdebug "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
         } elseif {![info exists CDIs_xml($nid)] ||
             $CDIs_xml($nid) eq {}} {
@@ -665,7 +666,8 @@ snit::type OpenLCB {
                   [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
                    -cdi $CDIs_xml($nid) \
                    -nid $nid \
-                   -transport $transport ]
+                   -transport $transport \
+                   -debugprint [myproc putdebug]]
             putdebug "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
         } elseif {![info exists CDIs_FormTLs($nid)] ||
                   $CDIs_FormTLs($nid) eq {} ||
@@ -675,7 +677,8 @@ snit::type OpenLCB {
                   [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
                    -cdi $CDIs_xml($nid) \
                    -nid $nid \
-                   -transport $transport ]
+                   -transport $transport \
+                   -debugprint [myproc putdebug]]
             putdebug "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
         } else {
             putdebug "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
@@ -708,7 +711,8 @@ snit::type OpenLCB {
               [lcc::ConfigurationEditor \
                .cdi[regsub -all {.} [file tail $cdifile] {}]%AUTO% \
                -cdi $CDIs_xml($cdifile) \
-               -displayonly true]
+               -displayonly true \
+               -debugprint [myproc putdebug]]
     }
     typemethod _MemoryConfig {x y} {
         #* Configure the memory for the node at x,y
@@ -753,14 +757,16 @@ snit::type OpenLCB {
         }
         lcc::ConfigOptions .configopts[regsub {:} $nid {}]%AUTO% \
               -nid $nid \
-                  -available $available \
-                  -writelengths $writelens \
-                  -highest $highest \
-                  -lowest $lowest \
-                  -name "$name"
+              -available $available \
+              -writelengths $writelens \
+              -highest $highest \
+              -lowest $lowest \
+              -name "$name" \
+              -debugprint [myproc putdebug]
         lcc::ConfigMemory .configmem[regsub {:} $nid {}]%AUTO% \
               -destnid $nid \
-              -transport $transport
+              -transport $transport \
+              -debugprint [myproc putdebug]
     }
     
     typemethod _carefulExit {} {

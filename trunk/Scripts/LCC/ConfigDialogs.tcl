@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Mar 3 14:38:10 2016
-#  Last Modified : <160807.1012>
+#  Last Modified : <160808.0939>
 #
 #  Description	
 #
@@ -64,6 +64,7 @@ namespace eval lcc {
         # @arg -highest Highest memory space.
         # @arg -lowest Lowest memory space.
         # @arg -name Name string.
+        # @arg -debugprint A function to handle debug output.
         # @par
         
         component nodeid
@@ -85,6 +86,18 @@ namespace eval lcc {
         option -highest -readonly yes -type lcc::byte -default 0xFF
         option -lowest -readonly yes -type lcc::byte -default 0xFD
         option -name -readonly yes -default ""
+        option -debugprint -readonly yes -default {}
+        
+        method putdebug {message} {
+            ## Print message using debug output, if any.
+            #
+            # @param message The message to print.
+            
+            set debugout [$self cget -debugprint]
+            if {$debugout ne ""} {
+                uplevel #0 [list $debugout "$message"]
+            }
+        }
         
         constructor {args} {
             ## @publicsection Construct a Config Options dialog.
@@ -97,6 +110,7 @@ namespace eval lcc {
             # @arg -highest Highest memory space.
             # @arg -lowest Lowest memory space.
             # @arg -name Name string.
+            # @arg -debugprint A function to handle debug output.
             # @par
             
             installhull using Dialog -separator 0 \
@@ -208,6 +222,7 @@ namespace eval lcc {
         # Options:
         # @arg -destnid Node ID to send to.
         # @arg -transport LCC Transport object.
+        # @arg -debugprint A function to handle debug output.
         # @par
         
         component readlist
@@ -226,6 +241,8 @@ namespace eval lcc {
         
         option -destnid -readonly yes -type lcc::nid -default 00:00:00:00:00:00
         option -transport -readonly yes -default {}
+        option -debugprint -readonly yes -default {}
+        
         variable _ioComplete
         ## I/O Completion Flag.
         variable olddatagramhandler {}
@@ -246,6 +263,7 @@ namespace eval lcc {
             #                datagramcontent.
             # @param sourcenid The Node ID of the node sending the datagram.
             # @param ... The data buffer, if any.
+            # @arg -debugprint A function to handle debug output.
             #
             
             set data $args
@@ -481,7 +499,7 @@ namespace eval lcc {
         }
         
         method _lock {} {
-            puts stderr "*** $self _lock"
+            $self putdebug "*** $self _lock"
             set data [list 0x20 0x88]
             foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] [[$self cget -transport] cget -nid]] 1 end] {
                 lappend data [scan $oct %02x]
@@ -495,23 +513,23 @@ namespace eval lcc {
             vwait [myvar _ioComplete]
             [$self cget -transport] configure -datagramhandler $olddatagramhandler
             if {$_ioComplete < 0} {
-                puts stderr "*** $self _lock returns -1"
+                $self putdebug "*** $self _lock returns -1"
                 return -1
             }
             #set status [lindex $datagrambuffer 1]
             set reservedNIDIndx 2
             foreach n [[$self cget -transport] getMyNIDList] {
                 if {$n != [lindex $datagrambuffer $reservedNIDIndx]} {
-                    puts stderr "*** $self _lock returns 0"
+                    $self putdebug "*** $self _lock returns 0"
                     return 0
                 }
                 incr reservedNIDIndx
             }
-            puts stderr "*** $self _lock returns 1"
+            $self putdebug "*** $self _lock returns 1"
             return 1
         }
         method _unlock {} {
-            puts stderr "*** $self _unlock"
+            $self putdebug "*** $self _unlock"
             set data [list 0x20 0x88 0 0 0 0 0 0]
             set datagrambuffer {}
             set _ioComplete 0
@@ -522,14 +540,14 @@ namespace eval lcc {
             vwait [myvar _ioComplete]
             [$self cget -transport] configure -datagramhandler $olddatagramhandler
             if {$_ioComplete < 0} {
-                puts stderr "*** $self _unlock returns -1"
+                $self putdebug "*** $self _unlock returns -1"
                 return -1
             }
-            puts stderr "*** $self _unlock returns 1"
+            $self putdebug "*** $self _unlock returns 1"
             return 1
         }
         method _freeze {thespace} {
-            puts stderr "*** $self _freeze $thespace"
+            $self putdebug "*** $self _freeze $thespace"
             lcc::byte validate $thespace
             set data [list 0x20 0xA1 $thespace]
             set _ioComplete 0
@@ -543,14 +561,14 @@ namespace eval lcc {
             [$self cget -transport] configure -datagramhandler $olddatagramhandler
             [$self cget -transport] configure -generalmessagehandler $oldgeneralmessagehandler
             if {$_ioComplete < 0} {
-                puts stderr "*** $self _freeze returns -1"
+                $self putdebug "*** $self _freeze returns -1"
                 return -1
             }
-            puts stderr "*** $self _freeze returns 1"
+            $self putdebug "*** $self _freeze returns 1"
             return 1
         }
         method _unfreeze {thespace} {
-            puts stderr "*** $self _unfreeze $thespace"
+            $self putdebug "*** $self _unfreeze $thespace"
             lcc::byte validate $thespace
             set data [list 0x20 0xA0 $thespace]
             set _ioComplete 0
@@ -564,10 +582,10 @@ namespace eval lcc {
             [$self cget -transport] configure -datagramhandler $olddatagramhandler
             [$self cget -transport] configure -generalmessagehandler $oldgeneralmessagehandler
             if {$_ioComplete < 0} {
-                puts stderr "*** $self _unfreeze returns -1"
+                $self putdebug "*** $self _unfreeze returns -1"
                 return -1
             }
-            puts stderr "*** $self _unfreeze returns 1"
+            $self putdebug "*** $self _unfreeze returns 1"
             return 1
         }
         method _reset {} {
@@ -607,6 +625,17 @@ namespace eval lcc {
             }
             return 1            
             
+        }
+        
+        method putdebug {message} {
+            ## Print message using debug output, if any.
+            #
+            # @param message The message to print.
+            
+            set debugout [$self cget -debugprint]
+            if {$debugout ne ""} {
+                uplevel #0 [list $debugout "$message"]
+            }
         }
         
         constructor {args} {
@@ -760,7 +789,7 @@ namespace eval lcc {
                 set status 0
                 return {}
             }
-            #puts stderr "*** $self _getAddressRange: datagrambuffer is $datagrambuffer"
+            $self putdebug "*** $self _getAddressRange: datagrambuffer is $datagrambuffer"
             set command [lindex $datagrambuffer 1]
             if {$command == 0x86} {return {}}
             set asp     [lindex $datagrambuffer 2]
@@ -812,7 +841,7 @@ namespace eval lcc {
                                          [$space cget -text]]]
             set addrrange [$self _getAddressRange $_space]
             if {$addrrange eq {}} {return}
-            #puts stderr "*** $self _Dump: addrrange is $addrrange"
+            $self putdebug "*** $self _Dump: addrrange is $addrrange"
             if {$_space == 0xFF} {
                 $self _dumpAsText $_space [lindex $addrrange 0] [lindex $addrrange 1]
             } else {
@@ -947,9 +976,9 @@ namespace eval lcc {
                     }
                 }
             }
-            puts stderr "*** $self _Restore: locked = $locked"
+            $self putdebug "*** $self _Restore: locked = $locked"
             set temperature [$self _freeze $_space]
-            puts stderr "*** $self _Restore: temperature = $temperature"
+            $self putdebug "*** $self _Restore: temperature = $temperature"
             while {[gets $infp line] >= 0} {
                 if {[regexp {^([[:xdigit:]]+)[[:space:]]+([[:xdigit:][:space:]]+)$} $line -> hexaddr hexdata] < 1} {
                     tk_messageBox -type ok -icon warning \
@@ -959,12 +988,12 @@ namespace eval lcc {
                 scan $hexaddr %x addr
                 set data [list]
                 foreach hb [split $hexdata] {
-                    #puts stderr "*** $self _Restore: hb = $hb"
+                    $self putdebug "*** $self _Restore: hb = $hb"
                     if {[scan $hb %x b] > 0} {
                         lappend data $b
                     }
                 }
-                #puts stderr "*** $self _Restore: $self _writememory $_space $addr $data"
+                $self putdebug "*** $self _Restore: $self _writememory $_space $addr $data"
                 $self _writememory $_space $addr $data
             }
             if {$temperature > 0} {$self _unfreeze $_space}

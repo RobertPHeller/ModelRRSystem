@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <160804.1422>
+#  Last Modified : <160808.0939>
 #
 #  Description	
 #
@@ -76,6 +76,7 @@ namespace eval lcc {
         # methods and have an @c -datagramhandler option.
         # @arg -displayonly A flag indicating that the CDI is just to be
         # displayed.  The default is false.
+        # @arg -debugprint A function to handle debug output.
         # @arg -class Delegated to the toplevel.
         # @arg -menu  Delegated to the toplevel
         # @arg -height Delegated to the ScrollableFrame
@@ -101,6 +102,7 @@ namespace eval lcc {
         option -nid -readonly yes -type lcc::nid -default "05:01:01:01:22:00"
         option -transport -readonly yes -default {}
         option -displayonly -readonly yes -type snit::boolean -default false
+        option -debugprint -readonly yes -default {}
         #option -height -type {snit::pixels -min 100}
         delegate option -height to editframe
         delegate option -areaheight to editframe
@@ -127,6 +129,17 @@ namespace eval lcc {
         }
         ## Generic menu.
         
+        method putdebug {message} {
+            ## Print message using debug output, if any.
+            #
+            # @param message The message to print.
+            
+            set debugout [$self cget -debugprint]
+            if {$debugout ne ""} {
+                uplevel #0 [list $debugout "$message"]
+            }
+        }
+        
         constructor {args} {
             ## @publicsection @brief Constructor: create the configuration editor.
             # Construct a memory configuration window to edit the configuration
@@ -143,6 +156,7 @@ namespace eval lcc {
             # methods and have an @c -datagramhandler option.
             # @arg -displayonly A flag indicating that the CDI is just to be
             # displayed.  The default is false.
+            # @arg -debugprint A function to handle debug output.
             # @arg -class Delegated to the toplevel.
             # @arg -menu  Delegated to the toplevel
             # @arg -height Delegated to the ScrollableFrame
@@ -170,7 +184,7 @@ namespace eval lcc {
                 error [_ "There is no CDI container in %s" $options(-cdi)]
             }
             set cdi [lindex $cdis]
-            #puts stderr "*** $type create $self: win = $win, about to wm protocol $win WM_DELETE_WINDOW ..."
+            $self putdebug "*** $type create $self: win = $win, about to wm protocol $win WM_DELETE_WINDOW ..."
             wm protocol $win WM_DELETE_WINDOW [mymethod _close]
             install main using MainFrame $win.main -menu [subst $_menu] \
                   -textvariable [myvar status]
@@ -183,7 +197,7 @@ namespace eval lcc {
                   [$scroll getframe].editframe -constrainedwidth yes
             $scroll setwidget $editframe
             $self configurelist $args
-            #puts stderr "*** $type create $self: win = $win, about to wm title $win ..."
+            $self putdebug "*** $type create $self: win = $win, about to wm title $win ..."
             wm title $win [_ "CDI Configuration Tool for Node ID %s" [$self cget -nid]]
             set address 0
             $self _processXMLnode $cdi [$editframe getframe] -1 address
@@ -225,9 +239,9 @@ namespace eval lcc {
             # @param space The current space.
             # @param address_var The name of the address variable.
             
-            #puts stderr "*** $self _processXMLnode $n $frame $space $address_var"
+            $self putdebug "*** $self _processXMLnode $n $frame $space $address_var"
             upvar $address_var address
-            #puts stderr "*** $self _processXMLnode: tag is [$n cget -tag] at address [format %08x $address]"
+            $self putdebug "*** $self _processXMLnode: tag is [$n cget -tag] at address [format %08x $address]"
             switch [$n cget -tag] {
                 cdi {
                     set id [$n getElementsByTagName identification -depth 1]
@@ -286,7 +300,7 @@ namespace eval lcc {
                 acdi {
                 }
                 segment {
-                    #puts stderr "$self _processXMLnode (segment branch): n is: "
+                    $self putdebug "$self _processXMLnode (segment branch): n is: "
                     #$n display stderr {        }
                     incr _segmentnumber
                     set _groupnumber 0
@@ -298,7 +312,7 @@ namespace eval lcc {
                     if {$origin eq {}} {set origin 0}
                     set address $origin
                     set name [$n getElementsByTagName name -depth 1]
-                    #puts stderr "$self _processXMLnode (segment branch): name is $name (length is [llength $name])\n"
+                    $self putdebug "$self _processXMLnode (segment branch): name is $name (length is [llength $name])\n"
                     if {[llength $name] == 1} {
                         set name [[lindex $name 0] data]
                     } else {
@@ -357,7 +371,7 @@ namespace eval lcc {
                     } else {
                         set name {}
                     }
-                    #puts stderr "$self _processXMLnode (group branch): name is $name (length is [llength $name]), address = [format %08x $address], offset is [format %04x $offset]\n"
+                    $self putdebug "$self _processXMLnode (group branch): name is $name (length is [llength $name]), address = [format %08x $address], offset is [format %04x $offset]\n"
                     if {[winfo class $frame] eq "TNotebook"} {
                         #set groupscrollframe [ScrolledWindow \
                         #                      $frame.group$_groupnumber \
@@ -480,7 +494,7 @@ namespace eval lcc {
                     }
                     set widget $intframe.value
                     set map [$n getElementsByTagName map -depth 1]
-                    #puts stderr "*** $self _processXMLnode (int branch): map = $map (length is [llength $map])"
+                    $self putdebug "*** $self _processXMLnode (int branch): map = $map (length is [llength $map])"
                     if {[llength $map] == 1} {
                         set map [lindex $map 0]
                         upvar #0 ${widget}_VM valuemap
@@ -495,7 +509,7 @@ namespace eval lcc {
                             lappend values $value
                         }
                         if {![info exists default_value]} {set default_value [lindex $values 0]}
-                        #puts stderr "*** $self _processXMLnode (int branch): values = $values, default_value = $default_value"
+                        $self putdebug "*** $self _processXMLnode (int branch): values = $values, default_value = $default_value"
                         ttk::combobox $widget -values $values -state readonly
                         $widget set $default_value
                         set readermethod _intComboRead
