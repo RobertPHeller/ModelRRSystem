@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <160808.0939>
+#  Last Modified : <160809.1049>
 #
 #  Description	
 #
@@ -406,6 +406,7 @@ namespace eval lcc {
                     } else {
                         set repnamefmt {%d}
                     }
+                    incr address $offset
                     if {$replication > 1} {
                         #set replnotebook [ttk::notebook $groupframe.replnotebook]
                         set replnotebook [ScrollTabNotebook $groupframe.replnotebook]
@@ -427,7 +428,6 @@ namespace eval lcc {
                             set _intnumber 0
                             set _stringnumber 0
                             set _eventidnumber 0
-                            incr address $offset
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
                                 if {[lsearch {name description repname} $tag] >= 0} {continue}
@@ -435,7 +435,6 @@ namespace eval lcc {
                             }
                         }
                     } else {
-                        incr address $offset
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}

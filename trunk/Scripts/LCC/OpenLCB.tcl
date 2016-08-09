@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160808.0933>
+#  Last Modified : <160809.0944>
 #
 #  Description	
 #
@@ -401,7 +401,7 @@ snit::type OpenLCB {
                 }
             }
             0x0490 -
-            0x0498 {
+            0x0488 {
                 #* Verify Node ID
                 $transport SendMyNodeVerifcation
             }

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160804.1146>
+#  Last Modified : <160809.0952>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -1732,7 +1732,7 @@ namespace eval lcc {
                              -extended true]
             } else {
                 lcc::twelvebits validate $address
-                $mtiheader configure -mti 0x498 -srcid $myalias -frametype 1
+                $mtiheader configure -mti 0x488 -srcid $myalias -frametype 1
                 set message [CanMessage %AUTO% -header [$mtiheader getHeader] \
                              -extended true -data [list \
                                                    [expr {($address & 0x0F00) >> 8}] \
@@ -4362,6 +4362,8 @@ namespace eval lcc {
             set protocolstrings(DCC) [_m "Label|DCC"]
             set protocolstrings(SimpleTrainNode) [_m "Label|Simple Train Node"]
             set protocolstrings(FunctionConfiguration) [_m "Label|Function Configuration"]
+            set protocolstrings(FirmwareUpgradeProtocol) [_m "Label|Firmware Upgrade Protocol"]
+            set protocolstrings(FirmwareUpgradeActive) [_m "Label|Firmware Upgrade Active"]
             set bitstype [snit::listtype %AUTO% -minlen 3 -maxlen 3 \
                           -type lcc::byte]
         }
@@ -4418,11 +4420,13 @@ namespace eval lcc {
                 DCC {return [lreplace $bits 1 1 \
                                 [expr {[lindex $bits 1] | 0x01}]]}
                 SimpleTrainNode {return [lreplace $bits 2 2 \
-                                [expr {[lindex $bits 2] | 0x80}]]}
-                FunctionConfiguration {
-                    return [lreplace $bits 2 2 \
-                            [expr {[lindex $bits 2] | 0x40}]]
-                }
+                                         [expr {[lindex $bits 2] | 0x80}]]}
+                FunctionConfiguration {return [lreplace $bits 2 2 \
+                                               [expr {[lindex $bits 2] | 0x40}]]}
+                FirmwareUpgradeProtocol {return [lreplace $bits 2 2 \
+                                                 [expr {[lindex $bits 2] | 0x20}]]}
+                FirmwareUpgradeActive {return [lreplace $bits 2 2 \
+                                               [expr {[lindex $bits 2] | 0x10}]]}
             }
         }
         typemethod GetProtocolNames {report} {
@@ -4489,6 +4493,13 @@ namespace eval lcc {
             if {([lindex $report 2] & 0x40) != 0} {
                 lappend protocols FunctionConfiguration
             }
+            if {([lindex $report 2] & 0x20) != 0} {
+                lappend protocols FirmwareUpgradeProtocol
+            }
+            if {([lindex $report 2] & 0x10) != 0} {
+                lappend protocols FirmwareUpgradeActive
+            }
+            
             return $protocols
         }
         typemethod ProtocolLabelString {protocolname} {
@@ -4681,7 +4692,7 @@ namespace eval lcc {
                 $transport sendMessage -mti 0x0490
             } else {
                 lcc::nid validate $nid
-                $transport sendMessage -mti 0x498 -destnid $nid
+                $transport sendMessage -mti 0x488 -destnid $nid
             }
         }
         method ProtocolSupportRequest {nid} {
