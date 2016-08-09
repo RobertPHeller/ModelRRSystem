@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 7 10:36:33 2016
-#  Last Modified : <160807.1544>
+#  Last Modified : <160809.0945>
 #
 #  Description	
 #
@@ -394,6 +394,17 @@ snit::type OpenLCB_PiGPIO {
         }
         after $pollinterval [mytypemethod _poll]
     }
+    typemethod sendEvent {event} {
+        #** Send an event, after first checking for local consumtion.
+        #
+        # @param event The event to process
+        
+        foreach c $consumers {
+            $c consumeEvent $event
+        }
+        $transport ProduceEvent $event
+    }
+    
     typemethod _eventHandler {command eventid {validity {}}} {
         #* Event Exchange handler.  Handle Event Exchange messages.
         #
@@ -451,7 +462,7 @@ snit::type OpenLCB_PiGPIO {
         
         switch [format {0x%04X} [$message cget -mti]] {
             0x0490 -
-            0x0498 {
+            0x0488 {
                 #* Verify Node ID
                 $transport SendMyNodeVerifcation
             }
@@ -966,7 +977,7 @@ snit::type OpenLCB_PiGPIO {
             set oldPin $v
             set event [$self cget -pinin$oldPin]
             if {$event ne {}} {
-                $transport ProduceEvent $event
+                $type sendEvent $event
             }
         }
     }

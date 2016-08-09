@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <160722.1212>
+#  Last Modified : <160809.0944>
 #
 #  Description	
 #
@@ -304,6 +304,16 @@ snit::type OpenLCB_MRD2 {
         }
         after $pollinterval [mytypemethod _poll]
     }
+    typemethod sendEvent {event} {
+        #** Send an event, after first checking for local consumtion.
+        #
+        # @param event The event to process
+        
+        foreach c $consumers {
+            $c consumeEvent $event
+        }
+        $transport ProduceEvent $event
+    }
     typemethod _eventHandler {command eventid {validity {}}} {
         #* Event Exchange handler.  Handle Event Exchange messages.
         #
@@ -361,7 +371,7 @@ snit::type OpenLCB_MRD2 {
         
         switch [format {0x%04X} [$message cget -mti]] {
             0x0490 -
-            0x0498 {
+            0x0488 {
                 #* Verify Node ID
                 $transport SendMyNodeVerifcation
             }
@@ -1037,7 +1047,7 @@ snit::type OpenLCB_MRD2 {
         }
         foreach event $events {
             if {$event eq {}} {continue}
-            $transport ProduceEvent $event
+            $type sendEvent $event
         }
     }
     method consumeEvent {event} {
