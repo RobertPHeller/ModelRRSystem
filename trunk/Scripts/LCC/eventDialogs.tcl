@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Mar 3 14:36:20 2016
-#  Last Modified : <160311.1407>
+#  Last Modified : <160810.1120>
 #
 #  Description	
 #
@@ -46,6 +46,9 @@ package require tile
 package require snit
 package require Dialog
 package require LabelFrames
+package require ROText
+package require ScrollWindow
+package require ButtonBox
 package require LCC
 
 namespace eval lcc {
@@ -53,6 +56,99 @@ namespace eval lcc {
     # @section EventDialogs Package provided
     #
     # EventDialogs 1.0
+    
+    snit::widget EventLog {
+        ## Event received log, with event sender.
+        #
+        # Options:
+        # @arg -transport The transport to use.
+        # @par
+        
+        option -transport -readonly yes -default {}
+        hulltype toplevel
+        component logscroll
+        ## @privatesection Log Scroll Widget.
+        component logtext
+        ## Log text Widget (readonly).
+        component sendevent
+        ## Send event entry
+        
+        constructor {args} {
+            ## @publicsection @brief Construct an EventLog widget.
+            # This is a toplevel window with a scrolling log of received 
+            # events.  There is also an entry to send an event.
+            #
+            # @param ... Options:
+            # @arg -transport The transport to use.
+            # @par
+            
+            wm protocol $win WM_DELETE_WINDOW [mymethod _close]
+            wm title  $win [_ "OpenLCB Event Log"]
+            wm transient $win [winfo toplevel [winfo parent $win]]
+            install logscroll using ScrolledWindow $win.logscroll \
+                  -scrollbar vertical -auto vertical
+            pack $logscroll -expand yes -fill both
+            install logtext using ROText [$logscroll getframe].logtext
+            $logscroll setwidget $logtext
+            set sendeventLF [LabelFrame $win.sendevent \
+                  -text [_m "Label|Send Event:"]]
+            pack $sendeventLF -fill x
+            install sendevent using ttk::entry [$sendeventLF getframe].e
+            pack $sendevent -side left -fill x -expand yes
+            set sendevent_button [ttk::button [$sendeventLF getframe].b \
+                                  -text [_m "Label|Send"] \
+                                  -command [mymethod _sendtheevent]]
+            pack $sendevent_button -side right
+            set bbox [ButtonBox $win.bbox -orient horizontal]
+            pack $bbox -fill x -expand yes
+            $bbox add ttk::button close -text [_m "Label|Close"] \
+                  -command [mymethod _close]
+            $bbox add ttk::button clear -text [_m "Label|Clear"] \
+                  -command [mymethod _clear]
+            $self configurelist $args
+            focus $sendevent
+        }
+        method open {} {
+            ## Open window
+            
+            wm deiconify $win
+            focus $sendevent
+        }
+        method eventReceived {eventid} {
+            ## Log a received event.
+            #
+            # @param eventid EventID object to log.
+            #
+            
+            EventID validate $eventid
+            $logtext insert end "[$eventid cget -eventidstring]\n"
+        }
+        method _sendtheevent {} {
+            ## @privatesection Send an event.
+            #
+            
+            set transport [$self cget -transport]
+            set eventtosend [$sendevent get]
+            if {$transport ne ""} {
+                if {[catch {lcc::EventID %AUTO% -eventidstring $eventtosend} eventid]} {
+                    tk_message -type ok -icon error -message \
+                          [_ "Misformatted event id: %s" $eventtosend]
+                    return
+                }
+                $transport ProduceEvent $eventid
+            }
+        }
+        method _close {} {
+            ## Close the window.
+            
+            wm withdraw $win
+        }
+        method _clear {} {
+            ## Clear the log.
+            
+            $logtext delete 1.0 end
+        }
+    }
     
     snit::widgetadaptor EventReceived {
         ## Display a received event.
