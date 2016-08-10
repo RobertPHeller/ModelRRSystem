@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160809.0952>
+#  Last Modified : <160810.1010>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -2947,7 +2947,7 @@ namespace eval lcc {
                                 }
                                 uplevel #0 $messagehandler $m
                             }
-                            unset messagebuffers($srcid,$mti)           
+                            catch {unset messagebuffers($srcid,$mti)}
                         }
                     } elseif {[$mtidetail cget -streamordatagram]} {
                         set destid [$mtidetail cget -destid]
@@ -4084,7 +4084,7 @@ namespace eval lcc {
                                 }
                                 uplevel #0 $messagehandler $m
                             }
-                            unset messagebuffers($srcid,$mti)           
+                            catch {unset messagebuffers($srcid,$mti)}
                         }
                     } elseif {[$mtidetail cget -streamordatagram]} {
                         set destid [$mtidetail cget -destid]
