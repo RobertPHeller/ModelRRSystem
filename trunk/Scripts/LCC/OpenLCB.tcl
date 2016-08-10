@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160809.0944>
+#  Last Modified : <160810.1054>
 #
 #  Description	
 #
@@ -129,7 +129,7 @@ snit::type OpenLCB {
     typecomponent mainWindow;# Main window
     typecomponent   nodetree;# Tree list of nodes
     typecomponent transport; # Transport layer
-    typecomponent sendevent; # Event generation dialog
+    typecomponent eventlog;  # Event log toplevel
     
     typevariable nodetree_cols {nodeid};# Columns
     typevariable mynid {};   # My Node ID
@@ -281,8 +281,8 @@ snit::type OpenLCB {
             $mainWindow showit;# Dumb M$-Windows
         }
         update idle
-        # Lazy eval for send event.
-        set sendevent {}
+        # Lazy eval for event log.
+        set sendlog {}
         putdebug "*** $type typeconstructor: ::argv is $::argv"
         # Try to get transport constructor from the CLI.
         set transportConstructorName [from ::argv -transportname ""]
@@ -360,8 +360,12 @@ snit::type OpenLCB {
         
         putdebug "*** $type _eventHandler $command $eventid $validity"
         if {$command eq "report"} {
-            lcc::EventReceived .eventreceived%AUTO% \
-                  -eventid $eventid
+            if {![winfo exists $eventlog]} {
+                set eventlog [lcc::EventLog .eventlog%AUTO% \
+                              -transport $transport]
+            }
+            $eventlog eventReceived $eventid
+            $eventlog open
         }
     }
     typemethod _messageHandler {message} {
@@ -515,11 +519,11 @@ snit::type OpenLCB {
     typemethod _SendEvent {} {
         #* Generate a PCER message.
 
-        if {[info exists sendevent] && [winfo exists $sendevent]} {
-            $sendevent draw
-        } else {
-            set sendevent [lcc::SendEvent .sendevent%AUTO% -transport $transport]
+        if {![winfo exists $eventlog]} {
+            set eventlog [lcc::EventLog .eventlog%AUTO% \
+                          -transport $transport]
         }
+        $eventlog open
     }
     
     typevariable _datagramdata;# Datagram data buffer. 

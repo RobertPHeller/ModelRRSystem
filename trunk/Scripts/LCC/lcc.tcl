@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160809.0952>
+#  Last Modified : <160810.1448>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -251,6 +251,33 @@ namespace eval lcc {
                 if {$a != $b} {return false}
             }
             return true
+        }
+        method eventdiff {other} {
+            $type validate $other
+            set otherlist [$other cget -eventidlist]
+            set this [expr wide(0)]
+            set that [expr wide(0)]
+            set shift 0
+            for {set index 5} {$index >= 0} {incr index -1} {
+                set this [expr {$this | wide([lindex $_eventID $index] << $shift)}]
+                set that [expr {$that | wide([lindex $otherlist $index] << $shift)}]
+            }
+            return [expr {$this - $that}]
+        }
+        method addtoevent {incr} {
+            lcc::byte validate $incr
+            set lowbyte [lindex $_eventID 5]
+            incr lowbyte $incr
+            set index 5
+            set neweventlist $_eventID
+            while {$lowbyte > 255} {
+                set neweventlist [lreplace $neweventlist $index $index \
+                                  [expr {$lowbyte & 0x0FF}]]
+                set lowbyte [expr {$lowbyte - 256}]
+                incr index -1
+            }
+            set neweventlist [lreplace $neweventlist $index $index $lowbyte]
+            return [$type create %AUTO% -eventidlist $neweventlist]
         }
     }
     
@@ -2947,7 +2974,7 @@ namespace eval lcc {
                                 }
                                 uplevel #0 $messagehandler $m
                             }
-                            unset messagebuffers($srcid,$mti)           
+                            catch {unset messagebuffers($srcid,$mti)}
                         }
                     } elseif {[$mtidetail cget -streamordatagram]} {
                         set destid [$mtidetail cget -destid]
@@ -4084,7 +4111,7 @@ namespace eval lcc {
                                 }
                                 uplevel #0 $messagehandler $m
                             }
-                            unset messagebuffers($srcid,$mti)           
+                            catch {unset messagebuffers($srcid,$mti)}
                         }
                     } elseif {[$mtidetail cget -streamordatagram]} {
                         set destid [$mtidetail cget -destid]

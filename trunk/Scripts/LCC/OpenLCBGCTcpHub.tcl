@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <160723.1441>
+#  Last Modified : <160810.0947>
 #
 #  Description	
 #
@@ -65,6 +65,10 @@
 # 0.0.0.0 will bind to all interfaces.
 # @arg -port portnumber The Tcp/Ip port to listen on.  Defaults to 12021.
 # @arg -debug Turns on debug logging.
+# @arg -dev ttydev, -dev0 ttydev, -dev1 ttydev, ... -dev9 ttydev Optional 
+#      serial ports connected to CAN busses using GridConnect.
+# @arg -remote host[:port], -remote0 host[:port], -remote1 host[:port], ... 
+#      -remote9 host[:port] Optional remote Tcp/Ip hubs using GridConnect.
 # @par
 #
 # @section AUTHOR
@@ -103,7 +107,11 @@ snit::type OpenLCBGCTcpHub {
     # _accept typemethod.
     typevariable logchan
     #** @brief Logfile channel.
-        
+    typevariable defaultport 12021
+    #** @brief Default Tcp/Ip port number.
+    
+    option -eoltranslation -readonly yes -default auto
+    
     typeconstructor {
         #** @brief Global static initialization.
         #
@@ -121,7 +129,7 @@ snit::type OpenLCBGCTcpHub {
             set argv [lreplace $argv $debugIdx $debugIdx]
         }
         set host [from argv -host localhost]
-        set port [from argv -port 12021]
+        set port [from argv -port $defaultport]
         set logfilename [format {%s.log} [file tail $argv0]]
         close stdin
         close stdout
@@ -144,6 +152,34 @@ snit::type OpenLCBGCTcpHub {
         ::log::logMsg [_ "%s starting, listening on %s:%d" $type $host $port]
         set _listenerChannel [socket -server [mytypemethod _accept] \
                               -myaddr $host $port]
+        foreach op {-dev -dev0 -dev1 -dev2 -dev3 -dev4 -dev5 -dev6 -dev7 -dev8 -dev9} {
+            set dev [from argv $op]
+            if {$dev eq ""} {continue}
+            if {[catch {open $dev r+} ttyfd]} {
+                ::log::logError [_ "Channel to %s not opened: %s" $dev $ttyfd]
+                continue
+            } else {
+                if {[catch {fconfigure $ttyfd -mode}]} {
+                    ::log::logError [_ "%s is not a terminal port." $dev]
+                    continue
+                }
+                $type create %AUTO% $ttyfd localhost $dev -eoltranslation crlf
+            }
+        }
+        foreach op {-remote -remote0 -remote1 -remote2 -remote3 -remote4 -remote5 -remote6 -remote7 -remote8 -remote9} {
+            set remote [from argv $op]
+            if {$remote eq ""} {continue}
+            if {[regexp {^([^:]+):([[:digit:]]+)$} $remote -> remhost portno] < 1} {
+                set remhost $remote
+                set portno $defaultport
+            }
+            if {[catch {socket $remhost $portno} sockfd]} {
+                ::log::logError [_ "Socket to %s:%d not opened: %s" $remhost $portno $sockfd]
+                continue
+            } else {
+                $type create %AUTO% $sockfd $remhost $portno
+            }
+        }
     }
     typemethod LogPuts {level message} {
         #** Log output function.
@@ -256,7 +292,7 @@ snit::type OpenLCBGCTcpHub {
         # @param rport The remote port.
         # @param ... Options:
         
-        ::log::logMsg [_ "Acception connection from %s on port %d" $rhost $rport]
+        ::log::logMsg [_ "Acception connection from %s on port %s" $rhost $rport]
         set channel $ch
         set remoteHost $rhost
         set remotePort $rport
@@ -266,10 +302,10 @@ snit::type OpenLCBGCTcpHub {
         install mtiheader using lcc::MTIHeader          %AUTO%
         install canheader using lcc::CANHeader          %AUTO%
         lappend _allNodes $self
-        fconfigure $channel -buffering line -translation auto
+        $self configurelist $args
+        fconfigure $channel -buffering line -translation [$self cget -eoltranslation]
         fileevent $channel readable [mymethod _messageReader]
         #$self populateAliasMap
-        #$self configurelist $args
         ::log::log debug "*** $type create $self: _allNodes = $_allNodes"
     }
     destructor {
