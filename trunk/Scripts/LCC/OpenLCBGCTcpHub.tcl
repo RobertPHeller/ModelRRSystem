@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <160810.0929>
+#  Last Modified : <160810.0947>
 #
 #  Description	
 #
@@ -65,6 +65,10 @@
 # 0.0.0.0 will bind to all interfaces.
 # @arg -port portnumber The Tcp/Ip port to listen on.  Defaults to 12021.
 # @arg -debug Turns on debug logging.
+# @arg -dev ttydev, -dev0 ttydev, -dev1 ttydev, ... -dev9 ttydev Optional 
+#      serial ports connected to CAN busses using GridConnect.
+# @arg -remote host[:port], -remote0 host[:port], -remote1 host[:port], ... 
+#      -remote9 host[:port] Optional remote Tcp/Ip hubs using GridConnect.
 # @par
 #
 # @section AUTHOR
