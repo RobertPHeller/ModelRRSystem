@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <160810.1548>
+#  Last Modified : <160811.1139>
 #
 #  Description	
 #
@@ -131,9 +131,12 @@ snit::type TrackCodes {
         #
         # @param object The object to validate.
         
+        #puts stderr "*** $type validate $object"
         if {[lsearch [array names codevalues] $object] < 0} {
+            #puts stderr "*** $type validate: failure"
             error [_ "Not a %s: %s" $type $object]
         }
+        #puts stderr "*** $type validate: success"
         return $object
     }
     typemethod CodeLabel {object} {
@@ -177,6 +180,15 @@ snit::type TrackCodes {
             return {}
         }
     }
+    typemethod CodeFromValue {value} {
+        if {[info exists valuemap($value)]} {
+            return $valuemap($value)
+        } else {
+            error [_ "Not a valid code value: %s" $value]
+        }
+    }
+    
+        
     typemethod EventFromCode {code baseeventid} {
         $type validate $code
         lcc::EventID validate $baseeventid
@@ -219,8 +231,8 @@ snit::type Transmitter {
     # @arg -code        The code to send.
     # @par
     
-    option -eventid lcc::EventID_or_null -readonly yes -default {}
-    option -code TrackCodes -readonly yes -default {None}
+    option -eventid -type lcc::EventID_or_null -readonly yes -default {}
+    option -code -type TrackCodes -readonly yes -default {None}
     
     constructor {args} {
         #** Constructor: create a Transmitter instance.
@@ -254,8 +266,8 @@ snit::type Receiver {
     # @arg -eventid     The event to send.
     # @par
     
-    option -code TrackCodes -readonly yes -default {None}
-    option -eventid lcc::EventID_or_null -readonly yes -default {}
+    option -code -type TrackCodes -readonly yes -default {None}
+    option -eventid -type lcc::EventID_or_null -readonly yes -default {}
     
     constructor {args} {
         #** Constructor: create a Transmitter instance.
@@ -395,8 +407,7 @@ snit::type OpenLCB_TrackCircuits {
         #** @brief Global static initialization.
         #
         # Process command line.  Runs the GUI configuration tool or connects to
-        # the OpenLCB network and manages MRD2 devices, consuming or producing
-        # events.
+        # the OpenLCB network and manages virtual track circuits.
         
         global argv
         global argc
@@ -407,6 +418,18 @@ snit::type OpenLCB_TrackCircuits {
         if {$debugIdx >= 0} {
             set debugnotvis 0
             set argv [lreplace $argv $debugIdx $debugIdx]
+        }
+        set configureator no
+        set configureIdx [lsearch -exact $argv -configure]
+        if {$configureIdx >= 0} {
+            set configureator yes
+            set argv [lreplace $argv $configureIdx $configureIdx]
+        }
+        set conffile [from argv -configuration "tracksconf.xml"]
+        #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
+        if {$configureator} {
+            $type ConfiguratorGUI $conffile
+            return
         }
         set logfilename [format {%s.log} [file tail $argv0]]
         close stdin
@@ -430,18 +453,6 @@ snit::type OpenLCB_TrackCircuits {
         ::log::logMsg [_ "%s starting" $type]
         
         ::log::log debug "*** $type typeconstructor: argv = $argv"
-        set configureator no
-        set configureIdx [lsearch -exact $argv -configure]
-        if {$configureIdx >= 0} {
-            set configureator yes
-            set argv [lreplace $argv $configureIdx $configureIdx]
-        }
-        set conffile [from argv -configuration "tracksconf.xml"]
-        ::log::log debug "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
-        if {$configureator} {
-            $type ConfiguratorGUI $conffile
-            return
-        }
         
         if {[catch {open $conffile r} conffp]} {
             ::log::logError [_ "Could not open %s because: %s" $conffile $conffp]
@@ -522,7 +533,7 @@ snit::type OpenLCB_TrackCircuits {
                 }
                 set tag [lindex $tag 0]
                 set code [$tag data]
-                if {[catch [TrackCodes validate $code] err]} {
+                if {[catch {TrackCodes validate $code} err]} {
                     ::log::logError $err
                     continue
                 }
@@ -563,7 +574,7 @@ snit::type OpenLCB_TrackCircuits {
                 }
                 set tag [lindex $tag 0]
                 set code [$tag data]
-                if {[catch [TrackCodes validate $code] err]} {
+                if {[catch {TrackCodes validate $code} err]} {
                     ::log::logError $err
                     continue
                 }
@@ -693,8 +704,602 @@ snit::type OpenLCB_TrackCircuits {
     }
     
     
+    #*** Configuration GUI
     
+    typecomponent main;# Main Frame.
+    typecomponent scroll;# Scrolled Window.
+    typecomponent editframe;# Scrollable Frame
+    typevariable    transconstructorname {};# transport constructor
+    typevariable    transopts {};# transport options
+    typevariable    id_name {};# node name
+    typevariable    id_description {};# node description
+    typecomponent   tracks;# Track list
+    typevariable    trackcount 0;# Track count
+    
+    typevariable status {};# Status line
+    typevariable conffilename {};# Configuration File Name
+    
+    #** Menu.
+    typevariable _menu {
+        "[_m {Menu|&File}]" {file:menu} {file} 0 {
+            {command "[_m {Menu|File|&Save and Exit}]" {file:saveexit} "[_ {Save and exit}]" {Ctrl s} -command "[mytypemethod _saveexit]"}
+            {command "[_m {Menu|File|&Exit}]" {file:exit} "[_ {Exit}]" {Ctrl q} -command "[mytypemethod _exit]"}
+        } "[_m {Menu|&Edit}]" {edit} {edit} 0 {
+            {command "[_m {Menu|Edit|Cu&t}]" {edit:cut edit:havesel} "[_ {Cut selection to the paste buffer}]" {Ctrl x} -command {StdMenuBar EditCut}}
+            {command "[_m {Menu|Edit|&Copy}]" {edit:copy edit:havesel} "[_ {Copy selection to the paste buffer}]" {Ctrl c} -command {StdMenuBar EditCopy}}
+            {command "[_m {Menu|Edit|C&lear}]" {edit:clear edit:havesel} "[_ {Clear selection}]" {} -command {StdMenuBar EditClear}}
+        }
+    }
+    
+    # Default (empty) XML Configuration.
+    typevariable default_confXML {<OpenLCB_TrackCircuits/>}
+    typemethod ConfiguratorGUI {conffile} {
+        #** Configuration GUI
+        # 
+        # Create the Configuration tool GUI.
+        #
+        # @param conffile Name of the configuration file.
         
+        package require Tk
+        package require tile
+        package require ParseXML
+        package require LabelFrames
+        package require ScrollableFrame
+        package require ScrollWindow
+        package require MainFrame
+        package require snitStdMenuBar
+        package require ButtonBox
+        package require ScrollTabNotebook
+        
+        set conffilename $conffile
+        set confXML $default_confXML
+        if {![catch {open $conffile r} conffp]} {
+            set confXML [read $conffp]
+            close $conffp
+        }
+        if {[catch {ParseXML create %AUTO% $confXML} configuration]} {
+            set confXML $default_confXML
+            set configuration [ParseXML create %AUTO% $confXML]
+        }
+        set cdis [$configuration getElementsByTagName OpenLCB_TrackCircuits -depth 1]
+        if {[llength $cdis] != 1} {
+            error [_ "There is no OpenLCB_TrackCircuits container in %s" $confXML]
+            exit 90
+        }
+        set cdi [lindex $cdis 0]
+        wm protocol . WM_DELETE_WINDOW [mytypemethod _saveexit]
+        wm title    . [_ "OpenLCB_TrackCircuits Configuration Editor (%s)" $conffile]
+        set main [MainFrame .main -menu [subst $_menu] \
+                  -textvariable [mytypevar status]]
+        pack $main -expand yes -fill both
+        set f [$main getframe]
+        set scroll [ScrolledWindow $f.scroll -scrollbar vertical \
+                    -auto vertical]
+        pack $scroll -expand yes -fill both
+        set editframe [ScrollableFrame \
+                       [$scroll getframe].editframe -constrainedwidth yes]
+        $scroll setwidget $editframe
+        set frame [$editframe getframe]
+        set transconsframe [ttk::labelframe $frame.transportconstuctor \
+                            -labelanchor nw -text [_m "Label|Transport"]]
+        pack $transconsframe -fill x -expand yes
+        set transconstructor [LabelFrame $transconsframe.transconstructor \
+                              -text [_m "Label|Constructor"]]
+        pack $transconstructor -fill x -expand yes
+        set cframe [$transconstructor getframe]
+        set transcname [ttk::entry $cframe.transcname \
+                        -state readonly \
+                        -textvariable [mytypevar transconstructorname]]
+        pack $transcname -side left -fill x -expand yes
+        set transcnamesel [ttk::button $cframe.transcnamesel \
+                           -text [_m "Label|Select"] \
+                           -command [mytypemethod _seltransc]]
+        pack $transcnamesel -side right
+        set transoptsframe [LabelFrame $transconsframe.transoptsframe \
+                              -text [_m "Label|Constructor Opts"]]
+        pack $transoptsframe -fill x -expand yes
+        set oframe [$transoptsframe getframe]
+        set transoptsentry [ttk::entry $oframe.transoptsentry \
+                        -state readonly \
+                        -textvariable [mytypevar transopts]]
+        pack $transoptsentry -side left -fill x -expand yes
+        set tranoptssel [ttk::button $oframe.tranoptssel \
+                         -text [_m "Label|Select"] \
+                         -command [mytypemethod _seltransopt]]
+        pack $tranoptssel -side right
+        
+        set transcons [$cdi getElementsByTagName "transport"]
+        if {[llength $transcons] == 1} {
+            set constructor [$transcons getElementsByTagName "constructor"]
+            if {[llength $constructor] == 1} {
+                set transconstructorname [$constructor data]
+            }
+            set coptions [$transcons getElementsByTagName "options"]
+            if {[llength $coptions] == 1} {
+                set transopts [$coptions data]
+            }
+        }
+        set identificationframe [ttk::labelframe $frame.identificationframe \
+                            -labelanchor nw -text [_m "Label|Identification"]]
+        pack $identificationframe -fill x -expand yes
+        set identificationname [LabelFrame $identificationframe.identificationname \
+                                -text [_m "Label|Name"]]
+        pack $identificationname -fill x -expand yes
+        set nframe [$identificationname getframe]
+        set idname [ttk::entry $nframe.idname \
+                        -textvariable [mytypevar id_name]]
+        pack $idname -side left -fill x -expand yes
+        set identificationdescrframe [LabelFrame $identificationframe.identificationdescrframe \
+                              -text [_m "Label|Description"]]
+        pack $identificationdescrframe -fill x -expand yes
+        set dframe [$identificationdescrframe getframe]
+        set identificationdescrentry [ttk::entry $dframe.identificationdescrentry \
+                        -textvariable [mytypevar id_description]]
+        pack $identificationdescrentry -side left -fill x -expand yes
+        set ident [$cdi getElementsByTagName "identification"]
+        if {[llength $ident] == 1} {
+            set nameele [$ident getElementsByTagName "name"]
+            if {[llength $nameele] == 1} {
+                set id_name [$nameele data]
+            }
+            set descrele [$ident getElementsByTagName "description"]
+            if {[llength $descrele] == 1} {
+                set id_description [$descrele data]
+            }
+        }
+        
+        set tracks [ScrollTabNotebook $frame.tracks]
+        pack $tracks -expand yes -fill both
+        foreach track [$cdi getElementsByTagName "track"] {
+            $type _create_and_populate_track $track
+        }
+        set addtrack [ttk::button $frame.addtrack \
+                      -text [_m "Label|Add another track"] \
+                      -command [mytypemethod _addblanktrack]]
+        pack $addtrack -fill x
+    }
+    typemethod _addblanktrack {} {
+        #** Create a new blank track.
+        
+        set cdis [$configuration getElementsByTagName OpenLCB_TrackCircuits -depth 1]
+        set cdi [lindex $cdis 0]
+        set track [SimpleDOMElement %AUTO% -tag "track"]
+        $cdi addchild $track
+        $type _create_and_populate_track $track
+    }
+    typemethod _create_and_populate_track {track} {
+        #** Create a tab for a track and populate it.
+        #
+        # @param track The track XML element.
+        
+        incr trackcount
+        set fr track$trackcount
+        set f [$track attribute frame]
+        if {$f eq {}} {
+            set attrs [$track cget -attributes]
+            lappend attrs frame $fr
+            $track configure -attributes $attrs
+        } else {
+            set attrs [$track cget -attributes]
+            set findx [lsearch -exact $attrs frame]
+            incr findx
+            set attrs [lreplace $attrs $findx $findx $fr]
+            $track configure -attributes $attrs
+        }
+        set trkframe [ttk::frame $tracks.$fr]
+        $tracks add $trkframe -text [_ "Track %d" $trackcount] -sticky news
+        set description_ [LabelEntry $trkframe.description \
+                          -label [_m "Label|Description"]]
+        pack $description_ -fill x -expand yes
+        set description [$track getElementsByTagName "description"]
+        if {[llength $description] == 1} {
+            $description_ configure -text [$description data]
+        }
+        set enabled_ [LabelComboBox $trkframe.enabled \
+                      -label [_m "Label|Track Service"] \
+                      -values {Disabled Enabled} \
+                      -editable no]
+        pack $enabled_ -fill x -expand yes
+        set enabled [$track getElementsByTagName "enabled"]
+        if {[llength $enabled] == 0} {
+            $enabled_ set Disabled
+        } else {
+            $enabled_ set Enabled
+        }
+        set transmitters [ScrollTabNotebook $trkframe.transmitters]
+        pack $transmitters -expand yes -fill both
+        foreach transmitter [$track getElementsByTagName "transmitter"] {
+            $type _create_and_populate_transmitter $track $transmitters $transmitter
+        }
+        set addtransmitter [ttk::button $trkframe.addtransmitter \
+                            -text [_m "Label|Add another transmitter"] \
+                            -command [mytypemethod _addblanktransmitter $track $transmitters]]
+        pack $addtransmitter -fill x
+        set transmitbaseevent_ [LabelEntry $trkframe.transmitbaseevent \
+                                -label [_m "Label|Transmit Group Base Link"] \
+                                ]
+        pack $transmitbaseevent_ -fill x -expand yes
+        set transmitbaseevent [$track getElementsByTagName "transmitbaseevent"]
+        if {[llength $transmitbaseevent] == 1} {
+            $transmitbaseevent_ configure -text [$transmitbaseevent data]
+        }
+
+        set receivebaseevent_ [LabelEntry $trkframe.receivebaseevent \
+                                -label [_m "Label|Receive Group Base Link"] \
+                                ]
+        pack $receivebaseevent_ -fill x -expand yes
+        set receivebaseevent [$track getElementsByTagName "receivebaseevent"]
+        if {[llength $receivebaseevent] == 1} {
+            $receivebaseevent_ configure -text [$receivebaseevent data]
+        }
+
+        set code1startevent_ [LabelEntry $trkframe.code1startevent \
+                                -label [_m "Label|Upon reception of 'Code 1 Start', this event will be sent"] \
+                                ]
+        pack $code1startevent_ -fill x -expand yes
+        set code1startevent [$track getElementsByTagName "code1startevent"]
+        if {[llength $code1startevent] == 1} {
+            $code1startevent_ configure -text [$code1startevent data]
+        }
+        set receivers [ScrollTabNotebook $trkframe.receivers]
+        pack $receivers -expand yes -fill both
+        foreach receiver [$track getElementsByTagName "receiver"] {
+            $type _create_and_populate_receiver $track $receivers $receiver
+        }
+        set addreceiver [ttk::button $trkframe.addreceiver \
+                            -text [_m "Label|Add another receiver"] \
+                            -command [mytypemethod _addblankreceiver $track $receivers]]
+        pack $addreceiver -fill x
+
+    }
+    typemethod _addblanktransmitter {track transmitters} {
+        set transmitter [SimpleDOMElement %AUTO% -tag "transmitter"]
+        $track addchild $transmitter
+        set eventid [SimpleDOMElement %AUTO% -tag "eventid"]
+        $eventid setdata "00.00.00.00.00.00.00.00"
+        $transmitter addchild $eventid
+        set code [SimpleDOMElement %AUTO% -tag "code"]
+        $code setdata "[TrackCodes CodeLabel None]"
+        $transmitter addchild $code
+        $type _create_and_populate_transmitter $track $transmitters $transmitter
+    }
+    typemethod _create_and_populate_transmitter {track transmitters transmitter} {
+        set tag [$transmitter getElementsByTagName "code"]
+        if {[llength $tag] != 1} {
+            tk_messageBox -type ok -icon warning -message [_ "Transmitter missing its code. skipped!"]
+            return
+        }
+        set tag [lindex $tag 0]
+        set code [$tag data]
+        if {[catch {TrackCodes validate $code} err]} {
+            tk_messageBox -type ok -icon warning -message $err
+            return
+        }
+        set tag [$transmitter getElementsByTagName "eventid"]
+        if {[llength $tag] != 1} {
+            tk_messageBox -type ok -icon warning -message [_ "Transmitter missing its eventid, skipped!"]
+            return
+        }
+        set tag [lindex $tag 0]
+        set evstring [$tag data]
+        set transcount 0
+        incr transcount
+        set fr trans$transcount
+        while {[winfo exists $transmitters.$fr]} {
+            incr transcount
+            set fr trans$transcount
+        }
+        set f [$transmitter attribute frame]
+        if {$f eq {}} {
+            set attrs [$transmitter cget -attributes]
+            lappend attrs frame $fr
+            $transmitter configure -attributes $attrs
+        } else {
+            set attrs [$transmitter cget -attributes]
+            set findx [lsearch -exact $attrs frame]
+            incr findx
+            set attrs [lreplace $attrs $findx $findx $fr]
+            $transmitter configure -attributes $attrs
+        }
+        set xmitframe [ttk::frame $transmitters.$fr]
+        $transmitters add $xmitframe -text [_ "Command %d" $transcount] -sticky news
+        set eventid_ [LabelEntry $xmitframe.eventid \
+                      -label [_m "Label|When this event occurs"] \
+                      -text $evstring]
+        pack $eventid_ -fill x -expand yes
+        set code_labs [list]
+        for {set c 0} {$c < 11} {incr  c} {
+            lappend code_labs [TrackCodes CodeLabel [TrackCodes CodeFromValue $c]]
+        }
+        set code_ [LabelComboBox $xmitframe.code \
+                   -label [_m "Label|the following Track Code will be sent."] \
+                   -values $code_labs -editable no]
+        pack $code_ -fill x -expand yes
+        $code_ set [lindex $code_labs [TrackCodes CodeValue $code]]
+        set del [ttk::button $xmitframe.delete \
+                 -text [_m "Label|Delete Transmitter"] \
+                 -command [mytypemethod _deletexmit $transmitters $track $transmitter]]
+        pack $del -fill x
+    }
+    typemethod _deletexmit {transmitters track transmitter} {
+        set fr [$transmitter attribute frame]
+        $track removeChild $transmitter
+        $transmitters forget $transmitters.$fr
+    }
+
+    typemethod _addblankreceiver {track receivers} {
+        set receiver [SimpleDOMElement %AUTO% -tag "receiver"]
+        $track addchild $receiver
+        set code [SimpleDOMElement %AUTO% -tag "code"]
+        $code setdata "[TrackCodes CodeLabel None]"
+        $receiver addchild $code
+        set eventid [SimpleDOMElement %AUTO% -tag "eventid"]
+        $eventid setdata "00.00.00.00.00.00.00.00"
+        $receiver addchild $eventid
+        $type _create_and_populate_receiver $track $receivers $receiver
+    }
+    typemethod _create_and_populate_receiver {track receivers receiver} {
+        set tag [$receiver getElementsByTagName "code"]
+        if {[llength $tag] != 1} {
+            tk_messageBox -type ok -icon warning -message [_ "Receiver missing its code. skipped!"]
+            return
+        }
+        set tag [lindex $tag 0]
+        set code [$tag data]
+        if {[catch {TrackCodes validate $code} err]} {
+            tk_messageBox -type ok -icon warning -message $err
+            return
+        }
+        set tag [$receiver getElementsByTagName "eventid"]
+        if {[llength $tag] != 1} {
+            tk_messageBox -type ok -icon warning -message [_ "Receiver missing its eventid, skipped!"]
+            return
+        }
+        set tag [lindex $tag 0]
+        set evstring [$tag data]
+        set transcount 0
+        incr transcount
+        set fr recv$transcount
+        while {[winfo exists $receivers.$fr]} {
+            incr transcount
+            set fr trans$transcount
+        }
+        set f [$receiver attribute frame]
+        if {$f eq {}} {
+            set attrs [$receiver cget -attributes]
+            lappend attrs frame $fr
+            $receiver configure -attributes $attrs
+        } else {
+            set attrs [$receiver cget -attributes]
+            set findx [lsearch -exact $attrs frame]
+            incr findx
+            set attrs [lreplace $attrs $findx $findx $fr]
+            $receiver configure -attributes $attrs
+        }
+        set recvframe [ttk::frame $receivers.$fr]
+        $receivers add $recvframe -text [_ "Action %d" $transcount] -sticky news
+        set code_labs [list]
+        for {set c 0} {$c < 11} {incr  c} {
+            lappend code_labs [TrackCodes CodeLabel [TrackCodes CodeFromValue $c]]
+        }
+        set code_ [LabelComboBox $recvframe.code \
+                   -label [_m "Label|Upon reception of this Track Code"] \
+                   -values $code_labs -editable no]
+        pack $code_ -fill x -expand yes
+        $code_ set [lindex $code_labs [TrackCodes CodeValue $code]]
+        set eventid_ [LabelEntry $recvframe.eventid \
+                      -label [_m "Label|this event will be sent"] \
+                      -text $evstring]
+        pack $eventid_ -fill x -expand yes
+        set del [ttk::button $recvframe.delete \
+                 -text [_m "Label|Delete Receiver"] \
+                 -command [mytypemethod _deleterecv $receivers $track $receiver]]
+        pack $del -fill x
+    }
+    typemethod _deleterecv {receivers track receiver} {
+        set fr [$receiver attribute frame]
+        $track removeChild $receiver
+        $receivers forget $receivers.$fr
+    }
+
+    typemethod _saveexit {} {
+        #** Save and exit.  Bound to the Save & Exit file menu item.
+        # Saves the contents of the GUI as an XML file.
+        
+        set cdis [$configuration getElementsByTagName OpenLCB_TrackCircuits -depth 1]
+        set cdi [lindex $cdis 0]
+        set transcons [$cdi getElementsByTagName "transport"]
+        if {[llength $transcons] < 1} {
+            set transcons [SimpleDOMElement %AUTO% -tag "transport"]
+            $cdi addchild $transcons
+        }
+        set constructor [$transcons getElementsByTagName "constructor"]
+        if {[llength $constructor] < 1} {
+            set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
+            $transcons addchild $constructor
+        }
+        $constructor setdata $transconstructorname
+        set coptions [$transcons getElementsByTagName "options"]
+        if {[llength $coptions] < 1} {
+            set coptions [SimpleDOMElement %AUTO% -tag "options"]
+            $transcons addchild $coptions
+        }
+        $coptions setdata $transopts
+        
+        set ident [$cdi getElementsByTagName "identification"]
+        if {[llength $ident] < 1} {
+            set ident [SimpleDOMElement %AUTO% -tag "identification"]
+            $cdi addchild $ident
+        }
+        set nameele [$ident getElementsByTagName "name"]
+        if {[llength $nameele] < 1} {
+            set nameele [SimpleDOMElement %AUTO% -tag "name"]
+            $ident addchild $nameele
+        }
+        $nameele setdata $id_name 
+        set descrele [$ident getElementsByTagName "description"]
+        if {[llength $descrele] < 1} {
+            set descrele [SimpleDOMElement %AUTO% -tag "description"]
+            $ident addchild $descrele
+        }
+        $descrele setdata $id_description
+        foreach track [$cdi getElementsByTagName "track"] {
+            $type _copy_from_gui_to_XML $track
+        }
+        
+        if {![catch {open $conffilename w} conffp]} {
+            $configuration displayTree $conffp
+        }
+        ::exit
+    }
+    typemethod _copy_from_gui_to_XML {track} {
+        #** Copy from the GUI to the track XML
+        # 
+        # @param track Track XML element.
+        
+        set fr [$track attribute frame]
+        set frbase $tracks.$fr
+        set description_ [$frbase.description get]
+        if {$description_ eq ""} {
+            set description [$track getElementsByTagName "description"]
+            if {[llength $description] == 1} {
+                $track removeChild $description
+            }
+        } else {
+            set description [$track getElementsByTagName "description"]
+            if {[llength $description] < 1} {
+                set description [SimpleDOMElement %AUTO% -tag "description"]
+                $track addchild $description
+            }
+            $description setdata $description_
+        }
+        set enabled_ [$frbase.enabled get]
+        switch $enabled_ {
+            Disabled {
+                set enabled [$track getElementsByTagName "enabled"]
+                if {[llength $enabled] > 0} {
+                    $track removeChild $enabled
+                }
+            }
+            Enabled {
+                set enabled [$track getElementsByTagName "enabled"]
+                if {[llength $enabled] < 1} {
+                    set enabled [SimpleDOMElement %AUTO% -tag "enabled"]
+                    $track addchild $enabled
+                }
+            }
+        }
+        set transmitters $frbase.transmitters
+        foreach transmitter [$track getElementsByTagName "transmitter"] {
+            set codetag [$transmitter getElementsByTagName "code"]
+            set eventidtag [$transmitter getElementsByTagName "eventid"]
+            set fr [$transmitter attribute frame]
+            set xmitframe $transmitters.$fr
+            $eventidtag setdata "[$xmitframe.eventid get]"
+            set cvals [$xmitframe.code cget -values]
+            set cval  [lsearch -exact $cvals [$xmitframe.code get]]
+            $codetag setdata [TrackCodes CodeFromValue $cval]
+        }
+        
+        set transmitbaseevent_ [$frbase.transmitbaseevent get]
+        if {$transmitbaseevent_ eq "00.00.00.00.00.00.00.00" ||
+            $transmitbaseevent_ eq ""} {
+            set transmitbaseevent [$track getElementsByTagName "transmitbaseevent"]
+            if {[llength $transmitbaseevent] == 1} {
+                $track removeChild $transmitbaseevent
+            }
+        } else {
+            set transmitbaseevent [$track getElementsByTagName "transmitbaseevent"]
+            if {[llength $transmitbaseevent] < 1} {
+                set transmitbaseevent [SimpleDOMElement %AUTO% -tag "transmitbaseevent"]
+                $track addchild $transmitbaseevent
+            }
+            $transmitbaseevent setdata $transmitbaseevent_
+        }
+        
+        set receivebaseevent_ [$frbase.receivebaseevent get]
+        if {$receivebaseevent_ eq "00.00.00.00.00.00.00.00" ||
+            $receivebaseevent_ eq ""} {
+            set receivebaseevent [$track getElementsByTagName "receivebaseevent"]
+            if {[llength $receivebaseevent] == 1} {
+                $track removeChild $receivebaseevent
+            }
+        } else {
+            set receivebaseevent [$track getElementsByTagName "receivebaseevent"]
+            if {[llength $receivebaseevent] < 1} {
+                set receivebaseevent [SimpleDOMElement %AUTO% -tag "receivebaseevent"]
+                $track addchild $receivebaseevent
+            }
+            $receivebaseevent setdata $receivebaseevent_
+        }
+        
+        set code1startevent_ [$frbase.code1startevent get]
+        if {$code1startevent_ eq "00.00.00.00.00.00.00.00" ||
+            $code1startevent_ eq ""} {
+            set code1startevent [$track getElementsByTagName "code1startevent"]
+            if {[llength $code1startevent] == 1} {
+                $track removeChild $code1startevent
+            }
+        } else {
+            set code1startevent [$track getElementsByTagName "code1startevent"]
+            if {[llength $code1startevent] < 1} {
+                set code1startevent [SimpleDOMElement %AUTO% -tag "code1startevent"]
+                $track addchild $code1startevent
+            }
+            $code1startevent setdata $code1startevent_
+        }
+        
+        set receivers $frbase.receivers
+        foreach receiver [$track getElementsByTagName "receiver"] {
+            set codetag [$receiver getElementsByTagName "code"]
+            set eventidtag [$receiver getElementsByTagName "eventid"]
+            set fr [$receiver attribute frame]
+            set recvframe $receivers.$fr
+            $eventidtag setdata "[$recvframe.eventid get]"
+            set cvals [$recvframe.code cget -values]
+            set cval  [lsearch -exact $cvals [$recvframe.code get]]
+            $codetag setdata [TrackCodes CodeFromValue $cval]
+        }
+        
+            
+        
+    }
+    typemethod _exit {} {
+        #** Exit function.  Bound to the Exit file menu item.
+        # Does not save the configuration data!
+        
+        ::exit
+    }
+    typemethod _seltransc {} {
+        #** Select a transport constructor.
+        
+        set result [lcc::OpenLCBNode selectTransportConstructor]
+        if {$result ne {}} {
+            if {$result ne $transconstructorname} {set transopts {}}
+            set transconstructorname [namespace tail $result]
+        }
+    }
+    typemethod _seltransopt {} {
+        #** Select transport constructor options.
+        
+        if {$transconstructorname ne ""} {
+            set transportConstructors [info commands ::lcc::$transconstructorname]
+            ::log::log debug "*** $type typeconstructor: transportConstructors is $transportConstructors"
+            if {[llength $transportConstructors] > 0} {
+                set transportConstructor [lindex $transportConstructors 0]
+            }
+            if {$transportConstructor ne {}} {
+                set optsdialog [list $transportConstructor \
+                                drawOptionsDialog]
+                foreach x $transopts {lappend optsdialog $x}
+                set transportOpts [eval $optsdialog]
+                if {$transportOpts ne {}} {
+                    set transopts $transportOpts
+                }
+            }
+        }
+    }
+    
 }
 
 

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <160809.0944>
+#  Last Modified : <160811.0953>
 #
 #  Description	
 #
@@ -629,7 +629,7 @@ snit::type OpenLCB_MRD2 {
         if {$description_ eq ""} {
             set description [$device getElementsByTagName "description"]
             if {[llength $description] == 1} {
-                $device removechild $description
+                $device removeChild $description
             }
         } else {
             set description [$device getElementsByTagName "description"]
@@ -643,7 +643,7 @@ snit::type OpenLCB_MRD2 {
         if {$sense1on_ eq ""} {
             set sense1on [$device getElementsByTagName "sense1on"]
             if {[llength $sense1on] == 1} {
-                $device removechild $sense1on
+                $device removeChild $sense1on
             }
         } else {
             set sense1on [$device getElementsByTagName "sense1on"]
@@ -658,7 +658,7 @@ snit::type OpenLCB_MRD2 {
         if {$sense1off_ eq ""} {
             set sense1off [$device getElementsByTagName "sense1off"]
             if {[llength $sense1off] == 1} {
-                $device removechild $sense1off
+                $device removeChild $sense1off
             }
         } else {
             set sense1off [$device getElementsByTagName "sense1off"]
@@ -673,7 +673,7 @@ snit::type OpenLCB_MRD2 {
         if {$sense2on_ eq ""} {
             set sense2on [$device getElementsByTagName "sense2on"]
             if {[llength $sense2on] == 1} {
-                $device removechild $sense2on
+                $device removeChild $sense2on
             }
         } else {
             set sense2on [$device getElementsByTagName "sense2on"]
@@ -688,7 +688,7 @@ snit::type OpenLCB_MRD2 {
         if {$sense2off_ eq ""} {
             set sense2off [$device getElementsByTagName "sense2off"]
             if {[llength $sense2off] == 1} {
-                $device removechild $sense2off
+                $device removeChild $sense2off
             }
         } else {
             set sense2off [$device getElementsByTagName "sense2off"]
@@ -703,7 +703,7 @@ snit::type OpenLCB_MRD2 {
         if {$latch1on_ eq ""} {
             set latch1on [$device getElementsByTagName "latch1on"]
             if {[llength $latch1on] == 1} {
-                $device removechild $latch1on
+                $device removeChild $latch1on
             }
         } else {
             set latch1on [$device getElementsByTagName "latch1on"]
@@ -718,7 +718,7 @@ snit::type OpenLCB_MRD2 {
         if {$latch1off_ eq ""} {
             set latch1off [$device getElementsByTagName "latch1off"]
             if {[llength $latch1off] == 1} {
-                $device removechild $latch1off
+                $device removeChild $latch1off
             }
         } else {
             set latch1off [$device getElementsByTagName "latch1off"]
@@ -733,7 +733,7 @@ snit::type OpenLCB_MRD2 {
         if {$latch2on_ eq ""} {
             set latch2on [$device getElementsByTagName "latch2on"]
             if {[llength $latch2on] == 1} {
-                $device removechild $latch2on
+                $device removeChild $latch2on
             }
         } else {
             set latch2on [$device getElementsByTagName "latch2on"]
@@ -748,7 +748,7 @@ snit::type OpenLCB_MRD2 {
         if {$latch2off_ eq ""} {
             set latch2off [$device getElementsByTagName "latch2off"]
             if {[llength $latch2off] == 1} {
-                $device removechild $latch2off
+                $device removeChild $latch2off
             }
         } else {
             set latch2off [$device getElementsByTagName "latch2off"]
@@ -763,7 +763,7 @@ snit::type OpenLCB_MRD2 {
         if {$setchan1_ eq ""} {
             set setchan1 [$device getElementsByTagName "setchan1"]
             if {[llength $setchan1] == 1} {
-                $device removechild $setchan1
+                $device removeChild $setchan1
             }
         } else {
             set setchan1 [$device getElementsByTagName "setchan1"]
@@ -778,7 +778,7 @@ snit::type OpenLCB_MRD2 {
         if {$setchan2_ eq ""} {
             set setchan2 [$device getElementsByTagName "setchan2"]
             if {[llength $setchan2] == 1} {
-                $device removechild $setchan2
+                $device removeChild $setchan2
             }
         } else {
             set setchan2 [$device getElementsByTagName "setchan2"]
@@ -847,7 +847,7 @@ snit::type OpenLCB_MRD2 {
         set devframe [ttk::frame \
                       $devices.$fr]
         $devices add $devframe \
-              -text [_ "Device %s" $devicecount] -sticky news
+              -text [_ "Device %d" $devicecount] -sticky news
         set serial_ [LabelEntry $devframe.serial \
                      -label [_m "Label|Serial Number"]]
         pack $serial_ -fill x -expand yes
