@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160810.1054>
+#  Last Modified : <160811.0909>
 #
 #  Description	
 #
@@ -709,7 +709,7 @@ snit::type OpenLCB {
         set CDIs_xml($cdifile) [ParseXML %AUTO% $CDIs_text($cdifile)]
         if {[info exists CDIs_FormTLs($cdifile)] && 
             [winfo exists $CDIs_FormTLs($cdifile)]} {
-            $CDIs_FormTLs($cdifile) destroy
+            destroy $CDIs_FormTLs($cdifile)
         }
         set CDIs_FormTLs($cdifile) \
               [lcc::ConfigurationEditor \
