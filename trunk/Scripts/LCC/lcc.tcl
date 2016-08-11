@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160810.1448>
+#  Last Modified : <160811.1302>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -258,17 +258,19 @@ namespace eval lcc {
             set this [expr wide(0)]
             set that [expr wide(0)]
             set shift 0
-            for {set index 5} {$index >= 0} {incr index -1} {
+            for {set index 7} {$index >= 0} {incr index -1} {
                 set this [expr {$this | wide([lindex $_eventID $index] << $shift)}]
                 set that [expr {$that | wide([lindex $otherlist $index] << $shift)}]
+                #puts stderr "*** $self eventdiff: at index $index: this = $this, that = $that"
+                incr shift 8
             }
             return [expr {$this - $that}]
         }
         method addtoevent {incr} {
             lcc::byte validate $incr
-            set lowbyte [lindex $_eventID 5]
+            set lowbyte [lindex $_eventID 7]
             incr lowbyte $incr
-            set index 5
+            set index 7
             set neweventlist $_eventID
             while {$lowbyte > 255} {
                 set neweventlist [lreplace $neweventlist $index $index \

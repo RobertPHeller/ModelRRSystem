@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <160811.1139>
+#  Last Modified : <160811.1305>
 #
 #  Description	
 #
@@ -174,6 +174,7 @@ snit::type TrackCodes {
         lcc::EventID validate $baseeventid
         lcc::EventID validate $actualeventid
         set index [$actualeventid eventdiff $baseeventid]
+        #puts stderr "*** $type CodeFromEvent: index = $index"
         if {[info exists valuemap($index)]} {
             return $valuemap($index)
         } else {
@@ -305,7 +306,7 @@ snit::type OpenLCB_TrackCircuits {
     # Instance options:
     # @arg -description Description (name) of the track.
     # @arg -enabled     Whether the track is in service or not.
-    # @arg -transmiters A list of transmitter code events.
+    # @arg -transmitters A list of transmitter code events.
     # @arg -transmitbaseevent The transmit base event.
     # @arg -receivebaseevent The revceive base event.
     # @arg -code1startevent The Code 1 Start event.
@@ -320,7 +321,7 @@ snit::type OpenLCB_TrackCircuits {
     variable receivers {}
     option -description -readonly yes -default {}
     option -enabled -readonly yes -type snit::boolean -default false
-    option -transmiters -readonly yes -default {} -type CodeEventList
+    option -transmitters -readonly yes -default {} -type CodeEventList
     option -transmitbaseevent -readonly yes -default {} -type lcc::EventID_or_null
     option -receivebaseevent -readonly yes -default {} -type lcc::EventID_or_null
     option -code1startevent -readonly yes -default {} -type lcc::EventID_or_null
@@ -328,7 +329,7 @@ snit::type OpenLCB_TrackCircuits {
     
     constructor {args} {
         $self configurelist $args
-        foreach {c e} [$self cget -transmiters] {
+        foreach {c e} [$self cget -transmitters] {
             lappend transmitters [Transmitter create %AUTO% -eventid $e -code $c]
         }
         foreach {c e} [$self cget -receivers] {
@@ -336,26 +337,32 @@ snit::type OpenLCB_TrackCircuits {
         }
     }
     method myproducedevents {} {
+        ::log::log debug "*** $self myproducedevents"
         if {![$self cget -enabled]} {return {}}
         set havec1 no
         set producedevents [list]
         foreach t $transmitters {
             set code [$t cget -code]
             if {$code eq "None"} {continue}
+            ::log::log debug "*** $self myproducedevents: transmit code is $code"
             set codeevent [TrackCodes EventFromCode $code [$self cget -transmitbaseevent]]
+            ::log::log debug "*** $self myproducedevents: codeevent is $codeevent"
             lappend producedevents $codeevent
         }
         foreach r $receivers {
             set code [$r cget -code]
             set e    [$r cget -eventid]
+            ::log::log debug "*** $self myproducedevents: receive code is $code, e is $e"
             lappend producedevents $e
-            if {!$havec1 && [TrackCodes CodeNeedsStart $c]} {
+            if {!$havec1 && [TrackCodes CodeNeedsStart $code]} {
                 lappend producedevents [$self cget -code1startevent]
+                set havec1 yes
             }
         }
         return $producedevents
     }
     method myconsumedevents {} {
+        ::log::log debug "*** $self myconsumedevents"
         if {![$self cget -enabled]} {return {}}
         set consumedevents [list]
         foreach t $transmitters {
@@ -366,15 +373,17 @@ snit::type OpenLCB_TrackCircuits {
         }
         foreach r $receivers {
             set c [$r cget -code]
-            set e [TrackCodes EventFromCode $code [$self cget -receivebaseevent]]
+            set e [TrackCodes EventFromCode $c [$self cget -receivebaseevent]]
             lappend consumedevents $e
         }
         return $consumedevents
     }
     method processevent {event} {
+        ::log::log debug "*** $self processevent $event ([$event cget -eventidstring])"
         if {![$self cget -enabled]} {return}
         foreach t $transmitters {
             set code [$t processevent $event]
+            ::log::log debug "*** $self processevent: transmitter code is $code"
             if {$code eq "None"} {continue}
             set codeevent [TrackCodes EventFromCode $code [$self cget -transmitbaseevent]]
             $type sendevent $codeevent
@@ -382,6 +391,7 @@ snit::type OpenLCB_TrackCircuits {
 
         }
         set code [TrackCodes CodeFromEvent [$self cget -receivebaseevent] $event]
+        ::log::log debug "*** $self processevent: received code (?) = '$code'"
         if {$code ne {}} {
             foreach r $receivers {
                 set event [$r processcode $code]
@@ -511,19 +521,23 @@ snit::type OpenLCB_TrackCircuits {
             ::log::logError [_ "Could not open OpenLCBNode: %s" $transport]
             exit 95
         }
+        ::log::log debug "*** $type typeconstructor: transport = $transport"
         
         foreach track [$configuration getElementsByTagName "track"] {
             set trackcommand [list $type create %AUTO%]
+            ::log::log debug "*** $type typeconstructor: trackcommand is $trackcommand"
             set description [$track getElementsByTagName "description"]
             if {[llength $description] > 0} {
                 lappend trackcommand -description [[lindex $description 0] data]
             }
+            ::log::log debug "*** $type typeconstructor: trackcommand is $trackcommand"
             set enabled [$track getElementsByTagName "enabled"]
             if {[llength $enabled] > 0} {
                 lappend trackcommand -enabled true
             } else {
                 lappend trackcommand -enabled false
             }
+            ::log::log debug "*** $type typeconstructor: trackcommand is $trackcommand"
             set transmitters [list]
             foreach transmitter [$track getElementsByTagName "transmitter"] {
                 set tag [$transmitter getElementsByTagName "code"]
@@ -547,12 +561,14 @@ snit::type OpenLCB_TrackCircuits {
                 lappend transmitters $code $ev
             }
             lappend trackcommand -transmitters $transmitters
+            ::log::log debug "*** $type typeconstructor: trackcommand is $trackcommand"
             set tag [$track getElementsByTagName "transmitbaseevent"]
             if {[llength $tag] > 0} {
                 set tag [lindex $tag 0]
                 set ev [lcc::EventID create %AUTO% -eventidstring [$tag data]]
                 lappend trackcommand -transmitbaseevent $ev
             }
+            ::log::log debug "*** $type typeconstructor: trackcommand is $trackcommand"
             set tag [$track getElementsByTagName "receivebaseevent"]
             if {[llength $tag] > 0} {
                 set tag [lindex $tag 0]
@@ -565,6 +581,7 @@ snit::type OpenLCB_TrackCircuits {
                 set ev [lcc::EventID create %AUTO% -eventidstring [$tag data]]
                 lappend trackcommand -code1startevent $ev
             }
+            ::log::log debug "*** $type typeconstructor: trackcommand is $trackcommand"
             set receivers [list]
             foreach receiver [$track getElementsByTagName "receiver"] {
                 set tag [$receiver getElementsByTagName "code"]
@@ -588,14 +605,19 @@ snit::type OpenLCB_TrackCircuits {
                 lappend receivers $code $ev
             }
             lappend trackcommand -receivers $receivers
+            ::log::log debug "*** $type typeconstructor: trackcommand is $trackcommand"
             set track [eval $trackcommand]
+            ::log::log debug "*** $type typeconstructor: track is $track"
             foreach pev [$track myproducedevents] {
                 lappend eventsproduced $pev
             }
+            ::log::log debug "*** $type typeconstructor: eventsproduced is $eventsproduced"
             foreach cev [$track myconsumedevents] {
                 lappend eventsconsumed $cev
             }
+            ::log::log debug "*** $type typeconstructor: eventsconsumed is $eventsconsumed"
             lappend alltracks $track
+            ::log::log debug "*** $type typeconstructor: alltracks is $alltracks"
         }
         if {[llength $alltracks] == 0} {
             ::log::logError [_ "No tracks specified!"]
@@ -624,10 +646,10 @@ snit::type OpenLCB_TrackCircuits {
     
     
     typemethod sendevent {event} {
+        $transport ProduceEvent $event
         foreach track $alltracks {
             $track processevent $event
         }
-        $transport ProduceEvent $event
     }
     typemethod _eventHandler {command eventid {validity {}}} {
         #* Event Exchange handler.  Handle Event Exchange messages.
