@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 7 10:36:33 2016
-#  Last Modified : <160809.0945>
+#  Last Modified : <160811.0953>
 #
 #  Description	
 #
@@ -726,7 +726,7 @@ snit::type OpenLCB_PiGPIO {
         if {$description_ eq ""} {
             set description [$pin getElementsByTagName "description"]
             if {[llength $description] == 1} {
-                $pin removechild $description
+                $pin removeChild $description
             }
         } else {
             set description [$pin getElementsByTagName "description"]
@@ -740,7 +740,7 @@ snit::type OpenLCB_PiGPIO {
         if {$pinin0_ eq ""} {
             set pinin0 [$pin getElementsByTagName "pinin0"]
             if {[llength $pinin0] == 1} {
-                $pin removechild $pinin0
+                $pin removeChild $pinin0
             }
         } else {
             set pinin0 [$pin getElementsByTagName "pinin0"]
@@ -755,7 +755,7 @@ snit::type OpenLCB_PiGPIO {
         if {$pinin1_ eq ""} {
             set pinin1 [$pin getElementsByTagName "pinin1"]
             if {[llength $pinin1] == 1} {
-                $pin removechild $pinin1
+                $pin removeChild $pinin1
             }
         } else {
             set pinin1 [$pin getElementsByTagName "pinin1"]
@@ -770,7 +770,7 @@ snit::type OpenLCB_PiGPIO {
         if {$pinout0_ eq ""} {
             set pinout0 [$pin getElementsByTagName "pinout0"]
             if {[llength $pinout0] == 1} {
-                $pin removechild $pinout0
+                $pin removeChild $pinout0
             }
         } else {
             set pinout0 [$pin getElementsByTagName "pinout0"]
@@ -785,7 +785,7 @@ snit::type OpenLCB_PiGPIO {
         if {$pinout1_ eq ""} {
             set pinout1 [$pin getElementsByTagName "pinout1"]
             if {[llength $pinout1] == 1} {
-                $pin removechild $pinout1
+                $pin removeChild $pinout1
             }
         } else {
             set pinout1 [$pin getElementsByTagName "pinout1"]
@@ -853,7 +853,7 @@ snit::type OpenLCB_PiGPIO {
         set pinframe [ttk::frame \
                       $pins.$fr]
         $pins add $pinframe \
-              -text [_ "pin %s" $pincount] -sticky news
+              -text [_ "Pin %d" $pincount] -sticky news
         set pinno_ [LabelComboBox $pinframe.pinno \
                     -label [_m "Label|GPIO Pin Number"] \
                     -values [GPIOPinNo AllPins]]
