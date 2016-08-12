@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <160812.0949>
+#  Last Modified : <160812.1028>
 #
 #  Description	
 #
@@ -1105,7 +1105,7 @@ snit::type OpenLCB_TrackCircuits {
         set fr recv$transcount
         while {[winfo exists $receivers.$fr]} {
             incr transcount
-            set fr trans$transcount
+            set fr recv$transcount
         }
         set f [$receiver attribute frame]
         if {$f eq {}} {
