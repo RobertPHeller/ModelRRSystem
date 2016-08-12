@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <160811.1305>
+#  Last Modified : <160812.0949>
 #
 #  Description	
 #
@@ -396,16 +396,37 @@ snit::type OpenLCB_TrackCircuits {
             foreach r $receivers {
                 set event [$r processcode $code]
                 if {$event ne {}} {
-                    if {[TrackCodes CodeNeedsStart $code]} {
-                        set e [$self cget -code1startevent]
-                        if {$e ne {}} {
-                            $type sendevent $e
-                        }
+                    set delay 0
+                    switch $code {
+                        Code7 {set delay 224}
+                        Code4 {set delay 320}
+                        Code3 {set delay 496}
+                        Code8 {set delay 944}
+                        Code2 {set delay 688}
+                        Code9 {set delay 816}
+                        Code6 {set delay 600}
+                        Code5_occupied -
+                        Code5_normal -
+                        CodeM_failed -
+                        CodeM_normal {set delay 496}
                     }
-                    $type sendevent $event
+                    if {$delay > 0} {
+                        after $delay [mymethod sendmyevent [TrackCodes CodeNeedsStart $code] $event]
+                    } else {
+                        $self sendmyevent [TrackCodes CodeNeedsStart $code] $event
+                    }
                 }
             }
         }
+    }
+    method sendmyevent {code1startneeded event} {
+        if {$code1startneeded} {
+            set e [$self cget -code1startevent]
+            if {$e ne {}} {
+                $type sendevent $e
+            }
+        }
+        $type sendevent $event
     }
     typecomponent transport; #        Transport layer
     typecomponent configuration;#     Parsed  XML configuration
@@ -754,7 +775,7 @@ snit::type OpenLCB_TrackCircuits {
     }
     
     # Default (empty) XML Configuration.
-    typevariable default_confXML {<OpenLCB_TrackCircuits/>}
+    typevariable default_confXML {<?xml version='1.0'?><OpenLCB_TrackCircuits/>}
     typemethod ConfiguratorGUI {conffile} {
         #** Configuration GUI
         # 
@@ -1170,6 +1191,7 @@ snit::type OpenLCB_TrackCircuits {
         }
         
         if {![catch {open $conffilename w} conffp]} {
+            puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
         }
         ::exit

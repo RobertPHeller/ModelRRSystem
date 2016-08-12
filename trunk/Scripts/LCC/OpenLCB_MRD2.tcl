@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <160811.0953>
+#  Last Modified : <160812.0952>
 #
 #  Description	
 #
@@ -418,7 +418,7 @@ snit::type OpenLCB_MRD2 {
     }
     
     # Default (empty) XML Configuration.
-    typevariable default_confXML {<OpenLCB_MRD2/>}
+    typevariable default_confXML {<?xml version='1.0'?><OpenLCB_MRD2/>}
     typemethod ConfiguratorGUI {conffile} {
         #** Configuration GUI
         # 
@@ -608,6 +608,7 @@ snit::type OpenLCB_MRD2 {
         }
         
         if {![catch {open $conffilename w} conffp]} {
+            puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
         }
         ::exit
