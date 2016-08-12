@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <160812.1028>
+#  Last Modified : <160812.1132>
 #
 #  Description	
 #
@@ -251,6 +251,7 @@ snit::type Transmitter {
         #
         # @param eventid The event to process.
         
+        EventID validate $eventid
         if {[[$self cget -eventid] match $eventid]} {
             return [$self cget -code]
         } else {
@@ -328,6 +329,18 @@ snit::type OpenLCB_TrackCircuits {
     option -receivers -readonly yes -default {} -type CodeEventList
     
     constructor {args} {
+        #** Construct one track circuit.
+        #
+        # @param ... Options:
+        # @arg -description Description (name) of the track.
+        # @arg -enabled     Whether the track is in service or not.
+        # @arg -transmitters A list of transmitter code events.
+        # @arg -transmitbaseevent The transmit base event.
+        # @arg -receivebaseevent The revceive base event.
+        # @arg -code1startevent The Code 1 Start event.
+        # @arg -receivers   A list of receiver code events.
+        # @par
+        
         $self configurelist $args
         foreach {c e} [$self cget -transmitters] {
             lappend transmitters [Transmitter create %AUTO% -eventid $e -code $c]
@@ -337,6 +350,8 @@ snit::type OpenLCB_TrackCircuits {
         }
     }
     method myproducedevents {} {
+        #** Return a list of events this track produces.
+        
         ::log::log debug "*** $self myproducedevents"
         if {![$self cget -enabled]} {return {}}
         set havec1 no
@@ -362,6 +377,8 @@ snit::type OpenLCB_TrackCircuits {
         return $producedevents
     }
     method myconsumedevents {} {
+        #** Return a list of events this track circuit comsumes.
+        
         ::log::log debug "*** $self myconsumedevents"
         if {![$self cget -enabled]} {return {}}
         set consumedevents [list]
@@ -379,6 +396,13 @@ snit::type OpenLCB_TrackCircuits {
         return $consumedevents
     }
     method processevent {event} {
+        #** Process an incoming event.
+        # The event is either an event that triggers a transmitter or it is a
+        # virtual code event, which triggers a receiver.
+        # If a transmitter is triggered, a virtual code event is generated.
+        # If a receiver is triggered, an aspect event is generated, possibly 
+        # preceded by a Code 1 Start event.
+        
         ::log::log debug "*** $self processevent $event ([$event cget -eventidstring])"
         if {![$self cget -enabled]} {return}
         foreach t $transmitters {
@@ -420,6 +444,13 @@ snit::type OpenLCB_TrackCircuits {
         }
     }
     method sendmyevent {code1startneeded event} {
+        #** Actually send the event.  This memthod might be called after a 
+        # delay.
+        #
+        # @param code1startneeded Flag to indicate if a Code 1 Start event is 
+        # needed.
+        # @param event The event to send.
+        
         if {$code1startneeded} {
             set e [$self cget -code1startevent]
             if {$e ne {}} {
@@ -428,9 +459,10 @@ snit::type OpenLCB_TrackCircuits {
         }
         $type sendevent $event
     }
+    
     typecomponent transport; #        Transport layer
     typecomponent configuration;#     Parsed  XML configuration
-    typevariable alltracks [list];#   All tracks
+    typevariable  alltracks [list];#  All tracks
     typevariable  eventsconsumed {};# Events consumed.
     typevariable  eventsproduced {};# Events produced.
     
@@ -667,6 +699,11 @@ snit::type OpenLCB_TrackCircuits {
     
     
     typemethod sendevent {event} {
+        #** Send an event.  First the event is passed to each track circuit to 
+        # see if it is of local interest.  Then it is sent out on the network.
+        #
+        # @param event The event to send.
+        
         $transport ProduceEvent $event
         foreach track $alltracks {
             $track processevent $event
@@ -996,6 +1033,11 @@ snit::type OpenLCB_TrackCircuits {
 
     }
     typemethod _addblanktransmitter {track transmitters} {
+        #** Create a blank transmitter.
+        #
+        # @param track The track frame.
+        # @param transmitters The transmitters container.
+        
         set transmitter [SimpleDOMElement %AUTO% -tag "transmitter"]
         $track addchild $transmitter
         set eventid [SimpleDOMElement %AUTO% -tag "eventid"]
@@ -1007,6 +1049,12 @@ snit::type OpenLCB_TrackCircuits {
         $type _create_and_populate_transmitter $track $transmitters $transmitter
     }
     typemethod _create_and_populate_transmitter {track transmitters transmitter} {
+        #** Create and populate a transmitter.
+        #
+        # @param track The track frame.
+        # @param transmitters The transmitters container.
+        # @param transmitter The transmitter container.
+        
         set tag [$transmitter getElementsByTagName "code"]
         if {[llength $tag] != 1} {
             tk_messageBox -type ok -icon warning -message [_ "Transmitter missing its code. skipped!"]
@@ -1065,12 +1113,23 @@ snit::type OpenLCB_TrackCircuits {
         pack $del -fill x
     }
     typemethod _deletexmit {transmitters track transmitter} {
+        #** Delete a transmitter.
+        #
+        # @param transmitters The Transmitters container.
+        # @param track The track frame.
+        # @param transmitter The transmitter container.
+        
         set fr [$transmitter attribute frame]
         $track removeChild $transmitter
         $transmitters forget $transmitters.$fr
     }
 
     typemethod _addblankreceiver {track receivers} {
+        #** Create a blank receiver.
+        #
+        # @param track The track frame.
+        # @param receivers The receivers container.
+        
         set receiver [SimpleDOMElement %AUTO% -tag "receiver"]
         $track addchild $receiver
         set code [SimpleDOMElement %AUTO% -tag "code"]
@@ -1082,6 +1141,12 @@ snit::type OpenLCB_TrackCircuits {
         $type _create_and_populate_receiver $track $receivers $receiver
     }
     typemethod _create_and_populate_receiver {track receivers receiver} {
+        #** Create and populate a receiver.
+        #
+        # @param track The track frame.
+        # @param receivers The receivers container.
+        # @param receiver The receiver container.
+        
         set tag [$receiver getElementsByTagName "code"]
         if {[llength $tag] != 1} {
             tk_messageBox -type ok -icon warning -message [_ "Receiver missing its code. skipped!"]
@@ -1140,6 +1205,12 @@ snit::type OpenLCB_TrackCircuits {
         pack $del -fill x
     }
     typemethod _deleterecv {receivers track receiver} {
+        #** Delete a receiver.
+        #
+        # @param receivers The receivers container.
+        # @param track The track frame.
+        # @param receiver The receiver container.
+        
         set fr [$receiver attribute frame]
         $track removeChild $receiver
         $receivers forget $receivers.$fr
