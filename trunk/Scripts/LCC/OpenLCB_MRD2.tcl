@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <160812.0952>
+#  Last Modified : <160814.1540>
 #
 #  Description	
 #
@@ -135,6 +135,19 @@ snit::type OpenLCB_MRD2 {
             set debugnotvis 0
             set argv [lreplace $argv $debugIdx $debugIdx]
         }
+        set configureator no
+        set configureIdx [lsearch -exact $argv -configure]
+        if {$configureIdx >= 0} {
+            set configureator yes
+            set argv [lreplace $argv $configureIdx $configureIdx]
+        }
+        set conffile [from argv -configuration "mrd2conf.xml"]
+        #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
+        if {$configureator} {
+            $type ConfiguratorGUI $conffile
+            return
+        }
+        
         set logfilename [format {%s.log} [file tail $argv0]]
         close stdin
         close stdout
@@ -157,33 +170,20 @@ snit::type OpenLCB_MRD2 {
         ::log::logMsg [_ "%s starting" $type]
         
         ::log::log debug "*** $type typeconstructor: argv = $argv"
-        set configureator no
-        set configureIdx [lsearch -exact $argv -configure]
-        if {$configureIdx >= 0} {
-            set configureator yes
-            set argv [lreplace $argv $configureIdx $configureIdx]
-        }
-        set conffile [from argv -configuration "mrd2conf.xml"]
-        ::log::log debug "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
-        if {$configureator} {
-            $type ConfiguratorGUI $conffile
-            return
-        }
-        
         if {[catch {open $conffile r} conffp]} {
-            error [_ "Could not open %s because: %s" $conffile $conffp]
+            ::log::logError [_ "Could not open %s because: %s" $conffile $conffp]
             exit 99
         }
         set confXML [read $conffp]
         close $conffp
         if {[catch {ParseXML create %AUTO% $confXML} configuration]} {
-            error [_ "Could not parse configuration file %s: %s" $conffile $configuration]
+            ::log::logError [_ "Could not parse configuration file %s: %s" $conffile $configuration]
             exit 98
         }
         set transcons [$configuration getElementsByTagName "transport"]
         set constructor [$transcons getElementsByTagName "constructor"]
         if {$constructor eq {}} {
-            error [_ "Transport constructor missing!"]
+            ::log::logError [_ "Transport constructor missing!"]
             exit 97
         }
         set options [$transcons getElementsByTagName "options"]
@@ -199,7 +199,7 @@ snit::type OpenLCB_MRD2 {
             set transportConstructor [lindex $transportConstructors 0]
         }
         if {$transportConstructor eq {}} {
-            error [_ "No valid transport constructor found!"]
+            ::log::logError [_ "No valid transport constructor found!"]
             exit 96
         }
         set nodename ""
@@ -224,7 +224,7 @@ snit::type OpenLCB_MRD2 {
                           -additionalprotocols {EventExchange} \
                           ] \
                           $transportOpts} transport]} {
-            error [_ "Could not open OpenLCBNode: %s" $transport]
+            ::log::logError [_ "Could not open OpenLCBNode: %s" $transport]
             exit 95
         }
         set pollele [$configuration getElementsByTagName "pollinterval"]
@@ -239,7 +239,7 @@ snit::type OpenLCB_MRD2 {
             set produce no
             set serial [$device getElementsByTagName "serial"]
             if {[llength $serial] != 1} {
-                error [_ "Missing or multiple serial numbers"]
+                ::log::logError [_ "Missing or multiple serial numbers"]
                 exit 94
             }
             lappend devicecommand -sensorserial [$serial data]
@@ -276,7 +276,7 @@ snit::type OpenLCB_MRD2 {
             lappend devicelist $dev
         }
         if {[llength $devicelist] == 0} {
-            error [_ "No devices specified!"]
+            ::log::logError [_ "No devices specified!"]
             exit 93
         }
         foreach ev $eventsconsumed {
@@ -998,7 +998,7 @@ snit::type OpenLCB_MRD2 {
         
         set options(-sensorserial) [from args -sensorserial]
         if {$options(-sensorserial) eq {}} {
-            error [_ "The -sensorserial option is required!"]
+            ::log::logError [_ "The -sensorserial option is required!"]
         }
         install sensor using Azatrax_OpenDevice $options(-sensorserial) \
               $::Azatrax_idMRDProduct

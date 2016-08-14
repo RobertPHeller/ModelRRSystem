@@ -614,6 +614,7 @@ INPUT                  = @srcdir@/Preface.h \
                          @srcdir@/Introduction.h \
                          @srcdir@/UniversalTestReference.h \
                          @srcdir@/OpenLCBReference.h \
+                         @srcdir@/OpenLCBDaemons.h \
                          @srcdir@/AzatraxProgReference.h \
                          @srcdir@/XPressNetThrottleReference.h \
                          @srcdir@/GenericThrottleReference.h \
@@ -627,8 +628,10 @@ INPUT                  = @srcdir@/Preface.h \
                          @top_srcdir@/Scripts/Satellite/SatelliteDaemon.src \
                          @top_srcdir@/C++/RailDriver/raildriverd.src \
                          @top_srcdir@/Scripts/LCC/OpenLCBTcpHub.tcl \
-                         @top_srcdir@/Scripts/LCC/OpenLCB_MRD2.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCBGCTcpHub.tcl \
+                         @top_srcdir@/Scripts/LCC/OpenLCB_MRD2.tcl \
+                         @top_srcdir@/Scripts/LCC/OpenLCB_PiGPIO.tcl \
+                         @top_srcdir@/Scripts/LCC/OpenLCB_TrackCircuits.tcl \
                          @srcdir@/Help.h \
                          @builddir@/UserManual_Version.h @srcdir@/COPYING.h
 
