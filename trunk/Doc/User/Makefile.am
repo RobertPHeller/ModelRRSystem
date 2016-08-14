@@ -80,7 +80,7 @@ USERMAN_UNIVERSALTEST_FIGS = UTMain.png UTNewCard.png UTOutputTest.png \
 		UTWrapAround.png UTOutputTestSmall.png
 DOXYFILES += Doxyfile.$(UNIVERSALTEST).in
 
-USERMAN_OPENLCB_PART = OpenLCBReference.h
+USERMAN_OPENLCB_PART = OpenLCBReference.h OpenLCBDaemons.h
 OPENLCB_HS = OpenLCB.h OpenLCBReference.h
 OPENLCB = OpenLCB
 OPENLCBHBase = OpenLCB
