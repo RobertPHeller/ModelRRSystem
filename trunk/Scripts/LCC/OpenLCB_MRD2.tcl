@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <160814.1540>
+#  Last Modified : <160815.1242>
 #
 #  Description	
 #
@@ -40,8 +40,8 @@
 #
 #*****************************************************************************
 
-## @page OpenLCB_MRD2 OpenLCB MRD2 Psuedo node
-# @brief OpenLCB MRD2 psuedo node
+## @page OpenLCB_MRD2 OpenLCB MRD2 Node
+# @brief OpenLCB MRD2 node
 #
 # @section SYNOPSIS
 #
@@ -49,7 +49,7 @@
 #
 # @section DESCRIPTION
 #
-# This program is a daemon that implements a OpenLCB psuedo node for one or 
+# This program is a daemon that implements a OpenLCB node for one or 
 # more Azatrax MRD2 devices.  
 #
 # @section PARAMETERS
@@ -64,6 +64,15 @@
 # The default is mrd2conf.xml.
 # @arg -debug Turns on debug logging.
 # @par
+#
+# @section CONFIGURATION
+#
+# The configuration file for this program is an XML formatted file. Please 
+# refer to the OpenLCB Daemons (Hubs and Virtual nodes) chapter of the User 
+# Manual for the details on the schema for this XML formatted file.  Also
+# note that this program contains a built-in editor for its own configuration 
+# file. 
+#
 #
 # @section AUTHOR
 # Robert Heller \<heller\@deepsoft.com\>

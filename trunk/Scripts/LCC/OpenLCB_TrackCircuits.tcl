@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <160812.1132>
+#  Last Modified : <160815.1243>
 #
 #  Description	
 #
@@ -66,6 +66,15 @@
 # The default is tracksconf.xml.
 # @arg -debug Turns on debug logging.
 # @par
+#
+# @section CONFIGURATION
+#
+# The configuration file for this program is an XML formatted file. Please 
+# refer to the OpenLCB Daemons (Hubs and Virtual nodes) chapter of the User 
+# Manual for the details on the schema for this XML formatted file.  Also
+# note that this program contains a built-in editor for its own configuration 
+# file. 
+#
 #
 # @section AUTHOR
 # Robert Heller \<heller\@deepsoft.com\>

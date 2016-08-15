@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <160810.0947>
+#  Last Modified : <160815.1059>
 #
 #  Description	
 #
@@ -46,13 +46,15 @@
 #
 # @section SYNOPSIS
 #
-# OpenLCBGCTcpHub [-host localhost] [-port 12021] [-debug]
+# OpenLCBGCTcpHub [-host localhost] [-port 12021] [-debug] [connection options]
 #
 # @section DESCRIPTION
 #
 # This program is a server daemon that implements a hub for OpenLCB over 
 # Tcp/Ip that accepts connections from OpenLCB over GridConnect over Tcp/Ip 
-# nodes and forwards OpenLCB messages between clients.
+# nodes and forwards OpenLCB messages between clients.  It can also connect
+# to physical CAN busses using GridConnect messaging over (USB) Serial port
+# connection.
 #
 # @section PARAMETERS
 #
