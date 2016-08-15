@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 7 10:36:33 2016
-#  Last Modified : <160812.0951>
+#  Last Modified : <160815.1243>
 #
 #  Description	
 #
@@ -41,8 +41,8 @@
 #*****************************************************************************
 
 
-## @page OpenLCB_PiGPIO OpenLCB PiGPIO Psuedo node
-# @brief OpenLCB PiGPIO psuedo node
+## @page OpenLCB_PiGPIO OpenLCB PiGPIO node
+# @brief OpenLCB PiGPIO node
 #
 # @section SYNOPSIS
 #
@@ -50,7 +50,7 @@
 #
 # @section DESCRIPTION
 #
-# This program is a daemon that implements a OpenLCB psuedo node for the GPIO 
+# This program is a daemon that implements a OpenLCB node for the GPIO 
 # pins on a Raspberry Pi.  
 #
 # @section PARAMETERS
@@ -65,6 +65,15 @@
 # The default is pigpioconf.xml.
 # @arg -debug Turns on debug logging.
 # @par
+#
+# @section CONFIGURATION
+#
+# The configuration file for this program is an XML formatted file. Please 
+# refer to the OpenLCB Daemons (Hubs and Virtual nodes) chapter of the User 
+# Manual for the details on the schema for this XML formatted file.  Also
+# note that this program contains a built-in editor for its own configuration 
+# file. 
+#
 #
 # @section AUTHOR
 # Robert Heller \<heller\@deepsoft.com\>
