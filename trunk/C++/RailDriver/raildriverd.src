@@ -36,12 +36,12 @@
 ## @page raildriverd raildriverd
 # @brief Raildriver USB Hotplug Daemon
 #
-# @section SYNOPSIS
+# @section raildriverdSYNOPSIS SYNOPSIS
 # @code
 # raildriverd [-debug] busnum devnum
 # @endcode
 #
-# @section DESCRIPTION
+# @section raildriverdDESCRIPTION DESCRIPTION
 #
 # This is the deamon program for the Rail Driver.  It is started by the
 # USB Hotplug code. See \ref HotplugScripts for details. It should not
@@ -54,18 +54,18 @@
 # functionallity for the various levers, knobs, switches, and buttons on the
 # Raildriver device.
 #
-# @section OPTIONS
+# @section raildriverdOPTIONS OPTIONS
 #
 # @arg -debug This option turns on verbose debug logging.
 # @par
 #
-# @section PARAMETERS
+# @section raildriverdPARAMETERS PARAMETERS
 #
 # @arg busnum This is the USB bus number the device is connected to.
 # @arg devnum This is the USB device number the device is connected to.
 # @par
 #
-# @section HotplugScripts Hotplugging scripts and setup.
+# @section raildriverdHotplugScripts Hotplugging scripts and setup.
 #
 # There are two ways to set up auto starting of this daemon.
 #
@@ -78,7 +78,7 @@
 #	raildriverd.udev to /lib/udev/ as raildriverd
 #
 #
-# @section AUTHOR
+# @section raildriverdAUTHOR AUTHOR
 # Robert Heller \<heller\@deepsoft.com\>
 #
 

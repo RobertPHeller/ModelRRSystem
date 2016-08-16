@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <160815.1243>
+#  Last Modified : <160816.1406>
 #
 #  Description	
 #
@@ -44,21 +44,21 @@
 ## @page OpenLCB_TrackCircuits OpenLCB Virtual Track Circuits node
 # @brief OpenLCB Virtual Track Circuits node
 #
-# @section SYNOPSIS
+# @section TrackCircuitsSYNOPSIS SYNOPSIS
 #
 # OpenLCB_TrackCircuits [-configure] [-debug] [-configuration confgile]
 #
-# @section DESCRIPTION
+# @section TrackCircuitsDESCRIPTION DESCRIPTION
 #
-# This program is a daemon that implements a OpenLCB psuedo node for one or 
+# This program is a daemon that implements an OpenLCB node for one or 
 # more Virtual Track Circuits (much like the track circuits coded in the RR
 # Cirkits Tower-LCC nodes).  
 #
-# @section PARAMETERS
+# @section TrackCircuitsPARAMETERS PARAMETERS
 #
 # none
 #
-# @section OPTIONS
+# @section TrackCircuitsOPTIONS OPTIONS
 #
 # @arg -configure Enter an interactive GUI configuration tool.  This tool
 # creates or edits an XML configuration file.
@@ -67,16 +67,16 @@
 # @arg -debug Turns on debug logging.
 # @par
 #
-# @section CONFIGURATION
+# @section CONFIGURATION CONFIGURATION
 #
 # The configuration file for this program is an XML formatted file. Please 
-# refer to the OpenLCB Daemons (Hubs and Virtual nodes) chapter of the User 
+# refer to the @ref openlcbdaemons "OpenLCB Daemons (Hubs and Virtual nodes)" chapter of the User 
 # Manual for the details on the schema for this XML formatted file.  Also
 # note that this program contains a built-in editor for its own configuration 
 # file. 
 #
 #
-# @section AUTHOR
+# @section TrackCircuitsAUTHOR AUTHOR
 # Robert Heller \<heller\@deepsoft.com\>
 #
 

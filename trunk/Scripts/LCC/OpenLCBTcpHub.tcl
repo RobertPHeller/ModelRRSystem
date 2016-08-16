@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <160628.1121>
+#  Last Modified : <160816.1437>
 #
 #  Description	
 #
@@ -44,30 +44,32 @@
 ## @page OpenLCBTcpHub OpenLCB Tcp/Ip Hub Server
 # @brief OpenLCB Tcp Hub daemon.
 #
-# @section SYNOPSIS
+# @section OpenLCBTcpHubSYNOPSIS SYNOPSIS
 #
 # OpenLCBTcpHub [-host localhost] [-port 12000] [-debug]
 #
-# @section DESCRIPTION
+# @section OpenLCBTcpHubDESCRIPTION DESCRIPTION
 #
 # This program is a server daemon that implements a hub for OpenLCB over 
 # Tcp/Ip that accepts connections from OpenLCB over Tcp/Ip nodes and forwards
 # OpenLCB messages between clients.
 #
-# @section PARAMETERS
+# @section OpenLCBTcpHubPARAMETERS PARAMETERS
 #
 # none
 #
-# @section OPTIONS
+# @section OpenLCBTcpHubOPTIONS OPTIONS
 #
 # @arg -host hostname The name or IP address of the host to bind to.  Defaults 
 # to localhost (binds only to the local loopback device).  Using an address of
 # 0.0.0.0 will bind to all interfaces.
 # @arg -port portnumber The Tcp/Ip port to listen on.  Defaults to 12000.
 # @arg -debug Turns on debug logging.
+# @arg -remote host[:port], -remote0 host[:port], -remote1 host[:port], ... 
+#      -remote9 host[:port] Optional remote Tcp/Ip hubs.
 # @par
 #
-# @section AUTHOR
+# @section OpenLCBTcpHubAUTHOR AUTHOR
 # Robert Heller \<heller\@deepsoft.com\>
 #
 
@@ -103,6 +105,8 @@ snit::type OpenLCBTcpHub {
     # _accept typemethod.
     typevariable logchan
     #** @brief Logfile channel.
+    typevariable defaultport 12000
+    #** @brief Default Tcp/Ip port number. 
         
     typeconstructor {
         #** @brief Global static initialization.
@@ -121,7 +125,7 @@ snit::type OpenLCBTcpHub {
             set argv [lreplace $argv $debugIdx $debugIdx]
         }
         set host [from argv -host localhost]
-        set port [from argv -port 12000]
+        set port [from argv -port $defaultport]
         set logfilename [format {%s.log} [file tail $argv0]]
         close stdin
         close stdout
@@ -144,6 +148,20 @@ snit::type OpenLCBTcpHub {
         ::log::logMsg [_ "%s starting, listening on %s:%d" $type $host $port]
         set _listenerChannel [socket -server [mytypemethod _accept] \
                               -myaddr $host $port]
+        foreach op {-remote -remote0 -remote1 -remote2 -remote3 -remote4 -remote5 -remote6 -remote7 -remote8 -remote9} {
+            set remote [from argv $op]
+            if {$remote eq ""} {continue}
+            if {[regexp {^([^:]+):([[:digit:]]+)$} $remote -> remhost portno] < 1} {
+                set remhost $remote
+                set portno $defaultport
+            }
+            if {[catch {socket $remhost $portno} sockfd]} {
+                ::log::logError [_ "Socket to %s:%d not opened: %s" $remhost $portno $sockfd]
+                continue
+            } else {
+                $type create %AUTO% $sockfd $remhost $portno
+            }
+        }
     }
     typemethod LogPuts {level message} {
         #** Log output function.

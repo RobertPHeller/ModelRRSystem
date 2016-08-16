@@ -8,7 +8,7 @@
 #*  Author        : $Author$
 #*  Created By    : Robert Heller
 #*  Created       : Thu Jun 11 11:38:28 2015
-#*  Last Modified : <150728.1105>
+#*  Last Modified : <160816.1116>
 #*
 #*  Description	
 #*
@@ -43,13 +43,13 @@
 ## @page SatelliteDaemon SatelliteDaemon
 # @brief Satellite computer Daemon
 #
-# @section SYNOPSIS
+# @section SatelliteDaemonSYNOPSIS SYNOPSIS
 # @code
 # SatelliteDaemon [-debug] [-port listenport] [-log logfilename] [-nodaemon] [-addpath path] [-addpackage path]
 # SatelliteDaemon -extenddaemon newDaemon [-tclkit tclkit] packageDir ...
 # @endcode
 #
-# @section DESCRIPTION
+# @section SatelliteDaemonDESCRIPTION DESCRIPTION
 #
 # This is the deamon program that runs on 'satellite' computers on a network
 # of computers controlling a layout.  These satellite computers could be 
@@ -66,7 +66,7 @@
 # creates a new StarPak with the listed package dirs copied into the StarPak.
 # The -tclkit defaults to /usr/local/bin/tclkit.
 #
-# @section OPTIONS
+# @section SatelliteDaemonOPTIONS OPTIONS
 #
 # @arg -debug This option turns on verbose debug logging.
 # @arg -port  This option selects the port to listen on (default: 40000).
@@ -82,13 +82,13 @@
 #               additional package directories included. 
 # @par
 #
-# @section PROTOCOL
+# @section SatelliteDaemonPROTOCOL PROTOCOL
 #
 # The protocol is simple.  The daemon creates a 'safe' interpreter and simply 
 # feeds the command stream coming in to this interpreter and sends this 
 # interpreter's output back to the master.
 #
-# @section AUTHOR
+# @section SatelliteDaemonAUTHOR AUTHOR
 # Robert Heller \<heller\@deepsoft.com\>
 #
 

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <160815.1242>
+#  Last Modified : <160816.1405>
 #
 #  Description	
 #
@@ -43,20 +43,20 @@
 ## @page OpenLCB_MRD2 OpenLCB MRD2 Node
 # @brief OpenLCB MRD2 node
 #
-# @section SYNOPSIS
+# @section MRD2SYNOPSIS SYNOPSIS
 #
 # OpenLCB_MRD2 [-configure] [-debug] [-configuration confgile]
 #
-# @section DESCRIPTION
+# @section MRD2DESCRIPTION DESCRIPTION
 #
-# This program is a daemon that implements a OpenLCB node for one or 
+# This program is a daemon that implements an OpenLCB node for one or 
 # more Azatrax MRD2 devices.  
 #
-# @section PARAMETERS
+# @section MRD2PARAMETERS PARAMETERS
 #
 # none
 #
-# @section OPTIONS
+# @section MRD2OPTIONS OPTIONS
 #
 # @arg -configure Enter an interactive GUI configuration tool.  This tool
 # creates or edits an XML configuration file.
@@ -65,16 +65,16 @@
 # @arg -debug Turns on debug logging.
 # @par
 #
-# @section CONFIGURATION
+# @section MRD2CONFIGURATION CONFIGURATION
 #
 # The configuration file for this program is an XML formatted file. Please 
-# refer to the OpenLCB Daemons (Hubs and Virtual nodes) chapter of the User 
-# Manual for the details on the schema for this XML formatted file.  Also
-# note that this program contains a built-in editor for its own configuration 
-# file. 
+# refer to the @ref openlcbdaemons "OpenLCB Daemons (Hubs and Virtual nodes)" 
+# chapter of the User Manual for the details on the schema for this XML 
+# formatted file.  Also note that this program contains a built-in editor for 
+# its own configuration file. 
 #
 #
-# @section AUTHOR
+# @section MRD2AUTHOR AUTHOR
 # Robert Heller \<heller\@deepsoft.com\>
 #
 
