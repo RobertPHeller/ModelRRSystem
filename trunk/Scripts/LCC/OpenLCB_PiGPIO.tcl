@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 7 10:36:33 2016
-#  Last Modified : <160815.1243>
+#  Last Modified : <160816.1431>
 #
 #  Description	
 #
@@ -44,20 +44,20 @@
 ## @page OpenLCB_PiGPIO OpenLCB PiGPIO node
 # @brief OpenLCB PiGPIO node
 #
-# @section SYNOPSIS
+# @section PiGPIOSYNOPSIS SYNOPSIS
 #
 # OpenLCB_PiGPIO [-configure] [-debug] [-configuration confgile]
 #
-# @section DESCRIPTION
+# @section PiGPIODESCRIPTION DESCRIPTION
 #
-# This program is a daemon that implements a OpenLCB node for the GPIO 
+# This program is a daemon that implements an OpenLCB node for the GPIO 
 # pins on a Raspberry Pi.  
 #
-# @section PARAMETERS
+# @section PiGPIOPARAMETERS PARAMETERS
 #
 # none
 #
-# @section OPTIONS
+# @section PiGPIOOPTIONS OPTIONS
 #
 # @arg -configure Enter an interactive GUI configuration tool.  This tool
 # creates or edits an XML configuration file.
@@ -66,16 +66,16 @@
 # @arg -debug Turns on debug logging.
 # @par
 #
-# @section CONFIGURATION
+# @section PiGPIOCONFIGURATION CONFIGURATION
 #
 # The configuration file for this program is an XML formatted file. Please 
-# refer to the OpenLCB Daemons (Hubs and Virtual nodes) chapter of the User 
+# refer to the @ref openlcbdaemons "OpenLCB Daemons (Hubs and Virtual nodes)" chapter of the User 
 # Manual for the details on the schema for this XML formatted file.  Also
 # note that this program contains a built-in editor for its own configuration 
 # file. 
 #
 #
-# @section AUTHOR
+# @section PiGPIOAUTHOR AUTHOR
 # Robert Heller \<heller\@deepsoft.com\>
 #
 
@@ -212,6 +212,19 @@ snit::type OpenLCB_PiGPIO {
             set debugnotvis 0
             set argv [lreplace $argv $debugIdx $debugIdx]
         }
+        set configureator no
+        set configureIdx [lsearch -exact $argv -configure]
+        if {$configureIdx >= 0} {
+            set configureator yes
+            set argv [lreplace $argv $configureIdx $configureIdx]
+        }
+        set conffile [from argv -configuration "pigpioconf.xml"]
+        #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
+        if {$configureator} {
+            $type ConfiguratorGUI $conffile
+            return
+        }
+        
         set logfilename [format {%s.log} [file tail $argv0]]
         close stdin
         close stdout
@@ -234,33 +247,21 @@ snit::type OpenLCB_PiGPIO {
         ::log::logMsg [_ "%s starting" $type]
         
         ::log::log debug "*** $type typeconstructor: argv = $argv"
-        set configureator no
-        set configureIdx [lsearch -exact $argv -configure]
-        if {$configureIdx >= 0} {
-            set configureator yes
-            set argv [lreplace $argv $configureIdx $configureIdx]
-        }
-        set conffile [from argv -configuration "pigpioconf.xml"]
-        ::log::log debug "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
-        if {$configureator} {
-            $type ConfiguratorGUI $conffile
-            return
-        }
         
         if {[catch {open $conffile r} conffp]} {
-            error [_ "Could not open %s because: %s" $conffile $conffp]
+            ::log::logError [_ "Could not open %s because: %s" $conffile $conffp]
             exit 99
         }
         set confXML [read $conffp]
         close $conffp
         if {[catch {ParseXML create %AUTO% $confXML} configuration]} {
-            error [_ "Could not parse configuration file %s: %s" $conffile $configuration]
+            ::log::logError [_ "Could not parse configuration file %s: %s" $conffile $configuration]
             exit 98
         }
         set transcons [$configuration getElementsByTagName "transport"]
         set constructor [$transcons getElementsByTagName "constructor"]
         if {$constructor eq {}} {
-            error [_ "Transport constructor missing!"]
+            ::log::logError [_ "Transport constructor missing!"]
             exit 97
         }
         set options [$transcons getElementsByTagName "options"]
@@ -276,7 +277,7 @@ snit::type OpenLCB_PiGPIO {
             set transportConstructor [lindex $transportConstructors 0]
         }
         if {$transportConstructor eq {}} {
-            error [_ "No valid transport constructor found!"]
+            ::log::logError [_ "No valid transport constructor found!"]
             exit 96
         }
         set nodename ""
@@ -301,7 +302,7 @@ snit::type OpenLCB_PiGPIO {
                           -additionalprotocols {EventExchange} \
                           ] \
                           $transportOpts} transport]} {
-            error [_ "Could not open OpenLCBNode: %s" $transport]
+            ::log::logError [_ "Could not open OpenLCBNode: %s" $transport]
             exit 95
         }
         set pollele [$configuration getElementsByTagName "pollinterval"]
@@ -318,7 +319,7 @@ snit::type OpenLCB_PiGPIO {
             set produce no
             set pinno [$pin getElementsByTagName "number"]
             if {[llength $pinno] != 1} {
-                error [_ "Missing or multiple pin numbers"]
+                ::log::logError [_ "Missing or multiple pin numbers"]
                 exit 94
             }
             set thepin [$pinno data]
@@ -330,7 +331,7 @@ snit::type OpenLCB_PiGPIO {
             }
             set pinmode [$pin getElementsByTagName "mode"]
             if {[llength $pinmode] != 1} {
-                error [_ "Missing or multiple pin modes"]
+                ::log::logError [_ "Missing or multiple pin modes"]
                 exit 93
             }
             set themode [string tolower [$pinmode data]]
@@ -373,7 +374,7 @@ snit::type OpenLCB_PiGPIO {
             }
         }
         if {[llength $pinlist] == 0} {
-            error [_ "No enabled pins specified!"]
+            ::log::logError [_ "No enabled pins specified!"]
             exit 93
         }
         wiringPiSetupSys
