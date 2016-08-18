@@ -632,6 +632,7 @@ INPUT                  = @srcdir@/Preface.h \
                          @top_srcdir@/Scripts/LCC/OpenLCB_MRD2.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_PiGPIO.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_TrackCircuits.tcl \
+                         @top_srcdir@/Scripts/LCC/OpenLCB_Acela.tcl \
                          @srcdir@/Help.h \
                          @builddir@/UserManual_Version.h @srcdir@/COPYING.h
 

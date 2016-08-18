@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Aug 14 14:40:15 2016
-//  Last Modified : <160816.1057>
+//  Last Modified : <160818.1516>
 //
 //  Description	
 //
@@ -78,6 +78,8 @@
  *   - @ref OpenLCB_TrackCircuits The OpenLCB_TrackCircuits daemon implememts
  *   an OpenLCB node that implements virtual track circuit messaging logic
  *   using OpenLCB Events.
+ *   - @ref OpenLCB_Acela The OpenLCB_Acela daemon implememts an OpenLCB node 
+ *   that implements EventExchange protocol for a CTIAcela network.
  * 
  * All three programs normally run as non-interactive daemon processes and use
  * a configuration file in XML format to define the detailed operation of the
@@ -284,6 +286,114 @@
                     </xs:sequence>
                   </xs:complexType>
                 </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+   @endverbatim
+ * 
+ * @subsection Acela EventExchange node for a CTI Acela network.
+ * 
+ * The OpenLCB_Acela daemon is used to tie a CTI Acela network to an OpenLCB 
+ * network, tying event production to the inputs (sensors) and outputs 
+ * (controls and signals) connected to a CTI Acela network.
+ * 
+ * @subsubsection Acela_XMLSchema XML Schema for configuration files
+ * @verbatim
+   <?xml version="1.0" ?>
+  <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl" ?>
+  <!-- XML Schema for OpenLCB_Acela configuration files -->
+  <xs:schema version="OpenLCB_Acela 1.0"                                         
+     xmlns:xs="http://www.w3.org/2001/XMLSchema"                                  
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <xs:element name="OpenLCB_MRD2" minOccurs="1" maxOccurs="1">
+      <xs:annotation>
+        <xs:documentation>
+          This is the configuration container for the OpenLCB_MRD2 daemon.
+        </xs:documentation>
+      </xs:annotation>
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="transport" minOccurs="1" maxOccurs="1">
+            <xs:annotation>
+               <xs:documentation>
+                 This defines the transport to use for this node.
+               </xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="constructor" minOccurs="1" maxOccurs="1" />
+                <xs:element name="options" minOccurs="1" maxOccurs="1" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="acelaport" minOccurs="1" maxOccurs="1" />
+          <xs:element name="name" minOccurs="0" maxOccurs="1" />
+          <xs:element name="description" minOccurs="0" maxOccurs="1" />
+          <xs:element name="blinkrate" minOccurs="0" maxOccurs="1" />
+          <xs:element name="yellowhue" minOccurs="0" maxOccurs="1" />
+          <xs:element name="brightness" minOccurs="0" maxOccurs="1" />
+          <xs:element name="control" minOccurs="0" maxOccurs="unbounded">
+            <xs:annotation>
+              <xs:documentation>
+                This defines one Control.
+              </xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="address" minOccurs="1" maxOccurs="1" />
+                <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                <xs:element name="pulsewidth" minOccurs="0" maxOccurs="1" />
+                <xs:element name="blinkperiod" minOccurs="0" maxOccurs="1" />
+                <xs:element name="activate" minOccurs="0" maxOccurs="1" />
+                <xs:element name="deactivate " minOccurs="0" maxOccurs="1" />
+                <xs:element name="pulseon " minOccurs="0" maxOccurs="1" />
+                <xs:element name="pulseoff " minOccurs="0" maxOccurs="1" />
+                <xs:element name="blink " minOccurs="0" maxOccurs="1" />
+                <xs:element name="revblink" minOccurs="0" maxOccurs="1" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="signal" minOccurs="0" maxOccurs="unbounded">
+            <xs:annotation>
+              <xs:documentation>
+                This defines one Signal.
+              </xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="address" minOccurs="1" maxOccurs="1" />
+                <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                <xs:element name="pulsewidth" minOccurs="0" maxOccurs="1" />
+                <xs:element name="aspect" minOccurs="0" maxOccurs="unbounded">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element name="eventid" minOccurs="0" maxOccurs="1" />
+                      <xs:element name="arglist" minOccurs="0" maxOccurs="1" />
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="sensor" minOccurs="0" maxOccurs="unbounded">
+            <xs:annotation>
+              <xs:documentation>
+                This defines one Sensor.
+              </xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="address" minOccurs="1" maxOccurs="1" />
+                <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                <xs:element name="filterthresh" minOccurs="0" maxOccurs="1" />
+                <xs:element name="filterselect" minOccurs="0" maxOccurs="1" />
+                <xs:element name="polarity" minOccurs="0" maxOccurs="1" />
+                <xs:element name="onevent" minOccurs="0" maxOccurs="1" />
+                <xs:element name="offevent" minOccurs="0" maxOccurs="1" />
               </xs:sequence>
             </xs:complexType>
           </xs:element>
