@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jul 21 10:56:52 2015
-#  Last Modified : <160204.1944>
+#  Last Modified : <160818.1248>
 #
 #  Description	
 #
@@ -71,63 +71,31 @@ namespace eval ctiacela {
     #  CTIAcela 1.0.0
     #
     
-    snit::enum directiontype -values {
+    snit::enum directiontype -values {forward reverse}
         ## @enum directiontype
         # @brief Direction type
         #
         # Either forward or reverse.
         #
-        
-        forward 
-        ##
-        reverse
-        ##
-    }
     
-    snit::enum lampcontroltype -values {
+    snit::enum lampcontroltype -values {off on blink reverseblink}
         ## @enum lampcontroltype
         # @brief Lamp control type
         #
         # One of off, on, blink, or reverseblink.
         #
-        
-        off 
-        ##
-        on
-        ##
-        blink
-        ##
-        reverseblink
-        ##
-    }
     
-    snit::enum selecttype -values {
+    snit::enum selecttype -values {noise bounce gap dirty}
         ## @enum selecttype
         # @brief Filter select type.
         #
         # One of noise, bounce, gap, or dirty.
-        
-        noise
-        ##
-        bounce
-        ##
-        gap
-        ##
-        dirty
-        ##
-    }
     
-    snit::enum polaritytype -values {
+    snit::enum polaritytype -values {normal invert}
         ## @enum polaritytype
         # @brief Polarity type
         #
         # One of normal or invert.
-        
-        normal
-        ##
-        invert
-        ##
-    }
     
     snit::integer addresstype -min 0 -max 65535
     ## @typedef unsigned short int addresstype
@@ -246,6 +214,21 @@ namespace eval ctiacela {
         }
         ## @private CTI Module Map
         
+        typemethod validate {object} {
+            ## @public @brief Type validation method.
+            # Validate object as a CTIAcela instance.
+            #
+            # @param object The object to validate.
+            
+            if {[catch {$object info type} thetype]} {
+                error [_ "Not a CTIAcela: %s" $object]
+            } elseif {$thetype ne $type} {
+                error [_ "Not a CTIAcela: %s" $object]
+            } else {
+                return $object
+            }
+        }
+        
         variable ttyfd
         ## @private Terminal file descriptor.
         
@@ -310,7 +293,7 @@ namespace eval ctiacela {
             }
             set srqhandler [$self cget -srqhandler]
             if {$srqhandler ne {}} {
-                uplevel #0 $srqhandler
+                uplevel #0 "$srqhandler"
             }
         }
         proc highbyte {addr} {
