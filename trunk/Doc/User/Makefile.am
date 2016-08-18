@@ -281,6 +281,9 @@ $(USERMAN_HTML) $(USERMAN_PDF) : $(USERMAN_HS) $(USERMAN_FIGS) $(BIBLIO) \
 	../../Scripts/LCC/OpenLCBTcpHub.tcl \
 	../../Scripts/LCC/OpenLCB_MRD2.tcl \
 	../../Scripts/LCC/OpenLCBGCTcpHub.tcl \
+	../../Scripts/LCC/OpenLCB_PiGPIO.tcl \
+	../../Scripts/LCC/OpenLCB_TrackCircuits.tcl \
+	../../Scripts/LCC/OpenLCB_Acela.tcl \
 	../doxygen/tcldoxyfilter.sh
 	-rm -rf $(USERMANHBase)/
 	-rm -rf latex
