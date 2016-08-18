@@ -584,18 +584,24 @@ proc Deep_File_Copy {sourceDir destDir logtext} {
   foreach f [glob -nocomplain [file join $sourceDir *]] {
     switch [file type $f] {
       file {
-	catch {file copy $f $destDir}
-	$logtext insert end "[file join $destDir [file tail $f]]\n"
-	$logtext see end
-        update idle
+          catch {
+              file copy $f $destDir
+              set perms [file attributes $f -permissions]
+              file attributes [file join $destDir [file tail $f]] \
+                    -permisions $perms
+          }
+          
+          $logtext insert end "[file join $destDir [file tail $f]]\n"
+          $logtext see end
+          update idle
       }
       directory {
-	set newdir [file join $destDir [file tail $f]]
-	file mkdir $newdir
-        $logtext insert end "$newdir\n"
-	$logtext see end
-	update idle
-	Deep_File_Copy $f $newdir $logtext
+          set newdir [file join $destDir [file tail $f]]
+          file mkdir $newdir
+          $logtext insert end "$newdir\n"
+          $logtext see end
+          update idle
+          Deep_File_Copy $f $newdir $logtext
       }
     }
   }
