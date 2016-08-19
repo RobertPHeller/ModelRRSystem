@@ -612,6 +612,7 @@ WARN_LOGFILE           =
 
 INPUT                  = @srcdir@/OpenLCB.h \
                          @srcdir@/OpenLCBReference.h \
+                         @srcdir@/OpenLCBDaemons.h \
                          @srcdir@/Help.h \
                          @builddir@/OpenLCB_Version.h @srcdir@/COPYING.h
 
