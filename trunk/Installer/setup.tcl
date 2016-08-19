@@ -586,11 +586,17 @@ proc Deep_File_Copy {sourceDir destDir logtext} {
       file {
           catch {
               file copy $f $destDir
-              set perms [file attributes $f -permissions]
-              file attributes [file join $destDir [file tail $f]] \
-                    -permisions $perms
+              set d [file tail $destDir]
+              set tf [file tail $f]
+              if {[lsearch {bin sbin lib} $d] >= 0} {
+                  file attributes [file join $destDir $tf] \
+                        -permissions +x
+              }
+              if {[regexp {^libdiskfree} $tf] > 0} {
+                  file attributes [file join $destDir $tf] \
+                        -permissions +x
+              }
           }
-          
           $logtext insert end "[file join $destDir [file tail $f]]\n"
           $logtext see end
           update idle
@@ -602,6 +608,13 @@ proc Deep_File_Copy {sourceDir destDir logtext} {
           $logtext see end
           update idle
           Deep_File_Copy $f $newdir $logtext
+          set ntf [file tail $newdir]
+          if {[regexp {\.app$} $ntf] > 0} {
+              set exes [glob -nocomplain [file join $newdir Contents MacOS *]]
+              foreach e $exes {
+                  file attributes $e -permissions +x
+              }
+          }
       }
     }
   }
