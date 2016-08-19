@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Aug 14 14:40:15 2016
-//  Last Modified : <160818.1516>
+//  Last Modified : <160819.1141>
 //
 //  Description	
 //
@@ -53,9 +53,9 @@
  * There are two hub daemons that implement a OpenLCB network over Tcp/Ip and
  * connect CAN busses connected to different host computers connected via
  * Tcp/Ip over Ethernet.  These daemons are:
- *   - @ref OpenLCBTcpHub The OpenLCBTcpHub daemon implememts the binary
+ *   @li @ref OpenLCBTcpHub The OpenLCBTcpHub daemon implememts the binary
  *   OpenLCB messaging protocol over Tcp/Ip.
- *   - @ref OpenLCBGCTcpHub The OpenLCBGCTcpHub daemon implememts the OpenLCB
+ *   @li @ref OpenLCBGCTcpHub The OpenLCBGCTcpHub daemon implememts the OpenLCB
  *   messaging using the GridConnect protocol over both Tcp/Ip and using the
  *   CAN Bus over a USB/Serial connection.
  * 
@@ -68,22 +68,22 @@
  * to a log file.
  * 
  * @section vnodes Virtual Nodes
- * There are three virtual nodes that implement OpenLCB nodes to provide
- * useful functions.  There daemons are:
- *   - @ref OpenLCB_MRD2 The OpenLCB_MRD2 daemon implememts an OpenLCB node
+ * There are several virtual nodes that implement OpenLCB nodes to provide
+ * useful functions.  These daemons are:
+ *   @li @ref OpenLCB_MRD2 The OpenLCB_MRD2 daemon implememts an OpenLCB node
  * that implements the EventExchange protocol for Azatrax MRD2 boards.
- *   - @ref OpenLCB_PiGPIO The OpenLCB_PiGPIO daemon implememts an OpenLCB
+ *   @li @ref OpenLCB_PiGPIO The OpenLCB_PiGPIO daemon implememts an OpenLCB
  *   node that implements the EventExchange protocol for Raspberry Pi GPIO
  *   pins.
- *   - @ref OpenLCB_TrackCircuits The OpenLCB_TrackCircuits daemon implememts
+ *   @li @ref OpenLCB_TrackCircuits The OpenLCB_TrackCircuits daemon implememts
  *   an OpenLCB node that implements virtual track circuit messaging logic
  *   using OpenLCB Events.
- *   - @ref OpenLCB_Acela The OpenLCB_Acela daemon implememts an OpenLCB node 
+ *   @li @ref OpenLCB_Acela The OpenLCB_Acela daemon implememts an OpenLCB node
  *   that implements EventExchange protocol for a CTIAcela network.
  * 
- * All three programs normally run as non-interactive daemon processes and use
- * a configuration file in XML format to define the detailed operation of the
- * programs. This configuration file can either be hand edited or can be
+ * All of these programs normally run as non-interactive daemon processes and
+ * use a configuration file in XML format to define the detailed operation of
+ * the programs. This configuration file can either be hand edited or can be
  * edited by the programs themselves using the specific GUI configuration
  * editor built-in to each program.
  * 
@@ -96,62 +96,63 @@
  * defined connected device.
  * 
  * @subsubsection MRD2_XMLSchema XML Schema for configuration files
+ * 
  * @verbatim
-  <?xml version="1.0" ?>
-  <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl" ?>
-  <!-- XML Schema for OpenLCB_MRD2 configuration files -->
-  <xs:schema version="OpenLCB_MRD2 1.0" 
-   xmlns:xs="http://www.w3.org/2001/XMLSchema"
-   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <xs:element name="OpenLCB_MRD2" minOccurs="1" maxOccurs="1">
-      <xs:annotation>
-        <xs:documentation>
-          This is the configuration container for the OpenLCB_MRD2 daemon.
-        </xs:documentation>
-      </xs:annotation>
-      <xs:complexType>
-        <xs:sequence>
-          <xs:element name="transport" minOccurs="1" maxOccurs="1">
-            <xs:annotation>
-               <xs:documentation>
-                 This defines the transport to use for this node.
-               </xs:documentation>
-            </xs:annotation>
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="constructor" minOccurs="1" maxOccurs="1" />
-                <xs:element name="options" minOccurs="1" maxOccurs="1" />
-              </xs:sequence>
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="pollinterval" minOccurs="0" maxOccurs="1" />
-          <xs:element name="name" minOccurs="0" maxOccurs="1" />
-          <xs:element name="description" minOccurs="0" maxOccurs="1" />
-          <xs:element name="device" minOccurs="0" maxOccurs="unbounded" >
-            <xs:annotation>
-              <xs:documentation>
-                This defines one device.
-              </xs:documentation>
-            </xs:annotation>
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="serial" minOccurs="1" maxOccurs="1" />
-                <xs:element name="description" minOccurs="0" maxOccurs="1" />
-                <xs:element name="sense1on" minOccurs="0" maxOccurs="1" />
-                <xs:element name="sense1off" minOccurs="0" maxOccurs="1" />
-                <xs:element name="sense2on" minOccurs="0" maxOccurs="1" />
-                <xs:element name="sense2off" minOccurs="0" maxOccurs="1" />
-                <xs:element name="latch1on" minOccurs="0" maxOccurs="1" />
-                <xs:element name="setchan" minOccurs="0" maxOccurs="1" />
-                <xs:element name="setchan" minOccurs="0" maxOccurs="1" />
-              </xs:sequence>
-            </xs:complexType>
-          </xs:element>
-        </xs:sequence>
-      </xs:complexType>
-    </xs:element>
-  </xs:schema>
-  @endverbatim
+    <?xml version="1.0" ?>
+    <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl" ?>
+    <!-- XML Schema for OpenLCB_MRD2 configuration files -->
+    <xs:schema version="OpenLCB_MRD2 1.0"
+     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <xs:element name="OpenLCB_MRD2" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            This is the configuration container for the OpenLCB_MRD2 daemon.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="transport" minOccurs="1" maxOccurs="1">
+              <xs:annotation>
+                 <xs:documentation>
+                   This defines the transport to use for this node.
+                 </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="constructor" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="options" minOccurs="1" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="pollinterval" minOccurs="0" maxOccurs="1" />
+            <xs:element name="name" minOccurs="0" maxOccurs="1" />
+            <xs:element name="description" minOccurs="0" maxOccurs="1" />
+            <xs:element name="device" minOccurs="0" maxOccurs="unbounded" >
+              <xs:annotation>
+                <xs:documentation>
+                  This defines one device.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="serial" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="sense1on" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="sense1off" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="sense2on" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="sense2off" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="latch1on" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="setchan" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="setchan" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:schema>
+    @endverbatim
  * 
  * 
  * @subsection PiGPIO EventExchange node for Raspberry Pi GPIO pins.
@@ -161,59 +162,60 @@
  * pins).
  * 
  * @subsubsection PiGPIO_XMLSchema XML Schema for configuration files
+ * 
  * @verbatim
-  <?xml version="1.0" ?>
-  <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl" ?>
-  <!-- XML Schema for OpenLCB_PiGPIO configuration files -->
-  <xs:schema version="OpenLCB_PiGPIO 1.0" 
-   xmlns:xs="http://www.w3.org/2001/XMLSchema"
-   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <xs:element name="OpenLCB_PiGPIO" minOccurs="1" maxOccurs="1">
-      <xs:annotation>
-        <xs:documentation>
-          This is the configuration container for the OpenLCB_PiGPIO daemon.
-        </xs:documentation>
-      </xs:annotation>
-      <xs:complexType>
-        <xs:sequence>
-          <xs:element name="transport" minOccurs="1" maxOccurs="1">
-            <xs:annotation>
-               <xs:documentation>
-                 This defines the transport to use for this node.
-               </xs:documentation>
-            </xs:annotation>
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="constructor" minOccurs="1" maxOccurs="1" />
-                <xs:element name="options" minOccurs="1" maxOccurs="1" />
-              </xs:sequence>
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="name" minOccurs="0" maxOccurs="1" />
-          <xs:element name="description" minOccurs="0" maxOccurs="1" />
-          <xs:element name="pollinterval" minOccurs="0" maxOccurs="1" />
-          <xs:element name="pin" minOccurs="0" maxOccurs="unbounded" >
-            <xs:annotation>
-              <xs:documentation>
-                This defines one pin.
-              </xs:documentation>
-            </xs:annotation>
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="number" minOccurs="1" maxOccurs="1" />
-                <xs:element name="description" minOccurs="0" maxOccurs="1" />
-                <xs:element name="mode" minOccurs="0" maxOccurs="1" />
-                <xs:element name="pinin0" minOccurs="0" maxOccurs="1" />
-                <xs:element name="pinin1" minOccurs="0" maxOccurs="1" />
-                <xs:element name="pinout0" minOccurs="0" maxOccurs="1" />
-                <xs:element name="pinout1" minOccurs="0" maxOccurs="1" />
-              </xs:sequence>
-            </xs:complexType>
-          </xs:element>
-        </xs:sequence>
-      </xs:complexType>
-    </xs:element>
-  </xs:schema>
+    <?xml version="1.0" ?>
+    <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl" ?>
+    <!-- XML Schema for OpenLCB_PiGPIO configuration files -->
+    <xs:schema version="OpenLCB_PiGPIO 1.0"
+     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <xs:element name="OpenLCB_PiGPIO" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            This is the configuration container for the OpenLCB_PiGPIO daemon.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="transport" minOccurs="1" maxOccurs="1">
+              <xs:annotation>
+                 <xs:documentation>
+                   This defines the transport to use for this node.
+                 </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="constructor" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="options" minOccurs="1" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="name" minOccurs="0" maxOccurs="1" />
+            <xs:element name="description" minOccurs="0" maxOccurs="1" />
+            <xs:element name="pollinterval" minOccurs="0" maxOccurs="1" />
+            <xs:element name="pin" minOccurs="0" maxOccurs="unbounded" >
+              <xs:annotation>
+                <xs:documentation>
+                  This defines one pin.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="number" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="mode" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="pinin0" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="pinin1" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="pinout0" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="pinout1" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:schema>
    @endverbatim
  * 
  * @subsection TrackCircuits EventExchange node for virtual track circuits.
@@ -221,187 +223,197 @@
  * The OpenLCB_TrackCircuits daemon is used to implement one or more virtual
  * track circuits. Each track circuit can emit a code event in response to an
  * event and can emit an event in response to a code event, possibly prefixed
- * with a Code 1 Start event.
+ * with a Code 1 Start event. 
+ * 
  * @subsubsection TrackCircuits_XMLSchema XML Schema for configuration files
- * @verbatim
-  <?xml version="1.0" ?>
-  <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl" ?>
-  <!-- XML Schema for OpenLCB_TrackCircuits configuration files -->
-  <xs:schema version="OpenLCB_TrackCircuits 1.0" 
-   xmlns:xs="http://www.w3.org/2001/XMLSchema"
-   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <xs:element name="OpenLCB_TrackCircuits" minOccurs="1" maxOccurs="1">
-      <xs:annotation>
-        <xs:documentation>
-          This is the configuration container for the OpenLCB_TrackCircuits daemon.
-        </xs:documentation>
-      </xs:annotation>
-      <xs:complexType>
-        <xs:sequence>
-          <xs:element name="transport" minOccurs="1" maxOccurs="1">
-            <xs:annotation>
-               <xs:documentation>
+ * 
+ * @verbatim <?xml version="1.0" ?>
+  <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl" ?> 
+   <!-- XML Schema for OpenLCB_TrackCircuits configuration files --> 
+   <xs:schema version="OpenLCB_TrackCircuits 1.0" 
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"> 
+     <xs:element name="OpenLCB_TrackCircuits" minOccurs="1" maxOccurs="1">
+       <xs:annotation>
+         <xs:documentation>
+           This is the configuration container for the OpenLCB_TrackCircuits 
+           daemon. 
+         </xs:documentation>
+       </xs:annotation>
+       <xs:complexType>
+         <xs:sequence> 
+           <xs:element name="transport" minOccurs="1" maxOccurs="1">
+             <xs:annotation> 
+               <xs:documentation> 
                  This defines the transport to use for this node.
-               </xs:documentation>
-            </xs:annotation>
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="constructor" minOccurs="1" maxOccurs="1" />
-                <xs:element name="options" minOccurs="1" maxOccurs="1" />
-              </xs:sequence>
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="name" minOccurs="0" maxOccurs="1" />
-          <xs:element name="description" minOccurs="0" maxOccurs="1" />
-          <xs:element name="track" minOccurs="0" maxOccurs="unbounded" >
-            <xs:annotation>
-              <xs:documentation>
-                This defines one track.
-              </xs:documentation>
-            </xs:annotation>
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="description" minOccurs="0" maxOccurs="1" />
-                <xs:element name="transmitter" minOccurs="0" 
-                          maxOccurs="unbounded" >
-                  <xs:complexType>
-                    <xs:sequence>
-                      <xs:element name="code" minOccurs="1" maxOccurs="1" />
-                      <xs:element name="eventid" minOccurs="1" maxOccurs="1" />
-                    </xs:sequence>
-                  </xs:complexType>
-                </xs:element>
-                <xs:element name="transmitbaseevent" minOccurs="0" 
-                            maxOccurs="1" />
-                <xs:element name="receivebaseevent" minOccurs="0" 
-                            maxOccurs="1" />
-                <xs:element name="code1startevent" minOccurs="0" 
-                            maxOccurs="1" />
-                <xs:element name="receiver" minOccurs="0" 
-                          maxOccurs="unbounded" >
-                  <xs:complexType>
-                    <xs:sequence>
-                      <xs:element name="code" minOccurs="1" maxOccurs="1" />
-                      <xs:element name="eventid" minOccurs="1" maxOccurs="1" />
-                    </xs:sequence>
-                  </xs:complexType>
-                </xs:element>
-              </xs:sequence>
-            </xs:complexType>
-          </xs:element>
-        </xs:sequence>
-      </xs:complexType>
-    </xs:element>
-  </xs:schema>
+               </xs:documentation> 
+             </xs:annotation>
+             <xs:complexType> 
+               <xs:sequence> 
+                 <xs:element name="constructor" minOccurs="1" maxOccurs="1" />
+                 <xs:element name="options" minOccurs="1" maxOccurs="1" />
+               </xs:sequence> 
+             </xs:complexType> 
+           </xs:element> 
+           <xs:element name="name" minOccurs="0" maxOccurs="1" /> 
+           <xs:element name="description" minOccurs="0" maxOccurs="1" /> 
+           <xs:element name="track" minOccurs="0" maxOccurs="unbounded" > 
+             <xs:annotation> 
+               <xs:documentation> 
+                 This defines one track. 
+               </xs:documentation> 
+             </xs:annotation> 
+             <xs:complexType> 
+               <xs:sequence>
+                 <xs:element name="description" minOccurs="0" maxOccurs="1" /> 
+                 <xs:element name="transmitter" minOccurs="0" 
+                             maxOccurs="unbounded" > 
+                   <xs:complexType>
+                     <xs:sequence> 
+                       <xs:element name="code" minOccurs="1" maxOccurs="1" />
+                       <xs:element name="eventid" minOccurs="1" 
+                                   maxOccurs="1" /> 
+                     </xs:sequence>
+                   </xs:complexType> 
+                 </xs:element> 
+                 <xs:element name="transmitbaseevent" minOccurs="0" 
+                             maxOccurs="1" /> 
+                 <xs:element name="receivebaseevent" minOccurs="0" 
+                             maxOccurs="1" /> 
+                 <xs:element name="code1startevent" minOccurs="0" 
+                             maxOccurs="1" /> 
+                 <xs:element name="receiver" minOccurs="0" 
+                             maxOccurs="unbounded" > 
+                   <xs:complexType> 
+                     <xs:sequence> 
+                       <xs:element name="code" minOccurs="1" maxOccurs="1" /> 
+                       <xs:element name="eventid" minOccurs="1" 
+                                   maxOccurs="1" /> 
+                     </xs:sequence> 
+                   </xs:complexType>
+                 </xs:element> 
+               </xs:sequence> 
+             </xs:complexType> 
+           </xs:element> 
+         </xs:sequence>
+       </xs:complexType> 
+     </xs:element> 
+   </xs:schema> 
    @endverbatim
  * 
  * @subsection Acela EventExchange node for a CTI Acela network.
  * 
- * The OpenLCB_Acela daemon is used to tie a CTI Acela network to an OpenLCB 
- * network, tying event production to the inputs (sensors) and outputs 
+ * The OpenLCB_Acela daemon is used to tie a CTI Acela network to an OpenLCB
+ * network, tying event production to the inputs (sensors) and outputs
  * (controls and signals) connected to a CTI Acela network.
  * 
  * @subsubsection Acela_XMLSchema XML Schema for configuration files
+ * 
  * @verbatim
-   <?xml version="1.0" ?>
-  <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl" ?>
-  <!-- XML Schema for OpenLCB_Acela configuration files -->
-  <xs:schema version="OpenLCB_Acela 1.0"                                         
-     xmlns:xs="http://www.w3.org/2001/XMLSchema"                                  
-     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <xs:element name="OpenLCB_MRD2" minOccurs="1" maxOccurs="1">
-      <xs:annotation>
-        <xs:documentation>
-          This is the configuration container for the OpenLCB_MRD2 daemon.
-        </xs:documentation>
-      </xs:annotation>
-      <xs:complexType>
-        <xs:sequence>
-          <xs:element name="transport" minOccurs="1" maxOccurs="1">
-            <xs:annotation>
-               <xs:documentation>
-                 This defines the transport to use for this node.
-               </xs:documentation>
-            </xs:annotation>
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="constructor" minOccurs="1" maxOccurs="1" />
-                <xs:element name="options" minOccurs="1" maxOccurs="1" />
-              </xs:sequence>
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="acelaport" minOccurs="1" maxOccurs="1" />
-          <xs:element name="name" minOccurs="0" maxOccurs="1" />
-          <xs:element name="description" minOccurs="0" maxOccurs="1" />
-          <xs:element name="blinkrate" minOccurs="0" maxOccurs="1" />
-          <xs:element name="yellowhue" minOccurs="0" maxOccurs="1" />
-          <xs:element name="brightness" minOccurs="0" maxOccurs="1" />
-          <xs:element name="control" minOccurs="0" maxOccurs="unbounded">
-            <xs:annotation>
-              <xs:documentation>
-                This defines one Control.
-              </xs:documentation>
-            </xs:annotation>
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="address" minOccurs="1" maxOccurs="1" />
-                <xs:element name="description" minOccurs="0" maxOccurs="1" />
-                <xs:element name="pulsewidth" minOccurs="0" maxOccurs="1" />
-                <xs:element name="blinkperiod" minOccurs="0" maxOccurs="1" />
-                <xs:element name="activate" minOccurs="0" maxOccurs="1" />
-                <xs:element name="deactivate " minOccurs="0" maxOccurs="1" />
-                <xs:element name="pulseon " minOccurs="0" maxOccurs="1" />
-                <xs:element name="pulseoff " minOccurs="0" maxOccurs="1" />
-                <xs:element name="blink " minOccurs="0" maxOccurs="1" />
-                <xs:element name="revblink" minOccurs="0" maxOccurs="1" />
-              </xs:sequence>
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="signal" minOccurs="0" maxOccurs="unbounded">
-            <xs:annotation>
-              <xs:documentation>
-                This defines one Signal.
-              </xs:documentation>
-            </xs:annotation>
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="address" minOccurs="1" maxOccurs="1" />
-                <xs:element name="description" minOccurs="0" maxOccurs="1" />
-                <xs:element name="pulsewidth" minOccurs="0" maxOccurs="1" />
-                <xs:element name="aspect" minOccurs="0" maxOccurs="unbounded">
-                  <xs:complexType>
-                    <xs:sequence>
-                      <xs:element name="eventid" minOccurs="0" maxOccurs="1" />
-                      <xs:element name="arglist" minOccurs="0" maxOccurs="1" />
-                    </xs:sequence>
-                  </xs:complexType>
-                </xs:element>
-              </xs:sequence>
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="sensor" minOccurs="0" maxOccurs="unbounded">
-            <xs:annotation>
-              <xs:documentation>
-                This defines one Sensor.
-              </xs:documentation>
-            </xs:annotation>
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="address" minOccurs="1" maxOccurs="1" />
-                <xs:element name="description" minOccurs="0" maxOccurs="1" />
-                <xs:element name="filterthresh" minOccurs="0" maxOccurs="1" />
-                <xs:element name="filterselect" minOccurs="0" maxOccurs="1" />
-                <xs:element name="polarity" minOccurs="0" maxOccurs="1" />
-                <xs:element name="onevent" minOccurs="0" maxOccurs="1" />
-                <xs:element name="offevent" minOccurs="0" maxOccurs="1" />
-              </xs:sequence>
-            </xs:complexType>
-          </xs:element>
-        </xs:sequence>
-      </xs:complexType>
-    </xs:element>
-  </xs:schema>
-   @endverbatim
+    <?xml version="1.0" ?>
+    <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl" ?>
+    <!-- XML Schema for OpenLCB_Acela configuration files -->
+    <xs:schema version="OpenLCB_Acela 1.0"
+       xmlns:xs="http://www.w3.org/2001/XMLSchema"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <xs:element name="OpenLCB_Acela" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            This is the configuration container for the OpenLCB_Acela daemon.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="transport" minOccurs="1" maxOccurs="1">
+              <xs:annotation>
+                 <xs:documentation>
+                   This defines the transport to use for this node.
+                 </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="constructor" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="options" minOccurs="1" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="acelaport" minOccurs="1" maxOccurs="1" />
+            <xs:element name="name" minOccurs="0" maxOccurs="1" />
+            <xs:element name="description" minOccurs="0" maxOccurs="1" />
+            <xs:element name="blinkrate" minOccurs="0" maxOccurs="1" />
+            <xs:element name="yellowhue" minOccurs="0" maxOccurs="1" />
+            <xs:element name="brightness" minOccurs="0" maxOccurs="1" />
+            <xs:element name="control" minOccurs="0" maxOccurs="unbounded">
+              <xs:annotation>
+                <xs:documentation>
+                  This defines one Control.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="address" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="pulsewidth" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="blinkperiod" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="activate" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="deactivate " minOccurs="0" maxOccurs="1" />
+                  <xs:element name="pulseon " minOccurs="0" maxOccurs="1" />
+                  <xs:element name="pulseoff " minOccurs="0" maxOccurs="1" />
+                  <xs:element name="blink " minOccurs="0" maxOccurs="1" />
+                  <xs:element name="revblink" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="signal" minOccurs="0" maxOccurs="unbounded">
+              <xs:annotation>
+                <xs:documentation>
+                  This defines one Signal.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="address" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="pulsewidth" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="aspect" minOccurs="0" 
+                              maxOccurs="unbounded">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="eventid" minOccurs="0" 
+                                    maxOccurs="1" />
+                        <xs:element name="arglist" minOccurs="0" 
+                                    maxOccurs="1" />
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="sensor" minOccurs="0" maxOccurs="unbounded">
+              <xs:annotation>
+                <xs:documentation>
+                  This defines one Sensor.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="address" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="filterthresh" minOccurs="0" 
+                                                  maxOccurs="1" />
+                  <xs:element name="filterselect" minOccurs="0" 
+                                                  maxOccurs="1" />
+                  <xs:element name="polarity" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="onevent" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="offevent" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:schema>
+     @endverbatim
  */
 
 #endif // __OPENLCBDAEMONS_H
