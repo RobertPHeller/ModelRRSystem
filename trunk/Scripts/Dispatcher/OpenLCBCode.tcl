@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <160820.1018>
+#  Last Modified : <160820.1514>
 #
 #  Description	
 #
@@ -47,34 +47,243 @@ package require CTCPanel 2.0
 
 snit::type Dispatcher_Block {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
+    option -name    -default {}
+    option -occupiedeventid -type EventID_or_null -default {}
+    option -notoccupiedeventid -type EventID_or_null -default {}
+    variable occupied no
+
+    constructor {args} {
+        $self configurelist $args
+        MainWindow ctcpanel configure "$options(-name)" \
+              -occupiedcommand [mymethod occupiedp]
+    }
+    method occupiedp {} {return $occupied}
+    method consumerP {} {return yes}
+    method producerP {} {return no}
+    method consumedEvents {} {
+        set events [list]
+        foreach eopt {occupiedeventid notoccupiedeventid} {
+            set ev [$self cget -$eopt]
+            if {$ev eq {}} {continue}
+            lappend events $ev
+        }
+        return $events
+    }
+    method producedEvents {} {return [list]}
+    method consumeEvent {event} {
+        set ev [$self cget -occupiedeventid]
+        if {$ev ne {} && [$ev match $event]} {
+            set occupied yes
+        }
+        set ev [$self cget -notoccupiedeventid]
+        if {$ev ne {} && [$ev match $event]} {
+            set occupied no
+        }
+        MainWindow ctcpanel invoke "$options(-name)"
+    }
 }
 
 snit::type Dispatcher_Switch {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
+    option -name    -default {}
+    option -occupiedeventid -type EventID_or_null -default {}
+    option -notoccupiedeventid -type EventID_or_null -default {}
+    variable occupied no
+    option -statenormaleventid -type EventID_or_null -default {}
+    option -statereverseeventid -type EventID_or_null -default {}
+    variable state unknown
+    constructor {args} {
+        $self configurelist $args
+        MainWindow ctcpanel configure "$options(-name)" \
+              -occupiedcommand [mymethod occupiedp] \
+              -statecommand    [mymethod getstate]
+    }
+    method occupiedp {} {return $occupied}
+    method getstate  {} {return $state}
+    method consumerP {} {return yes}
+    method producerP {} {return no}
+    method consumedEvents {} {
+        set events [list]
+        foreach eopt {occupiedeventid notoccupiedeventid statenormaleventid 
+                      statereverseeventid} {
+            set ev [$self cget -$eopt]
+            if {$ev eq {}} {continue}
+            lappend events $ev
+        }
+        return $events
+    }
+    method producedEvents {} {return [list]}
+    method consumeEvent {event} {
+        set ev [$self cget -occupiedeventid]
+        if {$ev ne {} && [$ev match $event]} {
+            set occupied yes
+        }
+        set ev [$self cget -notoccupiedeventid]
+        if {$ev ne {} && [$ev match $event]} {
+            set occupied no
+        }
+        set ev [$self cget -statenormaleventid]
+        if {$ev ne {} && [$ev match $event]} {
+            set state normal
+        }
+        set ev [$self cget -statereverseeventid]
+        if {$ev ne {} && [$ev match $event]} {
+            set state reverse
+        }
+        MainWindow ctcpanel invoke "$options(-name)"
+    }
 }
+
+snit::enum CTC_AspectColors -values {dark red yellow green white blue}
+
+snit::listtype CTC_AspectList -type CTC_AspectColors
+    
+snit::type CTC_EventAspectList {
+    pragma  -hastypeinfo no -hastypedestroy no -hasinstances no
+    typemethod validate {object} {
+        if {([llength $object] & 1) != 0} {
+            if {([llength $object] & 1) != 0} {
+                error [_ "Not an CTC_EventAspectList: %s (odd list length)" $object]
+            } else {
+                foreach {e al} $object {
+                    if {[catch {lcc::EventID validate $e}]} {
+                        error [_ "Not an CTC_EventAspectList: %s (badevent: %s)" $object $e]
+                }
+                if {[catch { validate $al}]} {
+                    error [_ "Not an CTC_EventAspectList: %s (bad AspectArgumentList: %s)" $object $al]
+                }
+            }
+        }
+        return $object
+    }
+}
+
+
 
 snit::type Dispatcher_Signal {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
+    option -name    -default {}
+    option -eventidaspectlist -type CTC_EventAspectList -default {}
+    constructor {args} {
+        $self configurelist $args
+    }
+    method consumerP {} {return yes}
+    method producerP {} {return no}    
+    method consumedEvents {} {
+        set events [list]
+        foreach {ev aspl} [self cget -eventidaspectlist] {
+            lappend events $ev
+        }
+        return $events
+    }
+    method producedEvents {} {return [list]}
+    method consumeEvent {event} {
+        foreach {ev aspl} [self cget -eventidaspectlist] {
+            if {[$ev match $event]} {
+                MainWindow ctcpanel setv "$options(-name)" "$aspl"
+            }
+        }
+    }
 }
+
 
 snit::type Dispatcher_CodeButton {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
+    option -name    -default {}
+    constructor {args} {
+        $self configurelist $args
+        MainWindow ctcpanel configure "$options(-name)" \
+              -command [mymethod code]
+    }
+    method consumerP {} {return no}
+    method producerP {} {return no}    
+    method consumedEvents {} {return [list]}
+    method producedEvents {} {return [list]}
+    method code {} {
+        foreach swp [MainWindow ctcpanel objectlist $cp SwitchPlates] {
+            MainWindow ctcpanel invoke $swp
+        }
+        foreach sgp [MainWindow ctcpanel objectlist $cp SignalPlates] {
+            MainWindow ctcpanel invoke $sgp
+        }
+        foreach tog [MainWindow ctcpanel objectlist $cp Toggle] {
+            MainWindow ctcpanel invoke $tog
+        }
+    }
 }
 
 snit::type Dispatcher_Lamp {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
+    option -name    -default {}
+    option -oneventid  -type EventID_or_null -default {}
+    option -offeventid -type EventID_or_null -default {}
+    constructor {args} {
+        $self configurelist $args
+    }
+    method consumerP {} {return yes}
+    method producerP {} {return no}
+    method consumedEvents {} {
+        set events [list]
+        foreach eopt {oneventid offeventid} {
+            set ev [$self cget -$eopt]
+            if {$ev ne ""} {lappend events $ev}
+        }
+        return $events
+    }
+    method producedEvents {} {return [list]}
+    method consumeEvent {event} {
+        set ev [$self cget -oneventid]
+        if {$ev ne "" && [$ev match $event]} {
+            MainWindow ctcpanel setv "$options(-name)" on
+        }
+        set ev [$self cget -offeventid]
+        if {$ev ne "" && [$ev match $event]} {
+            MainWindow ctcpanel setv "$options(-name)" off
+        }
+    }
 }
 
 snit::type Dispatcher_ToggleSwitch {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
+    option -name    -default {}
+    option -lefteventid   -type EventID_or_null -default {}
+    option -righteventid  -type EventID_or_null -default {}
+    option -centereventid -type EventID_or_null -default {}
+    constructor {args} {
+        $self configurelist $args
+        MainWindow ctcpanel configure "$options(-name)" \
+              -leftcommand [mymethod sendevent -lefteventid] \
+              -rightcommand [mymethod sendevent -righteventid] \
+              -centercommand [mymethod sendevent -centereventid]
+    }
+    method sendevent {eopt} {
+        set ev [$self cget $eopt]
+        if {$ev ne ""} {
+            [$self cget -openlcb] sendMyEvent $ev
+        }
+    }
+    method consumerP {} {return no}
+    method producerP {} {return yes}
+    method consumedEvents {} {return [list]}
+    method producedEvents {} {
+        set events [list]
+        foreach eopt {lefteventid righteventid centereventid} {
+            set ev [$self cget -$eopt]
+            if {$ev ne ""} {lappend events $ev}
+        }
+        return $events
+    }
+    method consumeEvent {event} {}
 }
 
 snit::type Dispatcher_SwitchPlate {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
+    option -name    -default {}
 }
 
 snit::type Dispatcher_SignalPlate {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
+    option -name    -default {}
 }
 
 snit::enum ElementClasses -values {Block Switch Signal CodeButton Lamp 
