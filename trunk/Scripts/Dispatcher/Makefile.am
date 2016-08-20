@@ -123,8 +123,17 @@ CTIAcelaSupportFiles = $(top_srcdir)/Scripts/CTIAcela/*.tcl \
 
 CTIAcelaDependFiles  = $(CTIAcelaSupportFiles)
 
+OpenLCBSupportFiles = $(top_srcdir)/Scripts/LCC/ConfigDialogs.tcl \
+		      $(top_srcdir)/Scripts/LCC/ConfigurationEditor.tcl \
+		      $(top_srcdir)/Scripts/LCC/eventDialogs.tcl \
+		      $(top_srcdir)/Scripts/LCC/lcc.tcl \
+		      $(top_builddir)/Scripts/LCC/pkgIndex.tcl
+OpenLCBDependFiles  = $(OpenLCBSupportFiles)
 
-CodeLibraryFiles = cmriCode.tcl panelCode.tcl userCodeModules.tcl
+
+
+CodeLibraryFiles = cmriCode.tcl panelCode.tcl userCodeModules.tcl \
+		OpenLCBCode.tcl
 EXTRA_DIST  = Dispatcher.src $(DispatcherScripts) $(DispatcherImages) \
 		$(CodeLibraryFiles) $(ExampleScripts) Dispatcher.png \
 		Dispatcher.desktop Doxyfile.in
@@ -163,6 +172,7 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 		      $(CMriDependFiles)  $(AzatraxDependFiles) \
 		      $(ControlSupportDependFiles) \
 		      $(CTIAcelaDependFiles) $(WIRINGPIDependFiles) \
+		      $(OpenLCBDependFiles) \
 		      $(top_builddir)/C++/ParserClasses/libMRRParserClasses.la \
 		      $(top_builddir)/C++/ParserClasses/pkgIndex.tcl
 	-rm -rf Dispatcher.vfs
@@ -197,6 +207,8 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 		CodeLibrary/Azatrax $(AzatraxSupportFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		CodeLibrary/ControlSupport $(ControlSupportFiles)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
+		CodeLibrary/LCC $(OpenLCBSupportFiles)
 if HAVE_WIRINGPI
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		CodeLibrary/WiringPi $(WIRINGPISupportFiles)
