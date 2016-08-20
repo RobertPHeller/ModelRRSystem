@@ -102,6 +102,15 @@ package require Splash
 package require MainWindow
 package require ReadConfiguration
 package require LabelFrames
+lappend auto_path [file join [file dirname [file dirname [file dirname [info script]]]] \
+                   CodeLibrary LCC]
+#puts stderr "*** auto_path is $auto_path"
+package require LCC
+#puts stderr "*** packages loaded: "
+#foreach p [package names] {
+#    if {[catch {package present $p} version]} {continue}
+#    puts stderr "***   $p $version"
+#}
 
 global ImageDir 
 set ImageDir [file join [file dirname [file dirname [info script]]] \
