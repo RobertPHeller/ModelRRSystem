@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <160820.1846>
+#  Last Modified : <160821.1448>
 #
 #  Description	
 #
@@ -206,8 +206,11 @@ snit::type Dispatcher_CodeButton {
         foreach sgp [MainWindow ctcpanel objectlist $cp SignalPlates] {
             MainWindow ctcpanel invoke $sgp
         }
-        foreach tog [MainWindow ctcpanel objectlist $cp Toggle] {
+        foreach tog [MainWindow ctcpanel objectlist $cp Toggles] {
             MainWindow ctcpanel invoke $tog
+        }
+        foreach push [MainWindow ctcpanel objectlist $cp PushButtons] {
+            MainWindow ctcpanel invoke $push
         }
     }
 }
@@ -271,6 +274,33 @@ snit::type Dispatcher_ToggleSwitch {
             set ev [$self cget -$eopt]
             if {$ev ne ""} {lappend events $ev}
         }
+        return $events
+    }
+    method consumeEvent {event} {}
+}
+
+snit::type Dispatcher_PushButton {
+    option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
+    option -name    -default {}
+    option -eventid -type EventID_or_null -default {}
+    constructor {args} {
+        $self configurelist $args
+        MainWindow ctcpanel configure "$options(-name)" \
+              -command [mymethod sendevent -eventid]
+    }
+    method sendevent {eopt} {
+        set ev [$self cget $eopt]
+        if {$ev ne ""} {
+            [$self cget -openlcb] sendMyEvent $ev
+        }
+    }
+    method consumerP {} {return no}
+    method producerP {} {return yes}
+    method consumedEvents {} {return [list]}
+    method producedEvents {} {
+        set events [list]
+        set ev [$self cget -eventid]
+        if {$ev ne ""} {lappend events $ev}
         return $events
     }
     method consumeEvent {event} {}
@@ -418,7 +448,8 @@ snit::type Dispatcher_SignalPlate {
 }
 
 snit::enum ElementClasses -values {Block Switch Signal CodeButton Lamp 
-                                   ToggleSwitch SwitchPlate SignalPlate}
+    ToggleSwitch SwitchPlate SignalPlate 
+    PushButton}
 
 snit::type OpenLCB_Dispatcher {
     ## OpenLCB Interface code for Dispatcher panels
