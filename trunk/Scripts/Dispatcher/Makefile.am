@@ -84,7 +84,8 @@ CommonLibFiles = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif \
 		 $(top_srcdir)/Scripts/GRSupport/grsupport2.tcl \
 		 $(top_srcdir)/Scripts/Common/CTCPanel2.tcl \
 		 $(top_srcdir)/Scripts/Common/ReadConfiguration.tcl \
-		 $(top_srcdir)/Scripts/Common/gettext.tcl
+		 $(top_srcdir)/Scripts/Common/gettext.tcl \
+		 $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl
 
 CXXSupport = Mrr
 CXXSupportFiles =  $(top_builddir)/C++/ParserClasses/.libs/libMRRParserClasses$(SHLIB_SUFFIX) \
