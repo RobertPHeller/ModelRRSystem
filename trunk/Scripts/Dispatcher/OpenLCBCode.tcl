@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <160820.1514>
+#  Last Modified : <160820.1846>
 #
 #  Description	
 #
@@ -279,11 +279,142 @@ snit::type Dispatcher_ToggleSwitch {
 snit::type Dispatcher_SwitchPlate {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
     option -name    -default {}
+    option -normaleventid   -type EventID_or_null -default {}
+    option -reverseeventid  -type EventID_or_null -default {}
+    option -normalindonev   -type EventID_or_null -default {}
+    option -normalindoffev  -type EventID_or_null -default {}
+    option -centerindonev   -type EventID_or_null -default {}
+    option -centerindoffev  -type EventID_or_null -default {}
+    option -reverseindonev  -type EventID_or_null -default {}
+    option -reverseindoffev -type EventID_or_null -default {}
+    constructor {args} {
+        $self configurelist $args
+        MainWindow ctcpanel configure "$options(-name)" \
+              -normalcommand [mymethod sendevent -normaleventid] \
+              -reversecommand [mymethod sendevent -reverseeventid]
+    }
+    method sendevent {eopt} {
+        set ev [$self cget $eopt]
+        if {$ev ne ""} {
+            [$self cget -openlcb] sendMyEvent $ev
+        }
+    }
+    method consumerP {} {return yes}
+    method producerP {} {return yes}
+    method consumedEvents {} {
+        set events [list]
+        foreach eopt {normalindonev normalindoffev centerindonev 
+                      centerindoffev reverseindonev reverseindoffev} {
+            set ev [$self cget -$eopt]
+            if {$ev ne ""} {lappend events $ev}
+        }
+    }
+    method producedEvents {} {
+        set events [list]
+        foreach eopt {normaleventid reverseeventid} {
+            set ev [$self cget -$eopt]
+            if {$ev ne ""} {lappend events $ev}
+        }
+        return $events
+    }
+    method consumeEvent {event} {
+        set ev [$self cget -normalindonev]
+        if {$ev ne "" && [$ev match $event]} {
+            MainWindow ctcpanel seti "$options(-name)" N on
+        }
+        set ev [$self cget -normalindoffev]
+        if {$ev ne "" && [$ev match $event]} {
+            MainWindow ctcpanel seti "$options(-name)" N off
+        }
+        set ev [$self cget -centerindonev]
+        if {$ev ne "" && [$ev match $event]} {
+            MainWindow ctcpanel seti "$options(-name)" C on
+        }
+        set ev [$self cget -centerindoffev]
+        if {$ev ne "" && [$ev match $event]} {
+            MainWindow ctcpanel seti "$options(-name)" C off
+        }
+        set ev [$self cget -reverseindonev]
+        if {$ev ne "" && [$ev match $event]} {
+            MainWindow ctcpanel seti "$options(-name)" R on
+        }
+        set ev [$self cget -reverseindoffev]
+        if {$ev ne "" && [$ev match $event]} {
+            MainWindow ctcpanel seti "$options(-name)" R off
+        }
+    }
 }
 
 snit::type Dispatcher_SignalPlate {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
     option -name    -default {}
+    option -lefteventid     -type EventID_or_null -default {}
+    option -centereventid   -type EventID_or_null -default {}
+    option -righteventid    -type EventID_or_null -default {}
+    option -leftindonev     -type EventID_or_null -default {}
+    option -leftindoffev    -type EventID_or_null -default {}
+    option -centerindonev   -type EventID_or_null -default {}
+    option -centerindoffev  -type EventID_or_null -default {}
+    option -reverseindonev  -type EventID_or_null -default {}
+    option -reverseindoffev -type EventID_or_null -default {}
+    
+    constructor {args} {
+        $self configurelist $args
+        MainWindow ctcpanel configure "$options(-name)" \
+              -leftcommand [mymethod sendevent -lefteventid] \
+              -centercommand [mymethod sendevent -centereventid] \
+              -reversecommand [mymethod sendevent -righteventid]
+    }
+    method sendevent {eopt} {
+        set ev [$self cget $eopt]
+        if {$ev ne ""} {
+            [$self cget -openlcb] sendMyEvent $ev
+        }
+    }
+    method consumerP {} {return yes}
+    method producerP {} {return yes}
+    method consumedEvents {} {
+        set events [list]
+        foreach eopt {leftindonev leftindoffev centerindonev 
+                      centerindoffev rightindonev rightindoffev} {
+            set ev [$self cget -$eopt]
+            if {$ev ne ""} {lappend events $ev}
+        }
+    }
+    method producedEvents {} {
+        set events [list]
+        foreach eopt {lefteventid righteventid centereventid} {
+            set ev [$self cget -$eopt]
+            if {$ev ne ""} {lappend events $ev}
+        }
+        return $events
+    }
+    method consumeEvent {event} {
+        set ev [$self cget -leftindonev]
+        if {$ev ne "" && [$ev match $event]} {
+            MainWindow ctcpanel seti "$options(-name)" L on
+        }
+        set ev [$self cget -leftindoffev]
+        if {$ev ne "" && [$ev match $event]} {
+            MainWindow ctcpanel seti "$options(-name)" L off
+        }
+        set ev [$self cget -centerindonev]
+        if {$ev ne "" && [$ev match $event]} {
+            MainWindow ctcpanel seti "$options(-name)" C on
+        }
+        set ev [$self cget -centerindoffev]
+        if {$ev ne "" && [$ev match $event]} {
+            MainWindow ctcpanel seti "$options(-name)" C off
+        }
+        set ev [$self cget -rightindonev]
+        if {$ev ne "" && [$ev match $event]} {
+            MainWindow ctcpanel seti "$options(-name)" R on
+        }
+        set ev [$self cget -rightindoffev]
+        if {$ev ne "" && [$ev match $event]} {
+            MainWindow ctcpanel seti "$options(-name)" R off
+        }
+    }
 }
 
 snit::enum ElementClasses -values {Block Switch Signal CodeButton Lamp 
@@ -452,6 +583,20 @@ snit::type OpenLCB_Dispatcher {
         set classconstructor Dispatcher_$options(-eleclasstype)
         install elehandler using $classconstructor %AUTO% -openlcb $self
         $self configurelist $args
+        lappend elelist $self
+        if {[$self consumerP]} {
+            lappend consumers $self
+            foreach ev [$self consumedEvents] {
+                lappend eventsconsumed $ev
+            }
+        }
+        if {[$self producerP]} {
+            lappend producers $self
+            foreach ev [$self producedEvents] {
+                lappend eventsproduced $ev
+            }
+        }
+        
     }
     method sendMyEvent {eventid} {
         $type sendEvent $eventid
