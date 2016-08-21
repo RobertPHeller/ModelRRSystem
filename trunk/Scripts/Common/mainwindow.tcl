@@ -604,11 +604,11 @@ snit::widgetadaptor mainwindow {
     if {[llength $options(-extramenus)] > 0} {
       set helpIndex [lsearch -exact $options(-menu) "&Help"]
       set menudesc  [eval [list linsert $options(-menu) $helpIndex] \
-			  $options(-extramenus)]
+                     $options(-extramenus)]
     } else {
       set menudesc $options(-menu)
     }
-    #puts stderr "*** $type create $self: menudesc = $menudesc"
+    #puts stderr "*** $type create $self: menudesc = $menudesc (length is [llength $menudesc])"
     set options(-separator) [from args -separator]
     set status {}
     set progress 0
