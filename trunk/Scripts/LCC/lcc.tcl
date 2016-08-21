@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160811.1302>
+#  Last Modified : <160820.1945>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -3226,7 +3226,9 @@ namespace eval lcc {
             
             #puts stderr "*** $type drawOptionsDialog $args"
             set dia [$type buildPortandnidDialog]
-            $dia configure -parent [from args -parent .]
+            set parent [from args -parent .]
+            $dia configure -parent $parent
+            wm transient $dia $parent
             $portLCombo configure -text [from args -port [$portLCombo cget -text]]
             $nidLEntry configure -text [from args -nid [$nidLEntry cget -text]]
             #puts stderr "*** $type drawOptionsDialog: dia = $dia"
@@ -3544,7 +3546,9 @@ namespace eval lcc {
             
             #puts stderr "*** $type drawOptionsDialog $args"
             set dia [$type buildPortnidandhostDialog]
-            $dia configure -parent [from args -parent .]
+            set parent [from args -parent .]
+            $dia configure -parent $parent
+            wm transient $dia $parent
             $portLSpin configure -text [from args -port [$portLSpin cget -text]]
             $nidLEntry configure -text [from args -nid [$nidLEntry cget -text]]
             $hostLEntry configure -text [from args -host [$hostLEntry cget -text]]
@@ -4351,7 +4355,9 @@ namespace eval lcc {
             
             #puts stderr "*** $type drawOptionsDialog $args"
             set dia [$type buildPortnidandhostDialog]
-            $dia configure -parent [from args -parent .]
+            set parent [from args -parent .]
+            $dia configure -parent $parent
+            wm transient $dia $parent
             $portLSpin configure -text [from args -port [$portLSpin cget -text]]
             $nidLEntry configure -text [from args -nid [$nidLEntry cget -text]]
             $hostLEntry configure -text [from args -host [$hostLEntry cget -text]]
@@ -5126,7 +5132,9 @@ namespace eval lcc {
             #puts stderr "*** $type selectTransportConstructor $args"
             set dia [$type _buildSelectTransportConstructorDialog]
             #puts stderr "*** $type selectTransportConstructor: dia = $dia"
-            $dia configure -parent [from args -parent .]
+            set parent [from args -parent .]
+            $dia configure -parent $parent
+            wm transient $dia $parent            
             return [$dia draw]
         }
         typemethod transportConstructors {} {
