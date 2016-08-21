@@ -49,6 +49,7 @@ package require ScrollableFrame
 package require ListBox
 package require ScrollWindow 
 package require ROText
+package require ScrollTabNotebook
 
 catch {Dispatcher::SplashWorkMessage "Loading CTC Panel Window Code" 16}
 
@@ -87,11 +88,11 @@ namespace eval CTCPanelWindow {
     delegate option -width to ctcpanel
     delegate option -height to ctcpanel
     delegate option -menu to hull
-    option -hascmri -default no -validatemethod _VerifyBoolean \
+    option -hascmri -default no  -type snit::boolean \
 				-configuremethod _ConfigureCMRI
-    option -hasazatrax -default no -validatemethod _VerifyBoolean \
+    option -hasazatrax -default no  -type snit::boolean \
 				-configuremethod _ConfigureAZATRAX
-    option -hasmrd -default no -validatemethod _VerifyBoolean \
+    option -hasmrd -default no  -type snit::boolean \
           -configuremethod _ConfigureAZATRAX
     option -hasctiacela -default no -type snit::boolean
     GRSupport::VerifyBooleanMethod
@@ -107,8 +108,12 @@ namespace eval CTCPanelWindow {
     option -cmrispeed -default 9600
     option -cmriretries -default 1000
     option -ctiacelaport -default /dev/ttyACM0
-    option -simplemode -default no -validatemethod _VerifyBoolean \
-					-configuremethod _ConfigureSimpleMode
+    option -simplemode -default no -type snit::boolean \
+          -configuremethod _ConfigureSimpleMode
+    option -openlcbmode -default no -type snit::boolean \
+          -configuremethod _ConfigureOpenLCBMode
+    option -openlcbtransport -default {}
+    option -openlcbtransportopts -default {}
     variable cmrinodes -array {}
     variable cmrinodes_comments -array {}
 
@@ -132,9 +137,22 @@ namespace eval CTCPanelWindow {
       	$main mainframe setmenustate edit:simplemode normal
       }
     }
+    method _ConfigureOpenLCBMode {option value} {
+        puts stderr "*** $self _ConfigureOpenLCBMode $option $value"
+        set options($option) $value
+        set editmenu [$main mainframe getmenu edit]
+        if {$value} {
+            $main mainframe setmenustate cmri disabled
+            $main mainframe setmenustate azatrax disabled
+            $main mainframe setmenustate edit:simplemode disabled
+        } else {
+            $main mainframe setmenustate edit:simplemode normal
+        }
+    }
     variable azatraxnodes -array {}
     variable azatraxnodes_comments -array {}
-
+    
+    variable openlcbnodes -array {}
     variable userCode {}
     variable IsDirty yes
 
@@ -151,212 +169,104 @@ namespace eval CTCPanelWindow {
     variable additionalPackages {}
     variable externalUserModules -array {}
 
+    typevariable _filemenu {
+        "[_m {Menu|&File}]" {file} {file} 0 {
+            {command "[_m {Menu|File|&New CTC Panel Window}]" {file:new} "[_ {New CTC Panel Window}]" {Ctrl n} -command "[mytypemethod new -parent $win -simplemode $Dispatcher::SimpleMode]"}
+            {command "[_m {Menu|File|&Load...}]"  {file:load} "[_ {Open and Load XTrkCad Layout File}]" {Ctrl l} -command Dispatcher::LoadLayout}
+            {command "[_m {Menu|File|&Open...}]" {file:open} "[_ {Open an existing CTC Panel Window file}]" {Ctrl o} -command "[mytypemethod open -parent $win]"}
+            {command "[_m {Menu|File|&Save}]" {file:save} "[_ {Save window code}]" {Ctrl s} -command "[mymethod save]"}
+            {command "[_m {Menu|File|Save &As...}]" {file:save} "[_ {Save window code}]" {Ctrl a} -command "[mymethod saveas]"}
+            {command "[_m {Menu|File|Wrap As...}]" {file:wrap} "[_ {Wrap window code}]" {Ctrl w} -command "[mymethod wrapas]" -state $wrapasstate}
+            {command "[_m {Menu|File|Print...}]" {file:print} "[_ {Print Panel}]" {Ctrl p} -command "[mymethod print]"}
+            {command "[_m {Menu|File|Export as images...}]" {file:export} "[_ {Export panel as images}]" {Ctrl e} -command "[mymethod export]"}
+            {command "[_m {Menu|File|&Close}]" {file:close} "[_ {Close the application}]" {} -command "[mymethod close]"}
+            {command "[_m {Menu|File|E&xit}]" {file:exit} "[_ {Exit the application}]" {} -command {Dispatcher::CarefulExit}}
+        }
+    }
+    typevariable _editmenu {
+        "[_m {Menu|&Edit}]" {edit} {edit} 0 {
+            {command "[_m {Menu|Edit|&Undo}]" {edit:undo} "[_ {Undo last change}]" {Ctrl z}}
+            {command "[_m {Menu|Edit|Cu&t}]" {edit:cut edit:havesel} "[_ {Cut selection to the paste buffer}]" {Ctrl x} -command {StdMenuBar EditCut}}
+            {command "[_m {Menu|Edit|&Copy}]" {edit:copy edit:havesel} "[_ {Copy selection to the paste buffer}]" {Ctrl c} -command {StdMenuBar EditCopy}}
+            {command "[_m {Menu|Edit|C&lear}]" {edit:clear edit:havesel} "[_ {Clear selection}]" {} -command {StdMenuBar EditClear}}
+            {command "[_m {Menu|Edit|&Delete}]" {edit:delete edit:havesel} "[_ {Delete selection}]" {Ctrl d}}
+            {separator}
+            {command "[_m {Menu|Edit|Select All}]" {edit:selectall} "[_ {Select everything}]" {}}
+            {command "[_m {Menu|Edit|De-select All}]" {edit:deselectall edit:havesel} "[_ {Select nothing}]" {}}
+            {separator}
+            {command "[_m {Menu|Edit|(Re-)Generate Main Loop}]" {edit:mainloop edit:simplemode} {} {} -command "[mymethod GenerateMainLoop]" -state $editstate}
+            {command "[_m {Menu|Edit|User Code}]" {edit:usercode edit:simplemode} {} {} -command "[mymethod EditUserCode]" -state $editstate}
+            {cascade "[_m {Menu|Edit|Modules}]" {edit:modules edit:simplemode} edit:modules 0 {
+                    {command "[_m {Menu|Edit|Modules|Track Work type}]" {edit:modules:trackwork edit:simplemode} {} {} -command "[mymethod AddModule TrackWork]" -state $editstate}
+                    {command "[_m {Menu|Edit|Modules|Switch Plate type}]" {edit:modules:switchplate edit:simplemode} {} {} -command "[mymethod AddModule SwitchPlates]" -state $editstate}
+                    {cascade "[_m {Menu|Edit|Signals}]" {edit:modules:signals edit:simplemode} edit:modules:signals 0 {
+                            {command "[_m {Menu|Edit|Signals|Two Aspect Color Light}]" {edit:modules:signals:twoaspcolor edit:simplemode} {} {} -command "[mymethod AddModule Signals2ACL]" -state $editstate}
+                            {command "[_m {Menu|Edit|Signals|Three Aspect Color Light}]" {edit:modules:signals:threeaspcolor edit:simplemode} {} {} -command "[mymethod AddModule Signals3ACL]" -state $editstate}
+                            {command "[_m {Menu|Edit|Signals|Three Aspect Search Light}]" {edit:modules:signals:threeaspsearch edit:simplemode} {} {} -command "[mymethod AddModule Signals3ASL]" -state $editstate}
+                    }}
+                    {command "[_m {Menu|Edit|Signals|Signal Plate type}]" {edit:modules:signalplate edit:simplemode} {} {} -command "[mymethod AddModule SignalPlates]" -state $editstate}
+                    {command "[_m {Menu|Edit|Signals|Control Point type}]" {edit:modules:controlpoint edit:simplemode} {} {} -command "[mymethod AddModule ControlPoints]" -state $editstate}
+                    {command "[_m {Menu|Edit|Signals|Radio Group Type}]" {edit:modules:radiogroup edit:simplemode} {} {} -command "[mymethod AddModule Groups]" -state $editstate}
+            }}
+            {cascade "[_m {Menu|Edit|Additional Packages}]" {edit:additionalpackages edit:simplemode} edit:additionalpackages 0 {
+                    {command "[_m {Menu|Edit|Additional Packages|XPressNet}]" {edit:additionalpackages edit:simplemode} {} {} -command "[mymethod AddAdditionalPackage XPressNet]" -state $editstate}
+                    {command "[_m {Menu|Edit|Additional Packages|NCE}]" {edit:additionalpackages edit:simplemode} {} {} -command "[mymethod AddAdditionalPackage NCE]" -state $editstate}
+                    {command "[_m {Menu|Edit|Additional Packages|Raildriver Client}]" {edit:additionalpackages edit:simplemode} {} {} -command "[mymethod AddAdditionalPackage RailDriverSupport]" -state $editstate}
+            }}
+            {command "[_m {Menu|Edit|Add External User Module}]" {edit:externalUserModules edit:simplemode} {} {} -command "[mymethod AddExternalUserModule]" -state $editstate}
+    }}
+    typevariable _extramenus {
+        "[_m {Menu|&Panel}]" panel panel 0 {
+            {command "[_m {Menu|Panel|Add Object}]" {} "[_ {Add Panel Object}]" {} -command "[mymethod addpanelobject]"}
+            {command "[_m {Menu|Panel|Edit Object}]" {} "[_ {Edit Panel Object}]" {} -command "[mymethod editpanelobject]"}
+            {command "[_m {Menu|Panel|Delete Object}]" {} "[_ {Delete Panel Object}]" {} -command "[mymethod deletepanelobject]"}
+            {separator}
+            {command "[_m {Menu|Panel|Configure}]" {} "[_ {Configure Panel Options}]" {} -command "[mymethod configurepanel]"}
+        } "[_m {Menu|&C/Mri}]" cmri cmri 0 {
+            {command "[_m {Menu|C/Mri|Add node}]" {} "[_ {Add CMRI node}]" {} -command "[mymethod addcmrinode]"}
+            {command "[_m {Menu|C/Mri|Edit node}]" {} "[_ {Edit CMRI node}]" {} -command "[mymethod editcmrinode]"}
+            {command "[_m {Menu|C/Mri|Delete Node}]" {} "[_ {Delete CMRI node}]" {} -command "[mymethod deletecmrinode]"}
+        } "[_m {Menu|&Azatrax}]" azatrax azatrax 0 {
+            {command "[_m {Menu|Azatrax|Add node}]" {} "[_ {Add Azatrax node}]" {} -command "[mymethod addazatraxnode]"}
+            {command "[_m {Menu|Azatrax|Edit node}]" {} "[_ {Edit Azatrax node}]" {} -command "[mymethod editazatraxnode]"}
+            {command "[_m {Menu|Azatrax|Delete node}]" {} "[_ {Delete Azatrax node}]" {} -command "[mymethod deleteazatraxnode]"}
+        }
+    }
     constructor {args} {
       wm protocol $win WM_DELETE_WINDOW {Dispatcher::CarefulExit}
       wm withdraw $win
       wm title $win {}
-
+      
+      puts stderr "*** $type create $self $args"
       if {[WrapIt::CanWrapP]} {
 	set wrapasstate normal
 	WrapIt::CheckPackageBaseDir
       } else {
 	set wrapasstate disabled
       }
+      set editstate normal
+      set options(-simplemode) [from args -simplemode]
       if {$options(-simplemode)} {
 	$self AddModule SimpleMode
 	$self GenerateMainLoop
 	set editstate disabled
-      } else {
-	set editstate normal
       }
-      set fm1 {}
-      lappend fm1 \
-        [list command [_m "Menu|File|&New CTC Panel Window"] {file:new} \
-			[_ "New CTC Panel Window"]  {Ctrl n} \
-			-command [mytypemethod new -parent $win -simplemode $Dispatcher::SimpleMode]]
-      lappend fm1 \
-	[list command [_m "Menu|File|&Load..."]  {file:load} \
-			[_ "Open and Load XTrkCad Layout File"] {Ctrl l} \
-			-command Dispatcher::LoadLayout]
-      lappend fm1 \
-        [list command [_m "Menu|File|&Open..."] {file:open} \
-			[_ "Open an existing CTC Panel Window file"] {Ctrl o} \
-			-command [mytypemethod open -parent $win]]
-      lappend fm1 \
-        [list command [_m "Menu|File|&Save"] {file:save} \
-			[_ "Save window code"] {Ctrl s} \
-			-command [mymethod save]]
-      lappend fm1 \
-        [list command [_m "Menu|File|Save &As..."] {file:save} \
-			[_ "Save window code"] {Ctrl a} \
-			-command [mymethod saveas]]
-      lappend fm1 \
-	[list command [_m "Menu|File|Wrap As..."] {file:wrap} \
-			[_ "Wrap window code"] {Ctrl w} \
-			-command [mymethod wrapas] -state $wrapasstate]
-      lappend fm1 \
-	[list command [_m "Menu|File|Print..."] {file:print} \
-			[_ "Print Panel"] {Ctrl p} \
-			-command [mymethod print]]
-      lappend fm1 \
-	[list command [_m "Menu|File|Export as images..."] {file:export} \
-			[_ "Export panel as images"] {Ctrl e} \
-			-command [mymethod export]]
-      lappend fm1 \
-        [list command [_m "Menu|File|&Close"] {file:close} \
-			[_ "Close the application"] {} \
-			-command [mymethod close]]
-      lappend fm1 \
-        [list command [_m "Menu|File|E&xit"] {file:exit} \
-			[_ "Exit the application"] {} \
-			-command {Dispatcher::CarefulExit}]
-      set filemenu [list [_m "Menu|&File"] {file} {file} 0 $fm1]
-      #puts stderr "*** CTCPanelWindow::create: filemenu = $filemenu"
-      set em1 {}
-      lappend em1 \
-        [list command [_m "Menu|Edit|&Undo"] {edit:undo} [_ "Undo last change"] {Ctrl z}]
-      lappend em1 \
-        [list command [_m "Menu|Edit|Cu&t"] {edit:cut edit:havesel} [_ "Cut selection to the paste buffer"] {Ctrl x} -command {StdMenuBar EditCut}]
-      lappend em1 \
-        [list command [_m "Menu|Edit|&Copy"] {edit:copy edit:havesel} [_ "Copy selection to the paste buffer"] {Ctrl c} -command {StdMenuBar EditCopy}]
-      lappend em1 \
-        [list command [_m "Menu|Edit|C&lear"] {edit:clear edit:havesel} [_ "Clear selection"] {} -command {StdMenuBar EditClear}]
-      lappend em1 \
-        [list command [_m "Menu|Edit|&Delete"] {edit:delete edit:havesel} [_ "Delete selection"] {Ctrl d}]
-      lappend em1 \
-        {separator}
-      lappend em1 \
-        [list command [_m "Menu|Edit|Select All"] {edit:selectall} [_ "Select everything"] {}]
-      lappend em1 \
-        [list command [_m "Menu|Edit|De-select All"] {edit:deselectall edit:havesel} [_ "Select nothing"] {}]
-      lappend em1 \
-	{separator}
-      lappend em1 \
-	[list command [_m "Menu|Edit|(Re-)Generate Main Loop"] \
-			{edit:mainloop edit:simplemode} \
-			"" {} -command [mymethod GenerateMainLoop] -state $editstate] 
-      lappend em1 \
-	[list command [_m "Menu|Edit|User Code"] \
-			{edit:usercode edit:simplemode} \
-			"" {} -command [mymethod EditUserCode] -state $editstate] 
-      set em1m {}
-      lappend em1m \
-	    [list command [_m "Menu|Edit|Modules|Track Work type"] \
-			{edit:modules:trackwork edit:simplemode} \
-			"" {} -command [mymethod AddModule TrackWork]  \
-			-state $editstate]
-      lappend em1m \
-	    [list command  [_m "Menu|Edit|Modules|Switch Plate type"] \
-			{edit:modules:switchplate edit:simplemode} \
-			"" {} -command [mymethod AddModule SwitchPlates] \
-			-state $editstate]
-      set em1ms {}
-      lappend em1ms \
-		[list command [_m "Menu|Edit|Signals|Two Aspect Color Light"] \
-			{edit:modules:signals:twoaspcolor edit:simplemode} \
-			"" {} -command [mymethod AddModule Signals2ACL] \
-			-state $editstate]
-      lappend em1ms \
-		[list command [_m "Menu|Edit|Signals|Three Aspect Color Light"] \
-			{edit:modules:signals:threeaspcolor edit:simplemode} \
-			"" {} -command [mymethod AddModule Signals3ACL] \
-			-state $editstate]
-      lappend em1ms \
-		[list command [_m "Menu|Edit|Signals|Three Aspect Search Light"] \
-			{edit:modules:signals:threeaspsearch edit:simplemode} \
-			"" {} -command [mymethod AddModule Signals3ASL] \
-			      -state $editstate] 
-
-      lappend em1m \
-	    [list cascade [_m "Menu|Edit|Signals"] \
-			{edit:modules:signals edit:simplemode} \
-			edit:modules:signals 0 $em1ms]
-
-      lappend em1m \
-	    [list command [_m "Menu|Edit|Signals|Signal Plate type"] \
-			{edit:modules:signalplate edit:simplemode} \
-			"" {} -command [mymethod AddModule SignalPlates] \
-		 -state $editstate]
-      lappend em1m \
-	    [list command [_m "Menu|Edit|Signals|Control Point type"] \
-			{edit:modules:controlpoint edit:simplemode} \
-			"" {} -command [mymethod AddModule ControlPoints] \
-		 -state $editstate]
-      lappend em1m \
-	    [list command [_m "Menu|Edit|Signals|Radio Group Type"] \
-			{edit:modules:radiogroup edit:simplemode} \
-			"" {} -command [mymethod AddModule Groups] \
-		 -state $editstate]
-
-      lappend em1 \
-	[list cascade [_m "Menu|Edit|Modules"] \
-			{edit:modules edit:simplemode} \
-			edit:modules 0 $em1m]
-
-      set em1apm {}
-      lappend em1apm \
-		[list command [_m "Menu|Edit|Additional Packages|XPressNet"] \
-		   {edit:additionalpackages edit:simplemode} \
-		   "" {} -command [mymethod AddAdditionalPackage XPressNet] \
-		   -state $editstate]
-      lappend em1apm \
-		[list command [_m "Menu|Edit|Additional Packages|NCE"] \
-		   {edit:additionalpackages edit:simplemode} \
-		   "" {} -command [mymethod AddAdditionalPackage NCE] \
-		   -state $editstate]
-      lappend em1apm \
-		[list command [_m "Menu|Edit|Additional Packages|Raildriver Client"] \
-		   {edit:additionalpackages edit:simplemode} \
-		   "" {} -command [mymethod AddAdditionalPackage RailDriverSupport] \
-		   -state $editstate]
-      lappend em1 \
-	[list cascade [_m "Menu|Edit|Additional Packages"] \
-			{edit:additionalpackages edit:simplemode} \
-			edit:additionalpackages 0 $em1apm]
-
-      lappend em1 \
-        [list command [_m "Menu|Edit|Add External User Module"] \
-         {edit:externalUserModules edit:simplemode} \
-         "" {} -command [mymethod AddExternalUserModule] -state $editstate]
-      set editmenu [list [_m "Menu|&Edit"] {edit} {edit} 0 $em1]
-      #puts stderr "*** CTCPanelWindow::create: editmenu = $editmenu"
-      set mainmenu [StdMenuBar MakeMenu -file  $filemenu -edit  $editmenu ]
-      #puts stderr "*** CTCPanelWindow::create: mainmenu = $mainmenu"
-
+      set options(-openlcbmode) [from args -openlcbmode]
+      if {$options(-openlcbmode)} {
+          set editstate disabled
+      }
+      
+      set mainmenu [StdMenuBar MakeMenu -file [subst $_filemenu] -edit [subst $_editmenu] ]
+      puts stderr "*** CTCPanelWindow::create: mainmenu = $mainmenu (length is [llength $mainmenu])"
+      set extramenus [subst $_extramenus]
+      puts stderr "*** CTCPanelWindow::create: extramenus = $extramenus (length is [llength $extramenus])"
+      
       install main using mainwindow $win.main \
 	-menu $mainmenu \
-	-extramenus [list \
-		      [_m "Menu|&Panel"] panel panel 0 [list \
-			[list command [_m "Menu|Panel|Add Object"] {} [_ "Add Panel Object"] {} \
-				-command [mymethod addpanelobject]] \
-			[list command [_m "Menu|Panel|Edit Object"] {} [_ "Edit Panel Object"] {} \
-				-command [mymethod editpanelobject]] \
-			[list command [_m "Menu|Panel|Delete Object"] {} [_ "Delete Panel Object"] {} \
-				-command [mymethod deletepanelobject]] \
-			{separator} \
-			[list command [_m "Menu|Panel|Configure"] {} [_ "Configure Panel Options"] {} \
-				-command [mymethod configurepanel]] \
-			] \
-		      [_m "Menu|&C/Mri"] cmri cmri 0 [list \
-			[list command [_m "Menu|C/Mri|Add node"] {} [_ "Add CMRI node"] {} \
-				-command [mymethod addcmrinode]] \
-			[list command [_m "Menu|C/Mri|Edit node"] {} [_ "Edit CMRI node"] {} \
-				-command [mymethod editcmrinode]] \
-			[list command [_m "Menu|C/Mri|Delete Node"] {} [_ "Delete CMRI node"] {} \
-				-command [mymethod deletecmrinode]] \
-			] \
-		      [_m "Menu|&Azatrax"] azatrax azatrax 0 [list \
-			[list command [_m "Menu|Azatrax|Add node"] {} [_ "Add Azatrax node"] {} \
-				-command [mymethod addazatraxnode]] \
-			[list command [_m "Menu|Azatrax|Edit node"] {} [_ "Edit Azatrax node"] {} \
-				-command [mymethod editazatraxnode]] \
-			[list command [_m "Menu|Azatrax|Delete node"] {} [_ "Delete Azatrax node"] {} \
-				-command [mymethod deleteazatraxnode]] \
-			] \
-		    ]
+	-extramenus $extramenus
 
-      $main menu delete help [_m "Menu|Help|On Keys..."]
-      $main menu delete help [_m "Menu|Help|Index..."]
+      $main menu delete help "[_m {Menu|Help|On Keys...}]"
+      $main menu delete help "[_m {Menu|Help|Index...}]"
       $main menu add help command \
 	-label [_m "Menu|Help|Reference Manual"] \
 	-command "HTMLHelp help {Dispatcher Reference}"
@@ -394,6 +304,7 @@ namespace eval CTCPanelWindow {
                          -background {}]]
 
       $self configurelist $args
+      
       $swframe configure -width [expr {[$ctcpanel cget -width] + 15}] \
 			 -height [$ctcpanel cget -height]
       wm title $win $options(-name)
@@ -515,6 +426,11 @@ namespace eval CTCPanelWindow {
       }
       puts $fp "# -hasazatrax $options(-hasazatrax)"
       puts $fp "# -simplemode $options(-simplemode)"
+      puts $fp "# -openlcbmode $options(-openlcbmode)"
+      puts -nonewline $fp {# }
+      puts $fp [list -openlcbtransport "$options(-openlcbtransport)"]
+      puts -nonewline $fp {# }
+      puts $fp [list -openlcbtransportopts "$options(-openlcbtransportopts)"]
       set line "# "
       append line [concat additionalPackages $additionalPackages]
       puts $fp $line
@@ -599,12 +515,23 @@ namespace eval CTCPanelWindow {
           puts $fp [list ctiacela::CTIAcela Acela "$options(-ctiacelaport)"]
           puts $fp [list Acela NetworkOnline]
       }
-      puts $fp {}
-      puts $fp {# Add User code after this line}
-      puts $fp "$userCode"
-      if {$iswraped} {
-          foreach eum [array names externalUserModules] {
-              RecursiveFileCopy $externalUserModules($eum) [file join $libdir $eum]
+      if {$options(-openlcbmode)} {
+          set openlcbCodeFp [open [file join "$CodeLibraryDir" \
+                                   OpenLCBCode.tcl] r]
+          fcopy $openlcbCodeFp $fp 
+          puts $fp "OpenLCB_Dispatcher ConnectToOpenLCB -transport $options(-openlcbtransport) $options(-openlcbtransportopts)"
+          foreach openlcbele [array names openlcbnodes] {
+              puts $fp "OpenLCB_Dispatcher create %AUTO% -name $openlcbele $openlcbnodes($openlcbele)"
+          }
+          puts $fp "OpenLCB_Dispatcher SendMyEvents"
+      } else {
+          puts $fp {}
+          puts $fp {# Add User code after this line}
+          puts $fp "$userCode"
+          if {$iswraped} {
+              foreach eum [array names externalUserModules] {
+                  RecursiveFileCopy $externalUserModules($eum) [file join $libdir $eum]
+              }
           }
       }
     }
@@ -1065,9 +992,17 @@ namespace eval CTCPanelWindow {
     typecomponent  new_cmriretriesLSB
     typecomponent  new_hasazatraxLCB
     typecomponent  new_simpleModeCB
+    typecomponent  new_openlcbModeCB
     typecomponent  new_hasctiacelaLCB
     typecomponent  new_ctiacelaportLCB
+    typecomponent  new_transconstructorE
+    typecomponent  new_transconstructorSB
+    typevariable   _transconstructorname {}
+    typecomponent  new_transoptsframeE
+    typecomponent  new_transoptsframeSB
+    typevariable   _transopts {}
     typevariable   _simpleMode no
+    typevariable   _openlcbMode no
 
     typecomponent selectPanelDialog
     typecomponent   selectPanel_nameLCB
@@ -1118,6 +1053,40 @@ namespace eval CTCPanelWindow {
 					-command [mytypemethod togglesimplemode] \
 					-variable [mytypevar _simpleMode]]
       pack $new_simpleModeCB -fill x -expand yes
+      set new_openlcbModeCB [ttk::checkbutton $frame.openlcbModeCB \
+					-text [_m "Label|OpenLCB Mode"] \
+					-offvalue no -onvalue yes \
+					-command [mytypemethod toggleopenlcbmode] \
+					-variable [mytypevar _openlcbMode]]
+      pack $new_openlcbModeCB -fill x -expand yes
+      set transconstructor [LabelFrame $frame.transconstructor \
+                            -text [_m "Label|OpenLCB Transport Constructor"]]
+      pack $transconstructor -fill x -expand yes
+      set cframe [$transconstructor getframe]
+      set new_transconstructorE [ttk::entry $cframe.transcname \
+                      -state disabled \
+                      -textvariable [mytypevar _transconstructorname]]
+      pack $new_transconstructorE -side left -fill x -expand yes
+      set new_transconstructorSB [ttk::button $cframe.transcnamesel \
+                         -text [_m "Label|Select"] \
+                         -command [mytypemethod _seltransc] \
+                         -state disabled]
+      pack $new_transconstructorSB -side right
+      set transoptsframe [LabelFrame $frame.transoptsframe \
+                          -text [_m "Label|Constructor Opts"]]
+      pack $transoptsframe -fill x -expand yes
+      set oframe [$transoptsframe getframe]
+      set new_transoptsframeE [ttk::entry $oframe.transoptsentry \
+                          -state disabled \
+                          -textvariable [mytypevar _transopts]]
+      pack $new_transoptsframeE -side left -fill x -expand yes
+      set new_transoptsframeSB [ttk::button $oframe.tranoptssel \
+                       -text [_m "Label|Select"] \
+                       -command [mytypemethod _seltransopt] \
+                       -state disabled]
+      pack $new_transoptsframeSB -side right
+                          
+                                   
       set new_hascmriLCB [LabelComboBox $frame.hascmriLCB \
 						   -label [_m "Label|Has CM/RI?"] \
 						   -labelwidth $lwidth \
@@ -1173,17 +1142,79 @@ namespace eval CTCPanelWindow {
     typemethod togglesimplemode {} {
       if {$_simpleMode} {
 	foreach w {new_hascmriLCB new_cmriportLCB new_cmrispeedLCB 
-		   new_cmriretriesLSB new_hasazatraxLCB} {
+            new_cmriretriesLSB new_hasazatraxLCB new_hasctiacelaLCB 
+            new_ctiacelaportLCB new_openlcbModeCB} {
 	  [set $w] configure -state disabled
 	}
         $new_hasazatraxLCB set [lindex [$new_hasazatraxLCB cget -values] 0]
       } else {
-	foreach w {new_hascmriLCB new_cmriportLCB new_cmrispeedLCB 
-		   new_cmriretriesLSB new_hasazatraxLCB} {
-	  [set $w] configure -state normal
-	}
+          foreach w {new_cmriportLCB new_cmrispeedLCB new_cmriretriesLSB 
+              new_ctiacelaportLCB new_openlcbModeCB} {
+            [set $w] configure -state normal
+        }
+        foreach w {new_hascmriLCB new_hasazatraxLCB new_hasctiacelaLCB} {
+            [set $w] configure -state readonly
+        }
         $new_hasazatraxLCB set [lindex [$new_hasazatraxLCB cget -values] end]
       }
+    }
+    typemethod toggleopenlcbmode {} {
+        if {$_openlcbMode} {
+            foreach w {new_hascmriLCB new_cmriportLCB new_cmrispeedLCB
+                new_cmriretriesLSB new_hasazatraxLCB new_simpleModeCB 
+                new_hasctiacelaLCB new_ctiacelaportLCB} {
+                [set $w] configure -state disabled
+            }
+            foreach w {new_transconstructorE new_transoptsframeE} {
+                [set $w] configure -state readonly
+            }
+            foreach w {new_transconstructorSB new_transoptsframeSB} {
+                [set $w] configure -state normal
+            }
+        } else {
+            foreach w {new_cmriportLCB new_cmrispeedLCB new_cmriretriesLSB 
+                new_ctiacelaportLCB} {
+                [set $w] configure -state normal
+            }
+            foreach w {new_hascmriLCB new_hasazatraxLCB new_simpleModeCB 
+                new_hasctiacelaLCB} {
+                [set $w] configure -state readonly
+            }
+            foreach w {new_transconstructorE new_transoptsframeE 
+                new_transconstructorSB new_transoptsframeSB} {
+                [set $w] configure -state disabled
+            }
+        }
+    }
+    typemethod _seltransc {} {
+        #** Select a transport constructor.
+        
+        set result [lcc::OpenLCBNode selectTransportConstructor -parent [winfo toplevel $new_transconstructorE]]
+        if {$result ne {}} {
+            if {$result ne $_transconstructorname} {set _transopts {}}
+            set _transconstructorname [namespace tail $result]
+        }
+    }
+    typemethod _seltransopt {} {
+        #** Select transport constructor options.
+        
+        if {$_transconstructorname ne ""} {
+            set transportConstructors [info commands ::lcc::$_transconstructorname]
+            puts stderr "*** $type typeconstructor: transportConstructors is $transportConstructors"
+            if {[llength $transportConstructors] > 0} {
+                set transportConstructor [lindex $transportConstructors 0]
+            }
+            if {$transportConstructor ne {}} {
+                set optsdialog [list $transportConstructor \
+                                drawOptionsDialog \
+                                -parent [winfo toplevel $new_transoptsframeE]]
+                foreach x $_transopts {lappend optsdialog $x}
+                set transportOpts [eval $optsdialog]
+                if {$transportOpts ne {}} {
+                    set _transopts $transportOpts
+                }
+            }
+        }
     }
     typemethod new {args} {
       set _simpleMode [from args -simplemode no]
@@ -1231,6 +1262,9 @@ namespace eval CTCPanelWindow {
               -hasazatrax [converttobool [$new_hasazatraxLCB cget -text]] \
               -hasctiacela [converttobool [$new_hasctiacelaLCB cget -text]] \
               -ctiacelaport [$new_ctiacelaportLCB cget -text] \
+              -openlcbmode $_openlcbMode \
+              -openlcbtransport "$_transconstructorname" \
+              -openlcbtransportopts "$_transopts" \
               -simplemode no
       }
       
@@ -1824,6 +1858,7 @@ namespace eval CTCPanelWindow {
     option -normalcommand   -default {}
     option -reversecommand  -default {}
     option -simplemode -default no
+    option -openlcbmode -default no
 
 
     component nameLE;#			Name of object
@@ -1914,7 +1949,33 @@ namespace eval CTCPanelWindow {
     component commandLF
     component   commandSW
     component     commandText;#		-command
-
+    # OpenLCB events
+    component occupiedEventidLE
+    component notoccupiedEventidLE
+    component statenormaleventidLE
+    component statereverseeventidLE
+    component aspectlistSTabNB
+    variable  aspectlist -array {}
+    component oneventidLE
+    component offeventidLE
+    component lefteventidLE
+    component righteventidLE
+    component centereventidLE
+    component eventidLE
+    component normaleventidLE
+    component reverseeventidLE
+    component normalindonevLE
+    component normalindoffevLE
+    component centerindonevLE
+    component centerindoffevLE
+    component reverseindonevLE
+    component reverseindoffevLE
+    component leftindonevLE
+    component leftindoffevLE
+    component reverseindonevLE
+    component reverseindoffevLE
+    
+    
     typevariable objectTypeOptions -array {
 	SWPlate {xyctl label normalcommand reversecommand}
 	SIGPlate {xyctl label leftcommand centercommand rightcommand}
