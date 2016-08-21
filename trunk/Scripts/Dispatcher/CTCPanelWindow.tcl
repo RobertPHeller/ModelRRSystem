@@ -108,7 +108,9 @@ namespace eval CTCPanelWindow {
     option -cmriretries -default 1000
     option -ctiacelaport -default /dev/ttyACM0
     option -simplemode -default no -validatemethod _VerifyBoolean \
-					-configuremethod _ConfigureSimpleMode
+          -configuremethod _ConfigureSimpleMode
+    option -openlcbmodeopenlcbmode -default no -validatemethod _VerifyBoolean \
+          -configuremethod _ConfigureOpenLCBMode
     variable cmrinodes -array {}
     variable cmrinodes_comments -array {}
 
@@ -1065,9 +1067,17 @@ namespace eval CTCPanelWindow {
     typecomponent  new_cmriretriesLSB
     typecomponent  new_hasazatraxLCB
     typecomponent  new_simpleModeCB
+    typecomponent  new_openlcbModeCB
     typecomponent  new_hasctiacelaLCB
     typecomponent  new_ctiacelaportLCB
+    typecomponent  new_transconstructorE
+    typecomponent  new_transconstructorSB
+    typevariable   _transconstructorname {}
+    typecomponent  new_transoptsframeE
+    typecomponent  new_transoptsframeSB
+    typevariable   _transopts {}
     typevariable   _simpleMode no
+    typevariable   _openlcbMode no
 
     typecomponent selectPanelDialog
     typecomponent   selectPanel_nameLCB
@@ -1118,6 +1128,40 @@ namespace eval CTCPanelWindow {
 					-command [mytypemethod togglesimplemode] \
 					-variable [mytypevar _simpleMode]]
       pack $new_simpleModeCB -fill x -expand yes
+      set new_openlcbModeCB [ttk::checkbutton $frame.openlcbModeCB \
+					-text [_m "Label|OpenLCB Mode"] \
+					-offvalue no -onvalue yes \
+					-command [mytypemethod toggleopenlcbmode] \
+					-variable [mytypevar _openlcbMode]]
+      pack $new_openlcbModeCB -fill x -expand yes
+      set transconstructor [LabelFrame $frame.transconstructor \
+                            -text [_m "Label|OpenLCB Transport Constructor"]]
+      pack $transconstructor -fill x -expand yes
+      set cframe [$transconstructor getframe]
+      set new_transconstructorE [ttk::entry $cframe.transcname \
+                      -state disabled \
+                      -textvariable [mytypevar _transconstructorname]]
+      pack $new_transconstructorE -side left -fill x -expand yes
+      set new_transconstructorSB [ttk::button $cframe.transcnamesel \
+                         -text [_m "Label|Select"] \
+                         -command [mytypemethod _seltransc] \
+                         -state disabled]
+      pack $new_transconstructorSB -side right
+      set transoptsframe [LabelFrame $frame.transoptsframe \
+                          -text [_m "Label|Constructor Opts"]]
+      pack $transoptsframe -fill x -expand yes
+      set oframe [$transoptsframe getframe]
+      set new_transoptsframeE [ttk::entry $oframe.transoptsentry \
+                          -state disabled \
+                          -textvariable [mytypevar _transopts]]
+      pack $new_transoptsframeE -side left -fill x -expand yes
+      set new_transoptsframeSB [ttk::button $oframe.tranoptssel \
+                       -text [_m "Label|Select"] \
+                       -command [mytypemethod _seltransopt] \
+                       -state disabled]
+      pack $new_transoptsframeSB -side right
+                          
+                                   
       set new_hascmriLCB [LabelComboBox $frame.hascmriLCB \
 						   -label [_m "Label|Has CM/RI?"] \
 						   -labelwidth $lwidth \
@@ -1173,17 +1217,79 @@ namespace eval CTCPanelWindow {
     typemethod togglesimplemode {} {
       if {$_simpleMode} {
 	foreach w {new_hascmriLCB new_cmriportLCB new_cmrispeedLCB 
-		   new_cmriretriesLSB new_hasazatraxLCB} {
+            new_cmriretriesLSB new_hasazatraxLCB new_hasctiacelaLCB 
+            new_ctiacelaportLCB new_openlcbModeCB} {
 	  [set $w] configure -state disabled
 	}
         $new_hasazatraxLCB set [lindex [$new_hasazatraxLCB cget -values] 0]
       } else {
-	foreach w {new_hascmriLCB new_cmriportLCB new_cmrispeedLCB 
-		   new_cmriretriesLSB new_hasazatraxLCB} {
-	  [set $w] configure -state normal
-	}
+          foreach w {new_cmriportLCB new_cmrispeedLCB new_cmriretriesLSB 
+              new_ctiacelaportLCB new_openlcbModeCB} {
+            [set $w] configure -state normal
+        }
+        foreach w {new_hascmriLCB new_hasazatraxLCB new_hasctiacelaLCB} {
+            [set $w] configure -state readonly
+        }
         $new_hasazatraxLCB set [lindex [$new_hasazatraxLCB cget -values] end]
       }
+    }
+    typemethod toggleopenlcbmode {} {
+        if {$_openlcbMode} {
+            foreach w {new_hascmriLCB new_cmriportLCB new_cmrispeedLCB
+                new_cmriretriesLSB new_hasazatraxLCB new_simpleModeCB 
+                new_hasctiacelaLCB new_ctiacelaportLCB} {
+                [set $w] configure -state disabled
+            }
+            foreach w {new_transconstructorE new_transoptsframeE} {
+                [set $w] configure -state readonly
+            }
+            foreach w {new_transconstructorSB new_transoptsframeSB} {
+                [set $w] configure -state normal
+            }
+        } else {
+            foreach w {new_cmriportLCB new_cmrispeedLCB new_cmriretriesLSB 
+                new_ctiacelaportLCB} {
+                [set $w] configure -state normal
+            }
+            foreach w {new_hascmriLCB new_hasazatraxLCB new_simpleModeCB 
+                new_hasctiacelaLCB} {
+                [set $w] configure -state readonly
+            }
+            foreach w {new_transconstructorE new_transoptsframeE 
+                new_transconstructorSB new_transoptsframeSB} {
+                [set $w] configure -state disabled
+            }
+        }
+    }
+    typemethod _seltransc {} {
+        #** Select a transport constructor.
+        
+        set result [lcc::OpenLCBNode selectTransportConstructor -parent [winfo toplevel $new_transconstructorE]]
+        if {$result ne {}} {
+            if {$result ne $_transconstructorname} {set _transopts {}}
+            set _transconstructorname [namespace tail $result]
+        }
+    }
+    typemethod _seltransopt {} {
+        #** Select transport constructor options.
+        
+        if {$_transconstructorname ne ""} {
+            set transportConstructors [info commands ::lcc::$_transconstructorname]
+            puts stderr "*** $type typeconstructor: transportConstructors is $transportConstructors"
+            if {[llength $transportConstructors] > 0} {
+                set transportConstructor [lindex $transportConstructors 0]
+            }
+            if {$transportConstructor ne {}} {
+                set optsdialog [list $transportConstructor \
+                                drawOptionsDialog \
+                                -parent [winfo toplevel $new_transoptsframeE]]
+                foreach x $_transopts {lappend optsdialog $x}
+                set transportOpts [eval $optsdialog]
+                if {$transportOpts ne {}} {
+                    set _transopts $transportOpts
+                }
+            }
+        }
     }
     typemethod new {args} {
       set _simpleMode [from args -simplemode no]
