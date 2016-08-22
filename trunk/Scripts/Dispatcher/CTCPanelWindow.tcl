@@ -153,6 +153,20 @@ namespace eval CTCPanelWindow {
     variable azatraxnodes_comments -array {}
     
     variable openlcbnodes -array {}
+    method getOpenLCBNodeOpt {name option} {
+        if {[info exists openlcbnodes($name)]} {
+            set theopts $openlcbnodes($name)
+            set oindex [lsearch $theopts $option]
+            if {$oindex < 0} {return {}}
+            incr oindex
+            return [lindex $theopts $oindex]
+        } else {
+            return {}
+        }
+    }
+    method setOpenLCBNode {name opts} {
+        set openlcbnodes($name) $opts
+    }
     variable userCode {}
     variable IsDirty yes
 
@@ -520,8 +534,37 @@ namespace eval CTCPanelWindow {
                                    OpenLCBCode.tcl] r]
           fcopy $openlcbCodeFp $fp 
           puts $fp "OpenLCB_Dispatcher ConnectToOpenLCB -transport $options(-openlcbtransport) $options(-openlcbtransportopts)"
+          puts $fp "# OpenLCB_Dispatcher Nodes"
           foreach openlcbele [array names openlcbnodes] {
-              puts $fp "OpenLCB_Dispatcher create %AUTO% -name $openlcbele $openlcbnodes($openlcbele)"
+              set nodeopts $openlcbnodes($openlcbele)
+              puts $fp "# OpenLCB_Dispatcher $openlcbele $nodeopts"
+              set eleclasstype [from nodeopts -eleclasstype]
+              puts $fp "OpenLCB_Dispatcher create %AUTO% -name $openlcbele \\"
+              puts $fp "\t-eleclasstype $eleclasstype \\"
+              set evasplist [from nodeopts -eventidaspectlist]
+              set prefix ""
+              if {$evasplist ne ""} {
+                  puts $fp "\t-eventidaspectlist \[list \\"
+                  foreach {ev aspl} $evasplist {
+                      puts $fp "\t\t\[lcc::EventID %AUTO% -eventidstring \{$ev\}\] \\"
+                      puts $fp "\{$aspl\} \\"
+                  }
+                  puts -nonewline $fp "\t\]"
+                  set prefix " \\\n"
+              }
+              foreach opt {-occupiedeventid -notoccupiedeventid 
+                  -statenormaleventid -statereverseeventid -oneventid 
+                  -offeventid -lefteventid -righteventid -centereventid 
+                  -eventid -normaleventid -reverseeventid -normalindonev 
+                  -normalindoffev -centerindonev -centerindoffev 
+                  -reverseindonev -reverseindoffev -leftindonev -leftindoffev 
+                  -rightindonev -rightindoffev} {
+                  set ev [from nodeopts $opt]
+                  if {$ev eq ""} {continue}
+                  puts -nonewline $fp "$prefix\t$opt \[lcc::EventID %AUTO% -eventidstring \{$ev\}\]"
+                  set prefix " \\\n"
+              }
+              puts $fp {}             
           }
           puts $fp "OpenLCB_Dispatcher SendMyEvents"
       } else {
@@ -861,6 +904,7 @@ namespace eval CTCPanelWindow {
 	while {[gets $fp line] >= 0} {
 	  if {[regexp {^# CMRIBoards$} "$line"] > 0} {set mode CMRIBoards;break}
 	  if {[regexp {^# Azatrax Nodes$} "$line"] > 0} {set mode AZATRAXNodes;break}
+          if {[regexp {^# OpenLCB_Dispatcher Nodes$} "$line"] > 0} {set mode OpenLCB_DispatcherNodes;break}
 	  if {[regexp {^# Add User code after this line$} "$line"] > 0} {
 	    set mode UserCode
 	    break;
@@ -874,8 +918,9 @@ namespace eval CTCPanelWindow {
 	    set buffer {}
 	    while {[gets $fp line] >= 0} {
 	      #puts stderr "*** $type open: read CMRIBoards loop: line = '$line'"
-	      if {[regexp {^# Azatrax Nodes$} "$line"] > 0 ||
-		  [regexp {^# Add User code after this line$} "$line"] > 0} {break}
+	      if {[regexp {^# Azatrax Nodes$} "$line"] > 0} {set mode AZATRAXNodes;break}
+              if {[regexp {^# OpenLCB_Dispatcher Nodes$} "$line"] > 0} {set mode OpenLCB_DispatcherNodes;break}
+              if {[regexp {^# Add User code after this line$} "$line"] > 0} {set mode UserCode;break}
 	      if {[regexp {^# (.*)$} "$line" => board_comment] > 0} {continue}
 	      append buffer "$line"
 	      #puts stderr "*** $type open: read CMRIBoards loop: buffer = '$buffer'"
@@ -896,8 +941,9 @@ namespace eval CTCPanelWindow {
 	  AZATRAXNodes {
 	    set buffer {}
 	    while {[gets $fp line] >= 0} {
-	      if {[regexp {^# CMRIBoards} "$line"] > 0 ||
-		  [regexp {^# Add User code after this line$} "$line"] > 0} {break}
+              if {[regexp {^# CMRIBoards} "$line"] > 0} {set mode CMRIBoards;break}
+              if {[regexp {^# OpenLCB_Dispatcher Nodes$} "$line"] > 0} {set mode OpenLCB_DispatcherNodes;break}
+              if {[regexp {^# Add User code after this line$} "$line"] > 0} {set mode UserCode;break}
 	      if {[regexp {^# (.*)$} "$line" => board_comment] > 0} {continue}
 	      append buffer "$line"
 	      if {[info complete "$buffer"] && 
@@ -916,7 +962,30 @@ namespace eval CTCPanelWindow {
 	      }
 	    }
 	  }
-	  EOF {break}
+	  
+          OpenLCB_DispatcherNodes {
+              set buffer {}
+              while {[gets $fp line] >= 0} {
+                  puts stderr "*** $type open (OpenLCB_DispatcherNodes branch): line = $line"
+                  if {[regexp {^# CMRIBoards} "$line"] > 0} {set mode CMRIBoards;break}
+                  if {[regexp {^# Azatrax Nodes$} "$line"] > 0} {set mode AZATRAXNodes;break}
+                  if {[regexp {^# OpenLCB_Dispatcher ([^[:space:]]+)[[:space:]](.*)$} "$line" => openlcbele nodeopts] > 0} {
+                      puts stderr "*** $type open (OpenLCB_DispatcherNodes branch) matched: openlcbele = $openlcbele, nodeopts = $nodeopts"
+                      $newWindow setOpenLCBNode $openlcbele $nodeopts
+                      continue
+                  }
+                  append buffer "$line"
+                  if {[info complete "$buffer"] &&
+                      ![string equal "\\" "[string index $buffer end]"]} {
+                      set buffer {}
+                  } else {
+                      append buffer "\n"
+                  }
+              }
+              set code {}
+              set mode EOF
+          }
+          EOF {break}
 	  UserCode -
 	  default {
 	    set code {}
@@ -1442,37 +1511,253 @@ namespace eval CTCPanelWindow {
     }
 
     method addblocktopanel {node args} {
-        #puts stderr "*** $self addblocktopanel $node $args"
-      set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -mode add -setoftypes {StraightBlock CurvedBlock HiddenBlock StubYard ThroughYard EndBumper}] $args]
+      #puts stderr "*** $self addblocktopanel $node $args"
+      set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -openlcbmode $options(-openlcbmode) -mode add -setoftypes {StraightBlock CurvedBlock HiddenBlock StubYard ThroughYard EndBumper}] $args]
       if {[string equal "$result" {}]} {return}
       $self setdirty
+      if {$options(-openlcbmode)} {
+          set node [lindex $result 1]
+          switch [lindex $result 0] {
+              SWPlate {
+                  set openlcbnodes($node) [list -eleclasstype SwitchPlate]
+              }
+              SIGPlate {
+                  set openlcbnodes($node) [list -eleclasstype SignalPlate]
+              }
+              CodeButton {
+                  set openlcbnodes($node) [list -eleclasstype CodeButton]
+              }
+              Toggle {
+                  set openlcbnodes($node) [list -eleclasstype ToggleSwitch]
+              }
+              PushButton {
+                  set openlcbnodes($node) [list -eleclasstype PushButton]
+              }
+              Lamp {
+                  set openlcbnodes($node) [list -eleclasstype Lamp]
+              }
+              Switch -
+              ScissorCrossover -
+              Crossover -
+              SingleSlip -
+              DoubleSlip -
+              ThreeWaySW {
+                  set openlcbnodes($node) [list -eleclasstype Switch]
+              }              
+              StraightBlock -
+              EndBumper -
+              CurvedBlock -
+              Crossing -
+              HiddenBlock -
+              StubYard -
+              ThroughYard {
+                  set openlcbnodes($node) [list -eleclasstype Block]
+              }
+              Signal {
+                  set openlcbnodes($node) [list -eleclasstype Signal]
+              }
+          }
+          foreach opt {-occupiedeventid -notoccupiedeventid 
+              -statenormaleventid -statereverseeventid -eventidaspectlist 
+              -oneventid -offeventid -lefteventid -righteventid -centereventid 
+              -eventid -normaleventid -reverseeventid -normalindonev 
+              -normalindoffev -centerindonev -centerindoffev -reverseindonev 
+              -reverseindoffev -centereventid -leftindonev -leftindoffev 
+              -centerindonev -centerindoffev -rightindonev -rightindoffev } {
+              set val [from result $opt ""]
+              if {$val eq ""} {continue}
+              lappend openlcbnodes($node) $opt "$val"
+          }
+      }
       set o [eval [list $ctcpanel create] $result]
       set name       [lindex $result 1]
       $o bind <3> [mymethod _contextMenu $name %x %y %W]
       return $o      
     }
     method addsimpleturnouttopanel {node args} {
-      set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -mode add -setoftypes {Switch}] $args]
+      set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -openlcbmode $options(-openlcbmode) -mode add -setoftypes {Switch}] $args]
       if {[string equal "$result" {}]} {return}
       $self setdirty
+      if {$options(-openlcbmode)} {
+          set node [lindex $result 1]
+          switch [lindex $result 0] {
+              SWPlate {
+                  set openlcbnodes($node) [list -eleclasstype SwitchPlate]
+              }
+              SIGPlate {
+                  set openlcbnodes($node) [list -eleclasstype SignalPlate]
+              }
+              CodeButton {
+                  set openlcbnodes($node) [list -eleclasstype CodeButton]
+              }
+              Toggle {
+                  set openlcbnodes($node) [list -eleclasstype ToggleSwitch]
+              }
+              PushButton {
+                  set openlcbnodes($node) [list -eleclasstype PushButton]
+              }
+              Lamp {
+                  set openlcbnodes($node) [list -eleclasstype Lamp]
+              }
+              Switch -
+              ScissorCrossover -
+              Crossover -
+              SingleSlip -
+              DoubleSlip -
+              ThreeWaySW {
+                  set openlcbnodes($node) [list -eleclasstype Switch]
+              }              
+              StraightBlock -
+              EndBumper -
+              CurvedBlock -
+              Crossing -
+              HiddenBlock -
+              StubYard -
+              ThroughYard {
+                  set openlcbnodes($node) [list -eleclasstype Block]
+              }
+              Signal {
+                  set openlcbnodes($node) [list -eleclasstype Signal]
+              }
+          }
+          foreach opt {-occupiedeventid -notoccupiedeventid 
+              -statenormaleventid -statereverseeventid -eventidaspectlist 
+              -oneventid -offeventid -lefteventid -righteventid -centereventid 
+              -eventid -normaleventid -reverseeventid -normalindonev 
+              -normalindoffev -centerindonev -centerindoffev -reverseindonev 
+              -reverseindoffev -centereventid -leftindonev -leftindoffev 
+              -centerindonev -centerindoffev -rightindonev -rightindoffev } {
+              set val [from result $opt ""]
+              if {$val eq ""} {continue}
+              lappend openlcbnodes($node) $opt "$val"
+          }
+      }
       set o [eval [list $ctcpanel create] $result]
       set name       [lindex $result 1]
       $o bind <3> [mymethod _contextMenu $name %x %y %W]
       return $o      
     }
     method addcomplextrackworktopanel {node args} {
-      set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -mode add -setoftypes {ScissorCrossover Crossover Crossing SingleSlip DoubleSlip ThreeWaySW}] $args]
+      set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -openlcbmode $options(-openlcbmode) -mode add -setoftypes {ScissorCrossover Crossover Crossing SingleSlip DoubleSlip ThreeWaySW}] $args]
       if {[string equal "$result" {}]} {return}
       $self setdirty
+      if {$options(-openlcbmode)} {
+          set node [lindex $result 1]
+          switch [lindex $result 0] {
+              SWPlate {
+                  set openlcbnodes($node) [list -eleclasstype SwitchPlate]
+              }
+              SIGPlate {
+                  set openlcbnodes($node) [list -eleclasstype SignalPlate]
+              }
+              CodeButton {
+                  set openlcbnodes($node) [list -eleclasstype CodeButton]
+              }
+              Toggle {
+                  set openlcbnodes($node) [list -eleclasstype ToggleSwitch]
+              }
+              PushButton {
+                  set openlcbnodes($node) [list -eleclasstype PushButton]
+              }
+              Lamp {
+                  set openlcbnodes($node) [list -eleclasstype Lamp]
+              }
+              Switch -
+              ScissorCrossover -
+              Crossover -
+              SingleSlip -
+              DoubleSlip -
+              ThreeWaySW {
+                  set openlcbnodes($node) [list -eleclasstype Switch]
+              }              
+              StraightBlock -
+              EndBumper -
+              CurvedBlock -
+              Crossing -
+              HiddenBlock -
+              StubYard -
+              ThroughYard {
+                  set openlcbnodes($node) [list -eleclasstype Block]
+              }
+              Signal {
+                  set openlcbnodes($node) [list -eleclasstype Signal]
+              }
+          }
+          foreach opt {-occupiedeventid -notoccupiedeventid 
+              -statenormaleventid -statereverseeventid -eventidaspectlist 
+              -oneventid -offeventid -lefteventid -righteventid -centereventid 
+              -eventid -normaleventid -reverseeventid -normalindonev 
+              -normalindoffev -centerindonev -centerindoffev -reverseindonev 
+              -reverseindoffev -centereventid -leftindonev -leftindoffev 
+              -centerindonev -centerindoffev -rightindonev -rightindoffev } {
+              set val [from result $opt ""]
+              if {$val eq ""} {continue}
+              lappend openlcbnodes($node) $opt "$val"
+          }
+      }
       set o [eval [list $ctcpanel create] $result]
       set name       [lindex $result 1]
       $o bind <3> [mymethod _contextMenu $name %x %y %W]
       return $o      
     }
     method addswitchplatetopanel {args} {
-      set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -mode add -setoftypes {SWPlate}] $args]
+      set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -openlcbmode $options(-openlcbmode) -mode add -setoftypes {SWPlate}] $args]
       if {[string equal "$result" {}]} {return}
       $self setdirty
+      if {$options(-openlcbmode)} {
+          set node [lindex $result 1]
+          switch [lindex $result 0] {
+              SWPlate {
+                  set openlcbnodes($node) [list -eleclasstype SwitchPlate]
+              }
+              SIGPlate {
+                  set openlcbnodes($node) [list -eleclasstype SignalPlate]
+              }
+              CodeButton {
+                  set openlcbnodes($node) [list -eleclasstype CodeButton]
+              }
+              Toggle {
+                  set openlcbnodes($node) [list -eleclasstype ToggleSwitch]
+              }
+              PushButton {
+                  set openlcbnodes($node) [list -eleclasstype PushButton]
+              }
+              Lamp {
+                  set openlcbnodes($node) [list -eleclasstype Lamp]
+              }
+              Switch -
+              ScissorCrossover -
+              Crossover -
+              SingleSlip -
+              DoubleSlip -
+              ThreeWaySW {
+                  set openlcbnodes($node) [list -eleclasstype Switch]
+              }              
+              StraightBlock -
+              EndBumper -
+              CurvedBlock -
+              Crossing -
+              HiddenBlock -
+              StubYard -
+              ThroughYard {
+                  set openlcbnodes($node) [list -eleclasstype Block]
+              }
+              Signal {
+                  set openlcbnodes($node) [list -eleclasstype Signal]
+              }
+          }
+          foreach opt {-occupiedeventid -notoccupiedeventid 
+              -statenormaleventid -statereverseeventid -eventidaspectlist 
+              -oneventid -offeventid -lefteventid -righteventid -centereventid 
+              -eventid -normaleventid -reverseeventid -normalindonev 
+              -normalindoffev -centerindonev -centerindoffev -reverseindonev 
+              -reverseindoffev -centereventid -leftindonev -leftindoffev 
+              -centerindonev -centerindoffev -rightindonev -rightindoffev } {
+              set val [from result $opt ""]
+              if {$val eq ""} {continue}
+              lappend openlcbnodes($node) $opt "$val"
+          }
+      }
       set o [eval [list $ctcpanel create] $result]
       set objectType [lindex $result 0]
       set name       [lindex $result 1]
@@ -1492,9 +1777,63 @@ namespace eval CTCPanelWindow {
       return $o
     }
     method addpanelobject {args} {
-      set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -mode add -setoftypes {}] $args]
+      set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -openlcbmode $options(-openlcbmode) -mode add -setoftypes {}] $args]
       if {[string equal "$result" {}]} {return}
       $self setdirty
+      if {$options(-openlcbmode)} {
+          set node [lindex $result 1]
+          switch [lindex $result 0] {
+              SWPlate {
+                  set openlcbnodes($node) [list -eleclasstype SwitchPlate]
+              }
+              SIGPlate {
+                  set openlcbnodes($node) [list -eleclasstype SignalPlate]
+              }
+              CodeButton {
+                  set openlcbnodes($node) [list -eleclasstype CodeButton]
+              }
+              Toggle {
+                  set openlcbnodes($node) [list -eleclasstype ToggleSwitch]
+              }
+              PushButton {
+                  set openlcbnodes($node) [list -eleclasstype PushButton]
+              }
+              Lamp {
+                  set openlcbnodes($node) [list -eleclasstype Lamp]
+              }
+              Switch -
+              ScissorCrossover -
+              Crossover -
+              SingleSlip -
+              DoubleSlip -
+              ThreeWaySW {
+                  set openlcbnodes($node) [list -eleclasstype Switch]
+              }              
+              StraightBlock -
+              EndBumper -
+              CurvedBlock -
+              Crossing -
+              HiddenBlock -
+              StubYard -
+              ThroughYard {
+                  set openlcbnodes($node) [list -eleclasstype Block]
+              }
+              Signal {
+                  set openlcbnodes($node) [list -eleclasstype Signal]
+              }
+          }
+          foreach opt {-occupiedeventid -notoccupiedeventid 
+              -statenormaleventid -statereverseeventid -eventidaspectlist 
+              -oneventid -offeventid -lefteventid -righteventid -centereventid 
+              -eventid -normaleventid -reverseeventid -normalindonev 
+              -normalindoffev -centerindonev -centerindoffev -reverseindonev 
+              -reverseindoffev -centereventid -leftindonev -leftindoffev 
+              -centerindonev -centerindoffev -rightindonev -rightindoffev } {
+              set val [from result $opt ""]
+              if {$val eq ""} {continue}
+              lappend openlcbnodes($node) $opt "$val"
+          }
+      }
       set o [eval [list $ctcpanel create] $result]
       set objectType [lindex $result 0]
       set name       [lindex $result 1]
@@ -1516,10 +1855,64 @@ namespace eval CTCPanelWindow {
     method editpanelobject {args} {
       set objectToEdit [eval [list $selectPanelObjectDialog draw] $args]
       if {[string equal "$objectToEdit" {}]} {return}
-      set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -mode edit -object $objectToEdit] $args]
+      set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -openlcbmode $options(-openlcbmode) -mode edit -object $objectToEdit] $args]
       if {[string equal "$result" {}]} {return}
       $self setdirty
       $ctcpanel delete $objectToEdit
+      if {$options(-openlcbmode)} {
+          set node [lindex $result 1]
+          switch [lindex $result 0] {
+              SWPlate {
+                  set openlcbnodes($node) [list -eleclasstype SwitchPlate]
+              }
+              SIGPlate {
+                  set openlcbnodes($node) [list -eleclasstype SignalPlate]
+              }
+              CodeButton {
+                  set openlcbnodes($node) [list -eleclasstype CodeButton]
+              }
+              Toggle {
+                  set openlcbnodes($node) [list -eleclasstype ToggleSwitch]
+              }
+              PushButton {
+                  set openlcbnodes($node) [list -eleclasstype PushButton]
+              }
+              Lamp {
+                  set openlcbnodes($node) [list -eleclasstype Lamp]
+              }
+              Switch -
+              ScissorCrossover -
+              Crossover -
+              SingleSlip -
+              DoubleSlip -
+              ThreeWaySW {
+                  set openlcbnodes($node) [list -eleclasstype Switch]
+              }              
+              StraightBlock -
+              EndBumper -
+              CurvedBlock -
+              Crossing -
+              HiddenBlock -
+              StubYard -
+              ThroughYard {
+                  set openlcbnodes($node) [list -eleclasstype Block]
+              }
+              Signal {
+                  set openlcbnodes($node) [list -eleclasstype Signal]
+              }
+          }
+          foreach opt {-occupiedeventid -notoccupiedeventid 
+              -statenormaleventid -statereverseeventid -eventidaspectlist 
+              -oneventid -offeventid -lefteventid -righteventid -centereventid 
+              -eventid -normaleventid -reverseeventid -normalindonev 
+              -normalindoffev -centerindonev -centerindoffev -reverseindonev 
+              -reverseindoffev -centereventid -leftindonev -leftindoffev 
+              -centerindonev -centerindoffev -rightindonev -rightindoffev } {
+              set val [from result $opt ""]
+              if {$val eq ""} {continue}
+              lappend openlcbnodes($node) $opt "$val"
+          }
+      }
       set o [eval [list $ctcpanel create] $result]
       set name       [lindex $result 1]
       $o bind <3> [mymethod _contextMenu $name %x %y %W]
@@ -1546,7 +1939,10 @@ namespace eval CTCPanelWindow {
 	    set userCode [string replace "$userCode" [lindex $start 0] [lindex $end 1] ""]
 	    #puts stderr "*** $self deletepanelobject: userCode (after) = \{$userCode\}"
 	  }
-	}
+        }
+        if {$options(-openlcbmode)} {
+            catch {unset openlcbnodes($objectToDelete)}
+        }
 	$self setdirty
       }
     }
@@ -1571,7 +1967,7 @@ namespace eval CTCPanelWindow {
         #puts stderr "*** $self _edit_from_context $name"
         $_cm unpost
         set objectToEdit $name
-        set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -mode edit -object $objectToEdit] $args]
+        set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -openlcbmode $options(-openlcbmode) -mode edit -object $objectToEdit] $args]
         if {[string equal "$result" {}]} {return}
         $self setdirty
         $ctcpanel delete $objectToEdit
@@ -1950,20 +2346,23 @@ namespace eval CTCPanelWindow {
     component   commandSW
     component     commandText;#		-command
     # OpenLCB events
-    component occupiedEventidLE
-    component notoccupiedEventidLE
+    # Sensors
+    component occupiedeventidLE
+    component notoccupiedeventidLE
     component statenormaleventidLE
     component statereverseeventidLE
-    component aspectlistSTabNB
-    variable  aspectlist -array {}
-    component oneventidLE
-    component offeventidLE
+    # Actions
     component lefteventidLE
     component righteventidLE
     component centereventidLE
     component eventidLE
     component normaleventidLE
     component reverseeventidLE
+    # Indicators
+    component aspectlistLF
+    component   aspectlistSTabNB
+    variable    aspectlist -array {}
+    component   addaspectB
     component normalindonevLE
     component normalindoffevLE
     component centerindonevLE
@@ -1972,8 +2371,10 @@ namespace eval CTCPanelWindow {
     component reverseindoffevLE
     component leftindonevLE
     component leftindoffevLE
-    component reverseindonevLE
-    component reverseindoffevLE
+    component rightindonevLE
+    component rightindoffevLE
+    component oneventidLE
+    component offeventidLE
     
     
     typevariable objectTypeOptions -array {
@@ -2007,13 +2408,19 @@ namespace eval CTCPanelWindow {
 	ThroughYard {xysch label orientation flipped occupiedcommand}
 	Signal {xysch label orientation heads}
     }
+    typevariable objectTypeIndicatorEvents -array {
+        Signal {aspectlist}
+        SWPlate {normal center reverse}
+        SIGPlate {left center right}
+        Lamp {onoff}
+    }
 
     constructor {args} {
         #puts stderr "*** $type create $self $args"
       installhull using Dialog -bitmap questhead -default add \
 				-cancel cancel -modal local -transient yes \
 				-side bottom -title [_ "Add Panel Object to panel"] \
-				-parent [from args -parent]
+                                -parent [from args -parent]
       $hull add add    -text Add    -command [mymethod _Add]
       $hull add cancel -text Cancel -command [mymethod _Cancel]
       wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
@@ -2030,7 +2437,24 @@ namespace eval CTCPanelWindow {
 		      "Label|Reverse Script:" "Label|Left Script:" \
 		      "Label|Center Script:" "Label|Right Script:" \
 		      "Label|Action Script:" "Label|Azatrax S#:" \
-		      "Label|Switch Name:" "Label|Azatrax Product:"]
+                      "Label|Switch Name:" "Label|Azatrax Product:" \
+                      "Label|Occupied EventID:" "Label|Not Occupied EventID:" \
+                      "Label|State Normal EventID:" "Label|State Reversed EventID:" \
+                      "Label|Left EventID:" "Label|Right EventID:" \
+                      "Label|Center EventID:" "Label|Command EventID:" \
+                      "Label|Normal EventID:" "Label|Reverse EventID:" \
+                      "Label|Normal Indicator On EventID:" \
+                      "Label|Normal Indicator Off EventID:" \
+                      "Label|Center Indicator On EventID:" \
+                      "Label|Center Indicator Off EventID:" \
+                      "Label|Reverse Indicator On EventID:" \
+                      "Label|Reverse Indicator Off EventID:" \
+                      "Label|Left Indicator On EventID:" \
+                      "Label|Left Indicator Off EventID:" \
+                      "Label|Right Indicator On EventID:" \
+                      "Label|Right Indicator Off EventID:" \
+                      "Label|Lamp On EventID:" \
+                      "Label|Lamp Off EventID:" ]
       install nameLE using LabelEntry $frame.nameLE -label [_m "Label|Name:"] \
 						    -labelwidth $lwidth \
 						    -text {}
@@ -2277,6 +2701,86 @@ namespace eval CTCPanelWindow {
 			-wrap none -width 40 -height 5
       bindtags $commandText [list $commandText Text]
       $commandSW setwidget $commandText
+      ### OpenLCB events
+      # Sensors
+      install occupiedeventidLE using LabelEntry $optionsFrame.occupiedeventidLE \
+            -label [_m "Label|Occupied EventID:"] \
+            -labelwidth $lwidth
+      install notoccupiedeventidLE using LabelEntry $optionsFrame.notoccupiedeventidLE \
+            -label [_m "Label|Not Occupied EventID:"] \
+            -labelwidth $lwidth
+      install statenormaleventidLE using LabelEntry $optionsFrame.statenormaleventidLE \
+            -label [_m "Label|State Normal EventID:"] \
+            -labelwidth $lwidth
+      install statereverseeventidLE using LabelEntry $optionsFrame.statereverseeventidLE \
+            -label [_m "Label|State Reversed EventID:"] \
+            -labelwidth $lwidth
+      # Actions
+      install lefteventidLE using LabelEntry $optionsFrame.lefteventidLE \
+            -label [_m "Label|Left EventID:"] \
+            -labelwidth $lwidth
+      install righteventidLE using LabelEntry $optionsFrame.righteventidLE \
+            -label [_m "Label|Right EventID:"] \
+            -labelwidth $lwidth
+      install centereventidLE using LabelEntry $optionsFrame.centereventidLE \
+            -label [_m "Label|Center EventID:"] \
+            -labelwidth $lwidth
+      install eventidLE using LabelEntry $optionsFrame.eventidLE \
+            -label [_m "Label|Command EventID:"] \
+            -labelwidth $lwidth
+      install normaleventidLE using LabelEntry $optionsFrame.normaleventidLE \
+            -label [_m "Label|Normal EventID:"] \
+            -labelwidth $lwidth
+      install reverseeventidLE using LabelEntry $optionsFrame.reverseeventidLE \
+            -label [_m "Label|Reverse EventID:"] \
+            -labelwidth $lwidth
+      # Indicators
+      install aspectlistLF using ttk::labelframe $optionsFrame.aspectlistLF \
+            -labelanchor nw -text [_m "Label|Signal Aspect Events"]
+      install aspectlistSTabNB using ScrollTabNotebook \
+            $aspectlistLF.aspectlistSTabNB
+      pack $aspectlistSTabNB -expand yes -fill both
+      install addaspectB using ttk::button $aspectlistLF.addaspectB \
+            -text [_m "Label|Add another aspect"] \
+            -command [mymethod _addaspect]
+      pack $addaspectB -fill x
+      install normalindonevLE using LabelEntry $optionsFrame.normalindonevLE \
+            -label [_m "Label|Normal Indicator On EventID:"] \
+            -labelwidth $lwidth
+      install normalindoffevLE using LabelEntry $optionsFrame.normalindoffevLE \
+            -label [_m "Label|Normal Indicator Off EventID:"] \
+            -labelwidth $lwidth
+      install centerindonevLE using LabelEntry $optionsFrame.centerindonevLE \
+            -label [_m "Label|Center Indicator On EventID:"] \
+            -labelwidth $lwidth
+      install centerindoffevLE using LabelEntry $optionsFrame.centerindoffevLE \
+            -label [_m "Label|Center Indicator Off EventID:"] \
+            -labelwidth $lwidth
+      install reverseindonevLE using LabelEntry $optionsFrame.reverseindonevLE \
+            -label [_m "Label|Reverse Indicator On EventID:"] \
+            -labelwidth $lwidth
+      install reverseindoffevLE using LabelEntry $optionsFrame.reverseindoffevLE \
+            -label [_m "Label|Reverse Indicator Off EventID:"] \
+            -labelwidth $lwidth
+      install leftindonevLE using LabelEntry $optionsFrame.leftindonevLE \
+            -label [_m "Label|Left Indicator On EventID:"] \
+            -labelwidth $lwidth
+      install leftindoffevLE using LabelEntry $optionsFrame.leftindoffevLE \
+            -label [_m "Label|Left Indicator Off EventID:"] \
+            -labelwidth $lwidth
+      install rightindonevLE using LabelEntry $optionsFrame.rightindonevLE \
+            -label [_m "Label|Right Indicator On EventID:"] \
+            -labelwidth $lwidth
+      install rightindoffevLE using LabelEntry $optionsFrame.rightindoffevLE \
+            -label [_m "Label|Right Indicator Off EventID:"] \
+            -labelwidth $lwidth
+      install oneventidLE using LabelEntry $optionsFrame.oneventidLE \
+            -label [_m "Label|Lamp On EventID:"] \
+            -labelwidth $lwidth
+      install offeventidLE using LabelEntry $optionsFrame.offeventidLE \
+            -label [_m "Label|Lamp Off EventID:"] \
+            -labelwidth $lwidth
+      
       $self configurelist $args
       bind $win <<ComboboxSelected>> [mymethod redrawgraphic]
       
@@ -2309,6 +2813,8 @@ namespace eval CTCPanelWindow {
     method draw {args} {
         #puts stderr "*** $self draw $args"
       $self configurelist $args
+      set options(-parent) [$self cget -parent]
+
       if {"$options(-name)" ne ""} {
 	$labelLE configure -text "$options(-name)"
 	$nameLE configure -text "$options(-name)"
@@ -2389,7 +2895,10 @@ namespace eval CTCPanelWindow {
       }
       set opts {}
       #puts stderr "*** $self redrawgraphic: calling getOptions"
+      set savedopenlcbmode $options(-openlcbmode)
+      set options(-openlcbmode) no
       $self getOptions opts
+      set options(-openlcbmode) $savedopenlcbmode
       #puts stderr "*** $self redrawgraphic: opts is $opts"
       eval [list ::CTCPanel::$objectType create %AUTO% $self $graphicCanvas -controlpoint nil] $opts
       if {[lsearch -exact {SWPlate SIGPlate CodeButton Toggle Lamp CTCLabel PushButton} $objectType] < 0} {
@@ -2406,351 +2915,589 @@ namespace eval CTCPanelWindow {
       $self redrawgraphic
     }
     method packOptions {objtype} {
-      foreach slave [pack slaves $optionsFrame] {pack forget $slave}
-      foreach opt $objectTypeOptions($objtype) {
-	switch -exact $opt {
-	  xyctl {
-		pack $xyframe1 -fill x
-		$xyframe1 configure -text {}
-		$b1 configure -command [mymethod _chctlXY1]
-	  }
-	  xysch {
-		pack $xyframe1 -fill x
-		$xyframe1 configure -text {}
-		$b1 configure -command [mymethod _chschXY1]
-	  }
-	  xy1sch {
-		pack $xyframe1 -fill x
-		$xyframe1 configure -text [_m "Label|First Coord"]
-		$b1 configure -command [mymethod _chschXY1]
-	  }
-	  xy2sch {
-		pack $xyframe2 -fill x
-		$xyframe2 configure -text [_m "Label|Second Coord"]
-		$b2 configure -command [mymethod _chschXY2]
-	  }
-	  label {
-		pack $labelLE -fill x
-	  }
-	  hvorientation {
-		pack $hvorientationLCB -fill x
-	  }
-	  leftlabel {
-		pack $leftlabelLE -fill x
-	  }
-	  centerlabel {
-		pack $centerlabelLE -fill x
-	  }
-	  rightlabel {
-		pack $rightlabelLE -fill x
-	  }
-	  hascenter {
-		pack $hascenterLCB -fill x
-	  }
-	  color {
-		pack $colorLSC -fill x
-	  }
-	  orientation {
-		pack $orientationLCB -fill x
-	  }
-	  flipped {
-		pack $flippedLCB -fill x
-	  }
-	  heads {
-		pack $headsLCB -fill x
-	  }
-	  position {
-		pack $positionLCB -fill x
-	  }
- 	  radius {
-		pack $radiusLSB -fill x
-	  }
-	  type {
-		pack $typeLCB -fill x
-	  }
-	}
-      }
-      #puts stderr "*** $self packOptions: options(-simplemode) is $options(-simplemode)"
-      if {$options(-simplemode) && $objtype eq "SWPlate"} {
-	pack $azatraxSerialNumberLE -fill x
-	$azatraxSerialNumberLE configure -text ""
-	pack $azatraxProductTypeLCB -fill x
-	$azatraxProductTypeLCB set [lindex [$azatraxProductTypeLCB cget -values] 0]
-	pack $switchNameLE -fill x
-	$switchNameLE configure -text ""
-      }
-      foreach opt $objectTypeOptions($objtype) {
-	switch -exact $opt {
-	  normalcommand {
-		pack $normalcommandLF -fill x
-		if {$options(-simplemode)} {
-		  $normalcommandText configure -state disabled
-		} else {
-		  $normalcommandText configure -state normal
-		}
-	  }
-	  reversecommand {
-		pack $reversecommandLF -fill x
-		if {$options(-simplemode)} {
-		  $reversecommandText configure -state disabled
-		} else {
-		  $reversecommandText configure -state normal
-		}
-	  }
-	  leftcommand {
-		pack $leftcommandLF -fill x
-		if {$options(-simplemode)} {
-		  $leftcommandText  configure -state disabled
-		} else {
-		  $leftcommandText  configure -state normal
-		}
-	  }
-	  centercommand {
-		pack $centercommandLF -fill x
-		if {$options(-simplemode)} {
-		  $centercommandText  configure -state disabled
-		} else {
-		  $centercommandText  configure -state normal
-		}
-	  }
-	  rightcommand {
-		pack $rightcommandLF -fill x
-		if {$options(-simplemode)} {
-		  $rightcommandText  configure -state disabled
-		} else {
-		  $rightcommandText  configure -state normal
-		}
-	  }
-	  command {
-		pack $commandLF -fill x
-		if {$options(-simplemode)} {
-		  $commandText  configure -state disabled
-		} else {
-		  $commandText  configure -state normal
-		}
-	  }
-	  statecommand {
-		pack $statecommandLF -fill x
-		if {$options(-simplemode)} {
-		  $statecommandText  configure -state disabled
-		} else {
-		  $statecommandText  configure -state normal
-		}
-	  }
-	  occupiedcommand {
-		pack $occupiedcommandLF -fill x
-		if {$options(-simplemode)} {
-		  $occupiedcommandText  configure -state disabled
-		} else {
-		  $occupiedcommandText  configure -state normal
-		}
-	  }
-	}
-      }
+        foreach slave [pack slaves $optionsFrame] {pack forget $slave}
+        foreach opt $objectTypeOptions($objtype) {
+            switch -exact $opt {
+                xyctl {
+                    pack $xyframe1 -fill x
+                    $xyframe1 configure -text {}
+                    $b1 configure -command [mymethod _chctlXY1]
+                }
+                xysch {
+                    pack $xyframe1 -fill x
+                    $xyframe1 configure -text {}
+                    $b1 configure -command [mymethod _chschXY1]
+                }
+                xy1sch {
+                    pack $xyframe1 -fill x
+                    $xyframe1 configure -text [_m "Label|First Coord"]
+                    $b1 configure -command [mymethod _chschXY1]
+                }
+                xy2sch {
+                    pack $xyframe2 -fill x
+                    $xyframe2 configure -text [_m "Label|Second Coord"]
+                    $b2 configure -command [mymethod _chschXY2]
+                }
+                label {
+                    pack $labelLE -fill x
+                }
+                hvorientation {
+                    pack $hvorientationLCB -fill x
+                }
+                leftlabel {
+                    pack $leftlabelLE -fill x
+                }
+                centerlabel {
+                    pack $centerlabelLE -fill x
+                }
+                rightlabel {
+                    pack $rightlabelLE -fill x
+                }
+                hascenter {
+                    pack $hascenterLCB -fill x
+                }
+                color {
+                    pack $colorLSC -fill x
+                }
+                orientation {
+                    pack $orientationLCB -fill x
+                }
+                flipped {
+                    pack $flippedLCB -fill x
+                }
+                heads {
+                    pack $headsLCB -fill x
+                }
+                position {
+                    pack $positionLCB -fill x
+                }
+                radius {
+                    pack $radiusLSB -fill x
+                }
+                type {
+                    pack $typeLCB -fill x
+                }
+            }
+        }
+        #puts stderr "*** $self packOptions: options(-simplemode) is $options(-simplemode)"
+        if {$options(-simplemode) && $objtype eq "SWPlate"} {
+            pack $azatraxSerialNumberLE -fill x
+            $azatraxSerialNumberLE configure -text ""
+            pack $azatraxProductTypeLCB -fill x
+            $azatraxProductTypeLCB set [lindex [$azatraxProductTypeLCB cget -values] 0]
+            pack $switchNameLE -fill x
+            $switchNameLE configure -text ""
+        }
+        foreach opt $objectTypeOptions($objtype) {
+            switch -exact $opt {
+                normalcommand {
+                    if {$options(-openlcbmode)} {
+                        pack $normaleventidLE -fill x
+                    } else {
+                        pack $normalcommandLF -fill x
+                        if {$options(-simplemode)} {
+                            $normalcommandText configure -state disabled
+                        } else {
+                            $normalcommandText configure -state normal
+                        }
+                    }
+                }
+                reversecommand {
+                    if {$options(-openlcbmode)} {
+                        pack $reverseeventidLE -fill x
+                    } else {
+                        pack $reversecommandLF -fill x
+                        if {$options(-simplemode)} {
+                            $reversecommandText configure -state disabled
+                        } else {
+                            $reversecommandText configure -state normal
+                        }
+                    }
+                }
+                leftcommand {
+                    if {$options(-openlcbmode)} {
+                        pack $lefteventidLE -fill x
+                    } else {
+                        pack $leftcommandLF -fill x
+                        if {$options(-simplemode)} {
+                            $leftcommandText  configure -state disabled
+                        } else {
+                            $leftcommandText  configure -state normal
+                        }
+                    }
+                }
+                centercommand {
+                    if {$options(-openlcbmode)} {
+                        pack $centereventidLE -fill x
+                    } else {
+                        pack $centercommandLF -fill x
+                        if {$options(-simplemode)} {
+                            $centercommandText  configure -state disabled
+                        } else {
+                            $centercommandText  configure -state normal
+                        }
+                    }
+                }
+                rightcommand {
+                    if {$options(-openlcbmode)} {
+                        pack $righteventidLE -fill x
+                    } else {
+                        pack $rightcommandLF -fill x
+                        if {$options(-simplemode)} {
+                            $rightcommandText  configure -state disabled
+                        } else {
+                            $rightcommandText  configure -state normal
+                        }
+                    }
+                }
+                command {
+                    if {$options(-openlcbmode)} {
+                        pack $eventidLE -fill x
+                    } else {
+                        pack $commandLF -fill x
+                        if {$options(-simplemode)} {
+                            $commandText  configure -state disabled
+                        } else {
+                            $commandText  configure -state normal
+                        }
+                    }
+                }
+                statecommand {
+                    if {$options(-openlcbmode)} {
+                        pack $statenormaleventidLE -fill x
+                        pack $statereverseeventidLE -fill x
+                    } else {
+                        pack $statecommandLF -fill x
+                        if {$options(-simplemode)} {
+                            $statecommandText  configure -state disabled
+                        } else {
+                            $statecommandText  configure -state normal
+                        }
+                    }
+                }
+                occupiedcommand {
+                    if {$options(-openlcbmode)} {
+                        pack $occupiedeventidLE -fill x
+                        pack $notoccupiedeventidLE -fill x
+                    } else {
+                        pack $occupiedcommandLF -fill x
+                        if {$options(-simplemode)} {
+                            $occupiedcommandText  configure -state disabled
+                        } else {
+                            $occupiedcommandText  configure -state normal
+                        }
+                    }
+                }
+            }
+        }
+        if {$options(-openlcbmode)} {
+            if {[info exists objectTypeIndicatorEvents($objtype)]} {
+                foreach opt $objectTypeIndicatorEvents($objtype) {
+                    switch -exact $opt {
+                        aspectlist {
+                            $self clearallaspects
+                            pack $aspectlistLF -fill both -expand yes
+                        }
+                        normal {
+                            pack $normalindonevLE -fill x
+                            pack $normalindoffevLE -fill x
+                        }
+                        center {
+                            pack $centerindonevLE -fill x
+                            pack $centerindoffevLE -fill x
+                        }
+                        reverse {
+                            pack $reverseindonevLE -fill x
+                            pack $reverseindoffevLE -fill x
+                        }
+                        left {
+                            pack $leftindonevLE -fill x
+                            pack $leftindoffevLE -fill x
+                        }
+                        right {
+                            pack $rightindonevLE -fill x
+                            pack $rightindoffevLE -fill x
+                        }
+                        onoff {
+                            pack $oneventidLE -fill x
+                            pack $offeventidLE -fill x
+                        }
+                    }
+                }
+            }
+        }
+    
     }
     method packAndConfigureOptions {objtype} {
-      foreach slave [pack slaves $optionsFrame] {pack forget $slave}
-      #puts stderr "*** $self packAndConfigureOptions: objtype = $objtype, options(-object) = $options(-object), opts are [$options(-ctcpanel) itemconfigure $options(-object)]"
-      foreach opt $objectTypeOptions($objtype) {
-	switch -exact $opt {
-	  xyctl {
-		pack $xyframe1 -fill x
-		$xyframe1 configure -text {}
-		$b1 configure -command [mymethod _chctlXY1]
-		set x1 [$options(-ctcpanel) itemcget $options(-object) -x]
-		set y1 [$options(-ctcpanel) itemcget $options(-object) -y]
-	  }
-	  xysch {
-		pack $xyframe1 -fill x
-		$xyframe1 configure -text {}
-		$b1 configure -command [mymethod _chschXY1]
-		set x1 [$options(-ctcpanel) itemcget $options(-object) -x]
-		set y1 [$options(-ctcpanel) itemcget $options(-object) -y]
-	  }
-	  xy1sch {
-		pack $xyframe1 -fill x
-		$xyframe1 configure -text {First Coord}
-		$b1 configure -command [mymethod _chschXY1]
-		set x1 [$options(-ctcpanel) itemcget $options(-object) -x1]
-		set y1 [$options(-ctcpanel) itemcget $options(-object) -y1]
-	  }
-	  xy2sch {
-		pack $xyframe2 -fill x
-		$xyframe2 configure -text {Second Coord}
-		$b2 configure -command [mymethod _chschXY2]
-		set x2 [$options(-ctcpanel) itemcget $options(-object) -x2]
-		set y2 [$options(-ctcpanel) itemcget $options(-object) -y2]
-	  }
-	  label {
-		pack $labelLE -fill x
-		$labelLE configure -text "[$options(-ctcpanel) itemcget $options(-object) -label]"
-	  }
-	  leftlabel {
-		pack $leftlabelLE -fill x
-		$leftlabelLE configure -text "[$options(-ctcpanel) itemcget $options(-object) -leftlabel]"
-	  }
-	  centerlabel {
-		pack $centerlabelLE -fill x
-		$centerlabelLE configure -text "[$options(-ctcpanel) itemcget $options(-object) -centerlabel]"
-	  }
-	  rightlabel {
-		pack $rightlabelLE -fill x
-		$rightlabelLE configure -text "[$options(-ctcpanel) itemcget $options(-object) -rightlabel]"
-	  }
-	  hvorientation {
-		pack $hvorientationLCB -fill x
-		$hvorientationLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -orientation]
-	  }
-	  hascenter {
-		pack $hascenterLCB -fill x
-		$hascenterLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -hascenter]
-	  }
-	  color {
-		pack $colorLSC -fill x
-		$colorLSC configure -text "[$options(-ctcpanel) itemcget $options(-object) -color]"
-	  }
-	  orientation {
-		pack $orientationLCB -fill x
-		$orientationLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -orientation]
-	  }
-	  flipped {
-		pack $flippedLCB -fill x
-		$flippedLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -flipped]
-	  }
-	  heads {
-		pack $headsLCB -fill x
-		$headsLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -heads]
-	  }
-	  position {
-		pack $positionLCB -fill x
-		$positionLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -position]
-	  }
-	  radius {
-		pack $radiusLSB -fill x
-		$radiusLSB configure -text [$options(-ctcpanel) itemcget $options(-object) -radius]
-	  }
-	  type {
-		pack $typeLCB -fill x
-		$typeLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -type]
-	  }
-	}
-      }
-      #puts stderr "*** $self packAndConfigureOptions: options(-simplemode) is $options(-simplemode)"
-      if {$options(-simplemode) && $objtype eq "SWPlate"} {
-	set command "[$options(-ctcpanel) itemcget $options(-object) -normalcommand]"
-	set switch {}
-	set azatraxsn  {}
-	set azatraxprod {}
-	set azatraxswn {}
-	if {[regexp {NormalMRD[[:space:]]+[^[:space:]]+[[:space:]]+([^[:space:]]+)[[:space:]]+([^[:space:]]+)$} "$command" => switch azatraxsn] > 0} {
-	  set azatraxprod MRD2-U
-	} elseif {[regexp {NormalSL2[[:space:]]+([[:digit:]])[[:space:]]+[^[:space:]]+[[:space:]]+([^[:space:]]+)[[:space:]]+([^[:space:]]+)$} "$command" => azatraxswn switch azatraxsn] > 0} {
-	  set azatraxprod "SL2 Switch $azatraxswn"
-	} elseif {[regexp {NormalSR4[[:space:]]+([[:digit:]])[[:space:]]+[^[:space:]]+[[:space:]]+([^[:space:]]+)[[:space:]]+([^[:space:]]+)$} "$command" => azatraxswn switch azatraxsn] > 0} {
-	  set azatraxprod "SR4 Switch $azatraxswn"
-	} elseif {[regexp {Normal[[:space:]]+[^[:space:]]+[[:space:]]+([^[:space:]]+)[[:space:]]+([^[:space:]]+)$} "$command" => switch azatraxsn] > 0} {
-	  set azatraxprod MRD2-U
-	}
-	pack $azatraxSerialNumberLE -fill x
-	$azatraxSerialNumberLE configure -text "$azatraxsn"
-	pack $azatraxProductTypeLCB -fill x
-	$azatraxProductTypeLCB set $azatraxprod
-	pack $switchNameLE -fill x
-	$switchNameLE configure -text "$switch"
-	
-      }
-      foreach opt $objectTypeOptions($objtype) {
-	switch -exact $opt {
-	  normalcommand {
-		pack $normalcommandLF -fill x
-		$normalcommandText configure -state normal
-		$normalcommandText delete 1.0 end
-		$normalcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -normalcommand]"
-		if {$options(-simplemode)} {
-		  $normalcommandText configure -state disabled
-		} else {
-		  $normalcommandText configure -state normal
-		}
-	  }
-	  reversecommand {
-		pack $reversecommandLF -fill x
-		$reversecommandText configure -state normal
-		$reversecommandText delete 1.0 end
-		$reversecommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -reversecommand]"
-		if {$options(-simplemode)} {
-		  $reversecommandText configure -state disabled
-		} else {
-		  $reversecommandText configure -state normal
-		}
-	  }
-	  leftcommand {
-		pack $leftcommandLF -fill x
-		$leftcommandText  configure -state normal
-		$leftcommandText delete 1.0 end
-		$leftcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -leftcommand]"
-		if {$options(-simplemode)} {
-		  $leftcommandText  configure -state disabled
-		} else {
-		  $leftcommandText  configure -state normal
-		}
-	  }
-	  centercommand {
-		pack $centercommandLF -fill x
-		$centercommandText configure -state normal
-		$centercommandText delete 1.0 end
-		$centercommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -centercommand]"
-		if {$options(-simplemode)} {
-		  $centercommandText  configure -state disabled
-		} else {
-		  $centercommandText  configure -state normal
-		}
-	  }
-	  rightcommand {
-		pack $rightcommandLF -fill x
-		$rightcommandText configure -state normal
-		$rightcommandText delete 1.0 end
-		$rightcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -rightcommand]"
-		if {$options(-simplemode)} {
-		  $rightcommandText  configure -state disabled
-		} else {
-		  $rightcommandText  configure -state normal
-		}
-	  }
-	  command {
-		pack $commandLF -fill x
-		$commandText configure -state normal
-		$commandText delete 1.0 end
-		$commandText insert end "[$options(-ctcpanel) itemcget $options(-object) -command]"
-		if {$options(-simplemode)} {
-		  $commandText  configure -state disabled
-		} else {
-		  $commandText  configure -state normal
-		}
-	  }
-	  statecommand {
-		pack $statecommandLF -fill x
-		$statecommandText configure -state normal
-		$statecommandText delete 1.0 end
-		$statecommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -statecommand]"
-		if {$options(-simplemode)} {
-		  $statecommandText  configure -state disabled
-		} else {
-		  $statecommandText  configure -state normal
-		}
-	  }
-	  occupiedcommand {
-		pack $occupiedcommandLF -fill x
-		$occupiedcommandText configure -state normal
-		$occupiedcommandText delete 1.0 end
-		$occupiedcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -occupiedcommand]"
-		if {$options(-simplemode)} {
-		  $occupiedcommandText  configure -state disabled
-		} else {
-		  $occupiedcommandText  configure -state normal
-		}
-	  }
-	}
-      }
+        foreach slave [pack slaves $optionsFrame] {pack forget $slave}
+        #puts stderr "*** $self packAndConfigureOptions: objtype = $objtype, options(-object) = $options(-object), opts are [$options(-ctcpanel) itemconfigure $options(-object)]"
+        foreach opt $objectTypeOptions($objtype) {
+            switch -exact $opt {
+                xyctl {
+                    pack $xyframe1 -fill x
+                    $xyframe1 configure -text {}
+                    $b1 configure -command [mymethod _chctlXY1]
+                    set x1 [$options(-ctcpanel) itemcget $options(-object) -x]
+                    set y1 [$options(-ctcpanel) itemcget $options(-object) -y]
+                }
+                xysch {
+                    pack $xyframe1 -fill x
+                    $xyframe1 configure -text {}
+                    $b1 configure -command [mymethod _chschXY1]
+                    set x1 [$options(-ctcpanel) itemcget $options(-object) -x]
+                    set y1 [$options(-ctcpanel) itemcget $options(-object) -y]
+                }
+                xy1sch {
+                    pack $xyframe1 -fill x
+                    $xyframe1 configure -text {First Coord}
+                    $b1 configure -command [mymethod _chschXY1]
+                    set x1 [$options(-ctcpanel) itemcget $options(-object) -x1]
+                    set y1 [$options(-ctcpanel) itemcget $options(-object) -y1]
+                }
+                xy2sch {
+                    pack $xyframe2 -fill x
+                    $xyframe2 configure -text {Second Coord}
+                    $b2 configure -command [mymethod _chschXY2]
+                    set x2 [$options(-ctcpanel) itemcget $options(-object) -x2]
+                    set y2 [$options(-ctcpanel) itemcget $options(-object) -y2]
+                }
+                label {
+                    pack $labelLE -fill x
+                    $labelLE configure -text "[$options(-ctcpanel) itemcget $options(-object) -label]"
+                }
+                leftlabel {
+                    pack $leftlabelLE -fill x
+                    $leftlabelLE configure -text "[$options(-ctcpanel) itemcget $options(-object) -leftlabel]"
+                }
+                centerlabel {
+                    pack $centerlabelLE -fill x
+                    $centerlabelLE configure -text "[$options(-ctcpanel) itemcget $options(-object) -centerlabel]"
+                }
+                rightlabel {
+                    pack $rightlabelLE -fill x
+                    $rightlabelLE configure -text "[$options(-ctcpanel) itemcget $options(-object) -rightlabel]"
+                }
+                hvorientation {
+                    pack $hvorientationLCB -fill x
+                    $hvorientationLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -orientation]
+                }
+                hascenter {
+                    pack $hascenterLCB -fill x
+                    $hascenterLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -hascenter]
+                }
+                color {
+                    pack $colorLSC -fill x
+                    $colorLSC configure -text "[$options(-ctcpanel) itemcget $options(-object) -color]"
+                }
+                orientation {
+                    pack $orientationLCB -fill x
+                    $orientationLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -orientation]
+                }
+                flipped {
+                    pack $flippedLCB -fill x
+                    $flippedLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -flipped]
+                }
+                heads {
+                    pack $headsLCB -fill x
+                    $headsLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -heads]
+                }
+                position {
+                    pack $positionLCB -fill x
+                    $positionLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -position]
+                }
+                radius {
+                    pack $radiusLSB -fill x
+                    $radiusLSB configure -text [$options(-ctcpanel) itemcget $options(-object) -radius]
+                }
+                type {
+                    pack $typeLCB -fill x
+                    $typeLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -type]
+                }
+            }
+        }
+        #puts stderr "*** $self packAndConfigureOptions: options(-simplemode) is $options(-simplemode)"
+        if {$options(-simplemode) && $objtype eq "SWPlate"} {
+            set command "[$options(-ctcpanel) itemcget $options(-object) -normalcommand]"
+            set switch {}
+            set azatraxsn  {}
+            set azatraxprod {}
+            set azatraxswn {}
+            if {[regexp {NormalMRD[[:space:]]+[^[:space:]]+[[:space:]]+([^[:space:]]+)[[:space:]]+([^[:space:]]+)$} "$command" => switch azatraxsn] > 0} {
+                set azatraxprod MRD2-U
+            } elseif {[regexp {NormalSL2[[:space:]]+([[:digit:]])[[:space:]]+[^[:space:]]+[[:space:]]+([^[:space:]]+)[[:space:]]+([^[:space:]]+)$} "$command" => azatraxswn switch azatraxsn] > 0} {
+                set azatraxprod "SL2 Switch $azatraxswn"
+            } elseif {[regexp {NormalSR4[[:space:]]+([[:digit:]])[[:space:]]+[^[:space:]]+[[:space:]]+([^[:space:]]+)[[:space:]]+([^[:space:]]+)$} "$command" => azatraxswn switch azatraxsn] > 0} {
+                set azatraxprod "SR4 Switch $azatraxswn"
+            } elseif {[regexp {Normal[[:space:]]+[^[:space:]]+[[:space:]]+([^[:space:]]+)[[:space:]]+([^[:space:]]+)$} "$command" => switch azatraxsn] > 0} {
+                set azatraxprod MRD2-U
+            }
+            pack $azatraxSerialNumberLE -fill x
+            $azatraxSerialNumberLE configure -text "$azatraxsn"
+            pack $azatraxProductTypeLCB -fill x
+            $azatraxProductTypeLCB set $azatraxprod
+            pack $switchNameLE -fill x
+            $switchNameLE configure -text "$switch"
+            
+        }
+        foreach opt $objectTypeOptions($objtype) {
+            switch -exact $opt {
+                normalcommand {
+                    if {$options(-openlcbmode)} {
+                        pack $normaleventidLE -fill x
+                        $normaleventidLE configure -text \
+                              "[$options(-parent) getOpenLCBNodeOpt $options(-object) -normaleventid]"
+                    } else {
+                        pack $normalcommandLF -fill x
+                        $normalcommandText configure -state normal
+                        $normalcommandText delete 1.0 end
+                        $normalcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -normalcommand]"
+                        if {$options(-simplemode)} {
+                            $normalcommandText configure -state disabled
+                        } else {
+                            $normalcommandText configure -state normal
+                        }
+                    }
+                }
+                reversecommand {
+                    if {$options(-openlcbmode)} {
+                        pack $reverseeventidLE -fill x
+                        $reverseeventidLE configure -text \
+                              "[$options(-parent) getOpenLCBNodeOpt $options(-object) -reverseeventid]"
+                    } else {
+                        pack $reversecommandLF -fill x
+                        $reversecommandText configure -state normal
+                        $reversecommandText delete 1.0 end
+                        $reversecommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -reversecommand]"
+                        if {$options(-simplemode)} {
+                            $reversecommandText configure -state disabled
+                        } else {
+                            $reversecommandText configure -state normal
+                        }
+                    }
+                }
+                leftcommand {
+                    if {$options(-openlcbmode)} {
+                        pack $lefteventidLE -fill x
+                        $lefteventidLE configure -text \
+                              "[$options(-parent) getOpenLCBNodeOpt $options(-object) -lefteventid]"
+                    } else {
+                        pack $leftcommandLF -fill x
+                        $leftcommandText  configure -state normal
+                        $leftcommandText delete 1.0 end
+                        $leftcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -leftcommand]"
+                        if {$options(-simplemode)} {
+                            $leftcommandText  configure -state disabled
+                        } else {
+                            $leftcommandText  configure -state normal
+                        }
+                    }
+                }
+                centercommand {
+                    if {$options(-openlcbmode)} {
+                        pack $centereventidLE -fill x
+                        $centereventidLE configure -text \
+                              "[$options(-parent) getOpenLCBNodeOpt $options(-object) -centereventid]"
+                    } else {
+                        pack $centercommandLF -fill x
+                        $centercommandText configure -state normal
+                        $centercommandText delete 1.0 end
+                        $centercommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -centercommand]"
+                        if {$options(-simplemode)} {
+                            $centercommandText  configure -state disabled
+                        } else {
+                            $centercommandText  configure -state normal
+                        }
+                    }
+                }
+                rightcommand {
+                    if {$options(-openlcbmode)} {
+                        pack $righteventidLE -fill x
+                        $righteventidLE configure -text \
+                              "[$options(-parent) getOpenLCBNodeOpt $options(-object) -righteventid]"
+                    } else {
+                        pack $rightcommandLF -fill x
+                        $rightcommandText configure -state normal
+                        $rightcommandText delete 1.0 end
+                        $rightcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -rightcommand]"
+                        if {$options(-simplemode)} {
+                            $rightcommandText  configure -state disabled
+                        } else {
+                            $rightcommandText  configure -state normal
+                        }
+                    }
+                }
+                command {
+                    if {$options(-openlcbmode)} {
+                        pack $eventidLE -fill x
+                        $eventidLE configure -text \
+                              "[$options(-parent) getOpenLCBNodeOpt $options(-object) -eventid]"
+                    } else {
+                        pack $commandLF -fill x
+                        $commandText configure -state normal
+                        $commandText delete 1.0 end
+                        $commandText insert end "[$options(-ctcpanel) itemcget $options(-object) -command]"
+                        if {$options(-simplemode)} {
+                            $commandText  configure -state disabled
+                        } else {
+                            $commandText  configure -state normal
+                        }
+                    }
+                }
+                statecommand {
+                    if {$options(-openlcbmode)} {
+                        pack $statenormaleventidLE -fill x
+                        pack $statereverseeventidLE -fill x
+                        $statenormaleventidLE configure -text \
+                              "[$options(-parent) getOpenLCBNodeOpt $options(-object) -statenormaleventid]"
+                        $statereverseeventidLE configure -text \
+                              "[$options(-parent) getOpenLCBNodeOpt $options(-object) -statereverseeventid]"
+                    } else {
+                        pack $statecommandLF -fill x
+                        $statecommandText configure -state normal
+                        $statecommandText delete 1.0 end
+                        $statecommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -statecommand]"
+                        if {$options(-simplemode)} {
+                            $statecommandText  configure -state disabled
+                        } else {
+                            $statecommandText  configure -state normal
+                        }
+                    }
+                }
+                occupiedcommand {
+                    if {$options(-openlcbmode)} {
+                        pack $occupiedeventidLE -fill x
+                        pack $notoccupiedeventidLE -fill x
+                        $occupiedeventidLE configure -text \
+                              "[$options(-parent) getOpenLCBNodeOpt $options(-object) -occupiedeventid]"
+                        $notoccupiedeventidLE configure -text \
+                              "[$options(-parent) getOpenLCBNodeOpt $options(-object) -notoccupiedeventid]"
+                    } else {
+                        pack $occupiedcommandLF -fill x
+                        $occupiedcommandText configure -state normal
+                        $occupiedcommandText delete 1.0 end
+                        $occupiedcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -occupiedcommand]"
+                        if {$options(-simplemode)} {
+                            $occupiedcommandText  configure -state disabled
+                        } else {
+                            $occupiedcommandText  configure -state normal
+                        }
+                    }
+                }
+            }
+        }
+        if {$options(-openlcbmode)} {
+            if {[info exists objectTypeIndicatorEvents($objtype)]} {
+                foreach opt $objectTypeIndicatorEvents($objtype) {
+                    switch -exact $opt {
+                        aspectlist {
+                            $self clearallaspects
+                            $self populateaspects [$options(-parent) getOpenLCBNodeOpt $options(-object) -eventidaspectlist]
+                            pack $aspectlistLF -fill both -expand yes
+                        }
+                        normal {
+                            pack $normalindonevLE -fill x
+                            $normalindonevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -normalindonev]"
+                            pack $normalindoffevLE -fill x
+                            $normalindoffevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -normalindoffev]"
+                        }
+                        center {
+                            pack $centerindonevLE -fill x
+                            $centerindonevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -centerindonev]"
+                            pack $centerindoffevLE -fill x
+                            $centerindoffevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -centerindoffev]"
+                        }
+                        reverse {
+                            pack $reverseindonevLE -fill x
+                            $reverseindonevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -reverseindonev]"
+                            pack $reverseindoffevLE -fill x
+                            $reverseindoffevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -reverseindoffev]"
+                        }
+                        left {
+                            pack $leftindonevLE -fill x
+                            $leftindonevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -leftindonev]"
+                            pack $leftindoffevLE -fill x
+                            $leftindoffevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -leftindoffev]"
+                        }
+                        right {
+                            pack $rightindonevLE -fill x
+                            $rightindonevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -rightindonev]"
+                            pack $rightindoffevLE -fill x
+                            $rightindoffevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -rightindoffev]"
+                        }
+                        onoff {
+                            pack $oneventidLE -fill x
+                            $oneventidLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -oneventid]"
+                            pack $offeventidLE -fill x
+                            $offeventidLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -offeventid]"
+                        }
+                    }
+                }
+            }
+        }
+    }
+    method clearallaspects {} {
+        foreach aspectfr [array names aspectlist *,frame] {
+            set fr $aspectlist($aspectfr)
+            $aspectlistSTabNB forget $aspectlistSTabNB.$fr
+        }
+        array unset aspectlist
+    }
+    method populateaspects {eventidaspectlist} {
+        set aspectcount 0
+        foreach {ev aspl} $eventidaspectlist {
+            incr aspectcount
+            set fr aspect$aspectcount
+            set aspectlist($aspectcount,frame) $fr
+            ttk::frame $aspectlistSTabNB.$fr
+            $aspectlistSTabNB add $aspectlistSTabNB.$fr -text [_ "Aspect %d" $aspectcount] -sticky news
+            set eventid_ [LabelEntry $aspectlistSTabNB.$fr.eventid \
+                          -label [_m "Label|When this event occurs"] \
+                          -text $ev]
+            pack $eventid_ -fill x
+            set aspectlist($aspectcount,eventid) "$ev"
+            set aspl_ [LabelEntry $aspectlistSTabNB.$fr.aspl \
+                       -label [_m "Label|the following aspect will be displayed."] \
+                       -text $aspl]
+            pack $aspl_ -fill x
+            set aspectlist($aspectcount,aspl) "$aspl"
+            set del [ttk::button $aspectlistSTabNB.$fr.delete \
+                     -text [_m "Label|Delete Aspect"] \
+                     -command [mymethod _deleteAspect $aspectcount]]
+            pack $del -fill x
+        }
+    }
+    method _addaspect {} {
+        set aspectcount 0
+        incr aspectcount
+        set fr aspect$aspectcount
+        while {[winfo exists $aspectlistSTabNB.$fr]} {
+            incr aspectcount
+            set fr aspect$aspectcount
+        }
+        set aspectlist($aspectcount,frame) $fr
+        ttk::frame $aspectlistSTabNB.$fr
+        $aspectlistSTabNB add $aspectlistSTabNB.$fr -text [_ "Aspect %d" $aspectcount] -sticky news
+        set eventid_ [LabelEntry $aspectlistSTabNB.$fr.eventid \
+                      -label [_m "Label|When this event occurs"] \
+                      -text "00.00.00.00.00.00.00.00"]
+        pack $eventid_ -fill x
+        set aspectlist($aspectcount,eventid) "00.00.00.00.00.00.00.00"
+        set aspl_ [LabelEntry $aspectlistSTabNB.$fr.aspl \
+                   -label [_m "Label|the following aspect will be displayed."] \
+                   -text {}]
+        pack $aspl_ -fill x
+        set aspectlist($aspectcount,aspl) {}
+        set del [ttk::button $aspectlistSTabNB.$fr.delete \
+                 -text [_m "Label|Delete Aspect"] \
+                 -command [mymethod _deleteAspect $aspectcount]]
+        pack $del -fill x
+    }
+    method _deleteaspect {index} {
+        set fr $aspectlist($index,frame)
+        $aspectlistSTabNB forget $aspectlistSTabNB.$fr
+        unset $aspectlist($index,frame)
+        unset $aspectlist($index,eventid)
+        unset $aspectlist($index,aspl)
     }
     method _Cancel {} {
       $hull withdraw
@@ -2811,7 +3558,10 @@ namespace eval CTCPanelWindow {
       $graphicCanvas delete all
       set opts {}
       puts stderr "*** $self doRangeCheck: calling getOptions"
+      set savedopenlcbmode $options(-openlcbmode)
+      set options(-openlcbmode) no
       $self getOptions opts
+      set options(-openlcbmode) $savedopenlcbmode
       #puts stderr "*** $self doRangeCheck: opts is $opts"
       if {[catch {eval [list ::CTCPanel::$objectType create %AUTO% $self $graphicCanvas -controlpoint nil] $opts} error]} {
           #puts stderr "*** $self doRangeCheck: error is '$error'"
@@ -2858,125 +3608,190 @@ namespace eval CTCPanelWindow {
       #puts stderr "*** $self getOptions $resultVar"
       upvar $resultVar result
       foreach opt $objectTypeOptions($objectType) {
-	switch -exact $opt {
-	  xyctl -
-	  xysch {
-		lappend result -x  [$x1LSB cget -text] -y  [$y1LSB cget -text]
-	  }
-	  xy1sch {
-		lappend result -x1  [$x1LSB cget -text] -y1  [$y1LSB cget -text]
-	  }
-	  xy2sch {
-		lappend result -x2  [$x2LSB cget -text] -y2  [$y2LSB cget -text]
-	  }
-	  label {
-		lappend result -label "[$labelLE cget -text]"
-	  }
-	  normalcommand {
-		if {$options(-simplemode) && $objectType eq "SWPlate"} {
-		  set prod [$azatraxProductTypeLCB cget -text]
-		  set swn 0
-		  if {$prod eq "MRD2-U"} {
-		    set normcommand [list SimpleMode::NormalMRD [$nameLE cget -text] [$switchNameLE cget -text] [$azatraxSerialNumberLE cget -text]]
-		  } else {
-		    regexp {(SL2|SR4)[[:space:]]Switch[[:space:]]([[:digit:]])} $prod -> p swn
-		    set normcommand [list SimpleMode::Normal${p} $swn [$nameLE cget -text] [$switchNameLE cget -text] [$azatraxSerialNumberLE cget -text]]
-		  }
-		  lappend result -normalcommand $normcommand
-		} else {
-		  lappend result -normalcommand "[$normalcommandText get 1.0 end-1c]"
-		}
-	  }
-	  reversecommand {
-		if {$options(-simplemode) && $objectType eq "SWPlate"} {
-		  set prod [$azatraxProductTypeLCB cget -text]
-		  set swn 0
-		  if {$prod eq "MRD2-U"} {
-		    set revcommand [list SimpleMode::ReverseMRD [$nameLE cget -text] [$switchNameLE cget -text] [$azatraxSerialNumberLE cget -text]]
-		  } else {
-		    regexp {(SL2|SR4)[[:space:]]Switch[[:space:]]([[:digit:]])} $prod -> p swn
-		    set revcommand [list SimpleMode::Reverse${p} $swn [$nameLE cget -text] [$switchNameLE cget -text] [$azatraxSerialNumberLE cget -text]]
-		  }
-		  lappend result -reversecommand $revcommand
-		} else {
-		  lappend result -reversecommand "[$reversecommandText get 1.0 end-1c]"
-		}
-	  }
-	  leftcommand {
-		if {$options(-simplemode) && $objectType eq "SIGPlate"} {
-		  set leftcommand [list SimpleMode::Left [$nameLE cget -text]]
-		  lappend result -leftcommand "$leftcommand"
-		} else {
-		  lappend result -leftcommand "[$leftcommandText get 1.0 end-1c]"
-		}
-	  }
-	  centercommand {
-		if {$options(-simplemode) && $objectType eq "SIGPlate"} {
-		  set centercommand [list SimpleMode::Center [$nameLE cget -text]]
-		  lappend result -centercommand "$centercommand"
-		} else {
-		  lappend result -centercommand "[$centercommandText get 1.0 end-1c]"
-		}
-	  }
-	  rightcommand {
-		if {$options(-simplemode) && $objectType eq "SIGPlate"} {
-		  set rightcommand [list SimpleMode::Right [$nameLE cget -text]]
-		  lappend result -rightcommand "$rightcommand"
-		} else {
-		  lappend result -rightcommand "[$rightcommandText get 1.0 end-1c]"
-		}
-	  }
-	  command {
-		if {$options(-simplemode) && $objectType eq "CodeButton"} {
-		  set command [list SimpleMode::CodeButton "[$controlPointLCB cget -text]"]
-		  lappend result -command $command
-		} else {
-		  lappend result -command "[$commandText get 1.0 end-1c]"
-		}
-	  }
-	  hvorientation {
-		lappend result -orientation [$hvorientationLCB cget -text]
-	  }
-	  leftlabel {
-		lappend result -leftlabel "[$leftlabelLE cget -text]"
-	  }
-	  centerlabel {
-		lappend result -centerlabel "[$centerlabelLE cget -text]"
-	  }
-	  rightlabel {
+          switch -exact $opt {
+              xyctl -
+              xysch {
+                  lappend result -x  [$x1LSB cget -text] -y  [$y1LSB cget -text]
+              }
+              xy1sch {
+                  lappend result -x1  [$x1LSB cget -text] -y1  [$y1LSB cget -text]
+              }
+              xy2sch {
+                  lappend result -x2  [$x2LSB cget -text] -y2  [$y2LSB cget -text]
+              }
+              label {
+                  lappend result -label "[$labelLE cget -text]"
+              }
+              normalcommand {
+                  if {$options(-simplemode) && $objectType eq "SWPlate"} {
+                      set prod [$azatraxProductTypeLCB cget -text]
+                      set swn 0
+                      if {$prod eq "MRD2-U"} {
+                          set normcommand [list SimpleMode::NormalMRD [$nameLE cget -text] [$switchNameLE cget -text] [$azatraxSerialNumberLE cget -text]]
+                      } else {
+                          regexp {(SL2|SR4)[[:space:]]Switch[[:space:]]([[:digit:]])} $prod -> p swn
+                          set normcommand [list SimpleMode::Normal${p} $swn [$nameLE cget -text] [$switchNameLE cget -text] [$azatraxSerialNumberLE cget -text]]
+                      }
+                      lappend result -normalcommand $normcommand
+                  } elseif {$options(-openlcbmode)} {
+                      lappend result -normaleventid "[$normaleventidLE get]"
+                  } else {
+                      lappend result -normalcommand "[$normalcommandText get 1.0 end-1c]"
+                  }
+              }
+              reversecommand {
+                  if {$options(-simplemode) && $objectType eq "SWPlate"} {
+                      set prod [$azatraxProductTypeLCB cget -text]
+                      set swn 0
+                      if {$prod eq "MRD2-U"} {
+                          set revcommand [list SimpleMode::ReverseMRD [$nameLE cget -text] [$switchNameLE cget -text] [$azatraxSerialNumberLE cget -text]]
+                      } else {
+                          regexp {(SL2|SR4)[[:space:]]Switch[[:space:]]([[:digit:]])} $prod -> p swn
+                          set revcommand [list SimpleMode::Reverse${p} $swn [$nameLE cget -text] [$switchNameLE cget -text] [$azatraxSerialNumberLE cget -text]]
+                      }
+                      lappend result -reversecommand $revcommand
+                  } elseif {$options(-openlcbmode)} {
+                      lappend result -reverseeventid "[$reverseeventidLE get]"
+                  } else {
+                      lappend result -reversecommand "[$reversecommandText get 1.0 end-1c]"
+                  }
+              }
+              leftcommand {
+                  if {$options(-simplemode) && $objectType eq "SIGPlate"} {
+                      set leftcommand [list SimpleMode::Left [$nameLE cget -text]]
+                      lappend result -leftcommand "$leftcommand"
+                  } elseif {$options(-openlcbmode)} {
+                      lappend result -lefteventid "[$lefteventidLE get]"
+                  } else {
+                      lappend result -leftcommand "[$leftcommandText get 1.0 end-1c]"
+                  }
+              }
+              centercommand {
+                  if {$options(-simplemode) && $objectType eq "SIGPlate"} {
+                      set centercommand [list SimpleMode::Center [$nameLE cget -text]]
+                      lappend result -centercommand "$centercommand"
+                  } elseif {$options(-openlcbmode)} {
+                      lappend result -centereventid "[$centereventidLE get]"
+                  } else {
+                      lappend result -centercommand "[$centercommandText get 1.0 end-1c]"
+                  }
+              }
+              rightcommand {
+                  if {$options(-simplemode) && $objectType eq "SIGPlate"} {
+                      set rightcommand [list SimpleMode::Right [$nameLE cget -text]]
+                      lappend result -rightcommand "$rightcommand"
+                  } elseif {$options(-openlcbmode)} {
+                      lappend result -righteventid "[$righteventidLE get]"
+                  } else {
+                      lappend result -rightcommand "[$rightcommandText get 1.0 end-1c]"
+                  }
+              }
+              command {
+                  if {$options(-simplemode) && $objectType eq "CodeButton"} {
+                      set command [list SimpleMode::CodeButton "[$controlPointLCB cget -text]"]
+                      lappend result -command $command
+                  } elseif {$options(-openlcbmode)} {
+                      lappend result -eventid "[$eventidLE get]"
+                  } else {
+                      lappend result -command "[$commandText get 1.0 end-1c]"
+                  }
+              }
+              hvorientation {
+                  lappend result -orientation [$hvorientationLCB cget -text]
+              }
+              leftlabel {
+                  lappend result -leftlabel "[$leftlabelLE cget -text]"
+              }
+              centerlabel {
+                  lappend result -centerlabel "[$centerlabelLE cget -text]"
+              }
+              rightlabel {
 		  lappend result -rightlabel "[$rightlabelLE cget -text]"
-	  }
-	  hascenter {
-		lappend result -hascenter [$hascenterLCB cget -text]
-	  }
-	  color {
-		lappend result -color "[$colorLSC cget -text]"
-	  }
-	  orientation {
-		lappend result -orientation "[$orientationLCB cget -text]"
-	  }
-	  flipped {
-		lappend result -flipped "[$flippedLCB cget -text]"
-	  }
-	  heads {
-		lappend result -heads "[$headsLCB cget -text]"
-	  }
-	  statecommand {
-		lappend result -statecommand "[$statecommandText get 1.0 end-1c]"
-	  }
-	  occupiedcommand {
-		lappend result -occupiedcommand "[$occupiedcommandText get 1.0 end-1c]"
-	  }
-	  position {
-		lappend result -position "[$positionLCB cget -text]"
-	  }
-	  radius {
-		lappend result -radius "[$radiusLSB cget -text]"
-	  }
-	  type {
-		lappend result -type "[$typeLCB cget -text]"
-	  }
-	}
+              }
+              hascenter {
+                  lappend result -hascenter [$hascenterLCB cget -text]
+              }
+              color {
+                  lappend result -color "[$colorLSC cget -text]"
+              }
+              orientation {
+                  lappend result -orientation "[$orientationLCB cget -text]"
+              }
+              flipped {
+                  lappend result -flipped "[$flippedLCB cget -text]"
+              }
+              heads {
+                  lappend result -heads "[$headsLCB cget -text]"
+              }
+              statecommand {
+                  if {$options(-openlcbmode)} {
+                      lappend result -statenormaleventid "[$statenormaleventidLE get]"
+                      lappend result -statereverseeventid "[$statereverseeventidLE get]"
+                  } else {
+                      lappend result -statecommand "[$statecommandText get 1.0 end-1c]"
+                  }
+              }
+              occupiedcommand {
+                  if {$options(-openlcbmode)} {
+                      lappend result -occupiedeventid "[$occupiedeventidLE get]"
+                      lappend result -notoccupiedeventid "[$notoccupiedeventidLE get]"
+                  } else {
+                      lappend result -occupiedcommand "[$occupiedcommandText get 1.0 end-1c]"
+                  }
+              }
+              position {
+                  lappend result -position "[$positionLCB cget -text]"
+              }
+              radius {
+                  lappend result -radius "[$radiusLSB cget -text]"
+              }
+              type {
+                  lappend result -type "[$typeLCB cget -text]"
+              }
+          }
+      }
+      if {$options(-openlcbmode)} {
+          if {[info exists objectTypeIndicatorEvents($objectType)]} {
+              foreach opt $objectTypeIndicatorEvents($objectType) {
+                  switch -exact $opt {
+                      aspectlist {
+                          set evaspl [list]
+                          foreach aspectfr [array names aspectlist *,frame] {
+                              regexp {^([[:digit:]]+),frame$} $aspectfr => aspectcount
+                              set fr $aspectlist($aspectfr)
+                              set eventid_ $aspectlistSTabNB.$fr.eventid
+                              set aspl_    $aspectlistSTabNB.$fr.aspl
+                              lappend evaspl "[$eventid_ get]" "[$aspl_ get]"
+                          }
+                          lappend result -eventidaspectlist $evaspl
+                      }
+                      normal {
+                          lappend result -normalindonev "[$normalindonevLE get]"
+                          lappend result -normalindoffev "[$normalindoffevLE get]"
+                      }
+                      center {
+                          lappend result -centerindonev "[$centerindonevLE get]"
+                          lappend result -centerindoffev "[$centerindoffevLE get]"
+                      }
+                      reverse {
+                          lappend result -reverseindonev "[$reverseindonevLE get]"
+                          lappend result -reverseindoffev "[$reverseindoffevLE get]"
+                      }
+                      left {
+                          lappend result -leftindonev "[$leftindonevLE get]"
+                          lappend result -leftindoffev "[$leftindoffevLE get]"
+                      }
+                      right {
+                          lappend result -rightindonev "[$rightindonevLE get]"
+                          lappend result -rightindoffev "[$rightindoffevLE get]"
+                      }
+                      onoff {
+                          lappend result -oneventid "[$oneventidLE get]"
+                          lappend result -offeventid "[$offeventidLE get]"
+                      }
+                  }
+              }
+          }
       }
     }
     method _chschXY1 {} {
@@ -4291,3 +5106,4 @@ namespace eval CTCPanelWindow {
 
 
 package provide CTCPanelWindow 1.0
+

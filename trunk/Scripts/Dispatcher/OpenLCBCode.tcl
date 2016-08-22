@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <160821.1448>
+#  Last Modified : <160822.1532>
 #
 #  Description	
 #
@@ -385,8 +385,8 @@ snit::type Dispatcher_SignalPlate {
     option -leftindoffev    -type EventID_or_null -default {}
     option -centerindonev   -type EventID_or_null -default {}
     option -centerindoffev  -type EventID_or_null -default {}
-    option -reverseindonev  -type EventID_or_null -default {}
-    option -reverseindoffev -type EventID_or_null -default {}
+    option -rightindonev  -type EventID_or_null -default {}
+    option -rightindoffev -type EventID_or_null -default {}
     
     constructor {args} {
         $self configurelist $args
@@ -478,7 +478,7 @@ snit::type OpenLCB_Dispatcher {
             exit 96
         }
         set name [from args -name]
-        set descriptor [from args -descriptor]
+        set description [from args -description]
         if {[catch {eval [list lcc::OpenLCBNode %AUTO% \
                           -transport $transportConstructor \
                           -eventhandler [mytypemethod _eventHandler] \
@@ -486,7 +486,7 @@ snit::type OpenLCB_Dispatcher {
                           -softwaremodel "OpenLCB Acela" \
                           -softwareversion "1.0" \
                           -nodename $nodename \
-                          -nodedescription $nodedescriptor \
+                          -nodedescription $description \
                           -additionalprotocols {EventExchange} \
                           ] \
                           $args} transport]} {
