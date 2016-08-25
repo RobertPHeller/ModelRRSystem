@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <160822.1532>
+#  Last Modified : <160825.1055>
 #
 #  Description	
 #
@@ -48,13 +48,13 @@ package require CTCPanel 2.0
 snit::type Dispatcher_Block {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
     option -name    -default {}
-    option -occupiedeventid -type EventID_or_null -default {}
-    option -notoccupiedeventid -type EventID_or_null -default {}
+    option -occupiedeventid -type lcc::EventID_or_null -default {}
+    option -notoccupiedeventid -type lcc::EventID_or_null -default {}
     variable occupied no
 
     constructor {args} {
         $self configurelist $args
-        MainWindow ctcpanel configure "$options(-name)" \
+        MainWindow ctcpanel itemconfigure "$options(-name)" \
               -occupiedcommand [mymethod occupiedp]
     }
     method occupiedp {} {return $occupied}
@@ -86,15 +86,15 @@ snit::type Dispatcher_Block {
 snit::type Dispatcher_Switch {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
     option -name    -default {}
-    option -occupiedeventid -type EventID_or_null -default {}
-    option -notoccupiedeventid -type EventID_or_null -default {}
+    option -occupiedeventid -type lcc::EventID_or_null -default {}
+    option -notoccupiedeventid -type lcc::EventID_or_null -default {}
     variable occupied no
-    option -statenormaleventid -type EventID_or_null -default {}
-    option -statereverseeventid -type EventID_or_null -default {}
+    option -statenormaleventid -type lcc::EventID_or_null -default {}
+    option -statereverseeventid -type lcc::EventID_or_null -default {}
     variable state unknown
     constructor {args} {
         $self configurelist $args
-        MainWindow ctcpanel configure "$options(-name)" \
+        MainWindow ctcpanel itemconfigure "$options(-name)" \
               -occupiedcommand [mymethod occupiedp] \
               -statecommand    [mymethod getstate]
     }
@@ -148,6 +148,7 @@ snit::type CTC_EventAspectList {
                 foreach {e al} $object {
                     if {[catch {lcc::EventID validate $e}]} {
                         error [_ "Not an CTC_EventAspectList: %s (badevent: %s)" $object $e]
+                    }
                 }
                 if {[catch { validate $al}]} {
                     error [_ "Not an CTC_EventAspectList: %s (bad AspectArgumentList: %s)" $object $al]
@@ -171,14 +172,14 @@ snit::type Dispatcher_Signal {
     method producerP {} {return no}    
     method consumedEvents {} {
         set events [list]
-        foreach {ev aspl} [self cget -eventidaspectlist] {
+        foreach {ev aspl} [$self cget -eventidaspectlist] {
             lappend events $ev
         }
         return $events
     }
     method producedEvents {} {return [list]}
     method consumeEvent {event} {
-        foreach {ev aspl} [self cget -eventidaspectlist] {
+        foreach {ev aspl} [$self cget -eventidaspectlist] {
             if {[$ev match $event]} {
                 MainWindow ctcpanel setv "$options(-name)" "$aspl"
             }
@@ -192,7 +193,7 @@ snit::type Dispatcher_CodeButton {
     option -name    -default {}
     constructor {args} {
         $self configurelist $args
-        MainWindow ctcpanel configure "$options(-name)" \
+        MainWindow ctcpanel itemconfigure "$options(-name)" \
               -command [mymethod code]
     }
     method consumerP {} {return no}
@@ -218,8 +219,8 @@ snit::type Dispatcher_CodeButton {
 snit::type Dispatcher_Lamp {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
     option -name    -default {}
-    option -oneventid  -type EventID_or_null -default {}
-    option -offeventid -type EventID_or_null -default {}
+    option -oneventid  -type lcc::EventID_or_null -default {}
+    option -offeventid -type lcc::EventID_or_null -default {}
     constructor {args} {
         $self configurelist $args
     }
@@ -249,12 +250,12 @@ snit::type Dispatcher_Lamp {
 snit::type Dispatcher_ToggleSwitch {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
     option -name    -default {}
-    option -lefteventid   -type EventID_or_null -default {}
-    option -righteventid  -type EventID_or_null -default {}
-    option -centereventid -type EventID_or_null -default {}
+    option -lefteventid   -type lcc::EventID_or_null -default {}
+    option -righteventid  -type lcc::EventID_or_null -default {}
+    option -centereventid -type lcc::EventID_or_null -default {}
     constructor {args} {
         $self configurelist $args
-        MainWindow ctcpanel configure "$options(-name)" \
+        MainWindow ctcpanel itemconfigure "$options(-name)" \
               -leftcommand [mymethod sendevent -lefteventid] \
               -rightcommand [mymethod sendevent -righteventid] \
               -centercommand [mymethod sendevent -centereventid]
@@ -282,10 +283,10 @@ snit::type Dispatcher_ToggleSwitch {
 snit::type Dispatcher_PushButton {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
     option -name    -default {}
-    option -eventid -type EventID_or_null -default {}
+    option -eventid -type lcc::EventID_or_null -default {}
     constructor {args} {
         $self configurelist $args
-        MainWindow ctcpanel configure "$options(-name)" \
+        MainWindow ctcpanel itemconfigure "$options(-name)" \
               -command [mymethod sendevent -eventid]
     }
     method sendevent {eopt} {
@@ -309,17 +310,17 @@ snit::type Dispatcher_PushButton {
 snit::type Dispatcher_SwitchPlate {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
     option -name    -default {}
-    option -normaleventid   -type EventID_or_null -default {}
-    option -reverseeventid  -type EventID_or_null -default {}
-    option -normalindonev   -type EventID_or_null -default {}
-    option -normalindoffev  -type EventID_or_null -default {}
-    option -centerindonev   -type EventID_or_null -default {}
-    option -centerindoffev  -type EventID_or_null -default {}
-    option -reverseindonev  -type EventID_or_null -default {}
-    option -reverseindoffev -type EventID_or_null -default {}
+    option -normaleventid   -type lcc::EventID_or_null -default {}
+    option -reverseeventid  -type lcc::EventID_or_null -default {}
+    option -normalindonev   -type lcc::EventID_or_null -default {}
+    option -normalindoffev  -type lcc::EventID_or_null -default {}
+    option -centerindonev   -type lcc::EventID_or_null -default {}
+    option -centerindoffev  -type lcc::EventID_or_null -default {}
+    option -reverseindonev  -type lcc::EventID_or_null -default {}
+    option -reverseindoffev -type lcc::EventID_or_null -default {}
     constructor {args} {
         $self configurelist $args
-        MainWindow ctcpanel configure "$options(-name)" \
+        MainWindow ctcpanel itemconfigure "$options(-name)" \
               -normalcommand [mymethod sendevent -normaleventid] \
               -reversecommand [mymethod sendevent -reverseeventid]
     }
@@ -378,19 +379,19 @@ snit::type Dispatcher_SwitchPlate {
 snit::type Dispatcher_SignalPlate {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
     option -name    -default {}
-    option -lefteventid     -type EventID_or_null -default {}
-    option -centereventid   -type EventID_or_null -default {}
-    option -righteventid    -type EventID_or_null -default {}
-    option -leftindonev     -type EventID_or_null -default {}
-    option -leftindoffev    -type EventID_or_null -default {}
-    option -centerindonev   -type EventID_or_null -default {}
-    option -centerindoffev  -type EventID_or_null -default {}
-    option -rightindonev  -type EventID_or_null -default {}
-    option -rightindoffev -type EventID_or_null -default {}
+    option -lefteventid     -type lcc::EventID_or_null -default {}
+    option -centereventid   -type lcc::EventID_or_null -default {}
+    option -righteventid    -type lcc::EventID_or_null -default {}
+    option -leftindonev     -type lcc::EventID_or_null -default {}
+    option -leftindoffev    -type lcc::EventID_or_null -default {}
+    option -centerindonev   -type lcc::EventID_or_null -default {}
+    option -centerindoffev  -type lcc::EventID_or_null -default {}
+    option -rightindonev  -type lcc::EventID_or_null -default {}
+    option -rightindoffev -type lcc::EventID_or_null -default {}
     
     constructor {args} {
         $self configurelist $args
-        MainWindow ctcpanel configure "$options(-name)" \
+        MainWindow ctcpanel itemconfigure "$options(-name)" \
               -leftcommand [mymethod sendevent -lefteventid] \
               -centercommand [mymethod sendevent -centereventid] \
               -reversecommand [mymethod sendevent -righteventid]
@@ -469,6 +470,7 @@ snit::type OpenLCB_Dispatcher {
     typevariable  eventsproduced {};# Events produced.
     
     typemethod ConnectToOpenLCB {args} {
+        puts stderr "*** $type ConnectToOpenLCB $args"
         set transportConstructors [info commands ::lcc::[from args -transport]]
         if {[llength $transportConstructors] > 0} {
             set transportConstructor [lindex $transportConstructors 0]
@@ -483,9 +485,9 @@ snit::type OpenLCB_Dispatcher {
                           -transport $transportConstructor \
                           -eventhandler [mytypemethod _eventHandler] \
                           -generalmessagehandler [mytypemethod _messageHandler] \
-                          -softwaremodel "OpenLCB Acela" \
+                          -softwaremodel "Dispatcher Panel" \
                           -softwareversion "1.0" \
-                          -nodename $nodename \
+                          -nodename $name \
                           -nodedescription $description \
                           -additionalprotocols {EventExchange} \
                           ] \
@@ -493,6 +495,7 @@ snit::type OpenLCB_Dispatcher {
             error [_ "Could not open OpenLCBNode: %s" $transport]
             exit 95
         }
+        puts stderr "*** $type ConnectToOpenLCB: transport = $transport"
     }
     typemethod SendMyEvents {} {
         foreach ev $eventsconsumed {
@@ -609,11 +612,14 @@ snit::type OpenLCB_Dispatcher {
         # @arg -eleclasstype The I/O class.  Readonly, no default.
         # @par Additional options from the I/O class.
         
+        puts stderr "*** $type create $self $args"
         set options(-eleclasstype) [from args -eleclasstype]
+        puts stderr "*** $type create $self: options(-eleclasstype) = $options(-eleclasstype)"
         set options(-description) [from args -description]
+        puts stderr "*** $type create $self: options(-description) is '$options(-description)'"
         set classconstructor Dispatcher_$options(-eleclasstype)
-        install elehandler using $classconstructor %AUTO% -openlcb $self
-        $self configurelist $args
+        set elehandler [eval [list $classconstructor %AUTO% -openlcb $self] \
+                        $args]
         lappend elelist $self
         if {[$self consumerP]} {
             lappend consumers $self

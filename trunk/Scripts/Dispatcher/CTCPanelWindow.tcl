@@ -138,7 +138,7 @@ namespace eval CTCPanelWindow {
       }
     }
     method _ConfigureOpenLCBMode {option value} {
-        puts stderr "*** $self _ConfigureOpenLCBMode $option $value"
+        #puts stderr "*** $self _ConfigureOpenLCBMode $option $value"
         set options($option) $value
         set editmenu [$main mainframe getmenu edit]
         if {$value} {
@@ -251,7 +251,7 @@ namespace eval CTCPanelWindow {
       wm withdraw $win
       wm title $win {}
       
-      puts stderr "*** $type create $self $args"
+      #puts stderr "*** $type create $self $args"
       if {[WrapIt::CanWrapP]} {
 	set wrapasstate normal
 	WrapIt::CheckPackageBaseDir
@@ -271,9 +271,9 @@ namespace eval CTCPanelWindow {
       }
       
       set mainmenu [StdMenuBar MakeMenu -file [subst $_filemenu] -edit [subst $_editmenu] ]
-      puts stderr "*** CTCPanelWindow::create: mainmenu = $mainmenu (length is [llength $mainmenu])"
+      #puts stderr "*** CTCPanelWindow::create: mainmenu = $mainmenu (length is [llength $mainmenu])"
       set extramenus [subst $_extramenus]
-      puts stderr "*** CTCPanelWindow::create: extramenus = $extramenus (length is [llength $extramenus])"
+      #puts stderr "*** CTCPanelWindow::create: extramenus = $extramenus (length is [llength $extramenus])"
       
       install main using mainwindow $win.main \
 	-menu $mainmenu \
@@ -358,7 +358,7 @@ namespace eval CTCPanelWindow {
     }
     destructor {
         #puts stderr "*** $self destroy: win = $win, array names OpenWindows = [array names OpenWindows]"
-      if {![catch {set OpenWindows($options(-name))} xwin] &&
+        if {![catch {set OpenWindows($options(-name))} xwin] &&
 	  [string equal "$xwin" "$win"]} {
           #puts stderr "*** $self destroy: xwin = $xwin"
 	catch {Dispatcher::RemoveFromWindows $win "$options(-name)"}
@@ -590,31 +590,31 @@ namespace eval CTCPanelWindow {
     }
     method wrapas {{filename {}}} {
         #puts stderr "*** $self wrapas $filename"
-      if {[string length "$filename"] == 0} {
-	set initdir [file dirname "$options(-filename)"]
-	if {[string equal "$initdir" {.}]} {set initdir [pwd]}
-	set exeext [file extension [info nameofexe]]
-	set filetypes [list]
-	lappend filetypes [list {Exe Files} [list "$exeext"] BINF]
-	lappend filetypes {{All Files} *      BINF}
-        #puts stderr "*** $self wrapas: exeext = \"$exeext\", filetypes = $filetypes"
-	regsub -all {\.} [file extension "$options(-filename)"] {\\.} pattern
-	regsub "$pattern" "$options(-filename)" "$exeext" exefile
-        #puts stderr "*** $self wrapas: exefile = $exefile"
-	set filename [tk_getSaveFile -initialfile "$exefile" \
-				     -initialdir  "$initdir" \
-				     -defaultextension "$exeext" \
-				     -title [_ "File to save to"] \
-				     -parent $win]
-
-#				     -filetypes $filetypes \
-
-      }
-      if {[string length "$filename"] == 0} {return}
-      if {[file exists "$filename"]} {
-	file rename -force "$filename" "${filename}~"
-      }
-      WrapIt::WrapIt $filename [mymethod writeprog] $options(-hascmri) $options(-hasazatrax) $options(-hasctiacela) $additionalPackages
+        if {[string length "$filename"] == 0} {
+            set initdir [file dirname "$options(-filename)"]
+            if {[string equal "$initdir" {.}]} {set initdir [pwd]}
+            set exeext [file extension [info nameofexe]]
+            set filetypes [list]
+            lappend filetypes [list {Exe Files} [list "$exeext"] BINF]
+            lappend filetypes {{All Files} *      BINF}
+            #puts stderr "*** $self wrapas: exeext = \"$exeext\", filetypes = $filetypes"
+            regsub -all {\.} [file extension "$options(-filename)"] {\\.} pattern
+            regsub "$pattern" "$options(-filename)" "$exeext" exefile
+            #puts stderr "*** $self wrapas: exefile = $exefile"
+            set filename [tk_getSaveFile -initialfile "$exefile" \
+                          -initialdir  "$initdir" \
+                          -defaultextension "$exeext" \
+                          -title [_ "File to save to"] \
+                          -parent $win]
+            
+            #				     -filetypes $filetypes \
+            
+        }
+        if {[string length "$filename"] == 0} {return}
+        if {[file exists "$filename"]} {
+            file rename -force "$filename" "${filename}~"
+        }
+        WrapIt::WrapIt $filename [mymethod writeprog] $options(-hascmri) $options(-hasazatrax) $options(-hasctiacela) $options(-openlcbmode) $additionalPackages
     }
     method print {} {
       if {[llength [$ctcpanel objectlist]] < 1} {
@@ -661,9 +661,9 @@ namespace eval CTCPanelWindow {
     proc theimagetype {filename} {
         #puts stderr "*** CTCPanelWindow::theimagetype $filename"
         #puts stderr "*** CTCPanelWindow::theimagetype $filename's extension is '[file extension $filename]'"
-      regsub {^\.} [file extension $filename] {} result
-      #puts stderr "*** CTCPanelWindow::theimagetype: result = '$result'"
-      return [string tolower $result]
+        regsub {^\.} [file extension $filename] {} result
+        #puts stderr "*** CTCPanelWindow::theimagetype: result = '$result'"
+        return [string tolower $result]
     }
     proc checkImageType {filename} {
       return [expr {[lsearch -exact $allowedImageTypes [theimagetype $filename]] >= 0}]
@@ -966,11 +966,11 @@ namespace eval CTCPanelWindow {
           OpenLCB_DispatcherNodes {
               set buffer {}
               while {[gets $fp line] >= 0} {
-                  puts stderr "*** $type open (OpenLCB_DispatcherNodes branch): line = $line"
+                  #puts stderr "*** $type open (OpenLCB_DispatcherNodes branch): line = $line"
                   if {[regexp {^# CMRIBoards} "$line"] > 0} {set mode CMRIBoards;break}
                   if {[regexp {^# Azatrax Nodes$} "$line"] > 0} {set mode AZATRAXNodes;break}
                   if {[regexp {^# OpenLCB_Dispatcher ([^[:space:]]+)[[:space:]](.*)$} "$line" => openlcbele nodeopts] > 0} {
-                      puts stderr "*** $type open (OpenLCB_DispatcherNodes branch) matched: openlcbele = $openlcbele, nodeopts = $nodeopts"
+                      #puts stderr "*** $type open (OpenLCB_DispatcherNodes branch) matched: openlcbele = $openlcbele, nodeopts = $nodeopts"
                       $newWindow setOpenLCBNode $openlcbele $nodeopts
                       continue
                   }
@@ -1269,7 +1269,7 @@ namespace eval CTCPanelWindow {
         
         if {$_transconstructorname ne ""} {
             set transportConstructors [info commands ::lcc::$_transconstructorname]
-            puts stderr "*** $type typeconstructor: transportConstructors is $transportConstructors"
+            #puts stderr "*** $type typeconstructor: transportConstructors is $transportConstructors"
             if {[llength $transportConstructors] > 0} {
                 set transportConstructor [lindex $transportConstructors 0]
             }
@@ -3557,7 +3557,7 @@ namespace eval CTCPanelWindow {
     method doRangeCheck {} {
       $graphicCanvas delete all
       set opts {}
-      puts stderr "*** $self doRangeCheck: calling getOptions"
+      #puts stderr "*** $self doRangeCheck: calling getOptions"
       set savedopenlcbmode $options(-openlcbmode)
       set options(-openlcbmode) no
       $self getOptions opts
@@ -3889,6 +3889,13 @@ namespace eval CTCPanelWindow {
     component widthLSB;#		-width
     component heightLSB;#		-height
     component simpleModeCB;#		-simplemode
+    component openlcbModeCB;#           -openlcbmode
+    component transconstructorE;#       -openlcbtransport
+    component transconstructorSB
+    variable   _transconstructorname {}
+    component transoptsframeE;#         -openlcbtransportopts
+    component transoptsframeSB
+    variable   _transopts {}
     component hascmriLCB;#		-hascmri
     component cmriportLCB;#		-cmriport
     component cmrispeedLCB;#		-cmrispeed
@@ -3897,6 +3904,7 @@ namespace eval CTCPanelWindow {
     component hasctiacelaLCB;#          -hasctiacela
     component ctiacelaportLCB;#         -ctiacelaport
     variable _simpleMode no
+    variable _openlcbMode no
     
     constructor {args} {
         #puts stderr "*** $type create $self $args"
@@ -3931,6 +3939,38 @@ namespace eval CTCPanelWindow {
 					-command [mymethod togglesimplemode] \
 					-variable [myvar _simpleMode]
       pack $simpleModeCB -fill x -expand yes
+      install openlcbModeCB using ttk::checkbutton $frame.openlcbModeCB \
+            -text [_m "Label|OpenLCB Mode"] \
+            -offvalue no -onvalue yes \
+            -command [mymethod toggleopenlcbmode] \
+            -variable [myvar _openlcbMode]
+      pack $openlcbModeCB -fill x -expand yes
+      set transconstructor [LabelFrame $frame.transconstructor \
+                            -text [_m "Label|OpenLCB Transport Constructor"]]
+      pack $transconstructor -fill x -expand yes
+      set cframe [$transconstructor getframe]
+      install transconstructorE using ttk::entry $cframe.transcname \
+            -state disabled \
+            -textvariable [myvar _transconstructorname]
+      pack $transconstructorE -side left -fill x -expand yes
+      install transconstructorSB using ttk::button $cframe.transcnamesel \
+            -text [_m "Label|Select"] \
+            -command [mymethod _seltransc] \
+            -state disabled
+      pack $transconstructorSB -side right
+      set transoptsframe [LabelFrame $frame.transoptsframe \
+                          -text [_m "Label|Constructor Opts"]]
+      pack $transoptsframe -fill x -expand yes
+      set oframe [$transoptsframe getframe]
+      install transoptsframeE using ttk::entry $oframe.transoptsentry \
+            -state disabled \
+            -textvariable [myvar _transopts]
+      pack $transoptsframeE -side left -fill x -expand yes
+      install transoptsframeSB using ttk::button $oframe.tranoptssel \
+            -text [_m "Label|Select"] \
+            -command [mymethod _seltransopt] \
+            -state disabled
+      pack $transoptsframeSB -side right
       install hascmriLCB using LabelComboBox $frame.hascmriLCB \
 						   -label [_m "Label|Has CM/RI?"] \
 						   -labelwidth $lwidth \
@@ -3994,15 +4034,75 @@ namespace eval CTCPanelWindow {
 	}
         $hasazatraxLCB configure -text [backtrans [$parent cget -hasazatrax]]
       } else {
-	foreach w {hascmriLCB cmriportLCB cmrispeedLCB 
-            cmriretriesLSB hasazatraxLCB hasctiacelaLCB 
-            ctiacelaportLCB} {
+	foreach w {cmriportLCB cmrispeedLCB 
+            cmriretriesLSB ctiacelaportLCB} {
 	  [set $w] configure -state normal
-	}
+        }
+        foreach w {hascmriLCB hasazatraxLCB hasctiacelaLCB} {
+            [set $w] configure -state readonly
+        }
         if {![converttobool [$hasazatraxLCB cget -text]]} {
 	  $hasazatraxLCB set [lindex [$hasazatraxLCB cget -values] end]
         }
       }
+    }
+    method toggleopenlcbmode {} {
+        if {$_openlcbMode} {
+            foreach w {hascmriLCB cmriportLCB cmrispeedLCB
+                cmriretriesLSB hasazatraxLCB simpleModeCB 
+                hasctiacelaLCB ctiacelaportLCB} {
+                [set $w] configure -state disabled
+            }
+            foreach w {transconstructorE transoptsframeE} {
+                [set $w] configure -state readonly
+            }
+            foreach w {transconstructorSB transoptsframeSB} {
+                [set $w] configure -state normal
+            }
+        } else {
+            foreach w {cmriportLCB cmrispeedLCB cmriretriesLSB 
+                ctiacelaportLCB simpleModeCB} {
+                [set $w] configure -state normal
+            }
+            foreach w {hascmriLCB hasazatraxLCB 
+                hasctiacelaLCB} {
+                [set $w] configure -state readonly
+            }
+            foreach w {transconstructorE transoptsframeE 
+                transconstructorSB transoptsframeSB} {
+                [set $w] configure -state disabled
+            }
+        }
+    }
+    method _seltransc {} {
+        #** Select a transport constructor.
+        
+        set result [lcc::OpenLCBNode selectTransportConstructor -parent [winfo toplevel $new_transconstructorE]]
+        if {$result ne {}} {
+            if {$result ne $_transconstructorname} {set _transopts {}}
+            set _transconstructorname [namespace tail $result]
+        }
+    }
+    method _seltransopt {} {
+        #** Select transport constructor options.
+        
+        if {$_transconstructorname ne ""} {
+            set transportConstructors [info commands ::lcc::$_transconstructorname]
+            #puts stderr "*** $type typeconstructor: transportConstructors is $transportConstructors"
+            if {[llength $transportConstructors] > 0} {
+                set transportConstructor [lindex $transportConstructors 0]
+            }
+            if {$transportConstructor ne {}} {
+                set optsdialog [list $transportConstructor \
+                                drawOptionsDialog \
+                                -parent [winfo toplevel $transoptsframeE]]
+                foreach x $_transopts {lappend optsdialog $x}
+                set transportOpts [eval $optsdialog]
+                if {$transportOpts ne {}} {
+                    set _transopts $transportOpts
+                }
+            }
+        }
     }
     proc converttobool {value} {
       if {"$value" eq [_m "Answer|yes"]} {
@@ -4033,15 +4133,11 @@ namespace eval CTCPanelWindow {
       $hasctiacelaLCB configure -text [backtrans [$parent cget -hasctiacela]]
       $ctiacelaportLCB configure -text "[$parent cget -ctiacelaport]"
       set _simpleMode [$parent cget -simplemode]
-      if {$_simpleMode} {
-	$hascmriLCB configure -state disabled
-	$cmriportLCB configure -state disabled
-	$cmrispeedLCB configure -state disabled
-	$cmriretriesLSB configure -state disabled
-	$hasazatraxLCB configure -state disabled
-        $hasctiacelaLCB configure -state disabled
-        $ctiacelaportLCB configure -state disabled
-      }
+      $self togglesimplemode
+      set _openlcbMode [$parent cget -openlcbmode]
+      $self toggleopenlcbmode
+      set _transconstructorname [$parent cget -openlcbtransport]
+      set _transopts [$parent cget -openlcbtransportopts]
       return [$hull draw]
     }
     method _Cancel {} {
@@ -4060,6 +4156,9 @@ namespace eval CTCPanelWindow {
       lappend result -simplemode $_simpleMode
       lappend result -hasctiacela [converttobool [$hasctiacelaLCB cget -text]]
       lappend result -ctiacelaport "[$ctiacelaportLCB cget -text]"
+      lappend result -openlcbmode $_openlcbMode
+      lappend result -openlcbtransport $_transconstructorname
+      lappend result -openlcbtransportopts $_transopts
       return [$hull enddialog $result]
     }
   }
@@ -4709,7 +4808,7 @@ namespace eval CTCPanelWindow {
       }
       
       method settopframeoption {frame option value} {
-          puts stderr "*** $self settopframeoption $frame $option $value"
+          #puts stderr "*** $self settopframeoption $frame $option $value"
       }
       method constructtopframe {frame args} {
           #puts stderr "*** $self constructtopframe $frame $args"
