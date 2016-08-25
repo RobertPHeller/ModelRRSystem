@@ -1424,7 +1424,7 @@ snit::type SWPlate {
     switch -exact -- $ind {
       N {
 	if {$value} {
-	  set color white
+	  set color green
 	} else {
 	  set color black
 	}
@@ -1442,7 +1442,7 @@ snit::type SWPlate {
       }
       R {
 	if {$value} {
-	  set color white
+	  set color yellow
 	} else {
 	  set color black
 	}
