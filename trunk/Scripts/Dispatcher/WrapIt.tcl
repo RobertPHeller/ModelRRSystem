@@ -116,6 +116,8 @@ namespace eval WrapIt {
   #  puts stderr "*** WrapIt::CTIAcelaLibDir = $CTIAcelaSupportDir"
   variable WiringPiLibDir [glob -nocomplain [file join $CodeLibrary WiringPi]]
   #  puts stderr "*** WrapIt::WiringPiLibDir = $WiringPiLibDir"
+  variable OpenLCBLibDir [glob -nocomplain [file join $CodeLibrary LCC]]
+  #  puts stderr "*** WrapIt::OpenLCBLibDir = $OpenLCBLibDir"
   variable CopyCommonLibFiles [list \
     [file join $Lib Common snitStdMenuBar.tcl] \
     [file join $Lib Common mainwindow.tcl] \
@@ -130,6 +132,7 @@ namespace eval WrapIt {
     [file join $Lib Common grsupport2.tcl] \
     [file join $Lib Common snitLFs.tcl] \
     [file join $Lib Common gettext.tcl] \
+    [file join $Lib Common Version.tcl] \
     [file join $Lib Common unknown.xpm] \
     [file join $Lib Common openfold.png] \
     [file join $Lib Common palette.png] \
@@ -137,7 +140,7 @@ namespace eval WrapIt {
     [file join $Lib Common gray50.xbm] \
   ]
 #  puts stderr "*** WrapIt::CopyCommonLibFiles = $CopyCommonLibFiles"
-  proc WrapIt {filename writeprogfun {needcmri no} {needazatrax no} {needctiacela no} {additionalPackages {}}} {
+  proc WrapIt {filename writeprogfun {needcmri no} {needazatrax no} {needctiacela no} {needopenlcb no} {additionalPackages {}}} {
     variable TclKit
     variable PackageBaseDir
     set compress 1
@@ -200,6 +203,10 @@ namespace eval WrapIt {
     variable WiringPiLibDir
     if {$WiringPiLibDir ne ""} {
         file copy $WiringPiLibDir [file join $filename lib [file tail $WiringPiLibDir]]
+    }
+    if {$needopenlcb} {
+        variable OpenLCBLibDir
+        file copy $OpenLCBLibDir [file join $filename lib [file tail $OpenLCBLibDir]]
     }
     foreach ap $additionalPackages {
       file mkdir [file join $filename lib $ap]
