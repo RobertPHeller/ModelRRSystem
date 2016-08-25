@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <160825.1055>
+#  Last Modified : <160825.1303>
 #
 #  Description	
 #
@@ -191,16 +191,27 @@ snit::type Dispatcher_Signal {
 snit::type Dispatcher_CodeButton {
     option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
     option -name    -default {}
+    option -eventid -type lcc::EventID_or_null -default {}
     constructor {args} {
         $self configurelist $args
         MainWindow ctcpanel itemconfigure "$options(-name)" \
               -command [mymethod code]
     }
     method consumerP {} {return no}
-    method producerP {} {return no}    
+    method producerP {} {return yes}    
     method consumedEvents {} {return [list]}
-    method producedEvents {} {return [list]}
+    method producedEvents {} {
+        set events [list]
+        set ev [$self cget -eventid]
+        if {$ev ne ""} {lappend events $ev}
+        return $events
+    }
     method code {} {
+        set cp [MainWindow ctcpanel itemcget [$self cget -name] -controlpoint]
+        set ev [$self cget -eventid]
+        if {$ev ne ""} {
+            [$self cget -openlcb] sendMyEvent $ev
+        }
         foreach swp [MainWindow ctcpanel objectlist $cp SwitchPlates] {
             MainWindow ctcpanel invoke $swp
         }
@@ -470,7 +481,7 @@ snit::type OpenLCB_Dispatcher {
     typevariable  eventsproduced {};# Events produced.
     
     typemethod ConnectToOpenLCB {args} {
-        puts stderr "*** $type ConnectToOpenLCB $args"
+        #puts stderr "*** $type ConnectToOpenLCB $args"
         set transportConstructors [info commands ::lcc::[from args -transport]]
         if {[llength $transportConstructors] > 0} {
             set transportConstructor [lindex $transportConstructors 0]
@@ -495,7 +506,7 @@ snit::type OpenLCB_Dispatcher {
             error [_ "Could not open OpenLCBNode: %s" $transport]
             exit 95
         }
-        puts stderr "*** $type ConnectToOpenLCB: transport = $transport"
+        #puts stderr "*** $type ConnectToOpenLCB: transport = $transport"
     }
     typemethod SendMyEvents {} {
         foreach ev $eventsconsumed {
@@ -522,7 +533,7 @@ snit::type OpenLCB_Dispatcher {
         # @param eventid The eventid.
         # @param validity The validity of the event.
         
-        ::log::log debug "*** $type _eventHandler $command $eventid $validity"
+        #puts stderr "*** $type _eventHandler $command $eventid $validity"
         switch $command {
             consumerrangeidentified {
             }
@@ -557,10 +568,10 @@ snit::type OpenLCB_Dispatcher {
                 }
             }
             report {
-                ::log::log debug "*** $type _eventHandler: consumers is $consumers"
+                #puts stderr "*** $type _eventHandler: consumers is $consumers"
                 foreach c $consumers {
-                    ::log::log debug "*** $type _eventHandler: c is $c"
-                    ::log::log debug "*** $type _eventHandler: event is [$eventid cget -eventidstring]"
+                    #puts stderr "*** $type _eventHandler: c is $c"
+                    #puts stderr "*** $type _eventHandler: event is [$eventid cget -eventidstring]"
                     $c consumeEvent $eventid
                     
                 }
@@ -612,11 +623,11 @@ snit::type OpenLCB_Dispatcher {
         # @arg -eleclasstype The I/O class.  Readonly, no default.
         # @par Additional options from the I/O class.
         
-        puts stderr "*** $type create $self $args"
+        #puts stderr "*** $type create $self $args"
         set options(-eleclasstype) [from args -eleclasstype]
-        puts stderr "*** $type create $self: options(-eleclasstype) = $options(-eleclasstype)"
+        #puts stderr "*** $type create $self: options(-eleclasstype) = $options(-eleclasstype)"
         set options(-description) [from args -description]
-        puts stderr "*** $type create $self: options(-description) is '$options(-description)'"
+        #puts stderr "*** $type create $self: options(-description) is '$options(-description)'"
         set classconstructor Dispatcher_$options(-eleclasstype)
         set elehandler [eval [list $classconstructor %AUTO% -openlcb $self] \
                         $args]

@@ -1971,6 +1971,60 @@ namespace eval CTCPanelWindow {
         if {[string equal "$result" {}]} {return}
         $self setdirty
         $ctcpanel delete $objectToEdit
+        if {$options(-openlcbmode)} {
+            set node [lindex $result 1]
+            switch [lindex $result 0] {
+                SWPlate {
+                    set openlcbnodes($node) [list -eleclasstype SwitchPlate]
+                }
+                SIGPlate {
+                    set openlcbnodes($node) [list -eleclasstype SignalPlate]
+                }
+                CodeButton {
+                    set openlcbnodes($node) [list -eleclasstype CodeButton]
+                }
+                Toggle {
+                    set openlcbnodes($node) [list -eleclasstype ToggleSwitch]
+                }
+                PushButton {
+                    set openlcbnodes($node) [list -eleclasstype PushButton]
+                }
+                Lamp {
+                    set openlcbnodes($node) [list -eleclasstype Lamp]
+                }
+                Switch -
+                ScissorCrossover -
+                Crossover -
+                SingleSlip -
+                DoubleSlip -
+                ThreeWaySW {
+                    set openlcbnodes($node) [list -eleclasstype Switch]
+                }              
+                StraightBlock -
+                EndBumper -
+                CurvedBlock -
+                Crossing -
+                HiddenBlock -
+                StubYard -
+                ThroughYard {
+                    set openlcbnodes($node) [list -eleclasstype Block]
+                }
+                Signal {
+                    set openlcbnodes($node) [list -eleclasstype Signal]
+                }
+            }
+            foreach opt {-occupiedeventid -notoccupiedeventid 
+                -statenormaleventid -statereverseeventid -eventidaspectlist 
+                -oneventid -offeventid -lefteventid -righteventid -centereventid 
+                -eventid -normaleventid -reverseeventid -normalindonev 
+                -normalindoffev -centerindonev -centerindoffev -reverseindonev 
+                -reverseindoffev -centereventid -leftindonev -leftindoffev 
+                -centerindonev -centerindoffev -rightindonev -rightindoffev } {
+                set val [from result $opt ""]
+                if {$val eq ""} {continue}
+                lappend openlcbnodes($node) $opt "$val"
+            }
+        }
         set o [eval [list $ctcpanel create] $result]
         set name       [lindex $result 1]
         $o bind <3> [mymethod _contextMenu $name %x %y %W]

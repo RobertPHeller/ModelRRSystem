@@ -63,12 +63,12 @@ namespace eval WrapIt {
   }
   proc CheckPackageBaseDir {} {
     variable PackageBaseDir
-    puts stderr "*** WrapIt::CheckPackageBaseDir (at start): PackageBaseDir = '$PackageBaseDir'"
+    #puts stderr "*** WrapIt::CheckPackageBaseDir (at start): PackageBaseDir = '$PackageBaseDir'"
     if {$PackageBaseDir ne {}} {return}
     set bindir [file dirname [info nameofexecutable]]
-    puts stderr "*** WrapIt::CheckPackageBaseDir: bindir = $bindir"
+    #puts stderr "*** WrapIt::CheckPackageBaseDir: bindir = $bindir"
     set instdir [file dirname $bindir]
-    puts stderr "*** WrapIt::CheckPackageBaseDir: instdir = $instdir"
+    #puts stderr "*** WrapIt::CheckPackageBaseDir: instdir = $instdir"
     if {[file isdirectory [file join $instdir XPressNet]] &&
 	[file isdirectory [file join $instdir RailDriverSupport]] &&
 	[file isdirectory [file join $instdir NCE]]} {
@@ -79,7 +79,7 @@ namespace eval WrapIt {
       # Running from Install dir
       set PackageBaseDir [file join $instdir share MRRSystem]
     }
-    puts stderr "*** WrapIt::CheckPackageBaseDir (after if): PackageBaseDir = '$PackageBaseDir'"
+    #puts stderr "*** WrapIt::CheckPackageBaseDir (after if): PackageBaseDir = '$PackageBaseDir'"
   }
   proc CanWrapP {} {
     variable TclKit
@@ -166,10 +166,10 @@ namespace eval WrapIt {
 "
     close $fp
     variable CopyLibDirs
-    puts stderr "*** WrapIt::WrapIt: CopyLibDirs = $CopyLibDirs"
+    #puts stderr "*** WrapIt::WrapIt: CopyLibDirs = $CopyLibDirs"
     foreach ld $CopyLibDirs {
-      puts stderr "*** WrapIt::WrapIt: ld = $ld"
-      puts stderr "*** WrapIt::WrapIt: file copy $ld [file join $filename lib [file tail $ld]]"
+      #puts stderr "*** WrapIt::WrapIt: ld = $ld"
+      #puts stderr "*** WrapIt::WrapIt: file copy $ld [file join $filename lib [file tail $ld]]"
       file copy $ld [file join $filename lib [file tail $ld]]
     }
     variable CopyCommonLibFiles
