@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <160816.1406>
+#  Last Modified : <160826.1315>
 #
 #  Description	
 #
@@ -1039,7 +1039,17 @@ snit::type OpenLCB_TrackCircuits {
                             -text [_m "Label|Add another receiver"] \
                             -command [mytypemethod _addblankreceiver $track $receivers]]
         pack $addreceiver -fill x
-
+        set deltrack [ttk::button $trkframe.deltrack \
+                      -text [_m "Label|Delete Track"] \
+                      -command [mytypemethod _deleteTrack $track]]
+        pack $deltrack -fill x
+    }
+    typemethod _deleteTrack {track} {
+        set fr [$track attribute frame]
+        set cdis [$configuration getElementsByTagName OpenLCB_TrackCircuits -depth 1]
+        set cdi [lindex $cdis 0]
+        $cdi removeChild $track
+        $tracks forget $tracks.$fr
     }
     typemethod _addblanktransmitter {track transmitters} {
         #** Create a blank transmitter.
