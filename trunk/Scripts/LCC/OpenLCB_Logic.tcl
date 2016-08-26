@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 25 14:52:47 2016
-#  Last Modified : <160825.1653>
+#  Last Modified : <160825.2003>
 #
 #  Description	
 #
@@ -115,6 +115,14 @@ snit::type Logic {
         }
         return $object
     }
+    typemethod AllLogicLabels {} {
+        set labs [list]
+        foreach l {and or xor andch orch then true} {
+            lappend labs [$type LogicLabel $l]
+        }
+        return $labs
+    }
+    
     typemethod LogicLabel {object} {
         #** Return a Logic's label (used for UI purposes, etc.).
         #
@@ -147,6 +155,14 @@ snit::type GroupType {
         }
         return $object
     }
+    typemethod AllGroupTypeLabels {} {
+        set labs [list]
+        foreach g {single mast ladder} {
+            lappend labs [$type GroupTypeLabel $g]
+        }
+        return $labs
+    }
+    
     typemethod GroupTypeLabel {object} {
         #** Return a GroupType's label (used for UI purposes, etc.).
         #
@@ -215,7 +231,7 @@ snit::type OpenLCB_Logic {
         #** Construct one logic element
         #
         # @param ... Options:
-        # @arg -description Description (name) of the track.
+        # @arg -description Description (name) of the logic.
         # @arg -v1oneventid V1 on eventid
         # @arg -v1offeventid V1 off eventid
         # @arg -v2oneventid V2 on eventid
@@ -257,6 +273,8 @@ snit::type OpenLCB_Logic {
         return $events
     }
     method processevent {event} {
+        set triggeredstate false
+        set ematch false
         foreach eopt {v1oneventid v1offeventid v2oneventid v2offeventid} {
             set ev [$self cget -$eopt]
             if {$ev eq {}} {continue}
@@ -275,7 +293,7 @@ snit::type OpenLCB_Logic {
                         set v2 false
                     }
                 }
-                set triggeredstate false
+                set ematch true
                 switch [$self cget -logic] {
                     and {
                         if {$v1 && $v2} {
@@ -332,6 +350,7 @@ snit::type OpenLCB_Logic {
                 }
             }
         }
+        if {!$ematch} {return}
         switch [$self cget -grouptype] {
             single {
                 if {$triggeredstate} {
@@ -383,15 +402,20 @@ snit::type OpenLCB_Logic {
             if {$thedelay > 0 && $delayedP} {
                 if {$retrig && $did ne {}} {
                     after cancel $did
-                } else {
+                } elseif {$did ne {}} {
                     continue
                 }
-                set action${a}did [after $thedelay [mytypemethod sendevent $eventid]]
+                set action${a}did [after $thedelay [mymethod senddelayedevent $eventid $a]]
             } else {
                 $type sendevent $eventid
             }
         }
     }
+    method senddelayedevent {eventid a} {
+        set action${a}did {}
+        $type sendevent $eventid
+    }
+    
     
     typecomponent transport; #        Transport layer
     typecomponent configuration;#     Parsed  XML configuration
@@ -728,7 +752,160 @@ snit::type OpenLCB_Logic {
         }
     }
         
+    #*** Configuration GUI
     
+    typecomponent main;# Main Frame.
+    typecomponent scroll;# Scrolled Window.
+    typecomponent editframe;# Scrollable Frame
+    typevariable    transconstructorname {};# transport constructor
+    typevariable    transopts {};# transport options
+    typevariable    id_name {};# node name
+    typevariable    id_description {};# node description
+    typecomponent   logics;# logic list
+    typevariable    logiccount 0;# logic count
+    
+    typevariable status {};# Status line
+    typevariable conffilename {};# Configuration File Name
+    
+    #** Menu.
+    typevariable _menu {
+        "[_m {Menu|&File}]" {file:menu} {file} 0 {
+            {command "[_m {Menu|File|&Save and Exit}]" {file:saveexit} "[_ {Save and exit}]" {Ctrl s} -command "[mytypemethod _saveexit]"}
+            {command "[_m {Menu|File|&Exit}]" {file:exit} "[_ {Exit}]" {Ctrl q} -command "[mytypemethod _exit]"}
+        } "[_m {Menu|&Edit}]" {edit} {edit} 0 {
+            {command "[_m {Menu|Edit|Cu&t}]" {edit:cut edit:havesel} "[_ {Cut selection to the paste buffer}]" {Ctrl x} -command {StdMenuBar EditCut}}
+            {command "[_m {Menu|Edit|&Copy}]" {edit:copy edit:havesel} "[_ {Copy selection to the paste buffer}]" {Ctrl c} -command {StdMenuBar EditCopy}}
+            {command "[_m {Menu|Edit|C&lear}]" {edit:clear edit:havesel} "[_ {Clear selection}]" {} -command {StdMenuBar EditClear}}
+        }
+    }
+    
+    # Default (empty) XML Configuration.
+    typevariable default_confXML {<?xml version='1.0'?><OpenLCB_Logic/>}
+    typemethod ConfiguratorGUI {conffile} {
+        #** Configuration GUI
+        # 
+        # Create the Configuration tool GUI.
+        #
+        # @param conffile Name of the configuration file.
+        
+        package require Tk
+        package require tile
+        package require ParseXML
+        package require LabelFrames
+        package require ScrollableFrame
+        package require ScrollWindow
+        package require MainFrame
+        package require snitStdMenuBar
+        package require ButtonBox
+        package require ScrollTabNotebook
+        
+        set conffilename $conffile
+        set confXML $default_confXML
+        if {![catch {open $conffile r} conffp]} {
+            set confXML [read $conffp]
+            close $conffp
+        }
+        if {[catch {ParseXML create %AUTO% $confXML} configuration]} {
+            set confXML $default_confXML
+            set configuration [ParseXML create %AUTO% $confXML]
+        }
+        set cdis [$configuration getElementsByTagName OpenLCB_Logic -depth 1]
+        if {[llength $cdis] != 1} {
+            error [_ "There is no OpenLCB_Logic in %s" $confXML]
+            exit 90
+        }
+        set cdi [lindex $cdis 0]
+        wm protocol . WM_DELETE_WINDOW [mytypemethod _saveexit]
+        wm title    . [_ "OpenLCB_Logic Configuration Editor (%s)" $conffile]
+        set main [MainFrame .main -menu [subst $_menu] \
+                  -textvariable [mytypevar status]]
+        pack $main -expand yes -fill both
+        set f [$main getframe]
+        set scroll [ScrolledWindow $f.scroll -scrollbar vertical \
+                    -auto vertical]
+        pack $scroll -expand yes -fill both
+        set editframe [ScrollableFrame \
+                       [$scroll getframe].editframe -constrainedwidth yes]
+        $scroll setwidget $editframe
+        set frame [$editframe getframe]
+        set transconsframe [ttk::labelframe $frame.transportconstuctor \
+                            -labelanchor nw -text [_m "Label|Transport"]]
+        pack $transconsframe -fill x -expand yes
+        set transconstructor [LabelFrame $transconsframe.transconstructor \
+                              -text [_m "Label|Constructor"]]
+        pack $transconstructor -fill x -expand yes
+        set cframe [$transconstructor getframe]
+        set transcname [ttk::entry $cframe.transcname \
+                        -state readonly \
+                        -textvariable [mytypevar transconstructorname]]
+        pack $transcname -side left -fill x -expand yes
+        set transcnamesel [ttk::button $cframe.transcnamesel \
+                           -text [_m "Label|Select"] \
+                           -command [mytypemethod _seltransc]]
+        pack $transcnamesel -side right
+        set transoptsframe [LabelFrame $transconsframe.transoptsframe \
+                              -text [_m "Label|Constructor Opts"]]
+        pack $transoptsframe -fill x -expand yes
+        set oframe [$transoptsframe getframe]
+        set transoptsentry [ttk::entry $oframe.transoptsentry \
+                        -state readonly \
+                        -textvariable [mytypevar transopts]]
+        pack $transoptsentry -side left -fill x -expand yes
+        set tranoptssel [ttk::button $oframe.tranoptssel \
+                         -text [_m "Label|Select"] \
+                         -command [mytypemethod _seltransopt]]
+        pack $tranoptssel -side right
+        
+        set transcons [$cdi getElementsByTagName "transport"]
+        if {[llength $transcons] == 1} {
+            set constructor [$transcons getElementsByTagName "constructor"]
+            if {[llength $constructor] == 1} {
+                set transconstructorname [$constructor data]
+            }
+            set coptions [$transcons getElementsByTagName "options"]
+            if {[llength $coptions] == 1} {
+                set transopts [$coptions data]
+            }
+        }
+        set identificationframe [ttk::labelframe $frame.identificationframe \
+                            -labelanchor nw -text [_m "Label|Identification"]]
+        pack $identificationframe -fill x -expand yes
+        set identificationname [LabelFrame $identificationframe.identificationname \
+                                -text [_m "Label|Name"]]
+        pack $identificationname -fill x -expand yes
+        set nframe [$identificationname getframe]
+        set idname [ttk::entry $nframe.idname \
+                        -textvariable [mytypevar id_name]]
+        pack $idname -side left -fill x -expand yes
+        set identificationdescrframe [LabelFrame $identificationframe.identificationdescrframe \
+                              -text [_m "Label|Description"]]
+        pack $identificationdescrframe -fill x -expand yes
+        set dframe [$identificationdescrframe getframe]
+        set identificationdescrentry [ttk::entry $dframe.identificationdescrentry \
+                        -textvariable [mytypevar id_description]]
+        pack $identificationdescrentry -side left -fill x -expand yes
+        set ident [$cdi getElementsByTagName "identification"]
+        if {[llength $ident] == 1} {
+            set nameele [$ident getElementsByTagName "name"]
+            if {[llength $nameele] == 1} {
+                set id_name [$nameele data]
+            }
+            set descrele [$ident getElementsByTagName "description"]
+            if {[llength $descrele] == 1} {
+                set id_description [$descrele data]
+            }
+        }
+        
+        set logics [ScrollTabNotebook $frame.tracks]
+        pack $logics -expand yes -fill both
+        foreach logic [$cdi getElementsByTagName "logic"] {
+            $type _create_and_populate_logic $logic
+        }
+        set addlogic [ttk::button $frame.addlogic \
+                      -text [_m "Label|Add another logic"] \
+                      -command [mytypemethod _addblanklogic]]
+        pack $addlogic -fill x
+    }
 
     
 }
