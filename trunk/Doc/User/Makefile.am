@@ -187,7 +187,8 @@ DISPATCHER_HS = Dispatcher.h DispatcherTutorial.h \
 DISPATCHER = Dispatcher
 DISPATCHERHBase = Dispatcher
 DISPATCHER_HTML = $(DISPATCHERHBase)/index.html
-USERMAN_DISPATCHER_FIGS = DISPNewCTCPanel.png DISPEmptyCTCPanel.png \
+USERMAN_DISPATCHER_FIGS = DISPNewCTCPanel.png DISPNewCTCPanelSmall.png \
+	DISPEmptyCTCPanel.png DISPEditPanelOptionsSmall.png \
 	DISPMainGUI.png DISPEditPanelOptions.png DISPExample1.png \
 	DISPExample2.png DISPExample3.png DISPExample4.png \
 	DISPAddEditCMR_INode.png DISPAddEditMRDNode.png \
