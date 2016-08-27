@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:42:00 2014
-//  Last Modified : <140423.1351>
+//  Last Modified : <160827.1331>
 //
 //  Description	
 //
@@ -66,7 +66,7 @@
  * track work are consolidated into single nodes. 
  * 
  * @n
- * @image latex DISPMainGUI.png "Main Dispatcher Window" width=5in
+ * @image latex DISPMainGUI.png "Main Dispatcher Window" width=4.5in
  * @image html  DISPMainGUISmall.png
  * 
  * 
@@ -119,12 +119,12 @@
  * whether it connects to a C/MRI bus and information about that bus, as
  * well as whether it uses Azatrax devices.
  * @latexonly
- * \footnote{MRD2-U,  MRD2-S, SR4 or othrt devices made by Azatrax.}
+ * \footnote{MRD2-U,  MRD2-S, SR4 or other devices made by Azatrax.}
  * @endlatexonly
  * 
  * @n
- * @image latex DISPNewCTCPanel.png "New CTC Panel Dialog"
- * @image html  DISPNewCTCPanel.png
+ * @image latex DISPNewCTCPanel.png "New CTC Panel Dialog" width=4.5in
+ * @image html  DISPNewCTCPanelSmall.png
  * 
  * There is also a check button to select "Simple Mode".  "Simple Mode"
  * simply means that the panel will be a simple one with canned code to
@@ -143,6 +143,15 @@
  * provide the serial number of the MRD2-U or other Azatrx devices that are 
  * being used to control turnouts and the names of the turnouts being 
  * controlled.
+ * 
+ * It is also possible now to build a CTC panel that connects to an OpenLCB 
+ * network (either on a CAN bus or a Tcp/Ip network) and use the Event 
+ * Exchange protocol to connect the schematic track work and control elements
+ * on the CTC panel with physical OpenLCB nodes with I/O pins connected to
+ * sensors, actuators, and signals on your layout.  Selecting "OpenLCB mode"
+ * and supplying the transport information allows for this.  All of the action
+ * code for the panel objects are replaced with OpenLCB events and there is no
+ * "Main Loop" (as discussed below).
  * 
  * What is actually created is a Tcl/Tk program that uses parts of the
  * library of Tcl/Tk and C++ code included with the Model Railroad System
@@ -334,8 +343,8 @@
  * displays the Edit Panel Options Dialog, as shown below. 
  * 
  * @n
- * @image latex DISPEditPanelOptions.png "Edit Panel Options Dialog"
- * @image html  DISPEditPanelOptions.png
+ * @image latex DISPEditPanelOptions.png "Edit Panel Options Dialog" width=4.5in
+ * @image html  DISPEditPanelOptionsSmall.png
  * 
  * This dialog box allows changing all of the same options as were set when 
  * the panel was created (see Section 
