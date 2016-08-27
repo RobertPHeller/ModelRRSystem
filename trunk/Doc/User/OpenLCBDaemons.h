@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Aug 14 14:40:15 2016
-//  Last Modified : <160819.1141>
+//  Last Modified : <160827.1436>
 //
 //  Description	
 //
@@ -78,6 +78,8 @@
  *   @li @ref OpenLCB_TrackCircuits The OpenLCB_TrackCircuits daemon implememts
  *   an OpenLCB node that implements virtual track circuit messaging logic
  *   using OpenLCB Events.
+ *   @li @ref OpenLCB_Logic The OpenLCB_Login daemon implememts
+ *   an OpenLCB node that implements logic blocks using OpenLCB Events.
  *   @li @ref OpenLCB_Acela The OpenLCB_Acela daemon implememts an OpenLCB node
  *   that implements EventExchange protocol for a CTIAcela network.
  * 
@@ -86,6 +88,15 @@
  * the programs. This configuration file can either be hand edited or can be
  * edited by the programs themselves using the specific GUI configuration
  * editor built-in to each program.
+ * 
+ * Additionally, the @ref dispatcher_Reference "Dispatcher" program can 
+ * generate Event Exchange based CTC panel programs that connects to a OpenLCB 
+ * network as nodes and produces events in response to control elements and 
+ * consumes events to update track work state and control element indicators.
+ * 
+ * Not only can these nodes interact with devices on a physical OpenLCB
+ * network (such as a CAN bus), but also with each other over a virtual
+ * OpenLCB network or even both at the same time.
  * 
  * @subsection MRD2 EventExchange node for Azatrax MRD2 boards.
  * 
@@ -292,6 +303,77 @@
                      </xs:sequence> 
                    </xs:complexType>
                  </xs:element> 
+               </xs:sequence> 
+             </xs:complexType> 
+           </xs:element> 
+         </xs:sequence>
+       </xs:complexType> 
+     </xs:element> 
+   </xs:schema> 
+   @endverbatim
+ * 
+ * @subsection Logic EventExchange node for virtual track circuits.
+ * 
+ * The OpenLCB_Logics daemon is used to implement one or more logic blocks. 
+ * Each logic can be standalone or part of a mast or ladder group.
+ * 
+ * @subsubsection Logic_XMLSchema XML Schema for configuration files
+ * 
+ * @verbatim <?xml version="1.0" ?>
+  <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl" ?> 
+   <!-- XML Schema for OpenLCB_Logic configuration files --> 
+   <xs:schema version="OpenLCB_Logic 1.0" 
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"> 
+     <xs:element name="OpenLCB_Logic" minOccurs="1" maxOccurs="1">
+       <xs:annotation>
+         <xs:documentation>
+           This is the configuration container for the OpenLCB_Logic 
+           daemon. 
+         </xs:documentation>
+       </xs:annotation>
+       <xs:complexType>
+         <xs:sequence> 
+           <xs:element name="transport" minOccurs="1" maxOccurs="1">
+             <xs:annotation> 
+               <xs:documentation> 
+                 This defines the transport to use for this node.
+               </xs:documentation> 
+             </xs:annotation>
+             <xs:complexType> 
+               <xs:sequence> 
+                 <xs:element name="constructor" minOccurs="1" maxOccurs="1" />
+                 <xs:element name="options" minOccurs="1" maxOccurs="1" />
+               </xs:sequence> 
+             </xs:complexType> 
+           </xs:element> 
+           <xs:element name="name" minOccurs="0" maxOccurs="1" /> 
+           <xs:element name="description" minOccurs="0" maxOccurs="1" /> 
+           <xs:element name="logic" minOccurs="0" maxOccurs="unbounded" > 
+             <xs:annotation> 
+               <xs:documentation> 
+                 This defines one logic block. 
+               </xs:documentation> 
+             </xs:annotation> 
+             <xs:complexType> 
+               <xs:sequence>
+                 <xs:element name="description" minOccurs="0" maxOccurs="1" /> 
+                 <xs:element name="grouptype" minOccurs="1" maxOccurs="1" />
+                 <xs:element name="v1onevent" minOccurs="0" maxOccurs="1" />
+                 <xs:element name="v1offevent" minOccurs="0" maxOccurs="1" />
+                 <xs:element name="logicfunction" minOccurs="1" maxOccurs="1" />
+                 <xs:element name="v2onevent" minOccurs="0" maxOccurs="1" />
+                 <xs:element name="v2offevent" minOccurs="0" maxOccurs="1" />
+                 <xs:element name="delay" minOccurs="0" maxOccurs="1" />
+                 <xs:element name="retriggerable" minOccurs="0" maxOccurs="1" />
+                 <xs:element name="action1delay" minOccurs="0" maxOccurs="1" />
+                 <xs:element name="action1event" minOccurs="0" maxOccurs="1" />
+                 <xs:element name="action2delay" minOccurs="0" maxOccurs="1" />
+                 <xs:element name="action2event" minOccurs="0" maxOccurs="1" />
+                 <xs:element name="action3delay" minOccurs="0" maxOccurs="1" />
+                 <xs:element name="action3event" minOccurs="0" maxOccurs="1" />
+                 <xs:element name="action4delay" minOccurs="0" maxOccurs="1" />
+                 <xs:element name="action4event" minOccurs="0" maxOccurs="1" />
                </xs:sequence> 
              </xs:complexType> 
            </xs:element> 
