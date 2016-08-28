@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160811.0909>
+#  Last Modified : <160828.1125>
 #
 #  Description	
 #
@@ -219,7 +219,8 @@ snit::type OpenLCB {
         
         
         # Build main GUI window.
-        set mainWindow [mainwindow .main -scrolling yes -height 600 -width 800]
+        set mainWindow [mainwindow .main -dontwithdraw yes -scrolling yes \
+                        -height 600 -width 800]
         pack $mainWindow -expand yes -fill both
         # Update menus: bind to Exit item, add Send Event, flesh out the Help
         # menu.
@@ -276,11 +277,6 @@ snit::type OpenLCB {
             ttk::style configure Treeview -rowheight [expr {$ls * 2}]
         }
         
-        # Needed to get dialog boxes to behave (M$ stupidity).
-        if {$::tcl_platform(platform) eq "windows"} {
-            $mainWindow showit;# Dumb M$-Windows
-        }
-        update idle
         # Lazy eval for event log.
         set sendlog {}
         putdebug "*** $type typeconstructor: ::argv is $::argv"
@@ -299,6 +295,7 @@ snit::type OpenLCB {
         }
         # Was something found?  If not, pop up a dialog box to get an answer.
         if {$transportConstructor eq {}} {
+            update idle
             set transportConstructor [lcc::OpenLCBNode \
                                       selectTransportConstructor \
                                       -parent [winfo toplevel $mainWindow]]
@@ -317,20 +314,25 @@ snit::type OpenLCB {
             }
         }
         if {[llength $reqOpts] > [llength $transportOpts]} {
+            update idle
             set transportOpts [eval [list $transportConstructor \
                                      drawOptionsDialog \
                                      -parent [winfo toplevel $mainWindow]] \
                                      $transportOpts]
         }
         # Open the transport.
-        set transport [eval [list lcc::OpenLCBNode %AUTO% \
-                             -transport $transportConstructor\
-                             -eventhandler [mytypemethod _eventHandler] \
-                             -generalmessagehandler [mytypemethod _messageHandler] \
-                             -softwaremodel "OpenLCB GUI" \
-                             -softwareversion "1.0" \
-                             -additionalprotocols {Datagram EventExchange} \
-                             ] $transportOpts]
+        if {[catch {eval [list lcc::OpenLCBNode %AUTO% \
+                          -transport $transportConstructor\
+                          -eventhandler [mytypemethod _eventHandler] \
+                          -generalmessagehandler [mytypemethod _messageHandler] \
+                          -softwaremodel "OpenLCB GUI" \
+                          -softwareversion "1.0" \
+                          -additionalprotocols {Datagram EventExchange} \
+                          ] $transportOpts} transport]} {
+            tk_messageBox -type ok -icon error \
+                      -message [_ "Failed to open transport because: %s" $transport]
+            exit 99
+        }
         putdebug "*** $type typeconstructor: transport = $transport"
         # Get our Node ID.
         set mynid [$transport cget -nid]
