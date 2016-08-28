@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160828.1215>
+#  Last Modified : <160828.1505>
 #
 #  Description	
 #
@@ -285,6 +285,8 @@ OpenLCB_MRD2${EXEEXT}: OpenLCB_MRD2.tcl $(OpenLCB_MRD2SCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_MRD2 \
 		lib/Common $(OpenLCB_MRD2SCRIPTS)
 	$(UNZIP) -qq -d OpenLCB_MRD2.vfs/lib \
+		$(top_srcdir)/BuildData/$(IMG_ZIP)
+	$(UNZIP) -qq -d OpenLCB_MRD2.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
 	$(UNZIP) -qq -d OpenLCB_MRD2.vfs/lib \
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
@@ -343,6 +345,8 @@ OpenLCB_PiGPIO${EXEEXT}: OpenLCB_PiGPIO.tcl $(OpenLCB_PiGPIOSCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiGPIO \
 		lib/Common $(OpenLCB_PiGPIOSCRIPTS)
 	$(UNZIP) -qq -d OpenLCB_PiGPIO.vfs/lib \
+		$(top_srcdir)/BuildData/$(IMG_ZIP)
+	$(UNZIP) -qq -d OpenLCB_PiGPIO.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
 	$(UNZIP) -qq -d OpenLCB_PiGPIO.vfs/lib \
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
@@ -396,6 +400,8 @@ OpenLCB_TrackCircuits${EXEEXT}: OpenLCB_TrackCircuits.tcl \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_TrackCircuits \
 		lib/Common $(OpenLCB_TrackCircuitsSCRIPTS)
 	$(UNZIP) -qq -d OpenLCB_TrackCircuits.vfs/lib \
+		$(top_srcdir)/BuildData/$(IMG_ZIP)
+	$(UNZIP) -qq -d OpenLCB_TrackCircuits.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
 	$(UNZIP) -qq -d OpenLCB_TrackCircuits.vfs/lib \
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
@@ -446,6 +452,8 @@ OpenLCB_Logic${EXEEXT}: OpenLCB_Logic.tcl \
 		lib $(URILIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_Logic \
 		lib/Common $(OpenLCB_LogicSCRIPTS)
+	$(UNZIP) -qq -d OpenLCB_Logic.vfs/lib \
+		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(UNZIP) -qq -d OpenLCB_Logic.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
 	$(UNZIP) -qq -d OpenLCB_Logic.vfs/lib \
@@ -499,6 +507,8 @@ OpenLCB_Acela${EXEEXT}: OpenLCB_Acela.tcl $(OpenLCB_AcelaSCRIPTS) \
 		lib $(URILIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_Acela \
 		lib/Common $(OpenLCB_AcelaSCRIPTS)
+	$(UNZIP) -qq -d OpenLCB_Acela.vfs/lib \
+		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(UNZIP) -qq -d OpenLCB_Acela.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
 	$(UNZIP) -qq -d OpenLCB_Acela.vfs/lib \
