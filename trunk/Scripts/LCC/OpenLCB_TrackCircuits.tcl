@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <160826.1315>
+#  Last Modified : <160828.1220>
 #
 #  Description	
 #
@@ -817,6 +817,12 @@ snit::type OpenLCB_TrackCircuits {
             {command "[_m {Menu|Edit|Cu&t}]" {edit:cut edit:havesel} "[_ {Cut selection to the paste buffer}]" {Ctrl x} -command {StdMenuBar EditCut}}
             {command "[_m {Menu|Edit|&Copy}]" {edit:copy edit:havesel} "[_ {Copy selection to the paste buffer}]" {Ctrl c} -command {StdMenuBar EditCopy}}
             {command "[_m {Menu|Edit|C&lear}]" {edit:clear edit:havesel} "[_ {Clear selection}]" {} -command {StdMenuBar EditClear}}
+        } "[_m {Menu|&Help}]" {help} {help} 0 {
+            {command "[_m {Menu|Help|On &Help...}]" {help:help} "[_ {Help on help}]" {} -command {HTMLHelp help Help}}
+            {command "[_m {Menu|Help|On &Version}]" {help:help} "[_ {Version}]" {} -command {HTMLHelp help Version}}
+            {command "[_m {Menu|Help|Warranty}]" {help:help} "[_ {Warranty}]" {} -command {HTMLHelp help Warranty}}
+            {command "[_m {Menu|Help|Copying}]" {help:help} "[_ {Copying}]" {} -command {HTMLHelp help Copying}}
+            {command "[_m {Menu|Help|OpenLCB Daemons Reference Manual}]" {help:help} {} {} -command {HTMLHelp help "OpenLCB Daemons"}}
         }
     }
     
@@ -839,6 +845,11 @@ snit::type OpenLCB_TrackCircuits {
         package require snitStdMenuBar
         package require ButtonBox
         package require ScrollTabNotebook
+        package require HTMLHelp 2.0
+        
+        set HelpDir [file join [file dirname [file dirname [file dirname \
+                                                            [info script]]]] Help]
+        HTMLHelp setDefaults "$HelpDir" "index.html#toc"
         
         set conffilename $conffile
         set confXML $default_confXML

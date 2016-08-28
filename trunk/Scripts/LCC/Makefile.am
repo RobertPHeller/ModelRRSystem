@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160825.1649>
+#  Last Modified : <160828.1215>
 #
 #  Description	
 #
@@ -269,7 +269,8 @@ AzatraxDependFiles = $(top_builddir)/C++/Azatrax/libazatrax.la \
 
 			
 OpenLCB_MRD2${EXEEXT}: OpenLCB_MRD2.tcl $(OpenLCB_MRD2SCRIPTS) \
-	$(top_builddir)/po/OpenLCB/msgfiles $(AzatraxDependFiles)
+	$(top_builddir)/po/OpenLCB/msgfiles $(AzatraxDependFiles) \
+	$(top_builddir)/Doc/User/OpenLCB/index.html
 	-rm -f  OpenLCB_MRD2.kit
 	-rm -rf  OpenLCB_MRD2.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB_MRD2.tcl
@@ -291,6 +292,8 @@ OpenLCB_MRD2${EXEEXT}: OpenLCB_MRD2.tcl $(OpenLCB_MRD2SCRIPTS) \
 		Common
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_MRD2 \
 		lib/Azatrax $(AzatraxSupportFiles)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_MRD2 \
+		Help $(top_builddir)/Doc/User/OpenLCB/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_MRD2 \
 		Messages $(top_builddir)/po/OpenLCB/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB_MRD2${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
@@ -324,7 +327,8 @@ WiringPiDependFiles = $(top_builddir)/C++/wiringPi/libtclwiringpi.la \
 			
 
 OpenLCB_PiGPIO${EXEEXT}: OpenLCB_PiGPIO.tcl $(OpenLCB_PiGPIOSCRIPTS) \
-	$(top_builddir)/po/OpenLCB/msgfiles $(WiringPiDependFiles)
+	$(top_builddir)/po/OpenLCB/msgfiles $(WiringPiDependFiles) \
+	$(top_builddir)/Doc/User/OpenLCB/index.html
 	-rm -f  OpenLCB_PiGPIO.kit
 	-rm -rf  OpenLCB_PiGPIO.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB_PiGPIO.tcl
@@ -346,6 +350,8 @@ OpenLCB_PiGPIO${EXEEXT}: OpenLCB_PiGPIO.tcl $(OpenLCB_PiGPIOSCRIPTS) \
 		Common
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiGPIO \
 		lib/WiringPi $(WiringPiSupportFiles)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiGPIO \
+		Help $(top_builddir)/Doc/User/OpenLCB/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiGPIO \
 		Messages $(top_builddir)/po/OpenLCB/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB_PiGPIO${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
@@ -374,7 +380,8 @@ OpenLCB_TrackCircuitsSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 
 OpenLCB_TrackCircuits${EXEEXT}: OpenLCB_TrackCircuits.tcl \
 			$(OpenLCB_TrackCircuitsSCRIPTS) \
-			$(top_builddir)/po/OpenLCB/msgfiles
+			$(top_builddir)/po/OpenLCB/msgfiles \
+			$(top_builddir)/Doc/User/OpenLCB/index.html
 	-rm -f  OpenLCB_TrackCircuits.kit
 	-rm -rf  OpenLCB_TrackCircuits.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB_TrackCircuits.tcl
@@ -394,6 +401,8 @@ OpenLCB_TrackCircuits${EXEEXT}: OpenLCB_TrackCircuits.tcl \
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_TrackCircuits \
 		Common
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_TrackCircuits \
+		Help $(top_builddir)/Doc/User/OpenLCB/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_TrackCircuits \
 		Messages $(top_builddir)/po/OpenLCB/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB_TrackCircuits${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
@@ -422,7 +431,8 @@ OpenLCB_LogicSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 
 OpenLCB_Logic${EXEEXT}: OpenLCB_Logic.tcl \
 			$(OpenLCB_LogicSCRIPTS) \
-			$(top_builddir)/po/OpenLCB/msgfiles
+			$(top_builddir)/po/OpenLCB/msgfiles \
+			$(top_builddir)/Doc/User/OpenLCB/index.html
 	-rm -f  OpenLCB_Logic.kit
 	-rm -rf  OpenLCB_Logic.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB_Logic.tcl
@@ -442,6 +452,8 @@ OpenLCB_Logic${EXEEXT}: OpenLCB_Logic.tcl \
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_Logic \
 		Common
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_Logic \
+		Help $(top_builddir)/Doc/User/OpenLCB/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_Logic \
 		Messages $(top_builddir)/po/OpenLCB/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB_Logic${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
@@ -472,7 +484,8 @@ AcelaSupportFiles = $(top_srcdir)/Scripts/CTIAcela/CTIAcela.tcl \
 		$(top_builddir)/Scripts/CTIAcela/pkgIndex.tcl
 
 OpenLCB_Acela${EXEEXT}: OpenLCB_Acela.tcl $(OpenLCB_AcelaSCRIPTS) \
-	$(top_builddir)/po/OpenLCB/msgfiles $(AcelaSupportFiles)
+	$(top_builddir)/po/OpenLCB/msgfiles $(AcelaSupportFiles) \
+	$(top_builddir)/Doc/User/OpenLCB/index.html
 	-rm -f  OpenLCB_MRD2.kit
 	-rm -rf  OpenLCB_MRD2.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB_Acela.tcl
@@ -494,6 +507,8 @@ OpenLCB_Acela${EXEEXT}: OpenLCB_Acela.tcl $(OpenLCB_AcelaSCRIPTS) \
 		Common
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_Acela \
 		lib/Acela $(AcelaSupportFiles)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_Acela \
+		Help $(top_builddir)/Doc/User/OpenLCB/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_Acela \
 		Messages $(top_builddir)/po/OpenLCB/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB_Acela${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
