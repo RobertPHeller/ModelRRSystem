@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Aug 14 14:40:15 2016
-//  Last Modified : <160827.1436>
+//  Last Modified : <160828.1457>
 //
 //  Description	
 //
@@ -97,6 +97,24 @@
  * Not only can these nodes interact with devices on a physical OpenLCB
  * network (such as a CAN bus), but also with each other over a virtual
  * OpenLCB network or even both at the same time.
+ *
+ * @subsection CommonNodeConfiguration Common Node Configuration
+ *
+ * All of the Virtual Nodes have these common configuration fields:
+ * 
+ *  - A transport section, containing fields for a transport constructor and
+ *    options for the transport constructor.  There are presently three 
+ *    transports: 
+ *    - CANGridConnectOverUSBSerial: Grid Connect CAN over USBSerial
+ *    - CANGridConnectOverTcp: Grid Connect CAN over Tcp
+ *    - OpenLCBOverTcp: OpenLCB over Tcp
+ *    There is a @b Select button next to the constructor field to select the 
+ *    transport to use. The options for the transport constructor can be 
+ *    selected with the @b Select button next to the transport options field.
+ *  - An identification section, containing fields for the user supplied name
+ *    and description for the node.  These are free form text fields and can
+ *    contain a name and description of the node.
+ * 
  * 
  * @subsection MRD2 EventExchange node for Azatrax MRD2 boards.
  * 
@@ -105,6 +123,25 @@
  * Latch inputs of each defined connected device and, for relay equiped
  * boards, event consumption to the Channel 1 and Channel 2 outputs of each
  * defined connected device.
+ * 
+ * In addition to the @ref CommonNodeConfiguration "Common Node Configuration" 
+ * fields the OpenLCB_MRD2 daemon has a field for a polling interval in 
+ * miliseconds, defaulting to 500.  This is the interval between polls of the 
+ * MRD2 devices.  Then for each device there is a tab containing these fields:
+ *  - description A textual description of the device.  This could be the name
+ *    of the block it senses.
+ *  - serial number The serial number of the device.  This is printed on a 
+ *    sticker attached to the device.
+ *  - sense 1 on The event to send when sense 1 is activated.
+ *  - sense 1 off The event to send when sense 1 is deactivated.
+ *  - sense 2 on The event to send when sense 2 is activated.
+ *  - sense 2 off The event to send when sense 2 is deactivated.
+ *  - latch 1 on The event to send when latch 1 is activated.
+ *  - latch 1 off The event to send when latch 1 is deactivated.
+ *  - latch 2 on The event to send when latch 2 is activated.
+ *  - latch 2 off The event to send when latch 2 is deactivated.
+ *  - set chan 1 The event that triggers setting channel 1.
+ *  - set chan 2 The event that triggers setting channel 2.
  * 
  * @subsubsection MRD2_XMLSchema XML Schema for configuration files
  * 
@@ -154,8 +191,11 @@
                   <xs:element name="sense2on" minOccurs="0" maxOccurs="1" />
                   <xs:element name="sense2off" minOccurs="0" maxOccurs="1" />
                   <xs:element name="latch1on" minOccurs="0" maxOccurs="1" />
-                  <xs:element name="setchan" minOccurs="0" maxOccurs="1" />
-                  <xs:element name="setchan" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="latch1off" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="latch2on" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="latch2off" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="setchan1" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="setchan2" minOccurs="0" maxOccurs="1" />
                 </xs:sequence>
               </xs:complexType>
             </xs:element>
@@ -172,6 +212,18 @@
  * GPIO pins to event production (input pins) or event consumption (output
  * pins).
  * 
+ * In addition to the @ref CommonNodeConfiguration "Common Node Configuration" 
+ * fields the OpenLCB_PiGPIO daemon has a field for a polling interval in 
+ * miliseconds, defaulting to 500.  This is the interval between polls of the 
+ * MRD2 devices.  Then for each pin there is a tab containing these fields:
+ *  - description A textual description of the pin.
+ *  - number The number of the pin.
+ *  - mode The mode of the pin, one of disabled, in, out, high, low.
+ *  - pin in 0 The event to send when the pin goes to 0.
+ *  - pin in 1 The event to send when the pin goes to 1.
+ *  - pin out 0 The event to set the pin to 0.
+ *  - pin out 1 The event to set the pin to 1.
+ *
  * @subsubsection PiGPIO_XMLSchema XML Schema for configuration files
  * 
  * @verbatim
@@ -236,6 +288,19 @@
  * event and can emit an event in response to a code event, possibly prefixed
  * with a Code 1 Start event. 
  * 
+ * In addition to the @ref CommonNodeConfiguration "Common Node Configuration" 
+ * fields the OpenLCB_TrackCircuits daemon has tabs for each track, containing
+ * these fields:
+ *  - Description A textual description of the track
+ *  - Track Service Enabled or Disabled
+ *  - Command tabs Zero or more command tabs which map a received event to a 
+ *    track code.
+ *  - Transmit Group Base Event The track code will be added to this event.
+ *  - Receive Group Base Event This is the base track code reciever event.
+ *  - Code 1 Start Event The event to send when a Code 1 Start occur.
+ *  - Action tabs Zero or more action tabs which map an event to send when a
+ *    track code received.
+ *
  * @subsubsection TrackCircuits_XMLSchema XML Schema for configuration files
  * 
  * @verbatim <?xml version="1.0" ?>
@@ -277,6 +342,7 @@
              <xs:complexType> 
                <xs:sequence>
                  <xs:element name="description" minOccurs="0" maxOccurs="1" /> 
+                 <xs:element name="enabled" minOccurs="0" maxOccurs="1" />
                  <xs:element name="transmitter" minOccurs="0" 
                              maxOccurs="unbounded" > 
                    <xs:complexType>
@@ -312,11 +378,26 @@
    </xs:schema> 
    @endverbatim
  * 
- * @subsection Logic EventExchange node for virtual track circuits.
+ * @subsection Logic EventExchange node for logic blocks.
  * 
  * The OpenLCB_Logics daemon is used to implement one or more logic blocks. 
  * Each logic can be standalone or part of a mast or ladder group.
  * 
+ * In addition to the @ref CommonNodeConfiguration "Common Node Configuration" 
+ * fields the OpenLCB_Logic daemon has tabs for each logic block, containing
+ * these fields:
+ *  - Description A textual description of the track
+ *  - The Group Type, one of Single or last, Mast Group, or Ladder Group. 
+ *  - An event to set variable 1 true.
+ *  - An event to set variable 1 false.
+ *  - The logic function, one of V1 and V2, V1 or V2, V1 xor V2, 
+ *    V1 and V2 change, V1 or V2 change, V1 then V2, or true.
+ *  - An event to set variable 2 true.
+ *  - An event to set variable 2 false.
+ *  - The delay in miliseconds (0 means no delay).
+ *  - Whether the delay is retriggerable.
+ *  - Four (4) action tabs, each with a delay flag and an event.  
+ *
  * @subsubsection Logic_XMLSchema XML Schema for configuration files
  * 
  * @verbatim <?xml version="1.0" ?>
@@ -388,6 +469,46 @@
  * The OpenLCB_Acela daemon is used to tie a CTI Acela network to an OpenLCB
  * network, tying event production to the inputs (sensors) and outputs
  * (controls and signals) connected to a CTI Acela network.
+ * 
+ * In addition to the @ref CommonNodeConfiguration "Common Node Configuration" 
+ * fields the OpenLCB_Acels daemon has tabs for each Control, Signal, or 
+ * Sensor.  Each type has a numerical address and a textual description.
+ * 
+ * In addition each Control has these fields:
+ *   - Pulse Width in 10ths of a second.
+ *   - Blink Perion in 10ths of a second.
+ *   - Activate eventid
+ *   - Deactivate eventid
+ *   - Pulse on eventid
+ *   - Pulse off eventid
+ *   - Blink on eventid
+ *   - Blink off eventid
+ * 
+ * In addition each Signal has these fields:
+ *   - Signal command, one of Signal2, Signal3, or Signal4.
+ *     Signal2 uses two consequential outputs and assumes a bi-color led 
+ *     (red/green) and simulates yellow
+ *     Signal3 uses three consequential outputs and assumes three descrete
+ *     lamps or leds.
+ *     Signal4 uses four consequential outputs and assumes four descrete lamps 
+ *     or leds. 
+ *   - Plus zero or more Aspect tabs.  Each Aspect tab has a event field and
+ *     an argument list for a signal.  This 2 or 3 elements for Signal2, three 
+ *     elements for Signal3 and four elements for Signal4.
+ *     Eacl element defines one lamp or led and is one of: on, off, blink,
+ *     revblink.
+ * 
+ * There are also three common fields for all signals:
+ *   - Signal blink rate in 10ths of a second.
+ *   - Yellow Hue
+ *   - Signal brightless
+ * 
+ * In addition each sensor has these fields:
+ *   - Filter Threshold
+ *   - Filter Select
+ *   - Polarity
+ *   - The on eventid
+ *   - The off eventid
  * 
  * @subsubsection Acela_XMLSchema XML Schema for configuration files
  * 

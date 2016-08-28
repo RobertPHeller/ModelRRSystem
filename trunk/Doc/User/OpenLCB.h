@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Mar 11 14:43:58 2016
-//  Last Modified : <160819.1127>
+//  Last Modified : <160828.1459>
 //
 //  Description	
 //
@@ -66,7 +66,14 @@
  * </ol></li><!-- OpenLCB Reference -->
  * <li><a class="el" href="openlcbdaemons.html">OpenLCB Daemons</a><ol type="1">
  * <li><a class="el" href="openlcbdaemons.html#hubs">Hub Daemons</a></li>
- * <li><a class="el" href="openlcbdaemons.html#vnodes">Virtual Nodes</a></li>
+ * <li><a class="el" href="openlcbdaemons.html#vnodes">Virtual Nodes</a><ol type="1">
+ * <li><a class="el" href="openlcbdaemons.html#CommonNodeConfiguration">Common Node Configuration</a></li>
+ * <li><a class="el" href="openlcbdaemons.html#MRD2">EventExchange node for Azatrax MRD2 boards</a></li>
+ * <li><a class="el" href="openlcbdaemons.html#PiGPIO">EventExchange node for Raspberry Pi GPIO pins</a></li>
+ * <li><a class="el" href="openlcbdaemons.html#TrackCircuits">EventExchange node for virtual track circuits</a></li>
+ * <li><a class="el" href="openlcbdaemons.html#Logic">EventExchange node for logic blocks</a></li>
+ * <li><a class="el" href="openlcbdaemons.html#Acela">EventExchange node for a CTI Acela network</a></li>
+ * </ol></li><!-- Virtual Nodes -->
  * </ol></li><!-- OpenLCB Daemons -->
  * <li><a class="el" href="help.html">Help</a></li>
  * <li><a class="el" href="Version.html">Version</a></li>
