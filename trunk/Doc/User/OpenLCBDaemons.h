@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Aug 14 14:40:15 2016
-//  Last Modified : <160828.1457>
+//  Last Modified : <160828.1644>
 //
 //  Description	
 //
@@ -102,18 +102,19 @@
  *
  * All of the Virtual Nodes have these common configuration fields:
  * 
- *  - A transport section, containing fields for a transport constructor and
- *    options for the transport constructor.  There are presently three 
- *    transports: 
- *    - CANGridConnectOverUSBSerial: Grid Connect CAN over USBSerial
- *    - CANGridConnectOverTcp: Grid Connect CAN over Tcp
- *    - OpenLCBOverTcp: OpenLCB over Tcp
- *    There is a @b Select button next to the constructor field to select the 
- *    transport to use. The options for the transport constructor can be 
- *    selected with the @b Select button next to the transport options field.
+ * 
  *  - An identification section, containing fields for the user supplied name
  *    and description for the node.  These are free form text fields and can
  *    contain a name and description of the node.
+ *  - A transport section, containing fields for a transport constructor and
+ *    options for the transport constructor.  There are presently three 
+ *    transports. There is a @b Select button next to the constructor field to 
+ *    select the transport to use. The options for the transport constructor 
+ *    can be selected with the @b Select button next to the transport options 
+ *    field.  The three transports are: 
+ *    - CANGridConnectOverUSBSerial: Grid Connect CAN over USBSerial
+ *    - CANGridConnectOverTcp: Grid Connect CAN over Tcp
+ *    - OpenLCBOverTcp: OpenLCB over Tcp
  * 
  * 
  * @subsection MRD2 EventExchange node for Azatrax MRD2 boards.
@@ -474,15 +475,20 @@
  * fields the OpenLCB_Acels daemon has tabs for each Control, Signal, or 
  * Sensor.  Each type has a numerical address and a textual description.
  * 
+ * You will want to read the "The Acela Network Bridge Programmer's Guide"
+ * for an explaination of some of the terminolgy used here. 
+ * 
  * In addition each Control has these fields:
- *   - Pulse Width in 10ths of a second.
- *   - Blink Perion in 10ths of a second.
+ *   - Pulse Width in 10ths of a second.  Used with the Pulse on and Pulse off
+ *     events.
+ *   - Blink Period in 10ths of a second.  Used with the Blink and Reverse 
+ *     Blink events.
  *   - Activate eventid
  *   - Deactivate eventid
  *   - Pulse on eventid
  *   - Pulse off eventid
- *   - Blink on eventid
- *   - Blink off eventid
+ *   - Blink eventid
+ *   - Reverse Blink eventid
  * 
  * In addition each Signal has these fields:
  *   - Signal command, one of Signal2, Signal3, or Signal4.
