@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 25 14:52:47 2016
-#  Last Modified : <160828.1219>
+#  Last Modified : <160828.1635>
 #
 #  Description	
 #
@@ -797,7 +797,7 @@ snit::type OpenLCB_Logic {
             {command "[_m {Menu|Help|On &Version}]" {help:help} "[_ {Version}]" {} -command {HTMLHelp help Version}}
             {command "[_m {Menu|Help|Warranty}]" {help:help} "[_ {Warranty}]" {} -command {HTMLHelp help Warranty}}
             {command "[_m {Menu|Help|Copying}]" {help:help} "[_ {Copying}]" {} -command {HTMLHelp help Copying}}
-            {command "[_m {Menu|Help|OpenLCB Daemons Reference Manual}]" {help:help} {} {} -command {HTMLHelp help "OpenLCB Daemons"}}
+            {command "[_m {Menu|Help|EventExchange node for logic blocks}]" {help:help} {} {} -command {HTMLHelp help "EventExchange node for logic blocks"}}
         }
     }
     

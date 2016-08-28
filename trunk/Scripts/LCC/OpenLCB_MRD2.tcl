@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <160828.1211>
+#  Last Modified : <160828.1630>
 #
 #  Description	
 #
@@ -428,7 +428,7 @@ snit::type OpenLCB_MRD2 {
             {command "[_m {Menu|Help|On &Version}]" {help:help} "[_ {Version}]" {} -command {HTMLHelp help Version}}
             {command "[_m {Menu|Help|Warranty}]" {help:help} "[_ {Warranty}]" {} -command {HTMLHelp help Warranty}}
             {command "[_m {Menu|Help|Copying}]" {help:help} "[_ {Copying}]" {} -command {HTMLHelp help Copying}}
-            {command "[_m {Menu|Help|OpenLCB Daemons Reference Manual}]" {help:help} {} {} -command {HTMLHelp help "OpenLCB Daemons"}}
+            {command "[_m {Menu|Help|EventExchange node for Azatrax MRD2 boards}]" {help:help} {} {} -command {HTMLHelp help "EventExchange node for Azatrax MRD2 boards"}}
         } 
     }
     
