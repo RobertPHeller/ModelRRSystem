@@ -1,0 +1,187 @@
+'============================================================================
+'
+' 91 car types  -- 16 characters allowed in cartype description
+'
+'============================================================================
+'
+' Date: June 24 1996
+'
+'
+' Car type descriptions can be physically descriptive (see below) or they
+' can be "cargo oriented" (example "coal car") or some combination of the
+' two techniques or something I haven't thought of!
+'
+' The point is that the PROGRAM does not know the "meaning" of car type -
+' it simply follows various matching rules to assign cars to destinations
+' and to trains.
+'
+' In most cases routing is controlled by home divisions etc - rather than
+' by simple car type. But you can make things as simple or as complicated
+' as you wish.
+'
+'============================================================================
+
+?, ,,                     0,eg - NOT IN USE
+
+' hoppers  ]  ^% `_{;\ |}~
+
+],o,HT    ore car   ,     0,eg - iron ore
+
+^,h,HM 2B hopper    ,     0,eg - limestone sand gravel
+%,h,HT 3B hopper    ,     0,eg - limestone sand gravel
+
+=,u,HM 2B hopper    ,     0,eg - unit coal
+`,u,HM 2B hopper    ,     0,eg - unit coal
+_,u,HT 3B hopper    ,     0,eg - unit coal
+{,u,HT 4B hopper    ,     0,eg - unit coal
+;,u,HT 5B hopper    ,     0,eg - unit coal
+\,u,GT    gondola   ,     0,eg - unit coal
+
+|,c,HM 2B hopper    ,     0,eg - retail coal
+},c,HT 3B hopper    ,     0,eg - retail coal
+~,c,HT 4B hopper    ,     0,eg - retail coal
+
+' gondolas  rstwxyz  uv  [<>  \
+
+r,g,GB    gondola   ,     0,eg - scrap pig iron etc
+s,g,GB    gondola   ,     0,eg - steel etc
+t,g,GB    gondola   ,     0,eg - pipe poles etc
+w,g,GB    gondola   ,     0,eg - machinery
+x,g,GB    gondola   ,     0,eg - bulk containers
+y,g,GB    gondola   ,     0,eg - food containers
+z,g,GB    gondola   ,     0,eg - retail coal
+u,g,GBSR  gondola   ,     0,eg - coil steel
+v,g,GBS   gondola   ,     0,eg - auto frames
+[,g,GS    gondola   ,     0,eg - limestone sand gravel
+<,g,LU    gondola   ,     0,eg - woodchips
+>,g,GT    gondola   ,     0,eg - woodchips
+
+' reefers KLMNO
+
+K,r,RS    reefer    ,     0,eg - produce
+L,r,RS    reefer    ,     0,eg - frozen
+M,r,RS    reefer    ,     0,eg - meat
+N,r,RP    reefer    ,     0,eg - produce or frozen
+O,r,RP    reefer    ,     0,eg - meat
+
+' boxcars  !#$-*./:  012  3456  789AB
+
+!,b,XM SD boxcar    ,     0,eg - chemical industrial
+#,b,XM SD boxcar    ,     0,eg - merchandise lumber
+$,b,XM SD boxcar    ,     0,eg - food grain cotton
+-,b,XM SD boxcar    ,     0,eg - kaolin service
+*,b,XL SD boxcar    ,     0,eg - merchandise paper
+.,b,XL SD boxcar    ,     0,eg - auto parts service
+/,b,XF SD boxcar    ,     0,eg - food flour
+:,b,XM SD boxcar    ,     0,eg - l.c.l. service
+
+0,b,XM CD boxcar    ,     0,eg - food cotton
+1,b,XL CD boxcar    ,     0,eg - merchandise lumber
+2,b,XL CD boxcar    ,     0,eg - chemical industrial
+
+3,b,XM PD boxcar    ,     0,eg - food grain
+4,b,XL PD boxcar    ,     0,eg - merchandise paper
+5,b,XL PD boxcar    ,     0,eg - auto parts service
+6,b,RB PD boxcar    ,     0,eg - food
+
+7,b,XM DD boxcar    ,     0,eg - hide or scrap paper
+8,b,XM DD boxcar    ,     0,eg - lumber merchandise
+9,b,XM DD boxcar    ,     0,eg - merchandise
+A,b,XA DD boxcar    ,     0,eg - automobiles
+B,b,XA DD boxcar    ,     0,eg - w/ end doors
+
+j,b,LU    alldoor   ,     0,eg - lumber wallboard
+
+' express cars EFG
+
+E,x,XT    milk car  ,     0,eg - bulk milk
+F,x,XM    express   ,     0,eg - express boxcar
+G,x,RS    express   ,     0,eg - express reefer
+
+' stockcars HI
+
+H,s,SM    stockcar  ,     0,eg - single deck
+I,s,SC    stockcar  ,     0,eg - convertible double deck
+
+' covered hoppers  P  QRSY  TUX   VWZD
+
+P,l,LO    airslide  ,     0,eg - food products
+
+Q,l,LO 2B cov hopper,     0,eg - food
+R,l,LO 2B cov hopper,     0,eg - cement lime
+S,l,LO 2B cov hopper,     0,eg - chemicals minerals
+Y,l,LO 2B cov hopper,     0,eg - salt sand
+T,l,LO 3B cov hopper,     0,eg - chemicals minerals
+U,l,LO 3B cov hopper,     0,eg - grain
+X,l,LO 3B cov hopper,     0,eg - food
+V,l,LO 4B cov hopper,     0,eg - chemicals plastics
+W,l,LO 4B cov hopper,     0,eg - grain
+Z,l,LO 4B cov hopper,     0,eg - food
+D,l,LO 4B cov hopper,     0,eg - salt sand
+
+' tankcars  +()abcd  efg  hi
+
++,t,T103  tankcar   ,     0,eg - limestone slurry
+(,t,T103  tankcar   ,     0,eg - lube oil waste oil
+),t,T103  tankcar   ,     0,eg - fuel oil gasoline
+a,t,T103  tankcar   ,     0,eg - vegetable oil lard
+b,t,T103  tankcar   ,     0,eg - corn syrup molasses
+c,t,T103  tankcar   ,     0,eg - fertilizer chemicals
+d,t,T103  tankcar   ,     0,eg - chemicals latex
+e,t,T104  tankcar   ,     0,eg - chemicals caustic soda
+f,t,T104  tankcar   ,     0,eg - kaolin slurry
+g,t,T104  tankcar   ,     0,eg - asphalt
+h,t,T105  tankcar   ,     0,eg - propane
+i,t,T105  tankcar   ,     0,eg - chlorine
+
+' flatcars  C  Jjk  lmnp  o  q&@  n
+
+C,f,FA    autorack  ,     0,eg - autos or trucks
+
+J,f,FB    flatcar   ,     0,eg - pulpwood
+k,f,FB    flatcar   ,     0,eg - pipes poles steel
+
+l,f,FM    flatcar   ,     0,eg - pipes poles steel
+m,f,FM    flatcar   ,     0,eg - machinery
+p,f,FM    flatcar   ,     0,eg - vehicles tractors
+
+o,f,FMS   flatcar   ,     0,eg - auto frames
+
+q,f,FC    flatcar   ,     0,eg - circus type piggyback
+&,f,FC    flatcar   ,     0,eg - lift on/off piggyback
+@,f,FCD   wellcar   ,     0,eg - doublestack containers
+
+n,f,FD    flatcar   ,     0,eg - machinery
+
+'============================================================================
+'
+' AND NOW FOR SOMETHING COMPLETELY DIFFERENT
+'
+'   Car type groupings can have several uses --
+'
+'       Car Type Reports -- can report cars by group type
+'
+'       Assignment -- I will implement a car type group assignment control
+'               for industries and I could add a group value to trains to
+'               have another method of controlling train consists
+'
+'============================================================================
+
+u,unit coal cars,
+c,retail coal cars,
+b,boxcars,
+r,refrigerator cars,
+l,covered hopper cars,
+h,other hopper cars,
+g,gondola cars,
+f,flat cars,
+t,tank cars,
+x,express and milk cars,
+s,stock cars,
+o,ore cars,
+
+'============================================================================
+'
+'   Dat's all folks!
+'
+'============================================================================
