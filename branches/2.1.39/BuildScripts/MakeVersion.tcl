@@ -50,7 +50,11 @@ foreach {name value} [lrange $argv 2 end] {
 
 puts $versionFP "\}"
 
-puts $versionFP "package provide Version $version"
+if {[regexp {^[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+} $version pversion] < 1} {
+    set pversion $version
+}
+
+puts $versionFP "package provide Version $pversion"
 
 close $versionFP
 
