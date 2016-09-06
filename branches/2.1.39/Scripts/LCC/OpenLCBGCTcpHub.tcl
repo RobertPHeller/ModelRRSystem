@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <160816.1119>
+#  Last Modified : <160906.0951>
 #
 #  Description	
 #
@@ -157,6 +157,11 @@ snit::type OpenLCBGCTcpHub {
         foreach op {-dev -dev0 -dev1 -dev2 -dev3 -dev4 -dev5 -dev6 -dev7 -dev8 -dev9} {
             set dev [from argv $op]
             if {$dev eq ""} {continue}
+            if {$::tcl_platform(platform) eq "windows"} {
+                ## Force Use of the "global NT object space" for serial port
+                ## devices under MS-Windows.
+                set dev [format "\\\\.\\%s" $dev]
+            }
             if {[catch {open $dev r+} ttyfd]} {
                 ::log::logError [_ "Channel to %s not opened: %s" $dev $ttyfd]
                 continue

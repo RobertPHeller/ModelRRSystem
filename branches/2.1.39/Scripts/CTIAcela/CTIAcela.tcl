@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jul 21 10:56:52 2015
-#  Last Modified : <160818.1248>
+#  Last Modified : <160906.0955>
 #
 #  Description	
 #
@@ -244,6 +244,11 @@ namespace eval ctiacela {
             # @par
             
             $self configurelist $args
+            if {$::tcl_platform(platform) eq "windows"} {
+                ## Force Use of the "global NT object space" for serial port
+                ## devices under MS-Windows.
+                set port [format "\\\\.\\%s" $port]
+            }
             if {[catch {open $port r+} ttyfd]} {
                 set theerror $ttyfd
                 catch {unset ttyfd}
