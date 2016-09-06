@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160820.1945>
+#  Last Modified : <160906.0951>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -2503,8 +2503,13 @@ namespace eval lcc {
             install mtiheader using MTIHeader          %AUTO%
             install canheader using CANHeader          %AUTO%
             #puts stderr "*** $type create $self $args
-            set options(-port) [from args -port]
             install mycanalias using CanAlias %AUTO% -nid [from args -nid]
+            set options(-port) [from args -port]
+            if {$::tcl_platform(platform) eq "windows"} {
+                ## Force Use of the "global NT object space" for serial port 
+                ## devices under MS-Windows.
+                set options(-port) [format "\\\\.\\%s" $options(-port)]
+            }
             if {[catch {open $options(-port) r+} ttyfd]} {
                 set theerror $ttyfd
                 catch {unset ttyfd}

@@ -211,7 +211,12 @@ namespace eval cmri {
       # @par
 
       $self configurelist $args
-
+      
+      if {$::tcl_platform(platform) eq "windows"} {
+          ## Force Use of the "global NT object space" for serial port
+          ## devices under MS-Windows.
+          set port [format "\\\\.\\%s" $port]
+      }
       if {[catch {open $port r+} ttyfd]} {
 	set theerror $ttyfd
 	catch {unset ttyfd}
