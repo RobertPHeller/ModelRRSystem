@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 17 07:55:13 2016
-#  Last Modified : <160828.1634>
+#  Last Modified : <160911.1716>
 #
 #  Description	
 #
@@ -272,11 +272,13 @@ snit::type Acela_Sensor {
     option -polarity -type ::ctiacela::polaritytype -default normal
     option -onevent -type ::lcc::EventID_or_null -default {}
     option -offevent -type ::lcc::EventID_or_null -default {}
+    variable oldstate 0
     
     constructor {args} {
         ::log::log debug "*** $type create $self $args"
         $self configurelist $args
         [$self cget -acela] ConfigureSensor [$self cget -address] [$self cget -filterthresh] [$self cget -filterselect] [$self cget -polarity]
+        set oldstate [[$self cget -acela] Read [$self cget -address]]
     }
     method consumerP {} {return no}
     method producerP {} {return yes}
@@ -292,7 +294,9 @@ snit::type Acela_Sensor {
     method pollsensor {} {
         ::log::log debug "*** $self pollsensor"
         set state [[$self cget -acela] Read [$self cget -address]]
-        ::log::log debug "*** $self pollsensor: state = $state"
+        ::log::log debug "*** $self pollsensor: state = $state (oldstate = $oldstate)"
+        if {$state == $oldstate} {return}
+        set oldstate $state
         if {$state == 0} {
             set ev [$self cget -offevent]
         } else {
