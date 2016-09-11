@@ -3,8 +3,9 @@ Sun Sep 11 17:49:50 2016
   2.1.39 Released:
   
   Lots of OpenLCB deamon programs added:
-     OpenLCBTcpHub, OpenLCBGCTcpHub, OpenLCB_Acela, OpenLCB_MRD2, 
-     OpenLCB_PiGPIO, OpenLCB_Logic, and OpenLCB_TrackCircuits.
+    Hubs: OpenLCBTcpHub and OpenLCBGCTcpHub.
+    Foreign hardware: OpenLCB_Acela, OpenLCB_MRD2, and OpenLCB_PiGPIO.
+    Logic elements: OpenLCB_Logic and OpenLCB_TrackCircuits.
   Minor fixes and improvements to OpenLCB.
   Bugfixes to CTIAcela.tcl.
   Documentation updates.
