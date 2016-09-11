@@ -1,0 +1,75 @@
+%* 
+%* ------------------------------------------------------------------
+%* LabelFrameWidgets.tex - Assorted LabelFrame widgets.
+%* Created by Robert Heller on Thu Apr 19 14:39:49 2007
+%* ------------------------------------------------------------------
+%* Modification History: $Log$
+%* Modification History: Revision 1.2  2007/11/30 13:56:50  heller
+%* Modification History: Novemeber 30, 2007 lockdown.
+%* Modification History:
+%* Modification History: Revision 1.1  2007/05/06 12:49:38  heller
+%* Modification History: Lock down  for 2.1.8 release candidate 1
+%* Modification History:
+%* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+%* Modification History: Add it copyright notice headers
+%* Modification History:
+%* ------------------------------------------------------------------
+%* Contents:
+%* ------------------------------------------------------------------
+%*  
+%*     Model RR System, Version 2
+%*     Copyright (C) 1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software
+%* 			51 Locke Hill Road
+%* 			Wendell, MA 01379-9728
+%* 
+%*     This program is free software; you can redistribute it and/or modify
+%*     it under the terms of the GNU General Public License as published by
+%*     the Free Software Foundation; either version 2 of the License, or
+%*     (at your option) any later version.
+%* 
+%*     This program is distributed in the hope that it will be useful,
+%*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%*     GNU General Public License for more details.
+%* 
+%*     You should have received a copy of the GNU General Public License
+%*     along with this program; if not, write to the Free Software
+%*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+%* 
+%*  
+%* 
+
+\chapter{An Assortment of LabelFrame Based Widgets.}
+\label{chapt:LabelFrameWidgets}
+\typeout{$Id$}
+
+Included with the Model Railroad system are four packages that define a
+a collection of BWidget \lstinline=LabelFrame= based widgets.  These
+widgets are much line the BWidget \lstinline=LabelEntry= widget, except
+that instead of a plain \lstinline=Entry= widget, they have other, more
+specialized widgets.
+
+The four packages are:
+\begin{enumerate}
+\index{LabelFrame Widgets!BWFileEntry}
+\item \lstinline=BWFileEntry= defines the \lstinline=FileEntry= widget,
+which is meant to enter file and directory names.
+\index{LabelFrame Widgets!BWLabelComboBox}
+\item \lstinline=BWLabelComboBox= defines the \lstinline=LabelComboBox=
+widget, which has a \lstinline=ComboBox= widget instead of an
+\lstinline=Entry= widget.
+\index{LabelFrame Widgets!BWLabelSpinBox}
+\item \lstinline=BWLabelSpinBox= defines the \lstinline=LabelSpinBox=
+widget, which has a \lstinline=SpinBox= widget instead of an
+\lstinline=Entry= widget.
+\index{LabelFrame Widgets!LabelSelectColor}
+\item \lstinline=LabelSelectColor= defines the
+\lstinline=LabelSelectColor= widget, which is meant to select a color.
+\end{enumerate}
+
+\lstinputlisting[caption={Using the LabelFrame based widgets},
+		 label={lst:LF:LabelFrameCode},
+		 firstline=38]{SampleCodeSlideout.tcl}
+Listing~\ref{lst:LF:LabelFrameCode} contains code to create each of the
+\lstinline=LabelFrame= widgets.  The window this code helped to create
+is shown in Figure~\ref{fig:Main:MainWindow2}
