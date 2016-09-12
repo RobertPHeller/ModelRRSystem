@@ -183,6 +183,14 @@ AC_PATH_PROG(BIBTEX,bibtex,/bin/true)
 AC_PATH_PROG(DVIPS,dvips,/bin/true)
 AC_PATH_PROG(PS2PDF,ps2pdf,/bin/true)
 AM_GNU_GETTEXT
+case $target_os in
+  macos | darwin*)
+    dnl Fix broken AM_GNU_GETTEXT macro under Macos
+    AC_SUBST(INTLLIBS,[""])
+    ;;
+  *)
+    ;;
+esac
 AC_PATH_PROG(MSGEN,msgen)
 AC_CHECK_HEADERS(libintl.h locale.h)
 AX_PKG_SWIG(1.3)
@@ -700,7 +708,8 @@ AC_CONFIG_FILES([config_tcl.sed \
 	  MRRSystem.spec \
 	  BuildBinaryDistro.sh \
 	  Doxyfile])
-AC_CONFIG_COMMANDS([default],[chmod +x BuildBinaryDistro.sh])
+AC_CONFIG_COMMANDS([default],
+                 [chmod +x BuildBinaryDistro.sh Doc/doxygen/tcldoxyfilter.sh])
 AC_OUTPUT
 
 
