@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <160906.0951>
+#  Last Modified : <160912.1600>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -943,6 +943,9 @@ namespace eval lcc {
                 for {set i 0} {$i < $_nDataChars} {incr i} {
                     lappend _dataChars 0
                 }
+            } else {
+                set _nDataChars 0
+                set _dataChars [list 0 0 0 0 0 0 0 0]
             }
             $self configurelist $args
             #puts stderr "*** $type create $self: [$self toString]"
