@@ -288,6 +288,7 @@ $(USERMAN_HTML) $(USERMAN_PDF) : $(USERMAN_HS) $(USERMAN_FIGS) $(BIBLIO) \
 	../doxygen/tcldoxyfilter.sh
 	-rm -rf $(USERMANHBase)/
 	-rm -rf latex
+	-chmod +x ../doxygen/tcldoxyfilter.sh
 	$(DOXYGEN) Doxyfile.UserManual
 	for p in $(USERMAN_FIGS); do \
 	   if test ! \( -f $(USERMANHBase)/$$p \); then cp $(srcdir)/$$p $(USERMANHBase)/; fi; \
