@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jul 21 10:56:52 2015
-#  Last Modified : <160818.1248>
+#  Last Modified : <160911.1742>
 #
 #  Description	
 #
@@ -244,6 +244,11 @@ namespace eval ctiacela {
             # @par
             
             $self configurelist $args
+            if {$::tcl_platform(platform) eq "windows"} {
+                ## Force Use of the "global NT object space" for serial port
+                ## devices under MS-Windows.
+                set port [format "\\\\.\\%s" $port]
+            }
             if {[catch {open $port r+} ttyfd]} {
                 set theerror $ttyfd
                 catch {unset ttyfd}
@@ -751,8 +756,9 @@ namespace eval ctiacela {
             
             ::ctiacela::addresstype validate $address
             set response [$self _transmit [list $Opcodes(Read) [highbyte $address] [lowbyte $address]] 1]
+            #puts stderr "*** $self Read: response = $response"
             if {[lindex $response 0] == $Responses(Success)} {
-                return [expr {([lindex $response 0] & 0x01) == 0x01}]
+                return [expr {([lindex $response 1] & 0x01) == 0x01}]
             } elseif {$response == $Responses(ProcessedOffline)} {
                 return no
             } elseif {$response == $Responses(AddressOutOfRange)} {
@@ -768,10 +774,10 @@ namespace eval ctiacela {
             ::ctiacela::addresstype validate $address
             set response [$self _transmit [list $Opcodes(Read4) [highbyte $address] [lowbyte $address]] 1]
             if {[lindex $response 0] == $Responses(Success)} {
-                set s1 [expr {([lindex $response 0] & 0x01) == 0x01}]
-                set s2 [expr {([lindex $response 0] & 0x02) == 0x02}]
-                set s3 [expr {([lindex $response 0] & 0x04) == 0x04}]
-                set s4 [expr {([lindex $response 0] & 0x08) == 0x08}]
+                set s1 [expr {([lindex $response 1] & 0x01) == 0x01}]
+                set s2 [expr {([lindex $response 1] & 0x02) == 0x02}]
+                set s3 [expr {([lindex $response 1] & 0x04) == 0x04}]
+                set s4 [expr {([lindex $response 1] & 0x08) == 0x08}]
                 return [list $s1 $s2 $s3 $s4]
             } elseif {$response == $Responses(ProcessedOffline)} {
                 return no
@@ -788,14 +794,14 @@ namespace eval ctiacela {
             ::ctiacela::addresstype validate $address
             set response [$self _transmit [list $Opcodes(Read8) [highbyte $address] [lowbyte $address]] 1]
             if {[lindex $response 0] == $Responses(Success)} {
-                set s1 [expr {([lindex $response 0] & 0x01) == 0x01}]
-                set s2 [expr {([lindex $response 0] & 0x02) == 0x02}]
-                set s3 [expr {([lindex $response 0] & 0x04) == 0x04}]
-                set s4 [expr {([lindex $response 0] & 0x08) == 0x08}]
-                set s5 [expr {([lindex $response 0] & 0x10) == 0x10}]
-                set s6 [expr {([lindex $response 0] & 0x20) == 0x20}]
-                set s7 [expr {([lindex $response 0] & 0x40) == 0x40}]
-                set s8 [expr {([lindex $response 0] & 0x80) == 0x80}]
+                set s1 [expr {([lindex $response 1] & 0x01) == 0x01}]
+                set s2 [expr {([lindex $response 1] & 0x02) == 0x02}]
+                set s3 [expr {([lindex $response 1] & 0x04) == 0x04}]
+                set s4 [expr {([lindex $response 1] & 0x08) == 0x08}]
+                set s5 [expr {([lindex $response 1] & 0x10) == 0x10}]
+                set s6 [expr {([lindex $response 1] & 0x20) == 0x20}]
+                set s7 [expr {([lindex $response 1] & 0x40) == 0x40}]
+                set s8 [expr {([lindex $response 1] & 0x80) == 0x80}]
                 return [list $s1 $s2 $s3 $s4 $s5 $s6 $s7 $s8]
             } elseif {$response == $Responses(ProcessedOffline)} {
                 return no
@@ -812,22 +818,22 @@ namespace eval ctiacela {
             ::ctiacela::addresstype validate $address
             set response [$self _transmit [list $Opcodes(Read16) [highbyte $address] [lowbyte $address]] 2]
             if {[lindex $response 0] == $Responses(Success)} {
-                set s1 [expr {([lindex $response 0] & 0x01) == 0x01}]
-                set s2 [expr {([lindex $response 0] & 0x02) == 0x02}]
-                set s3 [expr {([lindex $response 0] & 0x04) == 0x04}]
-                set s4 [expr {([lindex $response 0] & 0x08) == 0x08}]
-                set s5 [expr {([lindex $response 0] & 0x10) == 0x10}]
-                set s6 [expr {([lindex $response 0] & 0x20) == 0x20}]
-                set s7 [expr {([lindex $response 0] & 0x40) == 0x40}]
-                set s8 [expr {([lindex $response 0] & 0x80) == 0x80}]
-                set s9 [expr {([lindex $response 1] & 0x01) == 0x01}]
-                set s10 [expr {([lindex $response 1] & 0x02) == 0x02}]
-                set s11 [expr {([lindex $response 1] & 0x04) == 0x04}]
-                set s12 [expr {([lindex $response 1] & 0x08) == 0x08}]
-                set s13 [expr {([lindex $response 1] & 0x10) == 0x10}]
-                set s14 [expr {([lindex $response 1] & 0x20) == 0x20}]
-                set s15 [expr {([lindex $response 1] & 0x40) == 0x40}]
-                set s16 [expr {([lindex $response 1] & 0x80) == 0x80}]
+                set s1 [expr {([lindex $response 1] & 0x01) == 0x01}]
+                set s2 [expr {([lindex $response 1] & 0x02) == 0x02}]
+                set s3 [expr {([lindex $response 1] & 0x04) == 0x04}]
+                set s4 [expr {([lindex $response 1] & 0x08) == 0x08}]
+                set s5 [expr {([lindex $response 1] & 0x10) == 0x10}]
+                set s6 [expr {([lindex $response 1] & 0x20) == 0x20}]
+                set s7 [expr {([lindex $response 1] & 0x40) == 0x40}]
+                set s8 [expr {([lindex $response 1] & 0x80) == 0x80}]
+                set s9 [expr {([lindex $response 2] & 0x01) == 0x01}]
+                set s10 [expr {([lindex $response 2] & 0x02) == 0x02}]
+                set s11 [expr {([lindex $response 2] & 0x04) == 0x04}]
+                set s12 [expr {([lindex $response 2] & 0x08) == 0x08}]
+                set s13 [expr {([lindex $response 2] & 0x10) == 0x10}]
+                set s14 [expr {([lindex $response 2] & 0x20) == 0x20}]
+                set s15 [expr {([lindex $response 2] & 0x40) == 0x40}]
+                set s16 [expr {([lindex $response 2] & 0x80) == 0x80}]
                 return [list $s1 $s2 $s3 $s4 $s5 $s6 $s7 $s8 $s9 $s10 $s11 $s12 $s13 $s14 $s15 $s16]
             } elseif {$response == $Responses(ProcessedOffline)} {
                 return no

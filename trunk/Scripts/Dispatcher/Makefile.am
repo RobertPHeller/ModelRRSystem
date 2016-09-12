@@ -293,6 +293,9 @@ $(top_builddir)/Scripts/ControlSupport/pkgIndex.tcl : $(top_srcdir)/Scripts/Cont
 $(top_builddir)/Scripts/CTIAcela/pkgIndex.tcl : $(top_srcdir)/Scripts/CTIAcela/*.tcl
 	$(MAKE) -C $(top_builddir)/Scripts/CTIAcela pkgIndex.tcl
 
+$(top_builddir)/Scripts/LCC/pkgIndex.tcl : $(top_srcdir)/Scripts/LCC/*.tcl
+	$(MAKE) -C $(top_builddir)/Scripts/LCC pkgIndex.tcl
+
 man1/Dispatcher.1 : Doxyfile Dispatcher.src
 	-rm -rf man1
 	$(DOXYGEN)
