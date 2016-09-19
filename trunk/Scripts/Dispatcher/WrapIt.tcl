@@ -118,6 +118,10 @@ namespace eval WrapIt {
   #  puts stderr "*** WrapIt::WiringPiLibDir = $WiringPiLibDir"
   variable OpenLCBLibDir [glob -nocomplain [file join $CodeLibrary LCC]]
   #  puts stderr "*** WrapIt::OpenLCBLibDir = $OpenLCBLibDir"
+  variable XMLLibDir [glob -nocomplain [file join $Lib Tclxml*]]
+  #  puts stderr "*** WrapIt::XMLLibDir = $XMLLibDir"
+  variable URILibDir [glob -nocomplain [file join $Lib uri]]
+  #  puts stderr "*** WrapIt::URILibDir = $URILibDir"
   variable CopyCommonLibFiles [list \
     [file join $Lib Common snitStdMenuBar.tcl] \
     [file join $Lib Common mainwindow.tcl] \
@@ -133,6 +137,10 @@ namespace eval WrapIt {
     [file join $Lib Common snitLFs.tcl] \
     [file join $Lib Common gettext.tcl] \
     [file join $Lib Common Version.tcl] \
+    [file join $Lib Common ParseXML.tcl] \
+    [file join $Lib Common snitScrollNotebook.tcl] \
+    [file join $Lib Common snitdialog.tcl] \
+    [file join $Lib Common snitrotext.tcl] \
     [file join $Lib Common unknown.xpm] \
     [file join $Lib Common openfold.png] \
     [file join $Lib Common palette.png] \
@@ -186,6 +194,10 @@ namespace eval WrapIt {
       puts $pkgFp "$pkgLine"
     }
     close $pkgFp
+    variable XMLLibDir
+    file copy $XMLLibDir [file join $filename lib [file tail $XMLLibDir]]
+    variable URILibDir
+    file copy $URILibDir [file join $filename lib [file tail $URILibDir]]
     if {$needcmri} {
       variable CMriLibDir
       variable ControlSupportDir  
@@ -207,6 +219,7 @@ namespace eval WrapIt {
     if {$needopenlcb} {
         variable OpenLCBLibDir
         file copy $OpenLCBLibDir [file join $filename lib [file tail $OpenLCBLibDir]]
+        
     }
     foreach ap $additionalPackages {
       file mkdir [file join $filename lib $ap]

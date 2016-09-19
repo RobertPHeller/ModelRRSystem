@@ -481,9 +481,16 @@ namespace eval CTCPanelWindow {
       fcopy $panelCodeFp $fp
       close $panelCodeFp
       puts $fp {}
-      puts $fp [list MainWindow createwindow -name "$options(-name)" \
-					     -width [$ctcpanel cget -width] \
-					     -height [$ctcpanel cget -height]]
+      if {$options(-openlcbmode)} {
+          puts $fp [list MainWindow createwindow -name "$options(-name)" \
+                    -width [$ctcpanel cget -width] \
+                    -height [$ctcpanel cget -height] \
+                    -extramenus [subst {"[_m {Menu|OpenLCB}]" openlcb openlcb 0 {}}]]
+      } else {
+          puts $fp [list MainWindow createwindow -name "$options(-name)" \
+                    -width [$ctcpanel cget -width] \
+                    -height [$ctcpanel cget -height]]
+      }
       puts $fp {# CTCPanelObjects}
       foreach obj [$ctcpanel objectlist] {
 	puts -nonewline $fp "MainWindow ctcpanel create "
@@ -533,6 +540,7 @@ namespace eval CTCPanelWindow {
           set openlcbCodeFp [open [file join "$CodeLibraryDir" \
                                    OpenLCBCode.tcl] r]
           fcopy $openlcbCodeFp $fp 
+          puts $fp "OpenLCB_Dispatcher PopulateOpenLCBMenu"
           puts $fp "OpenLCB_Dispatcher ConnectToOpenLCB -transport $options(-openlcbtransport) $options(-openlcbtransportopts)"
           puts $fp "# OpenLCB_Dispatcher Nodes"
           foreach openlcbele [array names openlcbnodes] {
@@ -4131,7 +4139,7 @@ namespace eval CTCPanelWindow {
     method _seltransc {} {
         #** Select a transport constructor.
         
-        set result [lcc::OpenLCBNode selectTransportConstructor -parent [winfo toplevel $new_transconstructorE]]
+        set result [lcc::OpenLCBNode selectTransportConstructor -parent [winfo toplevel $transconstructorE]]
         if {$result ne {}} {
             if {$result ne $_transconstructorname} {set _transopts {}}
             set _transconstructorname [namespace tail $result]

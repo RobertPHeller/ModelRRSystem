@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160828.1125>
+#  Last Modified : <160919.1114>
 #
 #  Description	
 #
@@ -103,7 +103,7 @@ package require ParseXML
 package require ConfigurationEditor
 package require EventDialogs
 package require ConfigDialogs
-
+package require LCCNodeTree
 
 global HelpDir
 set HelpDir [file join [file dirname [file dirname [file dirname \
@@ -141,7 +141,7 @@ snit::type OpenLCB {
             puts stderr $message
         }
     }
-        proc hexdump { header data} {
+    proc hexdump { header data} {
         if {$_debug} {
             puts -nonewline stderr $header
             foreach byte $data {
@@ -216,11 +216,65 @@ snit::type OpenLCB {
             set _debug yes
             set ::argv [lreplace $::argv $debugIdx $debugIdx]
         }
+        LCCNodeTree setdebug $_debug
         
-        
+        putdebug "*** $type typeconstructor: ::argv is $::argv"
+        # Try to get transport constructor from the CLI.
+        set transportConstructorName [from ::argv -transportname ""]
+        putdebug "*** $type typeconstructor: transportConstructorName is $transportConstructorName"
+        # Assume there isn't one specified on the command line.
+        set transportConstructor {}
+        if {$transportConstructorName ne ""} {
+            # The user speficied something.  Get the actual name, if any.
+            set transportConstructors [info commands ::lcc::$transportConstructorName]
+            putdebug "*** $type typeconstructor: transportConstructors is $transportConstructors"
+            if {[llength $transportConstructors] > 0} {
+                set transportConstructor [lindex $transportConstructors 0]
+            }
+        }
+        # Was something found?  If not, pop up a dialog box to get an answer.
+        if {$transportConstructor eq {}} {
+            update idle
+            set transportConstructor [lcc::OpenLCBNode \
+                                      selectTransportConstructor \
+                                      -parent .]
+        }
+        # Canceled? Give up.
+        if {$transportConstructor eq {}} {
+            exit
+        }
+        # Deal with constructor required opts.  Try the command line, fall 
+        # back to a dialog box.
+        set reqOpts [$transportConstructor requiredOpts]
+        set transportOpts [list]    
+        foreach {o d} $reqOpts {
+            if {[lsearch $::argv $o] >= 0} {
+                lappend transportOpts $o [from ::argv $o $d]
+            }
+        }
+        if {[llength $reqOpts] > [llength $transportOpts]} {
+            update idle
+            set transportOpts [eval [list $transportConstructor \
+                                     drawOptionsDialog \
+                                     -parent .] \
+                                     $transportOpts]
+        }
+        # Open the transport.
+        if {[catch {eval [list lcc::OpenLCBNode %AUTO% \
+                          -transport $transportConstructor\
+                          -eventhandler [mytypemethod _eventHandler] \
+                          -generalmessagehandler [mytypemethod _messageHandler] \
+                          -softwaremodel "OpenLCB GUI" \
+                          -softwareversion "1.0" \
+                          -additionalprotocols {Datagram EventExchange} \
+                          ] $transportOpts} transport]} {
+            tk_messageBox -type ok -icon error \
+                      -message [_ "Failed to open transport because: %s" $transport]
+            exit 99
+        }
         # Build main GUI window.
-        set mainWindow [mainwindow .main -dontwithdraw yes -scrolling yes \
-                        -height 600 -width 800]
+        set mainWindow [mainwindow .main -scrolling yes \
+                        -height 480 -width 640]
         pack $mainWindow -expand yes -fill both
         # Update menus: bind to Exit item, add Send Event, flesh out the Help
         # menu.
@@ -244,116 +298,21 @@ snit::type OpenLCB {
         # Hook in help files.
         HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
         
+        # Lazy eval for event log.
+        set sendlog {}
         # Create node tree widget.
-        set nodetree [ttk::treeview \
-                      [$mainWindow scrollwindow getframe].nodetree \
-                      -columns $nodetree_cols \
-                      -selectmode browse \
-                      -show tree]
+        set nodetree [LCCNodeTree [$mainWindow scrollwindow getframe].nodetree \
+                      -transport $transport]
         # Bind scrollbars.
         $mainWindow scrollwindow setwidget $nodetree
         
-        #ttk::style configure Treeview ?options?
-        #
-        #-background color
-        #Configures the background color of rows that contain data values
-        #-fieldbackground color
-        #Configures the background color of the unused portion of a treeview widget (any area not covered by rows of data).
-        #-font fontSpec
-        #Configures the font for the contents of the tree (not the heading)
-        #-foreground color
-        #Configures the foreground for the contents of the tree
-        #-indent pixels
-        #Adjusts the indentation amount of child elements below parent elements within the tree column.
-        #-padding [list pixels ...]
-        #Additional padding to include inside the border of the widget body, including the heading
-        #-rowheight pixels
-        #Adjusts the rowheight (spacing between rows) in the treeview, distance is in pixels.
-        
-        # Double row spacing for High DPI displays (M$ stupidity).
-        if {[hidpiP $nodetree]} {
-            set f [ttk::style lookup Treeview -font]
-            set ls [font metrics $f -displayof $nodetree -linespace]
-            ttk::style configure Treeview -rowheight [expr {$ls * 2}]
-        }
-        
-        # Lazy eval for event log.
-        set sendlog {}
-        putdebug "*** $type typeconstructor: ::argv is $::argv"
-        # Try to get transport constructor from the CLI.
-        set transportConstructorName [from ::argv -transportname ""]
-        putdebug "*** $type typeconstructor: transportConstructorName is $transportConstructorName"
-        # Assume there isn't one specified on the command line.
-        set transportConstructor {}
-        if {$transportConstructorName ne ""} {
-            # The user speficied something.  Get the actual name, if any.
-            set transportConstructors [info commands ::lcc::$transportConstructorName]
-            putdebug "*** $type typeconstructor: transportConstructors is $transportConstructors"
-            if {[llength $transportConstructors] > 0} {
-                set transportConstructor [lindex $transportConstructors 0]
-            }
-        }
-        # Was something found?  If not, pop up a dialog box to get an answer.
-        if {$transportConstructor eq {}} {
-            update idle
-            set transportConstructor [lcc::OpenLCBNode \
-                                      selectTransportConstructor \
-                                      -parent [winfo toplevel $mainWindow]]
-        }
-        # Canceled? Give up.
-        if {$transportConstructor eq {}} {
-            exit
-        }
-        # Deal with constructor required opts.  Try the command line, fall 
-        # back to a dialog box.
-        set reqOpts [$transportConstructor requiredOpts]
-        set transportOpts [list]    
-        foreach {o d} $reqOpts {
-            if {[lsearch $::argv $o] >= 0} {
-                lappend transportOpts $o [from ::argv $o $d]
-            }
-        }
-        if {[llength $reqOpts] > [llength $transportOpts]} {
-            update idle
-            set transportOpts [eval [list $transportConstructor \
-                                     drawOptionsDialog \
-                                     -parent [winfo toplevel $mainWindow]] \
-                                     $transportOpts]
-        }
-        # Open the transport.
-        if {[catch {eval [list lcc::OpenLCBNode %AUTO% \
-                          -transport $transportConstructor\
-                          -eventhandler [mytypemethod _eventHandler] \
-                          -generalmessagehandler [mytypemethod _messageHandler] \
-                          -softwaremodel "OpenLCB GUI" \
-                          -softwareversion "1.0" \
-                          -additionalprotocols {Datagram EventExchange} \
-                          ] $transportOpts} transport]} {
-            tk_messageBox -type ok -icon error \
-                      -message [_ "Failed to open transport because: %s" $transport]
-            exit 99
-        }
         putdebug "*** $type typeconstructor: transport = $transport"
         # Get our Node ID.
         set mynid [$transport cget -nid]
         putdebug "*** $type typeconstructor: mynid = $mynid"
-        # Start the tree with ourselves.
-        $nodetree insert {} end -id $mynid \
-              -text $mynid \
-              -open no
-        putdebug "*** $type typeconstructor: $mynid inserted."
-        # Insert our child nodes.
-        $type _insertSimpleNodeInfo $mynid [$transport ReturnMySimpleNodeInfo]
-        $type _insertSupportedProtocols $mynid [$transport ReturnMySupportedProtocols]
-        #
-        # Bind Actions to selected protocols.
-        $nodetree tag bind protocol_CDI <ButtonPress-1> [mytypemethod _ReadCDI %x %y]
-        $nodetree tag bind protocol_MemoryConfig <ButtonPress-1> [mytypemethod _MemoryConfig %x %y]
         # Pop the main window on the screen.
         $mainWindow showit
         update idle
-        # Find out who else is out there.
-        $transport SendVerifyNodeID
         putdebug "*** $type typeconstructor: done."
     }
     typemethod _eventHandler {command eventid {validity {}}} {
@@ -374,38 +333,12 @@ snit::type OpenLCB {
         #* Message handler -- handle incoming messages.
         #* Certain messages are processed:
         #*
-        #* Initialization Complete Messages -- Insert a node id entry in the 
-        #*                                     tree view.
-        #*                                     A SimpleNodeInfoRequest is also 
-        #*                                     sent to the new node.
-        #* Verified Node ID -- Insert a node id entry in the tree view.
-        #*                     A SimpleNodeInfoRequest is also sent to the
-        #*                     new node.
         #* Verify Node ID   -- Send our Verified Node ID.
         #* Protocol Support Inquiry -- Send our Supported Protocols.
-        #* Protocol Support Reply -- Insert the Supported Protocols for the 
-        #*                     node.
         #* Simple Node Information Request -- Send our Simple Node Info.
-        #* Simple Node Information Reply -- Insert the  Simple Node Information
-        #*                     Then send a Protocol Support Inquiry to the 
-        #*                     node.
-        #* All other messages are not processed.
+        #* Other messages are handled by the nodetree.
         
         switch [format {0x%04X} [$message cget -mti]] {
-            0x0100 -
-            0x0101 -
-            0x0170 -
-            0x0171 {
-                # I'm fine, how are you?
-                $transport SendMyNodeVerifcation
-                #* Verified Node ID & Initialization Complete messages.
-                set nid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] \
-                         [$message cget -data]]
-                if {![$nodetree exists $nid]} {
-                    $nodetree insert {} end -id $nid -text $nid -open no
-                    $transport SendSimpleNodeInfoRequest $nid
-                }
-            }
             0x0490 -
             0x0488 {
                 #* Verify Node ID
@@ -415,26 +348,14 @@ snit::type OpenLCB {
                 #* Protocol Support Inquiry
                 $transport SendMySupportedProtocols [$message cget -sourcenid]
             }
-            0x0668 {
-                #* Protocol Support Reply
-                set report [$message cget -data]
-                set nid    [$message cget -sourcenid]
-                $type _insertSupportedProtocols $nid $report
-            }
             0x0DE8 {
                 #* Simple Node Information Request
                 $transport SendMySimpleNodeInfo [$message cget -sourcenid]
             }
-            0x0A08 {
-                #* Simple Node Information Reply
-                set payload [$message cget -data]
-                set nid     [$message cget -sourcenid]
-                $type _insertSimpleNodeInfo $nid $payload
-                $transport SendSupportedProtocolsRequest $nid
-            }
             default {
             }
         }
+        $nodetree messageHandler $message
     }
     typemethod _insertSimpleNodeInfo {nid infopayload} {
         #* Insert the SimpleNodeInfo for nid into the tree view.

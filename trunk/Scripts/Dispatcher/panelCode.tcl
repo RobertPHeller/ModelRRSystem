@@ -50,10 +50,11 @@ snit::type MainWindow {
     set name [from args -name {}]
     set width [from args -width 800]
     set height [from args -height 800]
+    set extramenus [from args -extramenus {}]
     wm protocol . WM_DELETE_WINDOW [mytypemethod CarefulExit]
     wm withdraw .
     wm title . "$name"
-    set main [mainwindow .main]
+    set main [mainwindow .main -extramenus $extramenus]
     pack $main -expand yes -fill both
     $main menu entryconfigure file New -state disabled
     $main menu entryconfigure file Open... -state disabled
