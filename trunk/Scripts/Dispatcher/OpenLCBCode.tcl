@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <160825.1303>
+#  Last Modified : <160919.1246>
 #
 #  Description	
 #
@@ -43,6 +43,8 @@
 
 package require snit
 package require LCC
+package require LCCNodeTree
+package require EventDialogs
 package require CTCPanel 2.0
 
 snit::type Dispatcher_Block {
@@ -479,7 +481,61 @@ snit::type OpenLCB_Dispatcher {
     typevariable  eventsconsumed {};# Events consumed.
     typevariable  producers {};#      Element instances that produce events
     typevariable  eventsproduced {};# Events produced.
+    typevariable  eventlogging no;#   Event logging
+    typecomponent eventlog;#          Event log window
+    typecomponent nodetreetop;#       Node Tree toplevel
+    typecomponent nodetreemain;#      Node Tree Main window
+    typecomponent nodetree;#          Node Tree
     
+    typeconstructor {
+        set eventlog {}
+        set nodetree {}
+        set nodetreemain {}
+        set nodetreetop {}
+    }
+
+    typemethod PopulateOpenLCBMenu {} {
+        MainWindow main menu add openlcb checkbutton \
+              -label [_m {Menu|OpenLCB|Event Logging}] \
+              -variable [mytypevar eventlogging] \
+              -onvalue yes -offvalue no
+        MainWindow main menu add openlcb command \
+              -label [_m {Menu|OpenLCB|Open Eventlog}] \
+              -command [mytypemethod _OpenEventlog]
+        MainWindow main menu add openlcb command \
+              -label [_m {Menu|OpenLCB|Open Node Tree}] \
+              -command [mytypemethod _OpenNodeTree]
+    }
+    
+    typemethod _OpenEventlog {} {
+        if {![winfo exists $eventlog]} {
+            set eventlog [lcc::EventLog .eventlog%AUTO% \
+                          -transport $transport]
+        }
+        $eventlog open
+    }
+    typemethod _OpenNodeTree {} {
+        if {![winfo exists $nodetree]} {
+            catch {.nodetreetop destroy}
+            set nodetreetop [toplevel .nodetreetop]
+            set nodetreemain [mainwindow $nodetreetop.main -scrolling yes \
+                              -height 480 -width 640]
+            pack $nodetreemain -expand yes -fill both
+            $nodetreemain menu entryconfigure file "Exit" -state disabled
+            $nodetreemain menu entryconfigure file "Close" -command [mytypemethod _closeNodeTree]
+            wm protocol $nodetreetop WM_DELETE_WINDOW \
+                  [mytypemethod _closeNodeTree]
+            set nodetree [LCCNodeTree [$nodetreemain scrollwindow getframe].nodetree \
+                          -transport $transport]
+            $nodetreemain scrollwindow setwidget $nodetree
+        }
+        $nodetreemain showit
+    }
+    typemethod _closeNodeTree {} {
+        if {[winfo exists $nodetree]} {
+            wm withdraw $nodetreetop
+        }
+    }
     typemethod ConnectToOpenLCB {args} {
         #puts stderr "*** $type ConnectToOpenLCB $args"
         set transportConstructors [info commands ::lcc::[from args -transport]]
@@ -575,6 +631,14 @@ snit::type OpenLCB_Dispatcher {
                     $c consumeEvent $eventid
                     
                 }
+                if {$eventlogging} {
+                    if {![winfo exists $eventlog]} {
+                        set eventlog [lcc::EventLog .eventlog%AUTO% \
+                                      -transport $transport]
+                    }
+                    $eventlog eventReceived $eventid
+                    $eventlog open
+                }
             }
         }
     }
@@ -599,6 +663,9 @@ snit::type OpenLCB_Dispatcher {
             }
             default {
             }
+        }
+        if {[winfo exists $nodetree]} {
+            $nodetree messageHandler $message
         }
     }
     

@@ -85,7 +85,8 @@ CommonLibFiles = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif \
 		 $(top_srcdir)/Scripts/Common/CTCPanel2.tcl \
 		 $(top_srcdir)/Scripts/Common/ReadConfiguration.tcl \
 		 $(top_srcdir)/Scripts/Common/gettext.tcl \
-		 $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl
+		 $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
+		 $(top_srcdir)/Scripts/Common/ParseXML.tcl
 
 CXXSupport = Mrr
 CXXSupportFiles =  $(top_builddir)/C++/ParserClasses/.libs/libMRRParserClasses$(SHLIB_SUFFIX) \
@@ -128,6 +129,7 @@ OpenLCBSupportFiles = $(top_srcdir)/Scripts/LCC/ConfigDialogs.tcl \
 		      $(top_srcdir)/Scripts/LCC/ConfigurationEditor.tcl \
 		      $(top_srcdir)/Scripts/LCC/eventDialogs.tcl \
 		      $(top_srcdir)/Scripts/LCC/lcc.tcl \
+		      $(top_srcdir)/Scripts/LCC/LCCNodeTree.tcl \
 		      $(top_builddir)/Scripts/LCC/pkgIndex.tcl
 OpenLCBDependFiles  = $(OpenLCBSupportFiles)
 
@@ -182,6 +184,8 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 	-rm -rf Dispatcher.kit
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit Dispatcher \
 		lib $(SNITLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit Dispatcher \
+		lib $(URILIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) Dispatcher \
 		lib/$(DispatcherLib) $(DispatcherLibFiles) 
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit Dispatcher \
@@ -196,6 +200,8 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(UNZIP) -qq -d Dispatcher.vfs/lib \
 		$(top_srcdir)/BuildData/pdf4tcl05.zip
+	$(UNZIP) -qq -d Dispatcher.vfs/lib \
+		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		Help $(top_builddir)/Doc/User/Dispatcher/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) Dispatcher \
