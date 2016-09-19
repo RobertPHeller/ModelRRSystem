@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <160919.1246>
+#  Last Modified : <160919.1617>
 #
 #  Description	
 #
@@ -519,10 +519,15 @@ snit::type OpenLCB_Dispatcher {
             catch {.nodetreetop destroy}
             set nodetreetop [toplevel .nodetreetop]
             set nodetreemain [mainwindow $nodetreetop.main -scrolling yes \
-                              -height 480 -width 640]
+                              -height 480 -width 640 \
+                              -menu [subst {
+                                     "[_m {Menu|&File}]" {file:menu} {file} 0 {
+                                         {command "[_m {Menu|File|&Close}]" 
+                                             {file:close} 
+                                             "[_ {Close the Node Tree}]" 
+                                             {Ctrl c} 
+                                             -command "[mytypemethod _closeNodeTree]"}}}]]
             pack $nodetreemain -expand yes -fill both
-            $nodetreemain menu entryconfigure file "Exit" -state disabled
-            $nodetreemain menu entryconfigure file "Close" -command [mytypemethod _closeNodeTree]
             wm protocol $nodetreetop WM_DELETE_WINDOW \
                   [mytypemethod _closeNodeTree]
             set nodetree [LCCNodeTree [$nodetreemain scrollwindow getframe].nodetree \
