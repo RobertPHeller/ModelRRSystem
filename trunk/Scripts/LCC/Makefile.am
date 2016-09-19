@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160828.1614>
+#  Last Modified : <160919.0918>
 #
 #  Description	
 #
@@ -49,7 +49,7 @@ EXTRA_DIST = lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		ConfigDialogs.tcl OpenLCB.tcl OpenLCB.desktop OpenLCB.png \
 		Doxyfile.in OpenLCBGCTcpHub.tcl OpenLCBTcpHub.tcl \
 		OpenLCB_MRD2.tcl OpenLCB_PiGPIO.tcl OpenLCB_TrackCircuits.tcl \
-		OpenLCB_Logic.tcl OpenLCB_Acela.tcl
+		OpenLCB_Logic.tcl OpenLCB_Acela.tcl LCCNodeTree.tcl
 
 bin_SCRIPTS = OpenLCB${EXEEXT} OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
 	OpenLCBGCTcpHub${EXEEXT} OpenLCB_TrackCircuits${EXEEXT} \
@@ -82,7 +82,7 @@ CLEANFILES = pkgIndex.tcl OpenLCB${EXEEXT} OpenLCB.pot \
 			  OpenLCB_Acela${EXEEXT}
 
 pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
-		ConfigDialogs.tcl
+		ConfigDialogs.tcl LCCNodeTree.tcl
 	for f in $(notdir $^) ; do \
 	   if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi;\
 	done
@@ -107,6 +107,7 @@ OpenLCBSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
                 $(top_srcdir)/Scripts/LCC/lcc.tcl \
                 $(top_srcdir)/Scripts/LCC/eventDialogs.tcl \
                 $(top_srcdir)/Scripts/LCC/ConfigDialogs.tcl \
+                $(top_srcdir)/Scripts/LCC/LCCNodeTree.tcl \
 		$(top_builddir)/Scripts/Common/Version.tcl \
 		$(top_srcdir)/Scripts/Common/questhead.xbm \
 		$(top_srcdir)/Scripts/Common/unknown.xpm
@@ -114,7 +115,7 @@ OpenLCBSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
 
 OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
                 ConfigDialogs.tcl eventDialogs.tcl ConfigurationEditor.tcl \
-                OpenLCBGCTcpHub.tcl OpenLCB_PiGPIO.tcl \
+                OpenLCBGCTcpHub.tcl OpenLCB_PiGPIO.tcl LCCNodeTree.tcl \
                 OpenLCB_TrackCircuits.tcl OpenLCB_Acela.tcl OpenLCB_Logic.tcl \
 		$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
@@ -124,7 +125,7 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
 		         eventDialogs.tcl ConfigurationEditor.tcl \
 		         OpenLCBGCTcpHub.tcl OpenLCB_PiGPIO.tcl \
 		         OpenLCB_TrackCircuits.tcl OpenLCB_Acela.tcl \
-		         OpenLCB_Logic.tcl) \
+		         OpenLCB_Logic.tcl LCCNodeTree.tcl) \
 		Scripts/Common/snitStdMenuBar.tcl|\
 	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
 	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
