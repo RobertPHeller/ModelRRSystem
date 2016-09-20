@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160919.0918>
+#  Last Modified : <160920.1032>
 #
 #  Description	
 #
@@ -60,7 +60,7 @@ endif
 
 pkgdatadir = $(datadir)/$(PACKAGE)/LCC
 pkgdata_DATA = lcc.tcl pkgIndex.tcl ConfigDialogs.tcl eventDialogs.tcl \
-		ConfigurationEditor.tcl OpenLCB.pot
+		ConfigurationEditor.tcl OpenLCB.pot LCCNodeTree.tcl
 desktopdir = $(datadir)/applications
 desktop_DATA = OpenLCB.desktop
 
