@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Sep 19 09:18:09 2016
-#  Last Modified : <160919.1112>
+#  Last Modified : <160925.0956>
 #
 #  Description	
 #
@@ -350,12 +350,14 @@ snit::widgetadaptor LCCNodeTree {
             putdebug [format {*** %s _ReadCDI: lowest = %08X} $self $lowest]
             putdebug [format {*** %s _ReadCDI: highest = %08X} $self $highest]
             set start $lowest
-            set end   [expr {$highest + 64}]
+            #set end   [expr {$highest + 64}]
+            set end $highest
             set CDIs_text($nid) {}
             set EOS_Seen no
-            for {set address $start} {$address < $end && !$EOS_Seen} {incr address $size} {
-                set size [expr {$end - $address}]
-                if {$size > 64} {set size 64}
+            for {set address $start} {!$EOS_Seen} {incr address $size} {
+                # Always read 64 bytes, even if this means reading past the 
+                # "end".
+                set size 64
                 set data [list 0x20 0x43 \
                           [expr {($address & 0xFF000000) >> 24}] \
                           [expr {($address & 0xFF0000) >> 16}] \
@@ -405,7 +407,13 @@ snit::widgetadaptor LCCNodeTree {
                 }
                 
             }
-            set CDIs_xml($nid) [ParseXML %AUTO% $CDIs_text($nid)]
+            putdebug [format {*** %s _ReadCDI: Last address block was at: = %08X} $self $address]
+            if {[catch {ParseXML %AUTO% $CDIs_text($nid)} parsedCDI]} {
+                tk_messageBox -type ok -icon error \
+                      -message [_ "Could not parse the CDI because %s" $parsedCDI]
+                return
+            }
+            set CDIs_xml($nid) $parsedCDI
             putdebug "*** $self _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"
             set CDIs_FormTLs($nid) \
                   [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
@@ -415,8 +423,12 @@ snit::widgetadaptor LCCNodeTree {
         } elseif {![info exists CDIs_xml($nid)] ||
             $CDIs_xml($nid) eq {}} {
             
-            set CDIs_xml($nid) [ParseXML %AUTO% \
-                                          $CDIs_text($nid)]
+            if {[catch {ParseXML %AUTO% $CDIs_text($nid)} parsedCDI]} {
+                tk_messageBox -type ok -icon error \
+                      -message [_ "Could not parse the CDI because %s" $parsedCDI]
+                return
+            }
+            set CDIs_xml($nid) $parsedCDI
             putdebug "*** $self _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"
             set CDIs_FormTLs($nid) \
                   [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
@@ -458,7 +470,12 @@ snit::widgetadaptor LCCNodeTree {
         }
         set CDIs_text($cdifile) [read $infp]
         close $infp
-        set CDIs_xml($cdifile) [ParseXML %AUTO% $CDIs_text($cdifile)]
+        if {[catch {ParseXML %AUTO% $CDIs_text($cdifile)} parsedCDI]} {
+            tk_messageBox -type ok -icon error \
+                  -message [_ "Could not parse the CDI because %s" $parsedCDI]
+            return
+        }
+        set CDIs_xml($cdifile) $parsedCDI
         if {[info exists CDIs_FormTLs($cdifile)] && 
             [winfo exists $CDIs_FormTLs($cdifile)]} {
             destroy $CDIs_FormTLs($cdifile)
