@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 25 14:52:47 2016
-#  Last Modified : <160929.1745>
+#  Last Modified : <160929.1841>
 #
 #  Description	
 #
@@ -1043,7 +1043,7 @@ snit::type OpenLCB_Logic {
         pack $v2offevent_ -fill x -expand yes
         set v2offevent [$logic getElementsByTagName "v2offevent"]
         if {[llength $v2offevent] > 0} {
-            $v2offevent_ configure -text "[[lindex $v2offevent 0] data]"
+            $v2offevent configure -text "[[lindex $v2offevent 0] data]"
         } else {
             $v2offevent_ configure -text "00.00.00.00.00.00.00.00"
         }
