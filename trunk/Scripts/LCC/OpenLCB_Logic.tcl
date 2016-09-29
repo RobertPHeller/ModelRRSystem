@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 25 14:52:47 2016
-#  Last Modified : <160828.1635>
+#  Last Modified : <160929.1745>
 #
 #  Description	
 #
@@ -241,6 +241,8 @@ snit::type OpenLCB_Logic {
     variable action3did {}
     variable action4did {}
     
+    variable lastval false
+    variable triggeredstate false
     option -description -readonly yes -default {}
     
     constructor {args} {
@@ -289,12 +291,16 @@ snit::type OpenLCB_Logic {
         return $events
     }
     method processevent {event} {
+        ::log::log debug "*** $self processevent [$event cget -eventidstring]"
         set triggeredstate false
         set ematch false
         foreach eopt {v1oneventid v1offeventid v2oneventid v2offeventid} {
+            ::log::log debug "*** $self processevent: eopt is $eopt"
             set ev [$self cget -$eopt]
             if {$ev eq {}} {continue}
+            ::log::log debug "*** $self processevent: ev is [$ev cget -eventidstring]"
             if {[$ev match $event]} {
+                ::log::log debug "*** $self processevent: [$ev cget -eventidstring] matches [$event cget -eventidstring]"
                 switch $eopt {
                     v1oneventid {
                         set v1 true
@@ -310,6 +316,9 @@ snit::type OpenLCB_Logic {
                     }
                 }
                 set ematch true
+                ::log::log debug "*** $self processevent: v1 = $v1, v2 = $v2"
+                ::log::log debug "*** $self processevent: -logic is [$self cget -logic]"
+                ::log::log debug "*** $self processevent: lastval = $lastval"
                 switch [$self cget -logic] {
                     and {
                         if {$v1 && $v2} {
@@ -366,7 +375,10 @@ snit::type OpenLCB_Logic {
                 }
             }
         }
+        ::log::log debug "*** $self processevent: ematch is $ematch"
         if {!$ematch} {return}
+        ::log::log debug "*** $self processevent: triggeredstate = $triggeredstate"
+        ::log::log debug "*** $self processevent: lastval = $lastval"
         switch [$self cget -grouptype] {
             single {
                 if {$triggeredstate} {
@@ -413,7 +425,7 @@ snit::type OpenLCB_Logic {
         foreach a {1 2 3 4} {
             set eventid  [$self cget -action${a}eventid]
             if {$eventid eq {}} {continue}
-            set delayedP [$self cget -action${a}action1delay]
+            set delayedP [$self cget -action${a}delay]
             set did      [set action${a}did]
             if {$thedelay > 0 && $delayedP} {
                 if {$retrig && $did ne {}} {
@@ -567,11 +579,11 @@ snit::type OpenLCB_Logic {
             lappend logiccommand -grouptype $group
             set v1onevent [$logic getElementsByTagName "v1onevent"]
             if {[llength $v1onevent] > 0} {
-                lappend logiccommand -v1onevent [lcc::EventID create %AUTO% -eventidstring "[[lindex $v1onevent 0] data]"]
+                lappend logiccommand -v1oneventid [lcc::EventID create %AUTO% -eventidstring "[[lindex $v1onevent 0] data]"]
             }
             set v1offevent [$logic getElementsByTagName "v1offevent"]
             if {[llength $v1offevent] > 0} {
-                lappend logiccommand -v1offevent [lcc::EventID create %AUTO% -eventidstring "[[lindex $v1offevent 0] data]"]
+                lappend logiccommand -v1offeventid [lcc::EventID create %AUTO% -eventidstring "[[lindex $v1offevent 0] data]"]
             }
             set logicfunction [$logic getElementsByTagName "logicfunction"]
             if {[llength $logicfunction] > 0} {
@@ -579,19 +591,19 @@ snit::type OpenLCB_Logic {
             }
             set v2onevent [$logic getElementsByTagName "v2onevent"]
             if {[llength $v2onevent] > 0} {
-                lappend logiccommand -v2onevent [lcc::EventID create %AUTO% -eventidstring "[[lindex $v2onevent 0] data]"]
+                lappend logiccommand -v2oneventid [lcc::EventID create %AUTO% -eventidstring "[[lindex $v2onevent 0] data]"]
             }
             set v2offevent [$logic getElementsByTagName "v2offevent"]
             if {[llength $v2offevent] > 0} {
-                lappend logiccommand -v1offevent [lcc::EventID create %AUTO% -eventidstring "[[lindex $v2offevent 0] data]"]
+                lappend logiccommand -v2offeventid [lcc::EventID create %AUTO% -eventidstring "[[lindex $v2offevent 0] data]"]
             }
             set delay [$logic getElementsByTagName "delay"]
             if {[llength $delay] > 0} {
                 lappend logiccommand -delay [[lindex $delay 0] data]
             }
-            set retriggerable [$logic getElementsByTagName "retriggerable"]
-            if {[llength $retriggerable] > 0} {
-                lappend logiccommand -retriggerable [[lindex $retriggerable 0] data]
+            set retrigerable [$logic getElementsByTagName "retrigerable"]
+            if {[llength $retrigerable] > 0} {
+                lappend logiccommand -retrigerable [[lindex $retrigerable 0] data]
             }
             set action1delay [$logic getElementsByTagName "action1delay"]
             if {[llength $action1delay] > 0} {
@@ -599,7 +611,7 @@ snit::type OpenLCB_Logic {
             }
             set action1event [$logic getElementsByTagName "action1event"]
             if {[llength $action1event] > 0} {
-                lappend logiccommand -v1offevent [lcc::EventID create %AUTO% -eventidstring "[[lindex $action1event 0] data]"]
+                lappend logiccommand -action1eventid [lcc::EventID create %AUTO% -eventidstring "[[lindex $action1event 0] data]"]
             }
             set action2delay [$logic getElementsByTagName "action2delay"]
             if {[llength $action2delay] > 0} {
@@ -607,7 +619,7 @@ snit::type OpenLCB_Logic {
             }
             set action2event [$logic getElementsByTagName "action2event"]
             if {[llength $action2event] > 0} {
-                lappend logiccommand -v1offevent [lcc::EventID create %AUTO% -eventidstring "[[lindex $action2event 0] data]"]
+                lappend logiccommand -action2eventid [lcc::EventID create %AUTO% -eventidstring "[[lindex $action2event 0] data]"]
             }
             set action3delay [$logic getElementsByTagName "action3delay"]
             if {[llength $action3delay] > 0} {
@@ -615,7 +627,7 @@ snit::type OpenLCB_Logic {
             }
             set action3event [$logic getElementsByTagName "action3event"]
             if {[llength $action3event] > 0} {
-                lappend logiccommand -v1offevent [lcc::EventID create %AUTO% -eventidstring "[[lindex $action3event 0] data]"]
+                lappend logiccommand -action3eventid [lcc::EventID create %AUTO% -eventidstring "[[lindex $action3event 0] data]"]
             }
             set action4delay [$logic getElementsByTagName "action4delay"]
             if {[llength $action4delay] > 0} {
@@ -623,7 +635,7 @@ snit::type OpenLCB_Logic {
             }
             set action4event [$logic getElementsByTagName "action4event"]
             if {[llength $action4event] > 0} {
-                lappend logiccommand -v1offevent [lcc::EventID create %AUTO% -eventidstring "[[lindex $action4event 0] data]"]
+                lappend logiccommand -action4eventid [lcc::EventID create %AUTO% -eventidstring "[[lindex $action4event 0] data]"]
             }
             
             ::log::log debug "*** $type typeconstructor: logiccommand is $logiccommand"
@@ -729,7 +741,7 @@ snit::type OpenLCB_Logic {
                 foreach l $alllogics {
                     ::log::log debug "*** $type _eventHandler: logic is [$l cget -description]"
                     ::log::log debug "*** $type _eventHandler: event is [$eventid cget -eventidstring]"
-                    $t processevent $eventid
+                    $l processevent $eventid
                     
                 }
             }
@@ -1046,22 +1058,22 @@ snit::type OpenLCB_Logic {
         } else {
             $delay_ set 0
         }
-        set retriggerable_ [LabelComboBox $lcxframe.retriggerable \
-                            -label [_m "Label|Retriggerable?"] \
+        set retrigerable_ [LabelComboBox $lcxframe.retrigerable \
+                            -label [_m "Label|Retrigerable?"] \
                             -values [list [_m "Answer|No"] [_m "Answer|Yes"]] \
                             -editable no]
-        pack $retriggerable_ -fill x -expand yes
-        set retriggerable [$logic getElementsByTagName "retriggerable"]
-        if {[llength $retriggerable] > 0} {
-            if {[[lindex $retriggerable 0] data]} {
-                $retriggerable_ set [_m "Answer|Yes"]
+        pack $retrigerable_ -fill x -expand yes
+        set retrigerable [$logic getElementsByTagName "retrigerable"]
+        if {[llength $retrigerable] > 0} {
+            if {[[lindex $retrigerable 0] data]} {
+                $retrigerable_ set [_m "Answer|Yes"]
             } else {
-                $retriggerable_ set [_m "Answer|No"]
+                $retrigerable_ set [_m "Answer|No"]
             }
         } else {
-            $retriggerable_ set [_m "Answer|No"]
+            $retrigerable_ set [_m "Answer|No"]
         }
-        #puts stderr "*** $type _create_and_populate_logic: retriggerable_ = $retriggerable_"
+        #puts stderr "*** $type _create_and_populate_logic: retrigerable_ = $retrigerable_"
         set actions [ScrollTabNotebook $lcxframe.actions]
         pack $actions -expand yes -fill both
         foreach a {1 2 3 4} {
@@ -1254,16 +1266,16 @@ snit::type OpenLCB_Logic {
             $logic addchild $delay
         }
         $delay setdata $delay_
-        set retriggerable_ false
-        if {"[$frbase.retriggerable get]" eq [_m "Answer|Yes"]} {
-            set retriggerable_ true
+        set retrigerable_ false
+        if {"[$frbase.retrigerable get]" eq [_m "Answer|Yes"]} {
+            set retrigerable_ true
         }
-        set retriggerable [$logic getElementsByTagName "retriggerable"]
-        if {[llength $retriggerable] < 1} {
-            set retriggerable [SimpleDOMElement %AUTO% -tag "retriggerable"]
-            $logic addchild $retriggerable
+        set retrigerable [$logic getElementsByTagName "retrigerable"]
+        if {[llength $retrigerable] < 1} {
+            set retrigerable [SimpleDOMElement %AUTO% -tag "retrigerable"]
+            $logic addchild $retrigerable
         }
-        $retriggerable setdata $retriggerable_
+        $retrigerable setdata $retrigerable_
         foreach a {1 2 3 4} {
             set aframe [format {%s.action%d} $frbase.actions $a]
             set action_event_ "[$aframe.event get]"
