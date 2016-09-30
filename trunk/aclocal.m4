@@ -1,8 +1,7 @@
-# generated automatically by aclocal 1.11.6 -*- Autoconf -*-
+# generated automatically by aclocal 1.11.1 -*- Autoconf -*-
 
 # Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-# 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation,
-# Inc.
+# 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -14,14 +13,14 @@
 
 m4_ifndef([AC_AUTOCONF_VERSION],
   [m4_copy([m4_PACKAGE_VERSION], [AC_AUTOCONF_VERSION])])dnl
-m4_if(m4_defn([AC_AUTOCONF_VERSION]), [2.69],,
-[m4_warning([this file was generated for autoconf 2.69.
+m4_if(m4_defn([AC_AUTOCONF_VERSION]), [2.63],,
+[m4_warning([this file was generated for autoconf 2.63.
 You have another version of autoconf.  It may work, but is not guaranteed to.
 If you have problems, you may need to regenerate the build system entirely.
 To do so, use the procedure documented by the package, typically `autoreconf'.])])
 
-# codeset.m4 serial 4 (gettext-0.18)
-dnl Copyright (C) 2000-2002, 2006, 2008-2010 Free Software Foundation, Inc.
+# codeset.m4 serial 2 (gettext-0.16)
+dnl Copyright (C) 2000-2002, 2006 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -30,102 +29,20 @@ dnl From Bruno Haible.
 
 AC_DEFUN([AM_LANGINFO_CODESET],
 [
-  AC_CACHE_CHECK([for nl_langinfo and CODESET], [am_cv_langinfo_codeset],
+  AC_CACHE_CHECK([for nl_langinfo and CODESET], am_cv_langinfo_codeset,
     [AC_TRY_LINK([#include <langinfo.h>],
       [char* cs = nl_langinfo(CODESET); return !cs;],
-      [am_cv_langinfo_codeset=yes],
-      [am_cv_langinfo_codeset=no])
+      am_cv_langinfo_codeset=yes,
+      am_cv_langinfo_codeset=no)
     ])
   if test $am_cv_langinfo_codeset = yes; then
-    AC_DEFINE([HAVE_LANGINFO_CODESET], [1],
+    AC_DEFINE(HAVE_LANGINFO_CODESET, 1,
       [Define if you have <langinfo.h> and nl_langinfo(CODESET).])
   fi
 ])
 
-# fcntl-o.m4 serial 1
-dnl Copyright (C) 2006, 2009-2010 Free Software Foundation, Inc.
-dnl This file is free software; the Free Software Foundation
-dnl gives unlimited permission to copy and/or distribute it,
-dnl with or without modifications, as long as this notice is preserved.
-
-dnl Written by Paul Eggert.
-
-# Test whether the flags O_NOATIME and O_NOFOLLOW actually work.
-# Define HAVE_WORKING_O_NOATIME to 1 if O_NOATIME works, or to 0 otherwise.
-# Define HAVE_WORKING_O_NOFOLLOW to 1 if O_NOFOLLOW works, or to 0 otherwise.
-AC_DEFUN([gl_FCNTL_O_FLAGS],
-[
-  dnl Persuade glibc <fcntl.h> to define O_NOATIME and O_NOFOLLOW.
-  AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])
-  AC_CACHE_CHECK([for working fcntl.h], [gl_cv_header_working_fcntl_h],
-    [AC_RUN_IFELSE(
-       [AC_LANG_PROGRAM(
-          [[#include <sys/types.h>
-           #include <sys/stat.h>
-           #include <unistd.h>
-           #include <fcntl.h>
-           #ifndef O_NOATIME
-            #define O_NOATIME 0
-           #endif
-           #ifndef O_NOFOLLOW
-            #define O_NOFOLLOW 0
-           #endif
-           static int const constants[] =
-            {
-              O_CREAT, O_EXCL, O_NOCTTY, O_TRUNC, O_APPEND,
-              O_NONBLOCK, O_SYNC, O_ACCMODE, O_RDONLY, O_RDWR, O_WRONLY
-            };
-          ]],
-          [[
-            int status = !constants;
-            {
-              static char const sym[] = "conftest.sym";
-              if (symlink (".", sym) != 0
-                  || close (open (sym, O_RDONLY | O_NOFOLLOW)) == 0)
-                status |= 32;
-              unlink (sym);
-            }
-            {
-              static char const file[] = "confdefs.h";
-              int fd = open (file, O_RDONLY | O_NOATIME);
-              char c;
-              struct stat st0, st1;
-              if (fd < 0
-                  || fstat (fd, &st0) != 0
-                  || sleep (1) != 0
-                  || read (fd, &c, 1) != 1
-                  || close (fd) != 0
-                  || stat (file, &st1) != 0
-                  || st0.st_atime != st1.st_atime)
-                status |= 64;
-            }
-            return status;]])],
-       [gl_cv_header_working_fcntl_h=yes],
-       [case $? in #(
-        32) gl_cv_header_working_fcntl_h='no (bad O_NOFOLLOW)';; #(
-        64) gl_cv_header_working_fcntl_h='no (bad O_NOATIME)';; #(
-        96) gl_cv_header_working_fcntl_h='no (bad O_NOATIME, O_NOFOLLOW)';; #(
-         *) gl_cv_header_working_fcntl_h='no';;
-        esac],
-       [gl_cv_header_working_fcntl_h=cross-compiling])])
-
-  case $gl_cv_header_working_fcntl_h in #(
-  *O_NOATIME* | no | cross-compiling) ac_val=0;; #(
-  *) ac_val=1;;
-  esac
-  AC_DEFINE_UNQUOTED([HAVE_WORKING_O_NOATIME], [$ac_val],
-    [Define to 1 if O_NOATIME works.])
-
-  case $gl_cv_header_working_fcntl_h in #(
-  *O_NOFOLLOW* | no | cross-compiling) ac_val=0;; #(
-  *) ac_val=1;;
-  esac
-  AC_DEFINE_UNQUOTED([HAVE_WORKING_O_NOFOLLOW], [$ac_val],
-    [Define to 1 if O_NOFOLLOW works.])
-])
-
-# gettext.m4 serial 63 (gettext-0.18)
-dnl Copyright (C) 1995-2010 Free Software Foundation, Inc.
+# gettext.m4 serial 60 (gettext-0.17)
+dnl Copyright (C) 1995-2007 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -141,7 +58,7 @@ dnl They are *not* in the public domain.
 
 dnl Authors:
 dnl   Ulrich Drepper <drepper@cygnus.com>, 1995-2000.
-dnl   Bruno Haible <haible@clisp.cons.org>, 2000-2006, 2008-2010.
+dnl   Bruno Haible <haible@clisp.cons.org>, 2000-2006.
 
 dnl Macro to add for using GNU gettext.
 
@@ -186,8 +103,6 @@ AC_DEFUN([AM_GNU_GETTEXT],
   ifelse([$1], [], , [ifelse([$1], [external], , [ifelse([$1], [no-libtool], , [ifelse([$1], [use-libtool], ,
     [errprint([ERROR: invalid first argument to AM_GNU_GETTEXT
 ])])])])])
-  ifelse(ifelse([$1], [], [old])[]ifelse([$1], [no-libtool], [old]), [old],
-    [AC_DIAGNOSE([obsolete], [Use of AM_GNU_GETTEXT without [external] argument is deprecated.])])
   ifelse([$2], [], , [ifelse([$2], [need-ngettext], , [ifelse([$2], [need-formatstring-macros], ,
     [errprint([ERROR: invalid second argument to AM_GNU_GETTEXT
 ])])])])
@@ -251,11 +166,11 @@ AC_DEFUN([AM_GNU_GETTEXT],
     gt_use_preinstalled_gnugettext=no
     ifelse(gt_included_intl, yes, [
       AC_MSG_CHECKING([whether included gettext is requested])
-      AC_ARG_WITH([included-gettext],
+      AC_ARG_WITH(included-gettext,
         [  --with-included-gettext use the GNU gettext library included here],
         nls_cv_force_use_gnu_gettext=$withval,
         nls_cv_force_use_gnu_gettext=no)
-      AC_MSG_RESULT([$nls_cv_force_use_gnu_gettext])
+      AC_MSG_RESULT($nls_cv_force_use_gnu_gettext)
 
       nls_cv_use_gnu_gettext="$nls_cv_force_use_gnu_gettext"
       if test "$nls_cv_force_use_gnu_gettext" != "yes"; then
@@ -395,7 +310,7 @@ return * gettext ("")$gt_expression_test_code + _nl_msg_cat_cntr + *_nl_expand_a
 
     if test "$gt_use_preinstalled_gnugettext" = "yes" \
        || test "$nls_cv_use_gnu_gettext" = "yes"; then
-      AC_DEFINE([ENABLE_NLS], [1],
+      AC_DEFINE(ENABLE_NLS, 1,
         [Define to 1 if translation of program messages to the user's native language
    is requested.])
     else
@@ -429,9 +344,9 @@ return * gettext ("")$gt_expression_test_code + _nl_msg_cat_cntr + *_nl_expand_a
       fi
 
       dnl For backward compatibility. Some packages may be using this.
-      AC_DEFINE([HAVE_GETTEXT], [1],
+      AC_DEFINE(HAVE_GETTEXT, 1,
        [Define if the GNU gettext() function is already present or preinstalled.])
-      AC_DEFINE([HAVE_DCGETTEXT], [1],
+      AC_DEFINE(HAVE_DCGETTEXT, 1,
        [Define if the GNU dcgettext() function is already present or preinstalled.])
     fi
 
@@ -447,9 +362,9 @@ return * gettext ("")$gt_expression_test_code + _nl_msg_cat_cntr + *_nl_expand_a
     fi
 
     dnl Make all variables we use known to autoconf.
-    AC_SUBST([BUILD_INCLUDED_LIBINTL])
-    AC_SUBST([USE_INCLUDED_LIBINTL])
-    AC_SUBST([CATOBJEXT])
+    AC_SUBST(BUILD_INCLUDED_LIBINTL)
+    AC_SUBST(USE_INCLUDED_LIBINTL)
+    AC_SUBST(CATOBJEXT)
 
     dnl For backward compatibility. Some configure.ins may be using this.
     nls_cv_header_intl=
@@ -457,36 +372,36 @@ return * gettext ("")$gt_expression_test_code + _nl_msg_cat_cntr + *_nl_expand_a
 
     dnl For backward compatibility. Some Makefiles may be using this.
     DATADIRNAME=share
-    AC_SUBST([DATADIRNAME])
+    AC_SUBST(DATADIRNAME)
 
     dnl For backward compatibility. Some Makefiles may be using this.
     INSTOBJEXT=.mo
-    AC_SUBST([INSTOBJEXT])
+    AC_SUBST(INSTOBJEXT)
 
     dnl For backward compatibility. Some Makefiles may be using this.
     GENCAT=gencat
-    AC_SUBST([GENCAT])
+    AC_SUBST(GENCAT)
 
     dnl For backward compatibility. Some Makefiles may be using this.
     INTLOBJS=
     if test "$USE_INCLUDED_LIBINTL" = yes; then
       INTLOBJS="\$(GETTOBJS)"
     fi
-    AC_SUBST([INTLOBJS])
+    AC_SUBST(INTLOBJS)
 
     dnl Enable libtool support if the surrounding package wishes it.
     INTL_LIBTOOL_SUFFIX_PREFIX=gt_libtool_suffix_prefix
-    AC_SUBST([INTL_LIBTOOL_SUFFIX_PREFIX])
+    AC_SUBST(INTL_LIBTOOL_SUFFIX_PREFIX)
   ])
 
   dnl For backward compatibility. Some Makefiles may be using this.
   INTLLIBS="$LIBINTL"
-  AC_SUBST([INTLLIBS])
+  AC_SUBST(INTLLIBS)
 
   dnl Make all documented variables known to autoconf.
-  AC_SUBST([LIBINTL])
-  AC_SUBST([LTLIBINTL])
-  AC_SUBST([POSUB])
+  AC_SUBST(LIBINTL)
+  AC_SUBST(LTLIBINTL)
+  AC_SUBST(POSUB)
 ])
 
 
@@ -508,8 +423,8 @@ AC_DEFUN([AM_GNU_GETTEXT_NEED],
 dnl Usage: AM_GNU_GETTEXT_VERSION([gettext-version])
 AC_DEFUN([AM_GNU_GETTEXT_VERSION], [])
 
-# glibc2.m4 serial 2
-dnl Copyright (C) 2000-2002, 2004, 2008-2010 Free Software Foundation, Inc.
+# glibc2.m4 serial 1
+dnl Copyright (C) 2000-2002, 2004 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -519,28 +434,28 @@ dnl with or without modifications, as long as this notice is preserved.
 
 AC_DEFUN([gt_GLIBC2],
   [
-    AC_CACHE_CHECK([whether we are using the GNU C Library 2 or newer],
-      [ac_cv_gnu_library_2],
+    AC_CACHE_CHECK(whether we are using the GNU C Library 2 or newer,
+      ac_cv_gnu_library_2,
       [AC_EGREP_CPP([Lucky GNU user],
-        [
+	[
 #include <features.h>
 #ifdef __GNU_LIBRARY__
  #if (__GLIBC__ >= 2)
   Lucky GNU user
  #endif
 #endif
-        ],
-        [ac_cv_gnu_library_2=yes],
-        [ac_cv_gnu_library_2=no])
+	],
+	ac_cv_gnu_library_2=yes,
+	ac_cv_gnu_library_2=no)
       ]
     )
-    AC_SUBST([GLIBC2])
+    AC_SUBST(GLIBC2)
     GLIBC2="$ac_cv_gnu_library_2"
   ]
 )
 
-# glibc21.m4 serial 4
-dnl Copyright (C) 2000-2002, 2004, 2008-2010 Free Software Foundation, Inc.
+# glibc21.m4 serial 3
+dnl Copyright (C) 2000-2002, 2004 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -550,28 +465,28 @@ dnl with or without modifications, as long as this notice is preserved.
 
 AC_DEFUN([gl_GLIBC21],
   [
-    AC_CACHE_CHECK([whether we are using the GNU C Library 2.1 or newer],
-      [ac_cv_gnu_library_2_1],
+    AC_CACHE_CHECK(whether we are using the GNU C Library 2.1 or newer,
+      ac_cv_gnu_library_2_1,
       [AC_EGREP_CPP([Lucky GNU user],
-        [
+	[
 #include <features.h>
 #ifdef __GNU_LIBRARY__
  #if (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 1) || (__GLIBC__ > 2)
   Lucky GNU user
  #endif
 #endif
-        ],
-        [ac_cv_gnu_library_2_1=yes],
-        [ac_cv_gnu_library_2_1=no])
+	],
+	ac_cv_gnu_library_2_1=yes,
+	ac_cv_gnu_library_2_1=no)
       ]
     )
-    AC_SUBST([GLIBC21])
+    AC_SUBST(GLIBC21)
     GLIBC21="$ac_cv_gnu_library_2_1"
   ]
 )
 
-# iconv.m4 serial 11 (gettext-0.18.1)
-dnl Copyright (C) 2000-2002, 2007-2010 Free Software Foundation, Inc.
+# iconv.m4 serial AM6 (gettext-0.17)
+dnl Copyright (C) 2000-2002, 2007 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -606,7 +521,7 @@ AC_DEFUN([AM_ICONV_LINK],
   am_save_CPPFLAGS="$CPPFLAGS"
   AC_LIB_APPENDTOVAR([CPPFLAGS], [$INCICONV])
 
-  AC_CACHE_CHECK([for iconv], [am_cv_func_iconv], [
+  AC_CACHE_CHECK([for iconv], am_cv_func_iconv, [
     am_cv_func_iconv="no, consider installing GNU libiconv"
     am_cv_lib_iconv=no
     AC_TRY_LINK([#include <stdlib.h>
@@ -614,7 +529,7 @@ AC_DEFUN([AM_ICONV_LINK],
       [iconv_t cd = iconv_open("","");
        iconv(cd,NULL,NULL,NULL,NULL);
        iconv_close(cd);],
-      [am_cv_func_iconv=yes])
+      am_cv_func_iconv=yes)
     if test "$am_cv_func_iconv" != yes; then
       am_save_LIBS="$LIBS"
       LIBS="$LIBS $LIBICONV"
@@ -623,14 +538,14 @@ AC_DEFUN([AM_ICONV_LINK],
         [iconv_t cd = iconv_open("","");
          iconv(cd,NULL,NULL,NULL,NULL);
          iconv_close(cd);],
-        [am_cv_lib_iconv=yes]
-        [am_cv_func_iconv=yes])
+        am_cv_lib_iconv=yes
+        am_cv_func_iconv=yes)
       LIBS="$am_save_LIBS"
     fi
   ])
   if test "$am_cv_func_iconv" = yes; then
-    AC_CACHE_CHECK([for working iconv], [am_cv_func_iconv_works], [
-      dnl This tests against bugs in AIX 5.1, HP-UX 11.11, Solaris 10.
+    AC_CACHE_CHECK([for working iconv], am_cv_func_iconv_works, [
+      dnl This tests against bugs in AIX 5.1 and HP-UX 11.11.
       am_save_LIBS="$LIBS"
       if test $am_cv_lib_iconv = yes; then
         LIBS="$LIBS $LIBICONV"
@@ -653,25 +568,6 @@ int main ()
         char *outptr = buf;
         size_t outbytesleft = sizeof (buf);
         size_t res = iconv (cd_utf8_to_88591,
-                            (char **) &inptr, &inbytesleft,
-                            &outptr, &outbytesleft);
-        if (res == 0)
-          return 1;
-      }
-  }
-  /* Test against Solaris 10 bug: Failures are not distinguishable from
-     successful returns.  */
-  {
-    iconv_t cd_ascii_to_88591 = iconv_open ("ISO8859-1", "646");
-    if (cd_ascii_to_88591 != (iconv_t)(-1))
-      {
-        static const char input[] = "\263";
-        char buf[10];
-        const char *inptr = input;
-        size_t inbytesleft = strlen (input);
-        char *outptr = buf;
-        size_t outbytesleft = sizeof (buf);
-        size_t res = iconv (cd_ascii_to_88591,
                             (char **) &inptr, &inbytesleft,
                             &outptr, &outbytesleft);
         if (res == 0)
@@ -725,7 +621,7 @@ int main ()
     am_func_iconv=no am_cv_lib_iconv=no
   fi
   if test "$am_func_iconv" = yes; then
-    AC_DEFINE([HAVE_ICONV], [1],
+    AC_DEFINE(HAVE_ICONV, 1,
       [Define if you have the iconv() function and it works.])
   fi
   if test "$am_cv_lib_iconv" = yes; then
@@ -738,31 +634,16 @@ int main ()
     LIBICONV=
     LTLIBICONV=
   fi
-  AC_SUBST([LIBICONV])
-  AC_SUBST([LTLIBICONV])
+  AC_SUBST(LIBICONV)
+  AC_SUBST(LTLIBICONV)
 ])
 
-dnl Define AM_ICONV using AC_DEFUN_ONCE for Autoconf >= 2.64, in order to
-dnl avoid warnings like
-dnl "warning: AC_REQUIRE: `AM_ICONV' was expanded before it was required".
-dnl This is tricky because of the way 'aclocal' is implemented:
-dnl - It requires defining an auxiliary macro whose name ends in AC_DEFUN.
-dnl   Otherwise aclocal's initial scan pass would miss the macro definition.
-dnl - It requires a line break inside the AC_DEFUN_ONCE and AC_DEFUN expansions.
-dnl   Otherwise aclocal would emit many "Use of uninitialized value $1"
-dnl   warnings.
-m4_define([gl_iconv_AC_DEFUN],
-  m4_version_prereq([2.64],
-    [[AC_DEFUN_ONCE(
-        [$1], [$2])]],
-    [[AC_DEFUN(
-        [$1], [$2])]]))
-gl_iconv_AC_DEFUN([AM_ICONV],
+AC_DEFUN([AM_ICONV],
 [
   AM_ICONV_LINK
   if test "$am_cv_func_iconv" = yes; then
     AC_MSG_CHECKING([for iconv declaration])
-    AC_CACHE_VAL([am_cv_proto_iconv], [
+    AC_CACHE_VAL(am_cv_proto_iconv, [
       AC_TRY_COMPILE([
 #include <stdlib.h>
 #include <iconv.h>
@@ -775,18 +656,18 @@ size_t iconv (iconv_t cd, char * *inbuf, size_t *inbytesleft, char * *outbuf, si
 #else
 size_t iconv();
 #endif
-], [], [am_cv_proto_iconv_arg1=""], [am_cv_proto_iconv_arg1="const"])
+], [], am_cv_proto_iconv_arg1="", am_cv_proto_iconv_arg1="const")
       am_cv_proto_iconv="extern size_t iconv (iconv_t cd, $am_cv_proto_iconv_arg1 char * *inbuf, size_t *inbytesleft, char * *outbuf, size_t *outbytesleft);"])
     am_cv_proto_iconv=`echo "[$]am_cv_proto_iconv" | tr -s ' ' | sed -e 's/( /(/'`
-    AC_MSG_RESULT([
-         $am_cv_proto_iconv])
-    AC_DEFINE_UNQUOTED([ICONV_CONST], [$am_cv_proto_iconv_arg1],
+    AC_MSG_RESULT([$]{ac_t:-
+         }[$]am_cv_proto_iconv)
+    AC_DEFINE_UNQUOTED(ICONV_CONST, $am_cv_proto_iconv_arg1,
       [Define as const if the declaration of iconv() needs const.])
   fi
 ])
 
-# intdiv0.m4 serial 3 (gettext-0.18)
-dnl Copyright (C) 2002, 2007-2010 Free Software Foundation, Inc.
+# intdiv0.m4 serial 2 (gettext-0.17)
+dnl Copyright (C) 2002, 2007 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -848,7 +729,7 @@ int main ()
   nan = y / y;
   exit (1);
 }
-], [gt_cv_int_divbyzero_sigfpe=yes], [gt_cv_int_divbyzero_sigfpe=no],
+], gt_cv_int_divbyzero_sigfpe=yes, gt_cv_int_divbyzero_sigfpe=no,
           [
             # Guess based on the CPU.
 changequote(,)dnl
@@ -866,12 +747,12 @@ changequote([,])dnl
     *yes) value=1;;
     *) value=0;;
   esac
-  AC_DEFINE_UNQUOTED([INTDIV0_RAISES_SIGFPE], [$value],
+  AC_DEFINE_UNQUOTED(INTDIV0_RAISES_SIGFPE, $value,
     [Define if integer division by zero raises signal SIGFPE.])
 ])
 
-# intl.m4 serial 17 (gettext-0.18)
-dnl Copyright (C) 1995-2009 Free Software Foundation, Inc.
+# intl.m4 serial 8 (gettext-0.17)
+dnl Copyright (C) 1995-2007 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -887,9 +768,9 @@ dnl They are *not* in the public domain.
 
 dnl Authors:
 dnl   Ulrich Drepper <drepper@cygnus.com>, 1995-2000.
-dnl   Bruno Haible <haible@clisp.cons.org>, 2000-2009.
+dnl   Bruno Haible <haible@clisp.cons.org>, 2000-2006.
 
-AC_PREREQ([2.52])
+AC_PREREQ(2.52)
 
 dnl Checks for all prerequisites of the intl subdirectory,
 dnl except for INTL_LIBTOOL_SUFFIX_PREFIX (and possibly LIBTOOL), INTLOBJS,
@@ -912,24 +793,14 @@ AC_DEFUN([AM_INTL_SUBDIR],
   AC_REQUIRE([gt_PRINTF_POSIX])
   AC_REQUIRE([gl_GLIBC21])dnl
   AC_REQUIRE([gl_XSIZE])dnl
-  AC_REQUIRE([gl_FCNTL_O_FLAGS])dnl
   AC_REQUIRE([gt_INTL_MACOSX])dnl
-
-  dnl Support for automake's --enable-silent-rules.
-  case "$enable_silent_rules" in
-    yes) INTL_DEFAULT_VERBOSITY=0;;
-    no)  INTL_DEFAULT_VERBOSITY=1;;
-    *)   INTL_DEFAULT_VERBOSITY=1;;
-  esac
-  AC_SUBST([INTL_DEFAULT_VERBOSITY])
 
   AC_CHECK_TYPE([ptrdiff_t], ,
     [AC_DEFINE([ptrdiff_t], [long],
        [Define as the type of the result of subtracting two pointers, if the system doesn't define it.])
     ])
   AC_CHECK_HEADERS([stddef.h stdlib.h string.h])
-  AC_CHECK_FUNCS([asprintf fwprintf newlocale putenv setenv setlocale \
-    snprintf strnlen wcslen wcsnlen mbrtowc wcrtomb])
+  AC_CHECK_FUNCS([asprintf fwprintf putenv setenv setlocale snprintf wcslen])
 
   dnl Use the _snprintf function only if it is declared (because on NetBSD it
   dnl is defined as a weak alias of snprintf; we prefer to use the latter).
@@ -960,12 +831,6 @@ AC_DEFUN([AM_INTL_SUBDIR],
     HAVE_SNPRINTF=0
   fi
   AC_SUBST([HAVE_SNPRINTF])
-  if test "$ac_cv_func_newlocale" = yes; then
-    HAVE_NEWLOCALE=1
-  else
-    HAVE_NEWLOCALE=0
-  fi
-  AC_SUBST([HAVE_NEWLOCALE])
   if test "$ac_cv_func_wprintf" = yes; then
     HAVE_WPRINTF=1
   else
@@ -1034,31 +899,22 @@ AC_DEFUN([AM_INTL_SUBDIR],
 #define __libc_lock_lock_recursive                gl_recursive_lock_lock
 #define __libc_lock_unlock_recursive              gl_recursive_lock_unlock
 #define glthread_in_use  libintl_thread_in_use
-#define glthread_lock_init_func     libintl_lock_init_func
-#define glthread_lock_lock_func     libintl_lock_lock_func
-#define glthread_lock_unlock_func   libintl_lock_unlock_func
-#define glthread_lock_destroy_func  libintl_lock_destroy_func
-#define glthread_rwlock_init_multithreaded     libintl_rwlock_init_multithreaded
-#define glthread_rwlock_init_func              libintl_rwlock_init_func
-#define glthread_rwlock_rdlock_multithreaded   libintl_rwlock_rdlock_multithreaded
-#define glthread_rwlock_rdlock_func            libintl_rwlock_rdlock_func
-#define glthread_rwlock_wrlock_multithreaded   libintl_rwlock_wrlock_multithreaded
-#define glthread_rwlock_wrlock_func            libintl_rwlock_wrlock_func
-#define glthread_rwlock_unlock_multithreaded   libintl_rwlock_unlock_multithreaded
-#define glthread_rwlock_unlock_func            libintl_rwlock_unlock_func
-#define glthread_rwlock_destroy_multithreaded  libintl_rwlock_destroy_multithreaded
-#define glthread_rwlock_destroy_func           libintl_rwlock_destroy_func
-#define glthread_recursive_lock_init_multithreaded     libintl_recursive_lock_init_multithreaded
-#define glthread_recursive_lock_init_func              libintl_recursive_lock_init_func
-#define glthread_recursive_lock_lock_multithreaded     libintl_recursive_lock_lock_multithreaded
-#define glthread_recursive_lock_lock_func              libintl_recursive_lock_lock_func
-#define glthread_recursive_lock_unlock_multithreaded   libintl_recursive_lock_unlock_multithreaded
-#define glthread_recursive_lock_unlock_func            libintl_recursive_lock_unlock_func
-#define glthread_recursive_lock_destroy_multithreaded  libintl_recursive_lock_destroy_multithreaded
-#define glthread_recursive_lock_destroy_func           libintl_recursive_lock_destroy_func
-#define glthread_once_func            libintl_once_func
+#define glthread_lock_init     libintl_lock_init
+#define glthread_lock_lock     libintl_lock_lock
+#define glthread_lock_unlock   libintl_lock_unlock
+#define glthread_lock_destroy  libintl_lock_destroy
+#define glthread_rwlock_init     libintl_rwlock_init
+#define glthread_rwlock_rdlock   libintl_rwlock_rdlock
+#define glthread_rwlock_wrlock   libintl_rwlock_wrlock
+#define glthread_rwlock_unlock   libintl_rwlock_unlock
+#define glthread_rwlock_destroy  libintl_rwlock_destroy
+#define glthread_recursive_lock_init     libintl_recursive_lock_init
+#define glthread_recursive_lock_lock     libintl_recursive_lock_lock
+#define glthread_recursive_lock_unlock   libintl_recursive_lock_unlock
+#define glthread_recursive_lock_destroy  libintl_recursive_lock_destroy
+#define glthread_once                 libintl_once
+#define glthread_once_call            libintl_once_call
 #define glthread_once_singlethreaded  libintl_once_singlethreaded
-#define glthread_once_multithreaded   libintl_once_multithreaded
 ])
 ])
 
@@ -1095,23 +951,39 @@ AC_DEFUN([gt_INTL_SUBDIR_CORE],
   AC_TRY_LINK(
     [int foo (int a) { a = __builtin_expect (a, 10); return a == 10 ? 0 : 1; }],
     [],
-    [AC_DEFINE([HAVE_BUILTIN_EXPECT], [1],
+    [AC_DEFINE([HAVE_BUILTIN_EXPECT], 1,
        [Define to 1 if the compiler understands __builtin_expect.])])
 
   AC_CHECK_HEADERS([argz.h inttypes.h limits.h unistd.h sys/param.h])
   AC_CHECK_FUNCS([getcwd getegid geteuid getgid getuid mempcpy munmap \
-    stpcpy strcasecmp strdup strtoul tsearch uselocale argz_count \
-    argz_stringify argz_next __fsetlocking])
+    stpcpy strcasecmp strdup strtoul tsearch argz_count argz_stringify \
+    argz_next __fsetlocking])
 
   dnl Use the *_unlocked functions only if they are declared.
   dnl (because some of them were defined without being declared in Solaris
   dnl 2.5.1 but were removed in Solaris 2.6, whereas we want binaries built
   dnl on Solaris 2.5.1 to run on Solaris 2.6).
   dnl Don't use AC_CHECK_DECLS because it isn't supported in autoconf-2.13.
-  gt_CHECK_DECL([feof_unlocked], [#include <stdio.h>])
-  gt_CHECK_DECL([fgets_unlocked], [#include <stdio.h>])
+  gt_CHECK_DECL(feof_unlocked, [#include <stdio.h>])
+  gt_CHECK_DECL(fgets_unlocked, [#include <stdio.h>])
 
   AM_ICONV
+
+  dnl glibc >= 2.4 has a NL_LOCALE_NAME macro when _GNU_SOURCE is defined,
+  dnl and a _NL_LOCALE_NAME macro always.
+  AC_CACHE_CHECK([for NL_LOCALE_NAME macro], gt_cv_nl_locale_name,
+    [AC_TRY_LINK([#include <langinfo.h>
+#include <locale.h>],
+      [char* cs = nl_langinfo(_NL_LOCALE_NAME(LC_MESSAGES));
+       return !cs;
+      ],
+      gt_cv_nl_locale_name=yes,
+      gt_cv_nl_locale_name=no)
+    ])
+  if test $gt_cv_nl_locale_name = yes; then
+    AC_DEFINE(HAVE_NL_LOCALE_NAME, 1,
+      [Define if you have <langinfo.h> and it defines the NL_LOCALE_NAME macro if _GNU_SOURCE is defined.])
+  fi
 
   dnl intl/plural.c is generated from intl/plural.y. It requires bison,
   dnl because plural.y uses bison specific features. It requires at least
@@ -1150,7 +1022,7 @@ dnl gt_CHECK_DECL(FUNC, INCLUDES)
 dnl Check whether a function is declared.
 AC_DEFUN([gt_CHECK_DECL],
 [
-  AC_CACHE_CHECK([whether $1 is declared], [ac_cv_have_decl_$1],
+  AC_CACHE_CHECK([whether $1 is declared], ac_cv_have_decl_$1,
     [AC_TRY_COMPILE([$2], [
 #ifndef $1
   char *p = (char *) $1;
@@ -1165,8 +1037,8 @@ AC_DEFUN([gt_CHECK_DECL],
     [Define to 1 if you have the declaration of `$1', and to 0 if you don't.])
 ])
 
-# intlmacosx.m4 serial 3 (gettext-0.18)
-dnl Copyright (C) 2004-2010 Free Software Foundation, Inc.
+# intlmacosx.m4 serial 1 (gettext-0.17)
+dnl Copyright (C) 2004-2007 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -1186,7 +1058,7 @@ AC_DEFUN([gt_INTL_MACOSX],
 [
   dnl Check for API introduced in MacOS X 10.2.
   AC_CACHE_CHECK([for CFPreferencesCopyAppValue],
-    [gt_cv_func_CFPreferencesCopyAppValue],
+    gt_cv_func_CFPreferencesCopyAppValue,
     [gt_save_LIBS="$LIBS"
      LIBS="$LIBS -Wl,-framework -Wl,CoreFoundation"
      AC_TRY_LINK([#include <CoreFoundation/CFPreferences.h>],
@@ -1195,11 +1067,11 @@ AC_DEFUN([gt_INTL_MACOSX],
        [gt_cv_func_CFPreferencesCopyAppValue=no])
      LIBS="$gt_save_LIBS"])
   if test $gt_cv_func_CFPreferencesCopyAppValue = yes; then
-    AC_DEFINE([HAVE_CFPREFERENCESCOPYAPPVALUE], [1],
+    AC_DEFINE([HAVE_CFPREFERENCESCOPYAPPVALUE], 1,
       [Define to 1 if you have the MacOS X function CFPreferencesCopyAppValue in the CoreFoundation framework.])
   fi
   dnl Check for API introduced in MacOS X 10.3.
-  AC_CACHE_CHECK([for CFLocaleCopyCurrent], [gt_cv_func_CFLocaleCopyCurrent],
+  AC_CACHE_CHECK([for CFLocaleCopyCurrent], gt_cv_func_CFLocaleCopyCurrent,
     [gt_save_LIBS="$LIBS"
      LIBS="$LIBS -Wl,-framework -Wl,CoreFoundation"
      AC_TRY_LINK([#include <CoreFoundation/CFLocale.h>], [CFLocaleCopyCurrent();],
@@ -1207,7 +1079,7 @@ AC_DEFUN([gt_INTL_MACOSX],
        [gt_cv_func_CFLocaleCopyCurrent=no])
      LIBS="$gt_save_LIBS"])
   if test $gt_cv_func_CFLocaleCopyCurrent = yes; then
-    AC_DEFINE([HAVE_CFLOCALECOPYCURRENT], [1],
+    AC_DEFINE([HAVE_CFLOCALECOPYCURRENT], 1,
       [Define to 1 if you have the MacOS X function CFLocaleCopyCurrent in the CoreFoundation framework.])
   fi
   INTL_MACOSX_LIBS=
@@ -1217,8 +1089,8 @@ AC_DEFUN([gt_INTL_MACOSX],
   AC_SUBST([INTL_MACOSX_LIBS])
 ])
 
-# intmax.m4 serial 5 (gettext-0.18)
-dnl Copyright (C) 2002-2005, 2008-2010 Free Software Foundation, Inc.
+# intmax.m4 serial 3 (gettext-0.16)
+dnl Copyright (C) 2002-2005 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -1231,7 +1103,7 @@ AC_DEFUN([gt_TYPE_INTMAX_T],
 [
   AC_REQUIRE([gl_AC_HEADER_INTTYPES_H])
   AC_REQUIRE([gl_AC_HEADER_STDINT_H])
-  AC_CACHE_CHECK([for intmax_t], [gt_cv_c_intmax_t],
+  AC_CACHE_CHECK(for intmax_t, gt_cv_c_intmax_t,
     [AC_TRY_COMPILE([
 #include <stddef.h>
 #include <stdlib.h>
@@ -1243,23 +1115,23 @@ AC_DEFUN([gt_TYPE_INTMAX_T],
 #endif
 ],     [intmax_t x = -1;
         return !x;],
-       [gt_cv_c_intmax_t=yes],
-       [gt_cv_c_intmax_t=no])])
+       gt_cv_c_intmax_t=yes,
+       gt_cv_c_intmax_t=no)])
   if test $gt_cv_c_intmax_t = yes; then
-    AC_DEFINE([HAVE_INTMAX_T], [1],
+    AC_DEFINE(HAVE_INTMAX_T, 1,
       [Define if you have the 'intmax_t' type in <stdint.h> or <inttypes.h>.])
   fi
 ])
 
-# inttypes-pri.m4 serial 6 (gettext-0.18)
-dnl Copyright (C) 1997-2002, 2006, 2008-2010 Free Software Foundation, Inc.
+# inttypes-pri.m4 serial 4 (gettext-0.16)
+dnl Copyright (C) 1997-2002, 2006 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
 dnl From Bruno Haible.
 
-AC_PREREQ([2.52])
+AC_PREREQ(2.52)
 
 # Define PRI_MACROS_BROKEN if <inttypes.h> exists and defines the PRI*
 # macros to non-string values.  This is the case on AIX 4.3.3.
@@ -1269,17 +1141,17 @@ AC_DEFUN([gt_INTTYPES_PRI],
   AC_CHECK_HEADERS([inttypes.h])
   if test $ac_cv_header_inttypes_h = yes; then
     AC_CACHE_CHECK([whether the inttypes.h PRIxNN macros are broken],
-      [gt_cv_inttypes_pri_broken],
+      gt_cv_inttypes_pri_broken,
       [
         AC_TRY_COMPILE([#include <inttypes.h>
 #ifdef PRId32
 char *p = PRId32;
 #endif
-], [], [gt_cv_inttypes_pri_broken=no], [gt_cv_inttypes_pri_broken=yes])
+], [], gt_cv_inttypes_pri_broken=no, gt_cv_inttypes_pri_broken=yes)
       ])
   fi
   if test "$gt_cv_inttypes_pri_broken" = yes; then
-    AC_DEFINE_UNQUOTED([PRI_MACROS_BROKEN], [1],
+    AC_DEFINE_UNQUOTED(PRI_MACROS_BROKEN, 1,
       [Define if <inttypes.h> exists and defines unusable PRI* macros.])
     PRI_MACROS_BROKEN=1
   else
@@ -1288,8 +1160,8 @@ char *p = PRId32;
   AC_SUBST([PRI_MACROS_BROKEN])
 ])
 
-# inttypes_h.m4 serial 9
-dnl Copyright (C) 1997-2004, 2006, 2008-2010 Free Software Foundation, Inc.
+# inttypes_h.m4 serial 7
+dnl Copyright (C) 1997-2004, 2006 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -1301,23 +1173,22 @@ dnl From Paul Eggert.
 
 AC_DEFUN([gl_AC_HEADER_INTTYPES_H],
 [
-  AC_CACHE_CHECK([for inttypes.h], [gl_cv_header_inttypes_h],
+  AC_CACHE_CHECK([for inttypes.h], gl_cv_header_inttypes_h,
   [AC_TRY_COMPILE(
     [#include <sys/types.h>
 #include <inttypes.h>],
     [uintmax_t i = (uintmax_t) -1; return !i;],
-    [gl_cv_header_inttypes_h=yes],
-    [gl_cv_header_inttypes_h=no])])
+    gl_cv_header_inttypes_h=yes,
+    gl_cv_header_inttypes_h=no)])
   if test $gl_cv_header_inttypes_h = yes; then
-    AC_DEFINE_UNQUOTED([HAVE_INTTYPES_H_WITH_UINTMAX], [1],
+    AC_DEFINE_UNQUOTED(HAVE_INTTYPES_H_WITH_UINTMAX, 1,
       [Define if <inttypes.h> exists, doesn't clash with <sys/types.h>,
        and declares uintmax_t. ])
   fi
 ])
 
-# lcmessage.m4 serial 6 (gettext-0.18)
-dnl Copyright (C) 1995-2002, 2004-2005, 2008-2010 Free Software Foundation,
-dnl Inc.
+# lcmessage.m4 serial 4 (gettext-0.14.2)
+dnl Copyright (C) 1995-2002, 2004-2005 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -1338,17 +1209,17 @@ dnl   Ulrich Drepper <drepper@cygnus.com>, 1995.
 
 AC_DEFUN([gt_LC_MESSAGES],
 [
-  AC_CACHE_CHECK([for LC_MESSAGES], [gt_cv_val_LC_MESSAGES],
+  AC_CACHE_CHECK([for LC_MESSAGES], gt_cv_val_LC_MESSAGES,
     [AC_TRY_LINK([#include <locale.h>], [return LC_MESSAGES],
-       [gt_cv_val_LC_MESSAGES=yes], [gt_cv_val_LC_MESSAGES=no])])
+       gt_cv_val_LC_MESSAGES=yes, gt_cv_val_LC_MESSAGES=no)])
   if test $gt_cv_val_LC_MESSAGES = yes; then
-    AC_DEFINE([HAVE_LC_MESSAGES], [1],
+    AC_DEFINE(HAVE_LC_MESSAGES, 1,
       [Define if your <locale.h> file defines LC_MESSAGES.])
   fi
 ])
 
-# lib-ld.m4 serial 4 (gettext-0.18)
-dnl Copyright (C) 1996-2003, 2009-2010 Free Software Foundation, Inc.
+# lib-ld.m4 serial 3 (gettext-0.13)
+dnl Copyright (C) 1996-2003 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -1359,7 +1230,7 @@ dnl with libtool.m4.
 
 dnl From libtool-1.4. Sets the variable with_gnu_ld to yes or no.
 AC_DEFUN([AC_LIB_PROG_LD_GNU],
-[AC_CACHE_CHECK([if the linker ($LD) is GNU ld], [acl_cv_prog_gnu_ld],
+[AC_CACHE_CHECK([if the linker ($LD) is GNU ld], acl_cv_prog_gnu_ld,
 [# I'd rather use --version here, but apparently some GNU ld's only accept -v.
 case `$LD -v 2>&1 </dev/null` in
 *GNU* | *'with BFD'*)
@@ -1372,7 +1243,7 @@ with_gnu_ld=$acl_cv_prog_gnu_ld
 
 dnl From libtool-1.4. Sets the variable LD.
 AC_DEFUN([AC_LIB_PROG_LD],
-[AC_ARG_WITH([gnu-ld],
+[AC_ARG_WITH(gnu-ld,
 [  --with-gnu-ld           assume the C compiler uses GNU ld [default=no]],
 test "$withval" = no || with_gnu_ld=yes, with_gnu_ld=no)
 AC_REQUIRE([AC_PROG_CC])dnl
@@ -1408,7 +1279,7 @@ if test "$GCC" = yes; then
       # Canonicalize the path of ld
       ac_prog=`echo $ac_prog| sed 's%\\\\%/%g'`
       while echo $ac_prog | grep "$re_direlt" > /dev/null 2>&1; do
-        ac_prog=`echo $ac_prog| sed "s%$re_direlt%/%"`
+	ac_prog=`echo $ac_prog| sed "s%$re_direlt%/%"`
       done
       test -z "$LD" && LD="$ac_prog"
       ;;
@@ -1426,7 +1297,7 @@ elif test "$with_gnu_ld" = yes; then
 else
   AC_MSG_CHECKING([for non-GNU ld])
 fi
-AC_CACHE_VAL([acl_cv_path_LD],
+AC_CACHE_VAL(acl_cv_path_LD,
 [if test -z "$LD"; then
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}${PATH_SEPARATOR-:}"
   for ac_dir in $PATH; do
@@ -1438,9 +1309,9 @@ AC_CACHE_VAL([acl_cv_path_LD],
       # Break only if it was the GNU/non-GNU ld that we prefer.
       case `"$acl_cv_path_LD" -v 2>&1 < /dev/null` in
       *GNU* | *'with BFD'*)
-        test "$with_gnu_ld" != no && break ;;
+	test "$with_gnu_ld" != no && break ;;
       *)
-        test "$with_gnu_ld" != yes && break ;;
+	test "$with_gnu_ld" != yes && break ;;
       esac
     fi
   done
@@ -1450,23 +1321,23 @@ else
 fi])
 LD="$acl_cv_path_LD"
 if test -n "$LD"; then
-  AC_MSG_RESULT([$LD])
+  AC_MSG_RESULT($LD)
 else
-  AC_MSG_RESULT([no])
+  AC_MSG_RESULT(no)
 fi
 test -z "$LD" && AC_MSG_ERROR([no acceptable ld found in \$PATH])
 AC_LIB_PROG_LD_GNU
 ])
 
-# lib-link.m4 serial 21 (gettext-0.18)
-dnl Copyright (C) 2001-2010 Free Software Foundation, Inc.
+# lib-link.m4 serial 13 (gettext-0.17)
+dnl Copyright (C) 2001-2007 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
 dnl From Bruno Haible.
 
-AC_PREREQ([2.54])
+AC_PREREQ(2.54)
 
 dnl AC_LIB_LINKFLAGS(name [, dependencies]) searches for libname and
 dnl the libraries corresponding to explicit and implicit dependencies.
@@ -1478,9 +1349,9 @@ AC_DEFUN([AC_LIB_LINKFLAGS],
 [
   AC_REQUIRE([AC_LIB_PREPARE_PREFIX])
   AC_REQUIRE([AC_LIB_RPATH])
-  pushdef([Name],[translit([$1],[./-], [___])])
-  pushdef([NAME],[translit([$1],[abcdefghijklmnopqrstuvwxyz./-],
-                                [ABCDEFGHIJKLMNOPQRSTUVWXYZ___])])
+  define([Name],[translit([$1],[./-], [___])])
+  define([NAME],[translit([$1],[abcdefghijklmnopqrstuvwxyz./-],
+                               [ABCDEFGHIJKLMNOPQRSTUVWXYZ___])])
   AC_CACHE_CHECK([how to link with lib[]$1], [ac_cv_lib[]Name[]_libs], [
     AC_LIB_LINKFLAGS_BODY([$1], [$2])
     ac_cv_lib[]Name[]_libs="$LIB[]NAME"
@@ -1499,17 +1370,16 @@ AC_DEFUN([AC_LIB_LINKFLAGS],
   dnl Also set HAVE_LIB[]NAME so that AC_LIB_HAVE_LINKFLAGS can reuse the
   dnl results of this search when this library appears as a dependency.
   HAVE_LIB[]NAME=yes
-  popdef([NAME])
-  popdef([Name])
+  undefine([Name])
+  undefine([NAME])
 ])
 
-dnl AC_LIB_HAVE_LINKFLAGS(name, dependencies, includes, testcode, [missing-message])
+dnl AC_LIB_HAVE_LINKFLAGS(name, dependencies, includes, testcode)
 dnl searches for libname and the libraries corresponding to explicit and
 dnl implicit dependencies, together with the specified include files and
-dnl the ability to compile and link the specified testcode. The missing-message
-dnl defaults to 'no' and may contain additional hints for the user.
-dnl If found, it sets and AC_SUBSTs HAVE_LIB${NAME}=yes and the LIB${NAME}
-dnl and LTLIB${NAME} variables and augments the CPPFLAGS variable, and
+dnl the ability to compile and link the specified testcode. If found, it
+dnl sets and AC_SUBSTs HAVE_LIB${NAME}=yes and the LIB${NAME} and
+dnl LTLIB${NAME} variables and augments the CPPFLAGS variable, and
 dnl #defines HAVE_LIB${NAME} to 1. Otherwise, it sets and AC_SUBSTs
 dnl HAVE_LIB${NAME}=no and LIB${NAME} and LTLIB${NAME} to empty.
 dnl Sets and AC_SUBSTs the LIB${NAME}_PREFIX variable to nonempty if libname
@@ -1518,9 +1388,9 @@ AC_DEFUN([AC_LIB_HAVE_LINKFLAGS],
 [
   AC_REQUIRE([AC_LIB_PREPARE_PREFIX])
   AC_REQUIRE([AC_LIB_RPATH])
-  pushdef([Name],[translit([$1],[./-], [___])])
-  pushdef([NAME],[translit([$1],[abcdefghijklmnopqrstuvwxyz./-],
-                                [ABCDEFGHIJKLMNOPQRSTUVWXYZ___])])
+  define([Name],[translit([$1],[./-], [___])])
+  define([NAME],[translit([$1],[abcdefghijklmnopqrstuvwxyz./-],
+                               [ABCDEFGHIJKLMNOPQRSTUVWXYZ___])])
 
   dnl Search for lib[]Name and define LIB[]NAME, LTLIB[]NAME and INC[]NAME
   dnl accordingly.
@@ -1534,25 +1404,13 @@ AC_DEFUN([AC_LIB_HAVE_LINKFLAGS],
 
   AC_CACHE_CHECK([for lib[]$1], [ac_cv_lib[]Name], [
     ac_save_LIBS="$LIBS"
-    dnl If $LIB[]NAME contains some -l options, add it to the end of LIBS,
-    dnl because these -l options might require -L options that are present in
-    dnl LIBS. -l options benefit only from the -L options listed before it.
-    dnl Otherwise, add it to the front of LIBS, because it may be a static
-    dnl library that depends on another static library that is present in LIBS.
-    dnl Static libraries benefit only from the static libraries listed after
-    dnl it.
-    case " $LIB[]NAME" in
-      *" -l"*) LIBS="$LIBS $LIB[]NAME" ;;
-      *)       LIBS="$LIB[]NAME $LIBS" ;;
-    esac
-    AC_TRY_LINK([$3], [$4],
-      [ac_cv_lib[]Name=yes],
-      [ac_cv_lib[]Name='m4_if([$5], [], [no], [[$5]])'])
+    LIBS="$LIBS $LIB[]NAME"
+    AC_TRY_LINK([$3], [$4], [ac_cv_lib[]Name=yes], [ac_cv_lib[]Name=no])
     LIBS="$ac_save_LIBS"
   ])
   if test "$ac_cv_lib[]Name" = yes; then
     HAVE_LIB[]NAME=yes
-    AC_DEFINE([HAVE_LIB]NAME, 1, [Define if you have the lib][$1 library.])
+    AC_DEFINE([HAVE_LIB]NAME, 1, [Define if you have the $1 library.])
     AC_MSG_CHECKING([how to link with lib[]$1])
     AC_MSG_RESULT([$LIB[]NAME])
   else
@@ -1568,8 +1426,8 @@ AC_DEFUN([AC_LIB_HAVE_LINKFLAGS],
   AC_SUBST([LIB]NAME)
   AC_SUBST([LTLIB]NAME)
   AC_SUBST([LIB]NAME[_PREFIX])
-  popdef([NAME])
-  popdef([Name])
+  undefine([Name])
+  undefine([NAME])
 ])
 
 dnl Determine the platform dependent parameters needed to use rpath:
@@ -1587,7 +1445,7 @@ AC_DEFUN([AC_LIB_RPATH],
   AC_REQUIRE([AC_LIB_PROG_LD])            dnl we use $LD, $with_gnu_ld
   AC_REQUIRE([AC_CANONICAL_HOST])         dnl we use $host
   AC_REQUIRE([AC_CONFIG_AUX_DIR_DEFAULT]) dnl we use $ac_aux_dir
-  AC_CACHE_CHECK([for shared library run path origin], [acl_cv_rpath], [
+  AC_CACHE_CHECK([for shared library run path origin], acl_cv_rpath, [
     CC="$CC" GCC="$GCC" LDFLAGS="$LDFLAGS" LD="$LD" with_gnu_ld="$with_gnu_ld" \
     ${CONFIG_SHELL-/bin/sh} "$ac_aux_dir/config.rpath" "$host" > conftest.sh
     . ./conftest.sh
@@ -1604,30 +1462,9 @@ AC_DEFUN([AC_LIB_RPATH],
   acl_hardcode_direct="$acl_cv_hardcode_direct"
   acl_hardcode_minus_L="$acl_cv_hardcode_minus_L"
   dnl Determine whether the user wants rpath handling at all.
-  AC_ARG_ENABLE([rpath],
+  AC_ARG_ENABLE(rpath,
     [  --disable-rpath         do not hardcode runtime library paths],
     :, enable_rpath=yes)
-])
-
-dnl AC_LIB_FROMPACKAGE(name, package)
-dnl declares that libname comes from the given package. The configure file
-dnl will then not have a --with-libname-prefix option but a
-dnl --with-package-prefix option. Several libraries can come from the same
-dnl package. This declaration must occur before an AC_LIB_LINKFLAGS or similar
-dnl macro call that searches for libname.
-AC_DEFUN([AC_LIB_FROMPACKAGE],
-[
-  pushdef([NAME],[translit([$1],[abcdefghijklmnopqrstuvwxyz./-],
-                                [ABCDEFGHIJKLMNOPQRSTUVWXYZ___])])
-  define([acl_frompackage_]NAME, [$2])
-  popdef([NAME])
-  pushdef([PACK],[$2])
-  pushdef([PACKUP],[translit(PACK,[abcdefghijklmnopqrstuvwxyz./-],
-                                  [ABCDEFGHIJKLMNOPQRSTUVWXYZ___])])
-  define([acl_libsinpackage_]PACKUP,
-    m4_ifdef([acl_libsinpackage_]PACKUP, [acl_libsinpackage_]PACKUP[[, ]],)[lib$1])
-  popdef([PACKUP])
-  popdef([PACK])
 ])
 
 dnl AC_LIB_LINKFLAGS_BODY(name [, dependencies]) searches for libname and
@@ -1638,23 +1475,19 @@ dnl in ${LIB${NAME}_PREFIX}/$acl_libdirstem.
 AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
 [
   AC_REQUIRE([AC_LIB_PREPARE_MULTILIB])
-  pushdef([NAME],[translit([$1],[abcdefghijklmnopqrstuvwxyz./-],
-                                [ABCDEFGHIJKLMNOPQRSTUVWXYZ___])])
-  pushdef([PACK],[m4_ifdef([acl_frompackage_]NAME, [acl_frompackage_]NAME, lib[$1])])
-  pushdef([PACKUP],[translit(PACK,[abcdefghijklmnopqrstuvwxyz./-],
-                                  [ABCDEFGHIJKLMNOPQRSTUVWXYZ___])])
-  pushdef([PACKLIBS],[m4_ifdef([acl_frompackage_]NAME, [acl_libsinpackage_]PACKUP, lib[$1])])
+  define([NAME],[translit([$1],[abcdefghijklmnopqrstuvwxyz./-],
+                               [ABCDEFGHIJKLMNOPQRSTUVWXYZ___])])
   dnl Autoconf >= 2.61 supports dots in --with options.
-  pushdef([P_A_C_K],[m4_if(m4_version_compare(m4_defn([m4_PACKAGE_VERSION]),[2.61]),[-1],[translit(PACK,[.],[_])],PACK)])
+  define([N_A_M_E],[m4_if(m4_version_compare(m4_defn([m4_PACKAGE_VERSION]),[2.61]),[-1],[translit([$1],[.],[_])],[$1])])
   dnl By default, look in $includedir and $libdir.
   use_additional=yes
   AC_LIB_WITH_FINAL_PREFIX([
     eval additional_includedir=\"$includedir\"
     eval additional_libdir=\"$libdir\"
   ])
-  AC_ARG_WITH(P_A_C_K[-prefix],
-[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
-  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+  AC_LIB_ARG_WITH([lib]N_A_M_E[-prefix],
+[  --with-lib]N_A_M_E[-prefix[=DIR]  search for lib$1 in DIR/include and DIR/lib
+  --without-lib]N_A_M_E[-prefix     don't search for lib$1 in includedir and libdir],
 [
     if test "X$withval" = "Xno"; then
       use_additional=no
@@ -1667,10 +1500,6 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
       else
         additional_includedir="$withval/include"
         additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
       fi
     fi
 ])
@@ -1680,9 +1509,6 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
   LTLIB[]NAME=
   INC[]NAME=
   LIB[]NAME[]_PREFIX=
-  dnl HAVE_LIB${NAME} is an indicator that LIB${NAME}, LTLIB${NAME} have been
-  dnl computed. So it has to be reset here.
-  HAVE_LIB[]NAME=
   rpathdirs=
   ltrpathdirs=
   names_already_handled=
@@ -1832,9 +1658,7 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
               dnl Linking with a shared library. We attempt to hardcode its
               dnl directory into the executable's runpath, unless it's the
               dnl standard /usr/lib.
-              if test "$enable_rpath" = no \
-                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
-                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
+              if test "$enable_rpath" = no || test "X$found_dir" = "X/usr/$acl_libdirstem"; then
                 dnl No hardcoding is needed.
                 LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$found_so"
               else
@@ -1922,16 +1746,7 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                if test "$name" = '$1'; then
-                  LIB[]NAME[]_PREFIX="$basedir"
-                fi
-                additional_includedir="$basedir/include"
-                ;;
-              */$acl_libdirstem2 | */$acl_libdirstem2/)
-                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
-                if test "$name" = '$1'; then
-                  LIB[]NAME[]_PREFIX="$basedir"
-                fi
+                LIB[]NAME[]_PREFIX="$basedir"
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -1992,11 +1807,9 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
                     dnl   3. if it's already present in $LDFLAGS or the already
                     dnl      constructed $LIBNAME,
                     dnl   4. if it doesn't exist as a directory.
-                    if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
-                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
+                    if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
                       haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
-                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
                         if test -n "$GCC"; then
                           case $host_os in
                             linux* | gnu* | k*bsd*-gnu) haveit=yes;;
@@ -2127,11 +1940,6 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
       LTLIB[]NAME="${LTLIB[]NAME}${LTLIB[]NAME:+ }-R$found_dir"
     done
   fi
-  popdef([P_A_C_K])
-  popdef([PACKLIBS])
-  popdef([PACKUP])
-  popdef([PACK])
-  popdef([NAME])
 ])
 
 dnl AC_LIB_APPENDTOVAR(VAR, CONTENTS) appends the elements of CONTENTS to VAR,
@@ -2177,8 +1985,7 @@ AC_DEFUN([AC_LIB_LINKFLAGS_FROM_LIBS],
         if test -n "$next"; then
           dir="$next"
           dnl No need to hardcode the standard /usr/lib.
-          if test "X$dir" != "X/usr/$acl_libdirstem" \
-             && test "X$dir" != "X/usr/$acl_libdirstem2"; then
+          if test "X$dir" != "X/usr/$acl_libdirstem"; then
             rpathdirs="$rpathdirs $dir"
           fi
           next=
@@ -2187,8 +1994,7 @@ AC_DEFUN([AC_LIB_LINKFLAGS_FROM_LIBS],
             -L) next=yes ;;
             -L*) dir=`echo "X$opt" | sed -e 's,^X-L,,'`
                  dnl No need to hardcode the standard /usr/lib.
-                 if test "X$dir" != "X/usr/$acl_libdirstem" \
-                    && test "X$dir" != "X/usr/$acl_libdirstem2"; then
+                 if test "X$dir" != "X/usr/$acl_libdirstem"; then
                    rpathdirs="$rpathdirs $dir"
                  fi
                  next= ;;
@@ -2233,8 +2039,8 @@ AC_DEFUN([AC_LIB_LINKFLAGS_FROM_LIBS],
   AC_SUBST([$1])
 ])
 
-# lib-prefix.m4 serial 7 (gettext-0.18)
-dnl Copyright (C) 2001-2005, 2008-2010 Free Software Foundation, Inc.
+# lib-prefix.m4 serial 5 (gettext-0.15)
+dnl Copyright (C) 2001-2005 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -2388,106 +2194,293 @@ AC_DEFUN([AC_LIB_WITH_FINAL_PREFIX],
   prefix="$acl_save_prefix"
 ])
 
-dnl AC_LIB_PREPARE_MULTILIB creates
-dnl - a variable acl_libdirstem, containing the basename of the libdir, either
-dnl   "lib" or "lib64" or "lib/64",
-dnl - a variable acl_libdirstem2, as a secondary possible value for
-dnl   acl_libdirstem, either the same as acl_libdirstem or "lib/sparcv9" or
-dnl   "lib/amd64".
+dnl AC_LIB_PREPARE_MULTILIB creates a variable acl_libdirstem, containing
+dnl the basename of the libdir, either "lib" or "lib64".
 AC_DEFUN([AC_LIB_PREPARE_MULTILIB],
 [
-  dnl There is no formal standard regarding lib and lib64.
-  dnl On glibc systems, the current practice is that on a system supporting
-  dnl 32-bit and 64-bit instruction sets or ABIs, 64-bit libraries go under
-  dnl $prefix/lib64 and 32-bit libraries go under $prefix/lib. We determine
-  dnl the compiler's default mode by looking at the compiler's library search
-  dnl path. If at least one of its elements ends in /lib64 or points to a
-  dnl directory whose absolute pathname ends in /lib64, we assume a 64-bit ABI.
-  dnl Otherwise we use the default, namely "lib".
-  dnl On Solaris systems, the current practice is that on a system supporting
-  dnl 32-bit and 64-bit instruction sets or ABIs, 64-bit libraries go under
-  dnl $prefix/lib/64 (which is a symlink to either $prefix/lib/sparcv9 or
-  dnl $prefix/lib/amd64) and 32-bit libraries go under $prefix/lib.
-  AC_REQUIRE([AC_CANONICAL_HOST])
+  dnl There is no formal standard regarding lib and lib64. The current
+  dnl practice is that on a system supporting 32-bit and 64-bit instruction
+  dnl sets or ABIs, 64-bit libraries go under $prefix/lib64 and 32-bit
+  dnl libraries go under $prefix/lib. We determine the compiler's default
+  dnl mode by looking at the compiler's library search path. If at least
+  dnl of its elements ends in /lib64 or points to a directory whose absolute
+  dnl pathname ends in /lib64, we assume a 64-bit ABI. Otherwise we use the
+  dnl default, namely "lib".
   acl_libdirstem=lib
-  acl_libdirstem2=
-  case "$host_os" in
-    solaris*)
-      dnl See Solaris 10 Software Developer Collection > Solaris 64-bit Developer's Guide > The Development Environment
-      dnl <http://docs.sun.com/app/docs/doc/816-5138/dev-env?l=en&a=view>.
-      dnl "Portable Makefiles should refer to any library directories using the 64 symbolic link."
-      dnl But we want to recognize the sparcv9 or amd64 subdirectory also if the
-      dnl symlink is missing, so we set acl_libdirstem2 too.
-      AC_CACHE_CHECK([for 64-bit host], [gl_cv_solaris_64bit],
-        [AC_EGREP_CPP([sixtyfour bits], [
-#ifdef _LP64
-sixtyfour bits
-#endif
-           ], [gl_cv_solaris_64bit=yes], [gl_cv_solaris_64bit=no])
-        ])
-      if test $gl_cv_solaris_64bit = yes; then
-        acl_libdirstem=lib/64
-        case "$host_cpu" in
-          sparc*)        acl_libdirstem2=lib/sparcv9 ;;
-          i*86 | x86_64) acl_libdirstem2=lib/amd64 ;;
+  searchpath=`(LC_ALL=C $CC -print-search-dirs) 2>/dev/null | sed -n -e 's,^libraries: ,,p' | sed -e 's,^=,,'`
+  if test -n "$searchpath"; then
+    acl_save_IFS="${IFS= 	}"; IFS=":"
+    for searchdir in $searchpath; do
+      if test -d "$searchdir"; then
+        case "$searchdir" in
+          */lib64/ | */lib64 ) acl_libdirstem=lib64 ;;
+          *) searchdir=`cd "$searchdir" && pwd`
+             case "$searchdir" in
+               */lib64 ) acl_libdirstem=lib64 ;;
+             esac ;;
         esac
       fi
-      ;;
-    *)
-      searchpath=`(LC_ALL=C $CC -print-search-dirs) 2>/dev/null | sed -n -e 's,^libraries: ,,p' | sed -e 's,^=,,'`
-      if test -n "$searchpath"; then
-        acl_save_IFS="${IFS= 	}"; IFS=":"
-        for searchdir in $searchpath; do
-          if test -d "$searchdir"; then
-            case "$searchdir" in
-              */lib64/ | */lib64 ) acl_libdirstem=lib64 ;;
-              */../ | */.. )
-                # Better ignore directories of this form. They are misleading.
-                ;;
-              *) searchdir=`cd "$searchdir" && pwd`
-                 case "$searchdir" in
-                   */lib64 ) acl_libdirstem=lib64 ;;
-                 esac ;;
-            esac
-          fi
-        done
-        IFS="$acl_save_IFS"
-      fi
-      ;;
-  esac
-  test -n "$acl_libdirstem2" || acl_libdirstem2="$acl_libdirstem"
+    done
+    IFS="$acl_save_IFS"
+  fi
 ])
 
-# lock.m4 serial 10 (gettext-0.18)
-dnl Copyright (C) 2005-2010 Free Software Foundation, Inc.
+# lock.m4 serial 7 (gettext-0.17)
+dnl Copyright (C) 2005-2007 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
 dnl From Bruno Haible.
 
-AC_DEFUN([gl_LOCK],
+dnl Tests for a multithreading library to be used.
+dnl Defines at most one of the macros USE_POSIX_THREADS, USE_SOLARIS_THREADS,
+dnl USE_PTH_THREADS, USE_WIN32_THREADS
+dnl Sets the variables LIBTHREAD and LTLIBTHREAD to the linker options for use
+dnl in a Makefile (LIBTHREAD for use without libtool, LTLIBTHREAD for use with
+dnl libtool).
+dnl Sets the variables LIBMULTITHREAD and LTLIBMULTITHREAD similarly, for
+dnl programs that really need multithread functionality. The difference
+dnl between LIBTHREAD and LIBMULTITHREAD is that on platforms supporting weak
+dnl symbols, typically LIBTHREAD="" whereas LIBMULTITHREAD="-lpthread".
+dnl Adds to CPPFLAGS the flag -D_REENTRANT or -D_THREAD_SAFE if needed for
+dnl multithread-safe programs.
+
+AC_DEFUN([gl_LOCK_EARLY],
 [
-  AC_REQUIRE([gl_THREADLIB])
-  if test "$gl_threads_api" = posix; then
-    # OSF/1 4.0 and MacOS X 10.1 lack the pthread_rwlock_t type and the
-    # pthread_rwlock_* functions.
-    AC_CHECK_TYPE([pthread_rwlock_t],
-      [AC_DEFINE([HAVE_PTHREAD_RWLOCK], [1],
-         [Define if the POSIX multithreading library has read/write locks.])],
-      [],
-      [#include <pthread.h>])
-    # glibc defines PTHREAD_MUTEX_RECURSIVE as enum, not as a macro.
-    AC_TRY_COMPILE([#include <pthread.h>],
-      [#if __FreeBSD__ == 4
+  AC_REQUIRE([gl_LOCK_EARLY_BODY])
+])
+
+dnl The guts of gl_LOCK_EARLY. Needs to be expanded only once.
+
+AC_DEFUN([gl_LOCK_EARLY_BODY],
+[
+  dnl Ordering constraints: This macro modifies CPPFLAGS in a way that
+  dnl influences the result of the autoconf tests that test for *_unlocked
+  dnl declarations, on AIX 5 at least. Therefore it must come early.
+  AC_BEFORE([$0], [gl_FUNC_GLIBC_UNLOCKED_IO])dnl
+  AC_BEFORE([$0], [gl_ARGP])dnl
+
+  AC_REQUIRE([AC_CANONICAL_HOST])
+  dnl _GNU_SOURCE is needed for pthread_rwlock_t on glibc systems.
+  dnl AC_USE_SYSTEM_EXTENSIONS was introduced in autoconf 2.60 and obsoletes
+  dnl AC_GNU_SOURCE.
+  m4_ifdef([AC_USE_SYSTEM_EXTENSIONS],
+    [AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])],
+    [AC_REQUIRE([AC_GNU_SOURCE])])
+  dnl Check for multithreading.
+  AC_ARG_ENABLE(threads,
+AC_HELP_STRING([--enable-threads={posix|solaris|pth|win32}], [specify multithreading API])
+AC_HELP_STRING([--disable-threads], [build without multithread safety]),
+    [gl_use_threads=$enableval],
+    [case "$host_os" in
+       dnl Disable multithreading by default on OSF/1, because it interferes
+       dnl with fork()/exec(): When msgexec is linked with -lpthread, its child
+       dnl process gets an endless segmentation fault inside execvp().
+       osf*) gl_use_threads=no ;;
+       *)    gl_use_threads=yes ;;
+     esac
+    ])
+  if test "$gl_use_threads" = yes || test "$gl_use_threads" = posix; then
+    # For using <pthread.h>:
+    case "$host_os" in
+      osf*)
+        # On OSF/1, the compiler needs the flag -D_REENTRANT so that it
+        # groks <pthread.h>. cc also understands the flag -pthread, but
+        # we don't use it because 1. gcc-2.95 doesn't understand -pthread,
+        # 2. putting a flag into CPPFLAGS that has an effect on the linker
+        # causes the AC_TRY_LINK test below to succeed unexpectedly,
+        # leading to wrong values of LIBTHREAD and LTLIBTHREAD.
+        CPPFLAGS="$CPPFLAGS -D_REENTRANT"
+        ;;
+    esac
+    # Some systems optimize for single-threaded programs by default, and
+    # need special flags to disable these optimizations. For example, the
+    # definition of 'errno' in <errno.h>.
+    case "$host_os" in
+      aix* | freebsd*) CPPFLAGS="$CPPFLAGS -D_THREAD_SAFE" ;;
+      solaris*) CPPFLAGS="$CPPFLAGS -D_REENTRANT" ;;
+    esac
+  fi
+])
+
+dnl The guts of gl_LOCK. Needs to be expanded only once.
+
+AC_DEFUN([gl_LOCK_BODY],
+[
+  AC_REQUIRE([gl_LOCK_EARLY_BODY])
+  gl_threads_api=none
+  LIBTHREAD=
+  LTLIBTHREAD=
+  LIBMULTITHREAD=
+  LTLIBMULTITHREAD=
+  if test "$gl_use_threads" != no; then
+    dnl Check whether the compiler and linker support weak declarations.
+    AC_MSG_CHECKING([whether imported symbols can be declared weak])
+    gl_have_weak=no
+    AC_TRY_LINK([extern void xyzzy ();
+#pragma weak xyzzy], [xyzzy();], [gl_have_weak=yes])
+    AC_MSG_RESULT([$gl_have_weak])
+    if test "$gl_use_threads" = yes || test "$gl_use_threads" = posix; then
+      # On OSF/1, the compiler needs the flag -pthread or -D_REENTRANT so that
+      # it groks <pthread.h>. It's added above, in gl_LOCK_EARLY_BODY.
+      AC_CHECK_HEADER(pthread.h, gl_have_pthread_h=yes, gl_have_pthread_h=no)
+      if test "$gl_have_pthread_h" = yes; then
+        # Other possible tests:
+        #   -lpthreads (FSU threads, PCthreads)
+        #   -lgthreads
+        gl_have_pthread=
+        # Test whether both pthread_mutex_lock and pthread_mutexattr_init exist
+        # in libc. IRIX 6.5 has the first one in both libc and libpthread, but
+        # the second one only in libpthread, and lock.c needs it.
+        AC_TRY_LINK([#include <pthread.h>],
+          [pthread_mutex_lock((pthread_mutex_t*)0);
+           pthread_mutexattr_init((pthread_mutexattr_t*)0);],
+          [gl_have_pthread=yes])
+        # Test for libpthread by looking for pthread_kill. (Not pthread_self,
+        # since it is defined as a macro on OSF/1.)
+        if test -n "$gl_have_pthread"; then
+          # The program links fine without libpthread. But it may actually
+          # need to link with libpthread in order to create multiple threads.
+          AC_CHECK_LIB(pthread, pthread_kill,
+            [LIBMULTITHREAD=-lpthread LTLIBMULTITHREAD=-lpthread
+             # On Solaris and HP-UX, most pthread functions exist also in libc.
+             # Therefore pthread_in_use() needs to actually try to create a
+             # thread: pthread_create from libc will fail, whereas
+             # pthread_create will actually create a thread.
+             case "$host_os" in
+               solaris* | hpux*)
+                 AC_DEFINE([PTHREAD_IN_USE_DETECTION_HARD], 1,
+                   [Define if the pthread_in_use() detection is hard.])
+             esac
+            ])
+        else
+          # Some library is needed. Try libpthread and libc_r.
+          AC_CHECK_LIB(pthread, pthread_kill,
+            [gl_have_pthread=yes
+             LIBTHREAD=-lpthread LTLIBTHREAD=-lpthread
+             LIBMULTITHREAD=-lpthread LTLIBMULTITHREAD=-lpthread])
+          if test -z "$gl_have_pthread"; then
+            # For FreeBSD 4.
+            AC_CHECK_LIB(c_r, pthread_kill,
+              [gl_have_pthread=yes
+               LIBTHREAD=-lc_r LTLIBTHREAD=-lc_r
+               LIBMULTITHREAD=-lc_r LTLIBMULTITHREAD=-lc_r])
+          fi
+        fi
+        if test -n "$gl_have_pthread"; then
+          gl_threads_api=posix
+          AC_DEFINE([USE_POSIX_THREADS], 1,
+            [Define if the POSIX multithreading library can be used.])
+          if test -n "$LIBMULTITHREAD" || test -n "$LTLIBMULTITHREAD"; then
+            if test $gl_have_weak = yes; then
+              AC_DEFINE([USE_POSIX_THREADS_WEAK], 1,
+                [Define if references to the POSIX multithreading library should be made weak.])
+              LIBTHREAD=
+              LTLIBTHREAD=
+            fi
+          fi
+          # OSF/1 4.0 and MacOS X 10.1 lack the pthread_rwlock_t type and the
+          # pthread_rwlock_* functions.
+          AC_CHECK_TYPE([pthread_rwlock_t],
+            [AC_DEFINE([HAVE_PTHREAD_RWLOCK], 1,
+               [Define if the POSIX multithreading library has read/write locks.])],
+            [],
+            [#include <pthread.h>])
+          # glibc defines PTHREAD_MUTEX_RECURSIVE as enum, not as a macro.
+          AC_TRY_COMPILE([#include <pthread.h>],
+            [#if __FreeBSD__ == 4
 error "No, in FreeBSD 4.0 recursive mutexes actually don't work."
 #else
 int x = (int)PTHREAD_MUTEX_RECURSIVE;
 return !x;
 #endif],
-      [AC_DEFINE([HAVE_PTHREAD_MUTEX_RECURSIVE], [1],
-         [Define if the <pthread.h> defines PTHREAD_MUTEX_RECURSIVE.])])
+            [AC_DEFINE([HAVE_PTHREAD_MUTEX_RECURSIVE], 1,
+               [Define if the <pthread.h> defines PTHREAD_MUTEX_RECURSIVE.])])
+        fi
+      fi
+    fi
+    if test -z "$gl_have_pthread"; then
+      if test "$gl_use_threads" = yes || test "$gl_use_threads" = solaris; then
+        gl_have_solaristhread=
+        gl_save_LIBS="$LIBS"
+        LIBS="$LIBS -lthread"
+        AC_TRY_LINK([#include <thread.h>
+#include <synch.h>],
+          [thr_self();],
+          [gl_have_solaristhread=yes])
+        LIBS="$gl_save_LIBS"
+        if test -n "$gl_have_solaristhread"; then
+          gl_threads_api=solaris
+          LIBTHREAD=-lthread
+          LTLIBTHREAD=-lthread
+          LIBMULTITHREAD="$LIBTHREAD"
+          LTLIBMULTITHREAD="$LTLIBTHREAD"
+          AC_DEFINE([USE_SOLARIS_THREADS], 1,
+            [Define if the old Solaris multithreading library can be used.])
+          if test $gl_have_weak = yes; then
+            AC_DEFINE([USE_SOLARIS_THREADS_WEAK], 1,
+              [Define if references to the old Solaris multithreading library should be made weak.])
+            LIBTHREAD=
+            LTLIBTHREAD=
+          fi
+        fi
+      fi
+    fi
+    if test "$gl_use_threads" = pth; then
+      gl_save_CPPFLAGS="$CPPFLAGS"
+      AC_LIB_LINKFLAGS(pth)
+      gl_have_pth=
+      gl_save_LIBS="$LIBS"
+      LIBS="$LIBS -lpth"
+      AC_TRY_LINK([#include <pth.h>], [pth_self();], gl_have_pth=yes)
+      LIBS="$gl_save_LIBS"
+      if test -n "$gl_have_pth"; then
+        gl_threads_api=pth
+        LIBTHREAD="$LIBPTH"
+        LTLIBTHREAD="$LTLIBPTH"
+        LIBMULTITHREAD="$LIBTHREAD"
+        LTLIBMULTITHREAD="$LTLIBTHREAD"
+        AC_DEFINE([USE_PTH_THREADS], 1,
+          [Define if the GNU Pth multithreading library can be used.])
+        if test -n "$LIBMULTITHREAD" || test -n "$LTLIBMULTITHREAD"; then
+          if test $gl_have_weak = yes; then
+            AC_DEFINE([USE_PTH_THREADS_WEAK], 1,
+              [Define if references to the GNU Pth multithreading library should be made weak.])
+            LIBTHREAD=
+            LTLIBTHREAD=
+          fi
+        fi
+      else
+        CPPFLAGS="$gl_save_CPPFLAGS"
+      fi
+    fi
+    if test -z "$gl_have_pthread"; then
+      if test "$gl_use_threads" = yes || test "$gl_use_threads" = win32; then
+        if { case "$host_os" in
+               mingw*) true;;
+               *) false;;
+             esac
+           }; then
+          gl_threads_api=win32
+          AC_DEFINE([USE_WIN32_THREADS], 1,
+            [Define if the Win32 multithreading API can be used.])
+        fi
+      fi
+    fi
   fi
+  AC_MSG_CHECKING([for multithread API to use])
+  AC_MSG_RESULT([$gl_threads_api])
+  AC_SUBST(LIBTHREAD)
+  AC_SUBST(LTLIBTHREAD)
+  AC_SUBST(LIBMULTITHREAD)
+  AC_SUBST(LTLIBMULTITHREAD)
+])
+
+AC_DEFUN([gl_LOCK],
+[
+  AC_REQUIRE([gl_LOCK_EARLY])
+  AC_REQUIRE([gl_LOCK_BODY])
   gl_PREREQ_LOCK
 ])
 
@@ -2496,8 +2489,61 @@ AC_DEFUN([gl_PREREQ_LOCK], [
   AC_REQUIRE([AC_C_INLINE])
 ])
 
-# longlong.m4 serial 14
-dnl Copyright (C) 1999-2007, 2009-2010 Free Software Foundation, Inc.
+dnl Survey of platforms:
+dnl
+dnl Platform          Available   Compiler    Supports   test-lock
+dnl                   flavours    option      weak       result
+dnl ---------------   ---------   ---------   --------   ---------
+dnl Linux 2.4/glibc   posix       -lpthread       Y      OK
+dnl
+dnl GNU Hurd/glibc    posix
+dnl
+dnl FreeBSD 5.3       posix       -lc_r           Y
+dnl                   posix       -lkse ?         Y
+dnl                   posix       -lpthread ?     Y
+dnl                   posix       -lthr           Y
+dnl
+dnl FreeBSD 5.2       posix       -lc_r           Y
+dnl                   posix       -lkse           Y
+dnl                   posix       -lthr           Y
+dnl
+dnl FreeBSD 4.0,4.10  posix       -lc_r           Y      OK
+dnl
+dnl NetBSD 1.6        --
+dnl
+dnl OpenBSD 3.4       posix       -lpthread       Y      OK
+dnl
+dnl MacOS X 10.[123]  posix       -lpthread       Y      OK
+dnl
+dnl Solaris 7,8,9     posix       -lpthread       Y      Sol 7,8: 0.0; Sol 9: OK
+dnl                   solaris     -lthread        Y      Sol 7,8: 0.0; Sol 9: OK
+dnl
+dnl HP-UX 11          posix       -lpthread       N (cc) OK
+dnl                                               Y (gcc)
+dnl
+dnl IRIX 6.5          posix       -lpthread       Y      0.5
+dnl
+dnl AIX 4.3,5.1       posix       -lpthread       N      AIX 4: 0.5; AIX 5: OK
+dnl
+dnl OSF/1 4.0,5.1     posix       -pthread (cc)   N      OK
+dnl                               -lpthread (gcc) Y
+dnl
+dnl Cygwin            posix       -lpthread       Y      OK
+dnl
+dnl Any of the above  pth         -lpth                  0.0
+dnl
+dnl Mingw             win32                       N      OK
+dnl
+dnl BeOS 5            --
+dnl
+dnl The test-lock result shows what happens if in test-lock.c EXPLICIT_YIELD is
+dnl turned off:
+dnl   OK if all three tests terminate OK,
+dnl   0.5 if the first test terminates OK but the second one loops endlessly,
+dnl   0.0 if the first test already loops endlessly.
+
+# longlong.m4 serial 13
+dnl Copyright (C) 1999-2007 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -2518,33 +2564,33 @@ AC_DEFUN([AC_TYPE_LONG_LONG_INT],
     [AC_LINK_IFELSE(
        [_AC_TYPE_LONG_LONG_SNIPPET],
        [dnl This catches a bug in Tandem NonStop Kernel (OSS) cc -O circa 2004.
-        dnl If cross compiling, assume the bug isn't important, since
-        dnl nobody cross compiles for this platform as far as we know.
-        AC_RUN_IFELSE(
-          [AC_LANG_PROGRAM(
-             [[@%:@include <limits.h>
-               @%:@ifndef LLONG_MAX
-               @%:@ define HALF \
-                        (1LL << (sizeof (long long int) * CHAR_BIT - 2))
-               @%:@ define LLONG_MAX (HALF - 1 + HALF)
-               @%:@endif]],
-             [[long long int n = 1;
-               int i;
-               for (i = 0; ; i++)
-                 {
-                   long long int m = n << i;
-                   if (m >> i != n)
-                     return 1;
-                   if (LLONG_MAX / 2 < m)
-                     break;
-                 }
-               return 0;]])],
-          [ac_cv_type_long_long_int=yes],
-          [ac_cv_type_long_long_int=no],
-          [ac_cv_type_long_long_int=yes])],
+	dnl If cross compiling, assume the bug isn't important, since
+	dnl nobody cross compiles for this platform as far as we know.
+	AC_RUN_IFELSE(
+	  [AC_LANG_PROGRAM(
+	     [[@%:@include <limits.h>
+	       @%:@ifndef LLONG_MAX
+	       @%:@ define HALF \
+			(1LL << (sizeof (long long int) * CHAR_BIT - 2))
+	       @%:@ define LLONG_MAX (HALF - 1 + HALF)
+	       @%:@endif]],
+	     [[long long int n = 1;
+	       int i;
+	       for (i = 0; ; i++)
+		 {
+		   long long int m = n << i;
+		   if (m >> i != n)
+		     return 1;
+		   if (LLONG_MAX / 2 < m)
+		     break;
+		 }
+	       return 0;]])],
+	  [ac_cv_type_long_long_int=yes],
+	  [ac_cv_type_long_long_int=no],
+	  [ac_cv_type_long_long_int=yes])],
        [ac_cv_type_long_long_int=no])])
   if test $ac_cv_type_long_long_int = yes; then
-    AC_DEFINE([HAVE_LONG_LONG_INT], [1],
+    AC_DEFINE([HAVE_LONG_LONG_INT], 1,
       [Define to 1 if the system has the type `long long int'.])
   fi
 ])
@@ -2567,7 +2613,7 @@ AC_DEFUN([AC_TYPE_UNSIGNED_LONG_LONG_INT],
        [ac_cv_type_unsigned_long_long_int=yes],
        [ac_cv_type_unsigned_long_long_int=no])])
   if test $ac_cv_type_unsigned_long_long_int = yes; then
-    AC_DEFINE([HAVE_UNSIGNED_LONG_LONG_INT], [1],
+    AC_DEFINE([HAVE_UNSIGNED_LONG_LONG_INT], 1,
       [Define to 1 if the system has the type `unsigned long long int'.])
   fi
 ])
@@ -2580,32 +2626,34 @@ AC_DEFUN([AC_TYPE_UNSIGNED_LONG_LONG_INT],
 AC_DEFUN([_AC_TYPE_LONG_LONG_SNIPPET],
 [
   AC_LANG_PROGRAM(
-    [[/* For now, do not test the preprocessor; as of 2007 there are too many
-         implementations with broken preprocessors.  Perhaps this can
-         be revisited in 2012.  In the meantime, code should not expect
-         #if to work with literals wider than 32 bits.  */
+    [[/* Test preprocessor.  */
+      #if ! (-9223372036854775807LL < 0 && 0 < 9223372036854775807ll)
+        error in preprocessor;
+      #endif
+      #if ! (18446744073709551615ULL <= -1ull)
+        error in preprocessor;
+      #endif
       /* Test literals.  */
       long long int ll = 9223372036854775807ll;
       long long int nll = -9223372036854775807LL;
       unsigned long long int ull = 18446744073709551615ULL;
       /* Test constant expressions.   */
       typedef int a[((-9223372036854775807LL < 0 && 0 < 9223372036854775807ll)
-                     ? 1 : -1)];
+		     ? 1 : -1)];
       typedef int b[(18446744073709551615ULL <= (unsigned long long int) -1
-                     ? 1 : -1)];
+		     ? 1 : -1)];
       int i = 63;]],
     [[/* Test availability of runtime routines for shift and division.  */
       long long int llmax = 9223372036854775807ll;
       unsigned long long int ullmax = 18446744073709551615ull;
       return ((ll << 63) | (ll >> 63) | (ll < i) | (ll > i)
-              | (llmax / ll) | (llmax % ll)
-              | (ull << 63) | (ull >> 63) | (ull << i) | (ull >> i)
-              | (ullmax / ull) | (ullmax % ull));]])
+	      | (llmax / ll) | (llmax % ll)
+	      | (ull << 63) | (ull >> 63) | (ull << i) | (ull >> i)
+	      | (ullmax / ull) | (ullmax % ull));]])
 ])
 
-# nls.m4 serial 5 (gettext-0.18)
-dnl Copyright (C) 1995-2003, 2005-2006, 2008-2010 Free Software Foundation,
-dnl Inc.
+# nls.m4 serial 3 (gettext-0.15)
+dnl Copyright (C) 1995-2003, 2005-2006 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -2623,21 +2671,20 @@ dnl Authors:
 dnl   Ulrich Drepper <drepper@cygnus.com>, 1995-2000.
 dnl   Bruno Haible <haible@clisp.cons.org>, 2000-2003.
 
-AC_PREREQ([2.50])
+AC_PREREQ(2.50)
 
 AC_DEFUN([AM_NLS],
 [
   AC_MSG_CHECKING([whether NLS is requested])
   dnl Default is enabled NLS
-  AC_ARG_ENABLE([nls],
+  AC_ARG_ENABLE(nls,
     [  --disable-nls           do not use Native Language Support],
     USE_NLS=$enableval, USE_NLS=yes)
-  AC_MSG_RESULT([$USE_NLS])
-  AC_SUBST([USE_NLS])
+  AC_MSG_RESULT($USE_NLS)
+  AC_SUBST(USE_NLS)
 ])
 
 # pkg.m4 - Macros to locate and utilise pkg-config.            -*- Autoconf -*-
-# serial 1 (pkg-config-0.24)
 # 
 # Copyright © 2004 Scott James Remnant <scott@netsplit.com>.
 #
@@ -2664,12 +2711,8 @@ AC_DEFUN([AM_NLS],
 # ----------------------------------
 AC_DEFUN([PKG_PROG_PKG_CONFIG],
 [m4_pattern_forbid([^_?PKG_[A-Z_]+$])
-m4_pattern_allow([^PKG_CONFIG(_(PATH|LIBDIR|SYSROOT_DIR|ALLOW_SYSTEM_(CFLAGS|LIBS)))?$])
-m4_pattern_allow([^PKG_CONFIG_(DISABLE_UNINSTALLED|TOP_BUILD_DIR|DEBUG_SPEW)$])
-AC_ARG_VAR([PKG_CONFIG], [path to pkg-config utility])
-AC_ARG_VAR([PKG_CONFIG_PATH], [directories to add to pkg-config's search path])
-AC_ARG_VAR([PKG_CONFIG_LIBDIR], [path overriding pkg-config's built-in search path])
-
+m4_pattern_allow([^PKG_CONFIG(_PATH)?$])
+AC_ARG_VAR([PKG_CONFIG], [path to pkg-config utility])dnl
 if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
 	AC_PATH_TOOL([PKG_CONFIG], [pkg-config])
 fi
@@ -2682,6 +2725,7 @@ if test -n "$PKG_CONFIG"; then
 		AC_MSG_RESULT([no])
 		PKG_CONFIG=""
 	fi
+		
 fi[]dnl
 ])# PKG_PROG_PKG_CONFIG
 
@@ -2690,19 +2734,20 @@ fi[]dnl
 # Check to see whether a particular set of modules exists.  Similar
 # to PKG_CHECK_MODULES(), but does not set variables or print errors.
 #
-# Please remember that m4 expands AC_REQUIRE([PKG_PROG_PKG_CONFIG])
-# only at the first occurence in configure.ac, so if the first place
-# it's called might be skipped (such as if it is within an "if", you
-# have to call PKG_CHECK_EXISTS manually
+#
+# Similar to PKG_CHECK_MODULES, make sure that the first instance of
+# this or PKG_CHECK_MODULES is called, or make sure to call
+# PKG_CHECK_EXISTS manually
 # --------------------------------------------------------------
 AC_DEFUN([PKG_CHECK_EXISTS],
 [AC_REQUIRE([PKG_PROG_PKG_CONFIG])dnl
 if test -n "$PKG_CONFIG" && \
     AC_RUN_LOG([$PKG_CONFIG --exists --print-errors "$1"]); then
-  m4_default([$2], [:])
+  m4_ifval([$2], [$2], [:])
 m4_ifvaln([$3], [else
   $3])dnl
 fi])
+
 
 # _PKG_CONFIG([VARIABLE], [COMMAND], [MODULES])
 # ---------------------------------------------
@@ -2711,8 +2756,7 @@ m4_define([_PKG_CONFIG],
     pkg_cv_[]$1="$$1"
  elif test -n "$PKG_CONFIG"; then
     PKG_CHECK_EXISTS([$3],
-                     [pkg_cv_[]$1=`$PKG_CONFIG --[]$2 "$3" 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes ],
+                     [pkg_cv_[]$1=`$PKG_CONFIG --[]$2 "$3" 2>/dev/null`],
 		     [pkg_failed=yes])
  else
     pkg_failed=untried
@@ -2757,17 +2801,16 @@ and $1[]_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details.])
 
 if test $pkg_failed = yes; then
-   	AC_MSG_RESULT([no])
         _PKG_SHORT_ERRORS_SUPPORTED
         if test $_pkg_short_errors_supported = yes; then
-	        $1[]_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "$2" 2>&1`
+	        $1[]_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "$2" 2>&1`
         else 
-	        $1[]_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "$2" 2>&1`
+	        $1[]_PKG_ERRORS=`$PKG_CONFIG --print-errors "$2" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$$1[]_PKG_ERRORS" >&AS_MESSAGE_LOG_FD
 
-	m4_default([$4], [AC_MSG_ERROR(
+	ifelse([$4], , [AC_MSG_ERROR(dnl
 [Package requirements ($2) were not met:
 
 $$1_PKG_ERRORS
@@ -2775,29 +2818,30 @@ $$1_PKG_ERRORS
 Consider adjusting the PKG_CONFIG_PATH environment variable if you
 installed software in a non-standard prefix.
 
-_PKG_TEXT])[]dnl
-        ])
+_PKG_TEXT
+])],
+		[AC_MSG_RESULT([no])
+                $4])
 elif test $pkg_failed = untried; then
-     	AC_MSG_RESULT([no])
-	m4_default([$4], [AC_MSG_FAILURE(
+	ifelse([$4], , [AC_MSG_FAILURE(dnl
 [The pkg-config script could not be found or is too old.  Make sure it
 is in your PATH or set the PKG_CONFIG environment variable to the full
 path to pkg-config.
 
 _PKG_TEXT
 
-To get pkg-config, see <http://pkg-config.freedesktop.org/>.])[]dnl
-        ])
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.])],
+		[$4])
 else
 	$1[]_CFLAGS=$pkg_cv_[]$1[]_CFLAGS
 	$1[]_LIBS=$pkg_cv_[]$1[]_LIBS
         AC_MSG_RESULT([yes])
-	$3
+	ifelse([$3], , :, [$3])
 fi[]dnl
 ])# PKG_CHECK_MODULES
 
-# po.m4 serial 17 (gettext-0.18)
-dnl Copyright (C) 1995-2010 Free Software Foundation, Inc.
+# po.m4 serial 15 (gettext-0.17)
+dnl Copyright (C) 1995-2007 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -2815,7 +2859,7 @@ dnl Authors:
 dnl   Ulrich Drepper <drepper@cygnus.com>, 1995-2000.
 dnl   Bruno Haible <haible@clisp.cons.org>, 2000-2003.
 
-AC_PREREQ([2.50])
+AC_PREREQ(2.50)
 
 dnl Checks for all prerequisites of the po subdirectory.
 AC_DEFUN([AM_PO_SUBDIRS],
@@ -2827,7 +2871,7 @@ AC_DEFUN([AM_PO_SUBDIRS],
 
   dnl Release version of the gettext macros. This is used to ensure that
   dnl the gettext macros and po/Makefile.in.in are in sync.
-  AC_SUBST([GETTEXT_MACRO_VERSION], [0.18])
+  AC_SUBST([GETTEXT_MACRO_VERSION], [0.17])
 
   dnl Perform the following tests also if --disable-nls has been given,
   dnl because they are needed for "make dist" to work.
@@ -2839,7 +2883,7 @@ AC_DEFUN([AM_PO_SUBDIRS],
     [$ac_dir/$ac_word --statistics /dev/null >&]AS_MESSAGE_LOG_FD[ 2>&1 &&
      (if $ac_dir/$ac_word --statistics /dev/null 2>&1 >/dev/null | grep usage >/dev/null; then exit 1; else exit 0; fi)],
     :)
-  AC_PATH_PROG([GMSGFMT], [gmsgfmt], [$MSGFMT])
+  AC_PATH_PROG(GMSGFMT, gmsgfmt, $MSGFMT)
 
   dnl Test whether it is GNU msgfmt >= 0.15.
 changequote(,)dnl
@@ -3246,8 +3290,8 @@ AC_DEFUN([AM_XGETTEXT_OPTION],
   XGETTEXT_EXTRA_OPTIONS="$XGETTEXT_EXTRA_OPTIONS $1"
 ])
 
-# printf-posix.m4 serial 5 (gettext-0.18)
-dnl Copyright (C) 2003, 2007, 2009-2010 Free Software Foundation, Inc.
+# printf-posix.m4 serial 3 (gettext-0.17)
+dnl Copyright (C) 2003, 2007 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -3275,25 +3319,24 @@ int main ()
   return (strcmp (buf, "55 33") != 0);
 }], gt_cv_func_printf_posix=yes, gt_cv_func_printf_posix=no,
       [
-        AC_EGREP_CPP([notposix], [
+        AC_EGREP_CPP(notposix, [
 #if defined __NetBSD__ || defined __BEOS__ || defined _MSC_VER || defined __MINGW32__ || defined __CYGWIN__
   notposix
 #endif
-          ],
-          [gt_cv_func_printf_posix="guessing no"],
-          [gt_cv_func_printf_posix="guessing yes"])
+        ], gt_cv_func_printf_posix="guessing no",
+           gt_cv_func_printf_posix="guessing yes")
       ])
     ])
   case $gt_cv_func_printf_posix in
     *yes)
-      AC_DEFINE([HAVE_POSIX_PRINTF], [1],
+      AC_DEFINE(HAVE_POSIX_PRINTF, 1,
         [Define if your printf() function supports format strings with positions.])
       ;;
   esac
 ])
 
-# progtest.m4 serial 6 (gettext-0.18)
-dnl Copyright (C) 1996-2003, 2005, 2008-2010 Free Software Foundation, Inc.
+# progtest.m4 serial 4 (gettext-0.14.2)
+dnl Copyright (C) 1996-2003, 2005 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -3310,7 +3353,7 @@ dnl They are *not* in the public domain.
 dnl Authors:
 dnl   Ulrich Drepper <drepper@cygnus.com>, 1996.
 
-AC_PREREQ([2.50])
+AC_PREREQ(2.50)
 
 # Search path for a program which passes the given test.
 
@@ -3349,7 +3392,7 @@ rm -f conf$$.file
 # Extract the first word of "$2", so it can be a program name with args.
 set dummy $2; ac_word=[$]2
 AC_MSG_CHECKING([for $ac_word])
-AC_CACHE_VAL([ac_cv_path_$1],
+AC_CACHE_VAL(ac_cv_path_$1,
 [case "[$]$1" in
   [[\\/]]* | ?:[[\\/]]*)
     ac_cv_path_$1="[$]$1" # Let the user override the test with a path.
@@ -3378,15 +3421,15 @@ ifelse([$4], , , [  test -z "[$]ac_cv_path_$1" && ac_cv_path_$1="$4"
 esac])dnl
 $1="$ac_cv_path_$1"
 if test ifelse([$4], , [-n "[$]$1"], ["[$]$1" != "$4"]); then
-  AC_MSG_RESULT([$][$1])
+  AC_MSG_RESULT([$]$1)
 else
-  AC_MSG_RESULT([no])
+  AC_MSG_RESULT(no)
 fi
-AC_SUBST([$1])dnl
+AC_SUBST($1)dnl
 ])
 
-# size_max.m4 serial 9
-dnl Copyright (C) 2003, 2005-2006, 2008-2010 Free Software Foundation, Inc.
+# size_max.m4 serial 6
+dnl Copyright (C) 2003, 2005-2006 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -3395,9 +3438,10 @@ dnl From Bruno Haible.
 
 AC_DEFUN([gl_SIZE_MAX],
 [
-  AC_CHECK_HEADERS([stdint.h])
+  AC_CHECK_HEADERS(stdint.h)
   dnl First test whether the system already has SIZE_MAX.
-  AC_CACHE_CHECK([for SIZE_MAX], [gl_cv_size_max], [
+  AC_MSG_CHECKING([for SIZE_MAX])
+  AC_CACHE_VAL([gl_cv_size_max], [
     gl_cv_size_max=
     AC_EGREP_CPP([Found it], [
 #include <limits.h>
@@ -3407,16 +3451,16 @@ AC_DEFUN([gl_SIZE_MAX],
 #ifdef SIZE_MAX
 Found it
 #endif
-], [gl_cv_size_max=yes])
+], gl_cv_size_max=yes)
     if test -z "$gl_cv_size_max"; then
       dnl Define it ourselves. Here we assume that the type 'size_t' is not wider
       dnl than the type 'unsigned long'. Try hard to find a definition that can
       dnl be used in a preprocessor #if, i.e. doesn't contain a cast.
       AC_COMPUTE_INT([size_t_bits_minus_1], [sizeof (size_t) * CHAR_BIT - 1],
         [#include <stddef.h>
-#include <limits.h>], [size_t_bits_minus_1=])
+#include <limits.h>], size_t_bits_minus_1=)
       AC_COMPUTE_INT([fits_in_uint], [sizeof (size_t) <= sizeof (unsigned int)],
-        [#include <stddef.h>], [fits_in_uint=])
+        [#include <stddef.h>], fits_in_uint=)
       if test -n "$size_t_bits_minus_1" && test -n "$fits_in_uint"; then
         if test $fits_in_uint = 1; then
           dnl Even though SIZE_MAX fits in an unsigned int, it must be of type
@@ -3424,7 +3468,7 @@ Found it
           AC_TRY_COMPILE([#include <stddef.h>
             extern size_t foo;
             extern unsigned long foo;
-            ], [], [fits_in_uint=0])
+            ], [], fits_in_uint=0)
         fi
         dnl We cannot use 'expr' to simplify this expression, because 'expr'
         dnl works only with 'long' integers in the host environment, while we
@@ -3440,19 +3484,11 @@ Found it
       fi
     fi
   ])
+  AC_MSG_RESULT([$gl_cv_size_max])
   if test "$gl_cv_size_max" != yes; then
     AC_DEFINE_UNQUOTED([SIZE_MAX], [$gl_cv_size_max],
       [Define as the maximum value of type 'size_t', if the system doesn't define it.])
   fi
-  dnl Don't redefine SIZE_MAX in config.h if config.h is re-included after
-  dnl <stdint.h>. Remember that the #undef in AH_VERBATIM gets replaced with
-  dnl #define by AC_DEFINE_UNQUOTED.
-  AH_VERBATIM([SIZE_MAX],
-[/* Define as the maximum value of type 'size_t', if the system doesn't define
-   it. */
-#ifndef SIZE_MAX
-# undef SIZE_MAX
-#endif])
 ])
 
 dnl Autoconf >= 2.61 has AC_COMPUTE_INT built-in.
@@ -3461,8 +3497,8 @@ m4_ifdef([AC_COMPUTE_INT], [], [
   AC_DEFUN([AC_COMPUTE_INT], [_AC_COMPUTE_INT([$2],[$1],[$3],[$4])])
 ])
 
-# stdint_h.m4 serial 8
-dnl Copyright (C) 1997-2004, 2006, 2008-2010 Free Software Foundation, Inc.
+# stdint_h.m4 serial 6
+dnl Copyright (C) 1997-2004, 2006 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -3474,377 +3510,29 @@ dnl From Paul Eggert.
 
 AC_DEFUN([gl_AC_HEADER_STDINT_H],
 [
-  AC_CACHE_CHECK([for stdint.h], [gl_cv_header_stdint_h],
+  AC_CACHE_CHECK([for stdint.h], gl_cv_header_stdint_h,
   [AC_TRY_COMPILE(
     [#include <sys/types.h>
 #include <stdint.h>],
     [uintmax_t i = (uintmax_t) -1; return !i;],
-    [gl_cv_header_stdint_h=yes],
-    [gl_cv_header_stdint_h=no])])
+    gl_cv_header_stdint_h=yes,
+    gl_cv_header_stdint_h=no)])
   if test $gl_cv_header_stdint_h = yes; then
-    AC_DEFINE_UNQUOTED([HAVE_STDINT_H_WITH_UINTMAX], [1],
+    AC_DEFINE_UNQUOTED(HAVE_STDINT_H_WITH_UINTMAX, 1,
       [Define if <stdint.h> exists, doesn't clash with <sys/types.h>,
        and declares uintmax_t. ])
   fi
 ])
 
-# threadlib.m4 serial 5 (gettext-0.18)
-dnl Copyright (C) 2005-2010 Free Software Foundation, Inc.
-dnl This file is free software; the Free Software Foundation
-dnl gives unlimited permission to copy and/or distribute it,
-dnl with or without modifications, as long as this notice is preserved.
-
-dnl From Bruno Haible.
-
-dnl gl_THREADLIB
-dnl ------------
-dnl Tests for a multithreading library to be used.
-dnl Defines at most one of the macros USE_POSIX_THREADS, USE_SOLARIS_THREADS,
-dnl USE_PTH_THREADS, USE_WIN32_THREADS
-dnl Sets the variables LIBTHREAD and LTLIBTHREAD to the linker options for use
-dnl in a Makefile (LIBTHREAD for use without libtool, LTLIBTHREAD for use with
-dnl libtool).
-dnl Sets the variables LIBMULTITHREAD and LTLIBMULTITHREAD similarly, for
-dnl programs that really need multithread functionality. The difference
-dnl between LIBTHREAD and LIBMULTITHREAD is that on platforms supporting weak
-dnl symbols, typically LIBTHREAD="" whereas LIBMULTITHREAD="-lpthread".
-dnl Adds to CPPFLAGS the flag -D_REENTRANT or -D_THREAD_SAFE if needed for
-dnl multithread-safe programs.
-
-AC_DEFUN([gl_THREADLIB_EARLY],
-[
-  AC_REQUIRE([gl_THREADLIB_EARLY_BODY])
-])
-
-dnl The guts of gl_THREADLIB_EARLY. Needs to be expanded only once.
-
-AC_DEFUN([gl_THREADLIB_EARLY_BODY],
-[
-  dnl Ordering constraints: This macro modifies CPPFLAGS in a way that
-  dnl influences the result of the autoconf tests that test for *_unlocked
-  dnl declarations, on AIX 5 at least. Therefore it must come early.
-  AC_BEFORE([$0], [gl_FUNC_GLIBC_UNLOCKED_IO])dnl
-  AC_BEFORE([$0], [gl_ARGP])dnl
-
-  AC_REQUIRE([AC_CANONICAL_HOST])
-  dnl _GNU_SOURCE is needed for pthread_rwlock_t on glibc systems.
-  dnl AC_USE_SYSTEM_EXTENSIONS was introduced in autoconf 2.60 and obsoletes
-  dnl AC_GNU_SOURCE.
-  m4_ifdef([AC_USE_SYSTEM_EXTENSIONS],
-    [AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])],
-    [AC_REQUIRE([AC_GNU_SOURCE])])
-  dnl Check for multithreading.
-  m4_divert_text([DEFAULTS], [gl_use_threads_default=])
-  AC_ARG_ENABLE([threads],
-AC_HELP_STRING([--enable-threads={posix|solaris|pth|win32}], [specify multithreading API])
-AC_HELP_STRING([--disable-threads], [build without multithread safety]),
-    [gl_use_threads=$enableval],
-    [if test -n "$gl_use_threads_default"; then
-       gl_use_threads="$gl_use_threads_default"
-     else
-changequote(,)dnl
-       case "$host_os" in
-         dnl Disable multithreading by default on OSF/1, because it interferes
-         dnl with fork()/exec(): When msgexec is linked with -lpthread, its
-         dnl child process gets an endless segmentation fault inside execvp().
-         dnl Disable multithreading by default on Cygwin 1.5.x, because it has
-         dnl bugs that lead to endless loops or crashes. See
-         dnl <http://cygwin.com/ml/cygwin/2009-08/msg00283.html>.
-         osf*) gl_use_threads=no ;;
-         cygwin*)
-               case `uname -r` in
-                 1.[0-5].*) gl_use_threads=no ;;
-                 *)         gl_use_threads=yes ;;
-               esac
-               ;;
-         *)    gl_use_threads=yes ;;
-       esac
-changequote([,])dnl
-     fi
-    ])
-  if test "$gl_use_threads" = yes || test "$gl_use_threads" = posix; then
-    # For using <pthread.h>:
-    case "$host_os" in
-      osf*)
-        # On OSF/1, the compiler needs the flag -D_REENTRANT so that it
-        # groks <pthread.h>. cc also understands the flag -pthread, but
-        # we don't use it because 1. gcc-2.95 doesn't understand -pthread,
-        # 2. putting a flag into CPPFLAGS that has an effect on the linker
-        # causes the AC_TRY_LINK test below to succeed unexpectedly,
-        # leading to wrong values of LIBTHREAD and LTLIBTHREAD.
-        CPPFLAGS="$CPPFLAGS -D_REENTRANT"
-        ;;
-    esac
-    # Some systems optimize for single-threaded programs by default, and
-    # need special flags to disable these optimizations. For example, the
-    # definition of 'errno' in <errno.h>.
-    case "$host_os" in
-      aix* | freebsd*) CPPFLAGS="$CPPFLAGS -D_THREAD_SAFE" ;;
-      solaris*) CPPFLAGS="$CPPFLAGS -D_REENTRANT" ;;
-    esac
-  fi
-])
-
-dnl The guts of gl_THREADLIB. Needs to be expanded only once.
-
-AC_DEFUN([gl_THREADLIB_BODY],
-[
-  AC_REQUIRE([gl_THREADLIB_EARLY_BODY])
-  gl_threads_api=none
-  LIBTHREAD=
-  LTLIBTHREAD=
-  LIBMULTITHREAD=
-  LTLIBMULTITHREAD=
-  if test "$gl_use_threads" != no; then
-    dnl Check whether the compiler and linker support weak declarations.
-    AC_CACHE_CHECK([whether imported symbols can be declared weak],
-      [gl_cv_have_weak],
-      [gl_cv_have_weak=no
-       dnl First, test whether the compiler accepts it syntactically.
-       AC_TRY_LINK([extern void xyzzy ();
-#pragma weak xyzzy], [xyzzy();], [gl_cv_have_weak=maybe])
-       if test $gl_cv_have_weak = maybe; then
-         dnl Second, test whether it actually works. On Cygwin 1.7.2, with
-         dnl gcc 4.3, symbols declared weak always evaluate to the address 0.
-         AC_TRY_RUN([
-#include <stdio.h>
-#pragma weak fputs
-int main ()
-{
-  return (fputs == NULL);
-}], [gl_cv_have_weak=yes], [gl_cv_have_weak=no],
-           [dnl When cross-compiling, assume that only ELF platforms support
-            dnl weak symbols.
-            AC_EGREP_CPP([Extensible Linking Format],
-              [#ifdef __ELF__
-               Extensible Linking Format
-               #endif
-              ],
-              [gl_cv_have_weak="guessing yes"],
-              [gl_cv_have_weak="guessing no"])
-           ])
-       fi
-      ])
-    if test "$gl_use_threads" = yes || test "$gl_use_threads" = posix; then
-      # On OSF/1, the compiler needs the flag -pthread or -D_REENTRANT so that
-      # it groks <pthread.h>. It's added above, in gl_THREADLIB_EARLY_BODY.
-      AC_CHECK_HEADER([pthread.h],
-        [gl_have_pthread_h=yes], [gl_have_pthread_h=no])
-      if test "$gl_have_pthread_h" = yes; then
-        # Other possible tests:
-        #   -lpthreads (FSU threads, PCthreads)
-        #   -lgthreads
-        gl_have_pthread=
-        # Test whether both pthread_mutex_lock and pthread_mutexattr_init exist
-        # in libc. IRIX 6.5 has the first one in both libc and libpthread, but
-        # the second one only in libpthread, and lock.c needs it.
-        AC_TRY_LINK([#include <pthread.h>],
-          [pthread_mutex_lock((pthread_mutex_t*)0);
-           pthread_mutexattr_init((pthread_mutexattr_t*)0);],
-          [gl_have_pthread=yes])
-        # Test for libpthread by looking for pthread_kill. (Not pthread_self,
-        # since it is defined as a macro on OSF/1.)
-        if test -n "$gl_have_pthread"; then
-          # The program links fine without libpthread. But it may actually
-          # need to link with libpthread in order to create multiple threads.
-          AC_CHECK_LIB([pthread], [pthread_kill],
-            [LIBMULTITHREAD=-lpthread LTLIBMULTITHREAD=-lpthread
-             # On Solaris and HP-UX, most pthread functions exist also in libc.
-             # Therefore pthread_in_use() needs to actually try to create a
-             # thread: pthread_create from libc will fail, whereas
-             # pthread_create will actually create a thread.
-             case "$host_os" in
-               solaris* | hpux*)
-                 AC_DEFINE([PTHREAD_IN_USE_DETECTION_HARD], [1],
-                   [Define if the pthread_in_use() detection is hard.])
-             esac
-            ])
-        else
-          # Some library is needed. Try libpthread and libc_r.
-          AC_CHECK_LIB([pthread], [pthread_kill],
-            [gl_have_pthread=yes
-             LIBTHREAD=-lpthread LTLIBTHREAD=-lpthread
-             LIBMULTITHREAD=-lpthread LTLIBMULTITHREAD=-lpthread])
-          if test -z "$gl_have_pthread"; then
-            # For FreeBSD 4.
-            AC_CHECK_LIB([c_r], [pthread_kill],
-              [gl_have_pthread=yes
-               LIBTHREAD=-lc_r LTLIBTHREAD=-lc_r
-               LIBMULTITHREAD=-lc_r LTLIBMULTITHREAD=-lc_r])
-          fi
-        fi
-        if test -n "$gl_have_pthread"; then
-          gl_threads_api=posix
-          AC_DEFINE([USE_POSIX_THREADS], [1],
-            [Define if the POSIX multithreading library can be used.])
-          if test -n "$LIBMULTITHREAD" || test -n "$LTLIBMULTITHREAD"; then
-            if case "$gl_cv_have_weak" in *yes) true;; *) false;; esac; then
-              AC_DEFINE([USE_POSIX_THREADS_WEAK], [1],
-                [Define if references to the POSIX multithreading library should be made weak.])
-              LIBTHREAD=
-              LTLIBTHREAD=
-            fi
-          fi
-        fi
-      fi
-    fi
-    if test -z "$gl_have_pthread"; then
-      if test "$gl_use_threads" = yes || test "$gl_use_threads" = solaris; then
-        gl_have_solaristhread=
-        gl_save_LIBS="$LIBS"
-        LIBS="$LIBS -lthread"
-        AC_TRY_LINK([#include <thread.h>
-#include <synch.h>],
-          [thr_self();],
-          [gl_have_solaristhread=yes])
-        LIBS="$gl_save_LIBS"
-        if test -n "$gl_have_solaristhread"; then
-          gl_threads_api=solaris
-          LIBTHREAD=-lthread
-          LTLIBTHREAD=-lthread
-          LIBMULTITHREAD="$LIBTHREAD"
-          LTLIBMULTITHREAD="$LTLIBTHREAD"
-          AC_DEFINE([USE_SOLARIS_THREADS], [1],
-            [Define if the old Solaris multithreading library can be used.])
-          if case "$gl_cv_have_weak" in *yes) true;; *) false;; esac; then
-            AC_DEFINE([USE_SOLARIS_THREADS_WEAK], [1],
-              [Define if references to the old Solaris multithreading library should be made weak.])
-            LIBTHREAD=
-            LTLIBTHREAD=
-          fi
-        fi
-      fi
-    fi
-    if test "$gl_use_threads" = pth; then
-      gl_save_CPPFLAGS="$CPPFLAGS"
-      AC_LIB_LINKFLAGS([pth])
-      gl_have_pth=
-      gl_save_LIBS="$LIBS"
-      LIBS="$LIBS -lpth"
-      AC_TRY_LINK([#include <pth.h>], [pth_self();], [gl_have_pth=yes])
-      LIBS="$gl_save_LIBS"
-      if test -n "$gl_have_pth"; then
-        gl_threads_api=pth
-        LIBTHREAD="$LIBPTH"
-        LTLIBTHREAD="$LTLIBPTH"
-        LIBMULTITHREAD="$LIBTHREAD"
-        LTLIBMULTITHREAD="$LTLIBTHREAD"
-        AC_DEFINE([USE_PTH_THREADS], [1],
-          [Define if the GNU Pth multithreading library can be used.])
-        if test -n "$LIBMULTITHREAD" || test -n "$LTLIBMULTITHREAD"; then
-          if case "$gl_cv_have_weak" in *yes) true;; *) false;; esac; then
-            AC_DEFINE([USE_PTH_THREADS_WEAK], [1],
-              [Define if references to the GNU Pth multithreading library should be made weak.])
-            LIBTHREAD=
-            LTLIBTHREAD=
-          fi
-        fi
-      else
-        CPPFLAGS="$gl_save_CPPFLAGS"
-      fi
-    fi
-    if test -z "$gl_have_pthread"; then
-      if test "$gl_use_threads" = yes || test "$gl_use_threads" = win32; then
-        if { case "$host_os" in
-               mingw*) true;;
-               *) false;;
-             esac
-           }; then
-          gl_threads_api=win32
-          AC_DEFINE([USE_WIN32_THREADS], [1],
-            [Define if the Win32 multithreading API can be used.])
-        fi
-      fi
-    fi
-  fi
-  AC_MSG_CHECKING([for multithread API to use])
-  AC_MSG_RESULT([$gl_threads_api])
-  AC_SUBST([LIBTHREAD])
-  AC_SUBST([LTLIBTHREAD])
-  AC_SUBST([LIBMULTITHREAD])
-  AC_SUBST([LTLIBMULTITHREAD])
-])
-
-AC_DEFUN([gl_THREADLIB],
-[
-  AC_REQUIRE([gl_THREADLIB_EARLY])
-  AC_REQUIRE([gl_THREADLIB_BODY])
-])
-
-
-dnl gl_DISABLE_THREADS
-dnl ------------------
-dnl Sets the gl_THREADLIB default so that threads are not used by default.
-dnl The user can still override it at installation time, by using the
-dnl configure option '--enable-threads'.
-
-AC_DEFUN([gl_DISABLE_THREADS], [
-  m4_divert_text([INIT_PREPARE], [gl_use_threads_default=no])
-])
-
-
-dnl Survey of platforms:
-dnl
-dnl Platform          Available   Compiler    Supports   test-lock
-dnl                   flavours    option      weak       result
-dnl ---------------   ---------   ---------   --------   ---------
-dnl Linux 2.4/glibc   posix       -lpthread       Y      OK
-dnl
-dnl GNU Hurd/glibc    posix
-dnl
-dnl FreeBSD 5.3       posix       -lc_r           Y
-dnl                   posix       -lkse ?         Y
-dnl                   posix       -lpthread ?     Y
-dnl                   posix       -lthr           Y
-dnl
-dnl FreeBSD 5.2       posix       -lc_r           Y
-dnl                   posix       -lkse           Y
-dnl                   posix       -lthr           Y
-dnl
-dnl FreeBSD 4.0,4.10  posix       -lc_r           Y      OK
-dnl
-dnl NetBSD 1.6        --
-dnl
-dnl OpenBSD 3.4       posix       -lpthread       Y      OK
-dnl
-dnl MacOS X 10.[123]  posix       -lpthread       Y      OK
-dnl
-dnl Solaris 7,8,9     posix       -lpthread       Y      Sol 7,8: 0.0; Sol 9: OK
-dnl                   solaris     -lthread        Y      Sol 7,8: 0.0; Sol 9: OK
-dnl
-dnl HP-UX 11          posix       -lpthread       N (cc) OK
-dnl                                               Y (gcc)
-dnl
-dnl IRIX 6.5          posix       -lpthread       Y      0.5
-dnl
-dnl AIX 4.3,5.1       posix       -lpthread       N      AIX 4: 0.5; AIX 5: OK
-dnl
-dnl OSF/1 4.0,5.1     posix       -pthread (cc)   N      OK
-dnl                               -lpthread (gcc) Y
-dnl
-dnl Cygwin            posix       -lpthread       Y      OK
-dnl
-dnl Any of the above  pth         -lpth                  0.0
-dnl
-dnl Mingw             win32                       N      OK
-dnl
-dnl BeOS 5            --
-dnl
-dnl The test-lock result shows what happens if in test-lock.c EXPLICIT_YIELD is
-dnl turned off:
-dnl   OK if all three tests terminate OK,
-dnl   0.5 if the first test terminates OK but the second one loops endlessly,
-dnl   0.0 if the first test already loops endlessly.
-
-# uintmax_t.m4 serial 12
-dnl Copyright (C) 1997-2004, 2007-2010 Free Software Foundation, Inc.
+# uintmax_t.m4 serial 10
+dnl Copyright (C) 1997-2004, 2007 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
 dnl From Paul Eggert.
 
-AC_PREREQ([2.13])
+AC_PREREQ(2.13)
 
 # Define uintmax_t to 'unsigned long' or 'unsigned long long'
 # if it is not already defined in <stdint.h> or <inttypes.h>.
@@ -3858,17 +3546,17 @@ AC_DEFUN([gl_AC_TYPE_UINTMAX_T],
     test $ac_cv_type_unsigned_long_long_int = yes \
       && ac_type='unsigned long long' \
       || ac_type='unsigned long'
-    AC_DEFINE_UNQUOTED([uintmax_t], [$ac_type],
+    AC_DEFINE_UNQUOTED(uintmax_t, $ac_type,
       [Define to unsigned long or unsigned long long
        if <stdint.h> and <inttypes.h> don't define.])
   else
-    AC_DEFINE([HAVE_UINTMAX_T], [1],
+    AC_DEFINE(HAVE_UINTMAX_T, 1,
       [Define if you have the 'uintmax_t' type in <stdint.h> or <inttypes.h>.])
   fi
 ])
 
-# visibility.m4 serial 3 (gettext-0.18)
-dnl Copyright (C) 2005, 2008-2010 Free Software Foundation, Inc.
+# visibility.m4 serial 1 (gettext-0.15)
+dnl Copyright (C) 2005 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -3895,40 +3583,18 @@ AC_DEFUN([gl_VISIBILITY],
   CFLAG_VISIBILITY=
   HAVE_VISIBILITY=0
   if test -n "$GCC"; then
-    dnl First, check whether -Werror can be added to the command line, or
-    dnl whether it leads to an error because of some other option that the
-    dnl user has put into $CC $CFLAGS $CPPFLAGS.
-    AC_MSG_CHECKING([whether the -Werror option is usable])
-    AC_CACHE_VAL([gl_cv_cc_vis_werror], [
-      gl_save_CFLAGS="$CFLAGS"
-      CFLAGS="$CFLAGS -Werror"
-      AC_TRY_COMPILE([], [],
-        [gl_cv_cc_vis_werror=yes],
-        [gl_cv_cc_vis_werror=no])
-      CFLAGS="$gl_save_CFLAGS"])
-    AC_MSG_RESULT([$gl_cv_cc_vis_werror])
-    dnl Now check whether visibility declarations are supported.
     AC_MSG_CHECKING([for simple visibility declarations])
-    AC_CACHE_VAL([gl_cv_cc_visibility], [
+    AC_CACHE_VAL(gl_cv_cc_visibility, [
       gl_save_CFLAGS="$CFLAGS"
       CFLAGS="$CFLAGS -fvisibility=hidden"
-      dnl We use the option -Werror and a function dummyfunc, because on some
-      dnl platforms (Cygwin 1.7) the use of -fvisibility triggers a warning
-      dnl "visibility attribute not supported in this configuration; ignored"
-      dnl at the first function definition in every compilation unit, and we
-      dnl don't want to use the option in this case.
-      if test $gl_cv_cc_vis_werror = yes; then
-        CFLAGS="$CFLAGS -Werror"
-      fi
       AC_TRY_COMPILE(
         [extern __attribute__((__visibility__("hidden"))) int hiddenvar;
          extern __attribute__((__visibility__("default"))) int exportedvar;
          extern __attribute__((__visibility__("hidden"))) int hiddenfunc (void);
-         extern __attribute__((__visibility__("default"))) int exportedfunc (void);
-         void dummyfunc (void) {}],
+         extern __attribute__((__visibility__("default"))) int exportedfunc (void);],
         [],
-        [gl_cv_cc_visibility=yes],
-        [gl_cv_cc_visibility=no])
+        gl_cv_cc_visibility=yes,
+        gl_cv_cc_visibility=no)
       CFLAGS="$gl_save_CFLAGS"])
     AC_MSG_RESULT([$gl_cv_cc_visibility])
     if test $gl_cv_cc_visibility = yes; then
@@ -3942,8 +3608,8 @@ AC_DEFUN([gl_VISIBILITY],
     [Define to 1 or 0, depending whether the compiler supports simple visibility declarations.])
 ])
 
-# wchar_t.m4 serial 3 (gettext-0.18)
-dnl Copyright (C) 2002-2003, 2008-2010 Free Software Foundation, Inc.
+# wchar_t.m4 serial 1 (gettext-0.12)
+dnl Copyright (C) 2002-2003 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -3954,17 +3620,17 @@ dnl Prerequisite: AC_PROG_CC
 
 AC_DEFUN([gt_TYPE_WCHAR_T],
 [
-  AC_CACHE_CHECK([for wchar_t], [gt_cv_c_wchar_t],
+  AC_CACHE_CHECK([for wchar_t], gt_cv_c_wchar_t,
     [AC_TRY_COMPILE([#include <stddef.h>
        wchar_t foo = (wchar_t)'\0';], ,
-       [gt_cv_c_wchar_t=yes], [gt_cv_c_wchar_t=no])])
+       gt_cv_c_wchar_t=yes, gt_cv_c_wchar_t=no)])
   if test $gt_cv_c_wchar_t = yes; then
-    AC_DEFINE([HAVE_WCHAR_T], [1], [Define if you have the 'wchar_t' type.])
+    AC_DEFINE(HAVE_WCHAR_T, 1, [Define if you have the 'wchar_t' type.])
   fi
 ])
 
-# wint_t.m4 serial 4 (gettext-0.18)
-dnl Copyright (C) 2003, 2007-2010 Free Software Foundation, Inc.
+# wint_t.m4 serial 2 (gettext-0.17)
+dnl Copyright (C) 2003, 2007 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -3975,7 +3641,7 @@ dnl Prerequisite: AC_PROG_CC
 
 AC_DEFUN([gt_TYPE_WINT_T],
 [
-  AC_CACHE_CHECK([for wint_t], [gt_cv_c_wint_t],
+  AC_CACHE_CHECK([for wint_t], gt_cv_c_wint_t,
     [AC_TRY_COMPILE([
 /* Tru64 with Desktop Toolkit C has a bug: <stdio.h> must be included before
    <wchar.h>.
@@ -3986,14 +3652,14 @@ AC_DEFUN([gt_TYPE_WINT_T],
 #include <time.h>
 #include <wchar.h>
        wint_t foo = (wchar_t)'\0';], ,
-       [gt_cv_c_wint_t=yes], [gt_cv_c_wint_t=no])])
+       gt_cv_c_wint_t=yes, gt_cv_c_wint_t=no)])
   if test $gt_cv_c_wint_t = yes; then
-    AC_DEFINE([HAVE_WINT_T], [1], [Define if you have the 'wint_t' type.])
+    AC_DEFINE(HAVE_WINT_T, 1, [Define if you have the 'wint_t' type.])
   fi
 ])
 
-# xsize.m4 serial 4
-dnl Copyright (C) 2003-2004, 2008-2010 Free Software Foundation, Inc.
+# xsize.m4 serial 3
+dnl Copyright (C) 2003-2004 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -4003,17 +3669,14 @@ AC_DEFUN([gl_XSIZE],
   dnl Prerequisites of lib/xsize.h.
   AC_REQUIRE([gl_SIZE_MAX])
   AC_REQUIRE([AC_C_INLINE])
-  AC_CHECK_HEADERS([stdint.h])
+  AC_CHECK_HEADERS(stdint.h)
 ])
 
-# Copyright (C) 2002, 2003, 2005, 2006, 2007, 2008, 2011 Free Software
-# Foundation, Inc.
+# Copyright (C) 2002, 2003, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
-
-# serial 1
 
 # AM_AUTOMAKE_VERSION(VERSION)
 # ----------------------------
@@ -4024,7 +3687,7 @@ AC_DEFUN([AM_AUTOMAKE_VERSION],
 [am__api_version='1.11'
 dnl Some users find AM_AUTOMAKE_VERSION and mistake it for a way to
 dnl require some minimum version.  Point them to the right macro.
-m4_if([$1], [1.11.6], [],
+m4_if([$1], [1.11.1], [],
       [AC_FATAL([Do not call $0, use AM_INIT_AUTOMAKE([$1]).])])dnl
 ])
 
@@ -4040,20 +3703,18 @@ m4_define([_AM_AUTOCONF_VERSION], [])
 # Call AM_AUTOMAKE_VERSION and AM_AUTOMAKE_VERSION so they can be traced.
 # This function is AC_REQUIREd by AM_INIT_AUTOMAKE.
 AC_DEFUN([AM_SET_CURRENT_AUTOMAKE_VERSION],
-[AM_AUTOMAKE_VERSION([1.11.6])dnl
+[AM_AUTOMAKE_VERSION([1.11.1])dnl
 m4_ifndef([AC_AUTOCONF_VERSION],
   [m4_copy([m4_PACKAGE_VERSION], [AC_AUTOCONF_VERSION])])dnl
 _AM_AUTOCONF_VERSION(m4_defn([AC_AUTOCONF_VERSION]))])
 
 # AM_AUX_DIR_EXPAND                                         -*- Autoconf -*-
 
-# Copyright (C) 2001, 2003, 2005, 2011 Free Software Foundation, Inc.
+# Copyright (C) 2001, 2003, 2005  Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
-
-# serial 1
 
 # For projects using AC_CONFIG_AUX_DIR([foo]), Autoconf sets
 # $ac_aux_dir to `$srcdir/foo'.  In other projects, it is set to
@@ -4136,14 +3797,14 @@ AC_CONFIG_COMMANDS_PRE(
 Usually this means the macro was only invoked conditionally.]])
 fi])])
 
-# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2009,
-# 2010, 2011 Free Software Foundation, Inc.
+# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2009
+# Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-# serial 12
+# serial 10
 
 # There are a few dirty hacks below to avoid letting `AC_PROG_CC' be
 # written in clear, in which case automake, when reading aclocal.m4,
@@ -4183,7 +3844,6 @@ AC_CACHE_CHECK([dependency style of $depcc],
   # instance it was reported that on HP-UX the gcc test will end up
   # making a dummy file named `D' -- because `-MD' means `put the output
   # in D'.
-  rm -rf conftest.dir
   mkdir conftest.dir
   # Copy depcomp to subdir because otherwise we won't find it if we're
   # using a relative directory.
@@ -4248,7 +3908,7 @@ AC_CACHE_CHECK([dependency style of $depcc],
 	break
       fi
       ;;
-    msvc7 | msvc7msys | msvisualcpp | msvcmsys)
+    msvisualcpp | msvcmsys)
       # This compiler won't grok `-c -o', but also, the minuso test has
       # not run yet.  These depmodes are late enough in the game, and
       # so weak that their functioning should not be impacted.
@@ -4313,13 +3973,10 @@ AC_DEFUN([AM_DEP_TRACK],
 if test "x$enable_dependency_tracking" != xno; then
   am_depcomp="$ac_aux_dir/depcomp"
   AMDEPBACKSLASH='\'
-  am__nodep='_no'
 fi
 AM_CONDITIONAL([AMDEP], [test "x$enable_dependency_tracking" != xno])
 AC_SUBST([AMDEPBACKSLASH])dnl
 _AM_SUBST_NOTMAKE([AMDEPBACKSLASH])dnl
-AC_SUBST([am__nodep])dnl
-_AM_SUBST_NOTMAKE([am__nodep])dnl
 ])
 
 # Generate code to set up dependency tracking.              -*- Autoconf -*-
@@ -4541,14 +4198,11 @@ for _am_header in $config_headers :; do
 done
 echo "timestamp for $_am_arg" >`AS_DIRNAME(["$_am_arg"])`/stamp-h[]$_am_stamp_count])
 
-# Copyright (C) 2001, 2003, 2005, 2008, 2011 Free Software Foundation,
-# Inc.
+# Copyright (C) 2001, 2003, 2005, 2008  Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
-
-# serial 1
 
 # AM_PROG_INSTALL_SH
 # ------------------
@@ -4681,14 +4335,11 @@ else
 fi
 ])
 
-# Copyright (C) 2003, 2004, 2005, 2006, 2011 Free Software Foundation,
-# Inc.
+# Copyright (C) 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
-
-# serial 1
 
 # AM_PROG_MKDIR_P
 # ---------------
@@ -4712,14 +4363,13 @@ esac
 
 # Helper functions for option handling.                     -*- Autoconf -*-
 
-# Copyright (C) 2001, 2002, 2003, 2005, 2008, 2010 Free Software
-# Foundation, Inc.
+# Copyright (C) 2001, 2002, 2003, 2005, 2008  Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-# serial 5
+# serial 4
 
 # _AM_MANGLE_OPTION(NAME)
 # -----------------------
@@ -4727,13 +4377,13 @@ AC_DEFUN([_AM_MANGLE_OPTION],
 [[_AM_OPTION_]m4_bpatsubst($1, [[^a-zA-Z0-9_]], [_])])
 
 # _AM_SET_OPTION(NAME)
-# --------------------
+# ------------------------------
 # Set option NAME.  Presently that only means defining a flag for this option.
 AC_DEFUN([_AM_SET_OPTION],
 [m4_define(_AM_MANGLE_OPTION([$1]), 1)])
 
 # _AM_SET_OPTIONS(OPTIONS)
-# ------------------------
+# ----------------------------------
 # OPTIONS is a space-separated list of Automake options.
 AC_DEFUN([_AM_SET_OPTIONS],
 [m4_foreach_w([_AM_Option], [$1], [_AM_SET_OPTION(_AM_Option)])])
@@ -4744,13 +4394,11 @@ AC_DEFUN([_AM_SET_OPTIONS],
 AC_DEFUN([_AM_IF_OPTION],
 [m4_ifset(_AM_MANGLE_OPTION([$1]), [$2], [$3])])
 
-# Copyright (C) 2001, 2003, 2005, 2011 Free Software Foundation, Inc.
+# Copyright (C) 2001, 2003, 2005  Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
-
-# serial 1
 
 # AM_RUN_LOG(COMMAND)
 # -------------------
@@ -4828,13 +4476,11 @@ Check your system clock])
 fi
 AC_MSG_RESULT(yes)])
 
-# Copyright (C) 2001, 2003, 2005, 2011 Free Software Foundation, Inc.
+# Copyright (C) 2001, 2003, 2005  Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
-
-# serial 1
 
 # AM_PROG_INSTALL_STRIP
 # ---------------------
@@ -4858,13 +4504,13 @@ fi
 INSTALL_STRIP_PROGRAM="\$(install_sh) -c -s"
 AC_SUBST([INSTALL_STRIP_PROGRAM])])
 
-# Copyright (C) 2006, 2008, 2010 Free Software Foundation, Inc.
+# Copyright (C) 2006, 2008  Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-# serial 3
+# serial 2
 
 # _AM_SUBST_NOTMAKE(VARIABLE)
 # ---------------------------
@@ -4873,13 +4519,13 @@ AC_SUBST([INSTALL_STRIP_PROGRAM])])
 AC_DEFUN([_AM_SUBST_NOTMAKE])
 
 # AM_SUBST_NOTMAKE(VARIABLE)
-# --------------------------
+# ---------------------------
 # Public sister of _AM_SUBST_NOTMAKE.
 AC_DEFUN([AM_SUBST_NOTMAKE], [_AM_SUBST_NOTMAKE($@)])
 
 # Check how to create a tarball.                            -*- Autoconf -*-
 
-# Copyright (C) 2004, 2005, 2012 Free Software Foundation, Inc.
+# Copyright (C) 2004, 2005  Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -4901,11 +4547,10 @@ AC_DEFUN([AM_SUBST_NOTMAKE], [_AM_SUBST_NOTMAKE($@)])
 # a tarball read from stdin.
 #     $(am__untar) < result.tar
 AC_DEFUN([_AM_PROG_TAR],
-[# Always define AMTAR for backward compatibility.  Yes, it's still used
-# in the wild :-(  We should find a proper way to deprecate it ...
-AC_SUBST([AMTAR], ['$${TAR-tar}'])
+[# Always define AMTAR for backward compatibility.
+AM_MISSING_PROG([AMTAR], [tar])
 m4_if([$1], [v7],
-     [am__tar='$${TAR-tar} chof - "$$tardir"' am__untar='$${TAR-tar} xf -'],
+     [am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'],
      [m4_case([$1], [ustar],, [pax],,
               [m4_fatal([Unknown tar format])])
 AC_MSG_CHECKING([how to create a $1 tar archive])
