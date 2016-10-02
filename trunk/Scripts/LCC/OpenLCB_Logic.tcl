@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 25 14:52:47 2016
-#  Last Modified : <160929.1841>
+#  Last Modified : <161002.1316>
 #
 #  Description	
 #
@@ -214,7 +214,7 @@ snit::type OpenLCB_Logic {
     option -v2offeventid -type lcc::EventID_or_null -readonly yes -default {}
     variable v2 false
     
-    option -grouptype -type GroupType -readonly yes -default single
+    option -grouptype -type GroupType -default single
     option -logic     -type Logic     -readonly yes -default and
     
     variable lasteval false
@@ -224,7 +224,7 @@ snit::type OpenLCB_Logic {
     option -next      -type OpenLCB_Logic_or_null -default {}
     
     option -delay     -type {snit::integer -min 0} -readonly yes -default 0
-    option -retrigerable -type snit::boolean -readonly yes -default false
+    option -retriggerable -type snit::boolean -readonly yes -default false
     
     option -action1eventid -type lcc::EventID_or_null -readonly yes -default {}
     option -action2eventid -type lcc::EventID_or_null -readonly yes -default {}
@@ -242,7 +242,6 @@ snit::type OpenLCB_Logic {
     variable action4did {}
     
     variable lastval false
-    variable triggeredstate false
     option -description -readonly yes -default {}
     
     constructor {args} {
@@ -259,7 +258,7 @@ snit::type OpenLCB_Logic {
         # @arg -previous Previous in group
         # @arg -next Next in group
         # @arg -delay Delay
-        # @arg -retrigerable Regrigerable?
+        # @arg -retriggerable Regrigerable?
         # @arg -action1eventid Action 1 eventid
         # @arg -action2eventid Action 2 eventid
         # @arg -action3eventid Action 3 eventid
@@ -290,6 +289,64 @@ snit::type OpenLCB_Logic {
         }
         return $events
     }
+    method evalFunction {} {
+        set result false
+        switch [$self cget -logic] {
+            and {
+                if {$v1 && $v2} {
+                    set result true
+                    set lastval true
+                } else {
+                    set lastval false
+                }
+            }
+            or {
+                if {$v1 || $v2} {
+                    set result true
+                    set lastval true
+                } else {
+                    set lastval false
+                }
+            }
+            xor {
+                if {($v1 || $v2) && !($v1 && $v2)} {
+                    set result true
+                    set lastval true
+                } else {
+                    set lastval false
+                }
+            }
+            andch {
+                if {($v1 && $v2) && !$lastval} {
+                    set result true
+                    set lastval true
+                } else {
+                    set lastval false
+                }
+            }
+            orch {
+                if {($v1 || $v2) && !$lastval} {
+                    set result true
+                    set lastval true
+                } else {
+                    set lastval false
+                }
+            }
+            then {
+                if {($v1 && $v2) && eopt eq "v2oneventid"} {
+                    set result true
+                    set lastval true
+                } else {
+                    set lastval false
+                }
+            }
+            true {
+                set result true
+                set lastval true
+            }
+        }
+        return $result
+    }
     method processevent {event} {
         ::log::log debug "*** $self processevent [$event cget -eventidstring]"
         set triggeredstate false
@@ -319,78 +376,17 @@ snit::type OpenLCB_Logic {
                 ::log::log debug "*** $self processevent: v1 = $v1, v2 = $v2"
                 ::log::log debug "*** $self processevent: -logic is [$self cget -logic]"
                 ::log::log debug "*** $self processevent: lastval = $lastval"
-                switch [$self cget -logic] {
-                    and {
-                        if {$v1 && $v2} {
-                            set triggeredstate true
-                            set lastval true
-                        } else {
-                            set lastval false
-                        }
-                    }
-                    or {
-                        if {$v1 || $v2} {
-                            set triggeredstate true
-                            set lastval true
-                        } else {
-                            set lastval false
-                        }
-                    }
-                    xor {
-                        if {($v1 || $v2) && !($v1 && $v2)} {
-                            set triggeredstate true
-                            set lastval true
-                        } else {
-                             set lastval false
-                        }
-                    }
-                    andch {
-                        if {($v1 && $v2) && !$lastval} {
-                            set triggeredstate true
-                            set lastval true
-                        } else {
-                            set lastval false
-                        }
-                    }
-                    orch {
-                        if {($v1 || $v2) && !$lastval} {
-                            set triggeredstate true
-                            set lastval true
-                        } else {
-                            set lastval false
-                        }
-                    }
-                    then {
-                        if {($v1 && $v2) && eopt eq "v2oneventid"} {
-                            set triggeredstate true
-                            set lastval true
-                        } else {
-                            set lastval false
-                        }
-                    }
-                    true {
-                        set triggeredstate true
-                        set lastval true
-                    }
-                }
             }
         }
         ::log::log debug "*** $self processevent: ematch is $ematch"
         if {!$ematch} {return}
-        ::log::log debug "*** $self processevent: triggeredstate = $triggeredstate"
-        ::log::log debug "*** $self processevent: lastval = $lastval"
+        ::log::log debug "*** $self processevent: -grouptype is [$self cget -grouptype]"
         switch [$self cget -grouptype] {
             single {
-                if {$triggeredstate} {
-                    $self processActions
-                }
+                if {[$self evalFunction]} {$self processActions}
             }
             mast {
-                if {[$self cget -previous] ne {}} {
-                    [$self cget -previous] processPreviousMast
-                } else {
-                    $self processMast
-                }
+                $self processPreviousMast
             }
             ladder {
                 $self processLadder
@@ -398,6 +394,8 @@ snit::type OpenLCB_Logic {
         }
     }
     method processPreviousMast {} {
+        ::log::log debug "*** $self processPreviousMast"
+        ::log::log debug "*** $self processPreviousMast: -previous is [$self cget -previous]"
         if {[$self cget -previous] ne {}} {
             [$self cget -previous] processPreviousMast
         } else {
@@ -405,23 +403,27 @@ snit::type OpenLCB_Logic {
         }
     }
     method processMast {} {
-        if {$triggeredstate} {
+        ::log::log debug "*** $self processMast"
+        ::log::log debug "*** $self processMast: -next is [$self cget -next]"
+        if {[$self evalFunction]} {
             $self processActions
         } elseif {[$self cget -next] ne {}} {
             [$self cget -next] processMast
         }
     }
     method processLadder {} {
-        if {$triggeredstate} {
+        ::log::log debug "*** $self processLadder"
+        if {[$self evalFunction]} {
             $self processActions
         }
+        ::log::log debug "*** $self processLadder: -next is [$self cget -next]"
         if {[$self cget -next] ne {}} {
             [$self cget -next] processLadder
         }
     }
     method processActions {} {
         set thedelay [$self cget -delay]
-        set retrig   [$self cget -retrigerable]
+        set retrig   [$self cget -retriggerable]
         foreach a {1 2 3 4} {
             set eventid  [$self cget -action${a}eventid]
             if {$eventid eq {}} {continue}
@@ -601,9 +603,9 @@ snit::type OpenLCB_Logic {
             if {[llength $delay] > 0} {
                 lappend logiccommand -delay [[lindex $delay 0] data]
             }
-            set retrigerable [$logic getElementsByTagName "retrigerable"]
-            if {[llength $retrigerable] > 0} {
-                lappend logiccommand -retrigerable [[lindex $retrigerable 0] data]
+            set retriggerable [$logic getElementsByTagName "retriggerable"]
+            if {[llength $retriggerable] > 0} {
+                lappend logiccommand -retriggerable [[lindex $retriggerable 0] data]
             }
             set action1delay [$logic getElementsByTagName "action1delay"]
             if {[llength $action1delay] > 0} {
@@ -644,11 +646,12 @@ snit::type OpenLCB_Logic {
             if {$previousGroup ne "single"} {
                 $logic configure -previous $previous
                 $previous configure -next $logic
+                $logic configure -grouptype $previousGroup
             }
             if {$group ne "single"} {
                 set previous $logic
-                set previousGroup $group
             }
+            set previousGroup $group
             foreach pev [$logic myproducedevents] {
                 lappend eventsproduced $pev
             }
@@ -1015,7 +1018,6 @@ snit::type OpenLCB_Logic {
         } else {
             $v1offevent_ configure -text "00.00.00.00.00.00.00.00"
         }
-        
         set logicfunction_ [LabelComboBox $lcxframe.logicfunction \
                         -label [_m "Label|Logic Function"] \
                         -values [Logic AllLogicLabels] \
@@ -1027,6 +1029,7 @@ snit::type OpenLCB_Logic {
         } else {
             set logicfun [[lindex $logicfunction 0] data]
         }
+        #puts stderr "*** $type _create_and_populate_logic: logicfun = $logicfun"
         $logicfunction_ set [Logic LogicLabel $logicfun]
         
         set v2onevent_ [LabelEntry $lcxframe.v2onevent \
@@ -1043,7 +1046,7 @@ snit::type OpenLCB_Logic {
         pack $v2offevent_ -fill x -expand yes
         set v2offevent [$logic getElementsByTagName "v2offevent"]
         if {[llength $v2offevent] > 0} {
-            $v2offevent configure -text "[[lindex $v2offevent 0] data]"
+            $v2offevent_ configure -text "[[lindex $v2offevent 0] data]"
         } else {
             $v2offevent_ configure -text "00.00.00.00.00.00.00.00"
         }
@@ -1058,22 +1061,22 @@ snit::type OpenLCB_Logic {
         } else {
             $delay_ set 0
         }
-        set retrigerable_ [LabelComboBox $lcxframe.retrigerable \
-                            -label [_m "Label|Retrigerable?"] \
+        set retriggerable_ [LabelComboBox $lcxframe.retriggerable \
+                            -label [_m "Label|Retriggerable?"] \
                             -values [list [_m "Answer|No"] [_m "Answer|Yes"]] \
                             -editable no]
-        pack $retrigerable_ -fill x -expand yes
-        set retrigerable [$logic getElementsByTagName "retrigerable"]
-        if {[llength $retrigerable] > 0} {
-            if {[[lindex $retrigerable 0] data]} {
-                $retrigerable_ set [_m "Answer|Yes"]
+        pack $retriggerable_ -fill x -expand yes
+        set retriggerable [$logic getElementsByTagName "retriggerable"]
+        if {[llength $retriggerable] > 0} {
+            if {[[lindex $retriggerable 0] data]} {
+                $retriggerable_ set [_m "Answer|Yes"]
             } else {
-                $retrigerable_ set [_m "Answer|No"]
+                $retriggerable_ set [_m "Answer|No"]
             }
         } else {
-            $retrigerable_ set [_m "Answer|No"]
+            $retriggerable_ set [_m "Answer|No"]
         }
-        #puts stderr "*** $type _create_and_populate_logic: retrigerable_ = $retrigerable_"
+        #puts stderr "*** $type _create_and_populate_logic: retriggerable_ = $retriggerable_"
         set actions [ScrollTabNotebook $lcxframe.actions]
         pack $actions -expand yes -fill both
         foreach a {1 2 3 4} {
@@ -1266,16 +1269,16 @@ snit::type OpenLCB_Logic {
             $logic addchild $delay
         }
         $delay setdata $delay_
-        set retrigerable_ false
-        if {"[$frbase.retrigerable get]" eq [_m "Answer|Yes"]} {
-            set retrigerable_ true
+        set retriggerable_ false
+        if {"[$frbase.retriggerable get]" eq [_m "Answer|Yes"]} {
+            set retriggerable_ true
         }
-        set retrigerable [$logic getElementsByTagName "retrigerable"]
-        if {[llength $retrigerable] < 1} {
-            set retrigerable [SimpleDOMElement %AUTO% -tag "retrigerable"]
-            $logic addchild $retrigerable
+        set retriggerable [$logic getElementsByTagName "retriggerable"]
+        if {[llength $retriggerable] < 1} {
+            set retriggerable [SimpleDOMElement %AUTO% -tag "retriggerable"]
+            $logic addchild $retriggerable
         }
-        $retrigerable setdata $retrigerable_
+        $retriggerable setdata $retriggerable_
         foreach a {1 2 3 4} {
             set aframe [format {%s.action%d} $frbase.actions $a]
             set action_event_ "[$aframe.event get]"
