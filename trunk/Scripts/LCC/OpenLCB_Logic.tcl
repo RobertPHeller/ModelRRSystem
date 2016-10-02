@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 25 14:52:47 2016
-#  Last Modified : <161002.1316>
+#  Last Modified : <161002.1413>
 #
 #  Description	
 #
@@ -351,6 +351,7 @@ snit::type OpenLCB_Logic {
         ::log::log debug "*** $self processevent [$event cget -eventidstring]"
         set triggeredstate false
         set ematch false
+        set trig false
         foreach eopt {v1oneventid v1offeventid v2oneventid v2offeventid} {
             ::log::log debug "*** $self processevent: eopt is $eopt"
             set ev [$self cget -$eopt]
@@ -360,26 +361,32 @@ snit::type OpenLCB_Logic {
                 ::log::log debug "*** $self processevent: [$ev cget -eventidstring] matches [$event cget -eventidstring]"
                 switch $eopt {
                     v1oneventid {
+                        if {!$v1} {set trig true}
                         set v1 true
                     }
                     v1offeventid {
+                        if {$v1} {set trig true}
                         set v1 false
                     }
                     v2oneventid {
+                        if {!$v2} {set trig true}
                         set v2 true
                     }
                     v2offeventid {
+                        if {$v2} {set trig true}
                         set v2 false
                     }
                 }
                 set ematch true
-                ::log::log debug "*** $self processevent: v1 = $v1, v2 = $v2"
-                ::log::log debug "*** $self processevent: -logic is [$self cget -logic]"
-                ::log::log debug "*** $self processevent: lastval = $lastval"
+                ::log::log debug "*** $self processevent (event match): v1 = $v1, v2 = $v2"
+                ::log::log debug "*** $self processevent (event match): -logic is [$self cget -logic]"
+                ::log::log debug "*** $self processevent (event match): trig = $trig"
             }
         }
         ::log::log debug "*** $self processevent: ematch is $ematch"
         if {!$ematch} {return}
+        ::log::log debug "*** $self processevent: trig is $trig"
+        if {!$trig} {return}
         ::log::log debug "*** $self processevent: -grouptype is [$self cget -grouptype]"
         switch [$self cget -grouptype] {
             single {
