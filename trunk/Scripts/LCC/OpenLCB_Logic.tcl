@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 25 14:52:47 2016
-#  Last Modified : <161002.1413>
+#  Last Modified : <161009.1135>
 #
 #  Description	
 #
@@ -568,6 +568,7 @@ snit::type OpenLCB_Logic {
             ::log::logError [_ "Could not open OpenLCBNode: %s" $transport]
             exit 95
         }
+        $transport SendVerifyNodeID
         ::log::log debug "*** $type typeconstructor: transport = $transport"
         
         set previous {}

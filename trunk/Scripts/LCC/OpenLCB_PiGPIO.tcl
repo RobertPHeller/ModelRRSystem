@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 7 10:36:33 2016
-#  Last Modified : <160828.1633>
+#  Last Modified : <161009.1135>
 #
 #  Description	
 #
@@ -305,6 +305,7 @@ snit::type OpenLCB_PiGPIO {
             ::log::logError [_ "Could not open OpenLCBNode: %s" $transport]
             exit 95
         }
+        $transport SendVerifyNodeID
         set pollele [$configuration getElementsByTagName "pollinterval"]
         if {[llength $pollele] > 0} {
             set pollele [lindex $pollele 0]

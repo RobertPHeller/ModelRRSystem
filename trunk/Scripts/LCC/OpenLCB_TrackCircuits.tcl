@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <160828.1636>
+#  Last Modified : <161009.1134>
 #
 #  Description	
 #
@@ -583,6 +583,7 @@ snit::type OpenLCB_TrackCircuits {
             ::log::logError [_ "Could not open OpenLCBNode: %s" $transport]
             exit 95
         }
+        $transport SendVerifyNodeID
         ::log::log debug "*** $type typeconstructor: transport = $transport"
         
         foreach track [$configuration getElementsByTagName "track"] {

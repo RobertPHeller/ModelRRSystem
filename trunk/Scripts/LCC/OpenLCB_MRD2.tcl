@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <160828.1630>
+#  Last Modified : <161009.1134>
 #
 #  Description	
 #
@@ -236,6 +236,7 @@ snit::type OpenLCB_MRD2 {
             ::log::logError [_ "Could not open OpenLCBNode: %s" $transport]
             exit 95
         }
+        $transport SendVerifyNodeID
         set pollele [$configuration getElementsByTagName "pollinterval"]
         if {[llength $pollele] > 0} {
             set pollele [lindex $pollele 0]
