@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <160919.1617>
+#  Last Modified : <161009.1133>
 #
 #  Description	
 #
@@ -567,6 +567,7 @@ snit::type OpenLCB_Dispatcher {
             error [_ "Could not open OpenLCBNode: %s" $transport]
             exit 95
         }
+        $transport SendVerifyNodeID
         #puts stderr "*** $type ConnectToOpenLCB: transport = $transport"
     }
     typemethod SendMyEvents {} {
