@@ -541,7 +541,7 @@ namespace eval CTCPanelWindow {
                                    OpenLCBCode.tcl] r]
           fcopy $openlcbCodeFp $fp 
           puts $fp "OpenLCB_Dispatcher PopulateOpenLCBMenu"
-          puts $fp "OpenLCB_Dispatcher ConnectToOpenLCB -transport $options(-openlcbtransport) $options(-openlcbtransportopts)"
+          puts $fp "OpenLCB_Dispatcher ConnectToOpenLCB -transport $options(-openlcbtransport) $options(-openlcbtransportopts) -name \{$options(-name)\} -description \{$options(-filename)\}"
           puts $fp "# OpenLCB_Dispatcher Nodes"
           foreach openlcbele [array names openlcbnodes] {
               set nodeopts $openlcbnodes($openlcbele)

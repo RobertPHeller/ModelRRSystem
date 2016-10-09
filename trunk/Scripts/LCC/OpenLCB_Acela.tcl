@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 17 07:55:13 2016
-#  Last Modified : <160911.1716>
+#  Last Modified : <161009.1134>
 #
 #  Description	
 #
@@ -446,6 +446,7 @@ snit::type OpenLCB_Acela {
             ::log::logError [_ "Could not open OpenLCBNode: %s" $transport]
             exit 95
         }
+        $transport SendVerifyNodeID
         set acelaport [$configuration getElementsByTagName "acelaport"]
         if {[llength $acelaport] != 1} {
             ::log::logError [_ "Acela port missing!"]
