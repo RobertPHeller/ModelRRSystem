@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <161009.1134>
+#  Last Modified : <161012.1425>
 #
 #  Description	
 #
@@ -978,6 +978,7 @@ snit::type OpenLCB_MRD2 {
         set cdi [lindex $cdis 0]
         $cdi removeChild $device
         $devices forget $devices.$fr
+        destroy $devices.$fr
     }
     
     

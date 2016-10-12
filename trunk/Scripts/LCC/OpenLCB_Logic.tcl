@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 25 14:52:47 2016
-#  Last Modified : <161009.1135>
+#  Last Modified : <161012.1424>
 #
 #  Description	
 #
@@ -1131,6 +1131,7 @@ snit::type OpenLCB_Logic {
         set cdi [lindex $cdis 0]
         $cdi removeChild $logic
         $logics forget $logics.$fr
+        destroy $logics.$fr
     }
     typemethod _saveexit {} {
         #** Save and exit.  Bound to the Save & Exit file menu item.
