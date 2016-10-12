@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Feb 27 15:54:05 2016
-#  Last Modified : <160629.1156>
+#  Last Modified : <161012.1416>
 #
 #  Description	
 #
@@ -350,7 +350,7 @@ static unsigned char right_bits[] = {
         set pages [lreplace $pages $index $index]
         $self _compute_width
         if {[lsearch $pages $select] < 0} {
-            grid forget $select
+            catch {grid forget $select}
             set select {}
             #if {$newselect >= [llength $pages]} {incr newselect -1}
             #if {[llength $pages] > 0} {$self select $newselect}
