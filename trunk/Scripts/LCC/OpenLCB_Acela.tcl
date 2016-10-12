@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 17 07:55:13 2016
-#  Last Modified : <161009.1134>
+#  Last Modified : <161012.1424>
 #
 #  Description	
 #
@@ -1026,6 +1026,7 @@ snit::type OpenLCB_Acela {
         set cdi [lindex $cdis 0]
         $cdi removeChild $control
         $controls forget $controls.$fr
+        destroy $controls.$fr
     }
     typemethod _create_and_populate_signal {signal} {
         incr signalcount
@@ -1142,6 +1143,7 @@ snit::type OpenLCB_Acela {
         set fr [$aspect attribute frame]
         $signal removeChild $aspect
         $aspectlist forget $aspectlist.$fr
+        destroy $aspectlist.$fr
     }
     typemethod _addblankaspect {signal aspectlist} {
         set aspect [SimpleDOMElement %AUTO% -tag "aspect"]
@@ -1245,6 +1247,7 @@ snit::type OpenLCB_Acela {
         set cdi [lindex $cdis 0]
         $cdi removeChild $sensor
         $sensors forget $sensors.$fr
+        destory $sensors.$fr
     }
     
     

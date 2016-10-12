@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 7 10:36:33 2016
-#  Last Modified : <161009.1135>
+#  Last Modified : <161012.1425>
 #
 #  Description	
 #
@@ -954,6 +954,7 @@ snit::type OpenLCB_PiGPIO {
         set cdi [lindex $cdis 0]
         $cdi removeChild $pin
         $pins forget $pins.$fr
+        destroy $pins.$fr
     }
     
     

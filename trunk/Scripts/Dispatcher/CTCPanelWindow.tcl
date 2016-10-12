@@ -3501,6 +3501,7 @@ namespace eval CTCPanelWindow {
         foreach aspectfr [array names aspectlist *,frame] {
             set fr $aspectlist($aspectfr)
             $aspectlistSTabNB forget $aspectlistSTabNB.$fr
+            destroy $aspectlistSTabNB.$fr
         }
         array unset aspectlist
     }

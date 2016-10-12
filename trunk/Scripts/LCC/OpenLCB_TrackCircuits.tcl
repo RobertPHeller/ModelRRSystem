@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <161009.1134>
+#  Last Modified : <161012.1426>
 #
 #  Description	
 #
@@ -1062,6 +1062,7 @@ snit::type OpenLCB_TrackCircuits {
         set cdi [lindex $cdis 0]
         $cdi removeChild $track
         $tracks forget $tracks.$fr
+        destroy $tracks.$fr
     }
     typemethod _addblanktransmitter {track transmitters} {
         #** Create a blank transmitter.
@@ -1153,6 +1154,7 @@ snit::type OpenLCB_TrackCircuits {
         set fr [$transmitter attribute frame]
         $track removeChild $transmitter
         $transmitters forget $transmitters.$fr
+        destroy $transmitters.$fr
     }
 
     typemethod _addblankreceiver {track receivers} {
@@ -1245,6 +1247,7 @@ snit::type OpenLCB_TrackCircuits {
         set fr [$receiver attribute frame]
         $track removeChild $receiver
         $receivers forget $receivers.$fr
+        destroy $receivers.$fr
     }
 
     typemethod _saveexit {} {
