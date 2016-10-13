@@ -2067,7 +2067,7 @@ namespace eval CTCPanelWindow {
     method _info_from_context {name args} {
         CTCPanelWindow::displayPanelObject draw -ctcpanel $ctcpanel \
               -simplemode $options(-simplemode) -object $name -parent $win \
-              -title [_ "Object %s" $name]
+              -title [_ "Object %s" $name] -openlcbmode $options(-openlcbmode) 
     }
     
     method configurepanel {args} {
@@ -4821,6 +4821,36 @@ namespace eval CTCPanelWindow {
       component commandLF
       component   commandSW
       component     commandText;#	  -command
+      # OpenLCB events
+      # Sensors
+      component occupiedeventidLE
+      component notoccupiedeventidLE
+      component statenormaleventidLE
+      component statereverseeventidLE
+      # Actions
+      component lefteventidLE
+      component righteventidLE
+      component centereventidLE
+      component eventidLE
+      component normaleventidLE
+      component reverseeventidLE
+      # Indicators
+      component aspectlistLF
+      component   aspectlistSTabNB
+      variable    aspectlist -array {}
+      component   addaspectB
+      component normalindonevLE
+      component normalindoffevLE
+      component centerindonevLE
+      component centerindoffevLE
+      component reverseindonevLE
+      component reverseindoffevLE
+      component leftindonevLE
+      component leftindoffevLE
+      component rightindonevLE
+      component rightindoffevLE
+      component oneventidLE
+      component offeventidLE
       
       typevariable objectTypeOptions -array {
           SWPlate {xyctl label normalcommand reversecommand}
@@ -4853,13 +4883,21 @@ namespace eval CTCPanelWindow {
           ThroughYard {xysch label orientation flipped occupiedcommand}
           Signal {xysch label orientation heads}
       }
+      typevariable objectTypeIndicatorEvents -array {
+          Signal {aspectlist}
+          SWPlate {normal center reverse}
+          SIGPlate {left center right}
+          Lamp {onoff}
+      }
+
       
       option -title -default {Displaying Object Info} \
             -configuremethod _SetTitle
       option -ctcpanel  -default {} -validatemethod _CheckPanel
       option -object -default {}
       option -simplemode -default no
-
+      option -openlcbmode -default no
+      
       method _CheckPanel {option value} {
           if {[catch {$value info type} typename]} {
               error "Expected a ::CTCPanel::CTCPanel, got $value"
@@ -5073,6 +5111,82 @@ namespace eval CTCPanelWindow {
                 [$commandSW getframe].commandText \
                 -wrap none -width 40 -height 5
           $commandSW setwidget $commandText
+          ### OpenLCB events
+          # Sensors
+          install occupiedeventidLE using LabelEntry $optionsFrame.occupiedeventidLE \
+                -label [_m "Label|Occupied EventID:"] \
+                -labelwidth $lwidth -editable no
+          install notoccupiedeventidLE using LabelEntry $optionsFrame.notoccupiedeventidLE \
+                -label [_m "Label|Not Occupied EventID:"] \
+                -labelwidth $lwidth -editable no
+          install statenormaleventidLE using LabelEntry $optionsFrame.statenormaleventidLE \
+                -label [_m "Label|State Normal EventID:"] \
+                -labelwidth $lwidth -editable no
+          install statereverseeventidLE using LabelEntry $optionsFrame.statereverseeventidLE \
+                -label [_m "Label|State Reversed EventID:"] \
+                -labelwidth $lwidth -editable no
+          # Actions
+          install lefteventidLE using LabelEntry $optionsFrame.lefteventidLE \
+                -label [_m "Label|Left EventID:"] \
+                -labelwidth $lwidth -editable no
+          install righteventidLE using LabelEntry $optionsFrame.righteventidLE \
+                -label [_m "Label|Right EventID:"] \
+                -labelwidth $lwidth -editable no
+          install centereventidLE using LabelEntry $optionsFrame.centereventidLE \
+                -label [_m "Label|Center EventID:"] \
+                -labelwidth $lwidth -editable no
+          install eventidLE using LabelEntry $optionsFrame.eventidLE \
+                -label [_m "Label|Command EventID:"] \
+                -labelwidth $lwidth -editable no
+          install normaleventidLE using LabelEntry $optionsFrame.normaleventidLE \
+                -label [_m "Label|Normal EventID:"] \
+                -labelwidth $lwidth -editable no
+          install reverseeventidLE using LabelEntry $optionsFrame.reverseeventidLE \
+                -label [_m "Label|Reverse EventID:"] \
+                -labelwidth $lwidth -editable no
+          # Indicators
+          install aspectlistLF using ttk::labelframe $optionsFrame.aspectlistLF \
+                -labelanchor nw -text [_m "Label|Signal Aspect Events"]
+          install aspectlistSTabNB using ScrollTabNotebook \
+                $aspectlistLF.aspectlistSTabNB
+          pack $aspectlistSTabNB -expand yes -fill both
+          install normalindonevLE using LabelEntry $optionsFrame.normalindonevLE \
+                -label [_m "Label|Normal Indicator On EventID:"] \
+                -labelwidth $lwidth -editable no
+          install normalindoffevLE using LabelEntry $optionsFrame.normalindoffevLE \
+                -label [_m "Label|Normal Indicator Off EventID:"] \
+                -labelwidth $lwidth -editable no
+          install centerindonevLE using LabelEntry $optionsFrame.centerindonevLE \
+                -label [_m "Label|Center Indicator On EventID:"] \
+                -labelwidth $lwidth -editable no
+          install centerindoffevLE using LabelEntry $optionsFrame.centerindoffevLE \
+                -label [_m "Label|Center Indicator Off EventID:"] \
+                -labelwidth $lwidth -editable no
+          install reverseindonevLE using LabelEntry $optionsFrame.reverseindonevLE \
+                -label [_m "Label|Reverse Indicator On EventID:"] \
+                -labelwidth $lwidth -editable no
+          install reverseindoffevLE using LabelEntry $optionsFrame.reverseindoffevLE \
+                -label [_m "Label|Reverse Indicator Off EventID:"] \
+                -labelwidth $lwidth -editable no
+          install leftindonevLE using LabelEntry $optionsFrame.leftindonevLE \
+                -label [_m "Label|Left Indicator On EventID:"] \
+                -labelwidth $lwidth -editable no
+          install leftindoffevLE using LabelEntry $optionsFrame.leftindoffevLE \
+                -label [_m "Label|Left Indicator Off EventID:"] \
+                -labelwidth $lwidth -editable no
+          install rightindonevLE using LabelEntry $optionsFrame.rightindonevLE \
+                -label [_m "Label|Right Indicator On EventID:"] \
+                -labelwidth $lwidth -editable no
+          install rightindoffevLE using LabelEntry $optionsFrame.rightindoffevLE \
+                -label [_m "Label|Right Indicator Off EventID:"] \
+                -labelwidth $lwidth -editable no
+          install oneventidLE using LabelEntry $optionsFrame.oneventidLE \
+                -label [_m "Label|Lamp On EventID:"] \
+                -labelwidth $lwidth -editable no
+          install offeventidLE using LabelEntry $optionsFrame.offeventidLE \
+                -label [_m "Label|Lamp Off EventID:"] \
+                -labelwidth $lwidth -editable no
+          
           $self configurelist $args
       }
       method initializetopframe {frame args} {
@@ -5213,56 +5327,188 @@ namespace eval CTCPanelWindow {
               #puts stderr "*** $self packAndConfigureOptions: opt = $opt"
               switch -exact $opt {
                   normalcommand {
-                      pack $normalcommandLF -fill x
-                      $normalcommandText configure -state normal
-                      $normalcommandText delete 1.0 end
-                      $normalcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -normalcommand]"
+                    if {$options(-openlcbmode)} {
+                        pack $normaleventidLE -fill x
+                        $normaleventidLE configure -text \
+                              "[$options(-parent) getOpenLCBNodeOpt $options(-object) -normaleventid]"
+                    } else {
+                        pack $normalcommandLF -fill x
+                        $normalcommandText configure -state normal
+                        $normalcommandText delete 1.0 end
+                        $normalcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -normalcommand]"
+                    }
                   }
                   reversecommand {
-                      pack $reversecommandLF -fill x
-                      $reversecommandText configure -state normal
-                      $reversecommandText delete 1.0 end
-                      $reversecommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -reversecommand]"
+                      if {$options(-openlcbmode)} {
+                          pack $reverseeventidLE -fill x
+                          $reverseeventidLE configure -text \
+                                "[$options(-parent) getOpenLCBNodeOpt $options(-object) -reverseeventid]"
+                      } else {
+                          pack $reversecommandLF -fill x
+                          $reversecommandText configure -state normal
+                          $reversecommandText delete 1.0 end
+                          $reversecommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -reversecommand]"
+                      }
                   }
                   leftcommand {
-                      pack $leftcommandLF -fill x
-                      $leftcommandText  configure -state normal
-                      $leftcommandText delete 1.0 end
-                      $leftcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -leftcommand]"
+                      if {$options(-openlcbmode)} {
+                          pack $lefteventidLE -fill x
+                          $lefteventidLE configure -text \
+                                "[$options(-parent) getOpenLCBNodeOpt $options(-object) -lefteventid]"
+                      } else {
+                          pack $leftcommandLF -fill x
+                          $leftcommandText  configure -state normal
+                          $leftcommandText delete 1.0 end
+                          $leftcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -leftcommand]"
+                      }
                   }
                   centercommand {
-                      pack $centercommandLF -fill x
-                      $centercommandText configure -state normal
-                      $centercommandText delete 1.0 end
-                      $centercommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -centercommand]"
+                    if {$options(-openlcbmode)} {
+                        pack $centereventidLE -fill x
+                        $centereventidLE configure -text \
+                              "[$options(-parent) getOpenLCBNodeOpt $options(-object) -centereventid]"
+                    } else {
+                        pack $centercommandLF -fill x
+                        $centercommandText configure -state normal
+                        $centercommandText delete 1.0 end
+                        $centercommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -centercommand]"
+                    }
                   }
                   rightcommand {
-                      pack $rightcommandLF -fill x
-                      $rightcommandText configure -state normal
-                      $rightcommandText delete 1.0 end
-                      $rightcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -rightcommand]"
+                      if {$options(-openlcbmode)} {
+                          pack $righteventidLE -fill x
+                          $righteventidLE configure -text \
+                                "[$options(-parent) getOpenLCBNodeOpt $options(-object) -righteventid]"
+                      } else {
+                          pack $rightcommandLF -fill x
+                          $rightcommandText configure -state normal
+                          $rightcommandText delete 1.0 end
+                          $rightcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -rightcommand]"
+                      }
                   }
                   command {
-                      pack $commandLF -fill x
-                      $commandText configure -state normal
-                      $commandText delete 1.0 end
-                      $commandText insert end "[$options(-ctcpanel) itemcget $options(-object) -command]"
+                      if {$options(-openlcbmode)} {
+                          pack $eventidLE -fill x
+                          $eventidLE configure -text \
+                                "[$options(-parent) getOpenLCBNodeOpt $options(-object) -eventid]"
+                      } else {
+                          pack $commandLF -fill x
+                          $commandText configure -state normal
+                          $commandText delete 1.0 end
+                          $commandText insert end "[$options(-ctcpanel) itemcget $options(-object) -command]"
+                      }
                   }
                   statecommand {
-                      pack $statecommandLF -fill x
-                      $statecommandText configure -state normal
-                      $statecommandText delete 1.0 end
-                      $statecommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -statecommand]"
+                      if {$options(-openlcbmode)} {
+                          pack $statenormaleventidLE -fill x
+                          pack $statereverseeventidLE -fill x
+                          $statenormaleventidLE configure -text \
+                                "[$options(-parent) getOpenLCBNodeOpt $options(-object) -statenormaleventid]"
+                          $statereverseeventidLE configure -text \
+                                "[$options(-parent) getOpenLCBNodeOpt $options(-object) -statereverseeventid]"
+                      } else {
+                          pack $statecommandLF -fill x
+                          $statecommandText configure -state normal
+                          $statecommandText delete 1.0 end
+                          $statecommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -statecommand]"
+                      }
                   }
                   occupiedcommand {
-                      pack $occupiedcommandLF -fill x
-                      $occupiedcommandText configure -state normal
-                      $occupiedcommandText delete 1.0 end
-                      $occupiedcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -occupiedcommand]"
+                      if {$options(-openlcbmode)} {
+                          pack $occupiedeventidLE -fill x
+                          pack $notoccupiedeventidLE -fill x
+                          $occupiedeventidLE configure -text \
+                                "[$options(-parent) getOpenLCBNodeOpt $options(-object) -occupiedeventid]"
+                          $notoccupiedeventidLE configure -text \
+                                "[$options(-parent) getOpenLCBNodeOpt $options(-object) -notoccupiedeventid]"
+                      } else {
+                          pack $occupiedcommandLF -fill x
+                          $occupiedcommandText configure -state normal
+                          $occupiedcommandText delete 1.0 end
+                          $occupiedcommandText insert end "[$options(-ctcpanel) itemcget $options(-object) -occupiedcommand]"
+                      }
+                  }
+              }
+          }
+          if {$options(-openlcbmode)} {
+              if {[info exists objectTypeIndicatorEvents($objtype)]} {
+                  foreach opt $objectTypeIndicatorEvents($objtype) {
+                      switch -exact $opt {
+                          aspectlist {
+                              $self clearallaspects
+                              $self populateaspects [$options(-parent) getOpenLCBNodeOpt $options(-object) -eventidaspectlist]
+                              pack $aspectlistLF -fill both -expand yes
+                          }
+                          normal {
+                              pack $normalindonevLE -fill x
+                              $normalindonevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -normalindonev]"
+                              pack $normalindoffevLE -fill x
+                              $normalindoffevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -normalindoffev]"
+                          }
+                          center {
+                              pack $centerindonevLE -fill x
+                              $centerindonevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -centerindonev]"
+                              pack $centerindoffevLE -fill x
+                              $centerindoffevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -centerindoffev]"
+                          }
+                          reverse {
+                              pack $reverseindonevLE -fill x
+                              $reverseindonevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -reverseindonev]"
+                              pack $reverseindoffevLE -fill x
+                              $reverseindoffevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -reverseindoffev]"
+                          }
+                          left {
+                              pack $leftindonevLE -fill x
+                              $leftindonevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -leftindonev]"
+                              pack $leftindoffevLE -fill x
+                              $leftindoffevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -leftindoffev]"
+                          }
+                          right {
+                              pack $rightindonevLE -fill x
+                              $rightindonevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -rightindonev]"
+                              pack $rightindoffevLE -fill x
+                              $rightindoffevLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -rightindoffev]"
+                          }
+                          onoff {
+                              pack $oneventidLE -fill x
+                              $oneventidLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -oneventid]"
+                              pack $offeventidLE -fill x
+                              $offeventidLE configure -text "[$options(-parent) getOpenLCBNodeOpt $options(-object) -offeventid]"
+                          }
+                      }
                   }
               }
           }
       }
+      method clearallaspects {} {
+          foreach aspectfr [array names aspectlist *,frame] {
+              set fr $aspectlist($aspectfr)
+              $aspectlistSTabNB forget $aspectlistSTabNB.$fr
+              destroy $aspectlistSTabNB.$fr
+          }
+          array unset aspectlist
+      }
+      method populateaspects {eventidaspectlist} {
+          set aspectcount 0
+          foreach {ev aspl} $eventidaspectlist {
+              incr aspectcount
+              set fr aspect$aspectcount
+              set aspectlist($aspectcount,frame) $fr
+              ttk::frame $aspectlistSTabNB.$fr
+              $aspectlistSTabNB add $aspectlistSTabNB.$fr -text [_ "Aspect %d" $aspectcount] -sticky news
+              set eventid_ [LabelEntry $aspectlistSTabNB.$fr.eventid \
+                            -label [_m "Label|When this event occurs"] \
+                            -text $ev -editable no]
+              pack $eventid_ -fill x
+              set aspectlist($aspectcount,eventid) "$ev"
+              set aspl_ [LabelEntry $aspectlistSTabNB.$fr.aspl \
+                         -label [_m "Label|the following aspect will be displayed."] \
+                         -text $aspl -editable no]
+              pack $aspl_ -fill x
+              set aspectlist($aspectcount,aspl) "$aspl"
+          }
+      }
+      
   }
 }
 
