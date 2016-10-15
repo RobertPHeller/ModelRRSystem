@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <161014.2040>
+#  Last Modified : <161015.1300>
 #
 #  Description	
 #
@@ -115,7 +115,7 @@ namespace eval lcc {
         ## CDI XML Object.
         variable _ioComplete
         ## I/O Completion Flag.
-        variable status
+        variable statusline
         ## Status variable.
         
         typevariable _menu {
@@ -187,7 +187,7 @@ namespace eval lcc {
             $self putdebug "*** $type create $self: win = $win, about to wm protocol $win WM_DELETE_WINDOW ..."
             wm protocol $win WM_DELETE_WINDOW [mymethod _close]
             install main using MainFrame $win.main -menu [subst $_menu] \
-                  -textvariable [myvar status]
+                  -textvariable [myvar statusline]
             pack $main -expand yes -fill both
             set f [$main getframe]
             install scroll using ScrolledWindow $f.scroll -scrollbar vertical \
@@ -359,7 +359,7 @@ namespace eval lcc {
                     if {!$options(-displayonly)} {
                         set printexport [ttk::button $segmentframe.printexport \
                                          -text [_m "Label|Print or Export Segment"] \
-                                         -command [mymethod _printexport $segmentframe]]
+                                         -command [mymethod _printexport $segmentframe [format "Segment: 0x%02x" $space]]]
                         pack $printexport -fill x -anchor center
                     }
                     
@@ -446,7 +446,7 @@ namespace eval lcc {
                             if {!$options(-displayonly)} {
                                 set printexport [ttk::button $replframe.printexport \
                                                  -text $text \
-                                                 -command [mymethod _printexport $replframe]]
+                                                 -command [mymethod _printexport $replframe [format $repnamefmt $i]]]
                                 pack $printexport -fill x -anchor center
                             }
                         }
@@ -456,14 +456,14 @@ namespace eval lcc {
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
                             $self _processXMLnode $c $groupframe $space address
                         }
-                        ## Print/Export this group?
-                        set text [format [_m "Label|Print or Export %s"] $name]
-                        if {!$options(-displayonly)} {
-                            set printexport [ttk::button $replframe.printexport \
-                                             -text $text \
-                                             -command [mymethod _printexport $replframe]]
-                            pack $printexport -fill x -anchor center
-                        }
+                    }
+                    ## Print/Export this group?
+                    set text [format [_m "Label|Print or Export Group %s"] $name]
+                    if {!$options(-displayonly)} {
+                        set printexport [ttk::button $groupframe.printexport \
+                                         -text $text \
+                                         -command [mymethod _printexport $groupframe [_ "Group %s" $name]]]
+                        pack $printexport -fill x -anchor center
                     }
                 }
                 int {
@@ -687,9 +687,90 @@ namespace eval lcc {
             }
             #update idle
         }
-        method _printexport {frame} {
-            $self putdebug "$self _printexport $frame"
+        typevariable printexportfiletypes {
+            {{PDF (printable) Files} {.pdf}     }
+            {{XML             Files} {.xml}     }
+            {{CSV (for Excel) Files} {.csv}     }
+            {{Text            Files} {.txt} TEXT}
+            {{All             Files} *          }
         }
+        method _printexport {frame name} {
+            $self putdebug "$self _printexport $frame $name"
+            set outfile [tk_getSaveFile \
+                         -defaultextension .txt \
+                         -filetypes $printexportfiletypes \
+                         -initialdir [pwd] \
+                         -initialfile export.txt \
+                         -parent [winfo toplevel $win] \
+                         -title [_ {Select a file to export %s to} $name]]
+            if {$outfile eq {}} {return}
+            set extension [file extension $outfile]
+            if {$extension eq {}} {set extension ".txt"}
+            if {[lsearch {.pdf .xml .csv .txt} $extension] < 0} {
+                tk_messageBox -type ok -icon error \
+                      -message [_ "Unknown file type: %s" $extension]
+                return
+            }
+            $self _printexport$extension $frame $name $outfile
+        }
+        method _printexport.pdf {frame name outfile} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Not yet implemented"]
+        }
+        method _printexport.xml {frame name outfile} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Not yet implemented"]
+        }
+        method _printexport.csv {frame name outfile} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Not yet implemented"]
+        }
+        method _printexport.txt {frame name outfile} {
+            if {[catch {open $outfile w} outfp]} {
+                tk_messageBox -type ok -icon error \
+                      -message [_ "Could not open %s: %s" $outfile $outfp]
+                return
+            }
+            puts $outfp [_ "Export of %s" $name]
+            _printexport.txt_frame "" $outfp $frame
+            close $outfp
+        }
+        proc _printexport.txt_frame {indent outfp frame} {
+            #puts stderr "*** _printexport.txt_frame \{$indent\} $outfp $frame"
+            foreach c [winfo children $frame] {
+                #puts stderr "*** _printexport.txt_frame: c = $c of class [winfo class $c]"
+                switch [winfo class $c] {
+                    TLabelframe {
+                        puts -nonewline $outfp "$indent[$c cget -text]: "
+                        _printexport.txt_frame "$indent  " $outfp $c
+                    }
+                    TFrame {
+                        _printexport.txt_frame "$indent  " $outfp $c
+                    }
+                    TLabel {
+                        puts -nonewline $outfp "$indent[$c cget -text]: "
+                    }
+                    TEntry {
+                        puts $outfp "[$c get]"
+                    }
+                    TCombobox {
+                        puts $outfp "[$c get]"
+                    }
+                    Spinbox {
+                        puts $outfp "[$c get]"
+                    }
+                    ScrollTabNotebook {
+                        puts $outfp {}
+                        foreach t [$c tabs] {
+                            puts -nonewline $outfp "$indent[$c tab $t -text]: "
+                            _printexport.txt_frame "$indent  " $outfp $t
+                        }
+                    }
+                    default {}
+                }
+            }
+        }
+        
         method _close {} {
             ## @brief Close the window. 
             # The window is withdrawn.
