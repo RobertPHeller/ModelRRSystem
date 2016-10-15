@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Feb 27 15:54:05 2016
-#  Last Modified : <161012.1416>
+#  Last Modified : <161015.1159>
 #
 #  Description	
 #
@@ -333,6 +333,72 @@ static unsigned char right_bits[] = {
         if {[llength $pages] == 1} {$self _select $window}
         $self _redraw
     }
+    method tab {tabid args} {
+        ## Updates the tab options for tabid.
+        #
+        # @param tabid The tab index.
+        # @param ... Tab options:
+        # @arg -state The state of the  tab (NOT IMPLEMENTED - state is always 
+        #             normal).
+        # @arg -sticky The stickyness (as in grid configure ... -sticky).
+        # @arg -padding  The padding (as in grid configure ... -padx and -pady).
+        # @arg -text  The text of the tab.
+        # @arg -image  The image of the tab.
+        # @arg -compound The compound of the tab (see the -compound option of
+        #                labels and buttons).
+        # @arg -underline The underline of the tab label (NOT IMPLEMENTED,
+        #                the -underline option is ignored).
+        # @par
+        
+        
+        set index [$self index $tabid]
+        if {$index >= [llength $pages]} {
+            set window [lindex $pages end]
+        } else {
+            set window [lindex $pages $index]
+        }
+        #puts stderr "*** $self tab: window is $window, args is \{$args\}"
+        #puts stderr "*** $self tab: pages_opts($window,*) is [array get pages_opts($window,*)]"
+        switch [llength $args] {
+            0 {
+                set result [list]
+                foreach o {-state -sticky -padding -text -image -compound -underline} {
+                    lappend $o $pages_opts($window,$o)
+                }
+                return $result
+            }
+            1 {
+                set o [lindex $args 0]
+                if {[info exists pages_opts($window,$o)]} {
+                    return $pages_opts($window,$o)
+                } else {
+                    error [_ "No such tab option: %s" $o]
+                }
+            }
+            default {
+                set pages_opts($window,-state) [from args -state $pages_opts($window,-state)]
+                set pages_opts($window,-sticky) [from args -sticky $pages_opts($window,-sticky)]
+                set pages_opts($window,-padding) [from args -padding $pages_opts($window,-padding)]
+                set pages_opts($window,-text) [from args -text $pages_opts($window,-text)]
+                set pages_opts($window,-image) [from args -image $pages_opts($window,-image)]
+                set pages_opts($window,-compound) [from args -compound $pages_opts($window,-compound)]
+                set pages_opts($window,-underline) [from args -underline $pages_opts($window,-underline)]
+                $self _compute_height
+                $self _compute_width
+                $self _draw_page $window 1
+                $self _redraw
+            }
+        }
+    }
+    
+    method tabs {} {
+        ## Return all tabs
+        # @return All managed windows
+        
+        #puts stderr "*** $self tabs: pages is \{$pages\}"
+        return $pages
+    }
+        
     method forget {tabid} {
         ## Removes the tab specified by tabid,  unmaps  and  unmanages  the
         # associated window.
