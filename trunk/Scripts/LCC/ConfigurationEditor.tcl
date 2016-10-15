@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <160809.1049>
+#  Last Modified : <161014.2040>
 #
 #  Description	
 #
@@ -201,7 +201,7 @@ namespace eval lcc {
             wm title $win [_ "CDI Configuration Tool for Node ID %s" [$self cget -nid]]
             set address 0
             $self _processXMLnode $cdi [$editframe getframe] -1 address
-#            $self _processXMLnode $cdi [$main getframe] -1 address
+            # $self _processXMLnode $cdi [$main getframe] -1 address
         }
         typevariable idheaders -array {}
         ## @privatesection Locale versions of the identification headers.
@@ -355,6 +355,14 @@ namespace eval lcc {
                     if {$options(-displayonly)} {
                         $readall configure -state disabled
                     }
+                    ## Print/Export the entire segment?
+                    if {!$options(-displayonly)} {
+                        set printexport [ttk::button $segmentframe.printexport \
+                                         -text [_m "Label|Print or Export Segment"] \
+                                         -command [mymethod _printexport $segmentframe]]
+                        pack $printexport -fill x -anchor center
+                    }
+                    
                 }
                 group {
                     incr _groupnumber
@@ -433,12 +441,28 @@ namespace eval lcc {
                                 if {[lsearch {name description repname} $tag] >= 0} {continue}
                                 $self _processXMLnode $c $replframe $space address
                             }
+                            ## Print/Export this replication?
+                            set text [format [format [_m "Label|Print or Export %s"] $repnamefmt] $i]
+                            if {!$options(-displayonly)} {
+                                set printexport [ttk::button $replframe.printexport \
+                                                 -text $text \
+                                                 -command [mymethod _printexport $replframe]]
+                                pack $printexport -fill x -anchor center
+                            }
                         }
                     } else {
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
                             $self _processXMLnode $c $groupframe $space address
+                        }
+                        ## Print/Export this group?
+                        set text [format [_m "Label|Print or Export %s"] $name]
+                        if {!$options(-displayonly)} {
+                            set printexport [ttk::button $replframe.printexport \
+                                             -text $text \
+                                             -command [mymethod _printexport $replframe]]
+                            pack $printexport -fill x -anchor center
                         }
                     }
                 }
@@ -662,6 +686,9 @@ namespace eval lcc {
                 }
             }
             #update idle
+        }
+        method _printexport {frame} {
+            $self putdebug "$self _printexport $frame"
         }
         method _close {} {
             ## @brief Close the window. 
