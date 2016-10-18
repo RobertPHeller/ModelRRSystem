@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <161015.1300>
+#  Last Modified : <161018.1438>
 #
 #  Description	
 #
@@ -359,7 +359,7 @@ namespace eval lcc {
                     if {!$options(-displayonly)} {
                         set printexport [ttk::button $segmentframe.printexport \
                                          -text [_m "Label|Print or Export Segment"] \
-                                         -command [mymethod _printexport $segmentframe [format "Segment: 0x%02x" $space]]]
+                                         -command [mymethod _printexport $n $segmentframe [format "Segment: 0x%02x" $space]]]
                         pack $printexport -fill x -anchor center
                     }
                     
@@ -433,6 +433,8 @@ namespace eval lcc {
                                            $replnotebook.replication$i]
                             $replnotebook add $replframe \
                                   -text [format $repnamefmt $i] -sticky news
+                            set savedgn $_groupnumber
+                            set _groupnumber 0
                             set _intnumber 0
                             set _stringnumber 0
                             set _eventidnumber 0
@@ -441,28 +443,32 @@ namespace eval lcc {
                                 if {[lsearch {name description repname} $tag] >= 0} {continue}
                                 $self _processXMLnode $c $replframe $space address
                             }
+                            set _groupnumber $savedgn
                             ## Print/Export this replication?
                             set text [format [format [_m "Label|Print or Export %s"] $repnamefmt] $i]
                             if {!$options(-displayonly)} {
                                 set printexport [ttk::button $replframe.printexport \
                                                  -text $text \
-                                                 -command [mymethod _printexport $replframe [format $repnamefmt $i]]]
+                                                 -command [mymethod _printexport $n $replframe [format $repnamefmt $i]]]
                                 pack $printexport -fill x -anchor center
                             }
                         }
                     } else {
+                        set savedgn $_groupnumber
+                        set _groupnumber 0
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
                             $self _processXMLnode $c $groupframe $space address
                         }
+                        set _groupnumber $savedgn
                     }
                     ## Print/Export this group?
                     set text [format [_m "Label|Print or Export Group %s"] $name]
                     if {!$options(-displayonly)} {
                         set printexport [ttk::button $groupframe.printexport \
                                          -text $text \
-                                         -command [mymethod _printexport $groupframe [_ "Group %s" $name]]]
+                                         -command [mymethod _printexport $n $groupframe [_ "Group %s" $name]]]
                         pack $printexport -fill x -anchor center
                     }
                 }
@@ -694,8 +700,8 @@ namespace eval lcc {
             {{Text            Files} {.txt} TEXT}
             {{All             Files} *          }
         }
-        method _printexport {frame name} {
-            $self putdebug "$self _printexport $frame $name"
+        method _printexport {node frame name} {
+            $self putdebug "$self _printexport $node $frame $name"
             set outfile [tk_getSaveFile \
                          -defaultextension .txt \
                          -filetypes $printexportfiletypes \
@@ -711,66 +717,133 @@ namespace eval lcc {
                       -message [_ "Unknown file type: %s" $extension]
                 return
             }
-            $self _printexport$extension $frame $name $outfile
+            $self _printexport$extension $node $frame $name $outfile
         }
-        method _printexport.pdf {frame name outfile} {
+        method _printexport.pdf {node frame name outfile} {
             tk_messageBox -type ok -icon warning \
                   -message [_ "Not yet implemented"]
         }
-        method _printexport.xml {frame name outfile} {
+        method _printexport.xml {node frame name outfile} {
             tk_messageBox -type ok -icon warning \
                   -message [_ "Not yet implemented"]
         }
-        method _printexport.csv {frame name outfile} {
+        method _printexport.csv {node frame name outfile} {
             tk_messageBox -type ok -icon warning \
                   -message [_ "Not yet implemented"]
         }
-        method _printexport.txt {frame name outfile} {
+        method _printexport.txt {node frame name outfile} {
             if {[catch {open $outfile w} outfp]} {
                 tk_messageBox -type ok -icon error \
                       -message [_ "Could not open %s: %s" $outfile $outfp]
                 return
             }
             puts $outfp [_ "Export of %s" $name]
-            _printexport.txt_frame "" $outfp $frame
+            _printexport.txt_frame $node "" $outfp $frame
             close $outfp
         }
-        proc _printexport.txt_frame {indent outfp frame} {
-            #puts stderr "*** _printexport.txt_frame \{$indent\} $outfp $frame"
-            foreach c [winfo children $frame] {
-                #puts stderr "*** _printexport.txt_frame: c = $c of class [winfo class $c]"
-                switch [winfo class $c] {
-                    TLabelframe {
-                        puts -nonewline $outfp "$indent[$c cget -text]: "
-                        _printexport.txt_frame "$indent  " $outfp $c
+        proc _printexport.txt_frame {n indent outfp frame} {
+            #puts stderr "*** _printexport.txt_frame $n \{$indent\} $outfp $frame"
+            set gn 0
+            set in 0
+            set sn 0
+            set evn 0
+            switch [$n cget -tag] {
+                segment {
+                    set space [$n attribute space]
+                    puts $outfp [format {%sSegment[0x%02x]:} $indent $space]
+                    if {[winfo exists $frame.descr]} {
+                        puts $outfp [format {%s  (%s)} $indent \
+                                     [$frame.descr cget -text]]
                     }
-                    TFrame {
-                        _printexport.txt_frame "$indent  " $outfp $c
-                    }
-                    TLabel {
-                        puts -nonewline $outfp "$indent[$c cget -text]: "
-                    }
-                    TEntry {
-                        puts $outfp "[$c get]"
-                    }
-                    TCombobox {
-                        puts $outfp "[$c get]"
-                    }
-                    Spinbox {
-                        puts $outfp "[$c get]"
-                    }
-                    ScrollTabNotebook {
-                        puts $outfp {}
-                        foreach t [$c tabs] {
-                            puts -nonewline $outfp "$indent[$c tab $t -text]: "
-                            _printexport.txt_frame "$indent  " $outfp $t
+                    set groupnotebook {}
+                    foreach c [$n children] {
+                        set tag [$c cget -tag]
+                        if {[lsearch {name description} $tag] >= 0} {continue}
+                        switch $tag {
+                            group {
+                                if {$groupnotebook eq {}} {
+                                    set groupnotebook $frame.groups
+                                }
+                                incr gn
+                                set cframe $groupnotebook.group$gn
+                                _printexport.txt_frame $c "${indent}  " $outfp $cframe
+                            }
+                            int {
+                                incr in
+                                set cframe $frame.int$in
+                                _printexport.txt_vframe $c ${indent} $outfp $cframe
+                            }
+                            string {
+                                incr sn
+                                set cframe $frame.string$sn
+                                _printexport.txt_vframe $c ${indent} $outfp $cframe
+                            }
+                            eventid {
+                                incr evn
+                                set cframe $frame.eventid$evn
+                                _printexport.txt_vframe $c ${indent} $outfp $cframe
+                            }
                         }
                     }
-                    default {}
+                }
+                group {
+                    if {[winfo class $frame] eq "TLabelframe"} {
+                        puts $outfp "$indent[$frame cget -text]:"
+                    }
+                    if {[winfo exists $frame.descr]} {
+                        puts $outfp "$indent[$frame.descr cget -text]:"
+                    }
+                    if {[winfo exists $frame.replnotebook]} {
+                        ## whole set of replications
+                        foreach tabframe [$frame.replnotebook tabs] {
+                            puts $outfp "$indent[$frame.replnotebook tab $tabframe -text]:"
+                            _printexport.txt_frame $n "${indent}  " $outfp $tabframe
+                        }
+                    } else {
+                        #puts stderr "*** _printexport.txt_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
+                        foreach c [$n children] {
+                            set tag [$c cget -tag]
+                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            
+                            switch $tag {
+                                group {
+                                    incr gn
+                                    set cframe $frame.group$gn
+                                    _printexport.txt_frame $c "${indent}  " $outfp $cframe
+                                }
+                                int {
+                                    incr in
+                                    set cframe $frame.int$in
+                                    _printexport.txt_vframe $c ${indent} $outfp $cframe
+                                }
+                                string {
+                                    incr sn
+                                    set cframe $frame.string$sn
+                                    _printexport.txt_vframe $c ${indent} $outfp $cframe
+                                }
+                                eventid {
+                                    incr evn
+                                    set cframe $frame.eventid$evn
+                                    _printexport.txt_vframe $c ${indent} $outfp $cframe
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
-        
+        proc _printexport.txt_vframe {n indent outfp frame} {
+            #puts stderr "*** _printexport.txt_vframe $n \{$indent\} $outfp $frame"
+            #puts stderr "*** _printexport.txt_vframe: frame is a [winfo class $frame]"
+            if {[winfo class $frame] eq "TLabelframe"} {
+                puts $outfp "$indent[$frame cget -text]:"
+            }
+            if {[winfo exists $frame.descr]} {
+                puts $outfp "$indent[$frame.descr cget -text]: [$frame.value get]"
+            } else {
+                puts $outfp "$indent[$frame.value get]"
+            }
+        }
         method _close {} {
             ## @brief Close the window. 
             # The window is withdrawn.
