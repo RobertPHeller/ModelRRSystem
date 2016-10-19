@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <161019.1111>
+#  Last Modified : <161019.1443>
 #
 #  Description	
 #
@@ -53,6 +53,8 @@ package require ButtonBox
 package require ScrollTabNotebook
 package require LCC
 package require pdf4tcl
+package require struct::matrix
+package require csv
 
 namespace eval lcc {
     ## 
@@ -1024,9 +1026,201 @@ namespace eval lcc {
         }
                         
         method _printexport.csv {node frame name outfile} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Not yet implemented"]
+            if {[catch {open $outfile w} outfp]} {
+                tk_messageBox -type ok -icon error \
+                      -message [_ "Could not open %s: %s" $outfile $outfp]
+                return
+            }
+            set matrix [::struct::matrix]
+            $matrix add columns 2;# Initially assume 2 columns (name,value)
+            $matrix add row [list $name]
+            _printexport.csv_frame $node $matrix $frame
+            ::csv::writematrix $matrix $outfp
+            close $outfp
+            $matrix destroy
         }
+        proc _printexport.csv_frame {n matrix frame} {
+            set gn 0
+            set in 0
+            set sn 0
+            set evn 0
+            switch [$n cget -tag] {
+                segment {
+                    set space [$n attribute space]
+                    $matrix add row [list space $space]
+                    if {[winfo exists $frame.descr]} {
+                        $matrix add row [list [$frame.descr cget -text]]
+                    }
+                    set groupnotebook {}
+                    foreach c [$n children] {
+                        set tag [$c cget -tag]
+                        if {[lsearch {name description} $tag] >= 0} {continue}
+                        switch $tag {
+                            group {
+                                if {$groupnotebook eq {}} {
+                                    set groupnotebook $frame.groups
+                                }
+                                incr gn
+                                set cframe $groupnotebook.group$gn
+                                _printexport.csv_frame $c $matrix $cframe
+                            }
+                            int {
+                                incr in
+                                set cframe $frame.int$in
+                                _printexport.csv_vframe $c $matrix $cframe
+                            }
+                            string {
+                                incr sn
+                                set cframe $frame.string$sn
+                                _printexport.csv_vframe $c $matrix $cframe
+                            }
+                            eventid {
+                                incr evn
+                                set cframe $frame.eventid$evn
+                                _printexport.txt_vframe $c $matrix $cframe
+                            }
+                        }
+                    }
+                }
+                group {
+                    if {[winfo class $frame] eq "TLabelframe"} {
+                        $matrix add row [list [$frame cget -text]]
+                    }
+                    if {[winfo exists $frame.descr]} {
+                        $matrix add row [list [$frame.descr cget -text]]
+                    }
+                    if {[winfo exists $frame.replnotebook]} {
+                        ## whole set of replications
+                        set tabs [$frame.replnotebook tabs]
+                        ## Todo: Check for nested replnotebooks!
+                        if {[llength $tabs] <= 4} {
+                            _printexport.csv_framesAcross $n $frame.replnotebook $tabs $matrix
+                        } else {
+                            foreach tabframe $tabs {
+                                $matrix add row [list [$frame.replnotebook tab $tabframe -text]]
+                                _printexport.csv_frame $n $matrix $tabframe
+                            }
+                        }
+                    } else {
+                        #puts stderr "*** _printexport.txt_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
+                        foreach c [$n children] {
+                            set tag [$c cget -tag]
+                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            
+                            switch $tag {
+                                group {
+                                    incr gn
+                                    set cframe $frame.group$gn
+                                    _printexport.csv_frame $c $matrix $cframe
+                                }
+                                int {
+                                    incr in
+                                    set cframe $frame.int$in
+                                    _printexport.csv_vframe $c $matrix $cframe
+                                }
+                                string {
+                                    incr sn
+                                    set cframe $frame.string$sn
+                                    _printexport.csv_vframe $c $matrix $cframe
+                                }
+                                eventid {
+                                    incr evn
+                                    set cframe $frame.eventid$evn
+                                    _printexport.csv_vframe $c $matrix $cframe
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        proc _printexport.csv_vframe {n matrix frame} {
+            if {[winfo class $frame] eq "TLabelframe"} {
+                $matrix add row [list [$frame cget -text]]
+            }
+            if {[winfo exists $frame.descr]} {
+                $matrix add row [list [$frame.descr cget -text] [$frame.value get]]
+            } else {
+                $matrix add row [list [$frame.value get]]
+            }
+        }
+        proc _printexport.csv_framesAcross {n tabnb tabs matrix} {
+            #puts stderr "*** _printexport.csv_framesAcross $n $tabnb $tabs $matrix"
+            set row [list]
+            set cols [$matrix columns]
+            foreach tabframe $tabs {
+                lappend row [$tabnb tab $tabframe -text]
+                _printexport.csv_frameAcross $n row $tabframe
+            }
+            set morecols [expr {[llength $row] - $cols}]
+            if {$morecols > 0} {$matrix add columns $morecols}
+            $matrix add row $row
+        }
+        proc _printexport.csv_frameAcross {n rowVar frame} {
+            #puts stderr "*** _printexport.csv_frameAcross $n $rowVar $frame"
+            upvar $rowVar row
+            #puts stderr "*** _printexport.csv_frameAcross: row is $row"
+            set gn 0
+            set in 0
+            set sn 0
+            set evn 0
+            switch [$n cget -tag] {
+                group {
+                    if {[winfo class $frame] eq "TLabelframe"} {
+                        lappend row [$frame cget -text]
+                    }
+                    if {[winfo exists $frame.descr]} {
+                        lappend row [$frame.descr cget -text]
+                    }
+                    if {[winfo exists $frame.replnotebook]} {
+                        error [_ "Yikes!!, a replication in a short replication -- can't handle that!"]
+                        return 
+                    }
+                    foreach c [$n children] {
+                        set tag [$c cget -tag]
+                        if {[lsearch {name description repname} $tag] >= 0} {continue}
+                        switch $tag {
+                            group {
+                                incr gn
+                                set cframe $frame.group$gn
+                                _printexport.csv_frameAcross $c row $cframe
+                            }
+                            int {
+                                incr in
+                                set cframe $frame.int$in
+                                _printexport.csv_vframeAcross $c row $cframe
+                            }
+                            string {
+                                incr sn
+                                set cframe $frame.string$sn
+                                _printexport.csv_vframeAcross $c row $cframe
+                            }
+                            eventid {
+                                incr evn
+                                set cframe $frame.eventid$evn
+                                _printexport.csv_vframeAcross $c row $cframe
+                            }
+                        }
+                        #puts stderr "*** _printexport.csv_frameAcross (after child): row is $row"
+                    }
+                }
+            }
+        }
+        proc _printexport.csv_vframeAcross {n rowVar frame} {
+            #puts stderr "*** _printexport.csv_vframeAcross $n $rowVar $frame"
+            upvar $rowVar row
+            #puts stderr "*** _printexport.csv_vframeAcross: row is $row"
+            if {[winfo class $frame] eq "TLabelframe"} {
+                lappend row [$frame cget -text]
+            }
+            if {[winfo exists $frame.descr]} {
+                lappend row [$frame.descr cget -text] [$frame.value get]
+            } else {
+                lappend row [$frame.value get]
+            }
+            #puts stderr "*** _printexport.csv_vframeAcross (after value added): row is $row"
+        }
+        
         method _printexport.txt {node frame name outfile} {
             if {[catch {open $outfile w} outfp]} {
                 tk_messageBox -type ok -icon error \

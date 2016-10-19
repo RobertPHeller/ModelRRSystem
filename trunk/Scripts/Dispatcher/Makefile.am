@@ -186,6 +186,10 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit Dispatcher \
 		lib $(URILIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit Dispatcher \
+		lib $(STRUCTLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit Dispatcher \
+		lib $(CSVLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) Dispatcher \
 		lib/$(DispatcherLib) $(DispatcherLibFiles) 
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit Dispatcher \
