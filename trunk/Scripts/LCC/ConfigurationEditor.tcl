@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <161018.1438>
+#  Last Modified : <161019.1111>
 #
 #  Description	
 #
@@ -52,6 +52,7 @@ package require snitStdMenuBar
 package require ButtonBox
 package require ScrollTabNotebook
 package require LCC
+package require pdf4tcl
 
 namespace eval lcc {
     ## 
@@ -720,13 +721,308 @@ namespace eval lcc {
             $self _printexport$extension $node $frame $name $outfile
         }
         method _printexport.pdf {node frame name outfile} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Not yet implemented"]
+            set pdfobj [::pdf4tcl::new %AUTO% -file $outfile \
+                        -paper letter -orient false -margin .25i]
+            $pdfobj startPage
+            $pdfobj setFont 24 Courier
+            set topy [lindex [$pdfobj getDrawableArea] 1]
+            $pdfobj setTextPosition 0 $topy
+            set header [_ "Export of %s" $name]
+            $pdfobj text $header
+            $pdfobj newLine 2
+            set cury [expr {$topy - 48}]
+            $pdfobj setFont 12 Courier
+            set curpage 1
+            _printexport.pdf_frame $node "" $pdfobj $frame cury curpage $header
+            $pdfobj destroy
+        }
+        proc _printexport.pdf_frame {n indent pdfobj frame curyVar curpageVar pageheader} {
+            upvar $curyVar cury
+            upvar $curpageVar curpage
+            #puts stderr "*** _printexport.pdf_frame $n \{$indent\} $pdfobj $frame $curyVar \{$pageheader\}"
+            set gn 0
+            set in 0
+            set sn 0
+            set evn 0
+            switch [$n cget -tag] {
+                segment {
+                    if {$cury < 24} {
+                        incr curpage
+                        set cury [_printexport.pdf_newpage $pdfobj $pageheader $curpage]
+                    }
+                    set space [$n attribute space]
+                    $pdfobj text [format {%sSegment[0x%02x]:} $indent $space]
+                    $pdfobj newLine 1
+                    set cury [expr {$cury - 12}]
+                    if {[winfo exists $frame.descr]} {
+                        $pdfobj text [format {%s  (%s)} $indent \
+                                      [$frame.descr cget -text]]
+                        $pdfobj newLine 1
+                        set cury [expr {$cury - 12}]
+                    }
+                    set groupnotebook {}
+                    foreach c [$n children] {
+                        set tag [$c cget -tag]
+                        if {[lsearch {name description} $tag] >= 0} {continue}
+                        switch $tag {
+                            group {
+                                if {$groupnotebook eq {}} {
+                                    set groupnotebook $frame.groups
+                                }
+                                incr gn
+                                set cframe $groupnotebook.group$gn
+                                _printexport.pdf_frame $c "${indent}  " $pdfobj $cframe cury curpage $pageheader
+                            }
+                            int {
+                                incr in
+                                set cframe $frame.int$in
+                                _printexport.pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
+                            }
+                            string {
+                                incr sn
+                                set cframe $frame.string$sn
+                                _printexport.pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
+                            }
+                            eventid {
+                                incr evn
+                                set cframe $frame.eventid$evn
+                                _printexport.pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
+                            }
+                        }
+                    }
+                }
+                group {
+                    if {$cury < 24} {
+                        incr curpage
+                        set cury [_printexport.pdf_newpage $pdfobj $pageheader $curpage]
+                    }
+                    if {[winfo class $frame] eq "TLabelframe"} {
+                        $pdfobj text "$indent[$frame cget -text]:"
+                        $pdfobj newLine 1
+                        set cury [expr {$cury - 12}]
+                    }
+                    if {[winfo exists $frame.descr]} {
+                        $pdfobj text "$indent[$frame.descr cget -text]:"
+                        $pdfobj newLine 1
+                        set cury [expr {$cury - 12}]
+                    }
+                    if {[winfo exists $frame.replnotebook]} {
+                        ## whole set of replications
+                        foreach tabframe [$frame.replnotebook tabs] {
+                            if {$cury < 12} {
+                                incr curpage
+                                set cury [_printexport.pdf_newpage $pdfobj $pageheader $curpage]
+                            }
+                            $pdfobj text "$indent[$frame.replnotebook tab $tabframe -text]:"
+                            $pdfobj newLine 1
+                            set cury [expr {$cury - 12}]
+                            _printexport.pdf_frame $n "${indent}  " $pdfobj $tabframe cury curpage $pageheader
+                        }
+                    } else {
+                        #puts stderr "*** _printexport.txt_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
+                        foreach c [$n children] {
+                            set tag [$c cget -tag]
+                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            
+                            switch $tag {
+                                group {
+                                    incr gn
+                                    set cframe $frame.group$gn
+                                    _printexport.pdf_frame $c "${indent}  " $pdfobj $cframe cury curpage $pageheader
+                                }
+                                int {
+                                    incr in
+                                    set cframe $frame.int$in
+                                    _printexport.pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
+                                }
+                                string {
+                                    incr sn
+                                    set cframe $frame.string$sn
+                                    _printexport.pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
+                                }
+                                eventid {
+                                    incr evn
+                                    set cframe $frame.eventid$evn
+                                    _printexport.pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        proc _printexport.pdf_vframe {n indent pdfobj frame curyVar curpageVar pageheader} {
+            #puts stderr "*** _printexport.pdf_vframe $n \{$indent\} $pdfobj $frame $curyVar $curpageVar \{$pageheader\}"
+            #puts stderr "*** _printexport.pdf_vframe: frame is a [winfo class $frame]"
+            upvar $curyVar cury
+            upvar $curpageVar curpage
+            if {$cury < 24} {
+                incr curpage
+                set cury [_printexport.pdf_newpage $pdfobj $pageheader $curpage]
+            }
+            
+            if {[winfo class $frame] eq "TLabelframe"} {
+                $pdfobj text "$indent[$frame cget -text]:"
+                $pdfobj newLine 1
+                set cury [expr {$cury - 12}]
+            }
+            if {[winfo exists $frame.descr]} {
+                $pdfobj text "$indent[$frame.descr cget -text]: [$frame.value get]"
+                $pdfobj newLine 1
+                set cury [expr {$cury - 12}]
+            } else {
+                $pdfobj text "$indent[$frame.value get]"
+                $pdfobj newLine 1
+                set cury [expr {$cury - 12}]
+            }
+        }
+        proc _printexport.pdf_newpage {pdfobj pageheader pageno} {
+            # puts stderr "*** _printexport.pdf_newpage $pdfobj \{$pageheader\} $pageno"
+            $pdfobj startPage
+            set topy [lindex [$pdfobj getDrawableArea] 1]
+            $pdfobj setTextPosition 0 $topy
+            $pdfobj text [_ {%s  Page %d} $pageheader $pageno]
+            $pdfobj newLine 2
+            set cury [expr {$topy - 24}]
+            return $cury
         }
         method _printexport.xml {node frame name outfile} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Not yet implemented"]
+            if {[catch {open $outfile w} outfp]} {
+                tk_messageBox -type ok -icon error \
+                      -message [_ "Could not open %s: %s" $outfile $outfp]
+                return
+            }
+            set resultnode [SimpleDOMElement %AUTO% -tag export \
+                            -attributes [list name $name]]
+            $resultnode addchild [_printexport.xml_frame $node $frame]
+            $resultnode display $outfp
+            close $outfp
         }
+        proc _printexport.xml_frame {n frame} {
+            #puts stderr "*** _printexport.txt_frame $n \{$indent\} $outfp $frame"
+            set gn 0
+            set in 0
+            set sn 0
+            set evn 0
+            switch [$n cget -tag] {
+                segment {
+                    set resultnode [SimpleDOMElement %AUTO% -tag segment \
+                                    -attributes [$n cget -attributes] \
+                                    -opts       [$n cget -opts]]
+                    if {[winfo exists $frame.descr]} {
+                        set descrnode [SimpleDOMElement %AUTO% -tag description]
+                        $resultnode addchild $descrnode
+                        $descrnode setdata [$frame.descr cget -text]
+                    }
+                    set groupnotebook {}
+                    foreach c [$n children] {
+                        set tag [$c cget -tag]
+                        if {[lsearch {name description} $tag] >= 0} {continue}
+                        switch $tag {
+                            group {
+                                if {$groupnotebook eq {}} {
+                                    set groupnotebook $frame.groups
+                                }
+                                incr gn
+                                set cframe $groupnotebook.group$gn
+                                $resultnode addchild [_printexport.xml_frame $c $cframe]
+                            }
+                            int {
+                                incr in
+                                set cframe $frame.int$in
+                                $resultnode addchild [_printexport.xml_vframe $c $cframe]
+                            }
+                            string {
+                                incr sn
+                                set cframe $frame.string$sn
+                                $resultnode addchild [_printexport.xml_vframe $c $cframe]
+                            }
+                            eventid {
+                                incr evn
+                                set cframe $frame.eventid$evn
+                                $resultnode addchild [_printexport.xml_vframe $c $cframe]
+                            }
+                        }
+                    }
+                    return $resultnode
+                }
+                group {
+                    set resultnode [SimpleDOMElement %AUTO% -tag group \
+                                    -attributes [$n cget -attributes] \
+                                    -opts       [$n cget -opts]]
+                    if {[winfo class $frame] eq "TLabelframe"} {
+                        set nametext [$frame cget -text]
+                        set namenode [SimpleDOMElement %AUTO% -tag name]
+                        $namenode setdata $nametext
+                        $resultnode addchild $namenode
+                    }
+                    if {[winfo exists $frame.descr]} {
+                        set descrtext [$frame.descr cget -text]
+                        set descrnode [SimpleDOMElement %AUTO% -tag description]
+                        $descrnode setdata $descrtext
+                        $resultnode addchild $descrnode
+                    }
+                    if {[winfo exists $frame.replnotebook]} {
+                        foreach tabframe [$frame.replnotebook tabs] {
+                            set replnode [SimpleDOMElement %AUTO% -tag replication -attributes [list name [$frame.replnotebook tab $tabframe -text]]]
+                            $resultnode addchild $replnode
+                            $replnode addchild [_printexport.xml_frame $n $tabframe]
+                        }
+                    } else {
+                        foreach c [$n children] {
+                            set tag [$c cget -tag]
+                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            switch $tag {
+                                group {
+                                    incr gn
+                                    set cframe $frame.group$gn
+                                    $resultnode addchild [_printexport.xml_frame $c $cframe]
+                                }
+                                int {
+                                    incr in
+                                    set cframe $frame.int$in
+                                    $resultnode addchild [_printexport.xml_vframe $c $cframe]
+                                }
+                                string {
+                                    incr sn
+                                    set cframe $frame.string$sn
+                                    $resultnode addchild [_printexport.xml_vframe $c $cframe]
+                                }
+                                eventid {
+                                    incr evn
+                                    set cframe $frame.eventid$evn
+                                    $resultnode addchild [_printexport.xml_vframe $c $cframe]
+                                }
+                            }
+                        }
+                    }
+                    return $resultnode
+                }
+            }
+        }
+        proc _printexport.xml_vframe {n frame} {
+            set resultnode [SimpleDOMElement %AUTO% -tag [$n cget -tag] \
+                            -attributes [$n cget -attributes] \
+                            -opts       [$n cget -opts]]
+            if {[winfo class $frame] eq "TLabelframe"} {
+                set nametext [$frame cget -text]
+                set namenode [SimpleDOMElement %AUTO% -tag name]
+                $namenode setdata $nametext
+                $resultnode addchild $namenode
+            }
+            if {[winfo exists $frame.descr]} {
+                set descrtext [$frame.descr cget -text]
+                set descrnode [SimpleDOMElement %AUTO% -tag description]
+                $descrnode setdata $descrtext
+                $resultnode addchild $descrnode
+            }
+            set value [$frame.value get]
+            set valuenode [SimpleDOMElement %AUTO% -tag value]
+            $valuenode setdata $value
+            $resultnode addchild $valuenode
+            return $resultnode
+        }
+                        
         method _printexport.csv {node frame name outfile} {
             tk_messageBox -type ok -icon warning \
                   -message [_ "Not yet implemented"]

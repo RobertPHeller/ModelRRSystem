@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <160920.1032>
+#  Last Modified : <161019.0934>
 #
 #  Description	
 #
@@ -154,6 +154,8 @@ OpenLCB${EXEEXT}: OpenLCB.tcl $(OpenLCBSCRIPTS) \
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(UNZIP) -qq -d OpenLCB.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
+	$(UNZIP) -qq -d OpenLCB.vfs/lib \
+		$(top_srcdir)/BuildData/pdf4tcl05.zip
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
 		Help $(top_builddir)/Doc/User/OpenLCB/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
