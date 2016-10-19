@@ -124,6 +124,10 @@ namespace eval WrapIt {
   #  puts stderr "*** WrapIt::URILibDir = $URILibDir"
   variable PDF4tcl05Dir [glob -nocomplain [file join $Lib pdf4tcl05]]
   #  puts stderr "*** WrapIt::PDF4tcl05Dir = $PDF4tcl05Dir"
+  variable STRUCTLibDir [glob -nocomplain [file join $Lib struct]]
+  #  puts stderr "*** WrapIt::STRUCTLibDir = $STRUCTLibDir"
+  variable CSVLibDir [glob -nocomplain [file join $Lib csv]]
+  #  puts stderr "*** WrapIt::CSVLibDir = $CSVLibDir"
   variable CopyCommonLibFiles [list \
     [file join $Lib Common snitStdMenuBar.tcl] \
     [file join $Lib Common mainwindow.tcl] \
@@ -202,6 +206,10 @@ namespace eval WrapIt {
     file copy $URILibDir [file join $filename lib [file tail $URILibDir]]
     variable PDF4tcl05Dir
     file copy $PDF4tcl05Dir [file join $filename lib [file tail $PDF4tcl05Dir]]
+    variable STRUCTLibDir
+    file copy $STRUCTLibDir [file join $filename lib [file tail $STRUCTLibDir]]
+    variable CSVLibDir
+    file copy $CSVLibDir [file join $filename lib [file tail $CSVLibDir]]
     if {$needcmri} {
       variable CMriLibDir
       variable ControlSupportDir  

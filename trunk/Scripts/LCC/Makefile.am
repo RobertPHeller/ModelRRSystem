@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <161019.0934>
+#  Last Modified : <161019.1330>
 #
 #  Description	
 #
@@ -146,6 +146,10 @@ OpenLCB${EXEEXT}: OpenLCB.tcl $(OpenLCBSCRIPTS) \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB \
 		lib $(URILIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB \
+		lib $(STRUCTLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB \
+		lib $(CSVLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
 		lib/Common $(OpenLCBSCRIPTS)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB \
