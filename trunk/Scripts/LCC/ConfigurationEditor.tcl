@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <161019.1443>
+#  Last Modified : <161020.1248>
 #
 #  Description	
 #
@@ -703,7 +703,20 @@ namespace eval lcc {
             {{Text            Files} {.txt} TEXT}
             {{All             Files} *          }
         }
+        ## Print and Export file types.
         method _printexport {node frame name} {
+            ## Print or export a segment or group.
+            #
+            # The current contents of the specified segment or group GUI frame
+            # are exported to a data file for use in another program or printed.
+            #
+            # @param node The XML node in the CDI for the segment or group to 
+            #             export or print.
+            # @param frame The GUI frame containing the values to be exported
+            #             or printed.
+            # @param name The name of the segment or group to be exported or
+            #             printed.
+            
             $self putdebug "$self _printexport $node $frame $name"
             set outfile [tk_getSaveFile \
                          -defaultextension .txt \
@@ -723,6 +736,16 @@ namespace eval lcc {
             $self _printexport$extension $node $frame $name $outfile
         }
         method _printexport.pdf {node frame name outfile} {
+            ## Export a segment or group to a printable PDF file
+            #
+            # @param node The XML node in the CDI for the segment or group to 
+            #             export or print.
+            # @param frame The GUI frame containing the values to be exported
+            #             or printed.
+            # @param name The name of the segment or group to be exported or
+            #             printed.
+            # @param outfile The file to export to.
+            
             set pdfobj [::pdf4tcl::new %AUTO% -file $outfile \
                         -paper letter -orient false -margin .25i]
             $pdfobj startPage
@@ -739,6 +762,18 @@ namespace eval lcc {
             $pdfobj destroy
         }
         proc _printexport.pdf_frame {n indent pdfobj frame curyVar curpageVar pageheader} {
+            ## Export a node frame to a PDF file.
+            #
+            # @param n The node.
+            # @param indent The indentation string.
+            # @param pdfobj The PDF file object.
+            # @param frame The GUI frame.
+            # @param curyVar The name of the variable containing the current y
+            #                location.
+            # @param curpageVar The name of the variable containing the current
+            #                page number.
+            # @param pageheader The running page header text.
+            
             upvar $curyVar cury
             upvar $curpageVar curpage
             #puts stderr "*** _printexport.pdf_frame $n \{$indent\} $pdfobj $frame $curyVar \{$pageheader\}"
@@ -854,6 +889,18 @@ namespace eval lcc {
             }
         }
         proc _printexport.pdf_vframe {n indent pdfobj frame curyVar curpageVar pageheader} {
+            ## Export a node scaler value frame to a PDF file.
+            #
+            # @param n The node.
+            # @param indent The indentation string.
+            # @param pdfobj The PDF file object.
+            # @param frame The GUI frame.
+            # @param curyVar The name of the variable containing the current y
+            #                location.
+            # @param curpageVar The name of the variable containing the current
+            #                page number.
+            # @param pageheader The running page header text.
+            
             #puts stderr "*** _printexport.pdf_vframe $n \{$indent\} $pdfobj $frame $curyVar $curpageVar \{$pageheader\}"
             #puts stderr "*** _printexport.pdf_vframe: frame is a [winfo class $frame]"
             upvar $curyVar cury
@@ -879,6 +926,13 @@ namespace eval lcc {
             }
         }
         proc _printexport.pdf_newpage {pdfobj pageheader pageno} {
+            ## Print a new PDF page.
+            #
+            # @param pdfobj The PDF file object
+            # @param pageheader The running page header text.
+            # @param pageno The new page's number.
+            # @return The fresh current y value.
+            
             # puts stderr "*** _printexport.pdf_newpage $pdfobj \{$pageheader\} $pageno"
             $pdfobj startPage
             set topy [lindex [$pdfobj getDrawableArea] 1]
@@ -889,6 +943,16 @@ namespace eval lcc {
             return $cury
         }
         method _printexport.xml {node frame name outfile} {
+            ## Export a segment or group to an XML file
+            #
+            # @param node The XML node in the CDI for the segment or group to 
+            #             export or print.
+            # @param frame The GUI frame containing the values to be exported
+            #             or printed.
+            # @param name The name of the segment or group to be exported or
+            #             printed.
+            # @param outfile The file to export to.
+            
             if {[catch {open $outfile w} outfp]} {
                 tk_messageBox -type ok -icon error \
                       -message [_ "Could not open %s: %s" $outfile $outfp]
@@ -901,6 +965,12 @@ namespace eval lcc {
             close $outfp
         }
         proc _printexport.xml_frame {n frame} {
+            ## Export a node frame as an XML tree.
+            #
+            # @param n The XML node in the CDI.
+            # @param frame The GUI frame for the node in the CDI.
+            # @return An XML tree of the contents of the GUI frame.
+            
             #puts stderr "*** _printexport.txt_frame $n \{$indent\} $outfp $frame"
             set gn 0
             set in 0
@@ -1003,6 +1073,12 @@ namespace eval lcc {
             }
         }
         proc _printexport.xml_vframe {n frame} {
+            ## Export a scaler node's value frame as an XML tree.
+            #
+            # @param n The XML node in the CDI.
+            # @param frame The GUI frame for the node in the CDI.
+            # @return An XML tree of the contents of the GUI frame.
+            
             set resultnode [SimpleDOMElement %AUTO% -tag [$n cget -tag] \
                             -attributes [$n cget -attributes] \
                             -opts       [$n cget -opts]]
@@ -1026,6 +1102,17 @@ namespace eval lcc {
         }
                         
         method _printexport.csv {node frame name outfile} {
+            ## Export a segment or group to a CSV file (can be imported into 
+            #   Excel).
+            #
+            # @param node The XML node in the CDI for the segment or group to 
+            #             export or print.
+            # @param frame The GUI frame containing the values to be exported
+            #             or printed.
+            # @param name The name of the segment or group to be exported or
+            #             printed.
+            # @param outfile The file to export to.
+            
             if {[catch {open $outfile w} outfp]} {
                 tk_messageBox -type ok -icon error \
                       -message [_ "Could not open %s: %s" $outfile $outfp]
@@ -1040,6 +1127,13 @@ namespace eval lcc {
             $matrix destroy
         }
         proc _printexport.csv_frame {n matrix frame} {
+            ## Add a node's GUI frame values to a matrix (to be exported as a 
+            # CSV file).
+            #
+            # @param n The node in the CDI XML tree.
+            # @param matrix The matrix to populate.
+            # @param frame The GUI frame to extract values from.
+            
             set gn 0
             set in 0
             set sn 0
@@ -1135,6 +1229,14 @@ namespace eval lcc {
             }
         }
         proc _printexport.csv_vframe {n matrix frame} {
+            ## Add a scaler node's GUI value frame values to a matrix (to be 
+            # exported as a CSV file).
+            #
+            # @param n The node in the CDI XML tree.
+            # @param matrix The matrix to populate
+            # @param frame The GUI frame to extract values from.
+            
+            
             if {[winfo class $frame] eq "TLabelframe"} {
                 $matrix add row [list [$frame cget -text]]
             }
@@ -1145,6 +1247,13 @@ namespace eval lcc {
             }
         }
         proc _printexport.csv_framesAcross {n tabnb tabs matrix} {
+            ## Add a replicated group to a matrix as a single row.
+            #
+            # @param n The node in the CDI XML tree.
+            # @param tabnb Tabbed notebook containing the replicated group.
+            # @param tabs The tabs in the tabbed notebook (the replications).
+            # @param matrix The matrix to populate.
+            
             #puts stderr "*** _printexport.csv_framesAcross $n $tabnb $tabs $matrix"
             set row [list]
             set cols [$matrix columns]
@@ -1157,6 +1266,13 @@ namespace eval lcc {
             $matrix add row $row
         }
         proc _printexport.csv_frameAcross {n rowVar frame} {
+            ## Add a group to a matrix as elements to a single row.
+            #
+            # @param n The node in the CDI XML tree.
+            # @param rowVar The name of the variable containing the row to add 
+            #               to.
+            # @param frame The GUI frame.
+            
             #puts stderr "*** _printexport.csv_frameAcross $n $rowVar $frame"
             upvar $rowVar row
             #puts stderr "*** _printexport.csv_frameAcross: row is $row"
@@ -1207,6 +1323,14 @@ namespace eval lcc {
             }
         }
         proc _printexport.csv_vframeAcross {n rowVar frame} {
+            ## Add a scaler node's value frame to a matrix as elements to a 
+            #  single row.
+            #
+            # @param n The node in the CDI XML tree.
+            # @param rowVar The name of the variable containing the row to add
+            #               to.
+            # @param frame The GUI frame.
+            
             #puts stderr "*** _printexport.csv_vframeAcross $n $rowVar $frame"
             upvar $rowVar row
             #puts stderr "*** _printexport.csv_vframeAcross: row is $row"
@@ -1222,6 +1346,16 @@ namespace eval lcc {
         }
         
         method _printexport.txt {node frame name outfile} {
+            ## Export a segment or group to a text file
+            #
+            # @param node The XML node in the CDI for the segment or group to 
+            #             export or print.
+            # @param frame The GUI frame containing the values to be exported
+            #             or printed.
+            # @param name The name of the segment or group to be exported or
+            #             printed.
+            # @param outfile The file to export to.
+            
             if {[catch {open $outfile w} outfp]} {
                 tk_messageBox -type ok -icon error \
                       -message [_ "Could not open %s: %s" $outfile $outfp]
@@ -1232,6 +1366,13 @@ namespace eval lcc {
             close $outfp
         }
         proc _printexport.txt_frame {n indent outfp frame} {
+            ## Export a segment or group frame to a text file.
+            #
+            # @param n The node.
+            # @param indent The indentation string.
+            # @param outfp The output file channel.
+            # @param frame The GUI frame.
+            
             #puts stderr "*** _printexport.txt_frame $n \{$indent\} $outfp $frame"
             set gn 0
             set in 0
@@ -1323,6 +1464,13 @@ namespace eval lcc {
             }
         }
         proc _printexport.txt_vframe {n indent outfp frame} {
+            ## Export a node scaler value frame to a text file.
+            #
+            # @param n The node.
+            # @param indent The indentation string.
+            # @param outfp The output channel.
+            # @param frame The GUI frame.
+            
             #puts stderr "*** _printexport.txt_vframe $n \{$indent\} $outfp $frame"
             #puts stderr "*** _printexport.txt_vframe: frame is a [winfo class $frame]"
             if {[winfo class $frame] eq "TLabelframe"} {
@@ -1340,10 +1488,20 @@ namespace eval lcc {
             wm withdraw $win
         }
         variable olddatagramhandler {}
+        ## Variable holding the old Datagram handler.
         variable datagrambuffer {}
+        ## Datagram buffer.
         variable _datagramrejecterror 0
+        ## Datagram reject error flag.
         variable writeReplyCheck no
+        ## Datagram write trply check flag.
         method _datagramhandler {command sourcenid args} {
+            ## Datagram handler.
+            #
+            # @param command Type of Datagram handling.
+            # @param sourcenid Source NID of the datagram.
+            # @param ... The datagram data stream.
+            
             set data $args
             switch $command {
                 datagramcontent {
@@ -1389,6 +1547,15 @@ namespace eval lcc {
             }
         }
         method _readmemory {space address length status_var} {
+            ## Read memory from a space.
+            #
+            # @param space The space to read from.
+            # @param address The start address to read.
+            # @param length Number of bytes to read.
+            # @param status_var The name of a variable to receive the status 
+            # code.
+            # @returns The data read (if successful).
+            
             lcc::byte validate $space
             lcc::sixteenbits validate $address
             lcc::length validate $length
@@ -1462,6 +1629,13 @@ namespace eval lcc {
             }
         }
         method _writememory {space address databuffer} {
+            ## Write to configuration memory.
+            #
+            # @param space The space to write to.
+            # @param address The address to write to.
+            # @param databuffer The data to write.
+            # @return The write status.
+            
             lcc::byte validate $space
             lcc::sixteenbits validate $address
             lcc::databuf validate $databuffer
@@ -1530,6 +1704,7 @@ namespace eval lcc {
             return [lrange $datagrambuffer $dataoffset end]
         }
         method _intComboRead {widget space address size} {
+            
             upvar #0 ${widget}_VM valuemap
             set data [$self _readmemory $space $address $size status]
             if {$status == 0x50} {
