@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <161020.1248>
+#  Last Modified : <161023.1121>
 #
 #  Description	
 #
@@ -733,9 +733,9 @@ namespace eval lcc {
                       -message [_ "Unknown file type: %s" $extension]
                 return
             }
-            $self _printexport$extension $node $frame $name $outfile
+            $self _printexport[regsub {^\.} $extension {_}] $node $frame $name $outfile
         }
-        method _printexport.pdf {node frame name outfile} {
+        method _printexport_pdf {node frame name outfile} {
             ## Export a segment or group to a printable PDF file
             #
             # @param node The XML node in the CDI for the segment or group to 
@@ -758,10 +758,10 @@ namespace eval lcc {
             set cury [expr {$topy - 48}]
             $pdfobj setFont 12 Courier
             set curpage 1
-            _printexport.pdf_frame $node "" $pdfobj $frame cury curpage $header
+            _printexport_pdf_frame $node "" $pdfobj $frame cury curpage $header
             $pdfobj destroy
         }
-        proc _printexport.pdf_frame {n indent pdfobj frame curyVar curpageVar pageheader} {
+        proc _printexport_pdf_frame {n indent pdfobj frame curyVar curpageVar pageheader} {
             ## Export a node frame to a PDF file.
             #
             # @param n The node.
@@ -776,7 +776,7 @@ namespace eval lcc {
             
             upvar $curyVar cury
             upvar $curpageVar curpage
-            #puts stderr "*** _printexport.pdf_frame $n \{$indent\} $pdfobj $frame $curyVar \{$pageheader\}"
+            #puts stderr "*** _printexport_pdf_frame $n \{$indent\} $pdfobj $frame $curyVar \{$pageheader\}"
             set gn 0
             set in 0
             set sn 0
@@ -785,7 +785,7 @@ namespace eval lcc {
                 segment {
                     if {$cury < 24} {
                         incr curpage
-                        set cury [_printexport.pdf_newpage $pdfobj $pageheader $curpage]
+                        set cury [_printexport_pdf_newpage $pdfobj $pageheader $curpage]
                     }
                     set space [$n attribute space]
                     $pdfobj text [format {%sSegment[0x%02x]:} $indent $space]
@@ -808,22 +808,22 @@ namespace eval lcc {
                                 }
                                 incr gn
                                 set cframe $groupnotebook.group$gn
-                                _printexport.pdf_frame $c "${indent}  " $pdfobj $cframe cury curpage $pageheader
+                                _printexport_pdf_frame $c "${indent}  " $pdfobj $cframe cury curpage $pageheader
                             }
                             int {
                                 incr in
                                 set cframe $frame.int$in
-                                _printexport.pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
+                                _printexport_pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
                             }
                             string {
                                 incr sn
                                 set cframe $frame.string$sn
-                                _printexport.pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
+                                _printexport_pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
                             }
                             eventid {
                                 incr evn
                                 set cframe $frame.eventid$evn
-                                _printexport.pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
+                                _printexport_pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
                             }
                         }
                     }
@@ -831,7 +831,7 @@ namespace eval lcc {
                 group {
                     if {$cury < 24} {
                         incr curpage
-                        set cury [_printexport.pdf_newpage $pdfobj $pageheader $curpage]
+                        set cury [_printexport_pdf_newpage $pdfobj $pageheader $curpage]
                     }
                     if {[winfo class $frame] eq "TLabelframe"} {
                         $pdfobj text "$indent[$frame cget -text]:"
@@ -848,15 +848,15 @@ namespace eval lcc {
                         foreach tabframe [$frame.replnotebook tabs] {
                             if {$cury < 12} {
                                 incr curpage
-                                set cury [_printexport.pdf_newpage $pdfobj $pageheader $curpage]
+                                set cury [_printexport_pdf_newpage $pdfobj $pageheader $curpage]
                             }
                             $pdfobj text "$indent[$frame.replnotebook tab $tabframe -text]:"
                             $pdfobj newLine 1
                             set cury [expr {$cury - 12}]
-                            _printexport.pdf_frame $n "${indent}  " $pdfobj $tabframe cury curpage $pageheader
+                            _printexport_pdf_frame $n "${indent}  " $pdfobj $tabframe cury curpage $pageheader
                         }
                     } else {
-                        #puts stderr "*** _printexport.txt_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
+                        #puts stderr "*** _printexport_txt_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
@@ -865,22 +865,22 @@ namespace eval lcc {
                                 group {
                                     incr gn
                                     set cframe $frame.group$gn
-                                    _printexport.pdf_frame $c "${indent}  " $pdfobj $cframe cury curpage $pageheader
+                                    _printexport_pdf_frame $c "${indent}  " $pdfobj $cframe cury curpage $pageheader
                                 }
                                 int {
                                     incr in
                                     set cframe $frame.int$in
-                                    _printexport.pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
+                                    _printexport_pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
                                 }
                                 string {
                                     incr sn
                                     set cframe $frame.string$sn
-                                    _printexport.pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
+                                    _printexport_pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
                                 }
                                 eventid {
                                     incr evn
                                     set cframe $frame.eventid$evn
-                                    _printexport.pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
+                                    _printexport_pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
                                 }
                             }
                         }
@@ -888,7 +888,7 @@ namespace eval lcc {
                 }
             }
         }
-        proc _printexport.pdf_vframe {n indent pdfobj frame curyVar curpageVar pageheader} {
+        proc _printexport_pdf_vframe {n indent pdfobj frame curyVar curpageVar pageheader} {
             ## Export a node scaler value frame to a PDF file.
             #
             # @param n The node.
@@ -901,13 +901,13 @@ namespace eval lcc {
             #                page number.
             # @param pageheader The running page header text.
             
-            #puts stderr "*** _printexport.pdf_vframe $n \{$indent\} $pdfobj $frame $curyVar $curpageVar \{$pageheader\}"
-            #puts stderr "*** _printexport.pdf_vframe: frame is a [winfo class $frame]"
+            #puts stderr "*** _printexport_pdf_vframe $n \{$indent\} $pdfobj $frame $curyVar $curpageVar \{$pageheader\}"
+            #puts stderr "*** _printexport_pdf_vframe: frame is a [winfo class $frame]"
             upvar $curyVar cury
             upvar $curpageVar curpage
             if {$cury < 24} {
                 incr curpage
-                set cury [_printexport.pdf_newpage $pdfobj $pageheader $curpage]
+                set cury [_printexport_pdf_newpage $pdfobj $pageheader $curpage]
             }
             
             if {[winfo class $frame] eq "TLabelframe"} {
@@ -925,7 +925,7 @@ namespace eval lcc {
                 set cury [expr {$cury - 12}]
             }
         }
-        proc _printexport.pdf_newpage {pdfobj pageheader pageno} {
+        proc _printexport_pdf_newpage {pdfobj pageheader pageno} {
             ## Print a new PDF page.
             #
             # @param pdfobj The PDF file object
@@ -933,7 +933,7 @@ namespace eval lcc {
             # @param pageno The new page's number.
             # @return The fresh current y value.
             
-            # puts stderr "*** _printexport.pdf_newpage $pdfobj \{$pageheader\} $pageno"
+            # puts stderr "*** _printexport_pdf_newpage $pdfobj \{$pageheader\} $pageno"
             $pdfobj startPage
             set topy [lindex [$pdfobj getDrawableArea] 1]
             $pdfobj setTextPosition 0 $topy
@@ -942,7 +942,7 @@ namespace eval lcc {
             set cury [expr {$topy - 24}]
             return $cury
         }
-        method _printexport.xml {node frame name outfile} {
+        method _printexport_xml {node frame name outfile} {
             ## Export a segment or group to an XML file
             #
             # @param node The XML node in the CDI for the segment or group to 
@@ -960,18 +960,18 @@ namespace eval lcc {
             }
             set resultnode [SimpleDOMElement %AUTO% -tag export \
                             -attributes [list name $name]]
-            $resultnode addchild [_printexport.xml_frame $node $frame]
+            $resultnode addchild [_printexport_xml_frame $node $frame]
             $resultnode display $outfp
             close $outfp
         }
-        proc _printexport.xml_frame {n frame} {
+        proc _printexport_xml_frame {n frame} {
             ## Export a node frame as an XML tree.
             #
             # @param n The XML node in the CDI.
             # @param frame The GUI frame for the node in the CDI.
             # @return An XML tree of the contents of the GUI frame.
             
-            #puts stderr "*** _printexport.txt_frame $n \{$indent\} $outfp $frame"
+            #puts stderr "*** _printexport_txt_frame $n \{$indent\} $outfp $frame"
             set gn 0
             set in 0
             set sn 0
@@ -997,22 +997,22 @@ namespace eval lcc {
                                 }
                                 incr gn
                                 set cframe $groupnotebook.group$gn
-                                $resultnode addchild [_printexport.xml_frame $c $cframe]
+                                $resultnode addchild [_printexport_xml_frame $c $cframe]
                             }
                             int {
                                 incr in
                                 set cframe $frame.int$in
-                                $resultnode addchild [_printexport.xml_vframe $c $cframe]
+                                $resultnode addchild [_printexport_xml_vframe $c $cframe]
                             }
                             string {
                                 incr sn
                                 set cframe $frame.string$sn
-                                $resultnode addchild [_printexport.xml_vframe $c $cframe]
+                                $resultnode addchild [_printexport_xml_vframe $c $cframe]
                             }
                             eventid {
                                 incr evn
                                 set cframe $frame.eventid$evn
-                                $resultnode addchild [_printexport.xml_vframe $c $cframe]
+                                $resultnode addchild [_printexport_xml_vframe $c $cframe]
                             }
                         }
                     }
@@ -1038,7 +1038,7 @@ namespace eval lcc {
                         foreach tabframe [$frame.replnotebook tabs] {
                             set replnode [SimpleDOMElement %AUTO% -tag replication -attributes [list name [$frame.replnotebook tab $tabframe -text]]]
                             $resultnode addchild $replnode
-                            $replnode addchild [_printexport.xml_frame $n $tabframe]
+                            $replnode addchild [_printexport_xml_frame $n $tabframe]
                         }
                     } else {
                         foreach c [$n children] {
@@ -1048,22 +1048,22 @@ namespace eval lcc {
                                 group {
                                     incr gn
                                     set cframe $frame.group$gn
-                                    $resultnode addchild [_printexport.xml_frame $c $cframe]
+                                    $resultnode addchild [_printexport_xml_frame $c $cframe]
                                 }
                                 int {
                                     incr in
                                     set cframe $frame.int$in
-                                    $resultnode addchild [_printexport.xml_vframe $c $cframe]
+                                    $resultnode addchild [_printexport_xml_vframe $c $cframe]
                                 }
                                 string {
                                     incr sn
                                     set cframe $frame.string$sn
-                                    $resultnode addchild [_printexport.xml_vframe $c $cframe]
+                                    $resultnode addchild [_printexport_xml_vframe $c $cframe]
                                 }
                                 eventid {
                                     incr evn
                                     set cframe $frame.eventid$evn
-                                    $resultnode addchild [_printexport.xml_vframe $c $cframe]
+                                    $resultnode addchild [_printexport_xml_vframe $c $cframe]
                                 }
                             }
                         }
@@ -1072,7 +1072,7 @@ namespace eval lcc {
                 }
             }
         }
-        proc _printexport.xml_vframe {n frame} {
+        proc _printexport_xml_vframe {n frame} {
             ## Export a scaler node's value frame as an XML tree.
             #
             # @param n The XML node in the CDI.
@@ -1101,7 +1101,7 @@ namespace eval lcc {
             return $resultnode
         }
                         
-        method _printexport.csv {node frame name outfile} {
+        method _printexport_csv {node frame name outfile} {
             ## Export a segment or group to a CSV file (can be imported into 
             #   Excel).
             #
@@ -1121,12 +1121,12 @@ namespace eval lcc {
             set matrix [::struct::matrix]
             $matrix add columns 2;# Initially assume 2 columns (name,value)
             $matrix add row [list $name]
-            _printexport.csv_frame $node $matrix $frame
+            _printexport_csv_frame $node $matrix $frame
             ::csv::writematrix $matrix $outfp
             close $outfp
             $matrix destroy
         }
-        proc _printexport.csv_frame {n matrix frame} {
+        proc _printexport_csv_frame {n matrix frame} {
             ## Add a node's GUI frame values to a matrix (to be exported as a 
             # CSV file).
             #
@@ -1156,22 +1156,22 @@ namespace eval lcc {
                                 }
                                 incr gn
                                 set cframe $groupnotebook.group$gn
-                                _printexport.csv_frame $c $matrix $cframe
+                                _printexport_csv_frame $c $matrix $cframe
                             }
                             int {
                                 incr in
                                 set cframe $frame.int$in
-                                _printexport.csv_vframe $c $matrix $cframe
+                                _printexport_csv_vframe $c $matrix $cframe
                             }
                             string {
                                 incr sn
                                 set cframe $frame.string$sn
-                                _printexport.csv_vframe $c $matrix $cframe
+                                _printexport_csv_vframe $c $matrix $cframe
                             }
                             eventid {
                                 incr evn
                                 set cframe $frame.eventid$evn
-                                _printexport.txt_vframe $c $matrix $cframe
+                                _printexport_txt_vframe $c $matrix $cframe
                             }
                         }
                     }
@@ -1188,15 +1188,15 @@ namespace eval lcc {
                         set tabs [$frame.replnotebook tabs]
                         ## Todo: Check for nested replnotebooks!
                         if {[llength $tabs] <= 4} {
-                            _printexport.csv_framesAcross $n $frame.replnotebook $tabs $matrix
+                            _printexport_csv_framesAcross $n $frame.replnotebook $tabs $matrix
                         } else {
                             foreach tabframe $tabs {
                                 $matrix add row [list [$frame.replnotebook tab $tabframe -text]]
-                                _printexport.csv_frame $n $matrix $tabframe
+                                _printexport_csv_frame $n $matrix $tabframe
                             }
                         }
                     } else {
-                        #puts stderr "*** _printexport.txt_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
+                        #puts stderr "*** _printexport_txt_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
@@ -1205,22 +1205,22 @@ namespace eval lcc {
                                 group {
                                     incr gn
                                     set cframe $frame.group$gn
-                                    _printexport.csv_frame $c $matrix $cframe
+                                    _printexport_csv_frame $c $matrix $cframe
                                 }
                                 int {
                                     incr in
                                     set cframe $frame.int$in
-                                    _printexport.csv_vframe $c $matrix $cframe
+                                    _printexport_csv_vframe $c $matrix $cframe
                                 }
                                 string {
                                     incr sn
                                     set cframe $frame.string$sn
-                                    _printexport.csv_vframe $c $matrix $cframe
+                                    _printexport_csv_vframe $c $matrix $cframe
                                 }
                                 eventid {
                                     incr evn
                                     set cframe $frame.eventid$evn
-                                    _printexport.csv_vframe $c $matrix $cframe
+                                    _printexport_csv_vframe $c $matrix $cframe
                                 }
                             }
                         }
@@ -1228,7 +1228,7 @@ namespace eval lcc {
                 }
             }
         }
-        proc _printexport.csv_vframe {n matrix frame} {
+        proc _printexport_csv_vframe {n matrix frame} {
             ## Add a scaler node's GUI value frame values to a matrix (to be 
             # exported as a CSV file).
             #
@@ -1246,7 +1246,7 @@ namespace eval lcc {
                 $matrix add row [list [$frame.value get]]
             }
         }
-        proc _printexport.csv_framesAcross {n tabnb tabs matrix} {
+        proc _printexport_csv_framesAcross {n tabnb tabs matrix} {
             ## Add a replicated group to a matrix as a single row.
             #
             # @param n The node in the CDI XML tree.
@@ -1254,18 +1254,18 @@ namespace eval lcc {
             # @param tabs The tabs in the tabbed notebook (the replications).
             # @param matrix The matrix to populate.
             
-            #puts stderr "*** _printexport.csv_framesAcross $n $tabnb $tabs $matrix"
+            #puts stderr "*** _printexport_csv_framesAcross $n $tabnb $tabs $matrix"
             set row [list]
             set cols [$matrix columns]
             foreach tabframe $tabs {
                 lappend row [$tabnb tab $tabframe -text]
-                _printexport.csv_frameAcross $n row $tabframe
+                _printexport_csv_frameAcross $n row $tabframe
             }
             set morecols [expr {[llength $row] - $cols}]
             if {$morecols > 0} {$matrix add columns $morecols}
             $matrix add row $row
         }
-        proc _printexport.csv_frameAcross {n rowVar frame} {
+        proc _printexport_csv_frameAcross {n rowVar frame} {
             ## Add a group to a matrix as elements to a single row.
             #
             # @param n The node in the CDI XML tree.
@@ -1273,9 +1273,9 @@ namespace eval lcc {
             #               to.
             # @param frame The GUI frame.
             
-            #puts stderr "*** _printexport.csv_frameAcross $n $rowVar $frame"
+            #puts stderr "*** _printexport_csv_frameAcross $n $rowVar $frame"
             upvar $rowVar row
-            #puts stderr "*** _printexport.csv_frameAcross: row is $row"
+            #puts stderr "*** _printexport_csv_frameAcross: row is $row"
             set gn 0
             set in 0
             set sn 0
@@ -1299,30 +1299,30 @@ namespace eval lcc {
                             group {
                                 incr gn
                                 set cframe $frame.group$gn
-                                _printexport.csv_frameAcross $c row $cframe
+                                _printexport_csv_frameAcross $c row $cframe
                             }
                             int {
                                 incr in
                                 set cframe $frame.int$in
-                                _printexport.csv_vframeAcross $c row $cframe
+                                _printexport_csv_vframeAcross $c row $cframe
                             }
                             string {
                                 incr sn
                                 set cframe $frame.string$sn
-                                _printexport.csv_vframeAcross $c row $cframe
+                                _printexport_csv_vframeAcross $c row $cframe
                             }
                             eventid {
                                 incr evn
                                 set cframe $frame.eventid$evn
-                                _printexport.csv_vframeAcross $c row $cframe
+                                _printexport_csv_vframeAcross $c row $cframe
                             }
                         }
-                        #puts stderr "*** _printexport.csv_frameAcross (after child): row is $row"
+                        #puts stderr "*** _printexport_csv_frameAcross (after child): row is $row"
                     }
                 }
             }
         }
-        proc _printexport.csv_vframeAcross {n rowVar frame} {
+        proc _printexport_csv_vframeAcross {n rowVar frame} {
             ## Add a scaler node's value frame to a matrix as elements to a 
             #  single row.
             #
@@ -1331,9 +1331,9 @@ namespace eval lcc {
             #               to.
             # @param frame The GUI frame.
             
-            #puts stderr "*** _printexport.csv_vframeAcross $n $rowVar $frame"
+            #puts stderr "*** _printexport_csv_vframeAcross $n $rowVar $frame"
             upvar $rowVar row
-            #puts stderr "*** _printexport.csv_vframeAcross: row is $row"
+            #puts stderr "*** _printexport_csv_vframeAcross: row is $row"
             if {[winfo class $frame] eq "TLabelframe"} {
                 lappend row [$frame cget -text]
             }
@@ -1342,10 +1342,10 @@ namespace eval lcc {
             } else {
                 lappend row [$frame.value get]
             }
-            #puts stderr "*** _printexport.csv_vframeAcross (after value added): row is $row"
+            #puts stderr "*** _printexport_csv_vframeAcross (after value added): row is $row"
         }
         
-        method _printexport.txt {node frame name outfile} {
+        method _printexport_txt {node frame name outfile} {
             ## Export a segment or group to a text file
             #
             # @param node The XML node in the CDI for the segment or group to 
@@ -1362,10 +1362,10 @@ namespace eval lcc {
                 return
             }
             puts $outfp [_ "Export of %s" $name]
-            _printexport.txt_frame $node "" $outfp $frame
+            _printexport_txt_frame $node "" $outfp $frame
             close $outfp
         }
-        proc _printexport.txt_frame {n indent outfp frame} {
+        proc _printexport_txt_frame {n indent outfp frame} {
             ## Export a segment or group frame to a text file.
             #
             # @param n The node.
@@ -1373,7 +1373,7 @@ namespace eval lcc {
             # @param outfp The output file channel.
             # @param frame The GUI frame.
             
-            #puts stderr "*** _printexport.txt_frame $n \{$indent\} $outfp $frame"
+            #puts stderr "*** _printexport_txt_frame $n \{$indent\} $outfp $frame"
             set gn 0
             set in 0
             set sn 0
@@ -1397,22 +1397,22 @@ namespace eval lcc {
                                 }
                                 incr gn
                                 set cframe $groupnotebook.group$gn
-                                _printexport.txt_frame $c "${indent}  " $outfp $cframe
+                                _printexport_txt_frame $c "${indent}  " $outfp $cframe
                             }
                             int {
                                 incr in
                                 set cframe $frame.int$in
-                                _printexport.txt_vframe $c ${indent} $outfp $cframe
+                                _printexport_txt_vframe $c ${indent} $outfp $cframe
                             }
                             string {
                                 incr sn
                                 set cframe $frame.string$sn
-                                _printexport.txt_vframe $c ${indent} $outfp $cframe
+                                _printexport_txt_vframe $c ${indent} $outfp $cframe
                             }
                             eventid {
                                 incr evn
                                 set cframe $frame.eventid$evn
-                                _printexport.txt_vframe $c ${indent} $outfp $cframe
+                                _printexport_txt_vframe $c ${indent} $outfp $cframe
                             }
                         }
                     }
@@ -1428,10 +1428,10 @@ namespace eval lcc {
                         ## whole set of replications
                         foreach tabframe [$frame.replnotebook tabs] {
                             puts $outfp "$indent[$frame.replnotebook tab $tabframe -text]:"
-                            _printexport.txt_frame $n "${indent}  " $outfp $tabframe
+                            _printexport_txt_frame $n "${indent}  " $outfp $tabframe
                         }
                     } else {
-                        #puts stderr "*** _printexport.txt_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
+                        #puts stderr "*** _printexport_txt_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
@@ -1440,22 +1440,22 @@ namespace eval lcc {
                                 group {
                                     incr gn
                                     set cframe $frame.group$gn
-                                    _printexport.txt_frame $c "${indent}  " $outfp $cframe
+                                    _printexport_txt_frame $c "${indent}  " $outfp $cframe
                                 }
                                 int {
                                     incr in
                                     set cframe $frame.int$in
-                                    _printexport.txt_vframe $c ${indent} $outfp $cframe
+                                    _printexport_txt_vframe $c ${indent} $outfp $cframe
                                 }
                                 string {
                                     incr sn
                                     set cframe $frame.string$sn
-                                    _printexport.txt_vframe $c ${indent} $outfp $cframe
+                                    _printexport_txt_vframe $c ${indent} $outfp $cframe
                                 }
                                 eventid {
                                     incr evn
                                     set cframe $frame.eventid$evn
-                                    _printexport.txt_vframe $c ${indent} $outfp $cframe
+                                    _printexport_txt_vframe $c ${indent} $outfp $cframe
                                 }
                             }
                         }
@@ -1463,7 +1463,7 @@ namespace eval lcc {
                 }
             }
         }
-        proc _printexport.txt_vframe {n indent outfp frame} {
+        proc _printexport_txt_vframe {n indent outfp frame} {
             ## Export a node scaler value frame to a text file.
             #
             # @param n The node.
@@ -1471,8 +1471,8 @@ namespace eval lcc {
             # @param outfp The output channel.
             # @param frame The GUI frame.
             
-            #puts stderr "*** _printexport.txt_vframe $n \{$indent\} $outfp $frame"
-            #puts stderr "*** _printexport.txt_vframe: frame is a [winfo class $frame]"
+            #puts stderr "*** _printexport_txt_vframe $n \{$indent\} $outfp $frame"
+            #puts stderr "*** _printexport_txt_vframe: frame is a [winfo class $frame]"
             if {[winfo class $frame] eq "TLabelframe"} {
                 puts $outfp "$indent[$frame cget -text]:"
             }
@@ -1704,6 +1704,13 @@ namespace eval lcc {
             return [lrange $datagrambuffer $dataoffset end]
         }
         method _intComboRead {widget space address size} {
+            ## Read an integer value and map it to a ComboBox widget.
+            #
+            # @param widget A ttk::combobox widget to update.  This is also 
+            #        used to map to the value map.
+            # @param space The space to read from.
+            # @param address The address of the integer.
+            # @param size The size of the integer.
             
             upvar #0 ${widget}_VM valuemap
             set data [$self _readmemory $space $address $size status]
@@ -1730,6 +1737,16 @@ namespace eval lcc {
             }
         }
         method _intComboWrite {widget space address size min max} {
+            ## Write an integer value maped from a ComboBox widget.
+            #
+            # @param widget A ttk::combobox widget to get the value from.  
+            #        This is also used to map to the value map.
+            # @param space The space to read from.
+            # @param address The address of the integer.
+            # @param size The size of the integer.
+            # @param min The minimum allowed value of the integer.
+            # @param max The maximum allowed value of the integer.
+            
             upvar #0 ${widget}_VM valuemap
             set value $valuemap([$widget get])
             set data [list]
@@ -1758,6 +1775,13 @@ namespace eval lcc {
                             $errorcode $errormessage]
         }
         method _intSpinRead {widget space address size} {
+            ## Read an integer value and stash it in a SpinBox widget.
+            #
+            # @param widget A spinbox widget to update.
+            # @param space The space to read from.
+            # @param address The address of the integer.
+            # @param size The size of the integer.
+            
             set data [$self _readmemory $space $address $size status]
             if {$status == 0x50} {
                 # OK
@@ -1781,6 +1805,15 @@ namespace eval lcc {
             }
         }
         method _intSpinWrite {widget space address size min max} {
+            ## Write an integer value maped from a SpinBox widget.
+            #
+            # @param widget A spinbox widget to get the value from.  
+            # @param space The space to read from.
+            # @param address The address of the integer.
+            # @param size The size of the integer.
+            # @param min The minimum allowed value of the integer.
+            # @param max The maximum allowed value of the integer.
+            
             set value [$widget get]
             if {$value < $min || $value > $max} {
                 ## out of range.
@@ -1812,6 +1845,14 @@ namespace eval lcc {
                             $errorcode $errormessage]
         }
         method _stringComboRead {widget space address size} {
+            ## Read a string value and map it to a ComboBox widget.
+            #
+            # @param widget A ttk::combobox widget to update.  This is also 
+            #        used to map to the value map.
+            # @param space The space to read from.
+            # @param address The address of the string.
+            # @param size The size of the string.
+            
             upvar #0 ${widget}_VM valuemap
             set resultstring {}
             for {set off 0} {$off < $size} {incr off 64} {
@@ -1846,6 +1887,14 @@ namespace eval lcc {
             }
         }
         method _stringComboWrite {widget space address size} {
+            ## Write a string value maped from a ComboBox widget.
+            #
+            # @param widget A ttk::combobox widget to get the value from.  
+            #        This is also used to map to the value map.
+            # @param space The space to read from.
+            # @param address The address of the string.
+            # @param size The size of the string.
+            
             upvar #0 ${widget}_VM valuemap
             set value $valuemap([$widget get])
             set fulldata [list]
@@ -1887,6 +1936,13 @@ namespace eval lcc {
             }
         }
         method _stringEntryRead {widget space address size} {
+            ## Read a string value and stash it in an Entry widget.
+            #
+            # @param widget A ttk::entry widget to update.
+            # @param space The space to read from.
+            # @param address The address of the string.
+            # @param size The size of the string.
+            
             set resultstring {}
             for {set off 0} {$off < $size} {incr off 64} {
                 set remain [expr {$size - $off}]
@@ -1917,6 +1973,13 @@ namespace eval lcc {
             $widget insert end $resultstring
         }
         method _stringEntryWrite {widget space address size} {
+            ## Write a string value from an Entry widget.
+            #
+            # @param widget A ttk::entry widget to get the value from.  
+            # @param space The space to read from.
+            # @param address The address of the string.
+            # @param size The size of the string.
+            
             set value [$widget get]
             set fulldata [list]
             foreach c [split $value {}] {
@@ -1957,6 +2020,14 @@ namespace eval lcc {
             }
         }
         method _eventidComboRead {widget space address size} {
+            ## Read an event id value and map it to a ComboBox widget.
+            #
+            # @param widget A ttk::combobox widget to update.  This is also 
+            #        used to map to the value map.
+            # @param space The space to read from.
+            # @param address The address of the event id.
+            # @param size The size of the event id (should always be 8).
+            
             upvar #0 ${widget}_VM valuemap
             set data [$self _readmemory $space $address $size status]
             if {$status == 0x50} {
@@ -1984,6 +2055,14 @@ namespace eval lcc {
             }
         }
         method _eventidComboWrite {widget space address size} {
+            ## Write an event id value maped from a ComboBox widget.
+            #
+            # @param widget A ttk::combobox widget to get the value from.  
+            #        This is also used to map to the value map.
+            # @param space The space to read from.
+            # @param address The address of the event id.
+            # @param size The size of the event id (should always be 8).
+            
             upvar #0 ${widget}_VM valuemap
             set evid [lcc::EventID %AUTO% -eventidstring $valuemap([$widget get])]
             set data [$evid cget -eventidlist]
@@ -2009,6 +2088,14 @@ namespace eval lcc {
                             $errorcode $errormessage]
         }
         method _eventidEntryRead {widget space address size} {
+            ## Read an event id value and stash it in an Entry widget as an 
+            #  event id string.
+            #
+            # @param widget A ttk::entry widget to update.
+            # @param space The space to read from.
+            # @param address The address of the event id.
+            # @param size The size of the event id (should always be 8).
+            
             set data [$self _readmemory $space $address $size status]
             if {$status == 0x50} {
                 # OK
@@ -2031,6 +2118,13 @@ namespace eval lcc {
             }
         }
         method _eventidEntryWrite {widget space address size} {
+            ## Write an event id value from an Entry widget.
+            #
+            # @param widget A ttk::entry widget to get the value from.  
+            # @param space The space to read from.
+            # @param address The address of the event id.
+            # @param size The size of the event id (should always be 8).
+            
             set evid [lcc::EventID %AUTO% -eventidstring [$widget get]]
             set data [$evid cget -eventidlist]
             set retdata [$self _writememory $space $address $data]
@@ -2055,6 +2149,13 @@ namespace eval lcc {
                             $errorcode $errormessage]
         }
         method _readall {space} {
+            ## Read all parameters stored in a specified space.
+            #
+            # Reads each parameter one at a time by invoking the parameter's 
+            # @c Read button.
+            #
+            # @param space The parameter space to read from.
+            
             if {![catch {set _readall($space)} rbs]} {
                 foreach rb $rbs {
                     $rb invoke
