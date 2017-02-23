@@ -368,6 +368,16 @@ void TrackGraph::InsertSwitchMotor(int number, int turnout, char * _name, char *
 	nodes[newNode].length = -1.0;
 }
 
+void TrackGraph::InsertSignal(int number, char * _name, int _numheads, StringPairList *_aspects)
+{
+    Node newNode;
+    
+    newNode = AddNewNode(number,Signal);
+    nodes[newNode].name = _name;
+    nodes[newNode].numheads = _numheads;
+    nodes[newNode].aspectlist = _aspects;
+}
+
 std::ostream& operator << (ostream& stream,TrackGraph& graph)
 {
 	int jj;
@@ -587,6 +597,20 @@ const char * TrackGraph::ReverseActionScript(int nid) const
 	Node n = FindNode(nid);
 	if (n == none) return NULL;
 	else return nodes[n].reverseactionscript;
+}
+
+int TrackGraph::NumberOfHeads(int nid) const
+{
+    Node n = FindNode(nid);
+    if (n == none) return 0;
+    else return nodes[n].numheads;
+}
+
+const StringPairList *TrackGraph::SignalAspects(int nid) const
+{
+    Node n = FindNode(nid);
+    if (n == none) return NULL;
+    else return nodes[n].aspectlist;
 }
 
 
@@ -1328,7 +1352,12 @@ void TrackGraph::computeHeads()
 	std::vector<int> component(num_vertices(nodes)), discover_time(num_vertices(nodes));
 	std::vector<default_color_type> color(num_vertices(nodes));
 	std::vector<Node> root(num_vertices(nodes));
-	/*int num =*/ (void) strong_components(nodes, &component[0],
+#ifdef DEBUG
+    int num = 
+#else
+    (void)
+#endif
+          strong_components(nodes, &component[0],
 				    root_map(&root[0]).
 				    color_map(&color[0]).
 				    discover_time_map(&discover_time[0]));

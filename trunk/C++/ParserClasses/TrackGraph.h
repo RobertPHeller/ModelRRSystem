@@ -93,6 +93,8 @@ using namespace boost;
 #endif
 #include <TrackBody.h>
 #include <TurnoutBody.h>
+#include <IntegerList.h>
+#include <StringPairList.h>
 
 /** @addtogroup ParserClasses
   * @{
@@ -285,7 +287,25 @@ struct TurnoutGraphic {
 		if (Tcl_ListObjAppendElement(interp,tcl_result,Tcl_NewIntObj(p->Element())) != TCL_OK)
 			return TCL_ERROR;
 	}
-}	
+}
+%typemap(out) StringPairList * {
+    const StringPairList *p;
+    char *s;
+    Tcl_Obj * tcl_result = $result;
+    Tcl_Obj * onepair;
+    Tcl_SetListObj(tcl_result,0,NULL);
+    for (p = $1; p != NULL; p = p->Next()) {
+        onepair = Tcl_NewListObj(0,NULL);
+        s = p->Name();
+        if (Tcl_ListObjAppendElement(interp,onepair,Tcl_NewStringObj(s,strlen(s))) != TCL_OK)
+            return TCL_ERROR;
+        s = p->Script();
+        if (Tcl_ListObjAppendElement(interp,onepair,Tcl_NewStringObj(s,strlen(s))) != TCL_OK)
+            return TCL_ERROR;
+        if (Tcl_ListObjAppendElement(interp,tcl_result,onepair) != TCL_OK)
+            return TCL_ERROR;
+    }
+}
 #endif
 #ifdef SWIG
 %immutable RouteVec::positionName;
@@ -501,7 +521,10 @@ public:
 		Block,
 		/**   Switch Motor.
 		  */
-		SwitchMotor
+                SwitchMotor,
+                /**   Signal.
+                 */
+                Signal
 	};
 
 	typedef std::pair < int, int > CompressedEdgePair;
@@ -585,7 +608,13 @@ private:
 		char * normalactionscript;
 		/**   Reverse action script.
 		  */
-		char * reverseactionscript;
+                char * reverseactionscript;
+                /**   Number of heads.
+                 */
+                int numheads;
+                /**   Aspect list (name, script pairs).
+                 */
+                StringPairList *aspectlist;
 		/** Default constructor.
 		  */
 		NodeValues (int _id = -1, NodeType _type = Undefined,
@@ -595,13 +624,17 @@ private:
 			    int _turnoutnumber = 0, char *_name = NULL,
 			    char * _sensescript = NULL, 
 			    char * _normalactionscript = NULL,
-			    char * _reverseactionscript = NULL)
+			    char * _reverseactionscript = NULL,
+                            int _numheads = 0, StringPairList *_aspects = NULL)
 		{ id = _id; type = _type; tgr = _tgr; tpo = _tpo;
 		  length = _length; tracklist = _tracklist; 
 		  turnoutnumber = _turnoutnumber; name = _name;
 		  sensescript =  _sensescript; 
 		  normalactionscript = _normalactionscript;
-		  reverseactionscript =  _reverseactionscript;}
+                  reverseactionscript =  _reverseactionscript;
+                  numheads = _numheads;
+                  aspectlist = _aspects;
+                }
 		/** Cleanup member function.
 		  */
 		void Cleanup()
@@ -896,9 +929,12 @@ public:
 	void InsertBlock(int number, char * _name, char * _script, IntegerList *_tracklist);
 	/**  Insert a switch motor.
 	  */
-	void InsertSwitchMotor(int number, int turnout, char * _name, char * _normal, char * _reverse, char * _pointsense);
+        void InsertSwitchMotor(int number, int turnout, char * _name, char * _normal, char * _reverse, char * _pointsense);
+        /**  Insert a signal.
+         */
+        void InsertSignal(int number, char * _name, int _numheads, StringPairList *_aspects);
 	/**  Compute the length of a piece of straight track.
-	  */
+         */
 	static float LengthOfStraight(float x1, float y1, float x2, float y2);
 	/**  Compute the length of a (circular) curved piece of track.
 	  */
@@ -959,7 +995,13 @@ public:
 	const char * NormalActionScript(int nid) const;
 	/**  Return a block's or switchmotor's reverse action script.
 	  */
-	const char * ReverseActionScript(int nid) const;
+        const char * ReverseActionScript(int nid) const;
+        /**  Return a Signal's number of heads.
+          */
+        int NumberOfHeads(int nid) const;
+        /**  Return a Signal's aspect list.
+          */
+        const StringPairList *SignalAspects(int nid) const;
 	/**  Returns the lowest numbered node id.
 	  */
 	int LowestNode() const;

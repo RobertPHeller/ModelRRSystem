@@ -170,6 +170,12 @@ public:
 	/**  Return a block's or switchmotor's reverse action script.
 	  */
 	const char * ReverseActionScript(int nid) const;
+        /**  Return a Signal's number of heads.
+          */
+        int NumberOfHeads(int nid) const;
+        /**  Return a Signal's aspect list.
+          */
+        const StringPairList *SignalAspects(int nid) const;
 	/*+ Return the highest node number.
 	  */
 	int LowestNode() const;
@@ -317,7 +323,8 @@ public:
 				case TrackGraph::Turnout: return(_("TrackGraph::Turnout")); break;
 				case TrackGraph::Turntable: return(_("TrackGraph::Turntable")); break;
 				case TrackGraph::Block: return(_("TrackGraph::Block")); break;
-				case TrackGraph::SwitchMotor: return(_("TrackGraph::SwitchMotor")); break;
+                                case TrackGraph::SwitchMotor: return(_("TrackGraph::SwitchMotor")); break;
+                                case TrackGraph::Signal: return(_("TrackGraph::Signal")); break;
 				case TrackGraph::Undefined: return(_("TrackGraph::Undefined")); break;
 			}
 			return NULL;
@@ -475,6 +482,13 @@ public:
 	/**  Return a block's or switchmotor's reverse action script.
 	  */
 	const char * ReverseActionScript(int nid) const {return trackGraph->ReverseActionScript(nid);}
+        /**  Return a Signal's number of heads.
+          */
+        int NumberOfHeads(int nid) const {return trackGraph->NumberOfHeads(nid);}
+        /**  Return a Signal's aspect list.
+          */
+        const StringPairList *SignalAspects(int nid) const {return trackGraph->SignalAspects(nid);}
+        /*x**** Signal data element accessors ****x*/
 	/**  Returns the lowest numbered node id.
 	  */
 	int LowestNode() const {return trackGraph->LowestNode();}

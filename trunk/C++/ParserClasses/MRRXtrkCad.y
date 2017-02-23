@@ -68,6 +68,7 @@ using namespace std;
 #include <math.h>
 #include <ParseFile.h>
 #include <IntegerList.h>
+#include <StringPairList.h>
 /*#include <Tree.h>*/
 using namespace Parsers;
 #define TRUE true
@@ -126,6 +127,7 @@ extern const double INCHESperMM /* =  25.3807106598*/,
  <trb> TurnoutBody pointer values.
  <trbe> TurnoutBodyElt pointer values.
  <il> IntegerList pointer values.
+ <spl> StringPairList pointer values.
 */
 
 %union {
@@ -137,6 +139,7 @@ extern const double INCHESperMM /* =  25.3807106598*/,
 	TurnoutBody *trb;
 	TurnoutBodyElt *trbe;
 	IntegerList *il;
+	StringPairList *spl;
 }
 
 
@@ -247,6 +250,10 @@ extern const double INCHESperMM /* =  25.3807106598*/,
 %token TRK
 /* SWITCHMOTOR */
 %token SWITCHMOTOR
+/* SIGNAL */
+%token SIGNAL
+/* ASPECT */
+%token ASPECT
 /* Typed non-terminals.*/
 /* Non-terminals that have values. */
 /* trackbody <tb> */
@@ -261,6 +268,8 @@ extern const double INCHESperMM /* =  25.3807106598*/,
 %type <il> intlist
 /* tracklist <il> */
 %type <il> tracklist
+/* aspectlist <spl> */
+%type <spl> aspectlist
 %%
 
 
@@ -289,6 +298,7 @@ definition : version
 	   | text
 	   | block
 	   | switchmotor
+	   | signal
 	   | EOL
 	   ;
 
@@ -443,7 +453,13 @@ switchmotor : SWITCHMOTOR INTEGER INTEGER STRING STRING STRING STRING EOL
 	     /* index turnout# name  normal reverse pointsense */
 	     {trackGraph->InsertSwitchMotor($2,$3,$4,$5,$6,$7);} ;
 
+signal : SIGNAL INTEGER INTEGER scalename INTEGER FLOAT FLOAT FLOAT INTEGER STRING EOL aspectlist  END EOL
+        /*    index   name   numheads aspectlist */
+        {trackGraph->InsertSignal($2, $10, $9, $12);}
 
+aspectlist : {$$ = NULL;}
+           | aspectlist ASPECT STRING STRING EOL {$$ = StringPairList::StringPairAppend($1,$3,$4);}
+           ;
 %%
 
 
@@ -458,6 +474,7 @@ int MRRXtrkCad::lookup_word(const char *word) const
 		int id;
 	} reserved_words[] = {
 		{"A", A},
+		{"ASPECT", ASPECT},
 		{"B", B},
 		{"BLOCK", BLOCK},
 		{"C", C},
@@ -486,6 +503,7 @@ int MRRXtrkCad::lookup_word(const char *word) const
 		{"ROOMSIZE", ROOMSIZE},
 		{"S", S},
 		{"SCALE", SCALE},
+                {"SIGNAL", SIGNAL},
 		{"STRAIGHT", STRAIGHT},
 		{"STRUCTURE", STRUCTURE},
 		{"SWITCHMOTOR", SWITCHMOTOR},

@@ -62,7 +62,7 @@ pkgincludedir = $(includedir)/$(PACKAGE)/ParserClasses
 BUILT_SOURCES = MRRXtrkCad.tab.cc MRRXtrkCad.tab.h mrr_wrap.cc ParserClassesGroup.h
 
 pkginclude_HEADERS = TrackGraph.h TrackBody.h ParseFile.h IntegerList.h \
-			TurnoutBody.h
+			StringPairList.h TurnoutBody.h
 nodist_pkginclude_HEADERS = MRRXtrkCad.tab.h
 
 lib_LTLIBRARIES = libMRRParserClasses.la
