@@ -576,7 +576,10 @@ proc Dispatcher::LoadLayout {{filename {}}} {
 	}
 	TrackGraph::SwitchMotor {
 	  $CanvasWindow create switchmotor $head
-	}
+        }
+        TrackGraph::Signal {
+          $CanvasWindow create signal $head
+        }
 	default {
 	}
       }
