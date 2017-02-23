@@ -455,7 +455,7 @@ switchmotor : SWITCHMOTOR INTEGER INTEGER STRING STRING STRING STRING EOL
 
 signal : SIGNAL INTEGER INTEGER scalename INTEGER FLOAT FLOAT FLOAT INTEGER STRING EOL aspectlist  END EOL
         /*    index   name   numheads aspectlist */
-        {trackGraph->InsertSignal($2, $10, $9, $12);}
+        {trackGraph->InsertSignal($2, $10, $6, $7, $8, $9, $12);}
 
 aspectlist : {$$ = NULL;}
            | aspectlist ASPECT STRING STRING EOL {$$ = StringPairList::StringPairAppend($1,$3,$4);}
