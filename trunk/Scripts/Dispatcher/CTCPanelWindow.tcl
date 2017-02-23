@@ -1437,7 +1437,17 @@ namespace eval CTCPanelWindow {
 	      } else {
 		eval [list $panel addcomplextrackworktopanel $node] $args
 	      }
-	    }
+            }
+            TrackGraph::Signal {
+              set numheads [$node NumberOfHeads]
+              set aspects  [$node SignalAspects]
+              if {0} {
+                  eval [list $panel addsignaltopanel $node \
+                        -name [$node NameOfNode] \
+                        -numheads $numheads \
+                        -aspects $aspects]
+              }
+            }
 	  }
 	}
 	2 {

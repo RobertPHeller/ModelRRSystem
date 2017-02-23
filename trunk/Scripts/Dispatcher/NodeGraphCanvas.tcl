@@ -184,6 +184,36 @@ namespace eval NodeGraphCanvas {
       lappend switchnodes($TrkNID) $node
       #parray switchnodes
     }
+    method isdrawnp {node} {
+        set NID [$node MyNID]
+        if {[llength [$hull find withtag T$NID]] > 0} {
+            return yes
+        } else {
+            return no
+        }
+    }
+    method {create orphannode} {node {x 50} {y 50}} {
+        set NID [$node MyNID]
+        set bbox [$hull bbox T$NID]
+        if {[llength $bbox] > 0} {return}
+        set x0 [expr {$x - 15}]
+        set y0 [expr {$y - 15}]
+        set x1 [expr {$x + 15}]
+        set y1 [expr {$y + 15}]
+        set x_orig $x
+        while {[llength [$hull find overlapping $x0 $y0 $x1 $y1]] > 0} {
+            set x [expr {$x + 100}]
+            if {$x > 750} {
+                set y [expr {$y + 100}]
+                set y0 [expr {$y - 15}]
+                set y1 [expr {$y + 15}]
+                set x $x_orig
+            }
+            set x0 [expr {$x - 15}]
+            set x1 [expr {$x + 15}]
+        }
+        $self create node $node $x $y
+    }
     method {create node} {node X Y args} {
 #      puts stderr "*** $self create node $X $Y $args"
       set outline black
