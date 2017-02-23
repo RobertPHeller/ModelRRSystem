@@ -176,6 +176,19 @@ public:
         /**  Return a Signal's aspect list.
           */
         const StringPairList *SignalAspects(int nid) const;
+	/*+ Return the $x$ coordinate of the signal base.
+	  * @param nid The node to look at.
+	  */
+	float OrigX(int nid) const;
+	/*+ Return the $y$ coordinate of the signal base.
+	  * @param nid The node to look at.
+	  */
+	float OrigY(int nid) const;
+	/*+ Return the angle of the signal..
+	  * @param nid The node to look at.
+	  */
+	float Angle(int nid) const;
+    
 	/*+ Return the highest node number.
 	  */
 	int LowestNode() const;
@@ -488,6 +501,18 @@ public:
         /**  Return a Signal's aspect list.
           */
         const StringPairList *SignalAspects(int nid) const {return trackGraph->SignalAspects(nid);}
+	/** Return the $x$ coordinate of the signal base.
+	  * @param nid The node to look at.
+	  */
+	float OrigX(int nid) const {return trackGraph->OrigX(nid);}
+	/** Return the $y$ coordinate of the signal base.
+	  * @param nid The node to look at.
+	  */
+	float OrigY(int nid) const {return trackGraph->OrigY(nid);}
+	/** Return the angle of the signal..
+	  * @param nid The node to look at.
+	  */
+	float Angle(int nid) const {return trackGraph->Angle(nid);}
         /*x**** Signal data element accessors ****x*/
 	/**  Returns the lowest numbered node id.
 	  */

@@ -166,6 +166,11 @@ namespace eval TrackGraph {
     method SenseScript {} {return [$layoutname SenseScript $nid]}
     method NormalActionScript {} {return [$layoutname NormalActionScript $nid]}
     method ReverseActionScript {} {return [$layoutname ReverseActionScript $nid]}
+    method NumberOfHeads {} {return [$layoutname NumberOfHeads $nid]}
+    method SignalAspects {} {return [$layoutname SignalAspects $nid]}
+    method OrigX {} {return [$layoutname OrigX $nid]}
+    method OrigY {} {return [$layoutname OrigY $nid]}
+    method Angle {} {return [$layoutname Angle $nid]}
     delegate typemethod LowestNode       to layoutname
     delegate typemethod HighestNode      to layoutname
     delegate typemethod CompressGraph    to layoutname

@@ -615,6 +615,15 @@ private:
                 /**   Aspect list (name, script pairs).
                  */
                 StringPairList *aspectlist;
+                /**   X coordinate of the base of the signal.
+                  */
+                float origx;
+                /** Y coordinate of the base of the signal.
+                  */
+                float origy;
+                /** Angle of the signal.
+                  */
+                float angle;
 		/** Default constructor.
 		  */
 		NodeValues (int _id = -1, NodeType _type = Undefined,
@@ -625,7 +634,9 @@ private:
 			    char * _sensescript = NULL, 
 			    char * _normalactionscript = NULL,
 			    char * _reverseactionscript = NULL,
-                            int _numheads = 0, StringPairList *_aspects = NULL)
+                            int _numheads = 0, StringPairList *_aspects = NULL,
+                            float _origx = 0.0, float _origy = 0.0, 
+                            float _angle = 0.0)
 		{ id = _id; type = _type; tgr = _tgr; tpo = _tpo;
 		  length = _length; tracklist = _tracklist; 
 		  turnoutnumber = _turnoutnumber; name = _name;
@@ -634,6 +645,9 @@ private:
                   reverseactionscript =  _reverseactionscript;
                   numheads = _numheads;
                   aspectlist = _aspects;
+                  origx = _origx;
+                  origy = _origy;
+                  angle = _angle;
                 }
 		/** Cleanup member function.
 		  */
@@ -932,7 +946,7 @@ public:
         void InsertSwitchMotor(int number, int turnout, char * _name, char * _normal, char * _reverse, char * _pointsense);
         /**  Insert a signal.
          */
-        void InsertSignal(int number, char * _name, int _numheads, StringPairList *_aspects);
+        void InsertSignal(int number, char * _name, float _origx, float _origy, float _angle, int _numheads, StringPairList *_aspects);
 	/**  Compute the length of a piece of straight track.
          */
 	static float LengthOfStraight(float x1, float y1, float x2, float y2);
@@ -1002,6 +1016,18 @@ public:
         /**  Return a Signal's aspect list.
           */
         const StringPairList *SignalAspects(int nid) const;
+	/** Return the $x$ coordinate of the signal base.
+	  * @param nid The node to look at.
+	  */
+	float OrigX(int nid) const;
+	/** Return the $y$ coordinate of the signal base.
+	  * @param nid The node to look at.
+	  */
+	float OrigY(int nid) const;
+	/** Return the angle of the signal..
+	  * @param nid The node to look at.
+	  */
+	float Angle(int nid) const;
 	/**  Returns the lowest numbered node id.
 	  */
 	int LowestNode() const;

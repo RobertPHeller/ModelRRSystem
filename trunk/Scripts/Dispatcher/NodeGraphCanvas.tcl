@@ -138,6 +138,7 @@ namespace eval NodeGraphCanvas {
     }
     variable blocknodes -array {}
     variable switchnodes -array {}
+    variable signals [list]
     method {create block} {node} {
       #puts stderr "*** $self create block $node"
       set TrkNID {}
@@ -183,6 +184,65 @@ namespace eval NodeGraphCanvas {
 			-outline orange -fill {} -tag T$TrkNID
       lappend switchnodes($TrkNID) $node
       #parray switchnodes
+    }
+    method isdrawnp {node} {
+        set NID [$node MyNID]
+        if {[llength [$hull find withtag T$NID]] > 0} {
+            return yes
+        } else {
+            return no
+        }
+    }
+    method {create orphannode} {node {x 50} {y 50}} {
+        set NID [$node MyNID]
+        set bbox [$hull bbox T$NID]
+        if {[llength $bbox] > 0} {return}
+        set x0 [expr {$x - 15}]
+        set y0 [expr {$y - 15}]
+        set x1 [expr {$x + 15}]
+        set y1 [expr {$y + 15}]
+        set x_orig $x
+        while {[llength [$hull find overlapping $x0 $y0 $x1 $y1]] > 0} {
+            set x [expr {$x + 100}]
+            if {$x > 750} {
+                set y [expr {$y + 100}]
+                set y0 [expr {$y - 15}]
+                set y1 [expr {$y + 15}]
+                set x $x_orig
+            }
+            set x0 [expr {$x - 15}]
+            set x1 [expr {$x + 15}]
+        }
+        $self create node $node $x $y
+    }
+    method {create signal} {node {x 50} {y 50}} {
+        set NID [$node MyNID]
+        set bbox [$hull bbox T$NID]
+        if {[llength $bbox] > 0} {return}
+        set x0 [expr {$x - 15}]
+        set y0 [expr {$y - 15}]
+        set x1 [expr {$x + 15}]
+        set y1 [expr {$y + 15}]
+        set x_orig $x
+        while {[llength [$hull find overlapping $x0 $y0 $x1 $y1]] > 0} {
+            set x [expr {$x + 100}]
+            if {$x > 750} {
+                set y [expr {$y + 100}]
+                set y0 [expr {$y - 15}]
+                set y1 [expr {$y + 15}]
+                set x $x_orig
+            }
+            set x0 [expr {$x - 15}]
+            set x1 [expr {$x + 15}]
+        }
+        $self create node $node $x $y
+        set coords [$hull coords T$NID]
+        $hull create oval [expr {[lindex $coords 0] - 1}] \
+      			[expr {[lindex $coords 1] - 1}] \
+			[expr {[lindex $coords 2] + 1}] \
+			[expr {[lindex $coords 3] + 1}] \
+			-outline green -fill {} -tag T$NID
+        lappend signals $node
     }
     method {create node} {node X Y args} {
 #      puts stderr "*** $self create node $X $Y $args"
@@ -279,24 +339,28 @@ namespace eval NodeGraphCanvas {
       $hull bind E$s_NID-$t_NID <1> [mymethod EdgeInfo $s $ie]
     }
     method NodeInfo {node} {
-      NodeGraphCanvas::displayNodeInfo draw -node $node -parent $win -title [_ "Node %s" $node]
-      set TrkNID [$node MyNID]
-      #puts stderr "*** $self NodeInfo: TrkNID = $TrkNID"
-#      parray blocknodes
-#      parray switchnodes
-      if {![catch {set blocknodes($TrkNID)} blocklist]} {
-#	puts stderr "*** $self NodeInfo: blocklist = $blocklist"
-	foreach b $blocklist {
-#	  puts stderr "*** $self NodeInfo: b = $b, Name is [$b NameOfNode], SenseScript is [$b SenseScript], TrackList is [$b TrackList]"
-	  NodeGraphCanvas::displayBlockInfo draw -node $b -parent $win -title [_ "Block %s" [$b NameOfNode]]
-	}
-      }
-      if {![catch {set switchnodes($TrkNID)} switchlist]} {
-#	puts stderr "*** $self NodeInfo: switchlist = $switchlist"
-	foreach s $switchlist {
-	  NodeGraphCanvas::displaySwitchMotorInfo draw -node $s -parent $win -title [_ "Switch Motor %s" [$s NameOfNode]]
-	}
-      }
+        if {[$node TypeOfNode] eq "TrackGraph::Signal"} {
+            NodeGraphCanvas::displaySignalInfo draw -node $node -parent $win -title [_ "Signal %s" [$node NameOfNode]]
+        } else {
+            NodeGraphCanvas::displayNodeInfo draw -node $node -parent $win -title [_ "Node %s" $node]
+            set TrkNID [$node MyNID]
+            #puts stderr "*** $self NodeInfo: TrkNID = $TrkNID"
+            #      parray blocknodes
+            #      parray switchnodes
+            if {![catch {set blocknodes($TrkNID)} blocklist]} {
+                #	puts stderr "*** $self NodeInfo: blocklist = $blocklist"
+                foreach b $blocklist {
+                    #	  puts stderr "*** $self NodeInfo: b = $b, Name is [$b NameOfNode], SenseScript is [$b SenseScript], TrackList is [$b TrackList]"
+                    NodeGraphCanvas::displayBlockInfo draw -node $b -parent $win -title [_ "Block %s" [$b NameOfNode]]
+                }
+            }
+            if {![catch {set switchnodes($TrkNID)} switchlist]} {
+                #	puts stderr "*** $self NodeInfo: switchlist = $switchlist"
+                foreach s $switchlist {
+                    NodeGraphCanvas::displaySwitchMotorInfo draw -node $s -parent $win -title [_ "Switch Motor %s" [$s NameOfNode]]
+                }
+            }
+        }
     }
     method EdgeInfo {node edgeIndex} {
       NodeGraphCanvas::displayEdgeInfo draw -node $node -edge $edgeIndex -parent $win -title [_ "Node %s" $node]
@@ -314,12 +378,12 @@ namespace eval NodeGraphCanvas {
       $self NodeInfo $data(node)
     }
     method MenuAddToPanel {} {
-      upvar #0 $nodeMenu data
-      if {[catch {set blocknodes([$data(node) MyNID])} blocks]} {set blocks {}}
-      if {[catch {set switchnodes([$data(node) MyNID])} switches]} {set switches {}}
-      CTCPanelWindow::CTCPanelWindow addtrackworknodetopanel $data(node) \
-					-parent $win -blocks $blocks \
-					-switchmotors $switches
+        upvar #0 $nodeMenu data
+        if {[catch {set blocknodes([$data(node) MyNID])} blocks]} {set blocks {}}
+        if {[catch {set switchnodes([$data(node) MyNID])} switches]} {set switches {}}
+        CTCPanelWindow::CTCPanelWindow addtrackworknodetopanel $data(node) \
+              -parent $win -blocks $blocks \
+              -switchmotors $switches
     }
     method see {tagorid} {
       set bbox [$hull bbox $tagorid]
@@ -756,6 +820,96 @@ namespace eval NodeGraphCanvas {
       $edgeY configure -text [$node EdgeY $ie]
       $edgeA configure -text [$node EdgeA $ie]
     }
+  }
+  snit::widget displaySignalInfo {
+      Dispatcher::StdShell DisplaySignalInfo
+      
+      component nodeID
+      component numberHeads
+      component positionLF
+      component   posX
+      variable    _posx
+      component   posY
+      variable    _posy
+      component   posA
+      variable    _posa
+      component aspectsLF
+      component   aspectsSW
+      component     aspectsLB
+      
+      option -title -default {Displaying Signalr Info} -configuremethod _SetTitle
+      option -node -default {} -validatemethod _CheckNode
+      method _CheckNode {option value} {
+          if {[catch {$value info type} typename]} {
+              error "Expected a TrackGraph, got $value"
+          } elseif {[namespace tail "$typename"] ne "TrackGraph"} {
+              error "Expected a TrackGraph, got $value ($typename)"
+          } else {
+              if {[$value TypeOfNode] ne "TrackGraph::Signal"} {
+                  error "Expected a Signal, got $value ([$value TypeOfNode])"
+              }
+              return $value
+          }
+      }
+      
+      method constructtopframe {frame args} {
+          set lwidth [expr {1+[_mx "Label|Signal:" \
+                               "Label|Number of Heads:" \
+                               "Label|Aspects:" \
+                               "Label|Position:"]}]
+          install nodeID using LabelEntry $frame.nodeID \
+                -label [_m "Label|Signal:"] \
+                -labelwidth $lwidth -editable no
+          pack $nodeID -fill x
+          install numberHeads using LabelEntry $frame.numberHeads \
+                -label [_m "Label|Number of Heads:"] \
+                -labelwidth $lwidth -editable no
+          pack $numberHeads -fill x
+          install positionLF using LabelFrame $frame.positionLF \
+                -text [_m "Label|Position:"] -width $lwidth
+          pack $positionLF -fill x
+          set posframe [$positionLF getframe]
+          install posX using ttk::entry $posframe.posX -state readonly \
+                -textvariable [myvar _posx]
+          pack $posX -side left -expand yes
+          install posY using ttk::entry $posframe.posY -state readonly \
+                -textvariable [myvar _posy]
+          pack $posY -side left -expand yes
+          install posA using ttk::entry $posframe.posA -state readonly \
+                -textvariable [myvar _posa]
+          pack $posA -side left -expand yes
+          install aspectsLF using ttk::labelframe $frame.aspectsLF \
+                -text [_m "Label|Aspects:"] \
+                -labelanchor nw
+          pack $aspectsLF -expand yes -fill both
+          install aspectsSW using ScrolledWindow $aspectsLF.aspectsSW \
+                -scrollbar both -auto both
+          pack $aspectsSW -expand yes -fill both
+          install aspectsLB using ttk::treeview [$aspectsSW getframe].aspectsLB \
+                -columns {name script} \
+                -displaycolumns {name script} \
+                -selectmode none \
+                -show headings
+          $aspectsSW setwidget $aspectsLB
+          $aspectsLB column  name -anchor w
+          $aspectsLB heading name -text [_m "Label|Name"] -anchor w
+          $aspectsLB column script -anchor w
+          $aspectsLB heading script -text [_m "Label|Script"] -anchor w
+      }
+      method initializetopframe {frame args} {
+          $self configurelist $args
+          set node [$self cget -node]
+          if {[string length "$node"] == 0} {return}
+          $nodeID configure -text [$node NameOfNode]
+          $numberHeads configure -text [$node NumberOfHeads]
+          set _posx [format "%0.3f" [$node OrigX]]
+          set _posy [format "%0.3f" [$node OrigY]]
+          set _posa [format "A%0.3f" [$node Angle]]
+          $aspectsLB delete [$aspectsLB children {}]
+          foreach aspect [$node SignalAspects] {
+              $aspectsLB insert {} end -values $aspect
+          }
+      }
   }
 }
 

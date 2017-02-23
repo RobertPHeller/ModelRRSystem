@@ -552,18 +552,34 @@ proc Dispatcher::LoadLayout {{filename {}}} {
       #puts stderr "*** Dispatcher::LoadLayout: edge = $edge"
       $CanvasWindow create edge [lindex $edge 0] [lindex $edge 1]
     }
-#    puts stderr "*** Dispatcher::LoadLayout: TrackGraph::TrackGraph Roots = [TrackGraph::TrackGraph Roots]"
-#    puts stderr "*** Dispatcher::LoadLayout: TrackGraph::TrackGraph Heads = [TrackGraph::TrackGraph Heads]"
+    #puts stderr "*** Dispatcher::LoadLayout: TrackGraph::TrackGraph Roots = [TrackGraph::TrackGraph Roots]"
+    #puts stderr "*** Dispatcher::LoadLayout: TrackGraph::TrackGraph Heads = [TrackGraph::TrackGraph Heads]"
     foreach head [TrackGraph::TrackGraph Heads] {
-#      puts stderr "*** Dispatcher::LoadLayout: head = $head"
-#      puts stderr "*** Dispatcher::LoadLayout: \[$head TypeOfNode\] = [$head TypeOfNode]"
+        #puts stderr "*** Dispatcher::LoadLayout (orphans): head = $head"
+        #puts stderr "*** Dispatcher::LoadLayout (orphans): \[$head TypeOfNode\] = [$head TypeOfNode]"
+        switch [$head TypeOfNode] {
+            TrackGraph::Track -
+            TrackGraph::Turnout -
+            TrackGraph::Turntable {
+                if {![$CanvasWindow isdrawnp $head]} {
+                    $CanvasWindow create orphannode $head
+                }
+            }
+        }
+    }
+    foreach head [TrackGraph::TrackGraph Heads] {
+      #puts stderr "*** Dispatcher::LoadLayout: head = $head"
+      #puts stderr "*** Dispatcher::LoadLayout: \[$head TypeOfNode\] = [$head TypeOfNode]"
       switch [$head TypeOfNode] {
 	TrackGraph::Block {
 	  $CanvasWindow create block $head
 	}
 	TrackGraph::SwitchMotor {
 	  $CanvasWindow create switchmotor $head
-	}
+        }
+        TrackGraph::Signal {
+          $CanvasWindow create signal $head
+        }
 	default {
 	}
       }

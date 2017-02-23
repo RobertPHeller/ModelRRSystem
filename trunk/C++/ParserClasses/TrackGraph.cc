@@ -368,12 +368,15 @@ void TrackGraph::InsertSwitchMotor(int number, int turnout, char * _name, char *
 	nodes[newNode].length = -1.0;
 }
 
-void TrackGraph::InsertSignal(int number, char * _name, int _numheads, StringPairList *_aspects)
+void TrackGraph::InsertSignal(int number, char * _name, float _origx, float _origy, float _angle, int _numheads, StringPairList *_aspects)
 {
     Node newNode;
     
     newNode = AddNewNode(number,Signal);
     nodes[newNode].name = _name;
+    nodes[newNode].origx = _origx;
+    nodes[newNode].origy = _origy;
+    nodes[newNode].angle = _angle;
     nodes[newNode].numheads = _numheads;
     nodes[newNode].aspectlist = _aspects;
 }
@@ -612,6 +615,28 @@ const StringPairList *TrackGraph::SignalAspects(int nid) const
     if (n == none) return NULL;
     else return nodes[n].aspectlist;
 }
+
+float TrackGraph::OrigX(int nid) const
+{
+    Node n = FindNode(nid);
+    if (n == none) return 0.0;
+    else return nodes[n].origx;
+}
+
+float TrackGraph::OrigY(int nid) const
+{
+    Node n = FindNode(nid);
+    if (n == none) return 0.0;
+    else return nodes[n].origy;
+}
+
+float TrackGraph::Angle(int nid) const
+{
+    Node n = FindNode(nid);
+    if (n == none) return 0.0;
+    else return nodes[n].angle;
+}
+
 
 
 int TrackGraph::LowestNode() const

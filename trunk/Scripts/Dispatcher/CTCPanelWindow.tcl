@@ -1395,106 +1395,114 @@ namespace eval CTCPanelWindow {
     }
     typemethod addtrackworknodetopanel {node args} {
         #puts stderr "*** $type addtrackworknodetopanel $node"
-      set nparent [from args -parent .]
-      switch [llength [array names OpenWindows]] {
-	0 {
-	  tk_messageBox -type ok -icon warning -parent $win \
-			-message [_ "Please create a panel first"]
-	  return
-	}
-	1 {
-	  set panelName [lindex [array names OpenWindows] 0]
-	}
-	default {
-	  set panelName [$type selectpanel -parent $nparent]
-	}
-      }
-      if {[string equal "$panelName" {}]} {return}
-      set panel [$type selectwindowbyname "$panelName"]
-      $panel showme
-      set blocks [from args -blocks]
-      set switches [from args -switchmotors]
-      #puts stderr "*** $type addtrackworknodetopanel: [$node NumEdges] edges"
-      switch [$node NumEdges] {
-	0 {
-	  #puts stderr "*** $type addtrackworknodetopanel: [$node TypeOfNode]"
-	  switch [$node TypeOfNode] {
-	    TrackGraph::Block {
-	     eval [list $panel addblocktopanel $node \
-					-name [$node NameOfNode] \
-					-occupiedcommand [$node SenseScript]] \
-		  $args
-	    }
-	    TrackGraph::SwitchMotor {
-	      set tn [[$node info type] FindNode [$node TurnoutNumber]]
-	      if {[$tn NumEdges] == 3} {
-		eval [list $panel addsimpleturnouttopanel $node \
-				-name [$node NameOfNode] \
-				-statecommand [$node SenseScript] \
-				-normalcommand [$node NormalActionScript] \
-				-reversecommand [$node ReverseActionScript]] \
-		     $args
-	      } else {
-		eval [list $panel addcomplextrackworktopanel $node] $args
-	      }
-	    }
-	  }
-	}
-	2 {
-	  if {[llength $blocks] > 0} {
-	    foreach b $blocks {
-	      eval [list $panel addblocktopanel $b \
-					-name [$b NameOfNode] \
-					-occupiedcommand [$b SenseScript]] \
-		  $args
-	    }
-	  } else {
-	    eval [list $panel addblocktopanel $node] $args
-	  }
-	}
-	3 {
-	  if {[llength $blocks] > 0} {
-	    lappend args -occupiedcommand [[lindex $blocks] SenseScript]
-	    if {[llength $switches] == 0} {
-	      lappend args -name [[lindex $blocks] NameOfNode]
-	    }
-	  }
-	  if {[llength $switches] > 0} {
-	    lappend args -name [[lindex $switches] NameOfNode]
-	    lappend args -statecommand [[lindex $switches] SenseScript]
-	    lappend args -normalcommand [[lindex $switches] NormalActionScript]
-	    lappend args -reversecommand [[lindex $switches] ReverseActionScript]
-	  }
-	  eval [list $panel addsimpleturnouttopanel $node] $args
-	  if {[llength $switches] > 0} {
-	    set name [from args -name]
-	    lappend args -name "${name}_Plate"
-	    eval [list $panel addswitchplatetopanel] $args
-	  }
-	}
-	default {
-	  if {[llength $blocks] > 0} {
-	    lappend args -occupiedcommand [[lindex $blocks] SenseScript]
-	    if {[llength $switches] == 0} {
-	      lappend args -name [[lindex $blocks] NameOfNode]
-	    }
-	  }
-	  if {[llength $switches] > 0} {
-	    lappend args -name [[lindex $switches] NameOfNode]
-	    lappend args -statecommand [[lindex $switches] SenseScript]
-	    lappend args -normalcommand [[lindex $switches] NormalActionScript]
-	    lappend args -reversecommand [[lindex $switches] ReverseActionScript]
-	  }
-	  eval [list $panel addcomplextrackworktopanel $node] $args
-	  if {[llength $switches] > 0} {
-	    set name [from args -name]
-	    lappend args -name "${name}_Plate"
-	    eval [list $panel addswitchplatetopanel] $args
-	  }
-	}
-      }
+        set nparent [from args -parent .]
+        switch [llength [array names OpenWindows]] {
+            0 {
+                tk_messageBox -type ok -icon warning -parent $nparent \
+                      -message [_ "Please create a panel first"]
+                return
+            }
+            1 {
+                set panelName [lindex [array names OpenWindows] 0]
+            }
+            default {
+                set panelName [$type selectpanel -parent $nparent]
+            }
+        }
+        if {[string equal "$panelName" {}]} {return}
+        set panel [$type selectwindowbyname "$panelName"]
+        $panel showme
+        set blocks [from args -blocks]
+        set switches [from args -switchmotors]
+        #puts stderr "*** $type addtrackworknodetopanel: [$node NumEdges] edges"
+        switch [$node NumEdges] {
+            0 {
+                #puts stderr "*** $type addtrackworknodetopanel: [$node TypeOfNode]"
+                switch [$node TypeOfNode] {
+                    TrackGraph::Block {
+                        eval [list $panel addblocktopanel $node \
+                              -name [$node NameOfNode] \
+                              -occupiedcommand [$node SenseScript]] \
+                              $args
+                    }
+                    TrackGraph::SwitchMotor {
+                        set tn [[$node info type] FindNode [$node TurnoutNumber]]
+                        if {[$tn NumEdges] == 3} {
+                            eval [list $panel addsimpleturnouttopanel $node \
+                                  -name [$node NameOfNode] \
+                                  -statecommand [$node SenseScript] \
+                                  -normalcommand [$node NormalActionScript] \
+                                  -reversecommand [$node ReverseActionScript]] \
+                                  $args
+                        } else {
+                            eval [list $panel addcomplextrackworktopanel $node] $args
+                        }
+                    }
+                    TrackGraph::Signal {
+                        set numheads [$node NumberOfHeads]
+                        set aspects  [$node SignalAspects]
+                        eval [list $panel addsignaltopanel $node \
+                              -name [$node NameOfNode] \
+                              -heads $numheads \
+                              -aspectlist $aspects]
+                    }
+                }
+            }
+            2 {
+                if {[llength $blocks] > 0} {
+                    foreach b $blocks {
+                        eval [list $panel addblocktopanel $b \
+                              -name [$b NameOfNode] \
+                              -occupiedcommand [$b SenseScript]] \
+                              $args
+                    }
+                } else {
+                    eval [list $panel addblocktopanel $node] $args
+                }
+            }
+            3 {
+                if {[llength $blocks] > 0} {
+                    lappend args -occupiedcommand [[lindex $blocks] SenseScript]
+                    if {[llength $switches] == 0} {
+                        lappend args -name [[lindex $blocks] NameOfNode]
+                    }
+                }
+                if {[llength $switches] > 0} {
+                    lappend args -name [[lindex $switches] NameOfNode]
+                    lappend args -statecommand [[lindex $switches] SenseScript]
+                    lappend args -normalcommand [[lindex $switches] NormalActionScript]
+                    lappend args -reversecommand [[lindex $switches] ReverseActionScript]
+                }
+                eval [list $panel addsimpleturnouttopanel $node] $args
+                if {[llength $switches] > 0} {
+                    set name [from args -name]
+                    lappend args -name "${name}_Plate"
+                    eval [list $panel addswitchplatetopanel] $args
+                }
+            }
+            default {
+                if {[llength $blocks] > 0} {
+                    lappend args -occupiedcommand [[lindex $blocks] SenseScript]
+                    if {[llength $switches] == 0} {
+                        lappend args -name [[lindex $blocks] NameOfNode]
+                    }
+                }
+                if {[llength $switches] > 0} {
+                    lappend args -name [[lindex $switches] NameOfNode]
+                    lappend args -statecommand [[lindex $switches] SenseScript]
+                    lappend args -normalcommand [[lindex $switches] NormalActionScript]
+                    lappend args -reversecommand [[lindex $switches] ReverseActionScript]
+                }
+                eval [list $panel addcomplextrackworktopanel $node] $args
+                if {[llength $switches] > 0} {
+                    set name [from args -name]
+                    lappend args -name "${name}_Plate"
+                    eval [list $panel addswitchplatetopanel] $args
+                }
+            }
+        }
     }
-
+    
     component addPanelObjectDialog
     component selectPanelObjectDialog
     component configurePanelDialog
@@ -1783,6 +1791,70 @@ namespace eval CTCPanelWindow {
 	}
       }
       return $o
+    }
+    method addsignaltopanel {node args} {
+        #puts stderr "*** $self addsignaltopanel $node $args"
+        set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -openlcbmode $options(-openlcbmode) -mode add -setoftypes {Signal}] $args]
+        if {[string equal "$result" {}]} {return}
+        $self setdirty
+        if {$options(-openlcbmode)} {
+            set node [lindex $result 1]
+            switch [lindex $result 0] {
+                SWPlate {
+                    set openlcbnodes($node) [list -eleclasstype SwitchPlate]
+                }
+                SIGPlate {
+                    set openlcbnodes($node) [list -eleclasstype SignalPlate]
+                }
+                CodeButton {
+                    set openlcbnodes($node) [list -eleclasstype CodeButton]
+                }
+                Toggle {
+                    set openlcbnodes($node) [list -eleclasstype ToggleSwitch]
+                }
+                PushButton {
+                    set openlcbnodes($node) [list -eleclasstype PushButton]
+                }
+                Lamp {
+                    set openlcbnodes($node) [list -eleclasstype Lamp]
+                }
+                Switch -
+                ScissorCrossover -
+                Crossover -
+                SingleSlip -
+                DoubleSlip -
+                ThreeWaySW {
+                    set openlcbnodes($node) [list -eleclasstype Switch]
+                }              
+                StraightBlock -
+                EndBumper -
+                CurvedBlock -
+                Crossing -
+                HiddenBlock -
+                StubYard -
+                ThroughYard {
+                    set openlcbnodes($node) [list -eleclasstype Block]
+                }
+                Signal {
+                    set openlcbnodes($node) [list -eleclasstype Signal]
+                }
+            }
+            foreach opt {-occupiedeventid -notoccupiedeventid 
+                -statenormaleventid -statereverseeventid -eventidaspectlist 
+                -oneventid -offeventid -lefteventid -righteventid -centereventid 
+                -eventid -normaleventid -reverseeventid -normalindonev 
+                -normalindoffev -centerindonev -centerindoffev -reverseindonev 
+                -reverseindoffev -centereventid -leftindonev -leftindoffev 
+                -centerindonev -centerindoffev -rightindonev -rightindoffev } {
+                set val [from result $opt ""]
+                if {$val eq ""} {continue}
+                lappend openlcbnodes($node) $opt "$val"
+            }
+        }
+        set o [eval [list $ctcpanel create] $result]
+        set name       [lindex $result 1]
+        $o bind <3> [mymethod _contextMenu $name %x %y %W]
+        return $o      
     }
     method addpanelobject {args} {
       set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -openlcbmode $options(-openlcbmode) -mode add -setoftypes {}] $args]
@@ -2317,7 +2389,8 @@ namespace eval CTCPanelWindow {
     option -reversecommand  -default {}
     option -simplemode -default no
     option -openlcbmode -default no
-
+    option -heads -default 0
+    option -aspectlist -default {}
 
     component nameLE;#			Name of object
     component objectTypeTF;#		Object Type Frame
@@ -2872,6 +2945,18 @@ namespace eval CTCPanelWindow {
 	$canvas configure -scrollregion $curSR
       }
     }
+    proc pairswap {pairlist} {
+        #puts stderr "*** pairswap $pairlist"
+        set result [list]
+        foreach pair $pairlist {
+            #puts stderr "*** pairswap: pair = $pair"
+            foreach {b a} $pair {break}
+            #puts stderr "*** pairswap: a = $a, b = $b"
+            lappend result $a $b
+            #puts stderr "*** pairswap: result is $result"
+        }
+        return $result
+    }
     method draw {args} {
         #puts stderr "*** $self draw $args"
       $self configurelist $args
@@ -2896,6 +2981,9 @@ namespace eval CTCPanelWindow {
       if {"$options(-reversecommand)" ne ""} {
 	$reversecommandText delete 1.0 end
 	$reversecommandText insert end "$options(-reversecommand)"
+      }
+      if {"$options(-heads)" ne ""} {
+          $headsLCB set $options(-heads)
       }
       switch $options(-mode) {
 	edit {
@@ -2926,6 +3014,12 @@ namespace eval CTCPanelWindow {
 	  $hull itemconfigure add -text [_m "Button|Add"]
 	  $hull configure -title [_ "Add Panel Object to panel"]
 	}
+      }
+      if {"$options(-aspectlist)" ne ""} {
+          if {$options(-openlcbmode)} {
+              $self clearallaspects
+              $self populateaspects [pairswap $options(-aspectlist)]
+          }
       }
       foreach objtype [array names objectTypeOptions] {
 	regexp {^([[:alpha:]])} $objtype -> first
