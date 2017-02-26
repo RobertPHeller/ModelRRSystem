@@ -1435,7 +1435,11 @@ namespace eval CTCPanelWindow {
                                   -reversecommand [$node ReverseActionScript]] \
                                   $args
                         } else {
-                            eval [list $panel addcomplextrackworktopanel $node] $args
+                            eval [list $panel addcomplextrackworktopanel $node \
+                                  -name [$node NameOfNode] \
+                                  -statecommand [$node SenseScript] \
+                                  -normalcommand [$node NormalActionScript] \
+                                  -reversecommand [$node ReverseActionScript]] $args
                         }
                     }
                     TrackGraph::Signal {
@@ -1717,6 +1721,7 @@ namespace eval CTCPanelWindow {
       return $o      
     }
     method addswitchplatetopanel {args} {
+      #puts stderr "*** $self addswitchplatetopanel $args"
       set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -openlcbmode $options(-openlcbmode) -mode add -setoftypes {SWPlate}] $args]
       if {[string equal "$result" {}]} {return}
       $self setdirty
@@ -2958,7 +2963,7 @@ namespace eval CTCPanelWindow {
         return $result
     }
     method draw {args} {
-        #puts stderr "*** $self draw $args"
+      #puts stderr "*** $self draw $args"
       $self configurelist $args
       set options(-parent) [$self cget -parent]
 
@@ -2967,20 +2972,50 @@ namespace eval CTCPanelWindow {
 	$nameLE configure -text "$options(-name)"
       }
       if {"$options(-occupiedcommand)" ne ""} {
-	$occupiedcommandText delete 1.0 end
-	$occupiedcommandText insert end "$options(-occupiedcommand)"
+          if {$options(-openlcbmode)} {
+              if {[regexp {^([[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]])$} "$options(-occupiedcommand)" -> occId nooccId] > 0} {
+                  $occupiedeventidLE configure -text $occId
+                  $notoccupiedeventidLE configure -text $nooccId
+              }
+          } else {
+              $occupiedcommandText delete 1.0 end
+              $occupiedcommandText insert end "$options(-occupiedcommand)"
+          }
       }
       if {"$options(-statecommand)" ne ""} {
-	$statecommandText delete 1.0 end
-	$statecommandText insert end "$options(-statecommand)"
+          if {$options(-openlcbmode)} {
+              if {[regexp {^([[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]):([[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]])$} "$options(-statecommand)" -> normalId reverseId] > 0} {
+                  $statenormaleventidLE configure -text $normalId
+                  $normalindonevLE configure -text $normalId
+                  $reverseindoffevLE configure -text $normalId
+                  $statereverseeventidLE configure -text $reverseId
+                  $reverseindonevLE configure -text $reverseId
+                  $normalindoffevLE configure -text $reverseId
+              }
+          } else {
+              $statecommandText delete 1.0 end
+              $statecommandText insert end "$options(-statecommand)"
+          }
       }
       if {"$options(-normalcommand)" ne ""} {
-	$normalcommandText delete 1.0 end
-	$normalcommandText insert end "$options(-normalcommand)"
+          if {$options(-openlcbmode)} {
+              if {[regexp {^([[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]])$} "$options(-normalcommand)" -> smnormID] > 0} {
+                  $normaleventidLE configure -text $smnormID
+              }
+          } else {
+              $normalcommandText delete 1.0 end
+              $normalcommandText insert end "$options(-normalcommand)"
+          }
       }
       if {"$options(-reversecommand)" ne ""} {
-	$reversecommandText delete 1.0 end
-	$reversecommandText insert end "$options(-reversecommand)"
+          if {$options(-openlcbmode)} {
+              if {[regexp {^([[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]]\.[[:xdigit:]][[:xdigit:]])$} "$options(-reversecommand)" -> smrevID] > 0} {
+                  $reverseeventidLE configure -text $smrevID
+              }
+          } else {
+              $reversecommandText delete 1.0 end
+              $reversecommandText insert end "$options(-reversecommand)"
+          }
       }
       if {"$options(-heads)" ne ""} {
           $headsLCB set $options(-heads)
@@ -5608,4 +5643,5 @@ namespace eval CTCPanelWindow {
 
 
 package provide CTCPanelWindow 1.0
+
 
