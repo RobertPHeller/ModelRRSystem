@@ -637,7 +637,7 @@ namespace eval NodeGraphCanvas {
       $normalActionScriptT delete 1.0 end
       $normalActionScriptT insert end "[$node NormalActionScript]"
       $reverseActionScriptT delete 1.0 end
-      $reverseActionScriptT insert end "[$node RormalActionScript]"
+      $reverseActionScriptT insert end "[$node ReverseActionScript]"
       $senseScriptT delete 1.0 end
       $senseScriptT insert end "[$node SenseScript]"
     }
