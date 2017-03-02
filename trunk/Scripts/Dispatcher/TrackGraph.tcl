@@ -74,7 +74,8 @@ namespace eval TrackGraph {
       if {[$layoutname IsCompressedNode $nid] && 
 	  [llength [$layoutname CompressedNodeSegments $nid]] > 1} {
         set numedges [$layoutname CompressedEdgeCount $nid]
-	if {$numedges < 2} {
+        # Handle deadends as a special case
+	if {$numedges == 1} {
             return 2
         } else {
             return $numedges
