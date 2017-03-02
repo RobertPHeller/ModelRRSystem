@@ -1105,6 +1105,7 @@ void TrackGraph::CompressGraph()
 {
 	const IntegerList *h;
 	if (!valid_heads) computeHeads();
+	compressedP = true;
 	for (h = heads; h != NULL; h = h->Next())
 	{
 		Node head = FindNode(h->Element());
@@ -1114,7 +1115,6 @@ void TrackGraph::CompressGraph()
 			c_roots = IntegerList::IntAppend(c_roots,c_nodes[newroot].id);
 		}
 	}
-	compressedP = true;
 }
 
 TrackGraph::CompressedNode TrackGraph::insertCompressedNode (Node rawnode)
@@ -1129,12 +1129,15 @@ TrackGraph::CompressedNode TrackGraph::insertCompressedNode (Node rawnode)
 #endif
 	int nodeId = nodes[rawnode].id;	
 	CompressedNode newnode = add_vertex(CompressedNodeValues(nodeId),c_nodes);
-	c_nodes[newnode].segments.push_back(nodeId);
+#ifdef DEBUG
+	cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): newnode = " << newnode << endl;
+#endif
+        c_nodes[newnode].segments.push_back(nodeId);
 	c_idMap.insert(std::make_pair(nodeId,newnode));
 	backpointers.insert(std::make_pair(rawnode,newnode));
 	int nEdges = NumEdges(nodeId);
 #ifdef DEBUG
-	cerr << "*** TrackGraph::insertCompressedNode(): nEdges = " << nEdges << endl;
+	cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): nEdges = " << nEdges << endl;
 #endif
 	if (nEdges == 2)
 	{
@@ -1142,15 +1145,15 @@ TrackGraph::CompressedNode TrackGraph::insertCompressedNode (Node rawnode)
 		int rn0 = EdgeIndex(nodeId,0);
 		int rn1 = EdgeIndex(nodeId,1);
 #ifdef DEBUG
-		cerr << "*** TrackGraph::insertCompressedNode(): rn0 = " << rn0 << endl;
-		cerr << "*** TrackGraph::insertCompressedNode(): rn1 = " << rn1 << endl;
+		cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): rn0 = " << rn0 << endl;
+		cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): rn1 = " << rn1 << endl;
 #endif
 		while (rn0 >= 0 &&
 			c_nodes[newnode].FindSegmentIndex(rn0) == (std::list<int>::size_type)-1 &&
 			NumEdges(rn0) == 2)
 		{
 #ifdef DEBUG
-			cerr << "*** TrackGraph::insertCompressedNode(): adding segment " << rn0 << endl;
+			cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): adding segment " << rn0 << endl;
 #endif
 			c_nodes[newnode].segments.push_front(rn0);
 			backpointers.insert(std::make_pair(FindNode(rn0),newnode));
@@ -1162,11 +1165,11 @@ TrackGraph::CompressedNode TrackGraph::insertCompressedNode (Node rawnode)
 				rn0 = EdgeIndex(rn0,0);
 			}
 #ifdef DEBUG
-			cerr << "*** TrackGraph::insertCompressedNode(): new rn0 = " << rn0 << endl;
+			cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): new rn0 = " << rn0 << endl;
 #endif
 		}
 #ifdef DEBUG
-		cerr << "*** TrackGraph::insertCompressedNode(): final rn0 = " << rn0 << endl;
+		cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): final rn0 = " << rn0 << endl;
 #endif
 		if (rn0 >= 0 && c_nodes[newnode].FindSegmentIndex(rn0) != (std::list<int>::size_type)-1) {rn0 = -1;}
 		while (rn1 >= 0 &&
@@ -1174,7 +1177,7 @@ TrackGraph::CompressedNode TrackGraph::insertCompressedNode (Node rawnode)
 			NumEdges(rn1) == 2)
 		{
 #ifdef DEBUG
-			cerr << "*** TrackGraph::insertCompressedNode(): adding segment " << rn1 << endl;
+			cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): adding segment " << rn1 << endl;
 #endif
 			c_nodes[newnode].segments.push_back(rn1);
 			backpointers.insert(std::make_pair(FindNode(rn1),newnode));
@@ -1187,11 +1190,11 @@ TrackGraph::CompressedNode TrackGraph::insertCompressedNode (Node rawnode)
 				rn1 = EdgeIndex(rn1,1);
 			}
 #ifdef DEBUG
-			cerr << "*** TrackGraph::insertCompressedNode(): new rn1 = " << rn1 << endl;
+			cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): new rn1 = " << rn1 << endl;
 #endif
 		}
 #ifdef DEBUG
-		cerr << "*** TrackGraph::insertCompressedNode(): final rn1 = " << rn1 << endl;
+		cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): final rn1 = " << rn1 << endl;
 #endif
 		if (rn1 >= 0 && c_nodes[newnode].FindSegmentIndex(rn1) != (std::list<int>::size_type)-1) {rn1 = -1;}
 		float totalEdgeLength = 0.0;
@@ -1204,39 +1207,79 @@ TrackGraph::CompressedNode TrackGraph::insertCompressedNode (Node rawnode)
 		std::map <Node, CompressedNode>::const_iterator bpos;
 		Node edgeNode = FindNode(rn0);
 #ifdef DEBUG
-		cerr << "*** TrackGraph::insertCompressedNode(): edgeNode (rn0) = " << edgeNode << " [" << nodes[edgeNode].id << "]" << endl;
+		cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): edgeNode (rn0) = " << edgeNode << " [" << nodes[edgeNode].id << "]" << endl;
 #endif
 		if (edgeNode != none) {
 			bpos = backpointers.find(edgeNode);
 			if (bpos == backpointers.end())
 			{
-				add_edge(newnode,insertCompressedNode(edgeNode),CompressedEdgeValues(totalEdgeLength),c_nodes);
-			} else
+#if 1
+                            CompressedNode newEdgeNode = insertCompressedNode(edgeNode);
+#else
+                            graph_traits < CompressedGraph >::edge_descriptor e;
+                            bool inserted;
+                            tie(e, inserted) = add_edge(newnode,,CompressedEdgeValues(totalEdgeLength),c_nodes);
+#ifdef DEBUG
+                            if (inserted) {
+                                cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): (bpos == backpointers.end()) added r0 edge to new node" << endl;
+                            } else {
+                                cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): (bpos == backpointers.end()) duplicated r0 edge to new node" << endl;
+                            }
+#endif
+#endif
+			} else if (!compressed_edge_exists(newnode,bpos->second) &&
+                                   !compressed_edge_exists(bpos->second,newnode))
 			{
-				graph_traits < CompressedGraph >::edge_descriptor e;
+#if 1
+                                graph_traits < CompressedGraph >::edge_descriptor e;
 				bool inserted;
 				tie(e, inserted) = add_edge(newnode,bpos->second,CompressedEdgeValues(totalEdgeLength),c_nodes);
 #ifdef DEBUG
-				if (inserted) cerr << "*** TrackGraph::insertCompressedNode: added r0 edge to old node" << endl;
+                                if (inserted) {
+                                    cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): added r0 edge to old node" << endl;
+                                } else {
+                                    cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): duplicate r0 edge to old node" << endl;
+                                }
+#endif
 #endif
 			}
 		}
 		edgeNode = FindNode(rn1);
 #ifdef DEBUG
-		cerr << "*** TrackGraph::insertCompressedNode(): edgeNode (rn1) = " << edgeNode << " [" << nodes[edgeNode].id << "]" << endl;
+		cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): edgeNode (rn1) = " << edgeNode << " [" << nodes[edgeNode].id << "]" << endl;
 #endif
 		if (edgeNode != none) {
 			bpos = backpointers.find(edgeNode);
 			if (bpos == backpointers.end())
 			{
-				add_edge(newnode,insertCompressedNode(edgeNode),CompressedEdgeValues(totalEdgeLength),c_nodes);
-			} else
+#if 1
+                            CompressedNode newEdgeNode = insertCompressedNode(edgeNode);
+#else
+                            graph_traits < CompressedGraph >::edge_descriptor e;
+                            bool inserted;
+                            tie(e, inserted) = 	add_edge(newnode,insertCompressedNode(edgeNode),CompressedEdgeValues(totalEdgeLength),c_nodes);
+#ifdef DEBUG
+                            if (inserted) {
+                                cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): (bpos == backpointers.end()) added r1 edge to new node" << endl;
+                            } else {
+                                cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): (bpos == backpointers.end()) duplicate r1 edge to new node" << endl;
+                            }
+#endif
+#endif
+			} else if (!compressed_edge_exists(newnode,bpos->second) &&
+                                   !compressed_edge_exists(bpos->second,newnode))
 			{
+#if 1
 				graph_traits < CompressedGraph >::edge_descriptor e;
 				bool inserted;
 				tie(e, inserted) = add_edge(newnode,bpos->second,CompressedEdgeValues(totalEdgeLength),c_nodes);
 #ifdef DEBUG
-				if (inserted) cerr << "*** TrackGraph::insertCompressedNode: added r1 edge to old node" << endl;
+                                if (inserted) {
+                                    cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): added r1 edge to old node" << endl;
+                                } else {
+                                    cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): duplicate r1 edge to old node" << endl;
+                                }
+#endif
 #endif
 			}
 		}
@@ -1249,28 +1292,63 @@ TrackGraph::CompressedNode TrackGraph::insertCompressedNode (Node rawnode)
 			float totalEdgeLength = EdgeLength(nodeId,ie);
 			Node edgeNode = FindNode(rn);
 #ifdef DEBUG
-			cerr << "*** TrackGraph::insertCompressedNode(): edgeNode (rn" <<  ie << ") = " << edgeNode << " [" << nodes[edgeNode].id << "]" << endl;
+			cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): edgeNode (rn" <<  ie << ") = " << edgeNode << " [" << nodes[edgeNode].id << "]" << endl;
 #endif
 			std::map <Node, CompressedNode>::const_iterator bpos;
 			if (edgeNode != none) {
 				bpos = backpointers.find(edgeNode);
 				if (bpos == backpointers.end())
 				{
-					add_edge(newnode,insertCompressedNode(edgeNode),CompressedEdgeValues(totalEdgeLength),c_nodes);
-				} else
+#if 1
+                                    CompressedNode newEdgeNode = insertCompressedNode(edgeNode);
+#else
+                                    graph_traits < CompressedGraph >::edge_descriptor e;
+                                    bool inserted;
+                                    tie(e, inserted) = add_edge(newnode,insertCompressedNode(edgeNode),CompressedEdgeValues(totalEdgeLength),c_nodes);
+#ifdef DEBUG
+                                    if (inserted) {
+                                        cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): (bpos == backpointers.end()) added r" << ie <<" edge to new node" << endl;
+                                    } else {
+                                        cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): bpos == backpointers.end() duplicate r" << ie <<" edge to new node" << endl;
+                                    }
+#endif
+#endif
+				} else if (!compressed_edge_exists(newnode,bpos->second) &&
+                                   !compressed_edge_exists(bpos->second,newnode))
 				{
-					
-					graph_traits < CompressedGraph >::edge_descriptor e;
+#if 1
+                                        graph_traits < CompressedGraph >::edge_descriptor e;
 					bool inserted;
 					tie(e, inserted) = add_edge(newnode,bpos->second,CompressedEdgeValues(totalEdgeLength),c_nodes);
 #ifdef DEBUG
-					if (inserted) cerr << "*** TrackGraph::insertCompressedNode: added r" << ie <<" edge to old node" << endl;
+                                        if (inserted) {
+                                            cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): added r" << ie <<" edge to old node" << endl;
+                                        } else {
+                                            cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): duplicate r" << ie <<" edge to old node" << endl;
+                                        }
+#endif
 #endif
 				}
 			}
 		}
 	}
+#ifdef DEBUG
+        cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): newnode id is " << c_nodes[newnode].id << endl;
+        cerr << "*** TrackGraph::insertCompressedNode("<<rawnode<<"): CompressedEdgeCount(c_nodes[newnode].id) = " << CompressedEdgeCount(c_nodes[newnode].id) << endl;
+#endif
 	return newnode;
+}
+
+bool TrackGraph::compressed_edge_exists(CompressedNode cnode1, CompressedNode cnode2) const
+{
+#ifdef DEBUG
+    cerr << "*** TrackGraph::compressed_edge_exists("<<cnode1<<","<<cnode2<<")"<<endl;
+#endif
+    graph_traits<CompressedGraph>::out_edge_iterator i, last;
+    for (tie(i,last) = out_edges(cnode1,c_nodes); i != last; ++i) {
+        if (target(*i,c_nodes) == cnode2) return true;
+    }
+    return false;
 }
 
 bool TrackGraph::IsCompressedNode(int cnid) const
@@ -1283,6 +1361,9 @@ bool TrackGraph::IsCompressedNode(int cnid) const
 
 int TrackGraph::CompressedEdgeCount (int cnid) const
 {
+#ifdef DEBUG
+        cerr << "*** TrackGraph::CompressedEdgeCount(" << cnid << ")" << endl;
+#endif
 	if (!compressedP) return -1;
 	CompressedIdNodeMap::const_iterator pos = c_idMap.find(cnid);
 	if (pos == c_idMap.end()) return -1;
@@ -1290,7 +1371,15 @@ int TrackGraph::CompressedEdgeCount (int cnid) const
 		CompressedNode n = pos->second;
 		graph_traits<CompressedGraph>::out_edge_iterator i, last;
 		int count = 0;
-		for (tie(i,last) = out_edges(n,c_nodes); i != last; ++i) count++;
+                for (tie(i,last) = out_edges(n,c_nodes); i != last; ++i) {
+#ifdef DEBUG
+                    cerr << "*** TrackGraph::CompressedEdgeCount: edge at i (" << count << ") is " << target(*i,c_nodes) << ", id is " << c_nodes[target(*i,c_nodes)].id << endl;
+#endif
+                    count++;
+                }
+#ifdef DEBUG
+                cerr << "*** TrackGraph::CompressedEdgeCount: count = " << count << endl;
+#endif
 		return count;
 	}
 }

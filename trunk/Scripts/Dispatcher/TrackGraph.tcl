@@ -73,7 +73,12 @@ namespace eval TrackGraph {
     method NumEdges {} {
       if {[$layoutname IsCompressedNode $nid] && 
 	  [llength [$layoutname CompressedNodeSegments $nid]] > 1} {
-	return [$layoutname CompressedEdgeCount $nid]
+        set numedges [$layoutname CompressedEdgeCount $nid]
+	if {$numedges < 2} {
+            return 2
+        } else {
+            return $numedges
+        }
       } else {
 	return [$layoutname NumEdges $nid]
       }
