@@ -260,7 +260,8 @@ public:
 		int Emit(Tcl_Interp *interp,const char * outfile) {
 			Tcl_ResetResult(interp);
 			ofstream output(outfile);
-			self->Emit(output);
+                        self->Emit(output);
+                        output.close();
 			return TCL_OK;
 		}
 		%apply int MyTcl_Result { int CompressedNodeSegments };

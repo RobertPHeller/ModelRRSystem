@@ -383,11 +383,19 @@ void TrackGraph::InsertSignal(int number, char * _name, float _origx, float _ori
 
 std::ostream& operator << (ostream& stream,TrackGraph& graph)
 {
+    static const char *NodeTypeNames[] = {
+        "Track",
+        "Turnout",
+        "Turntable",
+        "Block",
+        "SwitchMotor",
+        "Signal"
+    };
 	int jj;
 	int nid,nedges,iedge;
-	for (nid = graph.LowestNode(); nid < graph.HighestNode(); nid++) {
+	for (nid = graph.LowestNode(); nid <= graph.HighestNode(); nid++) {
 		if (graph.IsNone(graph.FindNode(nid))) continue;
-		stream << "Node: " << nid << "[" << graph.TypeOfNode(nid) << "], " << (nedges = graph.NumEdges(nid)) << " edges:";
+		stream << "Node: " << nid << "[" << NodeTypeNames[graph.TypeOfNode(nid)] << "], " << (nedges = graph.NumEdges(nid)) << " edges:";
 		for (iedge = 0; iedge < nedges; iedge++) {
 			stream << " " << graph.EdgeIndex(nid,iedge) << ", (";
 			stream << graph.EdgeX(nid,iedge) << ",";
@@ -423,10 +431,30 @@ std::ostream& operator << (ostream& stream,TrackGraph& graph)
 		const TurnoutRoutelist *tpo = graph.NodeTurnoutRoutelist(nid);
 		if (tpo != NULL) {
 			for (jj = 0;jj < tpo->numRoutelists; jj++) {
-				stream << "P \"" << tpo->routes[jj].positionName << "\" "<< tpo->routes[jj].posList << endl;
+				stream << "P \"" << tpo->routes[jj].positionName << "\" "<< *(tpo->routes[jj].posList) << endl;
 			}
 		}
-		stream << graph.LengthOfNode(nid) << " long." << endl;
+                stream << graph.LengthOfNode(nid) << " long." << endl;
+                if (nedges == 0) {
+                    stream << "Name: " << graph.NameOfNode(nid) << endl;
+                    switch (graph.TypeOfNode(nid)) {
+                    case TrackGraph::Block:
+                        stream << "Tracks: " << *(graph.TrackList(nid)) << endl;
+                        stream << "Script: " << graph.SenseScript(nid) << endl;
+                        break;
+                    case TrackGraph::SwitchMotor:
+                        stream << "Turnout: " << graph.TurnoutNumber(nid) << endl;
+                        stream << "NormalScript: " << graph.NormalActionScript(nid) << endl;
+                        stream << "ReverseScript: " << graph.ReverseActionScript(nid) << endl;
+                        stream << "PointSenseScript: " << graph.SenseScript(nid) << endl;
+                        break;
+                    case TrackGraph::Signal:
+                        stream << "Number of Heads: " << graph.NumberOfHeads(nid) << endl;
+                        stream << "Location: (" << graph.OrigX(nid) << "," << graph.OrigY(nid) << "), " << graph.Angle(nid) << " degrees" << endl;
+                        stream << "Aspects: " << *(graph.SignalAspects(nid)) << endl;
+                        break;
+                     }
+                }
 		stream << endl;
 	}
 	return stream;

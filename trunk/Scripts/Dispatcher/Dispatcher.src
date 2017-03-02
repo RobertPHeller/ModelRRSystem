@@ -301,6 +301,10 @@ proc Dispatcher::MainWindow {} {
   $Main menu entryconfigure file [_m "Menu|File|Print..."] -command "$CanvasWindow print" \
 	-dynamichelp [_ "Print Node Graph"] \
 	-accelerator {Ctrl-P}
+  $Main menu insert file Close command \
+        -label [_m "Menu|File|Emit"] \
+        -command "::Dispatcher::EmitLayout"
+  
   image create photo PrintImage -file [file join $CommonImageDir print.gif]
   $Main toolbar addbutton tools print -image PrintImage \
 	-command "$CanvasWindow print" \
@@ -598,6 +602,23 @@ proc Dispatcher::LoadLayout {{filename {}}} {
     catch {exec "$xtrkcad" "$filename" &}
   }    
 }
+
+proc Dispatcher::EmitLayout {{filename {}}} {
+    if {[string length "$filename"]  == 0} {
+        set filename [tk_getSaveFile -defaultextension .out \
+                      -filetypes {
+                          {{Output Files} {.out} TEXT}
+                          {{All Files}     *      TEXT}
+                      } \
+                      -parent . -title "Output file to emit layout to"]
+        
+    }
+    if {[string length "$filename"]  == 0} {return}
+    TrackGraph::TrackGraph Emit $filename
+}
+
+
+
 package require CTCPanelWindow
   
 Dispatcher::MainWindow

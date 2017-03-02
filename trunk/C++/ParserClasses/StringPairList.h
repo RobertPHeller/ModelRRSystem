@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Wed Feb 22 14:12:07 2017
-//  Last Modified : <170222.1446>
+//  Last Modified : <170302.1431>
 //
 //  Description	
 //
@@ -142,11 +142,11 @@ public:
     }
     /**  Output operator.
      */
-    friend inline ostream& operator << (ostream& stream,StringPairList *list)
+    friend inline ostream& operator << (ostream& stream,StringPairList list)
     {
-        stream << '(' << '"' << list->name << '"' << ',' 
-              << '"' << list->script << '"' << ')';
-        if (list->next != NULL) stream << " " << list->next;
+        stream << '(' << '"' << list.name << '"' << ',' 
+              << '"' << list.script << '"' << ')';
+        if (list.next != NULL) stream << " " << *(list.next);
         return stream; 
     }
     /**  Name element accessor.
