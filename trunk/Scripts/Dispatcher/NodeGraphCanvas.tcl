@@ -446,8 +446,8 @@ namespace eval NodeGraphCanvas {
       return [eval [list $findDialog enddialog] [list Find]]
     }
     method _Cancel {} {
-      Dialog::withdraw $findDialog
-      return [eval [list $findDialo enddialog] [list Cancel]]
+      $findDialog withdraw
+      return [eval [list $findDialog enddialog] [list Cancel]]
     }
     method searchbyid {} {
       if {[llength [$hull find all]] < 1} {
