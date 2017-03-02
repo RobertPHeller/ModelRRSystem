@@ -842,7 +842,10 @@ private:
 	TurnoutRoutelist *MakeTurnoutRouteList(TurnoutBody *trb,const TurnoutGraphic *tgr,float &length);
 	/**  Compute the length of a route.
 	  */
-	static float ComputeRouteLength(const TurnoutGraphic *tgr, const IntegerList *il);
+        static float ComputeRouteLength(const TurnoutGraphic *tgr, const IntegerList *il);
+        /** Test if an edge already exists.
+         */
+        bool compressed_edge_exists(CompressedNode cnode1, CompressedNode cnode2) const;
 public:
 	/**  Two dimensional transform class.
 	  *
