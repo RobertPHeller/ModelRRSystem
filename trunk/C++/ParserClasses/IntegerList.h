@@ -128,12 +128,12 @@ public:
 		}
 	/**  Output operator.
 	  */
-	friend inline ostream& operator << (ostream& stream,IntegerList *list)
-		{
-			stream << list->iElt;
-			if (list->next != NULL) stream << " " << list->next;
-			return stream;
-		}
+	friend inline ostream& operator << (ostream& stream,IntegerList list)
+        {
+            stream << list.iElt;
+            if (list.next != NULL) stream << " " << *(list.next);
+            return stream;
+        }
 	/**  Element accessor.
 	  */
 	int Element() const {return iElt;}
