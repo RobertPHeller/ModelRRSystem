@@ -463,6 +463,9 @@ namespace eval TrackGraph {
                }
            }
        }
+       variable needblockhead yes
+       variable needsmhead yes
+       variable needsignalhead yes
        method extractall {} {
            set filename [tk_getSaveFile -defaultextension .csv \
                          -filetypes {{{CSV Files} {.csv} TEXT}
@@ -474,8 +477,11 @@ namespace eval TrackGraph {
                      [_ "Error opening %s: %s" $filename $fn]
                return
            }
+           set needblockhead yes
+           set needsmhead yes
+           set needsignalhead yes
            foreach n [lsort -command [myproc _nodetypeorder] $options(-nodes)] {
-               _extractanode $n $fn
+               $self _extractanode $n $fn
            }
            close $fn
        }
@@ -491,8 +497,11 @@ namespace eval TrackGraph {
                          [_ "Error opening %s: %s" $filename $fn]
                    return
                }
+               set needblockhead yes
+               set needsmhead yes
+               set needsignalhead yes
                foreach n [lsort -command [myproc _nodetypeorder] [_nodesfromids $selected]] {
-                   _extractanode $n $fn
+                   $self _extractanode $n $fn
                }
                close $fn
            }
@@ -515,9 +524,10 @@ namespace eval TrackGraph {
                      [_ "Error opening %s: %s" $filename $fn]
                return
            }
+           set needblockhead yes
            foreach n $options(-nodes) {
                if {[$n TypeOfNode] eq "TrackGraph::Block"} {
-                   _extractanode $n $fn
+                   $self _extractanode $n $fn
                }
            }
            close $fn
@@ -533,9 +543,10 @@ namespace eval TrackGraph {
                      [_ "Error opening %s: %s" $filename $fn]
                return
            }
+           set needsmhead yes
            foreach n $options(-nodes) {
                if {[$n TypeOfNode] eq "TrackGraph::SwitchMotor"} {
-                   _extractanode $n $fn
+                   $self _extractanode $n $fn
                }
            }
            close $fn
@@ -551,47 +562,71 @@ namespace eval TrackGraph {
                      [_ "Error opening %s: %s" $filename $fn]
                return
            }
+           set needsignalhead yes
            foreach n $options(-nodes) {
                if {[$n TypeOfNode] eq "TrackGraph::Signal"} {
-                   _extractanode $n $fn
+                   $self _extractanode $n $fn
                }
            }
            close $fn
        }
-       proc _extractanode {node {fn stdout}} {
-           set record [list]
+       method _extractanode {node {fn stdout}} {
+           set records [list]
            switch [$node TypeOfNode] {
                TrackGraph::Block {
-                   set record [list \
-                               [$node NameOfNode] \
-                               "Block" \
-                               [$node TrackList] \
-                               [$node SenseScript]]
+                   if {$needblockhead} {
+                       lappend records [list Name Type TrackList \
+                                       SenseScript]
+                       set needblockhead no
+                   }
+                   lappend records [list \
+                                    [$node NameOfNode] \
+                                    "Block" \
+                                    [$node TrackList] \
+                                    [$node SenseScript]]
                }
                TrackGraph::SwitchMotor {
-                   set record [list \
-                               [$node NameOfNode] \
-                               "SwitchMotor" \
-                               [$node TurnoutNumber] \
-                               [$node NormalActionScript] \
-                               [$node ReverseActionScript] \
-                               [$node SenseScript]]
+                   if {$needsmhead} {
+                       lappend records [list Name Type TurnoutNumber \
+                                        NormalActionScript \
+                                        ReverseActionScript SenseScript]
+                       set needsmhead no
+                   }
+                   lappend records [list \
+                                    [$node NameOfNode] \
+                                    "SwitchMotor" \
+                                    [$node TurnoutNumber] \
+                                    [$node NormalActionScript] \
+                                    [$node ReverseActionScript] \
+                                    [$node SenseScript]]
                }
                TrackGraph::Signal {
-                   set record [list \
-                               [$node NameOfNode] \
-                               "Signal" \
-                               [$node NumberOfHeads] \
-                               [$node OrigX] \
-                               [$node OrigY] \
-                               [$node Angle]]
+                   if {$needsignalhead} {
+                       lappend records [list Name Type NumberOfHeads \
+                                        OrigX OrigY Angle \
+                                        SignalAspectName \
+                                        SignalAspectScript]
+                       set needsignalhead no
+                   }
+                   set first yes
                    foreach asp [$node SignalAspects] {
                        foreach {name script} $asp {break}
-                       lappend record $name $script
+                       if {$first} {
+                           lappend records [list \
+                                            [$node NameOfNode] \
+                                            "Signal" \
+                                            [$node NumberOfHeads] \
+                                            [$node OrigX] \
+                                            [$node OrigY] \
+                                            [$node Angle] $name $script]
+                           set first no
+                       } else {
+                           lappend records [list "" "" "" "" "" "" $name $script]
+                       }
                    }
                }
            }
-           puts $fn [::csv::join $record]
+           puts -nonewline $fn [::csv::joinlist $records]
        }
        proc _nodetypeorder {a b} {
            return [string compare [$a TypeOfNode] [$b TypeOfNode]]
