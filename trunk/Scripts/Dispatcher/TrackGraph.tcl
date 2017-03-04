@@ -379,6 +379,7 @@ namespace eval TrackGraph {
            bind all <<TreeviewSelect>> [mymethod _selectionUpdated %W]
            wm transient $win .
            wm protocol $win WM_DELETE_WINDOW [mymethod close]
+           bind <<ThemeChanged>> $win [mymethod _themeChanged]
        }
        method _selectionUpdated {w} {
            if {$w ne "$controllist.treeview"} {return}
