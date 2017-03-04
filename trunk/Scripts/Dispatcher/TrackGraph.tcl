@@ -35,10 +35,25 @@
 
 package require Mrr
 package require snit
+package require gettext
+package require Tk
+package require tile
+package require grsupport 2.0
+package require ButtonBox
+package require pdf4tcl
+package require PrintDialog 2.0
+package require ROText
+package require ListBox
+package require IconImage
+package require csv
 
 namespace eval TrackGraph {
   snit::type TrackGraph {
     typecomponent layoutname
+    typecomponent layoutControlsDialog
+    typeconstructor {
+        set layoutname {}
+    }
     delegate typemethod SourceFile       to layoutname
     delegate typemethod IsNodeP          to layoutname
     variable nid -1
@@ -235,6 +250,11 @@ namespace eval TrackGraph {
       array unset backPointers
       catch {$layoutname -delete}
       set layoutname {}
+      if {[info exists layoutControlsDialog] &&
+          $layoutControlsDialog ne {} &&
+          [winfo exists $layoutControlsDialog]} {
+          $layoutControlsDialog close
+      }
     }
     typemethod LoadLayout {filename} {
       $type ClearGraph
@@ -242,7 +262,354 @@ namespace eval TrackGraph {
       $layoutname ProcessFile
       $layoutname CompressGraph
     }
-  }
+    typemethod ViewLayoutControls {} {
+        $type buildLayoutControlsDialog
+        $layoutControlsDialog draw -parent . -nodes [$type AllControlNodes]
+    }
+    typemethod AllControlNodes {} {
+        set result [list]
+        foreach head [$type Heads] {
+            if {[$head NumEdges] < 1} {
+                lappend result $head
+            }
+        }
+        return $result
+    }
+    typemethod buildLayoutControlsDialog {} {
+        if {[info exists layoutControlsDialog] && 
+            $layoutControlsDialog ne {} &&
+            [winfo exists $layoutControlsDialog]} {
+            return $layoutControlsDialog
+        }
+        set layoutControlsDialog [::TrackGraph::LayoutControlsDialog \
+                                  create .layoutControlsDialog%AUTO%]
+    }
+    typemethod HasControls {} {
+        foreach head [$type Heads] {
+            if {[$head NumEdges] < 1} {
+                return true
+            }
+        }
+        return false
+    }
+  } 
+  snit::widget LayoutControlsDialog {
+      hulltype toplevel
+      widgetclass LayoutControlsDialog
+      
+      component headerframe
+      component iconimage
+      component headerlabel
+      component mainpane
+      component   controllistsw
+      component     controllist
+      component   buttons
+      
+      option -title -configuremethod _SetTitle;# -default [_ "Layout Controls"]
+      option -style -default LayoutControlsDialog
+      option -parent -default .
+      method _SetTitle {option value} {
+          wm title $win "$value"
+          $headerlabel configure -text "$value"
+          set options($option) "$value"
+      }
+      method _themeChanged {} {
+          foreach option {-activebackground -activeforeground -anchor -background 
+              -borderwidth -cursor -disabledforeground -foreground 
+              -highlightbackground -highlightcolor -highlightthickness 
+              -padx -pady -takefocus} {
+              set value [ttk::style lookup $options(-style) $option]
+              catch [list $win configure $option "$value"]    
+              catch [list $iconimage configure $option "$value"]
+              catch [list $headerlabel configure $option "$value"]
+              catch [list $mainpane configure $option "$value"]
+              catch [list $controllistsw configure $option "$value"]
+              catch [list $controllist configure $option "$value"]
+              catch [list $buttons configure $option "$value"]
+           }
+       }
+       option -nodes -default {}
+       constructor {args} {
+           wm withdraw $win 
+           install headerframe using ttk::frame $win.headerframe \
+                 -relief ridge -borderwidth 5
+           pack  $headerframe -fill x
+           install iconimage using ttk::label $headerframe.iconimage \
+                 -image banner
+           pack  $iconimage -side left
+           install headerlabel using ttk::label $headerframe.headerlabel \
+                 -anchor w -font {Helvetica -24 bold}
+           pack  $headerlabel -side right -anchor w -expand yes -fill x
+           install mainpane using ttk::panedwindow $win.mainpane \
+                 -orient horizontal
+           pack $mainpane -fill both -expand yes
+           install controllistsw using ScrolledWindow $mainpane.controllistsw \
+                 -scrollbar both -auto both
+           $mainpane add $controllistsw -weight 5
+           install controllist using ListBox \
+                 [$controllistsw getframe].controllist -selectmode multiple
+           $controllistsw setwidget $controllist
+           install buttons using ButtonBox $mainpane.buttons \
+                 -orient vertical
+           $mainpane add $buttons -weight 1
+           $buttons add ttk::button view   -text [_m "Button|View"] \
+                 -command [mymethod viewselected] -state disabled
+           $buttons add ttk::button extractselected \
+                 -text [_m "Button|Extract Selected"] \
+                 -command [mymethod extractselected] -state disabled
+           $buttons add ttk::button extractall \
+                 -text [_m "Button|Extract All"] \
+                 -command [mymethod extractall] -state disabled
+           $buttons add ttk::button extractblocks \
+                 -text [_m "Button|Extract Blocks"] \
+                 -command [mymethod extractblocks] \
+                 -state disabled
+           $buttons add ttk::button extractswitchmotors \
+                 -text [_m "Button|Extract Switch Motors"] \
+                 -command [mymethod extractswitchmotors] \
+                 -state disabled
+           $buttons add ttk::button extractsignals \
+                 -text [_m "Button|Extract Signals"] \
+                 -command [mymethod extractsignals] \
+                 -state disabled
+           $buttons add ttk::button dismis -text [_m "Button|Dismis"] \
+                 -command [mymethod close]
+           $self configure -title [_ "Layout Controls"]
+           $self configurelist $args
+           bind all <<TreeviewSelect>> [mymethod _selectionUpdated %W]
+           wm transient $win .
+           wm protocol $win WM_DELETE_WINDOW [mymethod close]
+       }
+       method _selectionUpdated {w} {
+           if {$w ne "$controllist.treeview"} {return}
+           set selected [$controllist selection get]
+           if {[llength $selected ] == 1} {
+               $buttons itemconfigure view -state enabled
+           } else {
+               $buttons itemconfigure view -state disabled
+           }
+           if {[llength $selected ] >= 1} {
+               $buttons itemconfigure extractselected -state enabled
+           } else {
+               $buttons itemconfigure extractselected -state disabled
+           }
+       }
+       method viewselected {} {
+           set selected [$controllist selection get]
+           if {[llength $selected ] == 1} {
+               set node [::TrackGraph::TrackGraph FindNode \
+                         [lindex $selected 0]]
+               #puts stderr "*** $self viewselected: node is $node ([$node MyNID], [$node TypeOfNode])"
+               switch [$node TypeOfNode] {
+                   TrackGraph::Block {
+                       #puts stderr "*** $self viewselected: about to call ::NodeGraphCanvas::displayBlockInfo draw"
+                       ::NodeGraphCanvas::displayBlockInfo draw -node $node -parent . -title [_ "Block %s" [$node NameOfNode]]
+                   }
+                   TrackGraph::SwitchMotor {
+                       #puts stderr "*** $self viewselected: about to call ::NodeGraphCanvas::displaySwitchMotorInfo draw"
+                       ::NodeGraphCanvas::displaySwitchMotorInfo draw -node $node -parent . -title [_ "Switch Motor %s" [$node NameOfNode]]
+                   }
+                   TrackGraph::Signal {
+                       #puts stderr "*** $self viewselected: about to call ::NodeGraphCanvas::displaySignalInfo draw"
+                       ::NodeGraphCanvas::displaySignalInfo draw -node $node -parent . -title [_ "Signal %s" [$node NameOfNode]]
+                   }
+               }
+           }
+       }           
+       variable oldfocus {}
+       variable oldgrab {}
+       variable oldgrabstatus {}
+       method draw {args} {
+           $self configurelist $args
+           wm deiconify $win
+           set oldfocus [focus]
+           focus $win
+           set oldgrab [grab current $win]
+           if {$oldgrab ne {}} {set oldgrabstatus [grab status $oldgrab]}
+           grab set $win
+           # populate list
+           $controllist delete [$controllist items]
+           foreach b {view extractselected extractall extractblocks 
+               extractswitchmotors extractsignals} {
+               $buttons itemconfigure $b -state disabled
+           }
+           if {[llength $options(-nodes)] > 0} {
+               $buttons itemconfigure  extractall -state normal
+           }
+           foreach n [lsort -command [myproc _nodetypeorder] $options(-nodes)] {
+               switch [$n TypeOfNode] {
+                   TrackGraph::Block {
+                       $controllist insert end [$n MyNID] -data $n\
+                             -text [format "%d: %s,\tTracks: %s" [$n MyNID] \
+                                    [$n NameOfNode] [$n TrackList]] \
+                             -image [IconImage image Block]
+                       $buttons itemconfigure  extractblocks -state normal
+                   }
+                   TrackGraph::SwitchMotor {
+                       $controllist insert end [$n MyNID] -data $n\
+                             -text [format "%d: %s,\tTurnout: %d" [$n MyNID] \
+                                    [$n NameOfNode] [$n TurnoutNumber]] \
+                             -image [IconImage image SwitchMotor]
+                       $buttons itemconfigure extractswitchmotors -state normal
+                   }
+                   TrackGraph::Signal {
+                       $controllist insert end [$n MyNID] -data $n\
+                             -text [format "%d: %s" [$n MyNID] \
+                                    [$n NameOfNode]] \
+                             -image [IconImage image Signal]
+                       $buttons itemconfigure extractsignals -state normal
+                   }
+               }
+           }
+       }
+       method extractall {} {
+           set filename [tk_getSaveFile -defaultextension .csv \
+                         -filetypes {{{CSV Files} {.csv} TEXT}
+                                    {{All Files} *     TEXT}
+                                } -parent . -title "CSV File to open"]
+           if {$filename eq {}} {return}
+           if {[catch {open $filename w} fn]} {
+               tk_messageBox -type ok -icon error  -parent $win \
+                     [_ "Error opening %s: %s" $filename $fn]
+               return
+           }
+           foreach n [lsort -command [myproc _nodetypeorder] $options(-nodes)] {
+               _extractanode $n $fn
+           }
+           close $fn
+       }
+       method extractselected {} {
+           set selected [$controllist selection get]
+           if {[llength $selected ] > 0} {
+               set filename [tk_getSaveFile -defaultextension .csv \
+                             -filetypes {{{CSV Files} {.csv} TEXT} {{All Files} *     TEXT} } \
+                             -parent . -title "CSV File to open"]
+               if {$filename eq {}} {return}
+               if {[catch {open $filename w} fn]} {
+                   tk_messageBox -type ok -icon error  -parent $win \
+                         [_ "Error opening %s: %s" $filename $fn]
+                   return
+               }
+               foreach n [lsort -command [myproc _nodetypeorder] [_nodesfromids $selected]] {
+                   _extractanode $n $fn
+               }
+               close $fn
+           }
+       }
+       proc _nodesfromids {ids} {
+           set result [list]
+           foreach id $ids {
+               lappend result [::TrackGraph::TrackGraph FindNode $id]
+           }
+           return $result
+       }
+       method extractblocks {} {
+           set filename [tk_getSaveFile -defaultextension .csv \
+                         -filetypes {{{CSV Files} {.csv} TEXT}
+                                    {{All Files} *     TEXT}
+                                } -parent . -title "CSV File to open"]
+           if {$filename eq {}} {return}
+           if {[catch {open $filename w} fn]} {
+               tk_messageBox -type ok -icon error  -parent $win \
+                     [_ "Error opening %s: %s" $filename $fn]
+               return
+           }
+           foreach n $options(-nodes) {
+               if {[$n TypeOfNode] eq "TrackGraph::Block"} {
+                   _extractanode $n $fn
+               }
+           }
+           close $fn
+       }
+       method extractswitchmotors {} {
+           set filename [tk_getSaveFile -defaultextension .csv \
+                         -filetypes {{{CSV Files} {.csv} TEXT}
+                                    {{All Files} *     TEXT}
+                                } -parent . -title "CSV File to open"]
+           if {$filename eq {}} {return}
+           if {[catch {open $filename w} fn]} {
+               tk_messageBox -type ok -icon error  -parent $win \
+                     [_ "Error opening %s: %s" $filename $fn]
+               return
+           }
+           foreach n $options(-nodes) {
+               if {[$n TypeOfNode] eq "TrackGraph::SwitchMotor"} {
+                   _extractanode $n $fn
+               }
+           }
+           close $fn
+       }
+       method extractsignals {} {
+           set filename [tk_getSaveFile -defaultextension .csv \
+                         -filetypes {{{CSV Files} {.csv} TEXT}
+                                    {{All Files} *     TEXT}
+                                } -parent . -title "CSV File to open"]
+           if {$filename eq {}} {return}
+           if {[catch {open $filename w} fn]} {
+               tk_messageBox -type ok -icon error  -parent $win \
+                     [_ "Error opening %s: %s" $filename $fn]
+               return
+           }
+           foreach n $options(-nodes) {
+               if {[$n TypeOfNode] eq "TrackGraph::Signal"} {
+                   _extractanode $n $fn
+               }
+           }
+           close $fn
+       }
+       proc _extractanode {node {fn stdout}} {
+           set record [list]
+           switch [$node TypeOfNode] {
+               TrackGraph::Block {
+                   set record [list \
+                               [$node NameOfNode] \
+                               "Block" \
+                               [$node TrackList] \
+                               [$node SenseScript]]
+               }
+               TrackGraph::SwitchMotor {
+                   set record [list \
+                               [$node NameOfNode] \
+                               "SwitchMotor" \
+                               [$node TurnoutNumber] \
+                               [$node NormalActionScript] \
+                               [$node ReverseActionScript] \
+                               [$node SenseScript]]
+               }
+               TrackGraph::Signal {
+                   set record [list \
+                               [$node NameOfNode] \
+                               "Signal" \
+                               [$node NumberOfHeads] \
+                               [$node OrigX] \
+                               [$node OrigY] \
+                               [$node Angle]]
+                   foreach asp [$node SignalAspects] {
+                       foreach {name script} $asp {break}
+                       lappend record $name $script
+                   }
+               }
+           }
+           puts $fn [::csv::join $record]
+       }
+       proc _nodetypeorder {a b} {
+           return [string compare [$a TypeOfNode] [$b TypeOfNode]]
+       }
+       method close {} {
+           grab release $win
+           if {$oldgrab ne {}} {
+               if {$oldgrabstatus eq "global"} {
+                   grab set -global $oldgrab
+               } else {
+                   grab set $oldgrab
+               }
+           }
+           if {$oldfocus ne {}} {
+               focus $oldfocus
+           }
+           wm withdraw $win
+       }
+   }
 }
 
 package provide TrackGraph 1.0
