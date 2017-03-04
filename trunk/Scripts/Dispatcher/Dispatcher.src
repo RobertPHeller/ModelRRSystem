@@ -322,8 +322,13 @@ proc Dispatcher::MainWindow {} {
   $Main menu add options command \
 	-label [_m "Menu|Options|Load Configuration"] \
 	-command {::Dispatcher::Configuration load
-		  WrapIt::SetTclkit [::Dispatcher::Configuration getoption tclkit]}
-
+                  WrapIt::SetTclkit [::Dispatcher::Configuration getoption tclkit]}
+              
+  $Main menu add view command \
+        -label [_m "Menu|View|Layout Controls"] \
+        -state disabled \
+        -command "TrackGraph::TrackGraph ViewLayoutControls"
+              
   $Main menu delete help [_m "Menu|Help|On Keys..."]
   $Main menu delete help [_m "Menu|Help|Index..."]
   $Main menu add help command \
@@ -551,6 +556,8 @@ proc Dispatcher::LoadLayout {{filename {}}} {
   SetBusy $Main on
   set errorP [catch {
     TrackGraph::TrackGraph ClearGraph
+    $Main menu entryconfigure view [_m "Menu|View|Layout Controls"] \
+          -state disabled
     TrackGraph::TrackGraph LoadLayout "$filename"
     foreach edge [TrackGraph::TrackGraph PrimMinimumSpanningTree] {
       #puts stderr "*** Dispatcher::LoadLayout: edge = $edge"
@@ -587,6 +594,10 @@ proc Dispatcher::LoadLayout {{filename {}}} {
 	default {
 	}
       }
+    }
+    if {[TrackGraph::TrackGraph HasControls]} {
+        $Main menu entryconfigure view [_m "Menu|View|Layout Controls"] \
+              -state normal
     }} errorMessage]
   SetBusy $Main off
   catch {after cancel $WorkingAfterID}

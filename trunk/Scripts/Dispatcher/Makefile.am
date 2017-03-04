@@ -37,7 +37,7 @@ DispatcherScripts = NodeGraphCanvas.tcl PrintDialog.tcl TrackGraph.tcl \
 		    CTCPanelWindow.tcl WrapIt.tcl
 
 DispatcherImages  = banner.gif search.gif load.gif largePrinter.gif \
-		    largeImage.gif
+		    largeImage.gif 
 
 ExampleScripts = example1.tcl example2.tcl example3.tcl example4.tcl \
 		 example1.iow example2.iow example3.iow example4.iow
@@ -80,6 +80,7 @@ CommonLibFiles = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif \
 		 $(top_srcdir)/Scripts/Common/snitrotext.tcl \
 		 $(top_srcdir)/Scripts/Common/mainwindow.tcl \
 		 $(top_srcdir)/Scripts/Common/snitlistbox.tcl \
+		 $(top_srcdir)/Scripts/Common/snittree.tcl \
 		 $(top_builddir)/Scripts/Common/Version.tcl \
 		 $(top_srcdir)/Scripts/GRSupport/grsupport2.tcl \
 		 $(top_srcdir)/Scripts/Common/CTCPanel2.tcl \
@@ -139,7 +140,8 @@ CodeLibraryFiles = cmriCode.tcl panelCode.tcl userCodeModules.tcl \
 		OpenLCBCode.tcl
 EXTRA_DIST  = Dispatcher.src $(DispatcherScripts) $(DispatcherImages) \
 		$(CodeLibraryFiles) $(ExampleScripts) Dispatcher.png \
-		Dispatcher.desktop Doxyfile.in
+		Dispatcher.desktop Doxyfile.in Block.xpm SwitchMotor.xpm \
+		Signal.xpm
 
 desktopdir = $(datadir)/applications
 desktop_DATA = Dispatcher.desktop
@@ -196,6 +198,9 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 		$(DispatcherLib)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		lib/$(CommonLib) $(CommonLibFiles)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) \
+		Dispatcher lib/$(CommonLib) Block.xpm SwitchMotor.xpm \
+		Signal.xpm
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit Dispatcher \
 		$(CommonLib)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
