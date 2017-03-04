@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri May 24 09:50:47 2013
-#  Last Modified : <160310.1059>
+#  Last Modified : <170304.1248>
 #
 #  Description	
 #
@@ -93,12 +93,19 @@ snit::widgetadaptor Dialog {
         bind Dialog <Return>         [mytypemethod _Return %W]
     }
     typemethod _ThemeChanged {w} {
+        #puts stderr "$type _ThemeChanged $w"
+        if {[catch {$w info type} w_type]} {return}
+        if {$w_type ne $type} {return}
         $w _ThemeChanged
     }
     typemethod _Escape {w} {
+        if {[catch {$w info type} w_type]} {return}
+        if {$w_type ne $type} {return}
         return [$w  _Escape]
     }
     typemethod _Return {w} {
+        if {[catch {$w info type} w_type]} {return}
+        if {$w_type ne $type} {return}
         return [$w _Return]
     }
     method _ThemeChanged {} {
