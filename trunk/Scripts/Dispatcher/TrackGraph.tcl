@@ -185,6 +185,8 @@ namespace eval TrackGraph {
     method TurnoutNumber {} {return [$layoutname TurnoutNumber $nid]}
     method NameOfNode {} {return [$layoutname NameOfNode $nid]}
     method SenseScript {} {return [$layoutname SenseScript $nid]}
+    method OnScript {} {return [$layoutname OnScript $nid]}
+    method OffScript {} {return [$layoutname OffScript $nid]}
     method NormalActionScript {} {return [$layoutname NormalActionScript $nid]}
     method ReverseActionScript {} {return [$layoutname ReverseActionScript $nid]}
     method NumberOfHeads {} {return [$layoutname NumberOfHeads $nid]}
@@ -372,6 +374,14 @@ namespace eval TrackGraph {
                  -text [_m "Button|Extract Signals"] \
                  -command [mymethod extractsignals] \
                  -state disabled
+           $buttons add ttk::button extractsensors \
+                 -text [_m "Button|Extract Sensors"] \
+                 -command [mymethod extractsensors] \
+                 -state disabled
+           $buttons add ttk::button extractcontrols \
+                 -text [_m "Button|Extract Controls"] \
+                 -command [mymethod extractcontrols] \
+                 -state disabled
            $buttons add ttk::button dismis -text [_m "Button|Dismis"] \
                  -command [mymethod close]
            $self configure -title [_ "Layout Controls"]
@@ -414,6 +424,13 @@ namespace eval TrackGraph {
                        #puts stderr "*** $self viewselected: about to call ::NodeGraphCanvas::displaySignalInfo draw"
                        ::NodeGraphCanvas::displaySignalInfo draw -node $node -parent . -title [_ "Signal %s" [$node NameOfNode]]
                    }
+                   TrackGraph::Sensor {
+                       ::NodeGraphCanvas::displaySensorInfo draw -node $node -parent . -title [_ "Sensor %s" [$node NameOfNode]]
+                   }
+                   TrackGraph::Control {
+                       ::NodeGraphCanvas::displayControlInfo draw -node $node -parent . -title [_ "Control %s" [$node NameOfNode]]
+                   }
+                   
                }
            }
        }           
@@ -431,7 +448,8 @@ namespace eval TrackGraph {
            # populate list
            $controllist delete [$controllist items]
            foreach b {view extractselected extractall extractblocks 
-               extractswitchmotors extractsignals} {
+               extractswitchmotors extractsignals extractsensors 
+               extractcontrols} {
                $buttons itemconfigure $b -state disabled
            }
            if {[llength $options(-nodes)] > 0} {
@@ -460,12 +478,29 @@ namespace eval TrackGraph {
                              -image [IconImage image Signal]
                        $buttons itemconfigure extractsignals -state normal
                    }
+                   TrackGraph::Sensor {
+                       $controllist insert end [$n MyNID] -data $n\
+                             -text [format "%d: %s" [$n MyNID] \
+                                    [$n NameOfNode]] \
+                             -image [IconImage image Sensor]
+                       $buttons itemconfigure extractsensors -state normal
+                   }
+                   TrackGraph::Control {
+                       $controllist insert end [$n MyNID] -data $n\
+                             -text [format "%d: %s" [$n MyNID] \
+                                    [$n NameOfNode]] \
+                             -image [IconImage image Control]
+                       $buttons itemconfigure extractcontrols -state normal
+                   }
+                   
                }
            }
        }
        variable needblockhead yes
        variable needsmhead yes
        variable needsignalhead yes
+       variable needsensorhead yes
+       variable needcontrolhead yes
        method extractall {} {
            set filename [tk_getSaveFile -defaultextension .csv \
                          -filetypes {{{CSV Files} {.csv} TEXT}
@@ -480,6 +515,8 @@ namespace eval TrackGraph {
            set needblockhead yes
            set needsmhead yes
            set needsignalhead yes
+           set needsensorhead yes
+           set needcontrolhead yes
            foreach n [lsort -command [myproc _nodetypeorder] $options(-nodes)] {
                $self _extractanode $n $fn
            }
@@ -500,6 +537,8 @@ namespace eval TrackGraph {
                set needblockhead yes
                set needsmhead yes
                set needsignalhead yes
+               set needsensorhead yes
+               set needcontrolhead yes
                foreach n [lsort -command [myproc _nodetypeorder] [_nodesfromids $selected]] {
                    $self _extractanode $n $fn
                }
@@ -570,6 +609,44 @@ namespace eval TrackGraph {
            }
            close $fn
        }
+       method extractsensors {} {
+           set filename [tk_getSaveFile -defaultextension .csv \
+                         -filetypes {{{CSV Files} {.csv} TEXT}
+                                    {{All Files} *     TEXT}
+                                } -parent . -title "CSV File to open"]
+           if {$filename eq {}} {return}
+           if {[catch {open $filename w} fn]} {
+               tk_messageBox -type ok -icon error  -parent $win \
+                     [_ "Error opening %s: %s" $filename $fn]
+               return
+           }
+           set needsensorhead yes
+           foreach n $options(-nodes) {
+               if {[$n TypeOfNode] eq "TrackGraph::Sensor"} {
+                   $self _extractanode $n $fn
+               }
+           }
+           close $fn
+       }
+       method extractcontrols {} {
+           set filename [tk_getSaveFile -defaultextension .csv \
+                         -filetypes {{{CSV Files} {.csv} TEXT}
+                                    {{All Files} *     TEXT}
+                                } -parent . -title "CSV File to open"]
+           if {$filename eq {}} {return}
+           if {[catch {open $filename w} fn]} {
+               tk_messageBox -type ok -icon error  -parent $win \
+                     [_ "Error opening %s: %s" $filename $fn]
+               return
+           }
+           set needcontrolhead yes
+           foreach n $options(-nodes) {
+               if {[$n TypeOfNode] eq "TrackGraph::Control"} {
+                   $self _extractanode $n $fn
+               }
+           }
+           close $fn
+       }
        method _extractanode {node {fn stdout}} {
            set records [list]
            switch [$node TypeOfNode] {
@@ -624,6 +701,30 @@ namespace eval TrackGraph {
                            lappend records [list "" "" "" "" "" "" $name $script]
                        }
                    }
+               }
+               TrackGraph::Sensor {
+                   if {$needsensorhead} {
+                       lappend records [list Name Type OrigX OrigY \
+                                       SenseScript]
+                       set needsensorhead no
+                   }
+                   lappend records [list \
+                                    [$node NameOfNode] \
+                                    "Sensor" \
+                                    [$node OrigX] [$node OrigY] \
+                                    [$node SenseScript]]
+               }
+               TrackGraph::Control {
+                   if {$needcontrolhead} {
+                       lappend records [list Name Type OrigX OrigY \
+                                       OnScript OffScript]
+                       set needcontrolhead no
+                   }
+                   lappend records [list \
+                                    [$node NameOfNode] \
+                                    "Control" \
+                                    [$node OrigX] [$node OrigY] \
+                                    [$node OnScript] [$node OffScript]]
                }
            }
            puts -nonewline $fn [::csv::joinlist $records]

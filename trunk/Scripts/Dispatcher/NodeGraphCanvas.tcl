@@ -139,6 +139,8 @@ namespace eval NodeGraphCanvas {
     variable blocknodes -array {}
     variable switchnodes -array {}
     variable signals [list]
+    variable sensors [list]
+    variable controls [list]
     method {create block} {node} {
       #puts stderr "*** $self create block $node"
       set TrkNID {}
@@ -244,6 +246,64 @@ namespace eval NodeGraphCanvas {
 			-outline green -fill {} -tag T$NID
         lappend signals $node
     }
+    method {create sensor} {node {x 50} {y 50}} {
+        set NID [$node MyNID]
+        set bbox [$hull bbox T$NID]
+        if {[llength $bbox] > 0} {return}
+        set x0 [expr {$x - 15}]
+        set y0 [expr {$y - 15}]
+        set x1 [expr {$x + 15}]
+        set y1 [expr {$y + 15}]
+        set x_orig $x
+        while {[llength [$hull find overlapping $x0 $y0 $x1 $y1]] > 0} {
+            set x [expr {$x + 100}]
+            if {$x > 750} {
+                set y [expr {$y + 100}]
+                set y0 [expr {$y - 15}]
+                set y1 [expr {$y + 15}]
+                set x $x_orig
+            }
+            set x0 [expr {$x - 15}]
+            set x1 [expr {$x + 15}]
+        }
+        $self create node $node $x $y
+        set coords [$hull coords T$NID]
+        $hull create oval [expr {[lindex $coords 0] - 1}] \
+      			[expr {[lindex $coords 1] - 1}] \
+			[expr {[lindex $coords 2] + 1}] \
+			[expr {[lindex $coords 3] + 1}] \
+			-outline lightgreen -fill {} -tag T$NID
+        lappend sensors $node
+    }
+    method {create control} {node {x 50} {y 50}} {
+        set NID [$node MyNID]
+        set bbox [$hull bbox T$NID]
+        if {[llength $bbox] > 0} {return}
+        set x0 [expr {$x - 15}]
+        set y0 [expr {$y - 15}]
+        set x1 [expr {$x + 15}]
+        set y1 [expr {$y + 15}]
+        set x_orig $x
+        while {[llength [$hull find overlapping $x0 $y0 $x1 $y1]] > 0} {
+            set x [expr {$x + 100}]
+            if {$x > 750} {
+                set y [expr {$y + 100}]
+                set y0 [expr {$y - 15}]
+                set y1 [expr {$y + 15}]
+                set x $x_orig
+            }
+            set x0 [expr {$x - 15}]
+            set x1 [expr {$x + 15}]
+        }
+        $self create node $node $x $y
+        set coords [$hull coords T$NID]
+        $hull create oval [expr {[lindex $coords 0] - 1}] \
+      			[expr {[lindex $coords 1] - 1}] \
+			[expr {[lindex $coords 2] + 1}] \
+			[expr {[lindex $coords 3] + 1}] \
+			-outline lightblue -fill {} -tag T$NID
+        lappend controls $node
+    }
     method {create node} {node X Y args} {
 #      puts stderr "*** $self create node $X $Y $args"
       set outline black
@@ -341,6 +401,10 @@ namespace eval NodeGraphCanvas {
     method NodeInfo {node} {
         if {[$node TypeOfNode] eq "TrackGraph::Signal"} {
             NodeGraphCanvas::displaySignalInfo draw -node $node -parent $win -title [_ "Signal %s" [$node NameOfNode]]
+        } elseif {[$node TypeOfNode] eq "TrackGraph::Sensor"} {
+            NodeGraphCanvas::displaySensorInfo draw -node $node -parent $win -title [_ "Sensor %s" [$node NameOfNode]]
+        } elseif {[$node TypeOfNode] eq "TrackGraph::Control"} {
+            NodeGraphCanvas::displayControlInfo draw -node $node -parent $win -title [_ "Control %s" [$node NameOfNode]]
         } else {
             NodeGraphCanvas::displayNodeInfo draw -node $node -parent $win -title [_ "Node %s" $node]
             set TrkNID [$node MyNID]
@@ -366,6 +430,11 @@ namespace eval NodeGraphCanvas {
       NodeGraphCanvas::displayEdgeInfo draw -node $node -edge $edgeIndex -parent $win -title [_ "Node %s" $node]
     }
     method NodeMenu {node X Y} {
+      if {[lsearch -exact {TrackGraph::Sensor TrackGraph::Control} [$node TypeOfNode]] < 0} {
+          $nodeMenu entryconfigure [_m "Label|Add To Panel"] -state normal
+      } else {
+          $nodeMenu entryconfigure [_m "Label|Add To Panel"] -state disabled
+      }
       $nodeMenu activate none
       $nodeMenu post $X $Y
       upvar #0 $nodeMenu data
@@ -910,6 +979,164 @@ namespace eval NodeGraphCanvas {
               $aspectsLB insert {} end -values $aspect
           }
       }
+  }
+  snit::widget displaySensorInfo {
+    Dispatcher::StdShell DisplaySensofInfo
+
+    component nodeID
+    component positionLF
+    component   posX
+    variable    _posx
+    component   posY
+    variable    _posy
+    component senseScriptLF
+    component   senseScriptSW
+    component     senseScriptT
+
+    option -title -default {Displaying Sensor Info} -configuremethod _SetTitle
+    option -node -default {} -validatemethod _CheckNode
+    method _CheckNode {option value} {
+      #puts stderr "*** $self _CheckNode $option $value"
+      if {[catch {$value info type} typename]} {
+        #puts stderr "*** $self _CheckNode: Expected a TrackGraph, got $value"
+	error "Expected a TrackGraph, got $value"
+      } elseif {[namespace tail "$typename"] ne "TrackGraph"} {
+	#puts stderr "*** $self _CheckNode: Expected a TrackGraph, got $value ($typename)"
+	error "Expected a TrackGraph, got $value ($typename)"
+      } else {
+	if {[$value TypeOfNode] ne "TrackGraph::Sensor"} {
+	  #puts stderr "*** $self _CheckNode: Expected a Sensor, got $value ([$value TypeOfNode])"
+	  error "Expected a Sensor, got $value ([$value TypeOfNode])"
+	}
+        return $value
+      }
+    }
+    method constructtopframe {frame args} {
+      set lwidth [expr {1+[_mx "Label|Sensor:" "Label|Position:" \
+					   "Label|Sense Script:"]}]
+      install nodeID using LabelEntry $frame.nodeID -label [_m "Label|Sensor:"] \
+						    -labelwidth $lwidth \
+						    -editable no
+      pack $nodeID -fill x
+      install positionLF using LabelFrame $frame.positionLF \
+            -text [_m "Label|Position:"] -width $lwidth
+      pack $positionLF -fill x
+      set posframe [$positionLF getframe]
+      install posX using ttk::entry $posframe.posX -state readonly \
+            -textvariable [myvar _posx]
+      pack $posX -side left -expand yes
+      install posY using ttk::entry $posframe.posY -state readonly \
+            -textvariable [myvar _posy]
+      pack $posY -side left -expand yes
+      install senseScriptLF using LabelFrame $frame.senseScriptLF \
+						    -text [_m "Label|Sense Script:"] \
+						    -width $lwidth
+      pack $senseScriptLF -fill x
+      install senseScriptSW using ScrolledWindow [$senseScriptLF getframe].sw \
+					-scrollbar both -auto both
+      pack $senseScriptSW -expand yes -fill both
+      install senseScriptT using ROText [$senseScriptSW getframe].t \
+					-height 4 -width 40
+      $senseScriptSW setwidget $senseScriptT
+    }
+    method initializetopframe {frame args} {
+      $self configurelist $args
+      set node [$self cget -node]
+      if {[string length "$node"] == 0} {return}
+      $nodeID configure -text [$node NameOfNode]
+      set _posx [format "%0.3f" [$node OrigX]]
+      set _posy [format "%0.3f" [$node OrigY]]
+      $senseScriptT delete 1.0 end
+      $senseScriptT insert end "[$node SenseScript]"
+    }
+    
+  }
+  snit::widget displayControlInfo {
+    Dispatcher::StdShell DisplayControlInfo
+
+    component nodeID
+    component positionLF
+    component   posX
+    variable    _posx
+    component   posY
+    variable    _posy
+    component onScriptLF
+    component   onScriptSW
+    component     onScriptT
+    component offScriptLF
+    component   offScriptSW
+    component     offScriptT
+
+    option -title -default {Displaying Control Info} -configuremethod _SetTitle
+    option -node -default {} -validatemethod _CheckNode
+    method _CheckNode {option value} {
+      #puts stderr "*** $self _CheckNode $option $value"
+      if {[catch {$value info type} typename]} {
+        #puts stderr "*** $self _CheckNode: Expected a TrackGraph, got $value"
+	error "Expected a TrackGraph, got $value"
+      } elseif {[namespace tail "$typename"] ne "TrackGraph"} {
+	#puts stderr "*** $self _CheckNode: Expected a TrackGraph, got $value ($typename)"
+	error "Expected a TrackGraph, got $value ($typename)"
+      } else {
+	if {[$value TypeOfNode] ne "TrackGraph::Control"} {
+	  #puts stderr "*** $self _CheckNode: Expected a Control, got $value ([$value TypeOfNode])"
+	  error "Expected a Control, got $value ([$value TypeOfNode])"
+	}
+        return $value
+      }
+    }
+    method constructtopframe {frame args} {
+      set lwidth [expr {1+[_mx "Label|Control:" "Label|Position:" \
+                           "Label|On Script:" \
+                           "Label|Off Script:"]}]
+      install nodeID using LabelEntry $frame.nodeID -label [_m "Label|Control:"] \
+						    -labelwidth $lwidth \
+						    -editable no
+      pack $nodeID -fill x
+      install positionLF using LabelFrame $frame.positionLF \
+            -text [_m "Label|Position:"] -width $lwidth
+      pack $positionLF -fill x
+      set posframe [$positionLF getframe]
+      install posX using ttk::entry $posframe.posX -state readonly \
+            -textvariable [myvar _posx]
+      pack $posX -side left -expand yes
+      install posY using ttk::entry $posframe.posY -state readonly \
+            -textvariable [myvar _posy]
+      pack $posY -side left -expand yes
+      install onScriptLF using LabelFrame $frame.onScriptLF \
+						    -text [_m "Label|On Script:"] \
+						    -width $lwidth
+      pack $onScriptLF -fill x
+      install onScriptSW using ScrolledWindow [$onScriptLF getframe].sw \
+					-scrollbar both -auto both
+      pack $onScriptSW -expand yes -fill both
+      install onScriptT using ROText [$onScriptSW getframe].t \
+					-height 4 -width 40
+      $onScriptSW setwidget $onScriptT
+      install offScriptLF using LabelFrame $frame.offScriptLF \
+						    -text [_m "Label|Off Script:"] \
+						    -width $lwidth
+      pack $offScriptLF -fill x
+      install offScriptSW using ScrolledWindow [$offScriptLF getframe].sw \
+					-scrollbar both -auto both
+      pack $offScriptSW -expand yes -fill both
+      install offScriptT using ROText [$offScriptSW getframe].t \
+					-height 4 -width 40
+      $offScriptSW setwidget $offScriptT
+    }
+    method initializetopframe {frame args} {
+      $self configurelist $args
+      set node [$self cget -node]
+      if {[string length "$node"] == 0} {return}
+      $nodeID configure -text [$node NameOfNode]
+      set _posx [format "%0.3f" [$node OrigX]]
+      set _posy [format "%0.3f" [$node OrigY]]
+      $onScriptT delete 1.0 end
+      $onScriptT insert end "[$node OnScript]"
+      $offScriptT delete 1.0 end
+      $offScriptT insert end "[$node OffScript]"
+    }
+    
   }
 }
 
