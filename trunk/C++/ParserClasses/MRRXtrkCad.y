@@ -254,6 +254,10 @@ extern const double INCHESperMM /* =  25.3807106598*/,
 %token SIGNAL
 /* ASPECT */
 %token ASPECT
+/* SENSOR */
+%token SENSOR
+/* CONTROL */
+%token CONTROL
 /* Typed non-terminals.*/
 /* Non-terminals that have values. */
 /* trackbody <tb> */
@@ -299,6 +303,8 @@ definition : version
 	   | block
 	   | switchmotor
 	   | signal
+	   | sensor
+	   | control
 	   | EOL
 	   ;
 
@@ -454,12 +460,19 @@ switchmotor : SWITCHMOTOR INTEGER INTEGER STRING STRING STRING STRING EOL
 	     {trackGraph->InsertSwitchMotor($2,$3,$4,$5,$6,$7);} ;
 
 signal : SIGNAL INTEGER INTEGER scalename INTEGER FLOAT FLOAT FLOAT INTEGER STRING EOL aspectlist  END EOL
-        /*    index   name   numheads aspectlist */
-        {trackGraph->InsertSignal($2, $10, $6, $7, $8, $9, $12);}
+        /*    index   name X Y A  numheads aspectlist */
+        {trackGraph->InsertSignal($2, $10, $6, $7, $8, $9, $12);} ;
 
 aspectlist : {$$ = NULL;}
            | aspectlist ASPECT STRING STRING EOL {$$ = StringPairList::StringPairAppend($1,$3,$4);}
            ;
+
+sensor : SENSOR INTEGER INTEGER scalename INTEGER FLOAT FLOAT STRING STRING EOL
+         /*    index   name X Y script */
+         {trackGraph->InsertSensor($2, $8, $6, $7, $9);} ;
+control : CONTROL INTEGER INTEGER scalename INTEGER FLOAT FLOAT STRING STRING STRING EOL
+         /*    index   name X Y onscript offscript */
+         {trackGraph->InsertControl($2, $8, $6, $7, $9, $10);} ;
 %%
 
 
@@ -479,6 +492,7 @@ int MRRXtrkCad::lookup_word(const char *word) const
 		{"BLOCK", BLOCK},
 		{"C", C},
 		{"CAR", CAR},
+		{"CONTROL", CONTROL},
 		{"CURRENT", CURRENT},
 		{"CURVE", CURVE },
 		{"D", D},
@@ -503,6 +517,7 @@ int MRRXtrkCad::lookup_word(const char *word) const
 		{"ROOMSIZE", ROOMSIZE},
 		{"S", S},
 		{"SCALE", SCALE},
+		{"SENSOR", SENSOR},
                 {"SIGNAL", SIGNAL},
 		{"STRAIGHT", STRAIGHT},
 		{"STRUCTURE", STRUCTURE},

@@ -381,6 +381,29 @@ void TrackGraph::InsertSignal(int number, char * _name, float _origx, float _ori
     nodes[newNode].aspectlist = _aspects;
 }
 
+void TrackGraph::InsertSensor(int number, char * _name, float _origx, float _origy, char *_sensescript)
+{
+    Node newNode;
+    
+    newNode = AddNewNode(number,Sensor);
+    nodes[newNode].name = _name;
+    nodes[newNode].origx = _origx;
+    nodes[newNode].origy = _origy;
+    nodes[newNode].sensescript = _sensescript;
+}
+
+void TrackGraph::InsertControl(int number, char * _name, float _origx, float _origy, char *_onscript, char *_offscript)
+{
+    Node newNode;
+    
+    newNode = AddNewNode(number,Control);
+    nodes[newNode].name = _name;
+    nodes[newNode].origx = _origx;
+    nodes[newNode].origy = _origy;
+    nodes[newNode].onscript = _onscript;
+    nodes[newNode].offscript = _offscript;
+}
+
 std::ostream& operator << (ostream& stream,TrackGraph& graph)
 {
     static const char *NodeTypeNames[] = {
@@ -389,7 +412,9 @@ std::ostream& operator << (ostream& stream,TrackGraph& graph)
         "Turntable",
         "Block",
         "SwitchMotor",
-        "Signal"
+        "Signal",
+        "Sensor",
+        "Control"
     };
 	int jj;
 	int nid,nedges,iedge;
@@ -453,7 +478,16 @@ std::ostream& operator << (ostream& stream,TrackGraph& graph)
                         stream << "Location: (" << graph.OrigX(nid) << "," << graph.OrigY(nid) << "), " << graph.Angle(nid) << " degrees" << endl;
                         stream << "Aspects: " << *(graph.SignalAspects(nid)) << endl;
                         break;
-                     }
+                    case TrackGraph::Sensor:
+                        stream << "Location: (" << graph.OrigX(nid) << "," << graph.OrigY(nid) << ")" << endl;
+                        stream << "Script: " << graph.SenseScript(nid) << endl;
+                        break;
+                    case TrackGraph::Control:
+                        stream << "Location: (" << graph.OrigX(nid) << "," << graph.OrigY(nid) << ")" << endl;
+                        stream << "OnScript: " << graph.OnScript(nid) << endl;
+                        stream << "OffScript: " << graph.OffScript(nid) << endl;
+                        break;
+                    }
                 }
 		stream << endl;
 	}
@@ -665,6 +699,19 @@ float TrackGraph::Angle(int nid) const
     else return nodes[n].angle;
 }
 
+const char * TrackGraph::OnScript(int nid) const
+{
+    Node n = FindNode(nid);
+    if (n == none) return NULL;
+    else return nodes[n].onscript;
+}
+
+const char * TrackGraph::OffScript(int nid) const
+{
+    Node n = FindNode(nid);
+    if (n == none) return NULL;
+    else return nodes[n].offscript;
+}
 
 
 int TrackGraph::LowestNode() const
