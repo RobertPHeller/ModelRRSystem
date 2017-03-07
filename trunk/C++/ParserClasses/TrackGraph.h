@@ -524,7 +524,13 @@ public:
                 SwitchMotor,
                 /**   Signal.
                  */
-                Signal
+                Signal,
+                /**   Sensor.
+                 */
+                Sensor,
+                /**   Control.
+                 */
+                Control
 	};
 
 	typedef std::pair < int, int > CompressedEdgePair;
@@ -621,6 +627,12 @@ private:
                 /** Y coordinate of the base of the signal.
                   */
                 float origy;
+                /** On action script.
+                 */
+                char * onscript;
+                /** Off action script.
+                 */
+                char * offscript;
                 /** Angle of the signal.
                   */
                 float angle;
@@ -636,7 +648,8 @@ private:
 			    char * _reverseactionscript = NULL,
                             int _numheads = 0, StringPairList *_aspects = NULL,
                             float _origx = 0.0, float _origy = 0.0, 
-                            float _angle = 0.0)
+                            float _angle = 0.0, char * _onscript = NULL, 
+                            char * _offscript = NULL)
 		{ id = _id; type = _type; tgr = _tgr; tpo = _tpo;
 		  length = _length; tracklist = _tracklist; 
 		  turnoutnumber = _turnoutnumber; name = _name;
@@ -648,6 +661,8 @@ private:
                   origx = _origx;
                   origy = _origy;
                   angle = _angle;
+                  onscript = _onscript;
+                  offscript = _offscript;
                 }
 		/** Cleanup member function.
 		  */
@@ -950,6 +965,12 @@ public:
         /**  Insert a signal.
          */
         void InsertSignal(int number, char * _name, float _origx, float _origy, float _angle, int _numheads, StringPairList *_aspects);
+        /** Insert a sensor.
+         */
+        void InsertSensor(int number, char * _name, float _origx, float _origy, char *_sensescript);
+        /** Insert a control.
+         */
+        void InsertControl(int number, char * _name, float _origx, float _origy, char *_onscript, char *_offscript);
 	/**  Compute the length of a piece of straight track.
          */
 	static float LengthOfStraight(float x1, float y1, float x2, float y2);
@@ -1030,7 +1051,15 @@ public:
 	/** Return the angle of the signal..
 	  * @param nid The node to look at.
 	  */
-	float Angle(int nid) const;
+        float Angle(int nid) const;
+        /** Return the on action script.
+         * @param nid The node to look at.
+         */
+        const char * OnScript(int nid) const;
+        /** Return the off action script.
+         * @param nid The node to look at.
+         */
+        const char * OffScript(int nid) const;
 	/**  Returns the lowest numbered node id.
 	  */
 	int LowestNode() const;

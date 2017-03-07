@@ -39,6 +39,9 @@ DispatcherScripts = NodeGraphCanvas.tcl PrintDialog.tcl TrackGraph.tcl \
 DispatcherImages  = banner.gif search.gif load.gif largePrinter.gif \
 		    largeImage.gif 
 
+DispatcherControlIcons = Block.xpm SwitchMotor.xpm Signal.xpm Sensor.xpm \
+			 Control.xpm
+
 ExampleScripts = example1.tcl example2.tcl example3.tcl example4.tcl \
 		 example1.iow example2.iow example3.iow example4.iow
 
@@ -139,9 +142,9 @@ OpenLCBDependFiles  = $(OpenLCBSupportFiles)
 CodeLibraryFiles = cmriCode.tcl panelCode.tcl userCodeModules.tcl \
 		OpenLCBCode.tcl
 EXTRA_DIST  = Dispatcher.src $(DispatcherScripts) $(DispatcherImages) \
-		$(CodeLibraryFiles) $(ExampleScripts) Dispatcher.png \
-		Dispatcher.desktop Doxyfile.in Block.xpm SwitchMotor.xpm \
-		Signal.xpm
+		$(CodeLibraryFiles) $(ExampleScripts) \
+		$(DispatcherControlIcons) Dispatcher.png \
+		Dispatcher.desktop Doxyfile.in 
 
 desktopdir = $(datadir)/applications
 desktop_DATA = Dispatcher.desktop
@@ -171,7 +174,7 @@ Dispatcher.pot: Dispatcher.src $(DispatcherScripts) \
 
 
 Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
-		      $(CodeLibraryFiles) \
+		      $(CodeLibraryFiles) $(DispatcherControlIcons) \
 		      $(top_builddir)/po/Dispatcher/msgfiles \
 		      $(top_builddir)/Doc/User/Dispatcher/index.html \
 		      $(CMriDependFiles)  $(AzatraxDependFiles) \
@@ -199,8 +202,7 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		lib/$(CommonLib) $(CommonLibFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) \
-		Dispatcher lib/$(CommonLib) Block.xpm SwitchMotor.xpm \
-		Signal.xpm
+		Dispatcher lib/$(CommonLib) $(DispatcherControlIcons)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit Dispatcher \
 		$(CommonLib)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \

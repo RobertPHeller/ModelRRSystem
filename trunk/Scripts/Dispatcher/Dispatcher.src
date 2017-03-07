@@ -591,6 +591,12 @@ proc Dispatcher::LoadLayout {{filename {}}} {
         TrackGraph::Signal {
           $CanvasWindow create signal $head
         }
+        TrackGraph::Sensor {
+          $CanvasWindow create sensor $head
+        }
+        TrackGraph::Control {
+          $CanvasWindow create control $head
+        }
 	default {
 	}
       }

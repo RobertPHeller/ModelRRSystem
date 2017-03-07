@@ -188,7 +188,14 @@ public:
 	  * @param nid The node to look at.
 	  */
 	float Angle(int nid) const;
-    
+        /*+ Return the on action script.
+         * @param nid The node to look at.
+         */
+        const char * OnScript(int nid) const;
+        /*+ Return the off action script.
+         * @param nid The node to look at.
+         */
+        const char * OffScript(int nid) const;
 	/*+ Return the highest node number.
 	  */
 	int LowestNode() const;
@@ -333,13 +340,15 @@ public:
 		{
 			switch (self->TypeOfNode(nid))
 			{
-				case TrackGraph::Track: return(_("TrackGraph::Track")); break;
-				case TrackGraph::Turnout: return(_("TrackGraph::Turnout")); break;
-				case TrackGraph::Turntable: return(_("TrackGraph::Turntable")); break;
-				case TrackGraph::Block: return(_("TrackGraph::Block")); break;
-                                case TrackGraph::SwitchMotor: return(_("TrackGraph::SwitchMotor")); break;
-                                case TrackGraph::Signal: return(_("TrackGraph::Signal")); break;
-				case TrackGraph::Undefined: return(_("TrackGraph::Undefined")); break;
+				case TrackGraph::Track: return("TrackGraph::Track"); break;
+				case TrackGraph::Turnout: return("TrackGraph::Turnout"); break;
+				case TrackGraph::Turntable: return("TrackGraph::Turntable"); break;
+				case TrackGraph::Block: return("TrackGraph::Block"); break;
+                                case TrackGraph::SwitchMotor: return("TrackGraph::SwitchMotor"); break;
+                                case TrackGraph::Signal: return("TrackGraph::Signal"); break;
+                                case TrackGraph::Sensor: return("TrackGraph::Sensor"); break;
+                                case TrackGraph::Control: return("TrackGraph::Control"); break;
+				case TrackGraph::Undefined: return("TrackGraph::Undefined"); break;
 			}
 			return NULL;
 		}
@@ -514,7 +523,14 @@ public:
 	  * @param nid The node to look at.
 	  */
 	float Angle(int nid) const {return trackGraph->Angle(nid);}
-        /*x**** Signal data element accessors ****x*/
+        /** Return the on action script.
+         * @param nid The node to look at.
+         */
+        const char * OnScript(int nid) const {return trackGraph->OnScript(nid);}
+        /** Return the off action script.
+         * @param nid The node to look at.
+         */
+        const char * OffScript(int nid) const {return trackGraph->OffScript(nid);}
 	/**  Returns the lowest numbered node id.
 	  */
 	int LowestNode() const {return trackGraph->LowestNode();}
