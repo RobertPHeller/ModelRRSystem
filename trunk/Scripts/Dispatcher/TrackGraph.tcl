@@ -434,17 +434,9 @@ namespace eval TrackGraph {
                }
            }
        }           
-       variable oldfocus {}
-       variable oldgrab {}
-       variable oldgrabstatus {}
        method draw {args} {
            $self configurelist $args
            wm deiconify $win
-           set oldfocus [focus]
-           focus $win
-           set oldgrab [grab current $win]
-           if {$oldgrab ne {}} {set oldgrabstatus [grab status $oldgrab]}
-           grab set $win
            # populate list
            $controllist delete [$controllist items]
            foreach b {view extractselected extractall extractblocks 
@@ -733,17 +725,6 @@ namespace eval TrackGraph {
            return [string compare [$a TypeOfNode] [$b TypeOfNode]]
        }
        method close {} {
-           grab release $win
-           if {$oldgrab ne {}} {
-               if {$oldgrabstatus eq "global"} {
-                   grab set -global $oldgrab
-               } else {
-                   grab set $oldgrab
-               }
-           }
-           if {$oldfocus ne {}} {
-               focus $oldfocus
-           }
            wm withdraw $win
        }
    }
