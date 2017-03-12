@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <161023.1121>
+#  Last Modified : <170312.1458>
 #
 #  Description	
 #
@@ -121,13 +121,20 @@ namespace eval lcc {
         variable statusline
         ## Status variable.
         
+        typecomponent editContextMenu
+        
         typevariable _menu {
             "[_m {Menu|&File}]" {file:menu} {file} 0 {
                 {command [_m "Menu|File|&Close"] {file:close} "[_ {Close the editor}]" {Ctrl c} -command "[mymethod _close]"}
             } "[_m {Menu|&Edit}]" {edit} {edit} 0 {
-                {command "[_m {Menu|Edit|Cu&t}]" {edit:cut edit:havesel} "[_ {Cut selection to the paste buffer}]" {Ctrl x} -command {StdMenuBar EditCut}}
-                {command "[_m {Menu|Edit|&Copy}]" {edit:copy edit:havesel} "[_ {Copy selection to the paste buffer}]" {Ctrl c} -command {StdMenuBar EditCopy}}
-                {command "[_m {Menu|Edit|C&lear}]" {edit:clear edit:havesel} "[_ {Clear selection}]" {} -command {StdMenuBar EditClear}}
+                {command "[_m {Menu|Edit|Cu&t}]" {edit:cut edit:havesel} "[_ {Cut selection to the paste buffer}]" {Ctrl x} -command {StdMenuBar EditCut} -state disabled}
+                {command "[_m {Menu|Edit|&Copy}]" {edit:copy edit:havesel} "[_ {Copy selection to the paste buffer}]" {Ctrl c} -command {StdMenuBar EditCopy} -state disabled}
+                {command "[_m {Menu|Edit|&Paste}]" {edit:paste} "[_ {Paste selection from the paste buffer}]" {Ctrl c} -command {StdMenuBar EditPaste}}
+                {command "[_m {Menu|Edit|C&lear}]" {edit:clear edit:havesel} "[_ {Clear selection}]" {} -command {StdMenuBar EditClear} -state disabled}
+                {command "[_m {Menu|Edit|&Delete}]" {edit:delete edit:havesel} "[_ {Delete selection}]" {Ctrl d}  -command {StdMenuBar EditClear} -state disabled}
+                {separator}
+                {command "[_m {Menu|Edit|Select All}]" {edit:selectall} "[_ {Select everything}]" {} -command {StdMenuBar EditSelectAll}}
+                {command "[_m {Menu|Edit|De-select All}]" {edit:deselectall edit:havesel} "[_ {Select nothing}]" {} -command {StdMenuBar EditSelectNone} -state disabled}
             }
         }
         ## Generic menu.
@@ -205,6 +212,14 @@ namespace eval lcc {
             set address 0
             $self _processXMLnode $cdi [$editframe getframe] -1 address
             # $self _processXMLnode $cdi [$main getframe] -1 address
+            [$main getmenu edit] configure -postcommand [mymethod edit_checksel]
+        }
+        method edit_checksel {} {
+            if {[catch {selection get}]} {
+                $main setmenustate edit:havesel disabled
+            } else {
+                $main setmenustate edit:havesel normal
+            }
         }
         typevariable idheaders -array {}
         ## @privatesection Locale versions of the identification headers.
@@ -214,6 +229,11 @@ namespace eval lcc {
             set idheaders(model) [_m "Label|Model"]
             set idheaders(hardwareVersion) [_m "Label|Hardware Version"]
             set idheaders(softwareVersion) [_m "Label|Software Version"]
+            set editContextMenu [StdEditContextMenu .editContextMenu]
+            $editContextMenu bind Entry
+            $editContextMenu bind TEntry
+            $editContextMenu bind Text
+            $editContextMenu bind ROText
         }
         variable _readall -array {}
         ## Holds all of the Read buttons for each segment.  This allows for

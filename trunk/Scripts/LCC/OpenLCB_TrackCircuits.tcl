@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <161012.1426>
+#  Last Modified : <170312.1513>
 #
 #  Description	
 #
@@ -474,6 +474,7 @@ snit::type OpenLCB_TrackCircuits {
     typevariable  alltracks [list];#  All tracks
     typevariable  eventsconsumed {};# Events consumed.
     typevariable  eventsproduced {};# Events produced.
+    typecomponent editContextMenu
     
     typeconstructor {
         #** @brief Global static initialization.
@@ -815,9 +816,14 @@ snit::type OpenLCB_TrackCircuits {
             {command "[_m {Menu|File|&Save and Exit}]" {file:saveexit} "[_ {Save and exit}]" {Ctrl s} -command "[mytypemethod _saveexit]"}
             {command "[_m {Menu|File|&Exit}]" {file:exit} "[_ {Exit}]" {Ctrl q} -command "[mytypemethod _exit]"}
         } "[_m {Menu|&Edit}]" {edit} {edit} 0 {
-            {command "[_m {Menu|Edit|Cu&t}]" {edit:cut edit:havesel} "[_ {Cut selection to the paste buffer}]" {Ctrl x} -command {StdMenuBar EditCut}}
-            {command "[_m {Menu|Edit|&Copy}]" {edit:copy edit:havesel} "[_ {Copy selection to the paste buffer}]" {Ctrl c} -command {StdMenuBar EditCopy}}
-            {command "[_m {Menu|Edit|C&lear}]" {edit:clear edit:havesel} "[_ {Clear selection}]" {} -command {StdMenuBar EditClear}}
+            {command "[_m {Menu|Edit|Cu&t}]" {edit:cut edit:havesel} "[_ {Cut selection to the paste buffer}]" {Ctrl x} -command {StdMenuBar EditCut} -state disabled}
+            {command "[_m {Menu|Edit|&Copy}]" {edit:copy edit:havesel} "[_ {Copy selection to the paste buffer}]" {Ctrl c} -command {StdMenuBar EditCopy} -state disabled}
+            {command "[_m {Menu|Edit|&Paste}]" {edit:paste} "[_ {Paste selection from the paste buffer}]" {Ctrl c} -command {StdMenuBar EditPaste}}
+            {command "[_m {Menu|Edit|C&lear}]" {edit:clear edit:havesel} "[_ {Clear selection}]" {} -command {StdMenuBar EditClear} -state disabled}
+            {command "[_m {Menu|Edit|&Delete}]" {edit:delete edit:havesel} "[_ {Delete selection}]" {Ctrl d}  -command {StdMenuBar EditClear} -state disabled}
+            {separator}
+            {command "[_m {Menu|Edit|Select All}]" {edit:selectall} "[_ {Select everything}]" {} -command {StdMenuBar EditSelectAll}}
+            {command "[_m {Menu|Edit|De-select All}]" {edit:deselectall edit:havesel} "[_ {Select nothing}]" {} -command {StdMenuBar EditSelectNone} -state disabled}
         } "[_m {Menu|&Help}]" {help} {help} 0 {
             {command "[_m {Menu|Help|On &Help...}]" {help:help} "[_ {Help on help}]" {} -command {HTMLHelp help Help}}
             {command "[_m {Menu|Help|On &Version}]" {help:help} "[_ {Version}]" {} -command {HTMLHelp help Version}}
@@ -827,6 +833,13 @@ snit::type OpenLCB_TrackCircuits {
         }
     }
     
+    typemethod edit_checksel {} {
+        if {[catch {selection get}]} {
+            $main setmenustate edit:havesel disabled
+        } else {
+            $main setmenustate edit:havesel normal
+        }
+    }
     # Default (empty) XML Configuration.
     typevariable default_confXML {<?xml version='1.0'?><OpenLCB_TrackCircuits/>}
     typemethod ConfiguratorGUI {conffile} {
@@ -852,6 +865,12 @@ snit::type OpenLCB_TrackCircuits {
                                                             [info script]]]] Help]
         HTMLHelp setDefaults "$HelpDir" "index.html#toc"
         
+        set editContextMenu [StdEditContextMenu .editContextMenu]
+        $editContextMenu bind Entry
+        $editContextMenu bind TEntry
+        $editContextMenu bind Text
+        $editContextMenu bind ROText
+        
         set conffilename $conffile
         set confXML $default_confXML
         if {![catch {open $conffile r} conffp]} {
@@ -873,6 +892,7 @@ snit::type OpenLCB_TrackCircuits {
         set main [MainFrame .main -menu [subst $_menu] \
                   -textvariable [mytypevar status]]
         pack $main -expand yes -fill both
+        [$main getmenu edit] configure -postcommand [mytypemethod edit_checksel]
         set f [$main getframe]
         set scroll [ScrolledWindow $f.scroll -scrollbar vertical \
                     -auto vertical]
