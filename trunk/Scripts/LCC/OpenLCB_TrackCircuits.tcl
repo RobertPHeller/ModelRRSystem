@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <170312.1513>
+#  Last Modified : <170312.1642>
 #
 #  Description	
 #
@@ -870,6 +870,7 @@ snit::type OpenLCB_TrackCircuits {
         $editContextMenu bind TEntry
         $editContextMenu bind Text
         $editContextMenu bind ROText
+        $editContextMenu bind Spinbox
         
         set conffilename $conffile
         set confXML $default_confXML

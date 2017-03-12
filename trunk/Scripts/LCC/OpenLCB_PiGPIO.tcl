@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 7 10:36:33 2016
-#  Last Modified : <170312.1508>
+#  Last Modified : <170312.1644>
 #
 #  Description	
 #
@@ -569,6 +569,7 @@ snit::type OpenLCB_PiGPIO {
         $editContextMenu bind TEntry
         $editContextMenu bind Text
         $editContextMenu bind ROText
+        $editContextMenu bind Spinbox
         
         set conffilename $conffile
         set confXML $default_confXML
