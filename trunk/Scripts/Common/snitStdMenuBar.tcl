@@ -104,13 +104,13 @@ snit::type StdMenuBar {
       lappend _std_edit_menu_cs \
             [list command [_m "Menu|Edit|C&lear"] {edit:clear edit:havesel} [_ "Clear selection"] {} -command [mytypemethod EditClear]]
       lappend _std_edit_menu_cs \
-            [list command [_m "Menu|Edit|&Delete"] {edit:delete edit:havesel} [_ "Delete selection"] {Ctrl d}]
+            [list command [_m "Menu|Edit|&Delete"] {edit:delete edit:havesel} [_ "Delete selection"] {Ctrl d} -command [mytypemethod EditClear]]
       lappend _std_edit_menu_cs \
             [list separator]
       lappend _std_edit_menu_cs \
-            [list command [_m "Menu|Edit|Select All"] {edit:selectall} [_ "Select everything"] {}]
+            [list command [_m "Menu|Edit|Select All"] {edit:selectall} [_ "Select everything"] {} -command [mytypemethod EditSelectAll]]
       lappend _std_edit_menu_cs \
-            [list command [_m "Menu|Edit|De-select All"] {edit:deselectall edit:havesel} [_ "Select nothing"] {}]
+            [list command [_m "Menu|Edit|De-select All"] {edit:deselectall edit:havesel} [_ "Select nothing"] {} -command [mytypemethod EditSelectNone]]
       lappend _std_edit_menu $_std_edit_menu_cs
       set _std_view_menu [list [_m "Menu|&View"] {view} {view} 0 {}]
       set _std_options_menu [list [_m "Menu|&Options"] {options} {options} 0 {}]
@@ -212,6 +212,296 @@ typemethod EditClear {} {
   if {[string equal "$f" {}]} {return}
   catch "event generate $f <<Clear>>"
 }
+typemethod EditSelectAll {} {
+    # Handle the Select All item on the Edit menu.
+    # [index] StdMenuBar::EditSelectAll!procedure
+    
+    set f "[::focus]"
+    #puts stderr "*** $type EditSelectAll: f is $f"
+    if {[string equal "$f" {}]} {return}
+    catch {
+        switch [winfo class $f] {
+            Entry -
+            TEntry {
+                $f selection range 0 end
+            }
+            Text {
+                $f tag add sel 1.0 end
+            }
+        }
+    }
+}
+typemethod EditSelectNone {} {
+    # Handle the Select None item on the Edit menu.
+    # [index] StdMenuBar::EditSelectNone!procedure
+    
+    set f "[::focus]"
+    #puts stderr "*** $type EditSelectNone: f is $f"
+    if {[string equal "$f" {}]} {return}
+    switch [winfo class $f] {
+        Entry -
+        TEntry {
+            $f selection clear
+        }
+        Text {
+            $f tag remove sel 1.0 end
+        }
+    }
+}
+
+}
+
+
+snit::widgetadaptor StdEditContextMenu {
+    method bind {tag} {
+        bind $tag <3> [mymethod _postEditMenu %W %X %Y]
+    }
+    variable top {}
+    variable tags -array {}
+    variable tagstate -array {}
+    variable menutags -array {}
+    delegate method * to hull except {unpost add entrycget entryconfigure}
+    typevariable _editmenu {
+        {command "[_m {Menu|Edit|Cu&t}]" {edit:cut edit:havesel} "[_ {Cut selection to the paste buffer}]" {Ctrl x} -command {StdMenuBar EditCut} -state disabled}
+        {command "[_m {Menu|Edit|&Copy}]" {edit:copy edit:havesel} "[_ {Copy selection to the paste buffer}]" {Ctrl c} -command {StdMenuBar EditCopy} -state disabled}
+        {command "[_m {Menu|Edit|&Paste}]" {edit:paste} "[_ {Paste selection from the paste buffer}]" {Ctrl c} -command {StdMenuBar EditPaste} -state disabled}
+        {command "[_m {Menu|Edit|C&lear}]" {edit:clear edit:havesel} "[_ {Clear selection}]" {} -command {StdMenuBar EditClear} -state disabled}
+        {command "[_m {Menu|Edit|&Delete}]" {edit:delete edit:havesel} "[_ {Delete selection}]" {Ctrl d}  -command {StdMenuBar EditClear} -state disabled}
+        {separator}
+        {command "[_m {Menu|Edit|Select All}]" {edit:selectall} "[_ {Select everything}]" {} -command {StdMenuBar EditSelectAll}}
+        {command "[_m {Menu|Edit|De-select All}]" {edit:deselectall edit:havesel} "[_ {Select nothing}]" {} -command {StdMenuBar EditSelectNone} -state disabled}
+    }
+    constructor {args} {
+        set menuitems [subst $_editmenu]
+        installhull using menu -tearoff no \
+              -postcommand [mymethod _postcommand]              
+        set top [winfo parent $win]
+        $self _create_entries $hull $menuitems
+        #$self configurelist $args
+    }
+    method setmenustate { tag state } {
+        # We need a more sophisticated state system.
+        # The original model was this:  each menu item has a list of tags;
+        # whenever any one of those tags changed state, the menu item did too.
+        # This makes it hard to have items that are enabled only when both tagA and
+        # tagB are.  The new model therefore only sets the menustate to enabled
+        # when ALL of its tags are enabled.
+        
+        # First see if this is a real tag
+        if { [info exists tagstate($tag)] } {
+            if { ![string equal $state "disabled"] } {
+                set tagstate($tag) 1
+            } else {
+                set tagstate($tag) 0
+            }
+            foreach {menu entry} $tags($tag) {
+                set expression "1"
+                foreach menutag $menutags([list $menu $entry]) {
+                    append expression " && $tagstate($menutag)"
+                }
+                if { [expr $expression] } {
+                    set state normal
+                } else {
+                    set state disabled
+                }
+                $menu entryconfigure $entry -state $state
+            }
+        }
+        return
+    }
+    method _create_entries {menu entries } {
+        #puts stderr "*** _create_entries $menu $entries"
+        set count      [$menu cget -tearoff]
+        set registered 0
+        foreach entry $entries {
+            #puts stderr "*** _create_entries: entry = {$entry}"
+            set len  [llength $entry]
+            #puts stderr "*** _create_entries: len = $len"
+            set _type [lindex $entry 0]
+            #puts stderr "*** _create_entries: _type = $_type"
+            if { [string equal $_type "separator"] } {
+                $menu add separator
+                incr count
+                continue
+            }
+            # entry name and tags
+            set opt  [_parse_name [lindex $entry 1]]
+            #puts stderr "*** _create_entries: opt = $opt"
+            set _tags [lindex $entry 2]
+            #puts stderr "*** _create_entries: _tags = $_tags"
+            foreach tag $_tags {
+                lappend tags($tag) $menu $count
+                # ericm@scriptics:  Add a tagstate tracker
+                if { ![info exists tagstate($tag)] } {
+                    set tagstate($tag) 1
+                }
+            }
+            # ericm@scriptics:  Add mapping from menu items to tags
+            set menutags([list $menu $count]) $_tags
+            if {[string equal $_type "cascade"] || [string equal $_type "cascad"]} {
+                set _menuid  [lindex $entry 3]
+                set tearoff [lindex $entry 4]
+                set submenu $menu.menu$count
+                if {$len > 6} {
+                    set cascadeopts [lrange $entry 5 end-1]
+                } else {
+                    set cascadeopts {}
+                }
+                eval [list $menu add cascade] $opt [list -menu $submenu] $cascadeopts
+                eval [list menu $submenu -tearoff $tearoff]
+                if { [string length $_menuid] } {
+                    # menu has identifier
+                    set menuid($_menuid) $submenu
+                }
+                $self _create_entries $submenu [lindex $entry end]
+                incr count
+                continue
+            }
+            
+            # entry help description
+            set desc [lindex $entry 3]
+            #puts stderr "*** $self _create_entries: desc = $desc"
+            if { [string length $desc] } {
+                #if { !$registered } {
+                #    DynamicHelp register $menu menu $options(-textvariable)
+                #    set registered 1
+                #}
+                DynamicHelp register $menu menuentry $count $desc
+            }
+
+            # entry accelerator
+            #puts stderr "*** $self _create_entries: \[lindex \$entry 4\] = {[lindex $entry 4]}"
+            set accel [_parse_accelerator [lindex $entry 4]]
+            #puts stderr "*** $self _create_entries: accel = \{$accel\}"
+            if { [llength $accel] } {
+                lappend opt -accelerator [lindex $accel 0]
+                bind $top [lindex $accel 1] [list $menu invoke $count]
+            }
+
+            # user options
+            set useropt [lrange $entry 5 end]
+            if { [string equal $_type "command"] ||
+                [string equal $_type "radiobutton"] ||
+                [string equal $_type "checkbutton"] } {
+                eval [list $menu add $_type] $opt $useropt
+            } else {
+                return -code error "invalid menu type \"$_type\""
+            }
+            incr count
+        }
+    }
+    
+    proc _parse_name {menuname} {
+        set idx [string first "&" $menuname]
+        if { $idx == -1 } {
+            return [list -label $menuname]
+        } else {
+            set beg [string range $menuname 0 [expr {$idx-1}]]
+            set end [string range $menuname [expr {$idx+1}] end]
+            append beg $end
+            return [list -label $beg -underline $idx]
+        }
+    }
+    proc _parse_accelerator { desc } {
+        if { [llength $desc] == 1 } {
+            set seq None
+            set key [string tolower [lindex $desc 0]]
+            # If the key is an F key (ie, F1, F2, etc), it has to be capitalized
+            if {[regexp {^f([1-9]|([12][0-9]|3[0-5]))$} $key]} {
+                set key [string toupper $key]
+            }
+        } elseif { [llength $desc] == 2 } {
+            set seq [lindex $desc 0]
+            set key [string tolower [lindex $desc 1]]
+            # If the key is an F key (ie, F1, F2, etc), it has to be capitalized
+            if {[regexp {^f([1-9]|([12][0-9]|3[0-5]))$} $key]} {
+                set key [string toupper $key]
+            }
+        } else {
+            return {}
+        }
+        switch -- $seq {
+            None {
+                set accel "[string toupper $key]"
+                set event "<Key-$key>"
+            }
+            Ctrl {
+                set accel "Ctrl+[string toupper $key]"
+                set event "<Control-Key-$key>"
+            }
+            Alt {
+                set accel "Alt+[string toupper $key]"
+                set event "<Alt-Key-$key>"
+            }
+            CtrlAlt {
+                set accel "Ctrl+Alt+[string toupper $key]"
+                set event "<Control-Alt-Key-$key>"
+            }
+            default {
+                return -code error "invalid accelerator code $seq"
+            }
+        }
+        return [list $accel $event]
+    }
+    method _postEditMenu {w XX YY} {
+        focus $w
+        #puts stderr "$self _postEditMenu: \[winfo class $w\] is [winfo class $w]"
+        
+        if {[catch {selection get}]} {
+            set selectionavailable no
+        } else {
+            set selectionavailable yes
+        }
+        #puts stderr "$self _postEditMenu: selectionavailable is $selectionavailable"
+        switch [winfo class $w] {
+            Entry -
+            TEntry {
+                if {[$w selection present]} {
+                    $self setmenustate edit:havesel normal
+                } else {
+                    $self setmenustate edit:havesel disabled
+                }
+                #puts stderr "$self _postEditMenu: \[$w cget -state\] is [$w cget -state]"
+                if {[$w cget -state] eq "normal" && $selectionavailable} {
+                    $self setmenustate edit:paste normal
+                } else {
+                    $self setmenustate edit:paste disabled
+                }
+            }
+            Text {
+                if {[$w tag ranges sel] ne {}} {
+                    $self setmenustate edit:havesel normal
+                } else {
+                    $self setmenustate edit:havesel disabled
+                }
+                if {[lsearch -exact [bindtags $w] "ROText"] < 0 && $selectionavailable} {
+                    $self setmenustate edit:paste normal
+                } else {
+                    $self setmenustate edit:paste disabled
+                }
+            }
+        }
+        $hull post $XX $YY
+    }
+    variable oldgrab
+    variable oldgrabstate
+    method _postcommand {} {
+        set oldgrab [grab current]
+        if {$oldgrab ne {}} {
+            set oldgrabstate [grab status $oldgrab]
+        }
+        grab release $oldgrab
+    }
+    method unpost {} {
+        if {$oldgrab ne {}} {
+            switch $oldgrabstate {
+                local {grab $oldgrab}
+                global {grab -global $oldgrab}
+            }
+        }
+        $hull unpost
+    }
+    
 }
 
 

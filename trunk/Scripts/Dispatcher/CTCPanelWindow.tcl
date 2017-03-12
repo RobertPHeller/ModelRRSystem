@@ -200,13 +200,14 @@ namespace eval CTCPanelWindow {
     typevariable _editmenu {
         "[_m {Menu|&Edit}]" {edit} {edit} 0 {
             {command "[_m {Menu|Edit|&Undo}]" {edit:undo} "[_ {Undo last change}]" {Ctrl z}}
-            {command "[_m {Menu|Edit|Cu&t}]" {edit:cut edit:havesel} "[_ {Cut selection to the paste buffer}]" {Ctrl x} -command {StdMenuBar EditCut}}
-            {command "[_m {Menu|Edit|&Copy}]" {edit:copy edit:havesel} "[_ {Copy selection to the paste buffer}]" {Ctrl c} -command {StdMenuBar EditCopy}}
-            {command "[_m {Menu|Edit|C&lear}]" {edit:clear edit:havesel} "[_ {Clear selection}]" {} -command {StdMenuBar EditClear}}
-            {command "[_m {Menu|Edit|&Delete}]" {edit:delete edit:havesel} "[_ {Delete selection}]" {Ctrl d}}
+            {command "[_m {Menu|Edit|Cu&t}]" {edit:cut edit:havesel} "[_ {Cut selection to the paste buffer}]" {Ctrl x} -command {StdMenuBar EditCut} -state disabled}
+            {command "[_m {Menu|Edit|&Copy}]" {edit:copy edit:havesel} "[_ {Copy selection to the paste buffer}]" {Ctrl c} -command {StdMenuBar EditCopy} -state disabled}
+            {command "[_m {Menu|Edit|&Paste}]" {edit:paste} "[_ {Paste selection from the paste buffer}]" {Ctrl c} -command {StdMenuBar EditPaste} -state disabled}
+            {command "[_m {Menu|Edit|C&lear}]" {edit:clear edit:havesel} "[_ {Clear selection}]" {} -command {StdMenuBar EditClear} -state disabled}
+            {command "[_m {Menu|Edit|&Delete}]" {edit:delete edit:havesel} "[_ {Delete selection}]" {Ctrl d}  -command {StdMenuBar EditClear} -state disabled}
             {separator}
-            {command "[_m {Menu|Edit|Select All}]" {edit:selectall} "[_ {Select everything}]" {}}
-            {command "[_m {Menu|Edit|De-select All}]" {edit:deselectall edit:havesel} "[_ {Select nothing}]" {}}
+            {command "[_m {Menu|Edit|Select All}]" {edit:selectall} "[_ {Select everything}]" {} -command {StdMenuBar EditSelectAll}}
+            {command "[_m {Menu|Edit|De-select All}]" {edit:deselectall edit:havesel} "[_ {Select nothing}]" {} -command {StdMenuBar EditSelectNone} -state disabled}
             {separator}
             {command "[_m {Menu|Edit|(Re-)Generate Main Loop}]" {edit:mainloop edit:simplemode} {} {} -command "[mymethod GenerateMainLoop]" -state $editstate}
             {command "[_m {Menu|Edit|User Code}]" {edit:usercode edit:simplemode} {} {} -command "[mymethod EditUserCode]" -state $editstate}
@@ -345,8 +346,8 @@ namespace eval CTCPanelWindow {
       $zoomMenu add command -label {1:4} -command "$ctcpanel setZoom .25"
       $zoomMenu add command -label {1:8} -command "$ctcpanel setZoom .125"
       $zoomMenu add command -label {1:16} -command "$ctcpanel setZoom .0625"
-
-
+      
+      [$main mainframe getmenu edit] configure -postcommand [mymethod edit_checksel]
       $main showit
       set OpenWindows($options(-name)) $win
       Dispatcher::AddToWindows $win "$options(-name)"
@@ -355,6 +356,13 @@ namespace eval CTCPanelWindow {
 	$self AddModule SimpleMode
 	$self GenerateMainLoop
       }
+    }
+    method edit_checksel {} {
+        if {[catch {selection get}]} {
+            $main mainframe setmenustate edit:havesel disabled
+        } else {
+            $main mainframe setmenustate edit:havesel normal
+        }
     }
     destructor {
         #puts stderr "*** $self destroy: win = $win, array names OpenWindows = [array names OpenWindows]"
@@ -1083,7 +1091,9 @@ namespace eval CTCPanelWindow {
 
     typecomponent selectPanelDialog
     typecomponent   selectPanel_nameLCB
-
+    
+    typecomponent editContextMenu
+    
     typeconstructor {
         #puts stderr "*** $type constructor: \[info script\] = [info script]"
       set CodeLibraryDir [file join [file dirname \
@@ -1096,7 +1106,15 @@ namespace eval CTCPanelWindow {
       set imageIcon [image create photo \
 			-file [file join $::ImageDir largeImage.gif]]
       set _exportdialog {}
+      set editContextMenu [StdEditContextMenu .editContextMenu]
+      $editContextMenu bind Entry
+      $editContextMenu bind TEntry
+      $editContextMenu bind Text
+      $editContextMenu bind ROText
+      
     }
+                
+                
     typemethod createnewDialog {} {
       if {![string equal "$newDialog" {}] && [winfo exists $newDialog]} {return}
       set newDialog [Dialog .newCTCPanelWindowDialog \
