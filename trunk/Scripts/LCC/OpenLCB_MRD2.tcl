@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <170312.1510>
+#  Last Modified : <170312.1643>
 #
 #  Description	
 #
@@ -476,6 +476,7 @@ snit::type OpenLCB_MRD2 {
         $editContextMenu bind TEntry
         $editContextMenu bind Text
         $editContextMenu bind ROText
+        $editContextMenu bind Spinbox
         
         set conffilename $conffile
         set confXML $default_confXML

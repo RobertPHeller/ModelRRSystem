@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <170312.1458>
+#  Last Modified : <170312.1645>
 #
 #  Description	
 #
@@ -234,6 +234,7 @@ namespace eval lcc {
             $editContextMenu bind TEntry
             $editContextMenu bind Text
             $editContextMenu bind ROText
+            $editContextMenu bind Spinbox
         }
         variable _readall -array {}
         ## Holds all of the Read buttons for each segment.  This allows for

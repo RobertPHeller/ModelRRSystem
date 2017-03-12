@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 17 07:55:13 2016
-#  Last Modified : <170312.1459>
+#  Last Modified : <170312.1644>
 #
 #  Description	
 #
@@ -809,6 +809,7 @@ snit::type OpenLCB_Acela {
         $editContextMenu bind TEntry
         $editContextMenu bind Text
         $editContextMenu bind ROText
+        $editContextMenu bind Spinbox
         
         set conffilename $conffile
         set confXML $default_confXML

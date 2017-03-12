@@ -1111,6 +1111,7 @@ namespace eval CTCPanelWindow {
       $editContextMenu bind TEntry
       $editContextMenu bind Text
       $editContextMenu bind ROText
+      $editContextMenu bind Spinbox
       
     }
                 

@@ -221,6 +221,7 @@ typemethod EditSelectAll {} {
     if {[string equal "$f" {}]} {return}
     catch {
         switch [winfo class $f] {
+            Spinbox -
             Entry -
             TEntry {
                 $f selection range 0 end
@@ -239,6 +240,7 @@ typemethod EditSelectNone {} {
     #puts stderr "*** $type EditSelectNone: f is $f"
     if {[string equal "$f" {}]} {return}
     switch [winfo class $f] {
+        Spinbox -
         Entry -
         TEntry {
             $f selection clear
@@ -454,6 +456,7 @@ snit::widgetadaptor StdEditContextMenu {
         }
         #puts stderr "$self _postEditMenu: selectionavailable is $selectionavailable"
         switch [winfo class $w] {
+            Spinbox -
             Entry -
             TEntry {
                 if {[$w selection present]} {
