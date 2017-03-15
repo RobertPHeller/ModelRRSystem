@@ -208,7 +208,24 @@ USERMAN_DISPATCHER_FIGS = DISPNewCTCPanel.png DISPNewCTCPanelSmall.png \
 	DISPMainGUISmall.png DISPEmptyCTCPanelSmall.png \
 	DISPAddEditPanelObjectSmall.png DISPEditUserCodeSmall.png \
 	DISPExample1Small.png DISPExample2Small.png DISPExample3Small.png \
-	DISPExample4Small.png
+	DISPExample4Small.png Dispatcher_PassingSidingXtrkCAD.png \
+	Dispatcher_PassingSidingLCEManager.png \
+	Dispatcher_PassingSidingGraph.png \
+	Dispatcher_PassingSidingNewCTCPanelDialog.png \
+	Dispatcher_PassingSidingNewCTCPanelDialogUpd.png \
+	Dispatcher_PassingSidingCTCPanelEmpty.png \
+	Dispatcher_PassingSidingContextMenu.png \
+	Dispatcher_PassingSidingSegment1Initial.png \
+	Dispatcher_PassingSidingSegment1Updated.png \
+	Dispatcher_PassingSidingSegment3Initial.png \
+	Dispatcher_PassingSidingSegment3Updated.png \
+	Dispatcher_PassingSidingSwitchPlate.png \
+	Dispatcher_PassingSidingCTCPanel.png \
+	Dispatcher_PassingSidingCP1EInitial.png \
+	Dispatcher_PassingSidingCP1EUpdated.png \
+	Dispatcher_PassingSidingCTCPanelWSignal.png \
+	Dispatcher_PassingSidingCTCPanelCompleteBeforeSigPlates.png \
+	Dispatcher_PassingSidingCTCPanelComplete.png
 USERMAN_DISPATCHER_DEPS = $(srcdir)/../../Scripts/Dispatcher/example*.tcl \
 			  $(srcdir)/../../Scripts/Dispatcher/example*.iow
 DOXYFILES += Doxyfile.$(DISPATCHER).in

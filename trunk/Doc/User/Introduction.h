@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 15:31:29 2014
-//  Last Modified : <150724.1630>
+//  Last Modified : <170315.1147>
 //
 //  Description	
 //
@@ -34,16 +34,23 @@
 /** @page Introduction Introduction
  * @section org How this manual is organized.
  *
- * This manual is broken up into "parts", one for each "main program".
+ * This manual is broken up into chapters, one or two for each "main program".
  * @latexonly
  * \footnote{The various programming libraries are described in the programming
  * guides\cite{progguide}.} 
  * @endlatexonly
- * Each part contains two or more chapters, a tutorial chapter and one or 
- * more reference chapters.  These parts are:
+ * These chapters are:
  *   - Chapter @ref univtest documents the Universal Test program. This
  *     program is part of the CMR/I (Chubb) library and is used to test CMR/I
  *     nodes.
+ *   - Chapter @ref openlcb documents the OpenLCB program.  This program 
+ *     implements a dianostic program for LCC networks, and includes an
+ *     event logger, event injector, and memory configuration tools (both raw
+ *     hex and CDI).
+ *   - Chapter @ref openlcbdaemons documents the OpenLCB daemon programs. This
+ *     includes both the Hub Daemons and the Virtual Node Daemons.  The Hub 
+ *     Daemons implement virtual networks over Tcp/Ip.  The Virtual Node 
+ *     Daemons implement LCC nodes as processes running on a host computer.
  *   - Chapter @ref azatrax documents the Azatrax Test programs. These programs
  *     are part of the Azatrax library are are used to test Azatrax USB modules
  *   - Chapter @ref xpressnetthrot documents the XPressNet Throttle program.
@@ -72,6 +79,20 @@
  *     computers.
  *   - Chapter @ref raildriverd documents the daemon program for the 
  *     RailDriver control stand console.
+ *   - Chapter @ref OpenLCBTcpHub documents the daemon program for the binary
+ *     OpenLCB over Tcp Hub.
+ *   - Chapter @ref OpenLCBGCTcpHub documents the daemon program for the 
+ *     OpenLCB GridConnect over Tcp Hub.
+ *   - Chapter @ref OpenLCB_MRD2 documents the daemon program for the OpenLCB
+ *     interface to the Azatrax MRD2 USB connected IR detectors.
+ *   - Chapter @ref OpenLCB_PiGPIO documents the daemon program for the OpenLCB
+ *     interface to the Raspberry PI's GPIO pins.
+ *   - Chapter @ref OpenLCB_TrackCircuits documents the daemon program for the
+ *     OpenLCB Virtual Track Circuits.
+ *   - Chapter @ref OpenLCB_Logic documents the daemon program for the 
+ *     OpenLCB Logic module.
+ *   - Chapter @ref OpenLCB_Acela documents the daemon program for the CTI
+ *     Acela.
  */
 
 #endif // __INTRODUCTION_H
