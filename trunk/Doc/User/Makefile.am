@@ -224,8 +224,8 @@ USERMAN_DISPATCHER_FIGS = DISPNewCTCPanel.png DISPNewCTCPanelSmall.png \
 	Dispatcher_PassingSidingCP1EInitial.png \
 	Dispatcher_PassingSidingCP1EUpdated.png \
 	Dispatcher_PassingSidingCTCPanelWSignal.png \
-	Dispatcher_PassingSidingCompleteBeforeSigPlates.png \
-	Dispatcher_PassingSidingComplete.png
+	Dispatcher_PassingSidingCTCPanelCompleteBeforeSigPlates.png \
+	Dispatcher_PassingSidingCTCPanelComplete.png
 USERMAN_DISPATCHER_DEPS = $(srcdir)/../../Scripts/Dispatcher/example*.tcl \
 			  $(srcdir)/../../Scripts/Dispatcher/example*.iow
 DOXYFILES += Doxyfile.$(DISPATCHER).in

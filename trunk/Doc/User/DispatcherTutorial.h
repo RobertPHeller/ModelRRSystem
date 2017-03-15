@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:40:00 2014
-//  Last Modified : <170315.1515>
+//  Last Modified : <170315.1518>
 //
 //  Description	
 //
@@ -257,15 +257,15 @@
  * these steps.  
  * 
  * @n
- * @image latex Dispatcher_PassingSidingCompleteBeforeSigPlates.png "Panel with all elements from the layout file added." width=5in
- * @image html  Dispatcher_PassingSidingCompleteBeforeSigPlates.png
+ * @image latex Dispatcher_PassingSidingCTCPanelCompleteBeforeSigPlates.png "Panel with all elements from the layout file added." width=5in
+ * @image html  Dispatcher_PassingSidingCTCPanelCompleteBeforeSigPlates.png
  * 
  * Finally, the signal plates and code buttons can be added using the Panel 
  * menu on the CTC Panel.
  * 
  * @n
- * @image latex Dispatcher_PassingSidingComplete.png "Completed panel." width=5in
- * @image html  Dispatcher_PassingSidingComplete.png
+ * @image latex Dispatcher_PassingSidingCTCPanelComplete.png "Completed panel." width=5in
+ * @image html  Dispatcher_PassingSidingCTCPanelComplete.png
  * 
  * Now we can save the file and wrap it into a ready to run executable.
  * 
