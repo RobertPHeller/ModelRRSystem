@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:40:00 2014
-//  Last Modified : <170315.1518>
+//  Last Modified : <170315.2129>
 //
 //  Description	
 //
@@ -147,7 +147,47 @@
  * @section dispatcher_LCC_Tutorial A LCC Example
  * 
  * In this tutorial we will transfer a layout designed in XtrkCAD to a 
- * dispatcher CTC panel.  The layout is a simple passing siding on a main line.
+ * dispatcher CTC panel.  XTrkCAD implements five type of "Layout Control" 
+ * objects.  These are objects that can be manipulated and stored with a 
+ * layout file that hold layout control information (called scripts).  These 
+ * objects are:
+ *   - Blocks.  Blocks are named groupings of track that have a script that 
+ *     determines block occupency.
+ *   - Switch Motors.  Switch Motors are named objects associated with a 
+ *     turnout and have three scripts: a normal action script, a reverse 
+ *     action script, and a point sense script.  The normal action script
+ *     activates a switch machine to align the points to the normal position
+ *     (generally aligned to the main route) and the reverse action script 
+ *     activates a switch machine to align the points to the reverse position
+ *     (generally aligned to the spur route).  The point sense script returns
+ *     a value indicating the current alignment of the points (eg normal or
+ *     reverse.
+ *   - Signals.  Signals are devices that display various aspects that indicate
+ *     train movement permissions.  Signals have a location, an orientation,
+ *     a number of heads (one, two, or three), and one or more aspects, which
+ *     have a name and a script.
+ *   - Sensors.  Sensors are just single on or off state.  A sensor could be
+ *     a push button switch or some sort of device that senses something on the
+ *     layout (generally not block occupency, since that is already handled by
+ *     the block object).
+ *   - Controls.  Controls are just a single actuator or other on or off 
+ *     device (like a lamp).  Could be some trackside animation (like a log
+ *     loader or a crossing gate).
+ * 
+ * XtrkCAD imposes no partitular syntax for the scripts.  For layouts using
+ * LCC and Dispatcher, the scripts are defined as one or two LCC event numbers.
+ * A LCC event number is a 64-bit number formatted as eight pairs of 
+ * hexadecimal digits separated by periods.  For actions, it is a single event
+ * id that is consumed by the actuator (eg switch machine or signal).  For 
+ * sensors (eg block detection sensors, point sensors), it is a pair of event
+ * numbers separated by a colon.  These event numbers are produced by the 
+ * sensor for each of two states.  For blocks, the first event number is 
+ * produced when the block becomes occupied and the second event number is
+ * produced when the block becomes unoccupied.  For point sense scripts the
+ * first event is produced when the points become normal aligned and the second
+ * event is produced when the points become reverse aligned.
+ * 
+ * The layout is a simple passing siding on a main line as shown below.
  * 
  * @n
  * @image latex Dispatcher_PassingSidingXtrkCAD.png "Simple passing siding in XtrkCAD" width=5in
