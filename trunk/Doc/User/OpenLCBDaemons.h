@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Aug 14 14:40:15 2016
-//  Last Modified : <160828.1644>
+//  Last Modified : <170315.2154>
 //
 //  Description	
 //
@@ -48,8 +48,38 @@
  * These daemons provide operational OpenLCB functionallity, including
  * providing hubs and gateways for both real physical nodes and virtual nodes,
  * along with several virtual nodes.
- * 
+ *
  * @section hubs Hub Daemons
+ * 
+ * The Hub Daemons 
+ * @latexonly
+ * \footnote{In UNIX usage, a daemons is a non-interactive process running in
+ * the background, usually (but not always) presenting some sort of connection
+ * API (like a network socket) for other processes to connect to as a way of
+ * aquiring some sort of service.}
+ * @endlatexonly
+ * create a virtual "wire" that connects multiple virtual nodes.  Each node is
+ * a separately running process that has connected to the daemons network port.
+ * The hub deamon reads LCC messages from each of its connections and then 
+ * writes those messages out to one (if it is specificly addressed) or all (if 
+ * it is a broadcast message) of its connections. It does not write the 
+ * message back out to the connection the message came from.  It maintains a
+ * routing table that maps source addresses (or aliases) with source 
+ * connections.  Hub deamons are configured from their command line.  Mostly
+ * this is the address to bind the port to and the port to bind (listen on).
+ * By default the hub deamons bind only to localhost, the loopback network 
+ * device.  This means that only virtual nodes running on the local machine
+ * can connect and the resultant network is "private" and local to the local
+ * machine.  Optionally, the bind host (-host) can be set to 0.0.0.0.  This
+ * causes the daemon to bind to all available network interfaces and make 
+ * itself generally available to the whole network.
+ * @latexonly 
+ * \footnote{If the machine has a network interface that is "public facing", 
+ * this would make the daemon available on the public Internet.  You should be
+ * careful, since the LCC system provides no partitular security features.}
+ * @endlatexonly
+ * 
+ * 
  * There are two hub daemons that implement a OpenLCB network over Tcp/Ip and
  * connect CAN busses connected to different host computers connected via
  * Tcp/Ip over Ethernet.  These daemons are:
@@ -68,6 +98,7 @@
  * to a log file.
  * 
  * @section vnodes Virtual Nodes
+ *
  * There are several virtual nodes that implement OpenLCB nodes to provide
  * useful functions.  These daemons are:
  *   @li @ref OpenLCB_MRD2 The OpenLCB_MRD2 daemon implememts an OpenLCB node
