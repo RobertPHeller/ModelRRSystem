@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:42:00 2014
-//  Last Modified : <160827.1331>
+//  Last Modified : <170319.1521>
 //
 //  Description	
 //
@@ -376,6 +376,19 @@
  * the name of the track work switch.  All of the command script entries are 
  * disabled, although the generated scriptlets are shown (for the curious).
  * 
+ * Additionally, when in "OpenLCB mode", instead of scripts, various elements
+ * will have entries for LCC event ids instead.  LCC event its are 64-bit
+ * numbers, represented as 8 pairs of hexadecimal digits separated by periods.
+ * For trackwork, there are two LCC event ids used for occupency, one for the
+ * occupied event (a train enters the block) and one for the not occupied event
+ * (a train leaves the block).  For turnouts there are a pair of event ids for
+ * the point position sensor: one for the normal position and one for the 
+ * reverse position.  For control elements, there are event ids to be produced
+ * for level positions or button pushes and event ids that will be consumed to
+ * update the indications.  And for signals there is a list of aspects: the 
+ * list of colors (top to bottom) and the event id to be consumed to display 
+ * that aspect. See section @ref xtrkcadLCC for specific use with XtrackCAD.
+ * 
  * @subsubsection dispatcher_Reference_AddingEditingCMri Adding, Editing, and deleting C/Mri nodes to CTC Pane Windows
  * 
  * C/Mri nodes can be added, edited, or deleted with the @c Add,
@@ -533,6 +546,54 @@
  * @image latex DISPSelectCTCPanel.png "Select CTC Panel Dialog"
  * @image html  DISPSelectCTCPanel.png
  * 
+ * @section xtrkcadLCC Using the Dispatcher program with layouts designed in XtrkCAD
+ * 
+ * XtrackCAD includes a feature called "Layout Control Elements", where the 
+ * layout designer can include information for the layout control software (eg
+ * The Model Railroad System) in the layout file.  The Dispatcher includes a 
+ * parser for XtrackCAD files and can extract this information and copy it 
+ * into a CTC Panel, if it is formatted properly.  The specific elements that 
+ * the Dispatcher program can access include blocks (for occupency detection), 
+ * switchmotors (for turnout control), and signals for signal aspect display.
+ * 
+ * @subsection xtrkcadLCC_eventid LCC event id format.
+ * 
+ * A LCC event id is a 64-bit number, represented as eight pairs of hexadevimal
+ * digits (0-9, a-f/A-F) separated by periods (.). Each pair represents one 8-bit
+ * byte of the event id. This event id is either produced by a sensor or logic
+ * element or is consumed by a control/device or a logic element.
+ * 
+ * @subsection xtrkcadLCC_scripts XTrackCAD "script" formats.
+ * 
+ * For blocks the occupency script contains a pair of LCC event ids, separated
+ * by a colon (:).  The first LCC event id is produced by the occupency 
+ * detector when the train enters the block and the second LCC event id is 
+ * produced by the occupency detector when the train leaves the block.
+ * 
+ * For switchmotors the point sense script contains a pair of LCC event ids, 
+ * separated by a colon (:).  The first LCC event id is produced by the point 
+ * sensor when the points are aligned in the "normal" position (typically 
+ * aligned to the main) and the second LCC event id is produced by the point 
+ * sensor when the points are aligned in the "reverse" position (typically 
+ * aligned to the spur).  The normal and reverse script each contain a single 
+ * LCC event id.  These events are produced by the CTC Panel when the control 
+ * point Code button is pressed (clicked) and are consumed by the switch motor.
+ * 
+ * For signals, the aspect name is a space separated list of the color(s) of 
+ * the signal heads from top to bottom and the aspect script is a LCC event id 
+ * that is consumed to produce that aspect. Presumably, the LCC event id is 
+ * produced by a logic element (presumably a mast group in a Tower-LCC or 
+ * similar device) or virtual track circuit in a Tower-LCC or similar device.
+ * 
+ * @subsection xtrkcadLCC_LCD Layout Controls Dialog
+ * 
+ * When an XTrackCAD has been loaded, the @c View menu item @c Layout 
+ * @c Controls becomes enabled and can be used to display all of the layout
+ * control elements loaded from the layout file.  These controls can be viewed
+ * or extracted to CSV files (suitable for importing into Excel or oocalc).
+ * 
+ * 
+ *
  */
 
 #endif // __DISPATCHERREFERENCE_H
