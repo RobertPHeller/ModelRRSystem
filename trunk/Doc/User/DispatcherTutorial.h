@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:40:00 2014
-//  Last Modified : <170315.2129>
+//  Last Modified : <170319.1542>
 //
 //  Description	
 //
@@ -146,8 +146,8 @@
  * 
  * @section dispatcher_LCC_Tutorial A LCC Example
  * 
- * In this tutorial we will transfer a layout designed in XtrkCAD to a 
- * dispatcher CTC panel.  XTrkCAD implements five type of "Layout Control" 
+ * In this tutorial we will transfer a layout designed in XtrackCAD to a 
+ * dispatcher CTC panel.  XtrackCAD implements five type of "Layout Control" 
  * objects.  These are objects that can be manipulated and stored with a 
  * layout file that hold layout control information (called scripts).  These 
  * objects are:
@@ -174,7 +174,7 @@
  *     device (like a lamp).  Could be some trackside animation (like a log
  *     loader or a crossing gate).
  * 
- * XtrkCAD imposes no partitular syntax for the scripts.  For layouts using
+ * XtrackCAD imposes no partitular syntax for the scripts.  For layouts using
  * LCC and Dispatcher, the scripts are defined as one or two LCC event numbers.
  * A LCC event number is a 64-bit number formatted as eight pairs of 
  * hexadecimal digits separated by periods.  For actions, it is a single event
@@ -190,43 +190,43 @@
  * The layout is a simple passing siding on a main line as shown below.
  * 
  * @n
- * @image latex Dispatcher_PassingSidingXtrkCAD.png "Simple passing siding in XtrkCAD" width=5in
- * @image html  Dispatcher_PassingSidingXtrkCAD.png
+ * @image latex Dispatcher_PassingSidingXtrkCAD.png "Simple passing siding in XtrackCAD" width=5in
+ * @image html  Dispatcher_PassingSidingXtrkCADSmall.png
  * 
  * We have already filled in the control elements for this layout in the 
- * XtrkCAD layout file.
+ * XtrackCAD layout file.
  * 
  * @n
  * @image latex Dispatcher_PassingSidingLCEManager.png "Passing Siding Layout control elements" width=5in
- * @image html  Dispatcher_PassingSidingLCEManager.png
+ * @image html  Dispatcher_PassingSidingLCEManagerSmall.png
  * 
- * After loading the XtrkCAD file into the Dispatcher, the dispatcher shows
+ * After loading the XtrackCAD file into the Dispatcher, the dispatcher shows
  * a graph of the layout, detailing the various track and control elements
  * and their connectedness.
  * 
  * @n
  * @image latex Dispatcher_PassingSidingGraph.png "Passing Siding Layout as a graph in Dispatcher" width=5in
- * @image html  Dispatcher_PassingSidingGraph.png
+ * @image html  Dispatcher_PassingSidingGraphSmall.png
  * 
  * Next we will create a fresh CTC Panel by clicking on the "New CTC Window"
  * button.  This gives us a "New CTCPanel" dialog box.
  * 
  * @n 
  * @image latex Dispatcher_PassingSidingNewCTCPanelDialog.png "New CTCPanel dialog"
- * @image html  Dispatcher_PassingSidingNewCTCPanelDialog.png
+ * @image html  Dispatcher_PassingSidingNewCTCPanelDialogSmall.png
  *
  * We will give the CTC Panel a name (Passing Siding), select the OpenLCB Mode
  * checkbox, and fill in the OpenLCB transport constructor and its opts.
  * 
  * @n
  * @image latex Dispatcher_PassingSidingNewCTCPanelDialogUpd.png "New CTCPanel dialog, updated"
- * @image html  Dispatcher_PassingSidingNewCTCPanelDialogUpd.png
+ * @image html  Dispatcher_PassingSidingNewCTCPanelDialogUpdSmall.png
  * 
  * After clicking the Create button we have a new fresh CTC Panel window.
  * 
  * @n
  * @image latex Dispatcher_PassingSidingCTCPanelEmpty.png "Empty Passing Siding CTC Panel" width=5in
- * @image html  Dispatcher_PassingSidingCTCPanelEmpty.png
+ * @image html  Dispatcher_PassingSidingCTCPanelEmptySmall.png
  * 
  * First we will transfer track segment 1, the western most segment of the 
  * main line just before the siding.  We will use the right button to get the
@@ -243,13 +243,13 @@
  * 
  * @n
  * @image latex Dispatcher_PassingSidingSegment1Initial.png "Initial Add Panel Object to panel dialog box for segment 1"
- * @image html  Dispatcher_PassingSidingSegment1Initial.png
+ * @image html  Dispatcher_PassingSidingSegment1InitialSmall.png
  * 
  * And after some minor updates, we have this:
  * 
  * @n
  * @image latex Dispatcher_PassingSidingSegment1Updated.png "Updated Add Panel Object to panel dialog box for segment 1"
- * @image html  Dispatcher_PassingSidingSegment1Updated.png
+ * @image html  Dispatcher_PassingSidingSegment1UpdatedSmall.png
  * 
  * Next we will add the western turnout.  This is track segment 3.  Again we 
  * right click on the segment node on the Dispatcher main window and select 
@@ -258,54 +258,54 @@
  * 
  * @n
  * @image latex Dispatcher_PassingSidingSegment3Initial.png "Initial Add Panel Object to panel dialog box for segment 3"
- * @image html  Dispatcher_PassingSidingSegment3Initial.png
+ * @image html  Dispatcher_PassingSidingSegment3InitialSmall.png
  * 
  * @n
  * @image latex Dispatcher_PassingSidingSegment3Updated.png "Updated Add Panel Object to panel dialog box for segment 3"
- * @image html  Dispatcher_PassingSidingSegment3Updated.png
+ * @image html  Dispatcher_PassingSidingSegment3UpdatedSmall.png
  * 
  * Because this is a turnout with a switch motor, we will also add a switch 
  * plate.  The only addition work is positioning it.
  * 
  * @n
  * @image latex Dispatcher_PassingSidingSwitchPlate.png "Updated Add Panel Object to panel dialog box for turnout switch plate"
- * @image html  Dispatcher_PassingSidingSwitchPlate.png
+ * @image html  Dispatcher_PassingSidingSwitchPlateSmall.png
  * 
  * Our panel is now like this:
  * 
  * @n
  * @image latex Dispatcher_PassingSidingCTCPanel.png "Updated CTC Panel" width=5in
- * @image html  Dispatcher_PassingSidingCTCPanel.png
+ * @image html  Dispatcher_PassingSidingCTCPanelSmall.png
  * 
  * Finally we will add one of the signals, CP1E, which is node number 19.
  * 
  * @n
  * @image latex Dispatcher_PassingSidingCP1EInitial.png "Initial Add Panel Object dialog box for CP1E"
- * @image html  Dispatcher_PassingSidingCP1EInitial.png
+ * @image html  Dispatcher_PassingSidingCP1EInitialSmall.png
  * 
  * @n
  * @image latex Dispatcher_PassingSidingCP1EUpdated.png "Updated Add Panel Object dialog box for CP1E"
- * @image html  Dispatcher_PassingSidingCP1EUpdated.png
+ * @image html  Dispatcher_PassingSidingCP1EUpdatedSmall.png
  * 
  * This gives us this panel:
  * 
  * @n
  * @image latex Dispatcher_PassingSidingCTCPanelWSignal.png "Panel with signal CP1E added." width=5in
- * @image html  Dispatcher_PassingSidingCTCPanelWSignal.png
+ * @image html  Dispatcher_PassingSidingCTCPanelWSignalSmall.png
  * 
  * The remaining track elements and switch plates can be added by repeating 
  * these steps.  
  * 
  * @n
  * @image latex Dispatcher_PassingSidingCTCPanelCompleteBeforeSigPlates.png "Panel with all elements from the layout file added." width=5in
- * @image html  Dispatcher_PassingSidingCTCPanelCompleteBeforeSigPlates.png
+ * @image html  Dispatcher_PassingSidingCTCPanelCompleteBeforeSigPlatesSmall.png
  * 
  * Finally, the signal plates and code buttons can be added using the Panel 
  * menu on the CTC Panel.
  * 
  * @n
  * @image latex Dispatcher_PassingSidingCTCPanelComplete.png "Completed panel." width=5in
- * @image html  Dispatcher_PassingSidingCTCPanelComplete.png
+ * @image html  Dispatcher_PassingSidingCTCPanelCompleteSmall.png
  * 
  * Now we can save the file and wrap it into a ready to run executable.
  * 

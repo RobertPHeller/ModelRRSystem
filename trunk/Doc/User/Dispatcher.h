@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 16:52:45 2014
-//  Last Modified : <140421.1237>
+//  Last Modified : <170319.1524>
 //
 //  Description	
 //
@@ -38,6 +38,7 @@
  * <div class="textblock"><ol type="1">
  * <li><a class="el" href="dispatcher_Tutorial.html">Dispatcher Tutorial</a><ol type="1">
  * <li><a class="el" href="dispatcher_Tutorial.html#dispatcher_Tutorial_SimpleMode">A &quot;Simple Mode&quot; CTC Panel</a></li>
+ * <li><a class="el" href="dispatcher_Tutorial.html#dispatcher_LCC_Tutorial">A LCC Example</a></li>
  * <li><a class="el" href="dispatcher_Tutorial.html#dispatcher_Tutorial_Advanced">A more advanced Example</a></li>
  * </ol></li>
  * <li><a class="el" href="dispatcher_Reference.html">Dispatcher Reference</a><ol type="1">
@@ -84,6 +85,7 @@
  * <li><a class="el" href="dispatcher_Reference.html#dispatcher_Reference_FindNodeDialog">Find Node Dialog</a></li>
  * <li><a class="el" href="dispatcher_Reference.html#dispatcher_Reference_PrintDialog">Print Dialog</a></li>
  * <li><a class="el" href="dispatcher_Reference.html#dispatcher_Reference_SelectPanelDialog">Select Panel Dialog</a></li>
+ * <li><a class="el" href="dispatcher_Reference.html#xtrkcadLCC">Using the Dispatcher program with layouts designed in XtrackCAD</a></li>
  * </ol></li>
  * <li><a class="el" href="dispatcher_Examples.html">Dispatcher Examples</a><ol type="1">
  * <li><a class="el" href="dispatcher_Examples.html#dispatcher_Examples_ex1">Example 1: Simple siding on single track mainline</a></li>
