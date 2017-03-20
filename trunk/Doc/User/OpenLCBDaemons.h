@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Aug 14 14:40:15 2016
-//  Last Modified : <170315.2154>
+//  Last Modified : <170320.1026>
 //
 //  Description	
 //
@@ -53,7 +53,7 @@
  * 
  * The Hub Daemons 
  * @latexonly
- * \footnote{In UNIX usage, a daemons is a non-interactive process running in
+ * \footnote{In UNIX usage, a daemon is a non-interactive process running in
  * the background, usually (but not always) presenting some sort of connection
  * API (like a network socket) for other processes to connect to as a way of
  * aquiring some sort of service.}
@@ -247,7 +247,7 @@
  * In addition to the @ref CommonNodeConfiguration "Common Node Configuration" 
  * fields the OpenLCB_PiGPIO daemon has a field for a polling interval in 
  * miliseconds, defaulting to 500.  This is the interval between polls of the 
- * MRD2 devices.  Then for each pin there is a tab containing these fields:
+ * GPIO Pins.  Then for each pin there is a tab containing these fields:
  *  - description A textual description of the pin.
  *  - number The number of the pin.
  *  - mode The mode of the pin, one of disabled, in, out, high, low.
