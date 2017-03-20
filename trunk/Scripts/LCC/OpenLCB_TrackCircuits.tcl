@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <170312.1642>
+#  Last Modified : <170320.1254>
 #
 #  Description	
 #
@@ -52,7 +52,30 @@
 #
 # This program is a daemon that implements an OpenLCB node for one or 
 # more Virtual Track Circuits (much like the track circuits coded in the RR
-# Cirkits Tower-LCC nodes).  
+# Cirkits Tower-LCC nodes).
+#
+#
+# There are seven (7) regular aspect events (@b Clear, @b Advance @b Approach, 
+# @b Approach @b Limited, @b Approach @b Medium, @b Approach, @b Approach 
+# @b Slow, and @b Accelerated @b Tumble @b Down), plus @b Start,  @b Non-Vital 
+# (@b occupied), @b Non-Vital  (@b normal), @b Power/Lamp (@b failed), and 
+# @b Power/Lamp (@b normal).
+#
+# @subsection TrackCircuitsCodeRate Code rate and aspect.
+#
+# - 7 Clear.
+# - 4 Advance Approach.
+# - 3 Approach Limited.
+# - 8 Approach Medium.
+# - 2 Approach.
+# - 9 Approach Slow.
+# - 6 Accelerated Tumble Down.
+# - 5 Non-Vital code indicating track occpancy, or a hand-thrown switch in the 
+#     block out of normal correspondence.
+# - M Non-Vital code indicating power off in the block, or a lamp out of 
+#     condition in the block. Power Off will indicate from east end CP, lamp 
+#     out from the west end CP.
+# .
 #
 # @section TrackCircuitsPARAMETERS PARAMETERS
 #
@@ -67,7 +90,7 @@
 # @arg -debug Turns on debug logging.
 # @par
 #
-# @section CONFIGURATION CONFIGURATION
+# @section TrackCircuitsCONFIGURATION CONFIGURATION
 #
 # The configuration file for this program is an XML formatted file. Please 
 # refer to the @ref openlcbdaemons "OpenLCB Daemons (Hubs and Virtual nodes)" chapter of the User 
