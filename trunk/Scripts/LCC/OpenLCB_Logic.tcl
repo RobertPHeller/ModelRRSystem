@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 25 14:52:47 2016
-#  Last Modified : <170312.1644>
+#  Last Modified : <170320.1230>
 #
 #  Description	
 #
@@ -54,6 +54,18 @@
 # more Logic Element (much like the logic elements coded in the RR
 # Cirkits Tower-LCC nodes).  
 #
+# Each logic element has two variable inputs, variable 1 and variable 2, which 
+# can be set to true or false using LCC events.  There are seven (7) boolean 
+# operators: @b and, @b or, @b xor, @b and @b change, @b or @b change, 
+# @b variable @b 1 @b then @b variable @b 2, and @b constant @b true.  Logic 
+# elements can be either single, or part of a group.  There are two group 
+# types, mast and ladder.  A mast group is always evaluated from top to bottom 
+# and terminates at the first true result which produces an action.  A ladder 
+# group is evaluated from the triggered logic to the bottom and all true 
+# results result in actions.  Actions consist of up to four events being 
+# produced, either right away or after a delay.  The actions can be 
+# retriggerable or not.
+#
 # @section LogicPARAMETERS PARAMETERS
 #
 # none
@@ -67,7 +79,7 @@
 # @arg -debug Turns on debug logging.
 # @par
 #
-# @section CONFIGURATION CONFIGURATION
+# @section LogicCONFIGURATION CONFIGURATION
 #
 # The configuration file for this program is an XML formatted file. Please 
 # refer to the @ref openlcbdaemons "OpenLCB Daemons (Hubs and Virtual nodes)" chapter of the User 
