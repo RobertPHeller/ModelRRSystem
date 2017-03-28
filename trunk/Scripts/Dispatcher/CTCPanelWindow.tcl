@@ -211,10 +211,10 @@ namespace eval CTCPanelWindow {
             {separator}
             {command "[_m {Menu|Edit|(Re-)Generate Main Loop}]" {edit:mainloop edit:simplemode} {} {} -command "[mymethod GenerateMainLoop]" -state $editstate}
             {command "[_m {Menu|Edit|User Code}]" {edit:usercode edit:simplemode} {} {} -command "[mymethod EditUserCode]" -state $editstate}
-            {cascade "[_m {Menu|Edit|Modules}]" {edit:modules edit:simplemode} edit:modules 0 {
+            {cascade "[_m {Menu|Edit|Modules}]" {edit:modules edit:simplemode} edit:modules 0 -state $editstate {
                     {command "[_m {Menu|Edit|Modules|Track Work type}]" {edit:modules:trackwork edit:simplemode} {} {} -command "[mymethod AddModule TrackWork]" -state $editstate}
                     {command "[_m {Menu|Edit|Modules|Switch Plate type}]" {edit:modules:switchplate edit:simplemode} {} {} -command "[mymethod AddModule SwitchPlates]" -state $editstate}
-                    {cascade "[_m {Menu|Edit|Signals}]" {edit:modules:signals edit:simplemode} edit:modules:signals 0 {
+                    {cascade "[_m {Menu|Edit|Signals}]" {edit:modules:signals edit:simplemode} edit:modules:signals 0 -state $editstate {
                             {command "[_m {Menu|Edit|Signals|Two Aspect Color Light}]" {edit:modules:signals:twoaspcolor edit:simplemode} {} {} -command "[mymethod AddModule Signals2ACL]" -state $editstate}
                             {command "[_m {Menu|Edit|Signals|Three Aspect Color Light}]" {edit:modules:signals:threeaspcolor edit:simplemode} {} {} -command "[mymethod AddModule Signals3ACL]" -state $editstate}
                             {command "[_m {Menu|Edit|Signals|Three Aspect Search Light}]" {edit:modules:signals:threeaspsearch edit:simplemode} {} {} -command "[mymethod AddModule Signals3ASL]" -state $editstate}
@@ -223,7 +223,7 @@ namespace eval CTCPanelWindow {
                     {command "[_m {Menu|Edit|Signals|Control Point type}]" {edit:modules:controlpoint edit:simplemode} {} {} -command "[mymethod AddModule ControlPoints]" -state $editstate}
                     {command "[_m {Menu|Edit|Signals|Radio Group Type}]" {edit:modules:radiogroup edit:simplemode} {} {} -command "[mymethod AddModule Groups]" -state $editstate}
             }}
-            {cascade "[_m {Menu|Edit|Additional Packages}]" {edit:additionalpackages edit:simplemode} edit:additionalpackages 0 {
+            {cascade "[_m {Menu|Edit|Additional Packages}]" {edit:additionalpackages edit:simplemode} edit:additionalpackages 0 -state $editstate {
                     {command "[_m {Menu|Edit|Additional Packages|XPressNet}]" {edit:additionalpackages edit:simplemode} {} {} -command "[mymethod AddAdditionalPackage XPressNet]" -state $editstate}
                     {command "[_m {Menu|Edit|Additional Packages|NCE}]" {edit:additionalpackages edit:simplemode} {} {} -command "[mymethod AddAdditionalPackage NCE]" -state $editstate}
                     {command "[_m {Menu|Edit|Additional Packages|Raildriver Client}]" {edit:additionalpackages edit:simplemode} {} {} -command "[mymethod AddAdditionalPackage RailDriverSupport]" -state $editstate}
