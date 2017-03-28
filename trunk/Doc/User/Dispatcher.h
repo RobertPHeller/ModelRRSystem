@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 16:52:45 2014
-//  Last Modified : <170319.1524>
+//  Last Modified : <170328.1408>
 //
 //  Description	
 //
@@ -86,6 +86,8 @@
  * <li><a class="el" href="dispatcher_Reference.html#dispatcher_Reference_PrintDialog">Print Dialog</a></li>
  * <li><a class="el" href="dispatcher_Reference.html#dispatcher_Reference_SelectPanelDialog">Select Panel Dialog</a></li>
  * <li><a class="el" href="dispatcher_Reference.html#xtrkcadLCC">Using the Dispatcher program with layouts designed in XtrackCAD</a></li>
+ * <li><a class="el" href="dispatcher_Reference.html#Dispatcher_Reference_insertableModules">Insertable Module Library</a></li>
+ * 
  * </ol></li>
  * <li><a class="el" href="dispatcher_Examples.html">Dispatcher Examples</a><ol type="1">
  * <li><a class="el" href="dispatcher_Examples.html#dispatcher_Examples_ex1">Example 1: Simple siding on single track mainline</a></li>

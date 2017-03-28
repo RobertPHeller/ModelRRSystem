@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:40:00 2014
-//  Last Modified : <170319.1542>
+//  Last Modified : <170328.1101>
 //
 //  Description	
 //
@@ -152,7 +152,7 @@
  * layout file that hold layout control information (called scripts).  These 
  * objects are:
  *   - Blocks.  Blocks are named groupings of track that have a script that 
- *     determines block occupency.
+ *     determines block occupancy.
  *   - Switch Motors.  Switch Motors are named objects associated with a 
  *     turnout and have three scripts: a normal action script, a reverse 
  *     action script, and a point sense script.  The normal action script
@@ -161,20 +161,20 @@
  *     activates a switch machine to align the points to the reverse position
  *     (generally aligned to the spur route).  The point sense script returns
  *     a value indicating the current alignment of the points (eg normal or
- *     reverse.
+ *     reverse).
  *   - Signals.  Signals are devices that display various aspects that indicate
  *     train movement permissions.  Signals have a location, an orientation,
  *     a number of heads (one, two, or three), and one or more aspects, which
  *     have a name and a script.
  *   - Sensors.  Sensors are just single on or off state.  A sensor could be
  *     a push button switch or some sort of device that senses something on the
- *     layout (generally not block occupency, since that is already handled by
+ *     layout (generally not block occupancy, since that is already handled by
  *     the block object).
  *   - Controls.  Controls are just a single actuator or other on or off 
- *     device (like a lamp).  Could be some trackside animation (like a log
+ *     device (like a lamp).  Could be some track side animation (like a log
  *     loader or a crossing gate).
  * 
- * XtrackCAD imposes no partitular syntax for the scripts.  For layouts using
+ * XtrackCAD imposes no particular syntax for the scripts.  For layouts using
  * LCC and Dispatcher, the scripts are defined as one or two LCC event numbers.
  * A LCC event number is a 64-bit number formatted as eight pairs of 
  * hexadecimal digits separated by periods.  For actions, it is a single event
@@ -187,7 +187,8 @@
  * first event is produced when the points become normal aligned and the second
  * event is produced when the points become reverse aligned.
  * 
- * The layout is a simple passing siding on a main line as shown below.
+ * The layout we will add is a simple passing siding on a main line as shown 
+ * below.
  * 
  * @n
  * @image latex Dispatcher_PassingSidingXtrkCAD.png "Simple passing siding in XtrackCAD" width=5in
@@ -238,8 +239,8 @@
  * 
  * This gives us an "Add Panel Object to panel" dialog box.  Notice how 
  * various fields are preloaded.  We will shortly change a few things: remove
- * the uneeded label, add a control point, and position the track on the 
- * schematic using the crosshairs.
+ * the unneeded label, add a control point, and position the track on the 
+ * schematic using the cross hairs.
  * 
  * @n
  * @image latex Dispatcher_PassingSidingSegment1Initial.png "Initial Add Panel Object to panel dialog box for segment 1"
@@ -253,7 +254,7 @@
  * 
  * Next we will add the western turnout.  This is track segment 3.  Again we 
  * right click on the segment node on the Dispatcher main window and select 
- * "Add to Panel".  Note how most of the fields are prefilled from the layout
+ * "Add to Panel".  Note how most of the fields are filled in from the layout
  * file.
  * 
  * @n
@@ -265,7 +266,7 @@
  * @image html  Dispatcher_PassingSidingSegment3UpdatedSmall.png
  * 
  * Because this is a turnout with a switch motor, we will also add a switch 
- * plate.  The only addition work is positioning it.
+ * plate.  The only additional work needed is positioning it.
  * 
  * @n
  * @image latex Dispatcher_PassingSidingSwitchPlate.png "Updated Add Panel Object to panel dialog box for turnout switch plate"
@@ -308,8 +309,9 @@
  * @image html  Dispatcher_PassingSidingCTCPanelCompleteSmall.png
  * 
  * Now we can save the file and wrap it into a ready to run executable.
- * 
- * @section dispatcher_Tutorial_Advanced A more advanced Example
+ */
+
+/* @section dispatcher_Tutorial_Advanced A more advanced Example
  */
 
 #endif // __DISPATCHERTUTORIAL_H
