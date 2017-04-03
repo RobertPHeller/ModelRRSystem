@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Aug 14 14:40:15 2016
-//  Last Modified : <170320.1026>
+//  Last Modified : <170402.1052>
 //
 //  Description	
 //
@@ -205,6 +205,19 @@
                 </xs:sequence>
               </xs:complexType>
             </xs:element>
+            <xs:element name="identification" minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+                  This is the node identification section.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="name" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType></xs:complexType>
+            </xs:element>
             <xs:element name="pollinterval" minOccurs="0" maxOccurs="1" />
             <xs:element name="name" minOccurs="0" maxOccurs="1" />
             <xs:element name="description" minOccurs="0" maxOccurs="1" />
@@ -286,8 +299,19 @@
                 </xs:sequence>
               </xs:complexType>
             </xs:element>
-            <xs:element name="name" minOccurs="0" maxOccurs="1" />
-            <xs:element name="description" minOccurs="0" maxOccurs="1" />
+            <xs:element name="identification" minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+                  This is the node identification section.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="name" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType></xs:complexType>
+            </xs:element>
             <xs:element name="pollinterval" minOccurs="0" maxOccurs="1" />
             <xs:element name="pin" minOccurs="0" maxOccurs="unbounded" >
               <xs:annotation>
@@ -332,6 +356,22 @@
  *  - Code 1 Start Event The event to send when a Code 1 Start occur.
  *  - Action tabs Zero or more action tabs which map an event to send when a
  *    track code received.
+ * 
+ * The track codes defined for transmitters and receivers are:
+ * 
+ *  - @c None No track code.
+ *  - @c Code7 Clear
+ *  - @c Code4 Advance Approach
+ *  - @c Code3 Approach Limited
+ *  - @c Code8 Approach Medium
+ *  - @c Code2 Approach
+ *  - @c Code9 Approach Slow
+ *  - @c Code6 Accelerated Tumble Down
+ *  - @c Code5_occupied Non-Vital (occupied)
+ *  - @c Code5_normal Non-Vital (normal)
+ *  - @c CodeM_failed Power/Lamp (failed)
+ *  - @c CodeM_normal Power/Lamp (normal)
+ *  .
  *
  * @subsubsection TrackCircuits_XMLSchema XML Schema for configuration files
  * 
@@ -363,8 +403,19 @@
                </xs:sequence> 
              </xs:complexType> 
            </xs:element> 
-           <xs:element name="name" minOccurs="0" maxOccurs="1" /> 
-           <xs:element name="description" minOccurs="0" maxOccurs="1" /> 
+           <xs:element name="identification" minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+                  This is the node identification section.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="name" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType></xs:complexType>
+           </xs:element>
            <xs:element name="track" minOccurs="0" maxOccurs="unbounded" > 
              <xs:annotation> 
                <xs:documentation> 
@@ -419,11 +470,13 @@
  * fields the OpenLCB_Logic daemon has tabs for each logic block, containing
  * these fields:
  *  - Description A textual description of the track
- *  - The Group Type, one of Single or last, Mast Group, or Ladder Group. 
+ *  - The Group Type, one of @c single (Single or last), @c mast (Mast Group), 
+ *    or @c ladder (Ladder Group). 
  *  - An event to set variable 1 true.
  *  - An event to set variable 1 false.
- *  - The logic function, one of V1 and V2, V1 or V2, V1 xor V2, 
- *    V1 and V2 change, V1 or V2 change, V1 then V2, or true.
+ *  - The logic function, one of @c and (V1 and V2), @c or (V1 or V2), 
+ *    @c xor (V1 xor V2), @c andch (V1 and V2 change), 
+ *    @c orch (V1 or V2 change), @c then (V1 then V2), or @c true.
  *  - An event to set variable 2 true.
  *  - An event to set variable 2 false.
  *  - The delay in miliseconds (0 means no delay).
@@ -460,8 +513,19 @@
                </xs:sequence> 
              </xs:complexType> 
            </xs:element> 
-           <xs:element name="name" minOccurs="0" maxOccurs="1" /> 
-           <xs:element name="description" minOccurs="0" maxOccurs="1" /> 
+           <xs:element name="identification" minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+                  This is the node identification section.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="name" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType></xs:complexType>
+           </xs:element>
            <xs:element name="logic" minOccurs="0" maxOccurs="unbounded" > 
              <xs:annotation> 
                <xs:documentation> 
@@ -577,9 +641,20 @@
                 </xs:sequence>
               </xs:complexType>
             </xs:element>
+            <xs:element name="identification" minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+                  This is the node identification section.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="name" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType></xs:complexType>
+            </xs:element>
             <xs:element name="acelaport" minOccurs="1" maxOccurs="1" />
-            <xs:element name="name" minOccurs="0" maxOccurs="1" />
-            <xs:element name="description" minOccurs="0" maxOccurs="1" />
             <xs:element name="blinkrate" minOccurs="0" maxOccurs="1" />
             <xs:element name="yellowhue" minOccurs="0" maxOccurs="1" />
             <xs:element name="brightness" minOccurs="0" maxOccurs="1" />

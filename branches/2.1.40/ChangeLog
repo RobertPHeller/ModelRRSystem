@@ -1,3 +1,55 @@
+Tue Mar 28 17:00:29 2017 (Release Candidate 1)
+
+  2.1.40 Released:
+    Dispatcher documentation updates.
+       Updates to reference docs, added LCC tutorial.
+    OpenLCB_Logic and OpenLCB_TrackCircuits documentation updates.
+    OpenLCB Daemon user documentation updates.
+    Update Introduction to reference the OpenLCB chapters and to clean up 
+       some of the text.
+    Documentation updates (ConfigurationEditor.tcl).
+    Add -state option to edit cascades in CTCPanelWindow.tcl.
+    Add in Edit Context menus in Dispatcher (CTCPanelWindow.tcl) and LCC 
+        Configuration Editors to allow copy/paste between using pointer menu 
+        interactions.
+    Add View Controls dialog.
+    Added support for Signal, Sensor, and Control XtrackCAD elements.
+    Fix small binding bug in Dialog (snitdialog.tcl).
+    Add and complete Emit logic in both the C++ and Tcl code (ParserClasses).
+    Fix FindNode Dialog bug (leftovers from BWidget).
+    Fix weirdness with bad edge counts: prevent duplicate edges in the 
+        compressed graph (TrackGraph.cc) and handle terminal compresssed nodes 
+        (TrackGraph.tcl).
+    Small bug in displaySwitchMotorInfo::initializetopframe fixed.
+    Handle LCC event IDs from XtrackCad.
+    Handle "Orphan" track nodes (track with no connections to other track).
+    Add CSV export functions for ConfigurationEditor.tcl.
+    Add PDF and XML export functions for ConfigurationEditor.tcl.
+    Implement Print/Export: text version.
+    Add missing tab and tabs methods in snitScrollNotebook.tcl.
+    Add OpenLCB Logic to Info context menu function in CTCPanelWindow.tcl.
+    Complete frame removal after frame forget (CTCPanelWindow.tcl, 
+        OpenLCB_*.tcl).
+    Wrap grid forget with a catch in snitScrollNotebook.tcl.
+    Add in -name and -discription options to ConnectToOpenLCB call 
+        (CTCPanelWindow.tcl).
+    Add VerifyNodeID to populate NID Alias maps (OpenLCBCode.tcl, 
+        OpenLCB_*.tcl).
+    OpenLCB_Logic updates (attempting to match Tower-LCC logic block 
+        functionality).
+    Assorted bugfixes in OpenLCB_Logic (Mast and Ladder logic).
+    Assorted bugfixes to OpenLCB_Logic.tcl.
+    Fixed numerious bugs in OpenLCB_Logic.tcl.
+    Minor bulleting prooffing of CDI protocol handling.
+    Add LCCNodeTree.tcl to library files installed for LCC/OpenLCB package.
+    Clean up menu on Node Tree window.
+    Separate out Node Tree Widget.
+    Add OpenLCB functionallity to OpenLCB CTC Panels.
+    CanMessage constructor bug: not handling the case of neither -data or 
+        -length properly -- fixed!
+    Build fixes: Fix broken AM_GNU_GETTEXT macro under MacOSX; make sure build 
+        scripts are executable.
+
 Sun Sep 11 17:49:50 2016
 
   2.1.39 Released:
