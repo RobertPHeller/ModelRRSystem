@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 7 10:36:33 2016
-#  Last Modified : <170312.1644>
+#  Last Modified : <170401.1610>
 #
 #  Description	
 #
@@ -46,7 +46,7 @@
 #
 # @section PiGPIOSYNOPSIS SYNOPSIS
 #
-# OpenLCB_PiGPIO [-configure] [-debug] [-configuration confgile]
+# OpenLCB_PiGPIO [-configure] [-sampleconfiguration] [-debug] [-configuration confgile]
 #
 # @section PiGPIODESCRIPTION DESCRIPTION
 #
@@ -61,6 +61,8 @@
 #
 # @arg -configure Enter an interactive GUI configuration tool.  This tool
 # creates or edits an XML configuration file.
+# @arg -sampleconfiguration Creates a @b sample configuration file that can 
+# then be hand edited (with a handy text editor like emacs or vim).
 # @arg -configuration confgile Sets the name of the configuration (XML) file. 
 # The default is pigpioconf.xml.
 # @arg -debug Turns on debug logging.
@@ -219,13 +221,23 @@ snit::type OpenLCB_PiGPIO {
             set configureator yes
             set argv [lreplace $argv $configureIdx $configureIdx]
         }
+        set sampleconfiguration no
+        set sampleconfigureIdx [lsearch -exact $argv -sampleconfiguration]
+        if {$sampleconfigureIdx >= 0} {
+            set sampleconfiguration yes
+            set argv [lreplace $argv $sampleconfigureIdx $sampleconfigureIdx]
+        }
         set conffile [from argv -configuration "pigpioconf.xml"]
         #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
         if {$configureator} {
             $type ConfiguratorGUI $conffile
             return
         }
-        
+        if {$sampleconfiguration} {
+            $type SampleConfiguration $conffile
+            return
+        }
+       
         set logfilename [format {%s.log} [file tail $argv0]]
         close stdin
         close stdout
@@ -540,6 +552,83 @@ snit::type OpenLCB_PiGPIO {
     }
     # Default (empty) XML Configuration.
     typevariable default_confXML {<?xml version='1.0'?><OpenLCB_PiGPIO/>}
+    typemethod SampleConfiguration {conffile} {
+        #** Generate a Sample Configuration
+        #
+        # @param conffile Name of the configuration file.
+        #
+        
+        set conffilename $conffile
+        set confXML $default_confXML
+        if {[file exists $conffilename]} {
+            puts -nonewline stdout [_ {Configuration file (%s) already exists. Replace it [yN]? } $conffilename]
+            flush stdout
+            set answer [string toupper [string index [gets stdin] 0]]
+            if {$answer ne "Y"} {exit 1}
+        }
+        set configuration [ParseXML create %AUTO% $confXML]
+        set cdis [$configuration getElementsByTagName OpenLCB_PiGPIO -depth 1]
+        set cdi [lindex $cdis 0]
+        set transcons [SimpleDOMElement %AUTO% -tag "transport"]
+        $cdi addchild $transcons
+        set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
+        $transcons addchild $constructor
+        $constructor setdata "CANGridConnectOverTcp"
+        set transportopts [SimpleDOMElement %AUTO% -tag "options"]
+        $transcons addchild $transportopts
+        $transportopts setdata {-port 12021 -nid 05:01:01:01:22:00 -host localhost}
+        set ident [SimpleDOMElement %AUTO% -tag "identification"]
+        $cdi addchild $ident
+        set nameele [SimpleDOMElement %AUTO% -tag "name"]
+        $ident addchild $nameele
+        $nameele setdata "Sample Name"
+        set descrele [SimpleDOMElement %AUTO% -tag "description"]
+        $ident addchild $descrele
+        $descrele setdata "Sample Description"
+        set eid 0
+        set pollele [SimpleDOMElement %AUTO% -tag "pollinterval"]
+        $cdi addchild $pollele
+        $pollele setdata 500
+        set pin [SimpleDOMElement %AUTO% -tag "pin"]
+        $cdi addchild $pin
+        set descrele [SimpleDOMElement %AUTO% -tag "description"]
+        $pin addchild $descrele
+        $descrele setdata "Sample Input Pin"
+        set pinno [SimpleDOMElement %AUTO% -tag "number"]
+        $pin addchild $pinno
+        $pinno setdata 0
+        set pinmode [SimpleDOMElement %AUTO% -tag "mode"]
+        $pin addchild $pinmode
+        $pinmode setdata in
+        foreach eventtag {pinin0 pinin1} {
+            set tagele [SimpleDOMElement %AUTO% -tag $eventtag]
+            $pin addchild $tagele
+            $tagele setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+            incr eid
+        }
+        set pin [SimpleDOMElement %AUTO% -tag "pin"]
+        $cdi addchild $pin
+        set descrele [SimpleDOMElement %AUTO% -tag "description"]
+        $pin addchild $descrele
+        $descrele setdata "Sample Output Pin"
+        set pinno [SimpleDOMElement %AUTO% -tag "number"]
+        $pin addchild $pinno
+        $pinno setdata 1
+        set pinmode [SimpleDOMElement %AUTO% -tag "mode"]
+        $pin addchild $pinmode
+        $pinmode setdata out
+        foreach eventtag {pinout0 pinout1} {
+            set tagele [SimpleDOMElement %AUTO% -tag $eventtag]
+            $pin addchild $tagele
+            $tagele setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+            incr eid
+        }
+        if {![catch {open $conffilename w} conffp]} {
+            puts $conffp {<?xml version='1.0'?>}
+            $configuration displayTree $conffp
+        }
+        ::exit
+    }
     typemethod ConfiguratorGUI {conffile} {
 
         #** Configuration GUI

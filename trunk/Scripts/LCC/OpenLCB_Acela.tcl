@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 17 07:55:13 2016
-#  Last Modified : <170312.1644>
+#  Last Modified : <170401.1611>
 #
 #  Description	
 #
@@ -46,7 +46,7 @@
 #
 # @section AcelaSYNOPSIS SYNOPSIS 
 #
-# OpenLCB_Acela [-configure] [-debug] [-configuration confgile]
+# OpenLCB_Acela [-configure] [-sampleconfiguration] [-debug] [-configuration confgile]
 #
 # @section AcelaDESCRIPTION DESCRIPTION
 #
@@ -61,6 +61,8 @@
 #
 # @arg -configure Enter an interactive GUI configuration tool.  This tool
 # creates or edits an XML configuration file.
+# @arg -sampleconfiguration Creates a @b sample configuration file that can 
+# then be hand edited (with a handy text editor like emacs or vim).
 # @arg -configuration confgile Sets the name of the configuration (XML) file. 
 # The default is acelaconf.xml.
 # @arg -debug Turns on debug logging.
@@ -361,13 +363,22 @@ snit::type OpenLCB_Acela {
             set configureator yes
             set argv [lreplace $argv $configureIdx $configureIdx]
         }
+        set sampleconfiguration no
+        set sampleconfigureIdx [lsearch -exact $argv -sampleconfiguration]
+        if {$sampleconfigureIdx >= 0} {
+            set sampleconfiguration yes
+            set argv [lreplace $argv $sampleconfigureIdx $sampleconfigureIdx]
+        }
         set conffile [from argv -configuration "acelaconf.xml"]
         #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
         if {$configureator} {
             $type ConfiguratorGUI $conffile
             return
         }
-        
+        if {$sampleconfiguration} {
+            $type SampleConfiguration $conffile
+            return
+        }
         set logfilename [format {%s.log} [file tail $argv0]]
         close stdin
         close stdout
@@ -781,6 +792,125 @@ snit::type OpenLCB_Acela {
     
     # Default (empty) XML Configuration.
     typevariable default_confXML {<?xml version='1.0'?><OpenLCB_Acela/>}
+    typemethod SampleConfiguration {conffile} {
+        #** Generate a Sample Configuration
+        #
+        # @param conffile Name of the configuration file.
+        #
+        
+        set conffilename $conffile
+        set confXML $default_confXML
+        if {[file exists $conffilename]} {
+            puts -nonewline stdout [_ {Configuration file (%s) already exists. Replace it [yN]? } $conffilename]
+            flush stdout
+            set answer [string toupper [string index [gets stdin] 0]]
+            if {$answer ne "Y"} {exit 1}
+        }
+        set configuration [ParseXML create %AUTO% $confXML]
+        set cdis [$configuration getElementsByTagName OpenLCB_Acela -depth 1]
+        set cdi [lindex $cdis 0]
+        set transcons [SimpleDOMElement %AUTO% -tag "transport"]
+        $cdi addchild $transcons
+        set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
+        $transcons addchild $constructor
+        $constructor setdata "CANGridConnectOverTcp"
+        set transportopts [SimpleDOMElement %AUTO% -tag "options"]
+        $transcons addchild $transportopts
+        $transportopts setdata {-port 12021 -nid 05:01:01:01:22:00 -host localhost}
+        set ident [SimpleDOMElement %AUTO% -tag "identification"]
+        $cdi addchild $ident
+        set nameele [SimpleDOMElement %AUTO% -tag "name"]
+        $ident addchild $nameele
+        $nameele setdata "Sample Name"
+        set descrele [SimpleDOMElement %AUTO% -tag "description"]
+        $ident addchild $descrele
+        $descrele setdata "Sample Description"
+        set acelaport_ [SimpleDOMElement %AUTO% -tag "acelaport"]
+        $cdi addchild $acelaport_
+        switch $::tcl_platform(os) {
+            Linux {$acelaport_ setdata "/dev/ttyACM0"}
+            Darwin {$acelaport_ setdata "/dev/cu.acela"}
+            default {$acelaport_ setdata "COM1:"}
+        }
+        set blinkrate_ [SimpleDOMElement %AUTO% -tag "blinkrate"]
+        $cdi addchild $blinkrate_
+        $blinkrate_ setdata 10
+        set yellowhue_ [SimpleDOMElement %AUTO% -tag "yellowhue"]
+        $cdi addchild $yellowhue_
+        $yellowhue_ setdata 170
+        set brightness_ [SimpleDOMElement %AUTO% -tag "brightness"]
+        $cdi addchild $brightness_
+        $brightness_ setdata 255
+        set eid 0
+        set control [SimpleDOMElement %AUTO% -tag "control"]
+        $cdi addchild $control
+        set address [SimpleDOMElement %AUTO% -tag "address"]
+        $control addchild $address
+        $address setdata 0
+        set description [SimpleDOMElement %AUTO% -tag "description"]
+        $control addchild $description
+        $description setdata "Sample Control"
+        set pulsewidth [SimpleDOMElement %AUTO% -tag "pulsewidth"]
+        $control addchild $pulsewidth
+        $pulsewidth setdata 0
+        set blinkperiod [SimpleDOMElement %AUTO% -tag "blinkperiod"]
+        $control addchild $blinkperiod
+        $blinkperiod setdata 0
+        foreach eventtag {activate deactivate pulseon pulseoff blink revblink} {
+            set tagele [SimpleDOMElement %AUTO% -tag $eventtag]
+            $control addchild $tagele
+            $tagele setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+            incr eid
+        }
+        set signal [SimpleDOMElement %AUTO% -tag "signal"]
+        $cdi addchild $signal
+        set address [SimpleDOMElement %AUTO% -tag "address"]
+        $signal addchild $address
+        $address setdata 1
+        set description [SimpleDOMElement %AUTO% -tag "description"]
+        $signal addchild $description
+        $description setdata "Sample Signal"
+        set signalcommand [SimpleDOMElement %AUTO% -tag "signalcommand"]
+        $signal addchild $signalcommand
+        $signalcommand setdata Signal2
+        set aspect [SimpleDOMElement %AUTO% -tag "aspect"]
+        $signal addchild $aspect
+        set eventidtag [SimpleDOMElement %AUTO% -tag "eventid"]
+        $aspect addchild $eventidtag
+        $eventidtag setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+        incr eid
+        set arglisttag [SimpleDOMElement %AUTO% -tag "arglist"]
+        $aspect addchild $arglisttag
+        $arglisttag setdata {off off off}
+        set sensor [SimpleDOMElement %AUTO% -tag "sensor"]
+        $cdi addchild $sensor
+        set address [SimpleDOMElement %AUTO% -tag "address"]
+        $sensor addchild $address
+        $address setdata 3
+        set description [SimpleDOMElement %AUTO% -tag "description"]
+        $sensor addchild $description
+        $description setdata "Sample Sensor"
+        set filterthresh [SimpleDOMElement %AUTO% -tag "filterthresh"]
+        $sensor addchild $filterthresh
+        $filterthresh setdata 0
+        set filterselect [SimpleDOMElement %AUTO% -tag "filterselect"]
+        $sensor addchild $filterselect
+        $filterselect setdata noise
+        set polarity [SimpleDOMElement %AUTO% -tag "polarity"]
+        $sensor addchild $polarity
+        $polarity setdata normal
+        foreach eventtag {onevent offevent} {
+            set tagele [SimpleDOMElement %AUTO% -tag $eventtag]
+            $sensor addchild $tagele
+            $tagele setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+            incr eid
+        }
+        if {![catch {open $conffilename w} conffp]} {
+            puts $conffp {<?xml version='1.0'?>}
+            $configuration displayTree $conffp
+        }
+        ::exit
+    }
     typemethod ConfiguratorGUI {conffile} {
         #** Configuration GUI
         # 
