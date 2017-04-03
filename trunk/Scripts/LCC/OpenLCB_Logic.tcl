@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 25 14:52:47 2016
-#  Last Modified : <170320.1230>
+#  Last Modified : <170401.1611>
 #
 #  Description	
 #
@@ -46,7 +46,7 @@
 #
 # @section LogicSYNOPSIS SYNOPSIS
 #
-# OpenLCB_Logic [-configure] [-debug] [-configuration confgile]
+# OpenLCB_Logic [-configure] [-sampleconfiguration] [-debug] [-configuration confgile]
 #
 # @section LogicDESCRIPTION DESCRIPTION
 #
@@ -74,6 +74,8 @@
 #
 # @arg -configure Enter an interactive GUI configuration tool.  This tool
 # creates or edits an XML configuration file.
+# @arg -sampleconfiguration Creates a @b sample configuration file that can 
+# then be hand edited (with a handy text editor like emacs or vim).
 # @arg -configuration confgile Sets the name of the configuration (XML) file. 
 # The default is logicconf.xml.
 # @arg -debug Turns on debug logging.
@@ -495,10 +497,20 @@ snit::type OpenLCB_Logic {
             set configureator yes
             set argv [lreplace $argv $configureIdx $configureIdx]
         }
+        set sampleconfiguration no
+        set sampleconfigureIdx [lsearch -exact $argv -sampleconfiguration]
+        if {$sampleconfigureIdx >= 0} {
+            set sampleconfiguration yes
+            set argv [lreplace $argv $sampleconfigureIdx $sampleconfigureIdx]
+        }
         set conffile [from argv -configuration "logicsconf.xml"]
         #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
         if {$configureator} {
             $type ConfiguratorGUI $conffile
+            return
+        }
+        if {$sampleconfiguration} {
+            $type SampleConfiguration $conffile
             return
         }
         set logfilename [format {%s.log} [file tail $argv0]]
@@ -851,6 +863,84 @@ snit::type OpenLCB_Logic {
     }
     # Default (empty) XML Configuration.
     typevariable default_confXML {<?xml version='1.0'?><OpenLCB_Logic/>}
+    typemethod SampleConfiguration {conffile} {
+        #** Generate a Sample Configuration
+        #
+        # @param conffile Name of the configuration file.
+        #
+        
+        set conffilename $conffile
+        set confXML $default_confXML
+        if {[file exists $conffilename]} {
+            puts -nonewline stdout [_ {Configuration file (%s) already exists. Replace it [yN]? } $conffilename]
+            flush stdout
+            set answer [string toupper [string index [gets stdin] 0]]
+            if {$answer ne "Y"} {exit 1}
+        }
+        set configuration [ParseXML create %AUTO% $confXML]
+        set cdis [$configuration getElementsByTagName OpenLCB_Logic -depth 1]
+        set cdi [lindex $cdis 0]
+        set transcons [SimpleDOMElement %AUTO% -tag "transport"]
+        $cdi addchild $transcons
+        set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
+        $transcons addchild $constructor
+        $constructor setdata "CANGridConnectOverTcp"
+        set transportopts [SimpleDOMElement %AUTO% -tag "options"]
+        $transcons addchild $transportopts
+        $transportopts setdata {-port 12021 -nid 05:01:01:01:22:00 -host localhost}
+        set ident [SimpleDOMElement %AUTO% -tag "identification"]
+        $cdi addchild $ident
+        set nameele [SimpleDOMElement %AUTO% -tag "name"]
+        $ident addchild $nameele
+        $nameele setdata "Sample Name"
+        set descrele [SimpleDOMElement %AUTO% -tag "description"]
+        $ident addchild $descrele
+        $descrele setdata "Sample Description"
+        set eid 0
+        set logic [SimpleDOMElement %AUTO% -tag "logic"]
+        $cdi addchild $logic
+        set description [SimpleDOMElement %AUTO% -tag "description"]
+        $logic addchild $description
+        $description setdata "Sample Logic"
+        set grouptype [SimpleDOMElement %AUTO% -tag "grouptype"]
+        $logic addchild $grouptype
+        $grouptype setdata single
+        foreach eventtag {v1onevent v1offevent} {
+            set tagele [SimpleDOMElement %AUTO% -tag $eventtag]
+            $logic addchild $tagele
+            $tagele setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+            incr eid
+        }
+        set logicfunction [SimpleDOMElement %AUTO% -tag "logicfunction"]
+        $logic addchild $logicfunction
+        $logicfunction setdata and
+        foreach eventtag {v2onevent v2offevent} {
+            set tagele [SimpleDOMElement %AUTO% -tag $eventtag]
+            $logic addchild $tagele
+            $tagele setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+            incr eid
+        }
+        set delay [SimpleDOMElement %AUTO% -tag "delay"]
+        $logic addchild $delay
+        $delay setdata 0
+        set retriggerable [SimpleDOMElement %AUTO% -tag "retriggerable"]
+        $logic addchild $retriggerable
+        $retriggerable setdata false
+        foreach a {1 2 3 4} {
+            set event [SimpleDOMElement %AUTO% -tag [format {action%devent} $a]]
+            $logic addchild $event
+            $event setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+            incr eid
+            set delay [SimpleDOMElement %AUTO% -tag [format {action%ddelay} $a]]
+            $logic addchild $delay
+            $delay setdata false
+        }
+        if {![catch {open $conffilename w} conffp]} {
+            puts $conffp {<?xml version='1.0'?>}
+            $configuration displayTree $conffp
+        }
+        ::exit
+    }
     typemethod ConfiguratorGUI {conffile} {
         #** Configuration GUI
         # 

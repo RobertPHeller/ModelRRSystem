@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <170312.1643>
+#  Last Modified : <170401.1610>
 #
 #  Description	
 #
@@ -45,7 +45,7 @@
 #
 # @section MRD2SYNOPSIS SYNOPSIS
 #
-# OpenLCB_MRD2 [-configure] [-debug] [-configuration confgile]
+# OpenLCB_MRD2 [-configure] [-sampleconfiguration] [-debug] [-configuration confgile]
 #
 # @section MRD2DESCRIPTION DESCRIPTION
 #
@@ -60,6 +60,8 @@
 #
 # @arg -configure Enter an interactive GUI configuration tool.  This tool
 # creates or edits an XML configuration file.
+# @arg -sampleconfiguration Creates a @b sample configuration file that can 
+# then be hand edited (with a handy text editor like emacs or vim).
 # @arg -configuration confgile Sets the name of the configuration (XML) file. 
 # The default is mrd2conf.xml.
 # @arg -debug Turns on debug logging.
@@ -151,13 +153,23 @@ snit::type OpenLCB_MRD2 {
             set configureator yes
             set argv [lreplace $argv $configureIdx $configureIdx]
         }
+        set sampleconfiguration no
+        set sampleconfigureIdx [lsearch -exact $argv -sampleconfiguration]
+        if {$sampleconfigureIdx >= 0} {
+            set sampleconfiguration yes
+            set argv [lreplace $argv $sampleconfigureIdx $sampleconfigureIdx]
+        }
         set conffile [from argv -configuration "mrd2conf.xml"]
         #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
         if {$configureator} {
             $type ConfiguratorGUI $conffile
             return
         }
-        
+        if {$sampleconfiguration} {
+            $type SampleConfiguration $conffile
+            return
+        }
+       
         set logfilename [format {%s.log} [file tail $argv0]]
         close stdin
         close stdout
@@ -448,6 +460,64 @@ snit::type OpenLCB_MRD2 {
     }
     # Default (empty) XML Configuration.
     typevariable default_confXML {<?xml version='1.0'?><OpenLCB_MRD2/>}
+    typemethod SampleConfiguration {conffile} {
+        #** Generate a Sample Configuration
+        #
+        # @param conffile Name of the configuration file.
+        #
+        
+        set conffilename $conffile
+        set confXML $default_confXML
+        if {[file exists $conffilename]} {
+            puts -nonewline stdout [_ {Configuration file (%s) already exists. Replace it [yN]? } $conffilename]
+            flush stdout
+            set answer [string toupper [string index [gets stdin] 0]]
+            if {$answer ne "Y"} {exit 1}
+        }
+        set configuration [ParseXML create %AUTO% $confXML]
+        set cdis [$configuration getElementsByTagName OpenLCB_MRD2 -depth 1]
+        set cdi [lindex $cdis 0]
+        set transcons [SimpleDOMElement %AUTO% -tag "transport"]
+        $cdi addchild $transcons
+        set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
+        $transcons addchild $constructor
+        $constructor setdata "CANGridConnectOverTcp"
+        set transportopts [SimpleDOMElement %AUTO% -tag "options"]
+        $transcons addchild $transportopts
+        $transportopts setdata {-port 12021 -nid 05:01:01:01:22:00 -host localhost}
+        set ident [SimpleDOMElement %AUTO% -tag "identification"]
+        $cdi addchild $ident
+        set nameele [SimpleDOMElement %AUTO% -tag "name"]
+        $ident addchild $nameele
+        $nameele setdata "Sample Name"
+        set descrele [SimpleDOMElement %AUTO% -tag "description"]
+        $ident addchild $descrele
+        $descrele setdata "Sample Description"
+        set eid 0
+        set pollele [SimpleDOMElement %AUTO% -tag "pollinterval"]
+        $cdi addchild $pollele
+        $pollele setdata 500
+        set device [SimpleDOMElement %AUTO% -tag "device"]
+        $cdi addchild $device
+        set descrele [SimpleDOMElement %AUTO% -tag "description"]
+        $device addchild $descrele
+        $descrele setdata "Sample Device"
+        set serial [SimpleDOMElement %AUTO% -tag "serial"]
+        $device addchild $serial
+        $serial setdata "01000001"
+        foreach eventtag {sense1on sense1off sense2on sense2off latch1on 
+            latch1off latch2on latch2off setchan1 setchan2} {
+            set tagele [SimpleDOMElement %AUTO% -tag $eventtag]
+            $device addchild $tagele
+            $tagele setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+            incr eid
+        }
+        if {![catch {open $conffilename w} conffp]} {
+            puts $conffp {<?xml version='1.0'?>}
+            $configuration displayTree $conffp
+        }
+        ::exit
+    }
     typemethod ConfiguratorGUI {conffile} {
         #** Configuration GUI
         # 

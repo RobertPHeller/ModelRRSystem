@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <170320.1254>
+#  Last Modified : <170402.1301>
 #
 #  Description	
 #
@@ -46,7 +46,7 @@
 #
 # @section TrackCircuitsSYNOPSIS SYNOPSIS
 #
-# OpenLCB_TrackCircuits [-configure] [-debug] [-configuration confgile]
+# OpenLCB_TrackCircuits [-configure] [-sampleconfiguration] [-debug] [-configuration confgile]
 #
 # @section TrackCircuitsDESCRIPTION DESCRIPTION
 #
@@ -85,6 +85,8 @@
 #
 # @arg -configure Enter an interactive GUI configuration tool.  This tool
 # creates or edits an XML configuration file.
+# @arg -sampleconfiguration Creates a @b sample configuration file that can 
+# then be hand edited (with a handy text editor like emacs or vim).
 # @arg -configuration confgile Sets the name of the configuration (XML) file. 
 # The default is tracksconf.xml.
 # @arg -debug Turns on debug logging.
@@ -521,10 +523,20 @@ snit::type OpenLCB_TrackCircuits {
             set configureator yes
             set argv [lreplace $argv $configureIdx $configureIdx]
         }
+        set sampleconfiguration no
+        set sampleconfigureIdx [lsearch -exact $argv -sampleconfiguration]
+        if {$sampleconfigureIdx >= 0} {
+            set sampleconfiguration yes
+            set argv [lreplace $argv $sampleconfigureIdx $sampleconfigureIdx]
+        }
         set conffile [from argv -configuration "tracksconf.xml"]
         #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
         if {$configureator} {
             $type ConfiguratorGUI $conffile
+            return
+        }
+        if {$sampleconfiguration} {
+            $type SampleConfiguration $conffile
             return
         }
         set logfilename [format {%s.log} [file tail $argv0]]
@@ -865,6 +877,90 @@ snit::type OpenLCB_TrackCircuits {
     }
     # Default (empty) XML Configuration.
     typevariable default_confXML {<?xml version='1.0'?><OpenLCB_TrackCircuits/>}
+    typemethod SampleConfiguration {conffile} {
+        #** Generate a Sample Configuration
+        #
+        # @param conffile Name of the configuration file.
+        #
+        
+        set conffilename $conffile
+        set confXML $default_confXML
+        if {[file exists $conffilename]} {
+            puts -nonewline stdout [_ {Configuration file (%s) already exists. Replace it [yN]? } $conffilename]
+            flush stdout
+            set answer [string toupper [string index [gets stdin] 0]]
+            if {$answer ne "Y"} {exit 1}
+        }
+        set configuration [ParseXML create %AUTO% $confXML]
+        set cdis [$configuration getElementsByTagName OpenLCB_TrackCircuits -depth 1]
+        set cdi [lindex $cdis 0]
+        set transcons [SimpleDOMElement %AUTO% -tag "transport"]
+        $cdi addchild $transcons
+        set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
+        $transcons addchild $constructor
+        $constructor setdata "CANGridConnectOverTcp"
+        set transportopts [SimpleDOMElement %AUTO% -tag "options"]
+        $transcons addchild $transportopts
+        $transportopts setdata {-port 12021 -nid 05:01:01:01:22:00 -host localhost}
+        set ident [SimpleDOMElement %AUTO% -tag "identification"]
+        $cdi addchild $ident
+        set nameele [SimpleDOMElement %AUTO% -tag "name"]
+        $ident addchild $nameele
+        $nameele setdata "Sample Name"
+        set descrele [SimpleDOMElement %AUTO% -tag "description"]
+        $ident addchild $descrele
+        $descrele setdata "Sample Description"
+        set eid 0
+        set track [SimpleDOMElement %AUTO% -tag "track"]
+        $cdi addchild $track
+        set description [SimpleDOMElement %AUTO% -tag "description"]
+        $track addchild $description
+        $description setdata "Sample Track"
+        set enabled [SimpleDOMElement %AUTO% -tag "enabled"]
+        $track addchild $enabled
+        for {set c 1} {$c < 11} {incr  c} {
+            set thecode [TrackCodes CodeFromValue $c]
+            set transmitter [SimpleDOMElement %AUTO% -tag "transmitter"]
+            $track addchild $transmitter
+            set code [SimpleDOMElement %AUTO% -tag "code"]
+            $transmitter addchild $code
+            $code setdata $thecode
+            set eventid [SimpleDOMElement %AUTO% -tag "eventid"]
+            $transmitter addchild $eventid
+            $eventid setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+            incr eid
+        }
+        set transmitbaseevent [SimpleDOMElement %AUTO% -tag "transmitbaseevent"]
+        $track addchild $transmitbaseevent
+        set eid [expr {($eid + 16) & 0xF0}]
+        $transmitbaseevent setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+        set receivebaseevent [SimpleDOMElement %AUTO% -tag "receivebaseevent"]
+        $track addchild $receivebaseevent
+        set eid [expr {($eid + 16) & 0xF0}]
+        $receivebaseevent setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+        set eid [expr {($eid + 16) & 0xF0}]
+        set code1startevent [SimpleDOMElement %AUTO% -tag "code1startevent"]
+        $track addchild $code1startevent
+        $code1startevent setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+        incr eid
+        for {set c 1} {$c < 11} {incr  c} {
+            set thecode [TrackCodes CodeFromValue $c]
+            set receiver [SimpleDOMElement %AUTO% -tag "receiver"]
+            $track addchild $receiver
+            set code [SimpleDOMElement %AUTO% -tag "code"]
+            $receiver addchild $code
+            $code setdata $thecode
+            set eventid [SimpleDOMElement %AUTO% -tag "eventid"]
+            $receiver addchild $eventid
+            $eventid setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+            incr eid
+        }
+        if {![catch {open $conffilename w} conffp]} {
+            puts $conffp {<?xml version='1.0'?>}
+            $configuration displayTree $conffp
+        }
+        ::exit
+    }
     typemethod ConfiguratorGUI {conffile} {
         #** Configuration GUI
         # 
