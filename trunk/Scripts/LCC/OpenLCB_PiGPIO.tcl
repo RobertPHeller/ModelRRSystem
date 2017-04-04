@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 7 10:36:33 2016
-#  Last Modified : <170401.1610>
+#  Last Modified : <170404.1045>
 #
 #  Description	
 #
@@ -778,10 +778,12 @@ snit::type OpenLCB_PiGPIO {
                     -command [mytypemethod _addblankpin]]
         pack $addpin -fill x
     }
+    typevariable warnings
     typemethod _saveexit {} {
         #** Save and exit.  Bound to the Save & Exit file menu item.
         # Saves the contents of the GUI as an XML file.
         
+        set warnings 0
         set cdis [$configuration getElementsByTagName OpenLCB_PiGPIO -depth 1]
         set cdi [lindex $cdis 0]
         set transcons [$cdi getElementsByTagName "transport"]
@@ -830,6 +832,11 @@ snit::type OpenLCB_PiGPIO {
             $type _copy_from_gui_to_XML $pin
         }
         
+        if {$warnings > 0} {
+            tk_messageBox -type ok -icon info \
+                  -message [_ "There were %d warnings.  Please correct and try again." $warnings]
+            return
+        }
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
@@ -870,6 +877,12 @@ snit::type OpenLCB_PiGPIO {
             $description setdata $description_
         }
         set pinin0_ [$frbase.pinin0 get]
+        if {$pinin0_ ne "" && [catch {lcc::eventidstring validate $pinin0_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for Pin in 0 is not a valid event id string: %s!" $pinin0_]
+            set pinin0_ ""
+            incr warnings
+        }
         if {$pinin0_ eq ""} {
             set pinin0 [$pin getElementsByTagName "pinin0"]
             if {[llength $pinin0] == 1} {
@@ -885,6 +898,12 @@ snit::type OpenLCB_PiGPIO {
         }
         
         set pinin1_ [$frbase.pinin1 get]
+        if {$pinin1_ ne "" && [catch {lcc::eventidstring validate $pinin1_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for Pin in 1 is not a valid event id string: %s!" $pinin1_]
+            set pinin1_ ""
+            incr warnings
+        }
         if {$pinin1_ eq ""} {
             set pinin1 [$pin getElementsByTagName "pinin1"]
             if {[llength $pinin1] == 1} {
@@ -900,6 +919,12 @@ snit::type OpenLCB_PiGPIO {
         }
         
         set pinout0_ [$frbase.pinout0 get]
+        if {$pinout0_ ne "" && [catch {lcc::eventidstring validate $pinout0_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for Pin out 0 is not a valid event id string: %s!" $pinout0_]
+            set pinout0_ ""
+            incr warnings
+        }
         if {$pinout0_ eq ""} {
             set pinout0 [$pin getElementsByTagName "pinout0"]
             if {[llength $pinout0] == 1} {
@@ -915,6 +940,12 @@ snit::type OpenLCB_PiGPIO {
         }
         
         set pinout1_ [$frbase.pinout1 get]
+        if {$pinout1_ ne "" && [catch {lcc::eventidstring validate $pinout1_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for Pin out 1 is not a valid event id string: %s!" $pinout1_]
+            set pinout1_ ""
+            incr warnings
+        }
         if {$pinout1_ eq ""} {
             set pinout1 [$pin getElementsByTagName "pinout1"]
             if {[llength $pinout1] == 1} {
