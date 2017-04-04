@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <170402.1301>
+#  Last Modified : <170404.1144>
 #
 #  Description	
 #
@@ -1389,11 +1389,12 @@ snit::type OpenLCB_TrackCircuits {
         $receivers forget $receivers.$fr
         destroy $receivers.$fr
     }
-
+    typevariable warnings
     typemethod _saveexit {} {
         #** Save and exit.  Bound to the Save & Exit file menu item.
         # Saves the contents of the GUI as an XML file.
         
+        set warnings 0
         set cdis [$configuration getElementsByTagName OpenLCB_TrackCircuits -depth 1]
         set cdi [lindex $cdis 0]
         set transcons [$cdi getElementsByTagName "transport"]
@@ -1433,6 +1434,12 @@ snit::type OpenLCB_TrackCircuits {
         $descrele setdata $id_description
         foreach track [$cdi getElementsByTagName "track"] {
             $type _copy_from_gui_to_XML $track
+        }
+        
+        if {$warnings > 0} {
+            tk_messageBox -type ok -icon info \
+                  -message [_ "There were %d warnings.  Please correct and try again." $warnings]
+            return
         }
         
         if {![catch {open $conffilename w} conffp]} {
@@ -1484,13 +1491,27 @@ snit::type OpenLCB_TrackCircuits {
             set eventidtag [$transmitter getElementsByTagName "eventid"]
             set fr [$transmitter attribute frame]
             set xmitframe $transmitters.$fr
-            $eventidtag setdata "[$xmitframe.eventid get]"
             set cvals [$xmitframe.code cget -values]
             set cval  [lsearch -exact $cvals [$xmitframe.code get]]
             $codetag setdata [TrackCodes CodeFromValue $cval]
+            set eventid "[$xmitframe.eventid get]"
+            if {$eventid ne "" && [catch {lcc::eventidstring validate $eventid}]} {
+                tk_messageBox -type ok -icon warning \
+                      -message [_ "Event ID for command code %s is not a valid event id string: %s!" [$xmitframe.code get] $eventid]
+                set eventid ""
+                incr warnings
+            }
+            $eventidtag setdata $eventid
+            
         }
         
         set transmitbaseevent_ [$frbase.transmitbaseevent get]
+        if {$transmitbaseevent_ ne "" && [catch {lcc::eventidstring validate $transmitbaseevent_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for transmit base event is not a valid event id string: %s!" $eventid]
+            set transmitbaseevent_ ""
+            incr warnings
+        }
         if {$transmitbaseevent_ eq "00.00.00.00.00.00.00.00" ||
             $transmitbaseevent_ eq ""} {
             set transmitbaseevent [$track getElementsByTagName "transmitbaseevent"]
@@ -1507,6 +1528,12 @@ snit::type OpenLCB_TrackCircuits {
         }
         
         set receivebaseevent_ [$frbase.receivebaseevent get]
+        if {$receivebaseevent_ ne "" && [catch {lcc::eventidstring validate $receivebaseevent_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for receive base event is not a valid event id string: %s!" $eventid]
+            set receivebaseevent_ ""
+            incr warnings
+        }
         if {$receivebaseevent_ eq "00.00.00.00.00.00.00.00" ||
             $receivebaseevent_ eq ""} {
             set receivebaseevent [$track getElementsByTagName "receivebaseevent"]
@@ -1523,6 +1550,12 @@ snit::type OpenLCB_TrackCircuits {
         }
         
         set code1startevent_ [$frbase.code1startevent get]
+        if {$code1startevent_ ne "" && [catch {lcc::eventidstring validate $code1startevent_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for code1 start event is not a valid event id string: %s!" $eventid]
+            set code1startevent_ ""
+            incr warnings
+        }
         if {$code1startevent_ eq "00.00.00.00.00.00.00.00" ||
             $code1startevent_ eq ""} {
             set code1startevent [$track getElementsByTagName "code1startevent"]
@@ -1544,10 +1577,18 @@ snit::type OpenLCB_TrackCircuits {
             set eventidtag [$receiver getElementsByTagName "eventid"]
             set fr [$receiver attribute frame]
             set recvframe $receivers.$fr
-            $eventidtag setdata "[$recvframe.eventid get]"
             set cvals [$recvframe.code cget -values]
             set cval  [lsearch -exact $cvals [$recvframe.code get]]
             $codetag setdata [TrackCodes CodeFromValue $cval]
+            set eventid "[$recvframe.eventid get]"
+            if {$eventid ne "" && [catch {lcc::eventidstring validate $eventid}]} {
+                tk_messageBox -type ok -icon warning \
+                      -message [_ "Event ID for action code %s is not a valid event id string: %s!" [$recvframe.code get] $eventid]
+                set eventid ""
+                incr warnings
+            }
+            
+            $eventidtag setdata $eventid
         }
         
             

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 17 07:55:13 2016
-#  Last Modified : <170401.1611>
+#  Last Modified : <170404.1036>
 #
 #  Description	
 #
@@ -46,7 +46,7 @@
 #
 # @section AcelaSYNOPSIS SYNOPSIS 
 #
-# OpenLCB_Acela [-configure] [-sampleconfiguration] [-debug] [-configuration confgile]
+# OpenLCB_Acela [-configure] [-sampleconfiguration] [-debug] [-configuration configfile]
 #
 # @section AcelaDESCRIPTION DESCRIPTION
 #
@@ -63,7 +63,7 @@
 # creates or edits an XML configuration file.
 # @arg -sampleconfiguration Creates a @b sample configuration file that can 
 # then be hand edited (with a handy text editor like emacs or vim).
-# @arg -configuration confgile Sets the name of the configuration (XML) file. 
+# @arg -configuration configfile Sets the name of the configuration (XML) file. 
 # The default is acelaconf.xml.
 # @arg -debug Turns on debug logging.
 # @par
@@ -1402,11 +1402,12 @@ snit::type OpenLCB_Acela {
         destory $sensors.$fr
     }
     
-    
+    typevariable warnings
     typemethod _saveexit {} {
         #** Save and exit.  Bound to the Save & Exit file menu item.
         # Saves the contents of the GUI as an XML file.
         
+        set warnings 0
         set cdis [$configuration getElementsByTagName OpenLCB_Acela -depth 1]
         set cdi [lindex $cdis 0]
         set transcons [$cdi getElementsByTagName "transport"]
@@ -1478,7 +1479,11 @@ snit::type OpenLCB_Acela {
         foreach sensor  [$cdi getElementsByTagName "sensor"] {
             $type _copy_sensor_from_gui_to_XML $sensor
         }
-        
+        if {$warnings > 0} {
+            tk_messageBox -type ok -icon info \
+                  -message [_ "There were %d warnings.  Please correct and try again." $warnings]
+            return
+        }
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
@@ -1497,6 +1502,14 @@ snit::type OpenLCB_Acela {
         foreach tag {description pulsewidth blinkperiod activate deactivate 
             pulseon pulseoff blink revblink} {
             set tagval [$frbase.$tag get]
+            if {[lsearch {activate deactivate pulseon pulseoff blink revblink} $tag] >=0} {
+                if {$tagval ne "" && [catch {lcc::eventidstring validate $tagval}]} {
+                    tk_messageBox -type ok -icon warning \
+                          -message [_ "Event ID for %s is not a valid event id string: %s!" $tag $tagval]
+                    set tagval {}
+                    incr warnings
+                }
+            }
             if {$tagval eq ""} {
                 set tagele [$control getElementsByTagName $tag]
                 if {[llength $tagele] == 1} {
@@ -1546,12 +1559,14 @@ snit::type OpenLCB_Acela {
             set eventid "[$aspectframe.eventid get]"
             if {[catch {lcc::eventidstring validate $eventid}]} {
                 tk_messageBox -type ok -icon warning -message [_ "Aspect EventID malformed: %s" $eventid]
+                incr warnings
             } else {
                 $eventidtag setdata "$eventid"
             }
             set arglist "[$aspectframe.arglist get]"
             if {[catch {AspectArgumentList validate $arglist}]} {
                 tk_messageBox -type ok -icon warning -message [_ "Aspect aspect lamp arglist malformed: %s" $arglist]
+                incr warnings
             } else {
                 $arglisttag setdata "$arglist"
             }
@@ -1569,6 +1584,14 @@ snit::type OpenLCB_Acela {
         foreach tag {description filterthresh filterselect polarity onevent 
                      offevent} {
             set tagval [$frbase.$tag get]
+            if {[lsearch {onevent offevent} $tag] >=0} {
+                if {$tagval ne "" && [catch {lcc::eventidstring validate $tagval}]} {
+                    tk_messageBox -type ok -icon warning \
+                          -message [_ "Event ID for %s is not a valid event id string: %s!" $tag $tagval]
+                    incr warnings
+                    set tagval {}
+                }
+            }
             if {$tagval eq ""} {
                 set tagele [$sensor getElementsByTagName $tag]
                 if {[llength $tagele] == 1} {

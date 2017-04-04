@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <170401.1610>
+#  Last Modified : <170404.1131>
 #
 #  Description	
 #
@@ -667,10 +667,12 @@ snit::type OpenLCB_MRD2 {
                        -command [mytypemethod _addblankdevice]]
         pack $adddevice -fill x
     }
+    typevariable warnings
     typemethod _saveexit {} {
         #** Save and exit.  Bound to the Save & Exit file menu item.
         # Saves the contents of the GUI as an XML file.
         
+        set warnings 0
         set cdis [$configuration getElementsByTagName OpenLCB_MRD2 -depth 1]
         set cdi [lindex $cdis 0]
         set transcons [$cdi getElementsByTagName "transport"]
@@ -719,6 +721,11 @@ snit::type OpenLCB_MRD2 {
             $type _copy_from_gui_to_XML $device
         }
         
+        if {$warnings > 0} {
+            tk_messageBox -type ok -icon info \
+                  -message [_ "There were %d warnings.  Please correct and try again." $warnings]
+            return
+        }
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
@@ -753,6 +760,12 @@ snit::type OpenLCB_MRD2 {
             $description setdata $description_
         }
         set sense1on_ [$frbase.sense1on get]
+        if {$sense1on_ ne "" && [catch {lcc::eventidstring validate $sense1on_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for Sense 1 on is not a valid event id string: %s!" $sense1on_]
+            set sense1on_ ""
+            incr warnings
+        }
         if {$sense1on_ eq ""} {
             set sense1on [$device getElementsByTagName "sense1on"]
             if {[llength $sense1on] == 1} {
@@ -768,6 +781,12 @@ snit::type OpenLCB_MRD2 {
         }
         
         set sense1off_ [$frbase.sense1off get]
+        if {$sense1off_ ne "" && [catch {lcc::eventidstring validate $sense1off_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for Sense 1 off is not a valid event id string: %s!" $sense1off_]
+            set sense1off_ ""
+            incr warnings
+        }
         if {$sense1off_ eq ""} {
             set sense1off [$device getElementsByTagName "sense1off"]
             if {[llength $sense1off] == 1} {
@@ -783,6 +802,12 @@ snit::type OpenLCB_MRD2 {
         }
         
         set sense2on_ [$frbase.sense2on get]
+        if {$sense2on_ ne "" && [catch {lcc::eventidstring validate $sense2on_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for Sense 2 on is not a valid event id string: %s!" $sense2on_]
+            set sense2on_ ""
+            incr warnings
+        }
         if {$sense2on_ eq ""} {
             set sense2on [$device getElementsByTagName "sense2on"]
             if {[llength $sense2on] == 1} {
@@ -798,6 +823,12 @@ snit::type OpenLCB_MRD2 {
         }
         
         set sense2off_ [$frbase.sense2off get]
+        if {$sense2off_ ne "" && [catch {lcc::eventidstring validate $sense2off_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for Sense 2 off is not a valid event id string: %s!" $sense2off_]
+            set sense2off_ ""
+            incr warnings
+        }
         if {$sense2off_ eq ""} {
             set sense2off [$device getElementsByTagName "sense2off"]
             if {[llength $sense2off] == 1} {
@@ -813,6 +844,12 @@ snit::type OpenLCB_MRD2 {
         }
         
         set latch1on_ [$frbase.latch1on get]
+        if {$latch1on_ ne "" && [catch {lcc::eventidstring validate $latch1on_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for Latch 1 on is not a valid event id string: %s!" $latch1on_]
+            set latch1on_ ""
+            incr warnings
+        }
         if {$latch1on_ eq ""} {
             set latch1on [$device getElementsByTagName "latch1on"]
             if {[llength $latch1on] == 1} {
@@ -828,6 +865,12 @@ snit::type OpenLCB_MRD2 {
         }
         
         set latch1off_ [$frbase.latch1off get]
+        if {$latch1off_ ne "" && [catch {lcc::eventidstring validate $latch1off_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for Latch 1 off is not a valid event id string: %s!" $latch1off_]
+            set latch1off_ ""
+            incr warnings
+        }
         if {$latch1off_ eq ""} {
             set latch1off [$device getElementsByTagName "latch1off"]
             if {[llength $latch1off] == 1} {
@@ -843,6 +886,12 @@ snit::type OpenLCB_MRD2 {
         }
         
         set latch2on_ [$frbase.latch2on get]
+        if {$latch2on_ ne "" && [catch {lcc::eventidstring validate $latch2on_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for Latch 2 on is not a valid event id string: %s!" $latch2on_]
+            set latch2on_ ""
+            incr warnings
+        }
         if {$latch2on_ eq ""} {
             set latch2on [$device getElementsByTagName "latch2on"]
             if {[llength $latch2on] == 1} {
@@ -858,6 +907,12 @@ snit::type OpenLCB_MRD2 {
         }
         
         set latch2off_ [$frbase.latch2off get]
+        if {$latch2off_ ne "" && [catch {lcc::eventidstring validate $latch2off_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for Latch 2 off is not a valid event id string: %s!" $latch2off_]
+            set latch2off_ ""
+            incr warnings
+        }
         if {$latch2off_ eq ""} {
             set latch2off [$device getElementsByTagName "latch2off"]
             if {[llength $latch2off] == 1} {
@@ -873,6 +928,12 @@ snit::type OpenLCB_MRD2 {
         }
         
         set setchan1_ [$frbase.setchan1 get]
+        if {$setchan1_ ne "" && [catch {lcc::eventidstring validate $setchan1_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for Set channel 1 is not a valid event id string: %s!" $setchan1_]
+            set setchan1_ ""
+            incr warnings
+        }
         if {$setchan1_ eq ""} {
             set setchan1 [$device getElementsByTagName "setchan1"]
             if {[llength $setchan1] == 1} {
@@ -888,6 +949,12 @@ snit::type OpenLCB_MRD2 {
         }
         
         set setchan2_ [$frbase.setchan2 get]
+        if {$setchan2_ ne "" && [catch {lcc::eventidstring validate $setchan2_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for Set Channel 2 is not a valid event id string: %s!" $setchan2_]
+            set setchan2_ ""
+            incr warnings
+        }
         if {$setchan2_ eq ""} {
             set setchan2 [$device getElementsByTagName "setchan2"]
             if {[llength $setchan2] == 1} {

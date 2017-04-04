@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 25 14:52:47 2016
-#  Last Modified : <170401.1611>
+#  Last Modified : <170404.1039>
 #
 #  Description	
 #
@@ -1256,10 +1256,12 @@ snit::type OpenLCB_Logic {
         $logics forget $logics.$fr
         destroy $logics.$fr
     }
+    typevariable warnings
     typemethod _saveexit {} {
         #** Save and exit.  Bound to the Save & Exit file menu item.
         # Saves the contents of the GUI as an XML file.
         
+        set warnings 0
         set cdis [$configuration getElementsByTagName OpenLCB_Logic -depth 1]
         set cdi [lindex $cdis 0]
         set transcons [$cdi getElementsByTagName "transport"]
@@ -1300,7 +1302,11 @@ snit::type OpenLCB_Logic {
         foreach logic [$cdi getElementsByTagName "logic"] {
             $type _copy_from_gui_to_XML $logic
         }
-        
+        if {$warnings > 0} {
+            tk_messageBox -type ok -icon info \
+                  -message [_ "There were %d warnings.  Please correct and try again." $warnings]
+            return
+        }
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
@@ -1337,6 +1343,12 @@ snit::type OpenLCB_Logic {
         $grouptype setdata $groupval
         set v1onevent_ "[$frbase.v1onevent get]"
         set v1onevent [$logic getElementsByTagName "v1onevent"]
+        if {$v1onevent_ ne "" && [catch {lcc::eventidstring validate $v1onevent_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for v1 on event is not a valid event id string: %s!" $v1onevent_]
+            set $v1onevent_ ""
+            incr warnings
+        }
         if {$v1onevent_ eq "" || $v1onevent_ eq "00.00.00.00.00.00.00.00"} {
             if {[llength $v1onevent] == 1} {
                 $logic removeChild $v1onevent
@@ -1350,6 +1362,12 @@ snit::type OpenLCB_Logic {
         }
         set v1offevent_ "[$frbase.v1offevent get]"
         set v1offevent [$logic getElementsByTagName "v1offevent"]
+        if {$v1offevent_ ne "" && [catch {lcc::eventidstring validate $v1offevent_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for v1 off event is not a valid event id string: %s!" $v1offevent_]
+            set $v1offevent_ ""
+            incr warnings
+        }
         if {$v1offevent_ eq "" || $v1offevent_ eq "00.00.00.00.00.00.00.00"} {
             if {[llength $v1offevent] == 1} {
                 $logic removeChild $v1offevent
@@ -1370,6 +1388,12 @@ snit::type OpenLCB_Logic {
         $logicfunction setdata $logicfunval
         set v2onevent_ "[$frbase.v2onevent get]"
         set v2onevent [$logic getElementsByTagName "v2onevent"]
+        if {$v2onevent_ ne "" && [catch {lcc::eventidstring validate $v2onevent_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for v2 on event is not a valid event id string: %s!" $v2onevent_]
+            set $v2onevent_ ""
+            incr warnings
+        }
         if {$v2onevent_ eq "" || $v2onevent_ eq "00.00.00.00.00.00.00.00"} {
             if {[llength $v2onevent] == 1} {
                 $logic removeChild $v2onevent
@@ -1383,6 +1407,12 @@ snit::type OpenLCB_Logic {
         }
         set v2offevent_ "[$frbase.v2offevent get]"
         set v2offevent [$logic getElementsByTagName "v2offevent"]
+        if {$v2offevent_ ne "" && [catch {lcc::eventidstring validate $v2offevent_}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "Event ID for v2 off event is not a valid event id string: %s!" $v2offevent_]
+            set $v2offevent_ ""
+            incr warnings
+        }
         if {$v2offevent_ eq "" || $v2offevent_ eq "00.00.00.00.00.00.00.00"} {
             if {[llength $v2offevent] == 1} {
                 $logic removeChild $v2offevent
@@ -1415,6 +1445,12 @@ snit::type OpenLCB_Logic {
             set aframe [format {%s.action%d} $frbase.actions $a]
             set action_event_ "[$aframe.event get]"
             set action_event [$logic getElementsByTagName [format "action%devent" $a]]
+            if {$action_event_ ne "" && [catch {lcc::eventidstring validate $action_event_}]} {
+                tk_messageBox -type ok -icon warning \
+                      -message [_ "Event ID for action %d on event is not a valid event id string: %s!" $a $action_event_]
+                set $action_event_ ""
+                incr warnings
+            }
             if {$action_event_ eq "" || $action_event_ eq "00.00.00.00.00.00.00.00"} {
                 if {[llength $action_event] > 0} {
                     $logic removeChild $action_event
