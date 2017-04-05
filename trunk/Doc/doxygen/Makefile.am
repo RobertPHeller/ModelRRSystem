@@ -118,8 +118,9 @@ html/index.html latex/refman.tex man/man3 : Doxyfile $(C_INTERNALS_H) \
 	-rm -rf html latex man
 	-chmod +x tcldoxyfilter.sh
 	$(DOXYGEN)
-	-rm -f man/man3/*.h.3 man/man3/*.tcl.3
-
+	-rm -f man/man3/*.h.3 man/man3/*.tcl.3 man/man3/localtime_r.3 \
+		man/man3/asctime_r.3 man/man3/mkstemp.3
+	
 
 internals.pdf: latex/refman.tex
 	$(MAKE) -C latex
