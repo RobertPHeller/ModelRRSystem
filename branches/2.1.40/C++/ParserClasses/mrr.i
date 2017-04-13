@@ -120,7 +120,7 @@ SWIGEXPORT int Mrr_SafeInit(Tcl_Interp *);
 #undef SWIG_name
 #define SWIG_name "Mrr"
 #undef SWIG_version
-#define SWIG_version VERSION
+#define SWIG_version MRR_PATCH_LEVELLIB
 %}
 
 #ifdef SWIGTCL8

@@ -44,7 +44,7 @@
 
 #if !HAVE_SOCKETPAIR
 #include <winsock2.h>
-#include <errno.h>;
+#include <errno.h>
 
 #ifdef BROKEN
 int socketpair(int af, int type, int protocol, int sv[2])
