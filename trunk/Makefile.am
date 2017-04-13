@@ -51,7 +51,8 @@ SUBDIRS = BuildScripts BuildData Doc C++ Scripts Installer po intl \
 		ExampleDataAndCode
 
 EXTRA_DIST = config.rpath  $(PACKAGE).spec bootstrap config_tcl.sed.in Doxyfile.in \
-	ModelRailroadSystem.h BuildBinaryDistro.sh.in
+	ModelRailroadSystem.h BuildBinaryDistro.sh.in Readme.Centos \
+	ReadmeW32.txt
 
 man_MANS = man1/ModelRailroadSystem.1
 
