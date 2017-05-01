@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <160906.0951>
+#  Last Modified : <170501.1057>
 #
 #  Description	
 #
@@ -71,6 +71,8 @@
 #      serial ports connected to CAN busses using GridConnect.
 # @arg -remote host[:port], -remote0 host[:port], -remote1 host[:port], ... 
 #      -remote9 host[:port] Optional remote Tcp/Ip hubs using GridConnect.
+# @arg -can socketname, -can0 socketname,  -can1  socketname, ...
+#      -can9 socketname Optional CAN Socket connected CAN networks.
 # @par
 #
 # @section OpenLCBGCTcpHubAUTHOR AUTHOR
@@ -186,6 +188,20 @@ snit::type OpenLCBGCTcpHub {
             } else {
                 $type create %AUTO% $sockfd $remhost $portno
             }
+        }
+        if {![catch {package require Tclsocketcan} error]} {
+            foreach op {-can -can0 -can1 -can2 -can3 -can4 -can5 -can6 -can7 -can8 -can9} {
+                set socketname [from argv $op]
+                if {$socketname eq ""} {continue}
+                if {[catch {TclSocketCAN $socketname} sockfd]} {
+                    ::log::logError [_ "CAN Socket to %s not opened: %s" $socketname $sockfd]
+                    continue
+                } else {
+                    $type create %AUTO% $sockfd localhost $socketname -eoltranslation {auto crlf}
+                }
+            }
+        } else {
+            ::log::log debug "*** package require Tclsocketcan: $error"
         }
     }
     typemethod LogPuts {level message} {
