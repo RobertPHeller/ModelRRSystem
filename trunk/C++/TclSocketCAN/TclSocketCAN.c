@@ -8,7 +8,7 @@
  *  Author        : $Author$
  *  Created By    : Robert Heller
  *  Created       : Sun Apr 30 12:11:26 2017
- *  Last Modified : <170430.1737>
+ *  Last Modified : <170430.2134>
  *
  *  Description	
  *
@@ -43,7 +43,7 @@
 static const char rcsid[] = "@(#) : $Id$";
 
 
-
+#include <stdio.h>
 #include <tcl.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -230,14 +230,22 @@ CanInputProc(
     struct can_frame frame;
     canid_t mask;
     
+#ifdef DEBUG
+    fprintf(stderr,"*** CanInputProc()\n");
+#endif
     *errorCodePtr = 0;
     nbytes = read(statePtr->fd, &frame, sizeof(frame));
+#ifdef DEBUG                                                                    
+    fprintf(stderr,"*** -: nbytes = %d\n",nbytes);
+    fprintf(stderr,"*** -: frame.can_id = %08X\n",frame.can_id);
+#endif                                                                          
+    
     if (nbytes > -1) {
         if (nbytes < sizeof(frame)) {
             *errorCodePtr = ENOMSG;
             return -1;
         }
-        if ((frame.can_id & CAN_EFF_FLAG) == 1) {
+        if ((frame.can_id & CAN_EFF_FLAG) != 0) {
             if ((frame.can_id & CAN_RTR_FLAG) == 1) {
                 fmt = ":X%08XR";
             } else {
@@ -245,18 +253,24 @@ CanInputProc(
             }
             mask = CAN_EFF_MASK;
         } else {
-            if ((frame.can_id & CAN_RTR_FLAG) == 1) {
+            if ((frame.can_id & CAN_RTR_FLAG) != 0) {
                 fmt = ":S%03XR";
             } else {
                 fmt = ":S%03XN";
             }
             mask = CAN_SFF_MASK;
         }
+#ifdef DEBUG                                                                   $
+        fprintf(stderr,"*** -: fmt is %s\n",fmt);
+#endif
         nbytes = snprintf(buf,(size_t) bufSize,fmt,(frame.can_id & mask));
         bytesRead = nbytes;
         if (nbytes >= bufSize) return bufSize;
         doff = buf+nbytes;
         bremain = bufSize-nbytes;
+#ifdef DEBUG                                                                   $
+        fprintf(stderr,"*** -: frame.can_dlc is %d\n",frame.can_dlc);
+#endif                                                                          
         for (i = 0; i < frame.can_dlc; i++) {
             nbytes = snprintf(doff,(size_t)bremain,"%02X",frame.data[i]);
             bytesRead += nbytes;
@@ -348,6 +362,7 @@ CanOutputProc(
     p = buf+1;toWrite--;
     memset(&frame,0,sizeof(frame));
     if (*p == 'X') {
+        p++;
         for (i = 0; i < 8; i++) {
             if ((tmp = asc2nibble(*p++)) > 0x0F) {
                 *errorCodePtr = ENOMSG;
@@ -372,7 +387,7 @@ CanOutputProc(
     }
     if (*p == 'R') {
         frame.can_id |= CAN_RTR_FLAG;
-    } else if (*p |= 'N') {
+    } else if (*p != 'N') {
         *errorCodePtr = ENOMSG;
         return -1;
     }
@@ -404,10 +419,17 @@ CanOutputProc(
         *errorCodePtr = ENOMSG;
         return -1;
     }
+    toWrite--;
+#ifdef DEBUG
+    fprintf(stderr,"*** CanOutputProc(): frame.can_id is %08X\n",frame.can_id);
+#endif
     if (write(statePtr->fd,&frame,sizeof(frame)) != sizeof(frame)) {
         *errorCodePtr = errno;
         return -1;
     }
+#ifdef DEBUG                                                                    
+    fprintf(stderr,"*** CanOutputProc():  written = %d, toWrite = %d, written-toWrite = %d\n",written,toWrite,written-toWrite);
+#endif                                                                          
     return written-toWrite;
 }
 
@@ -697,6 +719,11 @@ int TclSocketCAN(Tcl_Interp *interp, const char *candev)
                                           (TCL_READABLE | TCL_WRITABLE));
     if (Tcl_SetChannelOption(interp, statePtr->channel, "-translation",
                              "auto crlf") == TCL_ERROR) {
+        Tcl_Close(NULL, statePtr->channel);
+        return TCL_ERROR;
+    }
+    if (Tcl_SetChannelOption(interp, statePtr->channel, "-buffering",
+                             "line") == TCL_ERROR) {
         Tcl_Close(NULL, statePtr->channel);
         return TCL_ERROR;
     }
