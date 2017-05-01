@@ -120,6 +120,16 @@ WIRINGPISupportFiles =
 WIRINGPIDependFiles = 
 endif
 
+if HAVE_CAN
+SOCKETCAN_DEPS = $(top_builddir)/C++/TclSocketCAN/libtclsocketcan.la \
+		 $(top_builddir)/C++/TclSocketCAN/pkgIndex.tcl
+SOCKETCAN_FILES = $(top_builddir)/C++/TclSocketCAN/.libs/libtclsocketcan$(SHLIB_SUFFIX) \
+		$(top_builddir)/C++/TclSocketCAN/pkgIndex.tcl
+else
+SOCKETCAN_DEPS =
+SOCKETCAN_FILES =
+endif
+
 ControlSupportFiles = $(top_srcdir)/Scripts/ControlSupport/*.tcl \
 			$(top_builddir)/Scripts/ControlSupport/pkgIndex.tcl
 ControlSupportDependFiles  = $(ControlSupportFiles)
@@ -182,7 +192,8 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 		      $(CTIAcelaDependFiles) $(WIRINGPIDependFiles) \
 		      $(OpenLCBDependFiles) \
 		      $(top_builddir)/C++/ParserClasses/libMRRParserClasses.la \
-		      $(top_builddir)/C++/ParserClasses/pkgIndex.tcl
+		      $(top_builddir)/C++/ParserClasses/pkgIndex.tcl \
+		      $(SOCKETCAN_DEPS)
 	-rm -rf Dispatcher.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/Dispatcher.src
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap  Dispatcher.kit
@@ -230,6 +241,10 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 if HAVE_WIRINGPI
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		CodeLibrary/WiringPi $(WIRINGPISupportFiles)
+endif
+if HAVE_CAN
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
+		lib/TclSocketCAN $(SOCKETCAN_FILES)
 endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		Messages $(top_builddir)/po/Dispatcher/*.msg
