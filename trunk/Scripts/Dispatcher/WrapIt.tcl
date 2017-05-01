@@ -116,6 +116,8 @@ namespace eval WrapIt {
   #  puts stderr "*** WrapIt::CTIAcelaLibDir = $CTIAcelaSupportDir"
   variable WiringPiLibDir [glob -nocomplain [file join $CodeLibrary WiringPi]]
   #  puts stderr "*** WrapIt::WiringPiLibDir = $WiringPiLibDir"
+  variable TclSocketCANLibDir [glob -nocomplain [file join $Lib TclSocketCAN]]
+  #  puts stderr "*** WrapIt::TclSocketCANLibDir = $TclSocketCANLibDir"
   variable OpenLCBLibDir [glob -nocomplain [file join $CodeLibrary LCC]]
   #  puts stderr "*** WrapIt::OpenLCBLibDir = $OpenLCBLibDir"
   variable XMLLibDir [glob -nocomplain [file join $Lib Tclxml*]]
@@ -231,7 +233,10 @@ namespace eval WrapIt {
     if {$needopenlcb} {
         variable OpenLCBLibDir
         file copy $OpenLCBLibDir [file join $filename lib [file tail $OpenLCBLibDir]]
-        
+        variable TclSocketCANLibDir
+        if {$TclSocketCANLibDir ne ""} {
+            file copy $TclSocketCANLibDir [file join $filename lib [file tail $TclSocketCANLibDir]]
+        }
     }
     foreach ap $additionalPackages {
       file mkdir [file join $filename lib $ap]

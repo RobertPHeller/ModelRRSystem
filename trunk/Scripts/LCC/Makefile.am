@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <161019.1330>
+#  Last Modified : <170501.0834>
 #
 #  Description	
 #
@@ -74,6 +74,16 @@ if HAVE_WIRINGPI
 man_MANS += man1/OpenLCB_PiGPIO.1
 endif
 
+if HAVE_CAN
+SOCKETCAN_DEPS = $(top_builddir)/C++/TclSocketCAN/libtclsocketcan.la \
+		 $(top_builddir)/C++/TclSocketCAN/pkgIndex.tcl
+SOCKETCAN_FILES = $(top_builddir)/C++/TclSocketCAN/.libs/libtclsocketcan$(SHLIB_SUFFIX) \
+		$(top_builddir)/C++/TclSocketCAN/pkgIndex.tcl
+else
+SOCKETCAN_DEPS =
+SOCKETCAN_FILES =
+endif
+
 CLEANFILES = pkgIndex.tcl OpenLCB${EXEEXT} OpenLCB.pot \
 			  OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
 			  OpenLCBGCTcpHub${EXEEXT} OpenLCB_PiGPIO${EXEEXT} \
@@ -136,7 +146,7 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
 
 OpenLCB${EXEEXT}: OpenLCB.tcl $(OpenLCBSCRIPTS) \
 	$(top_builddir)/Doc/User/OpenLCB/index.html \
-	$(top_builddir)/po/OpenLCB/msgfiles
+	$(top_builddir)/po/OpenLCB/msgfiles $(SOCKETCAN_DEPS)
 	-rm -f  OpenLCB.kit
 	-rm -rf  OpenLCB.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB.tcl
@@ -154,6 +164,10 @@ OpenLCB${EXEEXT}: OpenLCB.tcl $(OpenLCBSCRIPTS) \
 		lib/Common $(OpenLCBSCRIPTS)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB \
 		Common
+if HAVE_CAN
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
+		lib/TclSocketCAN $(SOCKETCAN_FILES)
+endif
 	$(UNZIP) -qq -d OpenLCB.vfs/lib \
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(UNZIP) -qq -d OpenLCB.vfs/lib \
@@ -229,7 +243,7 @@ OpenLCBGCTcpHubSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 			$(top_builddir)/Scripts/Common/Version.tcl
 			
 OpenLCBGCTcpHub${EXEEXT}: OpenLCBGCTcpHub.tcl $(OpenLCBGCTcpHubSCRIPTS) \
-	$(top_builddir)/po/OpenLCB/msgfiles
+	$(top_builddir)/po/OpenLCB/msgfiles $(SOCKETCAN_DEPS)
 	-rm -f  OpenLCBGCTcpHub.kit
 	-rm -rf  OpenLCBGCTcpHub.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCBGCTcpHub.tcl
@@ -243,6 +257,10 @@ OpenLCBGCTcpHub${EXEEXT}: OpenLCBGCTcpHub.tcl $(OpenLCBGCTcpHubSCRIPTS) \
 		lib/Common $(OpenLCBGCTcpHubSCRIPTS)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCBGCTcpHub \
 		Common
+if HAVE_CAN
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
+		lib/TclSocketCAN $(SOCKETCAN_FILES)
+endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCBGCTcpHub \
 		Messages $(top_builddir)/po/OpenLCB/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCBGCTcpHub${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
@@ -277,7 +295,7 @@ AzatraxDependFiles = $(top_builddir)/C++/Azatrax/libazatrax.la \
 			
 OpenLCB_MRD2${EXEEXT}: OpenLCB_MRD2.tcl $(OpenLCB_MRD2SCRIPTS) \
 	$(top_builddir)/po/OpenLCB/msgfiles $(AzatraxDependFiles) \
-	$(top_builddir)/Doc/User/OpenLCB/index.html
+	$(top_builddir)/Doc/User/OpenLCB/index.html $(SOCKETCAN_DEPS)
 	-rm -f  OpenLCB_MRD2.kit
 	-rm -rf  OpenLCB_MRD2.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB_MRD2.tcl
@@ -297,6 +315,10 @@ OpenLCB_MRD2${EXEEXT}: OpenLCB_MRD2.tcl $(OpenLCB_MRD2SCRIPTS) \
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_MRD2 \
 		Common
+if HAVE_CAN
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
+		lib/TclSocketCAN $(SOCKETCAN_FILES)
+endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_MRD2 \
 		lib/Azatrax $(AzatraxSupportFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_MRD2 \
@@ -335,7 +357,7 @@ WiringPiDependFiles = $(top_builddir)/C++/wiringPi/libtclwiringpi.la \
 
 OpenLCB_PiGPIO${EXEEXT}: OpenLCB_PiGPIO.tcl $(OpenLCB_PiGPIOSCRIPTS) \
 	$(top_builddir)/po/OpenLCB/msgfiles $(WiringPiDependFiles) \
-	$(top_builddir)/Doc/User/OpenLCB/index.html
+	$(top_builddir)/Doc/User/OpenLCB/index.html $(SOCKETCAN_DEPS)
 	-rm -f  OpenLCB_PiGPIO.kit
 	-rm -rf  OpenLCB_PiGPIO.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB_PiGPIO.tcl
@@ -355,6 +377,10 @@ OpenLCB_PiGPIO${EXEEXT}: OpenLCB_PiGPIO.tcl $(OpenLCB_PiGPIOSCRIPTS) \
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_PiGPIO \
 		Common
+if HAVE_CAN
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
+		lib/TclSocketCAN $(SOCKETCAN_FILES)
+endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiGPIO \
 		lib/WiringPi $(WiringPiSupportFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiGPIO \
@@ -388,7 +414,8 @@ OpenLCB_TrackCircuitsSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 OpenLCB_TrackCircuits${EXEEXT}: OpenLCB_TrackCircuits.tcl \
 			$(OpenLCB_TrackCircuitsSCRIPTS) \
 			$(top_builddir)/po/OpenLCB/msgfiles \
-			$(top_builddir)/Doc/User/OpenLCB/index.html
+			$(top_builddir)/Doc/User/OpenLCB/index.html \
+			$(SOCKETCAN_DEPS)
 	-rm -f  OpenLCB_TrackCircuits.kit
 	-rm -rf  OpenLCB_TrackCircuits.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB_TrackCircuits.tcl
@@ -408,6 +435,10 @@ OpenLCB_TrackCircuits${EXEEXT}: OpenLCB_TrackCircuits.tcl \
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_TrackCircuits \
 		Common
+if HAVE_CAN
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
+		lib/TclSocketCAN $(SOCKETCAN_FILES)
+endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_TrackCircuits \
 		Help $(top_builddir)/Doc/User/OpenLCB/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_TrackCircuits \
@@ -439,7 +470,8 @@ OpenLCB_LogicSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 OpenLCB_Logic${EXEEXT}: OpenLCB_Logic.tcl \
 			$(OpenLCB_LogicSCRIPTS) \
 			$(top_builddir)/po/OpenLCB/msgfiles \
-			$(top_builddir)/Doc/User/OpenLCB/index.html
+			$(top_builddir)/Doc/User/OpenLCB/index.html \
+			$(SOCKETCAN_DEPS)
 	-rm -f  OpenLCB_Logic.kit
 	-rm -rf  OpenLCB_Logic.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB_Logic.tcl
@@ -459,6 +491,10 @@ OpenLCB_Logic${EXEEXT}: OpenLCB_Logic.tcl \
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_Logic \
 		Common
+if HAVE_CAN
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
+		lib/TclSocketCAN $(SOCKETCAN_FILES)
+endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_Logic \
 		Help $(top_builddir)/Doc/User/OpenLCB/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_Logic \
@@ -492,7 +528,8 @@ AcelaSupportFiles = $(top_srcdir)/Scripts/CTIAcela/CTIAcela.tcl \
 
 OpenLCB_Acela${EXEEXT}: OpenLCB_Acela.tcl $(OpenLCB_AcelaSCRIPTS) \
 	$(top_builddir)/po/OpenLCB/msgfiles $(AcelaSupportFiles) \
-	$(top_builddir)/Doc/User/OpenLCB/index.html
+	$(top_builddir)/Doc/User/OpenLCB/index.html \
+	$(SOCKETCAN_DEPS)
 	-rm -f  OpenLCB_MRD2.kit
 	-rm -rf  OpenLCB_MRD2.vfs
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB_Acela.tcl
@@ -512,6 +549,10 @@ OpenLCB_Acela${EXEEXT}: OpenLCB_Acela.tcl $(OpenLCB_AcelaSCRIPTS) \
 		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_Acela \
 		Common
+if HAVE_CAN
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
+		lib/TclSocketCAN $(SOCKETCAN_FILES)
+endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_Acela \
 		lib/Acela $(AcelaSupportFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_Acela \
@@ -567,3 +608,7 @@ $(top_builddir)/C++/wiringPi/libtclwiringpi.la : \
 $(top_builddir)/Scripts/CTIAcela/pkgIndex.tcl : \
 	$(top_srcdir)/Scripts/CTIAcela/CTIAcela.tcl
 	$(MAKE) -C $(top_builddir)/Scripts/CTIAcela
+
+$(top_builddir)/C++/TclSocketCAN/libtclsocketcan.la : \
+	$(top_srcdir)/C++/TclSocketCAN/*.i
+	$(MAKE) -C $(top_builddir)/C++/TclSocketCAN

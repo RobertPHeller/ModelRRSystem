@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Sep 19 09:18:09 2016
-#  Last Modified : <160925.0956>
+#  Last Modified : <170416.1436>
 #
 #  Description	
 #
@@ -209,10 +209,10 @@ snit::widgetadaptor LCCNodeTree {
         set i 1
         set names1 {manufact model hvers svers}
         set formats1 [list \
-                      "Manfacturer: %s" \
-                      "Model: %s" \
-                      "Hardware Version: %s" \
-                      "Software Version: %s"]
+                      [_ "Manfacturer: %s"] \
+                      [_ "Model: %s"] \
+                      [_ "Hardware Version: %s"] \
+                      [_ "Software Version: %s"]]
         for {set istring 0} {$istring < $strings1} {incr istring} {
             set s ""
             while {[lindex $infopayload $i] != 0} {
@@ -236,7 +236,7 @@ snit::widgetadaptor LCCNodeTree {
         # If version 1, then 2 strings (???), other wise version == number of strings
         incr i
         set names2 {name descr}
-        set formats2 [list "Name: %s" "Description: %s"]
+        set formats2 [list [_ "Name: %s"] [_ "Description: %s"]]
         for {set istring 0} {$istring < $strings2} {incr istring} {
             set s ""
             while {[lindex $infopayload $i] != 0} {
@@ -251,6 +251,9 @@ snit::widgetadaptor LCCNodeTree {
                       -id ${nid}_simplenodeinfo_[lindex $names2 $istring] \
                       -text [_ [lindex $formats2 $istring] $s] \
                       -open no
+                if {[lindex $names2 $istring] eq "name"} {
+                    $hull item ${nid} -text [format "%s (%s)" $nid $s]
+                }
             }
             incr i
         }
