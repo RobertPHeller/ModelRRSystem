@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <170501.0834>
+#  Last Modified : <170501.1053>
 #
 #  Description	
 #
@@ -258,7 +258,7 @@ OpenLCBGCTcpHub${EXEEXT}: OpenLCBGCTcpHub.tcl $(OpenLCBGCTcpHubSCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCBGCTcpHub \
 		Common
 if HAVE_CAN
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCBGCTcpHub \
 		lib/TclSocketCAN $(SOCKETCAN_FILES)
 endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCBGCTcpHub \
@@ -316,7 +316,7 @@ OpenLCB_MRD2${EXEEXT}: OpenLCB_MRD2.tcl $(OpenLCB_MRD2SCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_MRD2 \
 		Common
 if HAVE_CAN
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_MRD2 \
 		lib/TclSocketCAN $(SOCKETCAN_FILES)
 endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_MRD2 \
@@ -378,7 +378,7 @@ OpenLCB_PiGPIO${EXEEXT}: OpenLCB_PiGPIO.tcl $(OpenLCB_PiGPIOSCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_PiGPIO \
 		Common
 if HAVE_CAN
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiGPIO \
 		lib/TclSocketCAN $(SOCKETCAN_FILES)
 endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiGPIO \
@@ -436,7 +436,7 @@ OpenLCB_TrackCircuits${EXEEXT}: OpenLCB_TrackCircuits.tcl \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_TrackCircuits \
 		Common
 if HAVE_CAN
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_TrackCircuits \
 		lib/TclSocketCAN $(SOCKETCAN_FILES)
 endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_TrackCircuits \
@@ -492,7 +492,7 @@ OpenLCB_Logic${EXEEXT}: OpenLCB_Logic.tcl \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_Logic \
 		Common
 if HAVE_CAN
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_Logic \
 		lib/TclSocketCAN $(SOCKETCAN_FILES)
 endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_Logic \
@@ -550,7 +550,7 @@ OpenLCB_Acela${EXEEXT}: OpenLCB_Acela.tcl $(OpenLCB_AcelaSCRIPTS) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_Acela \
 		Common
 if HAVE_CAN
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_Acela \
 		lib/TclSocketCAN $(SOCKETCAN_FILES)
 endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_Acela \
