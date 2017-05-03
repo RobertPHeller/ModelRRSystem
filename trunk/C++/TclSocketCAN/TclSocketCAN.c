@@ -8,7 +8,7 @@
  *  Author        : $Author$
  *  Created By    : Robert Heller
  *  Created       : Sun Apr 30 12:11:26 2017
- *  Last Modified : <170430.2134>
+ *  Last Modified : <170503.1104>
  *
  *  Description	
  *
@@ -363,6 +363,7 @@ CanOutputProc(
     memset(&frame,0,sizeof(frame));
     if (*p == 'X') {
         p++;
+        toWrite--;
         for (i = 0; i < 8; i++) {
             if ((tmp = asc2nibble(*p++)) > 0x0F) {
                 *errorCodePtr = ENOMSG;
@@ -375,6 +376,7 @@ CanOutputProc(
         frame.can_id |= CAN_EFF_FLAG;
     } else if (*p == 'S') {
         p++;
+        toWrite--;
         for (i = 0; i < 3; i++) {
             if ((tmp = asc2nibble(*p++)) > 0x0F) {
                 *errorCodePtr = ENOMSG;
@@ -419,7 +421,6 @@ CanOutputProc(
         *errorCodePtr = ENOMSG;
         return -1;
     }
-    toWrite--;
 #ifdef DEBUG
     fprintf(stderr,"*** CanOutputProc(): frame.can_id is %08X\n",frame.can_id);
 #endif
