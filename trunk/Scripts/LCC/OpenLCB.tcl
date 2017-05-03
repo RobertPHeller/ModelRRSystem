@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <160919.1114>
+#  Last Modified : <170503.1139>
 #
 #  Description	
 #
@@ -338,6 +338,7 @@ snit::type OpenLCB {
         #* Simple Node Information Request -- Send our Simple Node Info.
         #* Other messages are handled by the nodetree.
         
+        putdebug [format {*** $type _messageHandler: mti is 0x%04X} [$message cget -mti]]
         switch [format {0x%04X} [$message cget -mti]] {
             0x0490 -
             0x0488 {

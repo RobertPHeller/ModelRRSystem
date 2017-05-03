@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Sep 19 09:18:09 2016
-#  Last Modified : <170416.1436>
+#  Last Modified : <170503.1201>
 #
 #  Description	
 #
@@ -163,12 +163,13 @@ snit::widgetadaptor LCCNodeTree {
             0x0101 -
             0x0170 -
             0x0171 {
-                # I'm fine, how are you?
-                $transport SendMyNodeVerifcation
                 #* Verified Node ID & Initialization Complete messages.
                 set nid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] \
                          [$message cget -data]]
                 if {![$hull exists $nid]} {
+                    # I'm fine, how are you?
+                    # (Nice to meet you, my name is...)
+                    $transport SendMyNodeVerifcation
                     $hull insert {} end -id $nid -text $nid -open no
                     $transport SendSimpleNodeInfoRequest $nid
                 }
