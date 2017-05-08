@@ -8,7 +8,7 @@
  *  Author        : $Author$
  *  Created By    : Robert Heller
  *  Created       : Sun Apr 30 12:11:26 2017
- *  Last Modified : <170503.1104>
+ *  Last Modified : <170508.1139>
  *
  *  Description	
  *
@@ -705,7 +705,7 @@ CreateSocket(
  * 
  */
 
-int TclSocketCAN(Tcl_Interp *interp, const char *candev)
+int SocketCAN(Tcl_Interp *interp, const char *candev)
 {
     CANState *statePtr;
     char channelName[16 + TCL_INTEGER_SPACE];

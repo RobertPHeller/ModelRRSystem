@@ -8,7 +8,7 @@
  *  Author        : $Author$
  *  Created By    : Robert Heller
  *  Created       : Sun Apr 30 15:58:40 2017
- *  Last Modified : <170430.1647>
+ *  Last Modified : <170508.1231>
  *
  *  Description	
  *
@@ -40,12 +40,26 @@
  *
  ****************************************************************************/
 
+/** @defgroup TclSocketCANModule TclSocketCANModule
+ * @brief     Tcl Channel for CAN Sockets.
+ * 
+ * This module defines a Tcl Channel type for CAN Sockets.  These are much like
+ * TCP Sockets, except the read/write code translates CAN frames to/from 
+ * GridConnect messages.  This module is only available under Linux, since only
+ * Linux has kernel support for the CAN socket family (AF_CAN).
+ * 
+ * @author Robert Heller \<heller\@deepsoft.com\>
+ * 
+ * @{
+ * 
+ */
+
 
 %module TclSocketCAN
 %{
     static const char rcsid[] = "@(#) : $Id$";
     SWIGEXPORT int Tclsocketcan_SafeInit(Tcl_Interp *);
-    int TclSocketCAN(Tcl_Interp *interp, const char *candev);
+    int SocketCAN(Tcl_Interp *interp, const char *candev);
 %}
 
 
@@ -59,7 +73,19 @@
 #define SWIG_version TCLSOCKETCAN_VERSIONLIB
 %}
 
-%apply int Tcl_Result { int TclSocketCAN };
+%apply int Tcl_Result { int SocketCAN };
 
-int TclSocketCAN(Tcl_Interp *interp, const char *candev);
+/** @brief Open a CAN Socket.
+ * 
+ * This function opens a read/write connection to a CAN socket to the named
+ * interface.  The result of this function is the name of a Tcl Channel and
+ * can be used as an argument to any Tcl Channel function (such as gets,
+ * puts, or fileevent).
+ * 
+ * @param candev The name of the CAN interface to connect to.
+ * @return The name of a Tcl Channel.
+ */ 
 
+int SocketCAN(Tcl_Interp *interp, const char *candev);
+
+/** @} */

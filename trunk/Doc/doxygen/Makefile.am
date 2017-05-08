@@ -57,11 +57,16 @@ TTSupportHeaders = $(top_builddir)/C++/TTSupport/TTSupportGroup.h \
 	 
 RailDriverHeaders = 	$(top_builddir)/C++/RailDriver/RaildriverIO.h
 
+WiringPiHeaders = $(top_srcdir)/C++/wiringPi/tclwiringpi.i
+
+TclSocketCANHeaders = @top_srcdir@/C++/TclSocketCAN/TclSocketCAN.i
+
 C_INTERNALS_H_HERE = titlepage.h #Intro.h Biblio.h
 C_INTERNALS_H = $(C_INTERNALS_H_HERE) \
 	$(ParserClassesHeaders) $(AzatraxHeaders) \
 	$(FCFSupportHeaders) $(TTSupportHeaders) \
-	$(RailDriverHeaders) $(RailDriverHeaders)
+	$(RailDriverHeaders) $(RailDriverHeaders) \
+	$(WiringPiHeaders) $(TclSocketCANHeaders)
 
 SERIAL_TCL_INTERNALS_TCLS = $(CMriTcls) $(CTIAcelaTcls) $(LCCTcls) \
 				$(XPressNetTcls) $(NCETcls) 
@@ -118,7 +123,8 @@ html/index.html latex/refman.tex man/man3 : Doxyfile $(C_INTERNALS_H) \
 	-rm -rf html latex man
 	-chmod +x tcldoxyfilter.sh
 	$(DOXYGEN)
-	-rm -f man/man3/*.h.3 man/man3/*.tcl.3 man/man3/localtime_r.3 \
+	-rm -f man/man3/*.h.3 man/man3/*.tcl.3 man/man3/*.i.3 \
+		man/man3/localtime_r.3 \
 		man/man3/asctime_r.3 man/man3/mkstemp.3
 	
 
