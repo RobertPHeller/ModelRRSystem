@@ -8,7 +8,7 @@
  *  Author        : $Author$
  *  Created By    : Robert Heller
  *  Created       : Wed Jul 22 11:06:42 2015
- *  Last Modified : <150722.1141>
+ *  Last Modified : <170508.1110>
  *
  *  Description	
  *
@@ -41,7 +41,15 @@
  ****************************************************************************/
 
 
-
+/** @defgroup TclwiringpiModule TclwiringpiModule
+ *  @brief    WiringPi Tcl bindings module.
+ * 
+ * This module provides Tcl bindings to the Wiring Pi library.  All of the
+ * functions defined in the Wiring Pi C library are made available as Tcl 
+ * commands.  Please see the documentation for the Wiring Pi C library.
+ * 
+ * @author Robert Heller \<heller\@deepsoft.com\>
+ */
 
 %module Tclwiringpi
 %{

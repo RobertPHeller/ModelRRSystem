@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <170503.1201>
+#  Last Modified : <170508.1232>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -4460,7 +4460,7 @@ namespace eval lcc {
             #puts stderr "*** $type create $self $args
             set options(-socketname) [from args -socketname]
             install mycanalias using CanAlias %AUTO% -nid [from args -nid]
-            if {[catch {TclSocketCAN $options(-socketname)} socket]} {
+            if {[catch {SocketCAN $options(-socketname)} socket]} {
                 set theerror $socket
                 catch {unset socket}
                 error [_ "Failed to open CAN Socket %s because %s." $options(-socketname) $theerror]
