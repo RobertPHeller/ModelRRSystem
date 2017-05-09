@@ -8,7 +8,7 @@
  *  Author        : $Author$
  *  Created By    : Robert Heller
  *  Created       : Wed Jul 22 11:06:42 2015
- *  Last Modified : <170508.1110>
+ *  Last Modified : <170509.1150>
  *
  *  Description	
  *
@@ -56,6 +56,8 @@
 #include <wiringPi.h>
 #include <wiringPiI2C.h>
 #include <wiringPiSPI.h>
+#include <mcp23008.h>
+#include <mcp23017.h>
 static const char rcsid[] = "@(#) : $Id$";
 %}
 
@@ -66,12 +68,16 @@ static const char rcsid[] = "@(#) : $Id$";
 #define SWIG_name "Tclwiringpi"
 #undef SWIG_version
 #define SWIG_version "1.0.0"
- /** Dummys to deal with include file hookeyness. */
+ /* Dummys to deal with include file hookeyness. */
  int  wiringPiSetupPiFace (void) {return 0;}
  int  wiringPiSetupPiFaceForGpioProg (void) {return wiringPiSetupPiFace();}
+ /* Broken Include file (defines functions that are not defined or used. */
+ unsigned int  digitalRead8        (int pin) {return 0;}
+ void digitalWrite8       (int pin, int value) {return;}
 %}
 
 %include <wiringPi.h>
 %include <wiringPiI2C.h>
 %include <wiringPiSPI.h>
-
+%include <mcp23008.h>
+%include <mcp23017.h>
