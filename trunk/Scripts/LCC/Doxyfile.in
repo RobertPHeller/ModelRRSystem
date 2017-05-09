@@ -613,6 +613,8 @@ WARN_LOGFILE           =
 INPUT                  = @srcdir@/OpenLCB.tcl @srcdir@/OpenLCBTcpHub.tcl \
                          @srcdir@/OpenLCB_MRD2.tcl @srcdir@/OpenLCBGCTcpHub.tcl \
                          @srcdir@/OpenLCB_PiGPIO.tcl \
+                         @srcdir@/OpenLCB_PiMCP23008.tcl \
+                         @srcdir@/OpenLCB_PiMCP23017.tcl \
                          @srcdir@/OpenLCB_TrackCircuits.tcl \
                          @srcdir@/OpenLCB_Acela.tcl \
                          @srcdir@/OpenLCB_Logic.tcl

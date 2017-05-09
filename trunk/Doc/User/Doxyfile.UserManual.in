@@ -631,6 +631,8 @@ INPUT                  = @srcdir@/Preface.h \
                          @top_srcdir@/Scripts/LCC/OpenLCBGCTcpHub.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_MRD2.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_PiGPIO.tcl \
+                         @top_srcdir@/Scripts/LCC/OpenLCB_PiMCP23008.tcl \
+                         @top_srcdir@/Scripts/LCC/OpenLCB_PiMCP23017.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_TrackCircuits.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_Logic.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_Acela.tcl \
