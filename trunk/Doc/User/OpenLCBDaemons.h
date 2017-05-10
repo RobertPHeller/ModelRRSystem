@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Aug 14 14:40:15 2016
-//  Last Modified : <170402.1052>
+//  Last Modified : <170510.1120>
 //
 //  Description	
 //
@@ -106,6 +106,12 @@
  *   @li @ref OpenLCB_PiGPIO The OpenLCB_PiGPIO daemon implememts an OpenLCB
  *   node that implements the EventExchange protocol for Raspberry Pi GPIO
  *   pins.
+ *   @li @ref OpenLCB_PiMCP23008 The OpenLCB_PiMCP23008 daemon implememts an 
+ *   OpenLCB node that implements the EventExchange protocol for the GPIO pins 
+ *   on a MCP23008 I2C port expander connected to a Raspberry Pi.
+ *   @li @ref OpenLCB_PiMCP23017 The OpenLCB_PiMCP23017 daemon implememts an 
+ *   OpenLCB node that implements the EventExchange protocol for the GPIO pins
+ *   on a MCP23017 I2C port expander connected to a Raspberry Pi.
  *   @li @ref OpenLCB_TrackCircuits The OpenLCB_TrackCircuits daemon implememts
  *   an OpenLCB node that implements virtual track circuit messaging logic
  *   using OpenLCB Events.
@@ -313,6 +319,186 @@
               </xs:complexType></xs:complexType>
             </xs:element>
             <xs:element name="pollinterval" minOccurs="0" maxOccurs="1" />
+            <xs:element name="pin" minOccurs="0" maxOccurs="unbounded" >
+              <xs:annotation>
+                <xs:documentation>
+                  This defines one pin.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="number" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="mode" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="pinin0" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="pinin1" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="pinout0" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="pinout1" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:schema>
+   @endverbatim
+ * 
+ * @subsection PiMCP23008 EventExchange node for MCP23008 GPIO pins.
+ * 
+ * The OpenLCB_PiMCP23008 daemon is used to tie one or more of a MCP23008's
+ * GPIO pins to event production (input pins) or event consumption (output
+ * pins).  A MCP23008 is a 8 bit I2C port expander that can be connected to
+ * a Raspberry Pi.
+ * 
+ * In addition to the @ref CommonNodeConfiguration "Common Node Configuration" 
+ * fields the OpenLCB_PiMCP23008 daemon has a field for a polling interval in 
+ * miliseconds, defaulting to 500.  This is the interval between polls of the 
+ * GPIO Pins.  There is also a field containing the low 3 bits of the address 
+ * of the MCP23008's I2C address (the default is 7). Then for each pin there 
+ * is a tab containing these fields:
+ *  - description A textual description of the pin.
+ *  - number The number of the pin.
+ *  - mode The mode of the pin, one of disabled, in, out, high, low.
+ *  - pin in 0 The event to send when the pin goes to 0.
+ *  - pin in 1 The event to send when the pin goes to 1.
+ *  - pin out 0 The event to set the pin to 0.
+ *  - pin out 1 The event to set the pin to 1.
+ *
+ * @subsubsection PiMCP23008_XMLSchema XML Schema for configuration files
+ * 
+ * @verbatim
+    <?xml version="1.0" ?>
+    <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl" ?>
+    <!-- XML Schema for OpenLCB_PiMCP23008 configuration files -->
+    <xs:schema version="OpenLCB_PiMCP23008 1.0"
+     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <xs:element name="OpenLCB_PiMCP23008" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            This is the configuration container for the OpenLCB_PiMCP23008 daemon.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="transport" minOccurs="1" maxOccurs="1">
+              <xs:annotation>
+                 <xs:documentation>
+                   This defines the transport to use for this node.
+                 </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="constructor" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="options" minOccurs="1" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="identification" minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+                  This is the node identification section.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="name" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType></xs:complexType>
+            </xs:element>
+            <xs:element name="pollinterval" minOccurs="0" maxOccurs="1" />
+            <xs:element name="i2caddress" minOccurs="0" maxOccurs="1" />
+            <xs:element name="pin" minOccurs="0" maxOccurs="unbounded" >
+              <xs:annotation>
+                <xs:documentation>
+                  This defines one pin.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="number" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="mode" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="pinin0" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="pinin1" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="pinout0" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="pinout1" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:schema>
+   @endverbatim
+ * 
+ * @subsection PiMCP23017 EventExchange node for MCP23017 GPIO pins.
+ * 
+ * The OpenLCB_PiMCP23017 daemon is used to tie one or more of a MCP23017's
+ * GPIO pins to event production (input pins) or event consumption (output
+ * pins).  A MCP23017 is a 16 bit I2C port expander that can be connected to
+ * a Raspberry Pi.
+ * 
+ * In addition to the @ref CommonNodeConfiguration "Common Node Configuration" 
+ * fields the OpenLCB_PiMCP23017 daemon has a field for a polling interval in 
+ * miliseconds, defaulting to 500.  This is the interval between polls of the 
+ * GPIO Pins.  There is also a field containing the low 3 bits of the address 
+ * of the MCP23017's I2C address (the default is 7). Then for each pin there 
+ * is a tab containing these fields:
+ *  - description A textual description of the pin.
+ *  - number The number of the pin.
+ *  - mode The mode of the pin, one of disabled, in, out, high, low.
+ *  - pin in 0 The event to send when the pin goes to 0.
+ *  - pin in 1 The event to send when the pin goes to 1.
+ *  - pin out 0 The event to set the pin to 0.
+ *  - pin out 1 The event to set the pin to 1.
+ *
+ * @subsubsection PiMCP23017_XMLSchema XML Schema for configuration files
+ * 
+ * @verbatim
+    <?xml version="1.0" ?>
+    <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl" ?>
+    <!-- XML Schema for OpenLCB_PiMCP23017 configuration files -->
+    <xs:schema version="OpenLCB_PiMCP23017 1.0"
+     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <xs:element name="OpenLCB_PiMCP23017" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            This is the configuration container for the OpenLCB_PiMCP23017 daemon.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="transport" minOccurs="1" maxOccurs="1">
+              <xs:annotation>
+                 <xs:documentation>
+                   This defines the transport to use for this node.
+                 </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="constructor" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="options" minOccurs="1" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="identification" minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+                  This is the node identification section.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="name" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType></xs:complexType>
+            </xs:element>
+            <xs:element name="pollinterval" minOccurs="0" maxOccurs="1" />
+            <xs:element name="i2caddress" minOccurs="0" maxOccurs="1" />
             <xs:element name="pin" minOccurs="0" maxOccurs="unbounded" >
               <xs:annotation>
                 <xs:documentation>
