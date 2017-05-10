@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Mar 11 14:43:58 2016
-//  Last Modified : <160828.1459>
+//  Last Modified : <170510.1124>
 //
 //  Description	
 //
@@ -70,6 +70,8 @@
  * <li><a class="el" href="openlcbdaemons.html#CommonNodeConfiguration">Common Node Configuration</a></li>
  * <li><a class="el" href="openlcbdaemons.html#MRD2">EventExchange node for Azatrax MRD2 boards</a></li>
  * <li><a class="el" href="openlcbdaemons.html#PiGPIO">EventExchange node for Raspberry Pi GPIO pins</a></li>
+ * <li><a class="el" href="openlcbdaemons.html#PiMCP23008">EventExchange node for MCP23008 GPIO pins</a></li>
+ * <li><a class="el" href="openlcbdaemons.html#PiMCP23017">EventExchange node for MCP23017 GPIO pins</a></li>
  * <li><a class="el" href="openlcbdaemons.html#TrackCircuits">EventExchange node for virtual track circuits</a></li>
  * <li><a class="el" href="openlcbdaemons.html#Logic">EventExchange node for logic blocks</a></li>
  * <li><a class="el" href="openlcbdaemons.html#Acela">EventExchange node for a CTI Acela network</a></li>
