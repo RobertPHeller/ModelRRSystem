@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <170501.1057>
+#  Last Modified : <170511.1103>
 #
 #  Description	
 #
@@ -250,6 +250,7 @@ snit::type OpenLCBGCTcpHub {
 
         ::log::log debug "*** $type SendTo [format {0x%03x} $destination] $message $args"
         set except [from args -except {}]
+        if {![info exists _routeTable($destination)]} {return}
         foreach n $_routeTable($destination) {
             if {[lsearch -exact $except $n] < 0} {
                 ::log::log debug "*** $type SendTo: sending to $n"
@@ -431,8 +432,10 @@ snit::type OpenLCBGCTcpHub {
         #** Send a message.
         # @param message The  message to send.
         
-        puts $channel $message
-        flush $channel
+        if {[catch {puts $channel $message;flush $channel} err]} {
+            ::log::logMsg [_ "Caught error on %s: %s" $channel $err]
+            catch {$self destroy}
+        }
     }
     method _sendmessage {canmessage} {
         #** Send a low-level CAN bus message using the Grid Connect format.
@@ -440,8 +443,10 @@ snit::type OpenLCBGCTcpHub {
         # @param canmessage The (binary) CANMessage to send.
         
         $gcmessage configure -canmessage $canmessage
-        puts $channel [$gcmessage toString]
-        flush $channel
+        if {[catch {puts $channel [$gcmessage toString];flush $channel} err]} {
+            ::log::logMsg [_ "Caught error on %s: %s" $channel $err]
+            catch {$self destroy}
+        }
     }
     proc getBits {top bottom bytelist} {
         #** @brief Get the selected bitfield.
