@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <170508.1232>
+#  Last Modified : <170511.1041>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -2345,7 +2345,7 @@ namespace eval lcc {
         
         lcc::AbstractMRMessage
         option -mti -default 0 -type lcc::sixteenbits
-        option -sourcenid -type lcc::nid
+        option -sourcenid -type lcc::nid_or_null
         option -destnid -type lcc::nid_or_null
         option -eventid -type lcc::EventID_or_null
         option -data -type lcc::bytelist -configuremethod _configuredata \
@@ -4095,6 +4095,8 @@ namespace eval lcc {
                         }
                         if {$datacomplete} {
                             #puts stderr "*** $self _messageReader: datacomplete: messagebuffers([format 0x%03x,0x%03x $srcid $mti]) contains $messagebuffers($srcid,$mti)"
+                            #puts stderr "*** $self _messageReader: \[$self getNIDofAlias $srcid\] is [$self getNIDofAlias $srcid]"
+                            #puts stderr [format {*** $self _messageReader: [$mtiheader cget -mti] is 0x%04x} [$mtiheader cget -mti]]
                             if {[$self getNIDofAlias $srcid] eq "" && 
                                 ([$mtiheader cget -mti] == 0x0100 ||
                                  [$mtiheader cget -mti] == 0x0101 || 
@@ -4898,6 +4900,7 @@ namespace eval lcc {
                         }
                         if {$datacomplete} {
                             #puts stderr "*** $self _messageReader: datacomplete: messagebuffers([format 0x%03x,0x%03x $srcid $mti]) contains $messagebuffers($srcid,$mti)"
+                            #puts stderr "*** $self _messageReader: 
                             if {[$self getNIDofAlias $srcid] eq "" && 
                                 ([$mtiheader cget -mti] == 0x0100 ||
                                  [$mtiheader cget -mti] == 0x0101 || 
