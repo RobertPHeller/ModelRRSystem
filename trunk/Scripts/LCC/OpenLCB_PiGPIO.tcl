@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 7 10:36:33 2016
-#  Last Modified : <170404.1045>
+#  Last Modified : <170511.1256>
 #
 #  Description	
 #
@@ -59,6 +59,8 @@
 #
 # @section PiGPIOOPTIONS OPTIONS
 #
+# @arg -log  logfilename The name of the logfile.  Defaults to 
+# OpenLCB_PiGPIO.log
 # @arg -configure Enter an interactive GUI configuration tool.  This tool
 # creates or edits an XML configuration file.
 # @arg -sampleconfiguration Creates a @b sample configuration file that can 
@@ -238,7 +240,9 @@ snit::type OpenLCB_PiGPIO {
             return
         }
        
-        set logfilename [format {%s.log} [file tail $argv0]]
+        set deflogfilename [format {%s.log} [file tail $argv0]]
+        set logfilename [from argv -log $deflogfilename]
+        if {[file extension $logfilename] ne ".log"} {append logfilename ".log"}
         close stdin
         close stdout
         close stderr

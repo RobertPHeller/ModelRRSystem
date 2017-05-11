@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <170404.1144>
+#  Last Modified : <170511.1255>
 #
 #  Description	
 #
@@ -83,6 +83,8 @@
 #
 # @section TrackCircuitsOPTIONS OPTIONS
 #
+# @arg -log  logfilename The name of the logfile.  Defaults to 
+# OpenLCB_TrackCircuits.log
 # @arg -configure Enter an interactive GUI configuration tool.  This tool
 # creates or edits an XML configuration file.
 # @arg -sampleconfiguration Creates a @b sample configuration file that can 
@@ -539,7 +541,9 @@ snit::type OpenLCB_TrackCircuits {
             $type SampleConfiguration $conffile
             return
         }
-        set logfilename [format {%s.log} [file tail $argv0]]
+        set deflogfilename [format {%s.log} [file tail $argv0]]
+        set logfilename [from argv -log $deflogfilename]
+        if {[file extension $logfilename] ne ".log"} {append logfilename ".log"}
         close stdin
         close stdout
         close stderr

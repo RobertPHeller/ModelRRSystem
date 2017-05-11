@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 25 14:52:47 2016
-#  Last Modified : <170404.1039>
+#  Last Modified : <170511.1256>
 #
 #  Description	
 #
@@ -72,6 +72,8 @@
 #
 # @section LogicOPTIONS OPTIONS
 #
+# @arg -log  logfilename The name of the logfile.  Defaults to 
+# OpenLCB_Logic.log
 # @arg -configure Enter an interactive GUI configuration tool.  This tool
 # creates or edits an XML configuration file.
 # @arg -sampleconfiguration Creates a @b sample configuration file that can 
@@ -513,7 +515,9 @@ snit::type OpenLCB_Logic {
             $type SampleConfiguration $conffile
             return
         }
-        set logfilename [format {%s.log} [file tail $argv0]]
+        set deflogfilename [format {%s.log} [file tail $argv0]]
+        set logfilename [from argv -log $deflogfilename]
+        if {[file extension $logfilename] ne ".log"} {append logfilename ".log"}
         close stdin
         close stdout
         close stderr

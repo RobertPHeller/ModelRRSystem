@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <170511.1103>
+#  Last Modified : <170511.1256>
 #
 #  Description	
 #
@@ -62,6 +62,8 @@
 #
 # @section OpenLCBGCTcpHubOPTIONS OPTIONS
 #
+# @arg -log  logfilename The name of the logfile.  Defaults to 
+# OpenLCBGCTcpHub.log
 # @arg -host hostname The name or IP address of the host to bind to.  Defaults 
 # to localhost (binds only to the local loopback device).  Using an address of
 # 0.0.0.0 will bind to all interfaces.
@@ -134,7 +136,9 @@ snit::type OpenLCBGCTcpHub {
         }
         set host [from argv -host localhost]
         set port [from argv -port $defaultport]
-        set logfilename [format {%s.log} [file tail $argv0]]
+        set deflogfilename [format {%s.log} [file tail $argv0]]
+        set logfilename [from argv -log $deflogfilename]
+        if {[file extension $logfilename] ne ".log"} {append logfilename ".log"}
         close stdin
         close stdout
         close stderr

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue May 9 10:33:58 2017
-#  Last Modified : <170509.1416>
+#  Last Modified : <170511.1256>
 #
 #  Description	
 #
@@ -59,6 +59,8 @@
 #
 # @section PiMCP23017OPTIONS OPTIONS
 #
+# @arg -log  logfilename The name of the logfile.  Defaults to 
+# OpenLCB_PiMCP23017.log
 # @arg -configure Enter an interactive GUI configuration tool.  This tool
 # creates or edits an XML configuration file.
 # @arg -sampleconfiguration Creates a @b sample configuration file that can 
@@ -199,7 +201,9 @@ snit::type OpenLCB_PiMCP23017 {
             return
         }
        
-        set logfilename [format {%s.log} [file tail $argv0]]
+        set deflogfilename [format {%s.log} [file tail $argv0]]
+        set logfilename [from argv -log $deflogfilename]
+        if {[file extension $logfilename] ne ".log"} {append logfilename ".log"}
         close stdin
         close stdout
         close stderr
