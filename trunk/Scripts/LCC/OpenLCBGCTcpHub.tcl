@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <170501.1057>
+#  Last Modified : <170511.1256>
 #
 #  Description	
 #
@@ -62,6 +62,8 @@
 #
 # @section OpenLCBGCTcpHubOPTIONS OPTIONS
 #
+# @arg -log  logfilename The name of the logfile.  Defaults to 
+# OpenLCBGCTcpHub.log
 # @arg -host hostname The name or IP address of the host to bind to.  Defaults 
 # to localhost (binds only to the local loopback device).  Using an address of
 # 0.0.0.0 will bind to all interfaces.
@@ -134,7 +136,9 @@ snit::type OpenLCBGCTcpHub {
         }
         set host [from argv -host localhost]
         set port [from argv -port $defaultport]
-        set logfilename [format {%s.log} [file tail $argv0]]
+        set deflogfilename [format {%s.log} [file tail $argv0]]
+        set logfilename [from argv -log $deflogfilename]
+        if {[file extension $logfilename] ne ".log"} {append logfilename ".log"}
         close stdin
         close stdout
         close stderr
@@ -250,6 +254,7 @@ snit::type OpenLCBGCTcpHub {
 
         ::log::log debug "*** $type SendTo [format {0x%03x} $destination] $message $args"
         set except [from args -except {}]
+        if {![info exists _routeTable($destination)]} {return}
         foreach n $_routeTable($destination) {
             if {[lsearch -exact $except $n] < 0} {
                 ::log::log debug "*** $type SendTo: sending to $n"
@@ -431,8 +436,10 @@ snit::type OpenLCBGCTcpHub {
         #** Send a message.
         # @param message The  message to send.
         
-        puts $channel $message
-        flush $channel
+        if {[catch {puts $channel $message;flush $channel} err]} {
+            ::log::logMsg [_ "Caught error on %s: %s" $channel $err]
+            catch {$self destroy}
+        }
     }
     method _sendmessage {canmessage} {
         #** Send a low-level CAN bus message using the Grid Connect format.
@@ -440,8 +447,10 @@ snit::type OpenLCBGCTcpHub {
         # @param canmessage The (binary) CANMessage to send.
         
         $gcmessage configure -canmessage $canmessage
-        puts $channel [$gcmessage toString]
-        flush $channel
+        if {[catch {puts $channel [$gcmessage toString];flush $channel} err]} {
+            ::log::logMsg [_ "Caught error on %s: %s" $channel $err]
+            catch {$self destroy}
+        }
     }
     proc getBits {top bottom bytelist} {
         #** @brief Get the selected bitfield.
