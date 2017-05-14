@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun May 14 09:33:18 2017
-#  Last Modified : <170514.1412>
+#  Last Modified : <170514.1603>
 #
 #  Description	
 #
@@ -126,7 +126,7 @@ snit::type Binary8 {
 }
     
 snit::integer SPIPort -min 0 -max 1
-snit::integer Signal  -min 0 -max 7
+snit::integer Signal  -min 1 -max 8
 snit::type Aspect {
     pragma  -hastypeinfo false -hastypedestroy false -hasinstances false
         
@@ -166,6 +166,23 @@ snit::type OpenLCB_PiMCP23008 {
     typevariable  spi 0;#             The SPI channel.
     typevariable  speed 200000;#      The SPI Speed (200Khz).
     
+    # the opcodes for the MAX7221 and MAX7219
+    typevariable OP_NOOP   0
+    typevariable OP_DIGIT0 1
+    typevariable OP_DIGIT1 2
+    typevariable OP_DIGIT2 3
+    typevariable OP_DIGIT3 4
+    typevariable OP_DIGIT4 5
+    typevariable OP_DIGIT5 6
+    typevariable OP_DIGIT6 7
+    typevariable OP_DIGIT7 8
+    typevariable OP_DECODEMODE  9
+    typevariable OP_INTENSITY   10
+    typevariable OP_SCANLIMIT   11
+    typevariable OP_SHUTDOWN    12
+    typevariable OP_DISPLAYTEST 15
+    
+
     typecomponent editContextMenu
     
     typeconstructor {
@@ -300,7 +317,9 @@ snit::type OpenLCB_PiMCP23008 {
         
         # Connect to the MAX7221.
         wiringPiSPISetup $spi $speed
-        
+        wiringPiSPIDataRW $spi [list $OP_DISPLAYTEST 0]
+        wiringPiSPIDataRW $spi [list $OP_DECODEMODE  0]
+        wiringPiSPIDataRW $spi [list $OP_SHUTDOWN    1]
         
         foreach signal [$configuration getElementsByTagName "signal"] {
             set signalcommand [list $type create %AUTO%]
@@ -513,7 +532,7 @@ snit::type OpenLCB_PiMCP23008 {
         $descrele setdata "Sample Signal"
         set signalno [SimpleDOMElement %AUTO% -tag "number"]
         $signal addchild $signalno
-        $signalno setdata 0
+        $signalno setdata 1
         set eid 0
         set aspect [SimpleDOMElement %AUTO% -tag "aspect"]
         $signal addchild $aspect
@@ -918,8 +937,8 @@ snit::type OpenLCB_PiMCP23008 {
               -text [_ "Signal %d" $signalcount] -sticky news
         set signalno_ [LabelSpinBox $signalframe.signalno \
                     -label [_m "Label|Signal Number"] \
-                    -range {0 7 1}]
-        $signalno_ set 0
+                    -range {1 8 1}]
+        $signalno_ set 1
         pack $signalno_ -fill x -expand yes
         set signalno [$signal getElementsByTagName "number"]
         if {[llength $signalno] == 1} {
@@ -934,6 +953,7 @@ snit::type OpenLCB_PiMCP23008 {
         }
         # aspects...  
         set aspectNB [ScrollTabNotebook $signalframe.aspectNB]
+        pack $aspectNB -fill both -expand yes
         if {![info exists aspectcounts($fr)]} {
             set aspectcounts($fr) 0
         }
@@ -941,7 +961,7 @@ snit::type OpenLCB_PiMCP23008 {
             $type _create_and_populate_signal_aspect $signal $aspect
         }
         set addaspect [ttk::button $signalframe.addaspect \
-                       -text [_m "Label|Add another aspect"]
+                       -text [_m "Label|Add another aspect"] \
                        -command [mytypemethod _addaspect $signal]]
         pack $addaspect -fill x
         set delsignal [ttk::button $signalframe.deletesignal \
@@ -955,12 +975,14 @@ snit::type OpenLCB_PiMCP23008 {
         # @param signal Signal XML element.
         # @param aspect Aspect XML element.
         
+        #puts stderr "$type _create_and_populate_signal_aspect $signal $aspect"
         set fr [$signal attribute frame]
         set frbase $signalnotebook.$fr
         incr aspectcounts($fr)
         set afr aspect$aspectcounts($fr)
         set af [$aspect attribute frame]
-        if {$f eq {}} {
+        #puts stderr "$type _create_and_populate_signal_aspect: fr = $fr, frbase = $frbase, afr = $afr, af = $af"        
+        if {$af eq {}} {
             set attrs [$aspect cget -attributes]
             lappend attrs frame $afr
             $aspect configure -attributes $attrs
@@ -968,14 +990,16 @@ snit::type OpenLCB_PiMCP23008 {
             set attrs [$aspect cget -attributes]
             set findx [lsearch -exact $attrs frame]
             incr findx
-            set attrs [lreplace $attrs $findx $findx $fr]
+            set attrs [lreplace $attrs $findx $findx $afr]
             $aspect configure -attributes $attrs
         }
         set aspectframe [ttk::frame \
                          $frbase.aspectNB.$afr]
+        #puts stderr "$type _create_and_populate_signal_aspect: aspectframe = $aspectframe"
         $frbase.aspectNB add $aspectframe \
               -text [_ "Aspect %d" $aspectcounts($fr)] -sticky news
         set afrbase $aspectframe
+        #puts stderr "$type _create_and_populate_signal_aspect: afrbase = $afrbase"
         set eventidLE [LabelEntry $afrbase.eventidLE \
                    -label [_m "Label|Event ID"]]
         pack $eventidLE -fill x -expand yes
@@ -1030,25 +1054,39 @@ snit::type OpenLCB_PiMCP23008 {
             $type _deleteAspect $signal $aspect
         }
     }
+    typemethod _addaspect {signal} {
+        #** Add an aspect to a signal.
+        #
+        # @param signal The signal's XML element.
+        
+        set aspect [SimpleDOMElement %AUTO% -tag "aspect"]
+        $signal addchild $aspect
+        $type _create_and_populate_signal_aspect $signal $aspect
+    }
     typemethod _deleteAspect {signal aspect} {
         #** Delete a signal's aspect
         #
         # @param signal The signal's XML element.
         # @param aspect The aspects's XML element.
         
+        #puts stderr "*** type _deleteAspect $signal $aspect"
         set fr [$signal attribute frame]
+        #puts stderr "*** type _deleteAspect: fr = $fr"
         set frbase $signalnotebook.$fr
+        #puts stderr "*** type _deleteAspect: frbase = $frbase"
         set afr [$aspect attribute frame]
+        #puts stderr "*** type _deleteAspect: afr = $afr"
         set afrbase $frbase.aspectNB.$afr
-        $signal removeChild $aspect
+        #puts stderr "*** type _deleteAspect: afrbase = $afrbase"
         $frbase.aspectNB forget $afrbase
+        $signal removeChild $aspect
         destroy $afrbase
     }
     
     
     
     #*** Signal instances
-    option -signalnum -readonly yes -type Signal -default 0
+    option -signalnum -readonly yes -type Signal -default 1
     option -description -readonly yes -default {}
     option -aspectlist -readonly yes -type AspectList \
           -default {{11.22.33.44.55.66.77.88 B00000000}}
@@ -1072,7 +1110,7 @@ snit::type OpenLCB_PiMCP23008 {
         foreach aspevbits [$self cget -aspectlist] {
             foreach {aspev bits} $aspevbits {break}
             if {$event match $aspev} {
-                # TBD: SPI Write: col# (digit): -signalnum, column: bits
+                wiringPiSPIDataRW $spi [list [$self cget -signalnum] [Binary8 valueof $bits]]
                 return true
             }
         }

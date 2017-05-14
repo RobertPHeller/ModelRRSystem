@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <170514.1415>
+#  Last Modified : <170514.1508>
 #
 #  Description	
 #
@@ -75,7 +75,7 @@ man_MANS = man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
 	man1/OpenLCB_Acela.1 man1/OpenLCB_Logic.1
 if HAVE_WIRINGPI
 man_MANS += man1/OpenLCB_PiGPIO.1 man1/OpenLCB_PiMCP23008.1 \
-		man1/OpenLCB_PiMCP23017.1 OpenLCB_PiSPIMax7221.1
+		man1/OpenLCB_PiMCP23017.1 man1/OpenLCB_PiSPIMax7221.1
 endif
 
 if HAVE_CAN
