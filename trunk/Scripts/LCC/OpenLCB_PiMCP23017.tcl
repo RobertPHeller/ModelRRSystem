@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue May 9 10:33:58 2017
-#  Last Modified : <170511.1256>
+#  Last Modified : <170514.1417>
 #
 #  Description	
 #
@@ -159,14 +159,12 @@ snit::type OpenLCB_PiMCP23017 {
     
     typecomponent editContextMenu
     
-        typeconstructor {
+    typeconstructor {
         #** @brief Global static initialization.
         #
         # Process command line.  Runs the GUI configuration tool or connects to
         # the OpenLCB network and manages GPIO pins, consuming or producing
         # events.
-        
-        set GPIOCMD [auto_execok "gpio"]
         
         global argv
         global argc
