@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <170509.1040>
+#  Last Modified : <170514.1415>
 #
 #  Description	
 #
@@ -50,14 +50,15 @@ EXTRA_DIST = lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		Doxyfile.in OpenLCBGCTcpHub.tcl OpenLCBTcpHub.tcl \
 		OpenLCB_MRD2.tcl OpenLCB_PiGPIO.tcl OpenLCB_TrackCircuits.tcl \
 		OpenLCB_Logic.tcl OpenLCB_Acela.tcl LCCNodeTree.tcl \
-		OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl
+		OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
+		OpenLCB_PiSPIMax7221.tcl
 
 bin_SCRIPTS = OpenLCB${EXEEXT} OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
 	OpenLCBGCTcpHub${EXEEXT} OpenLCB_TrackCircuits${EXEEXT} \
 	OpenLCB_Acela${EXEEXT} OpenLCB_Logic${EXEEXT}
 if HAVE_WIRINGPI
 bin_SCRIPTS += OpenLCB_PiGPIO${EXEEXT} OpenLCB_PiMCP23008${EXEEXT} \
-		OpenLCB_PiMCP23017${EXEEXT}
+		OpenLCB_PiMCP23017${EXEEXT} OpenLCB_PiSPIMax7221${EXEEXT}
 endif
 
 pkgdatadir = $(datadir)/$(PACKAGE)/LCC
@@ -74,7 +75,7 @@ man_MANS = man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
 	man1/OpenLCB_Acela.1 man1/OpenLCB_Logic.1
 if HAVE_WIRINGPI
 man_MANS += man1/OpenLCB_PiGPIO.1 man1/OpenLCB_PiMCP23008.1 \
-		man1/OpenLCB_PiMCP23017.1
+		man1/OpenLCB_PiMCP23017.1 OpenLCB_PiSPIMax7221.1
 endif
 
 if HAVE_CAN
@@ -94,7 +95,8 @@ CLEANFILES = pkgIndex.tcl OpenLCB${EXEEXT} OpenLCB.pot \
 			  OpenLCB_Logic${EXEEXT} \
 			  OpenLCB_Acela${EXEEXT} \
 			  OpenLCB_PiMCP23008${EXEEXT} \
-			  OpenLCB_PiMCP23017${EXEEXT}
+			  OpenLCB_PiMCP23017${EXEEXT} \
+			  OpenLCB_PiSPIMax7221${EXEEXT}
 
 pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		ConfigDialogs.tcl LCCNodeTree.tcl
@@ -133,6 +135,7 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
                 OpenLCBGCTcpHub.tcl OpenLCB_PiGPIO.tcl LCCNodeTree.tcl \
                 OpenLCB_TrackCircuits.tcl OpenLCB_Acela.tcl OpenLCB_Logic.tcl \
                 OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
+                OpenLCB_PiSPIMax7221.tcl \
 		$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m \
@@ -141,6 +144,7 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
 		         eventDialogs.tcl ConfigurationEditor.tcl \
 		         OpenLCBGCTcpHub.tcl OpenLCB_PiGPIO.tcl \
 		         OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
+		         OpenLCB_PiSPIMax7221.tcl \
 		         OpenLCB_TrackCircuits.tcl OpenLCB_Acela.tcl \
 		         OpenLCB_Logic.tcl LCCNodeTree.tcl) \
 		Scripts/Common/snitStdMenuBar.tcl|\
@@ -418,11 +422,6 @@ OpenLCB_PiMCP23008SCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 			$(top_srcdir)/Scripts/Common/questhead.xbm \
 			$(top_srcdir)/Scripts/Common/unknown.xpm
 
-WiringPiSupportFiles =  $(top_builddir)/C++/wiringPi/.libs/libtclwiringpi$(SHLIB_SUFFIX) \
-			$(top_builddir)/C++/wiringPi/pkgIndex.tcl
-WiringPiDependFiles = $(top_builddir)/C++/wiringPi/libtclwiringpi.la \
-			$(top_builddir)/C++/wiringPi/pkgIndex.tcl
-			
 
 OpenLCB_PiMCP23008${EXEEXT}: OpenLCB_PiMCP23008.tcl $(OpenLCB_PiMCP23008SCRIPTS) \
 	$(top_builddir)/po/OpenLCB/msgfiles $(WiringPiDependFiles) \
@@ -480,11 +479,6 @@ OpenLCB_PiMCP23017SCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 			$(top_srcdir)/Scripts/Common/questhead.xbm \
 			$(top_srcdir)/Scripts/Common/unknown.xpm
 
-WiringPiSupportFiles =  $(top_builddir)/C++/wiringPi/.libs/libtclwiringpi$(SHLIB_SUFFIX) \
-			$(top_builddir)/C++/wiringPi/pkgIndex.tcl
-WiringPiDependFiles = $(top_builddir)/C++/wiringPi/libtclwiringpi.la \
-			$(top_builddir)/C++/wiringPi/pkgIndex.tcl
-			
 
 OpenLCB_PiMCP23017${EXEEXT}: OpenLCB_PiMCP23017.tcl $(OpenLCB_PiMCP23017SCRIPTS) \
 	$(top_builddir)/po/OpenLCB/msgfiles $(WiringPiDependFiles) \
@@ -520,6 +514,63 @@ endif
 		Messages $(top_builddir)/po/OpenLCB/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB_PiMCP23017${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf OpenLCB_PiMCP23017.vfs
+	
+OpenLCB_PiSPIMax7221SCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
+			$(top_srcdir)/Scripts/LCC/lcc.tcl \
+			$(top_builddir)/Scripts/Common/Version.tcl \
+			$(top_srcdir)/Scripts/Common/ParseXML.tcl \
+			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+	                $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
+	                $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+	                $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+	                $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+			$(top_srcdir)/Scripts/Common/gettext.tcl \
+			$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+			$(top_srcdir)/Scripts/Common/mainwindow.tcl \
+			$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+			$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+			$(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
+	                $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+	                $(top_srcdir)/Scripts/Common/snitrotext.tcl \
+	                $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
+			$(top_srcdir)/Scripts/Common/questhead.xbm \
+			$(top_srcdir)/Scripts/Common/unknown.xpm
+
+
+OpenLCB_PiSPIMax7221${EXEEXT}: OpenLCB_PiSPIMax7221.tcl $(OpenLCB_PiSPIMax7221SCRIPTS) \
+	$(top_builddir)/po/OpenLCB/msgfiles $(WiringPiDependFiles) \
+	$(top_builddir)/Doc/User/OpenLCB/index.html $(SOCKETCAN_DEPS)
+	-rm -f  OpenLCB_PiSPIMax7221.kit
+	-rm -rf  OpenLCB_PiSPIMax7221.vfs
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB_PiSPIMax7221.tcl
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap OpenLCB_PiSPIMax7221.kit
+	-rm -f  OpenLCB_PiSPIMax7221.kit
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB_PiSPIMax7221 \
+		lib $(SNITLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB_PiSPIMax7221 \
+		lib $(TCLLOGLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB_PiSPIMax7221 \
+		lib $(URILIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiSPIMax7221 \
+		lib/Common $(OpenLCB_PiSPIMax7221SCRIPTS)
+	$(UNZIP) -qq -d OpenLCB_PiSPIMax7221.vfs/lib \
+		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
+	$(UNZIP) -qq -d OpenLCB_PiSPIMax7221.vfs/lib \
+		$(top_srcdir)/BuildData/$(IMG_ZIP)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_PiSPIMax7221 \
+		Common
+if HAVE_CAN
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiSPIMax7221 \
+		lib/TclSocketCAN $(SOCKETCAN_FILES)
+endif
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiSPIMax7221 \
+		lib/WiringPi $(WiringPiSupportFiles)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiSPIMax7221 \
+		Help $(top_builddir)/Doc/User/OpenLCB/*
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiSPIMax7221 \
+		Messages $(top_builddir)/po/OpenLCB/*.msg
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB_PiSPIMax7221${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
+	-rm -rf OpenLCB_PiSPIMax7221.vfs
 	
 OpenLCB_TrackCircuitsSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 				$(top_srcdir)/Scripts/LCC/lcc.tcl \
@@ -714,6 +765,7 @@ FORCE:
 man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
 	man1/OpenLCBGCTcpHub.1 man1/OpenLCB_PiGPIO.1 \
 	man1/OpenLCB_PiMCP23008.1 man1/OpenLCB_PiMCP23017.1 \
+	man1/OpenLCB_PiSPIMax7221.1 \
 	man1/OpenLCB_TrackCircuits.1 man1/OpenLCB_Logic.1: Doxyfile \
 	OpenLCB.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl OpenLCBGCTcpHub.tcl \
 	OpenLCB_PiGPIO.tcl OpenLCB_TrackCircuits.tcl OpenLCB_Logic.tcl \
