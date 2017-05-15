@@ -7,8 +7,8 @@
 #  Date          : $Date$
 #  Author        : $Author$
 #  Created By    : Robert Heller
-#  Created       : Tue May 9 10:33:30 2017
-#  Last Modified : <170514.0952>
+#  Created       : Sun May 14 09:33:18 2017
+#  Last Modified : <170514.1603>
 #
 #  Description	
 #
@@ -41,36 +41,36 @@
 #*****************************************************************************
 
 
-## @page OpenLCB_PiMCP23008 OpenLCB PiMCP23008 node
-# @brief OpenLCB PiMCP23008 node
+## @page OpenLCB_PiSPIMax7221 OpenLCB PiSPIMax7221 node
+# @brief OpenLCB PiSPIMax7221 node
 #
-# @section PiMCP23008SYNOPSIS SYNOPSIS
+# @section PiSPIMax7221SYNOPSIS SYNOPSIS
 #
-# OpenLCB_PiMCP23008 [-configure] [-sampleconfiguration] [-debug] [-configuration confgile]
+# OpenLCB_PiSPIMax7221 [-configure] [-sampleconfiguration] [-debug] [-configuration confgile]
 #
-# @section PiMCP23008DESCRIPTION DESCRIPTION
+# @section PiSPIMax7221DESCRIPTION DESCRIPTION
 #
-# This program is a daemon that implements an OpenLCB node for the GPIO pins
-# provided by a MCP23008 I2C port expander on a Raspberry Pi.
+# This program is a daemon that implements an OpenLCB node for the a Max7221 
+# based signal driver.  
 #
-# @section PiMCP23008PARAMETERS PARAMETERS
+# @section PiSPIMax7221PARAMETERS PARAMETERS
 #
 # None
 #
-# @section PiMCP23008OPTIONS OPTIONS
+# @section PiSPIMax7221OPTIONS OPTIONS
 #
 # @arg -log  logfilename The name of the logfile.  Defaults to 
-# OpenLCB_PiMCP23008.log
+# OpenLCB_PiSPIMax7221.log
 # @arg -configure Enter an interactive GUI configuration tool.  This tool
 # creates or edits an XML configuration file.
 # @arg -sampleconfiguration Creates a @b sample configuration file that can 
 # then be hand edited (with a handy text editor like emacs or vim).
 # @arg -configuration confgile Sets the name of the configuration (XML) file. 
-# The default is pimcp23008conf.xml.
+# The default is PiSPIMax7221conf.xml.
 # @arg -debug Turns on debug logging.
 # @par
 #
-# @section PiMCP23008CONFIGURATION CONFIGURATION
+# @section PiSPIMax7221CONFIGURATION CONFIGURATION
 #
 # The configuration file for this program is an XML formatted file. Please 
 # refer to the @ref openlcbdaemons "OpenLCB Daemons (Hubs and Virtual nodes)" chapter of the User 
@@ -79,11 +79,11 @@
 # file. 
 #
 #
-# @section PiMCP23008AUTHOR AUTHOR
+# @section PiSPIMax7221AUTHOR AUTHOR
 # Robert Heller \<heller\@deepsoft.com\>
 #
 
-set argv0 [file join  [file dirname [info nameofexecutable]] OpenLCB_PiMCP23008]
+set argv0 [file join  [file dirname [info nameofexecutable]] OpenLCB_PiSPIMax7221]
 
 package require Tclwiringpi;#  require the Tclwiringpi package
 package require snit;#     require the SNIT OO framework
@@ -95,47 +95,62 @@ package require log;#      require the logging package.
 set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirname \
 							[info script]]]] Messages]]
 
-snit::enum PinModes -values {in out high low}
-
-snit::type GPIOPinNo {
+snit::type Binary8 {
     pragma  -hastypeinfo false -hastypedestroy false -hasinstances false
-    typemethod validate {pinno} {
-        if {$pinno < 0 || $pinno > 7} {
-            error [_ "Not a GPIO pin number: %s" $pinno]
+        
+    typemethod validate {value} {
+        if {[regexp {^B[01]{8}$} $value] < 1} {
+            error [_ "Not a Binary8 value: %s" $value]
         } else {
-            return $pinno
+            return $value
         }
     }
-    typemethod AllPins {} {
-        return [list 0 1 2 3 4 5 6 7]
+    typemethod valueof {value} {
+        if {[regexp {^B([01]{8})$} $value => bits] < 1} {
+            error [_ "Not a Binary8 value: %s" $value]
+        } else {
+            set result 0
+            foreach b [split $bits ""] {
+                set result [expr {($result << 1) + $b}]
+            }
+            return $result
+        }
     }
-    typemethod gpioPinNo {pinno} {
-        $type validate $pinno
-        return [expr {64 + $pinno}]
-    }
-    typemethod mcp23008PinNo {gpiopinno} {
-        set pin [expr {$gpiopinno - 64}]
-        $type validate $pin
-        return $pin
+    typemethod convertto {byte} {
+        set result B
+        for {set i 7} {$i >= 0} {incr i -1} {
+            append result [expr {($byte >> $i) & 1}]
+        }
+        return $result
     }
 }
+    
+snit::integer SPIPort -min 0 -max 1
+snit::integer Signal  -min 1 -max 8
+snit::type Aspect {
+    pragma  -hastypeinfo false -hastypedestroy false -hasinstances false
         
-snit::integer MCP23008Addr -min 0 -max 7
+    typemethod validate {value} {
+        if {[llength $value] == 2} {
+            lcc::EventID validate [lindex $value 0]
+            Binary8 validate [lindex $value 1]
+        } else {
+            error [_ "Not a valid aspect: %s" $value]
+        }
+    }
+}    
+snit::listtype AspectList -minlen 1 -type Aspect
 
 snit::type OpenLCB_PiMCP23008 {
-    #** This class implements a OpenLCB interface to the GPIO pins of a
-    # MCP23008 I2C port expander on a Raspberry Pi.
+    #** This class implements a OpenLCB interface to signals implemented 
+    # using a SPI connected MAX7221 on a Raspberry Pi.
     #
-    # Each instance manages one pin.  The typemethods implement the overall
+    # Each instance manages one signal.  The typemethods implement the overall
     # OpenLCB node.
     #
     # Instance options:
-    # @arg -pinnumber The pin number
-    # @arg -pinmode   The pin's mode
-    # @arg -pinin0    Event ID to send when the pin's input value goes to 0.
-    # @arg -pinin1    Event ID to send when the pin's input value goes to 1.
-    # @arg -pinout0   Event ID to trigger setting the pin's output to 0.
-    # @arg -pinout1   Event ID to trigger setting the pin's output to 1.
+    # @arg -signalnum The Signal number
+    # @arg -aspectlist The Aspects for this signal.
     # @arg -description Description of the pin.
     # @par
     #
@@ -145,18 +160,29 @@ snit::type OpenLCB_PiMCP23008 {
     
     typecomponent transport; #        Transport layer
     typecomponent configuration;#     Parsed  XML configuration
-    typevariable  pinlist {};#        Pin list
-    typevariable  consumers {};#      Pins that consume events (outputs)
+    typevariable  signallist {};#     Signal list
     typevariable  eventsconsumed {};# Events consumed.
-    typevariable  producers {};#      Pins that produce events (inputs)
-    typevariable  eventsproduced {};# Events produced.
-    typevariable  defaultpollinterval 500;# Default poll interval
-    typevariable  pollinterval 500;#  Poll interval
-    typevariable  baseI2Caddress 0x20;# Base I2C address.
-    typevariable  defaultI2CAddr 7;#  Default I2C address offset
-    typevariable  I2CAddr 7;#         I2C address offset
+    typevariable  defaultspi 0;#      The default SPI channel.
+    typevariable  spi 0;#             The SPI channel.
+    typevariable  speed 200000;#      The SPI Speed (200Khz).
     
+    # the opcodes for the MAX7221 and MAX7219
+    typevariable OP_NOOP   0
+    typevariable OP_DIGIT0 1
+    typevariable OP_DIGIT1 2
+    typevariable OP_DIGIT2 3
+    typevariable OP_DIGIT3 4
+    typevariable OP_DIGIT4 5
+    typevariable OP_DIGIT5 6
+    typevariable OP_DIGIT6 7
+    typevariable OP_DIGIT7 8
+    typevariable OP_DECODEMODE  9
+    typevariable OP_INTENSITY   10
+    typevariable OP_SCANLIMIT   11
+    typevariable OP_SHUTDOWN    12
+    typevariable OP_DISPLAYTEST 15
     
+
     typecomponent editContextMenu
     
     typeconstructor {
@@ -188,7 +214,7 @@ snit::type OpenLCB_PiMCP23008 {
             set sampleconfiguration yes
             set argv [lreplace $argv $sampleconfigureIdx $sampleconfigureIdx]
         }
-        set conffile [from argv -configuration "pimcp23008conf.xml"]
+        set conffile [from argv -configuration "pispimax722conf.xml"]
         #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
         if {$configureator} {
             $type ConfiguratorGUI $conffile
@@ -271,7 +297,7 @@ snit::type OpenLCB_PiMCP23008 {
                           -transport $transportConstructor \
                           -eventhandler [mytypemethod _eventHandler] \
                           -generalmessagehandler [mytypemethod _messageHandler] \
-                          -softwaremodel "OpenLCB PiMCP23008" \
+                          -softwaremodel "OpenLCB PiSPIMax7221" \
                           -softwareversion "1.0" \
                           -nodename $nodename \
                           -nodedescription $nodedescriptor \
@@ -282,94 +308,62 @@ snit::type OpenLCB_PiMCP23008 {
             exit 95
         }
         $transport SendVerifyNodeID
-        set pollele [$configuration getElementsByTagName "pollinterval"]
-        if {[llength $pollele] > 0} {
-            set pollele [lindex $pollele 0]
-            set pollinterval [$pollele data]
+        set spiele [$configuration getElementsByTagName "spichannel"]
+        if {[llength $spiele] > 0} {
+            set spiele [lindex $spiele 0]
+            set spi [$pollele data]
+            SPIPort validate $spi
         }
         
-        set i2caddrele [$configuration getElementsByTagName "i2caddress"]
-        if {[llength $i2caddrele] > 0} {
-            set i2caddrele [lindex $i2caddrele 0]
-            set I2CAddr [expr {[$i2caddrele data] & 0x07}]
-        }
-        # Connect to the MCP23008, with GPIO pins 64 through 71 (0 through 8
-        # on the MCP23008).
-        mcp23008Setup 64 [expr {$baseI2Caddress | $I2CAddr}]
+        # Connect to the MAX7221.
+        wiringPiSPISetup $spi $speed
+        wiringPiSPIDataRW $spi [list $OP_DISPLAYTEST 0]
+        wiringPiSPIDataRW $spi [list $OP_DECODEMODE  0]
+        wiringPiSPIDataRW $spi [list $OP_SHUTDOWN    1]
         
-        foreach pin [$configuration getElementsByTagName "pin"] {
-            set pincommand [list $type create %AUTO%]
-            set consume no
-            set produce no
-            set pinno [$pin getElementsByTagName "number"]
-            if {[llength $pinno] != 1} {
-                ::log::logError [_ "Missing or multiple pin numbers"]
+        foreach signal [$configuration getElementsByTagName "signal"] {
+            set signalcommand [list $type create %AUTO%]
+            set signo [$signal getElementsByTagName "number"]
+            if {[llength $signo] != 1} {
+                ::log::logError [_ "Missing or multiple signal numbers"]
                 exit 94
             }
-            set thepin [$pinno data]
-            GPIOPinNo validate $thepin
-            lappend pincommand -pinnumber $thepin
-            set description [$pin getElementsByTagName "description"]
+            set thesigno [$signo data]
+            Signal validate $thesigno
+            
+            lappend signalcommand -signalnum $thesigno
+            set description [$signal getElementsByTagName "description"]
             if {[llength $description] > 0} {
-                lappend pincommand -description [[lindex $description 0] data]
+                lappend signalcommand -description [[lindex $description 0] data]
             }
-            set pinmode [$pin getElementsByTagName "mode"]
-            if {[llength $pinmode] != 1} {
-                ::log::logError [_ "Missing or multiple pin modes"]
-                exit 93
-            }
-            set themode [string tolower [$pinmode data]]
-            PinModes validate $themode
-            lappend pincommand -pinmode $themode
-            switch $themode {
-                in {
-                    foreach k {pinin0 pinin1} {
-                        set tag [$pin getElementsByTagName $k]
-                        if {[llength $tag] == 0} {continue}
-                        set tag [lindex $tag 0]
-                        set produce yes
-                        set ev [lcc::EventID create %AUTO% -eventidstring [$tag data]]
-                        lappend pincommand -$k $ev
-                        lappend eventsproduced $ev
-                    }
+            set aspectlist [list]
+            foreach aspect [$signal getElementsByTagName "aspect"] {
+                set evele [$aspect getElementsByTagName "eventid"]
+                if {[llength $evele] != 1} {
+                    error [_ "Missing or multiple aspect events"]
                 }
-                out -
-                high -
-                low {
-                    foreach k {pinout0 pinout1} {
-                        set tag [$pin getElementsByTagName $k]
-                        if {[llength $tag] == 0} {continue}
-                        set tag [lindex $tag 0]
-                        set consume yes
-                        set ev [lcc::EventID create %AUTO% -eventidstring [$tag data]]
-                        lappend pincommand -$k $ev
-                        lappend eventsconsumed $ev
-                    }
-                    
+                set ev [lcc::EventID create %AUTO% -eventidstring [[lindex $evele 0] data]]
+                set aspectbitsele  [$aspect getElementsByTagName "bits"]
+                if {[llength $aspectbitsele] != 1} {
+                    error [_ "Missing or multiple aspect bits"]
                 }
+                set aspectbits [[lindex $aspectbitsele 0] data]
+                Binary8 validate $aspectbits
+                lappend aspectlist [list $ev $aspectbits]
+                lappend eventsconsumed $ev
             }
-            set pin [eval $pincommand]
-            if {$consume} {lappend consumers $pin}
-            if {$produce} {lappend producers $pin}
-            if {!$consume && !$produce} {
-                ::log::log warning [_ "Useless pin (%d) (neither consumes or produces events)" $thepin]
-            } else {
-                lappend pinlist $pin
-            }
+            AspectList validate $aspectlist
+            lappend signalcommand -aspectlist $aspectlist
+            set signal [eval $signalcommand]
+            lappend signallist $signal
         }
-        if {[llength $pinlist] == 0} {
-            ::log::logError [_ "No enabled pins specified!"]
+        if {[llength $signallist] == 0} {
+            ::log::logError [_ "No signals specified!"]
             exit 93
         }
-        foreach p $producers {$p initpinval}
         foreach ev $eventsconsumed {
             $transport ConsumerIdentified $ev unknown
         }
-        foreach ev $eventsproduced {
-            $transport ProducerIdentified $ev unknown
-        }
-        
-        after $pollinterval [mytypemethod _poll]
     }
     typemethod LogPuts {level message} {
         #** Log output function.
@@ -379,25 +373,6 @@ snit::type OpenLCB_PiMCP23008 {
         
         puts [::log::lv2channel $level] "[clock format [clock seconds] -format {%b %d %T}] \[[pid]\] $level $message"
     }
-    typemethod _poll {} {
-        #** Polling function.  Polls all of the sensors.
-        
-        foreach p $producers {
-            $p Poll
-        }
-        after $pollinterval [mytypemethod _poll]
-    }
-    typemethod sendEvent {event} {
-        #** Send an event, after first checking for local consumtion.
-        #
-        # @param event The event to process
-        
-        foreach c $consumers {
-            $c consumeEvent $event
-        }
-        $transport ProduceEvent $event
-    }
-    
     typemethod _eventHandler {command eventid {validity {}}} {
         #* Event Exchange handler.  Handle Event Exchange messages.
         #
@@ -423,26 +398,16 @@ snit::type OpenLCB_PiMCP23008 {
                     }
                 }
             }
-            identifyproducer {
-                foreach ev $eventsproduced {
-                    if {[$eventid match $ev]} {
-                        $transport ProducerIdentified $ev unknown
-                    }
-                }
-            }
             identifyevents {
                 foreach ev $eventsconsumed {
                     $transport ConsumerIdentified $ev unknown
                 }
-                foreach ev $eventsproduced {
-                    $transport ProducerIdentified $ev unknown
-                }
             }
             report {
-                foreach c $consumers {
-                    ::log::log debug "*** $type _eventHandler: pin is [$c cget -pinnumber]"
+                foreach s $signallist {
+                    ::log::log debug "*** $type _eventHandler: signal is [$c cget -signalnumber]"
                     ::log::log debug "*** $type _eventHandler: event is [$eventid cget -eventidstring]"
-                    $c consumeEvent $eventid
+                    $s consumeEvent $eventid
                     
                 }
             }
@@ -482,10 +447,11 @@ snit::type OpenLCB_PiMCP23008 {
     typevariable    transopts {};# transport options
     typevariable    id_name {};# node name
     typevariable    id_description {};# node description
-    typevariable    pollinginterval 500;# polling interval.
-    typevariable    mcp23008address 7;# The address of the MCP23008
-    typecomponent   pins;# Pin list
-    typevariable    pincount 0;# pin count
+    typevariable    spichannel 0;# The SPI channel
+    typecomponent   signalnotebook;# Pin list
+    typevariable    signalcount 0;# pin count
+    typevariable    aspectcounts -array {}
+    
     
     typevariable status {};# Status line
     typevariable conffilename {};# Configuration File Name
@@ -521,7 +487,7 @@ snit::type OpenLCB_PiMCP23008 {
         }
     }
     # Default (empty) XML Configuration.
-    typevariable default_confXML {<?xml version='1.0'?><OpenLCB_PiMCP23008/>}
+    typevariable default_confXML {<?xml version='1.0'?><OpenLCB_PiSPIMax7221/>}
     typemethod SampleConfiguration {conffile} {
         #** Generate a Sample Configuration
         #
@@ -537,7 +503,7 @@ snit::type OpenLCB_PiMCP23008 {
             if {$answer ne "Y"} {exit 1}
         }
         set configuration [ParseXML create %AUTO% $confXML]
-        set cdis [$configuration getElementsByTagName OpenLCB_PiMCP23008 -depth 1]
+        set cdis [$configuration getElementsByTagName OpenLCB_PiSPIMax7221 -depth 1]
         set cdi [lindex $cdis 0]
         set transcons [SimpleDOMElement %AUTO% -tag "transport"]
         $cdi addchild $transcons
@@ -556,46 +522,63 @@ snit::type OpenLCB_PiMCP23008 {
         $ident addchild $descrele
         $descrele setdata "Sample Description"
         set eid 0
-        set pollele [SimpleDOMElement %AUTO% -tag "pollinterval"]
-        $cdi addchild $pollele
-        $pollele setdata 500
-        set i2caddrele [SimpleDOMElement %AUTO% -tag "i2caddress"]
-        $cdi addchild $i2caddrele
-        $pollele setdata 7
-        set pin [SimpleDOMElement %AUTO% -tag "pin"]
-        $cdi addchild $pin
+        set spiele [SimpleDOMElement %AUTO% -tag "spichannel"]
+        $cdi addchild $spiele
+        $spiele setdata 0
+        set signal [SimpleDOMElement %AUTO% -tag "signal"]
+        $cdi addchild $signal
         set descrele [SimpleDOMElement %AUTO% -tag "description"]
-        $pin addchild $descrele
-        $descrele setdata "Sample Input Pin"
-        set pinno [SimpleDOMElement %AUTO% -tag "number"]
-        $pin addchild $pinno
-        $pinno setdata 0
-        set pinmode [SimpleDOMElement %AUTO% -tag "mode"]
-        $pin addchild $pinmode
-        $pinmode setdata in
-        foreach eventtag {pinin0 pinin1} {
-            set tagele [SimpleDOMElement %AUTO% -tag $eventtag]
-            $pin addchild $tagele
-            $tagele setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-            incr eid
-        }
-        set pin [SimpleDOMElement %AUTO% -tag "pin"]
-        $cdi addchild $pin
-        set descrele [SimpleDOMElement %AUTO% -tag "description"]
-        $pin addchild $descrele
-        $descrele setdata "Sample Output Pin"
-        set pinno [SimpleDOMElement %AUTO% -tag "number"]
-        $pin addchild $pinno
-        $pinno setdata 1
-        set pinmode [SimpleDOMElement %AUTO% -tag "mode"]
-        $pin addchild $pinmode
-        $pinmode setdata out
-        foreach eventtag {pinout0 pinout1} {
-            set tagele [SimpleDOMElement %AUTO% -tag $eventtag]
-            $pin addchild $tagele
-            $tagele setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-            incr eid
-        }
+        $signal addchild $descrele
+        $descrele setdata "Sample Signal"
+        set signalno [SimpleDOMElement %AUTO% -tag "number"]
+        $signal addchild $signalno
+        $signalno setdata 1
+        set eid 0
+        set aspect [SimpleDOMElement %AUTO% -tag "aspect"]
+        $signal addchild $aspect
+        set aspectev [SimpleDOMElement %AUTO% -tag "eventid"]
+        $aspect addchild $aspectev
+        $aspectev setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+        incr eid
+        set aspectbits [SimpleDOMElement %AUTO% -tag "bits"]
+        $aspect addchild $aspectbits
+        $aspectbits setdata B00100001;# green over red
+        set aspect [SimpleDOMElement %AUTO% -tag "aspect"]
+        $signal addchild $aspect
+        set aspectev [SimpleDOMElement %AUTO% -tag "eventid"]
+        $aspect addchild $aspectev
+        $aspectev setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+        incr eid
+        set aspectbits [SimpleDOMElement %AUTO% -tag "bits"] 
+        $aspect addchild $aspectbits
+        $aspectbits setdata B00010001;# yellow over red 
+        set aspect [SimpleDOMElement %AUTO% -tag "aspect"]
+        $signal addchild $aspect
+        set aspectev [SimpleDOMElement %AUTO% -tag "eventid"]
+        $aspect addchild $aspectev
+        $aspectev setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+        incr eid
+        set aspectbits [SimpleDOMElement %AUTO% -tag "bits"] 
+        $aspect addchild $aspectbits
+        $aspectbits setdata B00001001;# red over red 
+        set aspect [SimpleDOMElement %AUTO% -tag "aspect"]
+        $signal addchild $aspect
+        set aspectev [SimpleDOMElement %AUTO% -tag "eventid"]
+        $aspect addchild $aspectev
+        $aspectev setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+        incr eid
+        set aspectbits [SimpleDOMElement %AUTO% -tag "bits"] 
+        $aspect addchild $aspectbits
+        $aspectbits setdata B00001010;# red over yellow 
+        set aspect [SimpleDOMElement %AUTO% -tag "aspect"]
+        $signal addchild $aspect
+        set aspectev [SimpleDOMElement %AUTO% -tag "eventid"]
+        $aspect addchild $aspectev
+        $aspectev setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+        incr eid
+        set aspectbits [SimpleDOMElement %AUTO% -tag "bits"] 
+        $aspect addchild $aspectbits
+        $aspectbits setdata B00001100;# red over green 
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
@@ -643,14 +626,14 @@ snit::type OpenLCB_PiMCP23008 {
             set confXML $default_confXML
             set configuration [ParseXML create %AUTO% $confXML]
         }
-        set cdis [$configuration getElementsByTagName OpenLCB_PiMCP23008 -depth 1]
+        set cdis [$configuration getElementsByTagName OpenLCB_PiSPIMax7221 -depth 1]
         if {[llength $cdis] != 1} {
-            error [_ "There is no OpenLCB_PiMCP23008 container in %s" $confXML]
+            error [_ "There is no OpenLCB_PiSPIMax7221 container in %s" $confXML]
             exit 90
         }
         set cdi [lindex $cdis 0]
         wm protocol . WM_DELETE_WINDOW [mytypemethod _saveexit]
-        wm title    . [_ "OpenLCB_PiMCP23008 Configuration Editor (%s)" $conffile]
+        wm title    . [_ "OpenLCB_PiSPIMax7221 Configuration Editor (%s)" $conffile]
         set main [MainFrame .main -menu [subst $_menu] \
                   -textvariable [mytypevar status]]
         pack $main -expand yes -fill both
@@ -731,35 +714,27 @@ snit::type OpenLCB_PiMCP23008 {
             }
         }
         
-        set pollintervalLE [LabelSpinBox $frame.pollintervalLE \
-                            -label [_m "Label|Poll Interval"] \
-                            -textvariable [mytypevar pollinginterval] \
-                            -range {100 5000 10}]
-        pack $pollintervalLE -fill x -expand yes
-        set pollele [$cdi getElementsByTagName "pollinterval"]
-        if {[llength $pollele] > 0} {
-            set pollele [lindex $pollele 0]
-            set pollinginterval [$pollele data]
+        
+        set spichannelLE [LabelComboBox $frame.spichannelLE \
+                            -label [_m "Label|SPI Channel"] \
+                            -textvariable [mytypevar spichannel] \
+                            -values {0 1}]
+        pack $spichannelLE -fill x -expand yes
+        set spiele [$cdi getElementsByTagName "spichannel"]
+        if {[llength $spiele] > 0} {
+            set spiele [lindex $spiele 0]
+            set spichannel [$spiele data]
         }
-        set i2caddressLE [LabelSpinBox $frame.i2caddressLE \
-                            -label [_m "Label|I2C Address offset"] \
-                            -textvariable [mytypevar mcp23008address] \
-                            -range {0 7 1}]
-        pack $i2caddressLE -fill x -expand yes
-        set i2caddrele [$cdi getElementsByTagName "i2caddress"]
-        if {[llength $i2caddrele] > 0} {
-            set i2caddrele [lindex $i2caddrele 0]
-            set mcp23008address [$i2caddrele data]
+
+        set signalnotebook [ScrollTabNotebook $frame.signals]
+        pack $signalnotebook -expand yes -fill both
+        foreach signal [$cdi getElementsByTagName "signal"] {
+            $type _create_and_populate_signal $signal
         }
-        set pins [ScrollTabNotebook $frame.pins]
-        pack $pins -expand yes -fill both
-        foreach pin [$cdi getElementsByTagName "pin"] {
-            $type _create_and_populate_pin $pin
-        }
-        set addpin [ttk::button $frame.addpin \
-                    -text [_m "Label|Add another pin"] \
-                    -command [mytypemethod _addblankpin]]
-        pack $addpin -fill x
+        set addsignal [ttk::button $frame.addsignal \
+                    -text [_m "Label|Add another signal"] \
+                    -command [mytypemethod _addblanksignal]]
+        pack $addsignal -fill x
     }
     typevariable warnings
     typemethod _saveexit {} {
@@ -767,7 +742,7 @@ snit::type OpenLCB_PiMCP23008 {
         # Saves the contents of the GUI as an XML file.
         
         set warnings 0
-        set cdis [$configuration getElementsByTagName OpenLCB_PiMCP23008 -depth 1]
+        set cdis [$configuration getElementsByTagName OpenLCB_PiSPIMax7221 -depth 1]
         set cdi [lindex $cdis 0]
         set transcons [$cdi getElementsByTagName "transport"]
         if {[llength $transcons] < 1} {
@@ -804,21 +779,15 @@ snit::type OpenLCB_PiMCP23008 {
             $ident addchild $descrele
         }
         $descrele setdata $id_description
-        set pollele [$cdi getElementsByTagName "pollinterval"]
-        if {[llength $pollele] < 1} {
-            set pollele [SimpleDOMElement %AUTO% -tag "pollinterval"]
-            $cdi addchild $pollele
+        set spiele [$cdi getElementsByTagName "spichannel"]
+        if {[llength $spiele] < 1} {
+            set spiele [SimpleDOMElement %AUTO% -tag "spichannel"]
+            $cdi addchild $spiele
         }
-        $pollele setdata $pollinginterval
-        set i2caddrele [$configuration getElementsByTagName "i2caddress"]
-        if {[llength $i2caddrele] < 1} {
-            set i2caddrele [SimpleDOMElement %AUTO% -tag "i2caddress"]
-            $cdi addchild $i2caddrele
-        }
-        $i2caddrele setdata $mcp23008address
+        $spiele setdata $spichannel
         
-        foreach pin [$cdi getElementsByTagName "pin"] {
-            $type _copy_from_gui_to_XML $pin
+        foreach signal [$cdi getElementsByTagName "signal"] {
+            $type _copy_signal_from_gui_to_XML $signal
         }
         
         if {$warnings > 0} {
@@ -832,121 +801,80 @@ snit::type OpenLCB_PiMCP23008 {
         }
         ::exit
     }
-    typemethod _copy_from_gui_to_XML {pin} {
-        #** Copy from the GUI to the Pin XML
+    typemethod _copy_signal_from_gui_to_XML {signal} {
+        #** Copy from the GUI to the Signal XML
         # 
-        # @param pin Pin XML element.
+        # @param signal Signal XML element.
         
-        set fr [$pin attribute frame]
-        set frbase $pins.$fr
-        set pinno [$pin getElementsByTagName "number"]
-        if {[llength $pinno] < 1} {
-            set pinno [SimpleDOMElement %AUTO% -tag "number"]
-            $pin addchild $pinno
+        set fr [$signal attribute frame]
+        set frbase $signalnotebook.$fr
+        set signalno [$signal getElementsByTagName "number"]
+        if {[llength $signalno] < 1} {
+            set signalno [SimpleDOMElement %AUTO% -tag "number"]
+            $signal addchild $signalno
         }
-        $pinno setdata [$frbase.pinno get]
-        set pinmode [$pin getElementsByTagName "mode"]
-        if {[llength $pinmode] < 1} {
-            set pinmode [SimpleDOMElement %AUTO% -tag "mode"]
-            $pin addchild $pinmode
-        }
-        $pinmode setdata [$frbase.pinmode get]
+        $signalno setdata [$frbase.signalno get]
         set description_ [$frbase.description get]
         if {$description_ eq ""} {
-            set description [$pin getElementsByTagName "description"]
+            set description [$signal getElementsByTagName "description"]
             if {[llength $description] == 1} {
-                $pin removeChild $description
+                $signal removeChild $description
             }
         } else {
-            set description [$pin getElementsByTagName "description"]
+            set description [$signal getElementsByTagName "description"]
             if {[llength $description] < 1} {
                 set description [SimpleDOMElement %AUTO% -tag "description"]
-                $pin addchild $description
+                $signal addchild $description
             }
             $description setdata $description_
         }
-        set pinin0_ [$frbase.pinin0 get]
-        if {$pinin0_ ne "" && [catch {lcc::eventidstring validate $pinin0_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Pin in 0 is not a valid event id string: %s!" $pinin0_]
-            set pinin0_ ""
-            incr warnings
+        foreach aspect [$signal getElementsByTagName "aspect"] {
+            $type _copy_aspect_from_gui_to_XML $signal $aspect
         }
-        if {$pinin0_ eq ""} {
-            set pinin0 [$pin getElementsByTagName "pinin0"]
-            if {[llength $pinin0] == 1} {
-                $pin removeChild $pinin0
-            }
-        } else {
-            set pinin0 [$pin getElementsByTagName "pinin0"]
-            if {[llength $pinin0] < 1} {
-                set pinin0 [SimpleDOMElement %AUTO% -tag "pinin0"]
-                $pin addchild $pinin0
-            }
-            $pinin0 setdata $pinin0_
-        }
+    }
+    typemethod _copy_aspect_from_gui_to_XML {signal aspect} {
+        #** Copy from the GUI to the Signal's aspect XML
+        #
+        # @param signal Signal XML element.
+        # @param aspect Aspect XML element.
         
-        set pinin1_ [$frbase.pinin1 get]
-        if {$pinin1_ ne "" && [catch {lcc::eventidstring validate $pinin1_}]} {
+        set fr [$signal attribute frame]
+        set frbase $signalnotebook.$fr
+        set afr [$aspect attribute frame]
+        set afrbase $frbase.aspectNB.$afr
+        set evstring [$afrbase.eventidLE get]
+        set aspbits  [$afrbase.aspbitsLE get]
+        if {[catch {Binary8 validate $aspbits}]} {
             tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Pin in 1 is not a valid event id string: %s!" $pinin1_]
-            set pinin1_ ""
+                  -message [_ "Illformed Aspect bits: %s!" $aspbits]
             incr warnings
-        }
-        if {$pinin1_ eq ""} {
-            set pinin1 [$pin getElementsByTagName "pinin1"]
-            if {[llength $pinin1] == 1} {
-                $pin removeChild $pinin1
+            set aspectbitsele [$aspect getElementsByTagName "bits"]
+            if {[llength $aspectbitsele] > 0} {
+                $aspect removeChild $aspectbitsele
             }
         } else {
-            set pinin1 [$pin getElementsByTagName "pinin1"]
-            if {[llength $pinin1] < 1} {
-                set pinin1 [SimpleDOMElement %AUTO% -tag "pinin1"]
-                $pin addchild $pinin1
+            set aspectbitsele [$aspect getElementsByTagName "bits"]
+            if {[llength $aspectbitsele] < 1} {
+                set aspectbitsele [SimpleDOMElement %AUTO% -tag "bits"]
+                $aspect addchild $aspectbitsele
             }
-            $pinin1 setdata $pinin1_
+            $aspectbitsele setdata $aspbits
         }
-        
-        set pinout0_ [$frbase.pinout0 get]
-        if {$pinout0_ ne "" && [catch {lcc::eventidstring validate $pinout0_}]} {
+        if {[catch {lcc::eventidstring validate $evstring}]} {
             tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Pin out 0 is not a valid event id string: %s!" $pinout0_]
-            set pinout0_ ""
+                  -message [_ "Event ID for aspect %s is not a valid event id string: %s!" $aspbits $evstring]
             incr warnings
-        }
-        if {$pinout0_ eq ""} {
-            set pinout0 [$pin getElementsByTagName "pinout0"]
-            if {[llength $pinout0] == 1} {
-                $pin removeChild $pinout0
+            set eventidele [$aspect getElementsByTagName "eventid"]
+            if {[llength $eventidele] > 0} {
+                $aspect removeChild $eventidele
             }
         } else {
-            set pinout0 [$pin getElementsByTagName "pinout0"]
-            if {[llength $pinout0] < 1} {
-                set pinout0 [SimpleDOMElement %AUTO% -tag "pinout0"]
-                $pin addchild $pinout0
+            set eventidele [$aspect getElementsByTagName "eventid"]
+            if {[llength $eventidele] < 1} {
+                set eventidele [SimpleDOMElement %AUTO% -tag "eventid"]
+                $aspect addchild $eventidele
             }
-            $pinout0 setdata $pinout0_
-        }
-        
-        set pinout1_ [$frbase.pinout1 get]
-        if {$pinout1_ ne "" && [catch {lcc::eventidstring validate $pinout1_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Pin out 1 is not a valid event id string: %s!" $pinout1_]
-            set pinout1_ ""
-            incr warnings
-        }
-        if {$pinout1_ eq ""} {
-            set pinout1 [$pin getElementsByTagName "pinout1"]
-            if {[llength $pinout1] == 1} {
-                $pin removeChild $pinout1
-            }
-        } else {
-            set pinout1 [$pin getElementsByTagName "pinout1"]
-            if {[llength $pinout1] < 1} {
-                set pinout1 [SimpleDOMElement %AUTO% -tag "pinout1"]
-                $pin addchild $pinout1
-            }
-            $pinout1 setdata $pinout1_
+            $eventidele setdata $evstring
         }
     }
     typemethod _exit {} {
@@ -984,168 +912,194 @@ snit::type OpenLCB_PiMCP23008 {
             }
         }
     }
-    typemethod _create_and_populate_pin {pin} {
-        #** Create a tab for a  pin and populate it.
+    typemethod _create_and_populate_signal {signal} {
+        #** Create a tab for a  signal and populate it.
         #
-        # @param pin The pin XML element.
+        # @param signal The signal XML element.
         
-        incr pincount
-        set fr pin$pincount
-        set f [$pin attribute frame]
+        incr signalcount
+        set fr signal$signalcount
+        set f [$signal attribute frame]
         if {$f eq {}} {
-            set attrs [$pin cget -attributes]
+            set attrs [$signal cget -attributes]
             lappend attrs frame $fr
-            $pin configure -attributes $attrs
+            $signal configure -attributes $attrs
         } else {
-            set attrs [$pin cget -attributes]
+            set attrs [$signal cget -attributes]
             set findx [lsearch -exact $attrs frame]
             incr findx
             set attrs [lreplace $attrs $findx $findx $fr]
-            $pin configure -attributes $attrs
+            $signal configure -attributes $attrs
         }
-        set pinframe [ttk::frame \
-                      $pins.$fr]
-        $pins add $pinframe \
-              -text [_ "Pin %d" $pincount] -sticky news
-        set pinno_ [LabelComboBox $pinframe.pinno \
-                    -label [_m "Label|GPIO Pin Number"] \
-                    -values [GPIOPinNo AllPins]]
-        $pinno_ set [lindex [GPIOPinNo AllPins] 0]
-        pack $pinno_ -fill x -expand yes
-        set pinno [$pin getElementsByTagName "number"]
-        if {[llength $pinno] == 1} {
-            $pinno_ set [$pinno data]
+        set signalframe [ttk::frame \
+                      $signalnotebook.$fr]
+        $signalnotebook add $signalframe \
+              -text [_ "Signal %d" $signalcount] -sticky news
+        set signalno_ [LabelSpinBox $signalframe.signalno \
+                    -label [_m "Label|Signal Number"] \
+                    -range {1 8 1}]
+        $signalno_ set 1
+        pack $signalno_ -fill x -expand yes
+        set signalno [$signal getElementsByTagName "number"]
+        if {[llength $signalno] == 1} {
+            $signalno_ set [$signalno data]
         }
-        set pinmode_ [LabelComboBox $pinframe.pinmode \
-                      -label [_m "Label|Pin Mode"] \
-                      -values [PinModes cget -values]]
-        pack $pinmode_ -fill x -expand yes
-        $pinmode_ set [lindex [PinModes cget -values] 0]
-        set pinmode [$pin getElementsByTagName "mode"]
-        if {[llength $pinno] == 1} {
-            $pinmode_ set [$pinmode data]
-        }
-        set description_ [LabelEntry $pinframe.description \
+        set description_ [LabelEntry $signalframe.description \
                           -label [_m "Label|Description"]]
         pack $description_ -fill x -expand yes
-        set description [$pin getElementsByTagName "description"]
+        set description [$signal getElementsByTagName "description"]
         if {[llength $description] == 1} {
             $description_ configure -text [$description data]
         }
-        set pinin0_ [LabelEntry $pinframe.pinin0 \
-                       -label [_m "Label|Pin Low In Event"]]
-        pack $pinin0_ -fill x -expand yes
-        set pinin0 [$pin getElementsByTagName "pinin0"]
-        if {[llength $pinin0] == 1} {
-            $pinin0_ configure -text [$pinin0 data]
+        # aspects...  
+        set aspectNB [ScrollTabNotebook $signalframe.aspectNB]
+        pack $aspectNB -fill both -expand yes
+        if {![info exists aspectcounts($fr)]} {
+            set aspectcounts($fr) 0
         }
-        set pinin1_ [LabelEntry $pinframe.pinin1 \
-                        -label [_m "Label|Pin High In Event"]]
-        pack $pinin1_ -fill x -expand yes
-        set pinin1 [$pin getElementsByTagName "pinin1"]
-        if {[llength $pinin1] == 1} {
-            $pinin1_ configure -text [$pinin1 data]
+        foreach aspect [$signal getElementsByTagName "aspect"] {
+            $type _create_and_populate_signal_aspect $signal $aspect
         }
-        set pinout0_ [LabelEntry $pinframe.pinout0 \
-                       -label [_m "Label|Pin Low Out Event"]]
-        pack $pinout0_ -fill x -expand yes
-        set pinout0 [$pin getElementsByTagName "pinout0"]
-        if {[llength $pinout0] == 1} {
-            $pinout0_ configure -text [$pinout0 data]
-        }
-        set pinout1_ [LabelEntry $pinframe.pinout1 \
-                        -label [_m "Label|Pin High Out Event"]]
-        pack $pinout1_ -fill x -expand yes
-        set pinout1 [$pin getElementsByTagName "pinout1"]
-        if {[llength $pinout1] == 1} {
-            $pinout1_ configure -text [$pinout1 data]
-        }
-        set delpin [ttk::button $pinframe.deletepin \
-                       -text [_m "Label|Delete pin"] \
-                       -command [mytypemethod _deletepin $pin]]
-        pack $delpin -fill x
+        set addaspect [ttk::button $signalframe.addaspect \
+                       -text [_m "Label|Add another aspect"] \
+                       -command [mytypemethod _addaspect $signal]]
+        pack $addaspect -fill x
+        set delsignal [ttk::button $signalframe.deletesignal \
+                       -text [_m "Label|Delete signal"] \
+                       -command [mytypemethod _deleteSignal $signal]]
+        pack $delsignal -fill x
     }
-    typemethod _addblankpin {} {
-        #** Create a new blank pin.
-        
-        set cdis [$configuration getElementsByTagName OpenLCB_PiMCP23008 -depth 1]
-        set cdi [lindex $cdis 0]
-        set pin [SimpleDOMElement %AUTO% -tag "pin"]
-        $cdi addchild $pin
-        $type _create_and_populate_pin $pin
-    }
-    typemethod _deletePin {pin} {
-        #** Delete a pin
+    typemethod _create_and_populate_signal_aspect {signal aspect} {
+        #** Create and populate a signal aspect instance.
         #
-        # @param pin The pin's XML element.
+        # @param signal Signal XML element.
+        # @param aspect Aspect XML element.
         
-        set fr [$pin attribute frame]
-        set cdis [$configuration getElementsByTagName OpenLCB_PiMCP23008 -depth 1]
+        #puts stderr "$type _create_and_populate_signal_aspect $signal $aspect"
+        set fr [$signal attribute frame]
+        set frbase $signalnotebook.$fr
+        incr aspectcounts($fr)
+        set afr aspect$aspectcounts($fr)
+        set af [$aspect attribute frame]
+        #puts stderr "$type _create_and_populate_signal_aspect: fr = $fr, frbase = $frbase, afr = $afr, af = $af"        
+        if {$af eq {}} {
+            set attrs [$aspect cget -attributes]
+            lappend attrs frame $afr
+            $aspect configure -attributes $attrs
+        } else {
+            set attrs [$aspect cget -attributes]
+            set findx [lsearch -exact $attrs frame]
+            incr findx
+            set attrs [lreplace $attrs $findx $findx $afr]
+            $aspect configure -attributes $attrs
+        }
+        set aspectframe [ttk::frame \
+                         $frbase.aspectNB.$afr]
+        #puts stderr "$type _create_and_populate_signal_aspect: aspectframe = $aspectframe"
+        $frbase.aspectNB add $aspectframe \
+              -text [_ "Aspect %d" $aspectcounts($fr)] -sticky news
+        set afrbase $aspectframe
+        #puts stderr "$type _create_and_populate_signal_aspect: afrbase = $afrbase"
+        set eventidLE [LabelEntry $afrbase.eventidLE \
+                   -label [_m "Label|Event ID"]]
+        pack $eventidLE -fill x -expand yes
+        set eventidele [$aspect getElementsByTagName "eventid"]
+        if {[llength $eventidele] < 1} {
+            $eventidLE configure -text "00.00.00.00.00.00.00.00"
+        } else {
+            $eventidLE configure -text [[lindex $eventidele 0] data]
+        }
+        set aspbitsLE [LabelEntry $afrbase.aspbitsLE \
+                       -label [_m "Label|Aspect Bits"]]
+        pack $aspbitsLE -fill x -expand yes
+        set aspectbitsele [$aspect getElementsByTagName "bits"]
+        if {[llength $aspectbitsele] < 1} {
+            $aspbitsLE configure -text [Binary8 convertto 0]
+        } else {
+            $aspbitsLE configure -text [[lindex $aspectbitsele 0] data]
+        }
+        set delaspect [ttk::button $afrbase.deleteaspect \
+                       -text [_m "Label|Delete aspect"] \
+                       -command [mytypemethod _deleteAspect $signal $aspect]]
+        pack $delaspect -fill x
+    }
+    typemethod _addblanksignal {} {
+        #** Create a new blank signal.
+        
+        set cdis [$configuration getElementsByTagName OpenLCB_PiSPIMax7221 -depth 1]
         set cdi [lindex $cdis 0]
-        $cdi removeChild $pin
-        $pins forget $pins.$fr
-        destroy $pins.$fr
+        set signal [SimpleDOMElement %AUTO% -tag "signal"]
+        $cdi addchild $signal
+        $type _create_and_populate_signal $signal
+    }
+    typemethod _deleteSignal {signal} {
+        #** Delete a signal
+        #
+        # @param signal The signal's XML element.
+        
+        set fr [$signal attribute frame]
+        set cdis [$configuration getElementsByTagName OpenLCB_PiSPIMax7221 -depth 1]
+        set cdi [lindex $cdis 0]
+        $type _deleteallaspects $signal
+        $cdi removeChild $signal
+        $signalnotebook forget $signalnotebook.$fr
+        destroy $signalnotebook.$fr
+    }
+    typemethod _deleteallaspects {signal} {
+        #** Delete all aspects of a signal
+        #
+        # @param signal The signal whose aspects are to be removed.
+        
+        foreach aspect [$signal getElementsByTagName "aspect"] {
+            $type _deleteAspect $signal $aspect
+        }
+    }
+    typemethod _addaspect {signal} {
+        #** Add an aspect to a signal.
+        #
+        # @param signal The signal's XML element.
+        
+        set aspect [SimpleDOMElement %AUTO% -tag "aspect"]
+        $signal addchild $aspect
+        $type _create_and_populate_signal_aspect $signal $aspect
+    }
+    typemethod _deleteAspect {signal aspect} {
+        #** Delete a signal's aspect
+        #
+        # @param signal The signal's XML element.
+        # @param aspect The aspects's XML element.
+        
+        #puts stderr "*** type _deleteAspect $signal $aspect"
+        set fr [$signal attribute frame]
+        #puts stderr "*** type _deleteAspect: fr = $fr"
+        set frbase $signalnotebook.$fr
+        #puts stderr "*** type _deleteAspect: frbase = $frbase"
+        set afr [$aspect attribute frame]
+        #puts stderr "*** type _deleteAspect: afr = $afr"
+        set afrbase $frbase.aspectNB.$afr
+        #puts stderr "*** type _deleteAspect: afrbase = $afrbase"
+        $frbase.aspectNB forget $afrbase
+        $signal removeChild $aspect
+        destroy $afrbase
     }
     
     
     
-    #*** Pin instances
-    variable oldPin 0;# The saved value of the pin (input mode only)
-    option -pinnumber -readonly yes -type GPIOPinNo -default 0
-    option -pinmode -readonly yes -type PinModes -default disabled
-    option -pinin0 -type lcc::EventID_or_null -readonly yes -default {}
-    option -pinin1 -type lcc::EventID_or_null -readonly yes -default {}
-    option -pinout0 -type lcc::EventID_or_null -readonly yes -default {}
-    option -pinout1 -type lcc::EventID_or_null -readonly yes -default {}
+    #*** Signal instances
+    option -signalnum -readonly yes -type Signal -default 1
     option -description -readonly yes -default {}
+    option -aspectlist -readonly yes -type AspectList \
+          -default {{11.22.33.44.55.66.77.88 B00000000}}
     constructor {args} {
-        # Construct an instance for a GPIO pin
+        # Construct an instance for a signal
         #
         # @param ... Options:
-        # @arg -pinnumber The pin number
-        # @arg -pinmode   The pin's mode
-        # @arg -pinin0    Event ID to send when the pin's input value goes to 0.
-        # @arg -pinin1    Event ID to send when the pin's input value goes to 1.
-        # @arg -pinout0   Event ID to trigger setting the pin's output to 0.
-        # @arg -pinout1   Event ID to trigger setting the pin's output to 1.
+        # @arg -signalnum The Signal number
+        # @arg -aspectlist The Aspects for this signal.
         # @arg -description Description of the pin.
         # @par
         
         $self configurelist $args
-        set gpiopinno [GPIOPinNo gpioPinNo [$self cget -pinnumber]]
-        switch [$self cget -pinmode] {
-            in {
-                pinMode $gpiopinno $::INPUT
-                pullUpDnControl $gpiopinno $::PUD_UP
-            }
-            out {
-                pinMode $gpiopinno $::OUTPUT
-            } 
-            high {
-                pinMode $gpiopinno $::OUTPUT
-                digitalWrite $gpiopinno $::HIGH
-            }
-            low  {
-                pinMode $gpiopinno $::OUTPUT
-                digitalWrite $gpiopinno $::LOW
-            }
-        }
-    }
-    method initpinval {} {
-        set oldPin [digitalRead [GPIOPinNo gpioPinNo [$self cget -pinnumber]]]
-    }
-    method Poll {} {
-        #** Poll the pin
-        
-        if {[$self cget -pinmode] ne "in"} {return}
-        set v [digitalRead [GPIOPinNo gpioPinNo [$self cget -pinnumber]]]
-        if {$v != $oldPin} {
-            set oldPin $v
-            set event [$self cget -pinin$oldPin]
-            if {$event ne {}} {
-                $type sendEvent $event
-            }
-        }
     }
     method consumeEvent {event} {
         #** Handle an incoming event.
@@ -1153,12 +1107,12 @@ snit::type OpenLCB_PiMCP23008 {
         # @param event The event to handle.
         
         ::log::log debug "*** $self consumeEvent $event"
-        if {[$event match [$self cget -pinout0]]} {
-            digitalWrite [GPIOPinNo gpioPinNo [$self cget -pinnumber]] 0
-            return true
-        } elseif {[$event match [$self cget -pinout1]]} {
-            digitalWrite [GPIOPinNo gpioPinNo [$self cget -pinnumber]] 1
-            return true
+        foreach aspevbits [$self cget -aspectlist] {
+            foreach {aspev bits} $aspevbits {break}
+            if {$event match $aspev} {
+                wiringPiSPIDataRW $spi [list [$self cget -signalnum] [Binary8 valueof $bits]]
+                return true
+            }
         }
         return false
     }

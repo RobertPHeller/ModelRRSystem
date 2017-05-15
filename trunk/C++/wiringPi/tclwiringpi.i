@@ -8,7 +8,7 @@
  *  Author        : $Author$
  *  Created By    : Robert Heller
  *  Created       : Wed Jul 22 11:06:42 2015
- *  Last Modified : <170509.1150>
+ *  Last Modified : <170514.1450>
  *
  *  Description	
  *
@@ -78,6 +78,37 @@ static const char rcsid[] = "@(#) : $Id$";
 
 %include <wiringPi.h>
 %include <wiringPiI2C.h>
+%typemap(in) (unsigned char *data, int len) {
+    Tcl_Obj **listobjv;
+    int nitems;
+    int i,iv,ret;
+    if (Tcl_ListObjGetElements(interp, $input, &nitems, &listobjv) == TCL_ERROR) {
+        
+        return TCL_ERROR;
+    }
+    $1 = (unsigned char *) Tcl_Alloc((nitems)*sizeof(unsigned char));
+    for (i = 0; i < nitems; i++) {
+        ret = Tcl_GetIntFromObj(interp,listobjv[i],&iv);
+        if (ret != TCL_OK) {
+            Tcl_Free((char *)$1);
+            return TCL_ERROR;
+        }
+        $1[i] = iv;
+    }
+    $2 = nitems;
+}
+
+%typemap(argout) (unsigned char *data, int len) {
+    int i;
+    Tcl_Obj *o;
+    for (i = 0; i < $2; i++) {
+        o = Tcl_NewIntObj($1[i]);
+        Tcl_ListObjAppendElement(interp,$result,o);
+    }
+    Tcl_Free((char *)$1);
+}
+          
+    
 %include <wiringPiSPI.h>
 %include <mcp23008.h>
 %include <mcp23017.h>
