@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Mar 11 14:43:58 2016
-//  Last Modified : <170510.1124>
+//  Last Modified : <170515.1000>
 //
 //  Description	
 //
@@ -72,6 +72,7 @@
  * <li><a class="el" href="openlcbdaemons.html#PiGPIO">EventExchange node for Raspberry Pi GPIO pins</a></li>
  * <li><a class="el" href="openlcbdaemons.html#PiMCP23008">EventExchange node for MCP23008 GPIO pins</a></li>
  * <li><a class="el" href="openlcbdaemons.html#PiMCP23017">EventExchange node for MCP23017 GPIO pins</a></li>
+ * <li><a class="el" href="openlcbdaemons.html#PiSPIMax7221">EventExchange node for a SPI connected MAX7221 Signal Driver</a></li>
  * <li><a class="el" href="openlcbdaemons.html#TrackCircuits">EventExchange node for virtual track circuits</a></li>
  * <li><a class="el" href="openlcbdaemons.html#Logic">EventExchange node for logic blocks</a></li>
  * <li><a class="el" href="openlcbdaemons.html#Acela">EventExchange node for a CTI Acela network</a></li>

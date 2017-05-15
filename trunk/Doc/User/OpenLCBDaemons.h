@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Aug 14 14:40:15 2016
-//  Last Modified : <170510.1120>
+//  Last Modified : <170515.1032>
 //
 //  Description	
 //
@@ -101,23 +101,26 @@
  *
  * There are several virtual nodes that implement OpenLCB nodes to provide
  * useful functions.  These daemons are:
- *   @li @ref OpenLCB_MRD2 The OpenLCB_MRD2 daemon implememts an OpenLCB node
+ *   @li @ref MRD2 The OpenLCB_MRD2 daemon implememts an OpenLCB node
  * that implements the EventExchange protocol for Azatrax MRD2 boards.
  *   @li @ref OpenLCB_PiGPIO The OpenLCB_PiGPIO daemon implememts an OpenLCB
  *   node that implements the EventExchange protocol for Raspberry Pi GPIO
  *   pins.
- *   @li @ref OpenLCB_PiMCP23008 The OpenLCB_PiMCP23008 daemon implememts an 
+ *   @li @ref PiMCP23008 The OpenLCB_PiMCP23008 daemon implememts an 
  *   OpenLCB node that implements the EventExchange protocol for the GPIO pins 
  *   on a MCP23008 I2C port expander connected to a Raspberry Pi.
- *   @li @ref OpenLCB_PiMCP23017 The OpenLCB_PiMCP23017 daemon implememts an 
+ *   @li @ref PiMCP23017 The OpenLCB_PiMCP23017 daemon implememts an 
  *   OpenLCB node that implements the EventExchange protocol for the GPIO pins
  *   on a MCP23017 I2C port expander connected to a Raspberry Pi.
- *   @li @ref OpenLCB_TrackCircuits The OpenLCB_TrackCircuits daemon implememts
+ *   @li @ref PiSPIMax7221 The OpenLCB_PiSPIMax7221 daemon implememts an 
+ *   OpenLCB node that implements the EventExchange protocol for a SPI 
+ *   connected MAX7221 Signal Driver board connected to a Raspberry Pi.
+ *   @li @ref TrackCircuits The OpenLCB_TrackCircuits daemon implememts
  *   an OpenLCB node that implements virtual track circuit messaging logic
  *   using OpenLCB Events.
- *   @li @ref OpenLCB_Logic The OpenLCB_Login daemon implememts
+ *   @li @ref Logic The OpenLCB_Login daemon implememts
  *   an OpenLCB node that implements logic blocks using OpenLCB Events.
- *   @li @ref OpenLCB_Acela The OpenLCB_Acela daemon implememts an OpenLCB node
+ *   @li @ref Acela The OpenLCB_Acela daemon implememts an OpenLCB node
  *   that implements EventExchange protocol for a CTIAcela network.
  * 
  * All of these programs normally run as non-interactive daemon processes and
@@ -523,6 +526,87 @@
     </xs:schema>
    @endverbatim
  * 
+ * @subsection PiSPIMax7221 EventExchange node for a SPI connected MAX7221 Signal Driver.
+ * 
+ * The OpenLCB_PiSPIMax7221 daemon is used to implement upto 8 signal masts 
+ * using a SPI connected MAX7221 LED driver.  Each @c digit of the MAX7221
+ * corresponds to one signal mast and each segment of each digit corresponds 
+ * to one LED.
+ * 
+ * In addition to the @ref CommonNodeConfiguration "Common Node Configuration"
+ * fields the OpenLCB_PiSPIMax7221 daemon has a field to select the SPI
+ * channel (0 or 1) and tabs for each signal (up to 8).  Each signal has a
+ * signal number (1 through 8), a textual description, and any number (at least
+ * one) of aspects.  Each aspect contain an event id and an eight bit field
+ * defining the on (1) or off (0) LEDS, typically top to bottom.
+ * 
+ * @subsubsection PiSPIMax7221_XMLSchema XML Schema for configuration files
+ * 
+ * @verbatim <?xml version="1.0" ?>
+  <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl" ?> 
+   <!-- XML Schema for OpenLCB_PiSPIMax7221 configuration files --> 
+   <xs:schema version="OpenLCB_PiSPIMax7221 1.0" 
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"> 
+     <xs:element name="OpenLCB_PiSPIMax7221" minOccurs="1" maxOccurs="1">
+       <xs:annotation>
+         <xs:documentation>
+           This is the configuration container for the OpenLCB_PiSPIMax7221 
+           daemon. 
+         </xs:documentation>
+       </xs:annotation>
+       <xs:complexType>
+         <xs:sequence> 
+           <xs:element name="transport" minOccurs="1" maxOccurs="1">
+             <xs:annotation> 
+               <xs:documentation> 
+                 This defines the transport to use for this node.
+               </xs:documentation> 
+             </xs:annotation>
+             <xs:complexType> 
+               <xs:sequence> 
+                 <xs:element name="constructor" minOccurs="1" maxOccurs="1" />
+                 <xs:element name="options" minOccurs="1" maxOccurs="1" />
+               </xs:sequence> 
+             </xs:complexType> 
+           </xs:element> 
+           <xs:element name="identification" minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+                  This is the node identification section.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="name" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType></xs:complexType>
+           </xs:element>
+           <xs:element name="spichannel" minOccurs="0" maxOccurs="1" />
+           <xs:element name="signal" minOccurs="1" maxOccurs="8" >
+             <xs:annotation>
+               This defines one signal.
+             </xs:documentation>
+             <xs:complexType>
+               <xs:sequence>
+                 <xs:element name="number" minOccurs="1" maxOccurs="1" />
+                 <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                 <xs:element name="aspect" minOccurs="1" maxOccurs="unbounded" >
+                    <xs:complexType>
+                      <xs:element name="eventid" minOccurs="1" maxOccurs="1" />
+                      <xs:element name="bits" minOccurs="1" maxOccurs="1" />
+                    </xs:complexType>
+                 </xs:element>
+               </xs:sequence>
+             </xs:complexType>
+           </xs:element>
+         </xs:sequence>
+       </xs:complexType> 
+     </xs:element>  
+   </xs:schema>
+   @endverbatim
+ * 
  * @subsection TrackCircuits EventExchange node for virtual track circuits.
  * 
  * The OpenLCB_TrackCircuits daemon is used to implement one or more virtual
@@ -600,7 +684,7 @@
                   <xs:element name="name" minOccurs="0" maxOccurs="1" />
                   <xs:element name="description" minOccurs="0" maxOccurs="1" />
                 </xs:sequence>
-              </xs:complexType></xs:complexType>
+              </xs:complexType>
            </xs:element>
            <xs:element name="track" minOccurs="0" maxOccurs="unbounded" > 
              <xs:annotation> 

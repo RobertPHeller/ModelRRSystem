@@ -319,6 +319,7 @@ $(USERMAN_HTML) $(USERMAN_PDF) : $(USERMAN_HS) $(USERMAN_FIGS) $(BIBLIO) \
 	../../Scripts/LCC/OpenLCB_PiGPIO.tcl \
 	../../Scripts/LCC/OpenLCB_PiMCP23008.tcl \
 	../../Scripts/LCC/OpenLCB_PiMCP23017.tcl \
+	../../Scripts/LCC/OpenLCB_PiSPIMax7221.tcl \
 	../../Scripts/LCC/OpenLCB_Logic.tcl \
 	../../Scripts/LCC/OpenLCB_TrackCircuits.tcl \
 	../../Scripts/LCC/OpenLCB_Acela.tcl \
