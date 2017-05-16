@@ -651,6 +651,8 @@ AC_CONFIG_FILES([config_tcl.sed \
 		Scripts/Satellite/Makefile \
 		Scripts/Satellite/Doxyfile \
 		Scripts/CTIAcela/Makefile \
+		Scripts/CMRI_Slave/Makefile \
+		Scripts/CMRI_Slave/Doxyfile \
 	  Doc/Makefile \
 		Doc/Support/Makefile \
 		Doc/User/Makefile \
@@ -666,6 +668,7 @@ AC_CONFIG_FILES([config_tcl.sed \
                 Doc/User/Doxyfile.MainProgram \
                 Doc/User/Doxyfile.UniversalTest \
                 Doc/User/Doxyfile.OpenLCB \
+                Doc/User/Doxyfile.CMRI_Slave \
                 Doc/User/Doxyfile.XPressNetThrottle \
 		Doc/doxygen/Makefile \
 		Doc/doxygen/Doxyfile \
@@ -684,6 +687,7 @@ AC_CONFIG_FILES([config_tcl.sed \
 	  	po/GenericThrottle/Makefile \
 	  	po/UniversalTest/Makefile \
 	  	po/OpenLCB/Makefile \
+	  	po/CMRI_Slave/Makefile \
 	  	po/XPressNetThrottle/Makefile \
 	  	po/AzatraxProg/Makefile \
 	  	po/mrrsystem/Makefile \
