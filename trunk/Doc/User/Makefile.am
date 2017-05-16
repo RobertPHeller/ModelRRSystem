@@ -94,6 +94,15 @@ USERMAN_OPENLCB_FIGS = OpenLCB_CANGCUSB_Options.png OpenLCB_CDITool.png \
 
 DOXYFILES += Doxyfile.$(OPENLCB).in
 
+USERMAN_CMRISLAVE_PART = 
+CMRISLAVE_HS = #CMRI_Slave.h
+CMRISLAVE = CMRI_Slave
+CMRISLAVEHBase = CMRI_Slave
+CMRISLAVE_HTML = $(CMRISLAVEHBase)/index.html
+USERMAN_CMRISLAVE_FIGS = 
+
+DOXYFILES += Doxyfile.$(CMRISLAVE).in
+
 USERMAN_XPRESSNETTHROTTLE_PART = XPressNetThrottleReference.h
 XPRESSNETTHROTTLE_HS = XPressNetThrottle.h  XPressNetThrottleReference.h
 XPRESSNETTHROTTLE = XPressNetThrottle
@@ -291,7 +300,7 @@ noinst_DATA  = $(USERMAN_HTML) $(TIMETABLE_HTML) $(FCF_HTML) $(CALC_HTML) \
 	       $(CAMERA_HTML) $(DISPATCHER_HTML) $(UNIVERSALTEST_HTML) \
 	       $(AZATRAX_PROG_HTML) $(MAINPROGRAM_HTML) \
 	       $(XPRESSNETTHROTTLE_HTML) $(GENERICTHROTTLE_HTML) \
-	       $(OPENLCB_HTML)
+	       $(OPENLCB_HTML) $(CMRISLAVE_HTML)
 
 
 CLEANFILES = *_Version.h $(USERMAN_PDF) 
@@ -384,6 +393,21 @@ $(OPENLCB_HTML) : COPYING.h Help.h $(OPENLCB_HS) \
 	   if test ! \( -f $(OPENLCBHBase)/$$p \); then cp $(srcdir)/$$p $(OPENLCBHBase)/; fi; \
 	done
 	-rm -f $(OPENLCBHBase)/pages.html
+
+$(CMRISLAVE)_Version.h : $(top_builddir)/config.status
+	echo '/** @page Version Version'               >$(CMRISLAVE)_Version.h
+	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(CMRISLAVE)_Version.h
+	echo "  */" >>$(CMRISLAVE)_Version.h
+
+$(CMRISLAVE_HTML) : COPYING.h Help.h $(CMRISLAVE_HS) \
+		$(USERMAN_CMRISLAVE_FIGS) $(CMRISLAVE)_Version.h \
+		Doxyfile.$(CMRISLAVE)
+	-rm -rf $(CMRISLAVEHBase)/
+	$(DOXYGEN) Doxyfile.$(CMRISLAVE)
+	for p in $(USERMAN_CMRISLAVE_FIGS); do \
+	   if test ! \( -f $(CMRISLAVEHBase)/$$p \); then cp $(srcdir)/$$p $(CMRISLAVEHBase)/; fi; \
+	done
+	-rm -f $(CMRISLAVEHBase)/pages.html
 
 $(XPRESSNETTHROTTLE)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(XPRESSNETTHROTTLE)_Version.h
@@ -540,4 +564,4 @@ clean-local:
 		$(XPRESSNETTHROTTLEHBase) $(GENERICTHROTTLEHBase) \
 		$(TIMETABLEHBase) $(FCFHBase) $(CALCHBase) \
 		$(CAMERAHBase) $(DISPATCHERHBase) $(MAINPROGRAMHBase) \
-		$(USERMANHBase) $(OPENLCBHBase) latex
+		$(USERMANHBase) $(OPENLCBHBase) $(CMRISLAVEHBase) latex
