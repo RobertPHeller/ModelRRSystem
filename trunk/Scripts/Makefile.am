@@ -39,9 +39,16 @@
 #*  
 #* 
 
+if HAVE_WIRINGPI
+CMRISLAVE = CMRI_Slave
+else
+CMRISLAVE =
+endif
+
+
 SUBDIRS = Common GRSupport Dispatcher CameraScripts \
 	  CalcScripts FreightCarForwarder2 \
 	  TimeTable2 ControlSupport MainProgram GenericThrottle CMri \
 	  XPressNet NCE LocoNet RailDriverSupport Satellite CTIAcela \
-	  LCC
+	  LCC $(CMRISLAVE)
 

@@ -253,7 +253,7 @@ namespace eval nce {
       # @return The response message.
       return [$self _sendMessageAndReturnResponse [list 0x80]]
     }
-    method AssignLogo {locoaddress cabnumber} {
+    method AssignLoco {locoaddress cabnumber} {
       ## @brief Assign loco to cab.
       # From Bincmds.pdf:
       #   Loco address for this command is always 2 bytes. The first
