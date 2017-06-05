@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun May 14 09:33:18 2017
-#  Last Modified : <170514.1603>
+#  Last Modified : <170605.1132>
 #
 #  Description	
 #
@@ -141,7 +141,7 @@ snit::type Aspect {
 }    
 snit::listtype AspectList -minlen 1 -type Aspect
 
-snit::type OpenLCB_PiMCP23008 {
+snit::type OpenLCB_PiSPIMax7221 {
     #** This class implements a OpenLCB interface to signals implemented 
     # using a SPI connected MAX7221 on a Raspberry Pi.
     #
@@ -164,7 +164,7 @@ snit::type OpenLCB_PiMCP23008 {
     typevariable  eventsconsumed {};# Events consumed.
     typevariable  defaultspi 0;#      The default SPI channel.
     typevariable  spi 0;#             The SPI channel.
-    typevariable  speed 200000;#      The SPI Speed (200Khz).
+    typevariable  speed 100000;#      The SPI Speed (200Khz).
     
     # the opcodes for the MAX7221 and MAX7219
     typevariable OP_NOOP   0
@@ -311,7 +311,7 @@ snit::type OpenLCB_PiMCP23008 {
         set spiele [$configuration getElementsByTagName "spichannel"]
         if {[llength $spiele] > 0} {
             set spiele [lindex $spiele 0]
-            set spi [$pollele data]
+            set spi [$spiele data]
             SPIPort validate $spi
         }
         
@@ -405,7 +405,7 @@ snit::type OpenLCB_PiMCP23008 {
             }
             report {
                 foreach s $signallist {
-                    ::log::log debug "*** $type _eventHandler: signal is [$c cget -signalnumber]"
+                    ::log::log debug "*** $type _eventHandler: signal is [$s cget -signalnum]"
                     ::log::log debug "*** $type _eventHandler: event is [$eventid cget -eventidstring]"
                     $s consumeEvent $eventid
                     
@@ -1100,6 +1100,7 @@ snit::type OpenLCB_PiMCP23008 {
         # @par
         
         $self configurelist $args
+        $self test
     }
     method consumeEvent {event} {
         #** Handle an incoming event.
@@ -1109,13 +1110,23 @@ snit::type OpenLCB_PiMCP23008 {
         ::log::log debug "*** $self consumeEvent $event"
         foreach aspevbits [$self cget -aspectlist] {
             foreach {aspev bits} $aspevbits {break}
-            if {$event match $aspev} {
-                wiringPiSPIDataRW $spi [list [$self cget -signalnum] [Binary8 valueof $bits]]
+            if {[$event match $aspev]} {
+                wiringPiSPIDataRW $spi [list [Binary8 valueof $bits] [$self cget -signalnum] ]
                 return true
             }
         }
         return false
     }
+    method test {} {
+        for {set ibit 0} {$ibit < 8} {incr ibit} {
+            ::log::log debug "*** $self test: ibit = $ibit"
+            wiringPiSPIDataRW $spi [list [$self cget -signalnum] [expr {0x01 << $ibit}]]
+            after 1000
+        }
+        wiringPiSPIDataRW $spi [list [$self cget -signalnum] 0]
+        ::log::log debug "*** $self test: complete"
+    }
+    
 }
 
 vwait forever
