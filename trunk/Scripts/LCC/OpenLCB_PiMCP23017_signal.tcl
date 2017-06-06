@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jun 6 11:01:16 2017
-#  Last Modified : <170606.1249>
+#  Last Modified : <170606.1308>
 #
 #  Description	
 #
@@ -1181,7 +1181,7 @@ snit::type OpenLCB_PiMCP23017_signal {
     option -pinnumber -readonly yes -type GPIOPinNo -default 0
     option -ledcount -readonly yes -type LEDCount -default 1
     option -common   -readonly yes -type CommonMode -default cathode
-    option -aspectlist -aspectlist yes -type AspectList \
+    option -aspectlist -readonly yes -type AspectList \
           -default {{11.22.33.44.55.66.77.88 B00000000}}
     option -description -readonly yes -default {}
     constructor {args} {
