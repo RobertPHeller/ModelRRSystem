@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jun 6 11:01:16 2017
-#  Last Modified : <170606.1308>
+#  Last Modified : <170606.1325>
 #
 #  Description	
 #
@@ -861,10 +861,10 @@ snit::type OpenLCB_PiMCP23017_signal {
         
         set fr [$signal attribute frame]
         set frbase $signalnotebook.$fr
-        set pinno [$pin getElementsByTagName "number"]
+        set pinno [$signal getElementsByTagName "number"]
         if {[llength $pinno] < 1} {
             set pinno [SimpleDOMElement %AUTO% -tag "number"]
-            $pin addchild $pinno
+            $signal addchild $pinno
         }
         $pinno setdata [$frbase.pinno get]
         set ledcount [$signal getElementsByTagName "ledcount"]
@@ -890,15 +890,15 @@ snit::type OpenLCB_PiMCP23017_signal {
         $common setdata [$frbase.common get]
         set description_ [$frbase.description get]
         if {$description_ eq ""} {
-            set description [$pin getElementsByTagName "description"]
+            set description [$signal getElementsByTagName "description"]
             if {[llength $description] == 1} {
-                $pin removeChild $description
+                $signal removeChild $description
             }
         } else {
-            set description [$pin getElementsByTagName "description"]
+            set description [$signal getElementsByTagName "description"]
             if {[llength $description] < 1} {
                 set description [SimpleDOMElement %AUTO% -tag "description"]
-                $pin addchild $description
+                $signal addchild $description
             }
             $description setdata $description_
         }
@@ -1009,7 +1009,7 @@ snit::type OpenLCB_PiMCP23017_signal {
                       $signalnotebook.$fr]
         $signalnotebook add $signalframe \
               -text [_ "Signal %d" $signalcount] -sticky news
-        set pinno_ [LabelSpinBox $signalframe.signalno \
+        set pinno_ [LabelSpinBox $signalframe.pinno \
                     -label [_m "Label|Start Pin Number"] \
                     -range {0 15 1}]
         $pinno_ set 0
@@ -1032,6 +1032,7 @@ snit::type OpenLCB_PiMCP23017_signal {
                      -values [CommonMode cget -values] \
                      -editable no]
         $common_ set cathode
+        pack $common_ -fill x -expand ye
         set common [$signal getElementsByTagName "common"]
         if {[llength $common] == 1} {
             $common_ set [$common data]
@@ -1118,7 +1119,7 @@ snit::type OpenLCB_PiMCP23017_signal {
     typemethod _addblanksignal {} {
         #** Create a new blank signal.
         
-        set cdis [$configuration getElementsByTagName OpenLCB_PiSPIMax7221 -depth 1]
+        set cdis [$configuration getElementsByTagName OpenLCB_PiMCP23017_Signal -depth 1]
         set cdi [lindex $cdis 0]
         set signal [SimpleDOMElement %AUTO% -tag "signal"]
         $cdi addchild $signal
@@ -1130,7 +1131,7 @@ snit::type OpenLCB_PiMCP23017_signal {
         # @param signal The signal's XML element.
         
         set fr [$signal attribute frame]
-        set cdis [$configuration getElementsByTagName OpenLCB_PiSPIMax7221 -depth 1]
+        set cdis [$configuration getElementsByTagName OpenLCB_PiMCP23017_Signal -depth 1]
         set cdi [lindex $cdis 0]
         $type _deleteallaspects $signal
         $cdi removeChild $signal
