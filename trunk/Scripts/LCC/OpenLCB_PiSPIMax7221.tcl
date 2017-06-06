@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun May 14 09:33:18 2017
-#  Last Modified : <170605.1132>
+#  Last Modified : <170605.1505>
 #
 #  Description	
 #
@@ -46,7 +46,7 @@
 #
 # @section PiSPIMax7221SYNOPSIS SYNOPSIS
 #
-# OpenLCB_PiSPIMax7221 [-configure] [-sampleconfiguration] [-debug] [-configuration confgile]
+# OpenLCB_PiSPIMax7221 [-configure] [-sampleconfiguration] [-debug] [-test all|m-n] [-configuration confgile]
 #
 # @section PiSPIMax7221DESCRIPTION DESCRIPTION
 #
@@ -68,6 +68,8 @@
 # @arg -configuration confgile Sets the name of the configuration (XML) file. 
 # The default is PiSPIMax7221conf.xml.
 # @arg -debug Turns on debug logging.
+# @arg -test all|n-m Test all or signals n though m.  Run continously until 
+# killed.
 # @par
 #
 # @section PiSPIMax7221CONFIGURATION CONFIGURATION
@@ -164,7 +166,7 @@ snit::type OpenLCB_PiSPIMax7221 {
     typevariable  eventsconsumed {};# Events consumed.
     typevariable  defaultspi 0;#      The default SPI channel.
     typevariable  spi 0;#             The SPI channel.
-    typevariable  speed 100000;#      The SPI Speed (200Khz).
+    typevariable  speed 2500000;#     The SPI Speed (2.5Mhz).
     
     # the opcodes for the MAX7221 and MAX7219
     typevariable OP_NOOP   0
@@ -214,6 +216,7 @@ snit::type OpenLCB_PiSPIMax7221 {
             set sampleconfiguration yes
             set argv [lreplace $argv $sampleconfigureIdx $sampleconfigureIdx]
         }
+        set test [from argv -test {}]
         set conffile [from argv -configuration "pispimax722conf.xml"]
         #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
         if {$configureator} {
@@ -224,7 +227,11 @@ snit::type OpenLCB_PiSPIMax7221 {
             $type SampleConfiguration $conffile
             return
         }
-       
+        if {$test ne {}} {
+            $type TestSignals $conffile $test
+            return
+        }
+        
         set deflogfilename [format {%s.log} [file tail $argv0]]
         set logfilename [from argv -log $deflogfilename]
         if {[file extension $logfilename] ne ".log"} {append logfilename ".log"}
@@ -317,6 +324,8 @@ snit::type OpenLCB_PiSPIMax7221 {
         
         # Connect to the MAX7221.
         wiringPiSPISetup $spi $speed
+        wiringPiSPIDataRW $spi [list $OP_DISPLAYTEST 1]
+        after 10000
         wiringPiSPIDataRW $spi [list $OP_DISPLAYTEST 0]
         wiringPiSPIDataRW $spi [list $OP_DECODEMODE  0]
         wiringPiSPIDataRW $spi [list $OP_SHUTDOWN    1]
@@ -437,6 +446,61 @@ snit::type OpenLCB_PiSPIMax7221 {
         }
     }
     
+    #*** Test function
+    
+    typemethod TestSignals {conffile test} {
+        ::log::lvChannelForall stderr
+        ::log::lvSuppress info 0
+        ::log::lvSuppress notice 0
+        ::log::lvSuppress debug 0
+        ::log::lvCmdForall [mytypemethod LogPuts]
+        
+        ::log::logMsg [_ "%s starting (testing)" $type]
+
+        if {[catch {open $conffile r} conffp]} {
+            ::log::logError [_ "Could not open %s because: %s" $conffile $conffp]
+            exit 99
+        }
+        
+        set confXML [read $conffp]
+        close $conffp
+        if {[catch {ParseXML create %AUTO% $confXML} configuration]} {
+            ::log::logError [_ "Could not parse configuration file %s: %s" $conffile $configuration]
+            exit 98
+        }
+            set spiele [$configuration getElementsByTagName "spichannel"]
+        if {[llength $spiele] > 0} {
+            set spiele [lindex $spiele 0]
+            set spi [$spiele data]
+            SPIPort validate $spi
+        }
+        
+        # Connect to the MAX7221.
+        wiringPiSPISetup $spi $speed
+        wiringPiSPIDataRW $spi [list $OP_DISPLAYTEST 0]
+        wiringPiSPIDataRW $spi [list $OP_DECODEMODE  0]
+        wiringPiSPIDataRW $spi [list $OP_SHUTDOWN    1]
+        
+        if {$test eq "all"} {set test 1-8}
+        if {[scan $test {%d-%d} first last] != 2} {
+            ::log::logError [_ "Bad test format: %s" $test]
+            exit 97
+        }
+        set signallist [list]
+        for {set sig $first} {$sig <= $last} {incr sig} {
+            lappend signallist [$type create %AUTO% -signalnum $sig \
+                                -aspectlist [list [list \
+                                                   [lcc::EventID create %AUTO% \
+                                                    -eventidstring 11.22.33.44.55.66.77.88] \
+                                                   B00000000]]]
+        }
+        
+        while 1 {
+            foreach s $signallist {
+                $s test
+            }
+        }
+    }
     
     #*** Configuration GUI
     
@@ -1100,7 +1164,6 @@ snit::type OpenLCB_PiSPIMax7221 {
         # @par
         
         $self configurelist $args
-        $self test
     }
     method consumeEvent {event} {
         #** Handle an incoming event.
