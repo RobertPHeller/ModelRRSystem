@@ -1,2 +1,0 @@
-#!/bin/sh
-@top_builddir@/BuildData/tclkit@BEXEEXT@ @top_srcdir@/Doc/Support/tcl2dox.kit $*

@@ -1,2 +1,0 @@
-# MRD (Azatrax)
-BUS=="usb", SYSFS{idVendor}=="265f", SYSFS{idProduct}=="fcb2", MODE="0666"

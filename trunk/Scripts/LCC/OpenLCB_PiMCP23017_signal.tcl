@@ -7,8 +7,8 @@
 #  Date          : $Date$
 #  Author        : $Author$
 #  Created By    : Robert Heller
-#  Created       : Sun May 14 09:33:18 2017
-#  Last Modified : <170605.1505>
+#  Created       : Tue Jun 6 11:01:16 2017
+#  Last Modified : <170606.1325>
 #
 #  Description	
 #
@@ -41,38 +41,38 @@
 #*****************************************************************************
 
 
-## @page OpenLCB_PiSPIMax7221 OpenLCB PiSPIMax7221 node
-# @brief OpenLCB PiSPIMax7221 node
+## @page OpenLCB_PiMCP23017_signal.tcl OpenLCB PiMCP23017 as signal driver node
+# @brief OpenLCB PiMCP23017 as signal driver node
 #
-# @section PiSPIMax7221SYNOPSIS SYNOPSIS
 #
-# OpenLCB_PiSPIMax7221 [-configure] [-sampleconfiguration] [-debug] [-test all|m-n] [-configuration confgile]
+# @section PiMCP23017SIGSYNOPSIS SYNOPSIS
 #
-# @section PiSPIMax7221DESCRIPTION DESCRIPTION
+# OpenLCB_PiMCP23017_signal [-configure] [-sampleconfiguration] [-debug] [-configuration confgile]
 #
-# This program is a daemon that implements an OpenLCB node for the a Max7221 
-# based signal driver.  
+# @section PiMCP23017SIGDESCRIPTION DESCRIPTION
 #
-# @section PiSPIMax7221PARAMETERS PARAMETERS
+# This program is a daemon that implements an OpenLCB node for the GPIO pins
+# provided by a MCP23017 I2C port expander on a Raspberry Pi.  This version 
+# groups the pins as signal heads.  All pins are set as outputs.
+#
+# @section PiMCP23017SIGPARAMETERS PARAMETERS
 #
 # None
 #
-# @section PiSPIMax7221OPTIONS OPTIONS
+# @section PiMCP23017SIGOPTIONS OPTIONS
 #
 # @arg -log  logfilename The name of the logfile.  Defaults to 
-# OpenLCB_PiSPIMax7221.log
+# OpenLCB_PiMCP23017_signal.log
 # @arg -configure Enter an interactive GUI configuration tool.  This tool
 # creates or edits an XML configuration file.
 # @arg -sampleconfiguration Creates a @b sample configuration file that can 
 # then be hand edited (with a handy text editor like emacs or vim).
 # @arg -configuration confgile Sets the name of the configuration (XML) file. 
-# The default is PiSPIMax7221conf.xml.
+# The default is pimcp23017signalconf.xml.
 # @arg -debug Turns on debug logging.
-# @arg -test all|n-m Test all or signals n though m.  Run continously until 
-# killed.
 # @par
 #
-# @section PiSPIMax7221CONFIGURATION CONFIGURATION
+# @section PiMCP23017SIGCONFIGURATION CONFIGURATION
 #
 # The configuration file for this program is an XML formatted file. Please 
 # refer to the @ref openlcbdaemons "OpenLCB Daemons (Hubs and Virtual nodes)" chapter of the User 
@@ -81,11 +81,12 @@
 # file. 
 #
 #
-# @section PiSPIMax7221AUTHOR AUTHOR
+# @section PiMCP23017SIGAUTHOR AUTHOR
 # Robert Heller \<heller\@deepsoft.com\>
 #
 
-set argv0 [file join  [file dirname [info nameofexecutable]] OpenLCB_PiSPIMax7221]
+set argv0 [file join  [file dirname [info nameofexecutable]] OpenLCB_PiMCP23017_signal]
+
 
 package require Tclwiringpi;#  require the Tclwiringpi package
 package require snit;#     require the SNIT OO framework
@@ -96,6 +97,33 @@ package require log;#      require the logging package.
 
 set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirname \
 							[info script]]]] Messages]]
+
+snit::enum CommonMode -values {anode cathode}
+
+snit::integer LEDCount -min 1 -max 8
+
+snit::type GPIOPinNo {
+    pragma  -hastypeinfo false -hastypedestroy false -hasinstances false
+    typemethod validate {pinno} {
+        if {$pinno < 0 || $pinno > 15} {
+            error [_ "Not a GPIO pin number: %s" $pinno]
+        } else {
+            return $pinno
+        }
+    }
+    typemethod AllPins {} {
+        return [list 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15]
+    }
+    typemethod gpioPinNo {pinno} {
+        $type validate $pinno
+        return [expr {64 + $pinno}]
+    }
+    typemethod mcp23017PinNo {gpiopinno} {
+        set pin [expr {$gpiopinno - 64}]
+        $type validate $pin
+        return $pin
+    }
+}
 
 snit::type Binary8 {
     pragma  -hastypeinfo false -hastypedestroy false -hasinstances false
@@ -127,8 +155,6 @@ snit::type Binary8 {
     }
 }
     
-snit::integer SPIPort -min 0 -max 1
-snit::integer Signal  -min 1 -max 8
 snit::type Aspect {
     pragma  -hastypeinfo false -hastypedestroy false -hasinstances false
         
@@ -143,17 +169,23 @@ snit::type Aspect {
 }    
 snit::listtype AspectList -minlen 1 -type Aspect
 
-snit::type OpenLCB_PiSPIMax7221 {
-    #** This class implements a OpenLCB interface to signals implemented 
-    # using a SPI connected MAX7221 on a Raspberry Pi.
+snit::integer MCP23017Addr -min 0 -max 7
+
+snit::type OpenLCB_PiMCP23017_signal {
+    #** This class implements a OpenLCB interface to the GPIO pins of a
+    # MCP23017 I2C port expander on a Raspberry Pi, with the pins being used
+    # as signal drivers.
     #
-    # Each instance manages one signal.  The typemethods implement the overall
+    # Each instance manages one pin.  The typemethods implement the overall
     # OpenLCB node.
     #
     # Instance options:
-    # @arg -signalnum The Signal number
+    # @arg -pinnumber The first pin number.
+    # @arg -ledcount  The number of LEDs in the head/mast (note: bicolor LEDs
+    # count as 2 each!).
+    # @arg -common    The Common Mode (anode or cathode).
     # @arg -aspectlist The Aspects for this signal.
-    # @arg -description Description of the pin.
+    # @arg -description Description of the signal.
     # @par
     #
     # @section AUTHOR
@@ -164,27 +196,11 @@ snit::type OpenLCB_PiSPIMax7221 {
     typecomponent configuration;#     Parsed  XML configuration
     typevariable  signallist {};#     Signal list
     typevariable  eventsconsumed {};# Events consumed.
-    typevariable  defaultspi 0;#      The default SPI channel.
-    typevariable  spi 0;#             The SPI channel.
-    typevariable  speed 2500000;#     The SPI Speed (2.5Mhz).
+    typevariable  baseI2Caddress 0x20;# Base I2C address.
+    typevariable  defaultI2CAddr 7;#  Default I2C address offset
+    typevariable  I2CAddr 7;#         I2C address offset
     
-    # the opcodes for the MAX7221 and MAX7219
-    typevariable OP_NOOP   0
-    typevariable OP_DIGIT0 1
-    typevariable OP_DIGIT1 2
-    typevariable OP_DIGIT2 3
-    typevariable OP_DIGIT3 4
-    typevariable OP_DIGIT4 5
-    typevariable OP_DIGIT5 6
-    typevariable OP_DIGIT6 7
-    typevariable OP_DIGIT7 8
-    typevariable OP_DECODEMODE  9
-    typevariable OP_INTENSITY   10
-    typevariable OP_SCANLIMIT   11
-    typevariable OP_SHUTDOWN    12
-    typevariable OP_DISPLAYTEST 15
     
-
     typecomponent editContextMenu
     
     typeconstructor {
@@ -216,8 +232,7 @@ snit::type OpenLCB_PiSPIMax7221 {
             set sampleconfiguration yes
             set argv [lreplace $argv $sampleconfigureIdx $sampleconfigureIdx]
         }
-        set test [from argv -test {}]
-        set conffile [from argv -configuration "pispimax722conf.xml"]
+        set conffile [from argv -configuration "pimcp23017signalconf.xml"]
         #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
         if {$configureator} {
             $type ConfiguratorGUI $conffile
@@ -227,11 +242,7 @@ snit::type OpenLCB_PiSPIMax7221 {
             $type SampleConfiguration $conffile
             return
         }
-        if {$test ne {}} {
-            $type TestSignals $conffile $test
-            return
-        }
-        
+       
         set deflogfilename [format {%s.log} [file tail $argv0]]
         set logfilename [from argv -log $deflogfilename]
         if {[file extension $logfilename] ne ".log"} {append logfilename ".log"}
@@ -304,7 +315,7 @@ snit::type OpenLCB_PiSPIMax7221 {
                           -transport $transportConstructor \
                           -eventhandler [mytypemethod _eventHandler] \
                           -generalmessagehandler [mytypemethod _messageHandler] \
-                          -softwaremodel "OpenLCB PiSPIMax7221" \
+                          -softwaremodel "OpenLCB PiMCP23017" \
                           -softwareversion "1.0" \
                           -nodename $nodename \
                           -nodedescription $nodedescriptor \
@@ -315,35 +326,44 @@ snit::type OpenLCB_PiSPIMax7221 {
             exit 95
         }
         $transport SendVerifyNodeID
-        set spiele [$configuration getElementsByTagName "spichannel"]
-        if {[llength $spiele] > 0} {
-            set spiele [lindex $spiele 0]
-            set spi [$spiele data]
-            SPIPort validate $spi
+        set i2caddrele [$configuration getElementsByTagName "i2caddress"]
+        if {[llength $i2caddrele] > 0} {
+            set i2caddrele [lindex $i2caddrele 0]
+            set I2CAddr [expr {[$i2caddrele data] & 0x07}]
         }
-        
-        # Connect to the MAX7221.
-        wiringPiSPISetup $spi $speed
-        wiringPiSPIDataRW $spi [list $OP_DISPLAYTEST 1]
-        after 10000
-        wiringPiSPIDataRW $spi [list $OP_DISPLAYTEST 0]
-        wiringPiSPIDataRW $spi [list $OP_DECODEMODE  0]
-        wiringPiSPIDataRW $spi [list $OP_SHUTDOWN    1]
+        # Connect to the MCP23017, with GPIO pins 64 through 79 (0 through 15
+        # on the MCP23017).
+        mcp23017Setup 64 [expr {$baseI2Caddress | $I2CAddr}]
         
         foreach signal [$configuration getElementsByTagName "signal"] {
             set signalcommand [list $type create %AUTO%]
-            set signo [$signal getElementsByTagName "number"]
-            if {[llength $signo] != 1} {
-                ::log::logError [_ "Missing or multiple signal numbers"]
+            set pinno [$signal getElementsByTagName "number"]
+            if {[llength $pinno] != 1} {
+                ::log::logError [_ "Missing or multiple pin numbers"]
                 exit 94
             }
-            set thesigno [$signo data]
-            Signal validate $thesigno
-            
-            lappend signalcommand -signalnum $thesigno
+            set thepin [$pinno data]
+            GPIOPinNo validate $thepin
+            lappend signalcommand -pinnumber $thepin
+            set ledcount [$signal getElementsByTagName "ledcount"]
+            if {[llength $ledcount] != 1} {
+                ::log::logError [_ "Missing or multiple ledcount"]
+                exit 93
+            }
+            set thecount [$ledcount data]
+            LEDCount validate $thecount
+            set lastpin [expr {$thepin + $thecount - 1}]
+            GPIOPinNo validate $lastpin
+            lappend signalcommand -ledcount $thecount
+            set common [$signal getElementsByTagName "common"]
+            if {[llength $common] == 1} {
+                set thecommon [$common data]
+                CommonMode validate $thecommon
+                lappend signalcommand -common $thecommon
+            }
             set description [$signal getElementsByTagName "description"]
             if {[llength $description] > 0} {
-                lappend signalcommand -description [[lindex $description 0] data]
+                lappend pincommand -description [[lindex $description 0] data]
             }
             set aspectlist [list]
             foreach aspect [$signal getElementsByTagName "aspect"] {
@@ -363,12 +383,12 @@ snit::type OpenLCB_PiSPIMax7221 {
             }
             AspectList validate $aspectlist
             lappend signalcommand -aspectlist $aspectlist
-            set signal [eval $signalcommand]
-            lappend signallist $signal
+            set signalobj [eval $signalcommand]
+            lappend signallist $signalobj
         }
         if {[llength $signallist] == 0} {
             ::log::logError [_ "No signals specified!"]
-            exit 93
+            exit 92
         }
         foreach ev $eventsconsumed {
             $transport ConsumerIdentified $ev unknown
@@ -382,6 +402,17 @@ snit::type OpenLCB_PiSPIMax7221 {
         
         puts [::log::lv2channel $level] "[clock format [clock seconds] -format {%b %d %T}] \[[pid]\] $level $message"
     }
+    typemethod sendEvent {event} {
+        #** Send an event, after first checking for local consumtion.
+        #
+        # @param event The event to process
+        
+        foreach c $consumers {
+            $c consumeEvent $event
+        }
+        $transport ProduceEvent $event
+    }
+    
     typemethod _eventHandler {command eventid {validity {}}} {
         #* Event Exchange handler.  Handle Event Exchange messages.
         #
@@ -407,16 +438,26 @@ snit::type OpenLCB_PiSPIMax7221 {
                     }
                 }
             }
+            identifyproducer {
+                foreach ev $eventsproduced {
+                    if {[$eventid match $ev]} {
+                        $transport ProducerIdentified $ev unknown
+                    }
+                }
+            }
             identifyevents {
                 foreach ev $eventsconsumed {
                     $transport ConsumerIdentified $ev unknown
                 }
+                foreach ev $eventsproduced {
+                    $transport ProducerIdentified $ev unknown
+                }
             }
             report {
                 foreach s $signallist {
-                    ::log::log debug "*** $type _eventHandler: signal is [$s cget -signalnum]"
+                    ::log::log debug "*** $type _eventHandler: signal is [$s cget -pinnumber]"
                     ::log::log debug "*** $type _eventHandler: event is [$eventid cget -eventidstring]"
-                    $s consumeEvent $eventid
+                    $c consumeEvent $eventid
                     
                 }
             }
@@ -446,61 +487,6 @@ snit::type OpenLCB_PiSPIMax7221 {
         }
     }
     
-    #*** Test function
-    
-    typemethod TestSignals {conffile test} {
-        ::log::lvChannelForall stderr
-        ::log::lvSuppress info 0
-        ::log::lvSuppress notice 0
-        ::log::lvSuppress debug 0
-        ::log::lvCmdForall [mytypemethod LogPuts]
-        
-        ::log::logMsg [_ "%s starting (testing)" $type]
-
-        if {[catch {open $conffile r} conffp]} {
-            ::log::logError [_ "Could not open %s because: %s" $conffile $conffp]
-            exit 99
-        }
-        
-        set confXML [read $conffp]
-        close $conffp
-        if {[catch {ParseXML create %AUTO% $confXML} configuration]} {
-            ::log::logError [_ "Could not parse configuration file %s: %s" $conffile $configuration]
-            exit 98
-        }
-            set spiele [$configuration getElementsByTagName "spichannel"]
-        if {[llength $spiele] > 0} {
-            set spiele [lindex $spiele 0]
-            set spi [$spiele data]
-            SPIPort validate $spi
-        }
-        
-        # Connect to the MAX7221.
-        wiringPiSPISetup $spi $speed
-        wiringPiSPIDataRW $spi [list $OP_DISPLAYTEST 0]
-        wiringPiSPIDataRW $spi [list $OP_DECODEMODE  0]
-        wiringPiSPIDataRW $spi [list $OP_SHUTDOWN    1]
-        
-        if {$test eq "all"} {set test 1-8}
-        if {[scan $test {%d-%d} first last] != 2} {
-            ::log::logError [_ "Bad test format: %s" $test]
-            exit 97
-        }
-        set signallist [list]
-        for {set sig $first} {$sig <= $last} {incr sig} {
-            lappend signallist [$type create %AUTO% -signalnum $sig \
-                                -aspectlist [list [list \
-                                                   [lcc::EventID create %AUTO% \
-                                                    -eventidstring 11.22.33.44.55.66.77.88] \
-                                                   B00000000]]]
-        }
-        
-        while 1 {
-            foreach s $signallist {
-                $s test
-            }
-        }
-    }
     
     #*** Configuration GUI
     
@@ -511,11 +497,10 @@ snit::type OpenLCB_PiSPIMax7221 {
     typevariable    transopts {};# transport options
     typevariable    id_name {};# node name
     typevariable    id_description {};# node description
-    typevariable    spichannel 0;# The SPI channel
-    typecomponent   signalnotebook;# Pin list
-    typevariable    signalcount 0;# pin count
+    typevariable    mcp23017address 7;# The address of the MCP23017
+    typecomponent   signalnotebook;# Signal Notebook
+    typevariable    signalcount 0;# signal count
     typevariable    aspectcounts -array {}
-    
     
     typevariable status {};# Status line
     typevariable conffilename {};# Configuration File Name
@@ -551,7 +536,7 @@ snit::type OpenLCB_PiSPIMax7221 {
         }
     }
     # Default (empty) XML Configuration.
-    typevariable default_confXML {<?xml version='1.0'?><OpenLCB_PiSPIMax7221/>}
+    typevariable default_confXML {<?xml version='1.0'?><OpenLCB_PiMCP23017_Signal/>}
     typemethod SampleConfiguration {conffile} {
         #** Generate a Sample Configuration
         #
@@ -567,7 +552,7 @@ snit::type OpenLCB_PiSPIMax7221 {
             if {$answer ne "Y"} {exit 1}
         }
         set configuration [ParseXML create %AUTO% $confXML]
-        set cdis [$configuration getElementsByTagName OpenLCB_PiSPIMax7221 -depth 1]
+        set cdis [$configuration getElementsByTagName OpenLCB_PiMCP23017_Signal -depth 1]
         set cdi [lindex $cdis 0]
         set transcons [SimpleDOMElement %AUTO% -tag "transport"]
         $cdi addchild $transcons
@@ -586,9 +571,9 @@ snit::type OpenLCB_PiSPIMax7221 {
         $ident addchild $descrele
         $descrele setdata "Sample Description"
         set eid 0
-        set spiele [SimpleDOMElement %AUTO% -tag "spichannel"]
-        $cdi addchild $spiele
-        $spiele setdata 0
+        set i2caddrele [SimpleDOMElement %AUTO% -tag "i2caddress"]
+        $cdi addchild $i2caddrele
+        $pollele setdata 7
         set signal [SimpleDOMElement %AUTO% -tag "signal"]
         $cdi addchild $signal
         set descrele [SimpleDOMElement %AUTO% -tag "description"]
@@ -596,7 +581,13 @@ snit::type OpenLCB_PiSPIMax7221 {
         $descrele setdata "Sample Signal"
         set signalno [SimpleDOMElement %AUTO% -tag "number"]
         $signal addchild $signalno
-        $signalno setdata 1
+        $signalno setdata 0
+        set ledcount [SimpleDOMElement %AUTO% -tag "ledcount"]
+        $signal addchild $ledcount
+        $ledcount setdata 3
+        set  common [SimpleDOMElement %AUTO% -tag "common"]
+        $signal addchild $common
+        $common setdata "cathode"
         set eid 0
         set aspect [SimpleDOMElement %AUTO% -tag "aspect"]
         $signal addchild $aspect
@@ -690,14 +681,14 @@ snit::type OpenLCB_PiSPIMax7221 {
             set confXML $default_confXML
             set configuration [ParseXML create %AUTO% $confXML]
         }
-        set cdis [$configuration getElementsByTagName OpenLCB_PiSPIMax7221 -depth 1]
+        set cdis [$configuration getElementsByTagName OpenLCB_PiMCP23017_Signal -depth 1]
         if {[llength $cdis] != 1} {
-            error [_ "There is no OpenLCB_PiSPIMax7221 container in %s" $confXML]
+            error [_ "There is no OpenLCB_PiMCP23017_Signal container in %s" $confXML]
             exit 90
         }
         set cdi [lindex $cdis 0]
         wm protocol . WM_DELETE_WINDOW [mytypemethod _saveexit]
-        wm title    . [_ "OpenLCB_PiSPIMax7221 Configuration Editor (%s)" $conffile]
+        wm title    . [_ "OpenLCB_PiMCP23017_signal Configuration Editor (%s)" $conffile]
         set main [MainFrame .main -menu [subst $_menu] \
                   -textvariable [mytypevar status]]
         pack $main -expand yes -fill both
@@ -778,18 +769,16 @@ snit::type OpenLCB_PiSPIMax7221 {
             }
         }
         
-        
-        set spichannelLE [LabelComboBox $frame.spichannelLE \
-                            -label [_m "Label|SPI Channel"] \
-                            -textvariable [mytypevar spichannel] \
-                            -values {0 1}]
-        pack $spichannelLE -fill x -expand yes
-        set spiele [$cdi getElementsByTagName "spichannel"]
-        if {[llength $spiele] > 0} {
-            set spiele [lindex $spiele 0]
-            set spichannel [$spiele data]
+        set i2caddressLE [LabelSpinBox $frame.i2caddressLE \
+                            -label [_m "Label|I2C Address offset"] \
+                            -textvariable [mytypevar mcp23017address] \
+                            -range {0 7 1}]
+        pack $i2caddressLE -fill x -expand yes
+        set i2caddrele [$cdi getElementsByTagName "i2caddress"]
+        if {[llength $i2caddrele] > 0} {
+            set i2caddrele [lindex $i2caddrele 0]
+            set mcp23017address [$i2caddrele data]
         }
-
         set signalnotebook [ScrollTabNotebook $frame.signals]
         pack $signalnotebook -expand yes -fill both
         foreach signal [$cdi getElementsByTagName "signal"] {
@@ -806,7 +795,7 @@ snit::type OpenLCB_PiSPIMax7221 {
         # Saves the contents of the GUI as an XML file.
         
         set warnings 0
-        set cdis [$configuration getElementsByTagName OpenLCB_PiSPIMax7221 -depth 1]
+        set cdis [$configuration getElementsByTagName OpenLCB_PiMCP23017_Signal -depth 1]
         set cdi [lindex $cdis 0]
         set transcons [$cdi getElementsByTagName "transport"]
         if {[llength $transcons] < 1} {
@@ -843,12 +832,12 @@ snit::type OpenLCB_PiSPIMax7221 {
             $ident addchild $descrele
         }
         $descrele setdata $id_description
-        set spiele [$cdi getElementsByTagName "spichannel"]
-        if {[llength $spiele] < 1} {
-            set spiele [SimpleDOMElement %AUTO% -tag "spichannel"]
-            $cdi addchild $spiele
+        set i2caddrele [$configuration getElementsByTagName "i2caddress"]
+        if {[llength $i2caddrele] < 1} {
+            set i2caddrele [SimpleDOMElement %AUTO% -tag "i2caddress"]
+            $cdi addchild $i2caddrele
         }
-        $spiele setdata $spichannel
+        $i2caddrele setdata $mcp23017address
         
         foreach signal [$cdi getElementsByTagName "signal"] {
             $type _copy_signal_from_gui_to_XML $signal
@@ -867,17 +856,38 @@ snit::type OpenLCB_PiSPIMax7221 {
     }
     typemethod _copy_signal_from_gui_to_XML {signal} {
         #** Copy from the GUI to the Signal XML
-        # 
+        #
         # @param signal Signal XML element.
         
         set fr [$signal attribute frame]
         set frbase $signalnotebook.$fr
-        set signalno [$signal getElementsByTagName "number"]
-        if {[llength $signalno] < 1} {
-            set signalno [SimpleDOMElement %AUTO% -tag "number"]
-            $signal addchild $signalno
+        set pinno [$signal getElementsByTagName "number"]
+        if {[llength $pinno] < 1} {
+            set pinno [SimpleDOMElement %AUTO% -tag "number"]
+            $signal addchild $pinno
         }
-        $signalno setdata [$frbase.signalno get]
+        $pinno setdata [$frbase.pinno get]
+        set ledcount [$signal getElementsByTagName "ledcount"]
+        if {[llength $ledcount] < 1} {
+            set ledcount [SimpleDOMElement %AUTO% -tag "ledcount"]
+            $signal addchild $ledcount
+        }
+        set count [$frbase.ledcount get]
+        set lastpin [expr {[$pinno data] + $count - 1}]
+        if {[catch {GPIOPinNo validate $lastpin}]} {
+            tk_messageBox -type ok -icon warning \
+                  -message [_ "LED Count exceeds the remaining available pins: %d (%d-%d)" $count [$pinno data] $lastpin]
+            incr warnings
+            set lastpin 15
+            set count [expr {$lastpin - [$pinno data] + 1}]
+        }
+        $ledcount setdata $count
+        set common [$signal getElementsByTagName "common"]
+        if {[llength $common] < 1} {
+            set common [SimpleDOMElement %AUTO% -tag "common"]
+            $signal addchild $common
+        }
+        $common setdata [$frbase.common get]
         set description_ [$frbase.description get]
         if {$description_ eq ""} {
             set description [$signal getElementsByTagName "description"]
@@ -999,14 +1009,33 @@ snit::type OpenLCB_PiSPIMax7221 {
                       $signalnotebook.$fr]
         $signalnotebook add $signalframe \
               -text [_ "Signal %d" $signalcount] -sticky news
-        set signalno_ [LabelSpinBox $signalframe.signalno \
-                    -label [_m "Label|Signal Number"] \
-                    -range {1 8 1}]
-        $signalno_ set 1
-        pack $signalno_ -fill x -expand yes
-        set signalno [$signal getElementsByTagName "number"]
-        if {[llength $signalno] == 1} {
-            $signalno_ set [$signalno data]
+        set pinno_ [LabelSpinBox $signalframe.pinno \
+                    -label [_m "Label|Start Pin Number"] \
+                    -range {0 15 1}]
+        $pinno_ set 0
+        pack $pinno_ -fill x -expand yes
+        set pinno [$signal getElementsByTagName "number"]
+        if {[llength $pinno] == 1} {
+            $pinno_ set [$pinno data]
+        }
+        set ledcount_ [LabelSpinBox $signalframe.ledcount \
+                       -label [_m "Label|LED Count"] \
+                       -range {1 8 1}]
+        $ledcount_ set 1
+        pack $ledcount_ -fill x -expand yes
+        set ledcount [$signal getElementsByTagName "ledcount"]
+        if {[llength $ledcount] == 1} {
+            $ledcount_ set [$ledcount data]
+        }
+        set common_ [LabelComboBox $signalframe.common \
+                     -label [_m "Label|Common"] \
+                     -values [CommonMode cget -values] \
+                     -editable no]
+        $common_ set cathode
+        pack $common_ -fill x -expand ye
+        set common [$signal getElementsByTagName "common"]
+        if {[llength $common] == 1} {
+            $common_ set [$common data]
         }
         set description_ [LabelEntry $signalframe.description \
                           -label [_m "Label|Description"]]
@@ -1090,7 +1119,7 @@ snit::type OpenLCB_PiSPIMax7221 {
     typemethod _addblanksignal {} {
         #** Create a new blank signal.
         
-        set cdis [$configuration getElementsByTagName OpenLCB_PiSPIMax7221 -depth 1]
+        set cdis [$configuration getElementsByTagName OpenLCB_PiMCP23017_Signal -depth 1]
         set cdi [lindex $cdis 0]
         set signal [SimpleDOMElement %AUTO% -tag "signal"]
         $cdi addchild $signal
@@ -1102,7 +1131,7 @@ snit::type OpenLCB_PiSPIMax7221 {
         # @param signal The signal's XML element.
         
         set fr [$signal attribute frame]
-        set cdis [$configuration getElementsByTagName OpenLCB_PiSPIMax7221 -depth 1]
+        set cdis [$configuration getElementsByTagName OpenLCB_PiMCP23017_Signal -depth 1]
         set cdi [lindex $cdis 0]
         $type _deleteallaspects $signal
         $cdi removeChild $signal
@@ -1150,20 +1179,38 @@ snit::type OpenLCB_PiSPIMax7221 {
     
     
     #*** Signal instances
-    option -signalnum -readonly yes -type Signal -default 1
-    option -description -readonly yes -default {}
+    option -pinnumber -readonly yes -type GPIOPinNo -default 0
+    option -ledcount -readonly yes -type LEDCount -default 1
+    option -common   -readonly yes -type CommonMode -default cathode
     option -aspectlist -readonly yes -type AspectList \
           -default {{11.22.33.44.55.66.77.88 B00000000}}
+    option -description -readonly yes -default {}
     constructor {args} {
-        # Construct an instance for a signal
+        # Construct an instance for a GPIO pin
         #
         # @param ... Options:
-        # @arg -signalnum The Signal number
+        # @arg -pinnumber The pin number
+        # @arg -ledcount  The number of LEDs in the head/mast (note: bicolor LEDs
+        # count as 2 each!).
+        # @arg -common    The Common Mode (anode or cathode).
         # @arg -aspectlist The Aspects for this signal.
         # @arg -description Description of the pin.
         # @par
         
         $self configurelist $args
+        set gpiopinno [GPIOPinNo gpioPinNo [$self cget -pinnumber]]
+        for {set i 0} {$i < [$self cget -ledcount]} {incr i} {
+            set pin [expr {$gpiopinno + $i}]
+            pinMode $pin $::OUTPUT
+            switch [$self cget -common] {
+                anode {
+                    digitalWrite $pin $::HIGH
+                }
+                cathode {
+                    digitalWrite $pin $::LOW
+                }
+            }
+        }
     }
     method consumeEvent {event} {
         #** Handle an incoming event.
@@ -1174,23 +1221,38 @@ snit::type OpenLCB_PiSPIMax7221 {
         foreach aspevbits [$self cget -aspectlist] {
             foreach {aspev bits} $aspevbits {break}
             if {[$event match $aspev]} {
-                wiringPiSPIDataRW $spi [list [Binary8 valueof $bits] [$self cget -signalnum] ]
+                set byte [Binary8 valueof $bits]
+                set gpiopinno [GPIOPinNo gpioPinNo [$self cget -pinnumber]]
+                for {set i 0} {$i < [$self cget -ledcount]} {incr i} {
+                    set pin [expr {$gpiopinno + $i}]
+                    set pvalue [expr {($byte >> $i) & 0x01}]
+                    if {$pvalue == 1} {
+                        switch [$self cget -common] {
+                            anode {
+                                digitalWrite $pin $::LOW
+                            }
+                            cathode {
+                                digitalWrite $pin $::HIGH
+                            }
+                        }
+                    } else {
+                        switch [$self cget -common] {
+                            anode {
+                                digitalWrite $pin $::HIGH
+                            }
+                            cathode {
+                                digitalWrite $pin $::LOW
+                            }
+                        }
+                    }
+                }
                 return true
             }
         }
         return false
     }
-    method test {} {
-        for {set ibit 0} {$ibit < 8} {incr ibit} {
-            ::log::log debug "*** $self test: ibit = $ibit"
-            wiringPiSPIDataRW $spi [list [$self cget -signalnum] [expr {0x01 << $ibit}]]
-            after 1000
-        }
-        wiringPiSPIDataRW $spi [list [$self cget -signalnum] 0]
-        ::log::log debug "*** $self test: complete"
-    }
-    
 }
 
 vwait forever
+
 
