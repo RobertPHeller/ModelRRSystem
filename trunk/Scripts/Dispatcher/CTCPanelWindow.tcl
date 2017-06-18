@@ -2413,7 +2413,7 @@ namespace eval CTCPanelWindow {
     option -reversecommand  -default {}
     option -simplemode -default no
     option -openlcbmode -default no
-    option -heads -default 0
+    option -heads -default 1
     option -aspectlist -default {}
 
     component nameLE;#			Name of object
@@ -2725,6 +2725,7 @@ namespace eval CTCPanelWindow {
 						-values {1 2 3} \
 						-editable no
       $headsLCB set [lindex [$headsLCB cget -values] 0]
+      #puts stderr "*** $type create $self: headsLCB initialized to [$headsLCB cget -text]" 
       install typeLCB using LabelComboBox $optionsFrame.typeLCB \
 						-label [_m "Label|Crossing Type:"] \
 						-labelwidth $lwidth \
@@ -3037,6 +3038,7 @@ namespace eval CTCPanelWindow {
           }
       }
       if {"$options(-heads)" ne ""} {
+          #puts stderr "*** $self draw: options(-heads) is $options(-heads)"
           $headsLCB set $options(-heads)
       }
       switch $options(-mode) {
@@ -3410,6 +3412,7 @@ namespace eval CTCPanelWindow {
                 heads {
                     pack $headsLCB -fill x
                     $headsLCB configure -text [$options(-ctcpanel) itemcget $options(-object) -heads]
+                    #puts stderr "*** $self packAndConfigureOptions: headsLCB set to [$headsLCB cget -text]"
                 }
                 position {
                     pack $positionLCB -fill x
@@ -3932,6 +3935,7 @@ namespace eval CTCPanelWindow {
                   lappend result -flipped "[$flippedLCB cget -text]"
               }
               heads {
+                  #puts stderr "*** $self getOptions: {heads}: $headsLCB cget -text is [$headsLCB cget -text]"
                   lappend result -heads "[$headsLCB cget -text]"
               }
               statecommand {
