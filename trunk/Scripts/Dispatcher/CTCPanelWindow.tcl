@@ -3706,7 +3706,7 @@ namespace eval CTCPanelWindow {
                  -command [mymethod _deleteAspect $aspectcount]]
         pack $del -fill x
     }
-    method _deleteaspect {index} {
+    method _deleteAspect {index} {
         set fr $aspectlist($index,frame)
         $aspectlistSTabNB forget $aspectlistSTabNB.$fr
         unset $aspectlist($index,frame)
