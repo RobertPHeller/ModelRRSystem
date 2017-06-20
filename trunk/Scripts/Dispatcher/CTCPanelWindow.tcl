@@ -50,6 +50,7 @@ package require ListBox
 package require ScrollWindow 
 package require ROText
 package require ScrollTabNotebook
+package require csv
 
 catch {Dispatcher::SplashWorkMessage "Loading CTC Panel Window Code" 16}
 
@@ -73,6 +74,9 @@ namespace eval CTCPanelWindow {
     component swframe
     component ctcpanel
     component dirty
+    
+    component eventreportdialog
+    component   eventreporttable
 
     delegate method {ctcpanel create} to ctcpanel
 
@@ -279,7 +283,12 @@ namespace eval CTCPanelWindow {
       install main using mainwindow $win.main \
 	-menu $mainmenu \
 	-extramenus $extramenus
-
+      
+      if {$options(-openlcbmode)} {
+          $main menu insert file [_m {Menu|File|Close}] command \
+                -label [_m "Menu|File|Event Report"] \
+                -command [mymethod EventReport]
+      }
       $main menu delete help "[_m {Menu|Help|On Keys...}]"
       $main menu delete help "[_m {Menu|Help|Index...}]"
       $main menu add help command \
@@ -357,6 +366,180 @@ namespace eval CTCPanelWindow {
 	$self GenerateMainLoop
       }
     }
+    method EventReport {} {
+        array set producedevents {}
+        array set consumedevents {}
+        foreach openlcbele [lsort -dictionary [array names openlcbnodes]] {
+            set nodeopts $openlcbnodes($openlcbele)
+            set ot [from nodeopts -eleclasstype]
+            #puts stderr "*** $self EventReport: openlcbele is $openlcbele, nodeopts is $nodeopts"
+            set evasplist [from nodeopts -eventidaspectlist]
+            if {$evasplist ne ""} {
+                foreach {ev aspl} $evasplist {
+                    lappend consumedevents($ev) [list $ot $openlcbele -aspect $aspl]
+                }
+            }
+            foreach opt {-occupiedeventid -notoccupiedeventid 
+                -statenormaleventid -statereverseeventid -normalindonev 
+                -normalindoffev -centerindonev -centerindoffev -reverseindonev 
+                -reverseindoffev -leftindonev -leftindoffev -rightindonev 
+                -rightindoffev} {
+                set ev [from nodeopts $opt]
+                if {$ev eq ""} {continue}
+                lappend consumedevents($ev) [list $ot $openlcbele $opt]
+            }
+            foreach opt {-oneventid -offeventid -lefteventid -righteventid 
+                -centereventid -eventid -normaleventid -reverseeventid} {
+                set ev [from nodeopts $opt]
+                if {$ev eq ""} {continue}
+                lappend producedevents($ev) [list $ot $openlcbele $opt]
+            }
+        }
+        #parray producedevents
+        #parray consumedevents
+        $self _createEventReportDialog
+        $eventreporttable delete [$eventreporttable children {}]
+        set font [ttk::style lookup Treeitem.text -font]
+        set curowidth [$eventreporttable column opts -minwidth]
+        foreach ev [lsort -dictionary [array names producedevents]] {
+            $eventreporttable insert {} end -id "Prod_$ev" \
+                  -values [list $ev PRODUCED $producedevents($ev)] \
+                  -text   [format {%s PRODUCED %s} $ev $producedevents($ev)]
+            set optwidth [font measure $font -displayof $eventreporttable $producedevents($ev)]
+            if {$optwidth > $curowidth} {
+                $eventreporttable column opts -minwidth $optwidth
+                set curowidth $optwidth
+            }
+        }
+        foreach ev [lsort -dictionary [array names consumedevents]] {
+            $eventreporttable insert {} end -id "Cons_$ev" \
+                  -values [list $ev CONSUMED $consumedevents($ev)] \
+                  -text   [format {%s CONSUMED %s} $ev $consumedevents($ev)]
+            set optwidth [font measure $font -displayof $eventreporttable $consumedevents($ev)]
+            if {$optwidth > $curowidth} {
+                $eventreporttable column opts -minwidth $optwidth
+                set curowidth $optwidth
+            }
+        }
+        $eventreportdialog draw
+    }
+    method _createEventReportDialog {} {
+        if {[info exists eventreportdialog] && 
+            [winfo exists $eventreportdialog]} {return}
+        install eventreportdialog using Dialog $win.eventreportdialog%AUTO% \
+              -bitmap info -default print \
+              -cancel close -modal none -transient yes \
+              -side bottom -title [_ "Event Report"] \
+              -parent $win
+        $eventreportdialog add print -text [_m "Button|Print to PDF"] \
+              -command [mymethod _evr_printpdf]
+        $eventreportdialog add export -text [_m "Button|Export to CSV"] \
+              -command [mymethod _evr_exportcsv]
+        $eventreportdialog add close -text [_m "Button|Close"] \
+              -command [mymethod _evr_close]
+        wm protocol [winfo toplevel $eventreportdialog] WM_DELETE_WINDOW [mymethod _evr_close]
+        $eventreportdialog add help -text [_m "Button|Help"] \
+              -command {HTMLHelp help {Event Report Dialog}}
+        set frame [$eventreportdialog getframe]
+        set sw [ScrolledWindow $frame.sw -scrollbar both -auto both]
+        pack $sw -expand yes -fill both
+        install eventreporttable using \
+              ttk::treeview [$sw getframe].eventreporttable \
+              -columns {ev type opts} \
+              -displaycolumns {ev type opts} \
+              -selectmode none \
+              -show headings
+        $sw setwidget $eventreporttable
+        set font [ttk::style lookup Treeitem.text -font]
+        set evwidth [font measure $font -displayof $eventreporttable "DD.DD.DD.DD.DD.DD.DD.DD"]
+        $eventreporttable column ev -minwidth $evwidth -width $evwidth \
+              -stretch no -anchor w
+        set tywidth [font measure $font -displayof $eventreporttable "CONSUMED "]
+        $eventreporttable column type -minwidth $tywidth -width $tywidth \
+              -stretch no -anchor w
+        $eventreporttable column opts -stretch yes -anchor w
+        $eventreporttable heading ev -text "Event" -anchor w
+        $eventreporttable heading type -text "Type" -anchor w
+        $eventreporttable heading opts -text "Detail..." -anchor w
+    }
+    method _evr_printpdf {} {
+        set printfile "[file rootname $options(-filename)]_eventreport.pdf"
+        set pdfobj [PrintDialog::PrintDialog draw -parent $eventreportdialog \
+                    -filename $printfile]
+        if {"$pdfobj" eq ""} {return}
+        $pdfobj configure -orient false
+        set pageno 0
+        set cury 0
+        foreach id [$eventreporttable children {}] {
+            if {$cury < 48} {
+                $pdfobj startPage
+                $pdfobj setFont 12 Courier
+                set topy [lindex [$pdfobj getDrawableArea] 1]
+                incr pageno
+                $pdfobj setTextPosition 0 $topy
+                $pdfobj text [_ "Event export of $options(-filename) Events.   Page %d" $pageno]
+                $pdfobj newLine 2
+                set cury [expr {$topy - 24}]
+                $pdfobj setFont 12 Courier
+                $pdfobj setTextPosition 0 $cury
+                $pdfobj text [format {%-25s %-10s %s} [_m "Heading|Event ID"] \
+                              [_m "Heading|P/C"] [_m "Heading|Details..."]]
+                $pdfobj newLine 2
+                set cury [expr {$cury - 24}]
+            }
+            $pdfobj setTextPosition 0 $cury
+            set value [$eventreporttable item $id -values]
+            set ev [lindex $value 0]
+            set ty [lindex $value 1]
+            set det [lindex $value 2]
+            if {[string length $det] <= 36} {
+                $pdfobj text [format {%-25s %-10s %-36.36s} $ev $ty $det]
+                $pdfobj newLine 1
+                set cury [expr {$cury - 12}]
+            } else {
+                set det1 [string range $det 0 35]
+                set det  [string range $det 36 end]
+                $pdfobj text [format {%-25s %-10s %-36.36s} $ev $ty $det1]
+                $pdfobj newLine 1
+                set cury [expr {$cury - 12}]
+                while {[string length $det] > 0} {
+                    set det1 [string range $det 0 35]
+                    set det  [string range $det 36 end]
+                    $pdfobj text [format {%-25s %-10s %-36.36s} {} {} $det1]
+                    $pdfobj newLine 1
+                    set cury [expr {$cury - 12}]
+                }
+            }
+        }
+        $pdfobj write
+        $pdfobj destroy
+    }
+    method _evr_exportcsv {} {
+        set defaultfile "[file rootname $options(-filename)]_eventreport.csv"
+        set filename [tk_getSaveFile -defaultextension .csv \
+                      -initialfile $defaultfile -parent $eventreportdialog \
+                      -title "CSV File to open" \
+                      -filetypes {{{CSV Files} {.csv} TEXT}
+                          {{All Files} *     TEXT}}]
+        if {$filename eq ""} {return}
+        if {[catch {open $filename w} fn]} {
+            tk_messageBox -parent $eventreportdialog \
+                  -type ok -icon error \
+                  -message [_ "Failed to open %s: %s" $filename $fn]
+            return
+        }
+        puts $fn [::csv::join [list [_m "Heading|Event ID"] \
+                               [_m "Heading|P/C"] \
+                               [_m "Heading|Details..."]]]
+        foreach id [$eventreporttable children {}] {
+            puts $fn [::csv::join [$eventreporttable item $id -values]]
+        }
+        close $fn
+    }
+    method _evr_close {} {
+        $eventreportdialog withdraw
+    }
+              
     method edit_checksel {} {
         if {[catch {selection get}]} {
             $main mainframe setmenustate edit:havesel disabled
