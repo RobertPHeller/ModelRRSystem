@@ -116,7 +116,7 @@ namespace eval WrapIt {
   #  puts stderr "*** WrapIt::CTIAcelaLibDir = $CTIAcelaSupportDir"
   variable WiringPiLibDir [glob -nocomplain [file join $CodeLibrary WiringPi]]
   #  puts stderr "*** WrapIt::WiringPiLibDir = $WiringPiLibDir"
-  variable TclSocketCANLibDir [glob -nocomplain [file join $Lib TclSocketCAN]]
+  variable TclSocketCANLibDir [glob -nocomplain [file join $CodeLibrary TclSocketCAN]]
   #  puts stderr "*** WrapIt::TclSocketCANLibDir = $TclSocketCANLibDir"
   variable OpenLCBLibDir [glob -nocomplain [file join $CodeLibrary LCC]]
   #  puts stderr "*** WrapIt::OpenLCBLibDir = $OpenLCBLibDir"

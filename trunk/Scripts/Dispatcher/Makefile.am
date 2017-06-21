@@ -244,7 +244,7 @@ if HAVE_WIRINGPI
 endif
 if HAVE_CAN
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
-		lib/TclSocketCAN $(SOCKETCAN_FILES)
+		CodeLibrary/TclSocketCAN $(SOCKETCAN_FILES)
 endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		Messages $(top_builddir)/po/Dispatcher/*.msg
