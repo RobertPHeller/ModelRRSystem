@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Sep 19 09:18:09 2016
-#  Last Modified : <170503.1201>
+#  Last Modified : <170622.0950>
 #
 #  Description	
 #
@@ -158,6 +158,7 @@ snit::widgetadaptor LCCNodeTree {
         #                     node.
         # All other messages are not processed.
         
+        putdebug [format "*** $self messageHandler: mti is 0x%04X" [$message cget -mti]]
         switch [format {0x%04X} [$message cget -mti]] {
             0x0100 -
             0x0101 -
