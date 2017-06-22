@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jun 6 11:01:16 2017
-#  Last Modified : <170606.1325>
+#  Last Modified : <170622.0927>
 #
 #  Description	
 #
@@ -301,16 +301,19 @@ snit::type OpenLCB_PiMCP23017_signal {
             exit 96
         }
         set nodename ""
-        set nodenameele [$configuration getElementsByTagName "name"]
-        if {[llength $nodenameele] > 0} {
-            set nodename [[lindex $nodenameele 0] data]
-        }
         set nodedescriptor ""
-        set nodedescriptorele [$configuration getElementsByTagName "description"]
-        if {[llength $nodedescriptorele] > 0} {
-            set nodedescriptor [[lindex $nodedescriptorele 0] data]
+        set ident [$configuration getElementsByTagName "identification"]
+        if {[llength $ident] > 0} {
+             set ident [lindex $ident 0]
+             set nodenameele [$ident getElementsByTagName "name"]
+             if {[llength $nodenameele] > 0} {
+                 set nodename [[lindex $nodenameele 0] data]
+             }
+             set nodedescriptorele [$ident getElementsByTagName "description"]
+             if {[llength $nodedescriptorele] > 0} {
+                 set nodedescriptor [[lindex $nodedescriptorele 0] data]
+             }
         }
-        
         if {[catch {eval [list lcc::OpenLCBNode %AUTO% \
                           -transport $transportConstructor \
                           -eventhandler [mytypemethod _eventHandler] \
