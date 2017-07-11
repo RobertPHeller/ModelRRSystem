@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jun 6 11:01:16 2017
-#  Last Modified : <170622.0927>
+#  Last Modified : <170710.2006>
 #
 #  Description	
 #
@@ -460,7 +460,7 @@ snit::type OpenLCB_PiMCP23017_signal {
                 foreach s $signallist {
                     ::log::log debug "*** $type _eventHandler: signal is [$s cget -pinnumber]"
                     ::log::log debug "*** $type _eventHandler: event is [$eventid cget -eventidstring]"
-                    $c consumeEvent $eventid
+                    $s consumeEvent $eventid
                     
                 }
             }
@@ -1229,6 +1229,7 @@ snit::type OpenLCB_PiMCP23017_signal {
                 for {set i 0} {$i < [$self cget -ledcount]} {incr i} {
                     set pin [expr {$gpiopinno + $i}]
                     set pvalue [expr {($byte >> $i) & 0x01}]
+                    ::log::log debug "*** $self consumeEvent: pvalue = $pvalue, pin = $pin"
                     if {$pvalue == 1} {
                         switch [$self cget -common] {
                             anode {
