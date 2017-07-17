@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 25 14:52:47 2016
-#  Last Modified : <170622.0926>
+#  Last Modified : <170717.1020>
 #
 #  Description	
 #
@@ -305,8 +305,17 @@ snit::type OpenLCB_Logic {
         }
         return $events
     }
-    method evalFunction {} {
+    method evalFunction {event} {
         set result false
+        set eopt {}
+        foreach evopt {v1oneventid v1offeventid v2oneventid v2offeventid} {
+            set ev [$self cget -$evopt]
+            if {$ev eq {}} {continue}
+            if {[$ev match $event]} {
+                set eopt $evopt
+                break
+            }
+        }
         switch [$self cget -logic] {
             and {
                 if {$v1 && $v2} {
@@ -349,7 +358,7 @@ snit::type OpenLCB_Logic {
                 }
             }
             then {
-                if {($v1 && $v2) && eopt eq "v2oneventid"} {
+                if {($v1 && $v2) && $eopt eq "v2oneventid"} {
                     set result true
                     set lastval true
                 } else {
@@ -406,42 +415,42 @@ snit::type OpenLCB_Logic {
         ::log::log debug "*** $self processevent: -grouptype is [$self cget -grouptype]"
         switch [$self cget -grouptype] {
             single {
-                if {[$self evalFunction]} {$self processActions}
+                if {[$self evalFunction $event]} {$self processActions}
             }
             mast {
-                $self processPreviousMast
+                $self processPreviousMast $event
             }
             ladder {
-                $self processLadder
+                $self processLadder $event
             }
         }
     }
-    method processPreviousMast {} {
-        ::log::log debug "*** $self processPreviousMast"
+    method processPreviousMast {event} {
+        ::log::log debug "*** $self processPreviousMast $event"
         ::log::log debug "*** $self processPreviousMast: -previous is [$self cget -previous]"
         if {[$self cget -previous] ne {}} {
-            [$self cget -previous] processPreviousMast
+            [$self cget -previous] processPreviousMast $event
         } else {
-            $self processMast
+            $self processMast $event
         }
     }
-    method processMast {} {
-        ::log::log debug "*** $self processMast"
+    method processMast {event} {
+        ::log::log debug "*** $self processMast $event"
         ::log::log debug "*** $self processMast: -next is [$self cget -next]"
-        if {[$self evalFunction]} {
+        if {[$self evalFunction $event]} {
             $self processActions
         } elseif {[$self cget -next] ne {}} {
-            [$self cget -next] processMast
+            [$self cget -next] processMast $event
         }
     }
-    method processLadder {} {
-        ::log::log debug "*** $self processLadder"
-        if {[$self evalFunction]} {
+    method processLadder {event} {
+        ::log::log debug "*** $self processLadder $event"
+        if {[$self evalFunction $event]} {
             $self processActions
         }
         ::log::log debug "*** $self processLadder: -next is [$self cget -next]"
         if {[$self cget -next] ne {}} {
-            [$self cget -next] processLadder
+            [$self cget -next] processLadder $event
         }
     }
     method processActions {} {
