@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <161009.1133>
+#  Last Modified : <170717.0950>
 #
 #  Description	
 #
@@ -510,7 +510,8 @@ snit::type OpenLCB_Dispatcher {
     typemethod _OpenEventlog {} {
         if {![winfo exists $eventlog]} {
             set eventlog [lcc::EventLog .eventlog%AUTO% \
-                          -transport $transport]
+                          -transport $transport \
+                          -localeventhandler [mytypemethod _localeventhandler]]
         }
         $eventlog open
     }
@@ -646,6 +647,17 @@ snit::type OpenLCB_Dispatcher {
                     $eventlog open
                 }
             }
+        }
+    }
+    typemethod _localeventhandler {eventid} {
+        #* Local Event handler.  Handle local Events from the event log dialog.
+        #
+        # @param eventid The eventid.
+        
+        foreach c $consumers {
+            #puts stderr "*** $type _localeventhandler: c is $c"
+            #puts stderr "*** $type _localeventhandler: event is [$eventid cget -eventidstring]"
+            $c consumeEvent $eventid
         }
     }
     typemethod _messageHandler {message} {

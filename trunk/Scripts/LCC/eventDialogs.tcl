@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Mar 3 14:36:20 2016
-#  Last Modified : <160810.1120>
+#  Last Modified : <170717.0955>
 #
 #  Description	
 #
@@ -65,6 +65,7 @@ namespace eval lcc {
         # @par
         
         option -transport -readonly yes -default {}
+        option -localeventhandler -readonly yes -default {}
         hulltype toplevel
         component logscroll
         ## @privatesection Log Scroll Widget.
@@ -98,6 +99,7 @@ namespace eval lcc {
             set sendevent_button [ttk::button [$sendeventLF getframe].b \
                                   -text [_m "Label|Send"] \
                                   -command [mymethod _sendtheevent]]
+            bind $sendevent <Return> [list $sendevent_button invoke]
             pack $sendevent_button -side right
             set bbox [ButtonBox $win.bbox -orient horizontal]
             pack $bbox -fill x -expand yes
@@ -128,15 +130,22 @@ namespace eval lcc {
             #
             
             set transport [$self cget -transport]
+            set localeventhandler [$self cget -localeventhandler]
             set eventtosend [$sendevent get]
-            if {$transport ne ""} {
+            if {$transport ne "" || $localeventhandler ne ""} {
                 if {[catch {lcc::EventID %AUTO% -eventidstring $eventtosend} eventid]} {
                     tk_message -type ok -icon error -message \
                           [_ "Misformatted event id: %s" $eventtosend]
                     return
                 }
+            }
+            if {$transport ne ""} {
                 $transport ProduceEvent $eventid
             }
+            if {$localeventhandler ne ""} {
+                uplevel #0 "$localeventhandler $eventid"
+            }
+                
         }
         method _close {} {
             ## Close the window.
