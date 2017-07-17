@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 17 07:55:13 2016
-#  Last Modified : <170622.0926>
+#  Last Modified : <170717.1256>
 #
 #  Description	
 #
@@ -770,7 +770,8 @@ snit::type OpenLCB_Acela {
     #** Menu.
     typevariable _menu {
         "[_m {Menu|&File}]" {file:menu} {file} 0 {
-            {command "[_m {Menu|File|&Save and Exit}]" {file:saveexit} "[_ {Save and exit}]" {Ctrl s} -command "[mytypemethod _saveexit]"}
+            {command "[_m {Menu|File|&Save}]" {file:save} "[_ {Save}]" {Ctrl s} -command "[mytypemethod _save]"}
+            {command "[_m {Menu|File|Save and Exit}]" {file:saveexit} "[_ {Save and exit}]" {} -command "[mytypemethod _saveexit]"}
             {command "[_m {Menu|File|&Exit}]" {file:exit} "[_ {Exit}]" {Ctrl q} -command "[mytypemethod _exit]"}
         } "[_m {Menu|&Edit}]" {edit} {edit} 0 {
             {command "[_m {Menu|Edit|Cu&t}]" {edit:cut edit:havesel} "[_ {Cut selection to the paste buffer}]" {Ctrl x} -command {StdMenuBar EditCut} -state disabled}
@@ -1411,7 +1412,15 @@ snit::type OpenLCB_Acela {
     
     typevariable warnings
     typemethod _saveexit {} {
-        #** Save and exit.  Bound to the Save & Exit file menu item.
+        #** Save and Exit.  Bound to the Save and Exit file menu item
+        # Saves the contents of the GUI as an XML file and then exits.
+        
+        if {[$type _save]} {
+            $type _exit
+        }
+    }
+    typemethod _save {} {
+        #** Save.  Bound to the Save file menu item.
         # Saves the contents of the GUI as an XML file.
         
         set warnings 0
@@ -1489,13 +1498,13 @@ snit::type OpenLCB_Acela {
         if {$warnings > 0} {
             tk_messageBox -type ok -icon info \
                   -message [_ "There were %d warnings.  Please correct and try again." $warnings]
-            return
+            return no
         }
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
         }
-        ::exit
+        return yes
     }
     typemethod _copy_control_from_gui_to_XML {control} {
         set fr [$control attribute frame]
