@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jun 6 11:01:16 2017
-#  Last Modified : <170717.1300>
+#  Last Modified : <170718.1338>
 #
 #  Description	
 #
@@ -318,7 +318,7 @@ snit::type OpenLCB_PiMCP23017_signal {
                           -transport $transportConstructor \
                           -eventhandler [mytypemethod _eventHandler] \
                           -generalmessagehandler [mytypemethod _messageHandler] \
-                          -softwaremodel "OpenLCB PiMCP23017" \
+                          -softwaremodel "OpenLCB PiMCP23017 Signal" \
                           -softwareversion "1.0" \
                           -nodename $nodename \
                           -nodedescription $nodedescriptor \
