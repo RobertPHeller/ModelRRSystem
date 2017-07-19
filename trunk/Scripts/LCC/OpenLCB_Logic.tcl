@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 25 14:52:47 2016
-#  Last Modified : <170717.1256>
+#  Last Modified : <170719.1844>
 #
 #  Description	
 #
@@ -306,6 +306,7 @@ snit::type OpenLCB_Logic {
         return $events
     }
     method evalFunction {event} {
+        ::log::log debug "*** $self ([$self cget -description]) ([$self cget -description]) evalFunction [$event cget -eventidstring]"
         set result false
         set eopt {}
         foreach evopt {v1oneventid v1offeventid v2oneventid v2offeventid} {
@@ -373,46 +374,43 @@ snit::type OpenLCB_Logic {
         return $result
     }
     method processevent {event} {
-        ::log::log debug "*** $self processevent [$event cget -eventidstring]"
+        ::log::log debug "*** $self ([$self cget -description]) processevent [$event cget -eventidstring]"
         set triggeredstate false
         set ematch false
-        set trig false
         foreach eopt {v1oneventid v1offeventid v2oneventid v2offeventid} {
-            ::log::log debug "*** $self processevent: eopt is $eopt"
+            ::log::log debug "*** $self ([$self cget -description]) processevent: eopt is $eopt"
             set ev [$self cget -$eopt]
             if {$ev eq {}} {continue}
-            ::log::log debug "*** $self processevent: ev is [$ev cget -eventidstring]"
+            ::log::log debug "*** $self ([$self cget -description]) processevent: ev is [$ev cget -eventidstring]"
             if {[$ev match $event]} {
-                ::log::log debug "*** $self processevent: [$ev cget -eventidstring] matches [$event cget -eventidstring]"
+                ::log::log debug "*** $self ([$self cget -description]) processevent: [$ev cget -eventidstring] matches [$event cget -eventidstring]"
                 switch $eopt {
                     v1oneventid {
-                        if {!$v1} {set trig true}
+                        if {!$v1} {set triggeredstate true}
                         set v1 true
                     }
                     v1offeventid {
-                        if {$v1} {set trig true}
+                        if {$v1} {set triggeredstate true}
                         set v1 false
                     }
                     v2oneventid {
-                        if {!$v2} {set trig true}
+                        if {!$v2} {set triggeredstate true}
                         set v2 true
                     }
                     v2offeventid {
-                        if {$v2} {set trig true}
+                        if {$v2} {set triggeredstate true}
                         set v2 false
                     }
                 }
                 set ematch true
-                ::log::log debug "*** $self processevent (event match): v1 = $v1, v2 = $v2"
-                ::log::log debug "*** $self processevent (event match): -logic is [$self cget -logic]"
-                ::log::log debug "*** $self processevent (event match): trig = $trig"
+                ::log::log debug "*** $self ([$self cget -description]) processevent (event match): v1 = $v1, v2 = $v2"
+                ::log::log debug "*** $self ([$self cget -description]) processevent (event match): -logic is [$self cget -logic]"
+                ::log::log debug "*** $self ([$self cget -description]) processevent (event match): triggeredstate = $triggeredstate"
             }
         }
-        ::log::log debug "*** $self processevent: ematch is $ematch"
+        ::log::log debug "*** $self ([$self cget -description]) processevent: ematch is $ematch"
         if {!$ematch} {return}
-        ::log::log debug "*** $self processevent: trig is $trig"
-        if {!$trig} {return}
-        ::log::log debug "*** $self processevent: -grouptype is [$self cget -grouptype]"
+        ::log::log debug "*** $self ([$self cget -description]) processevent: -grouptype is [$self cget -grouptype]"
         switch [$self cget -grouptype] {
             single {
                 if {[$self evalFunction $event]} {$self processActions}
@@ -426,8 +424,8 @@ snit::type OpenLCB_Logic {
         }
     }
     method processPreviousMast {event} {
-        ::log::log debug "*** $self processPreviousMast $event"
-        ::log::log debug "*** $self processPreviousMast: -previous is [$self cget -previous]"
+        ::log::log debug "*** $self ([$self cget -description]) processPreviousMast $event"
+        ::log::log debug "*** $self ([$self cget -description]) processPreviousMast: -previous is [$self cget -previous]"
         if {[$self cget -previous] ne {}} {
             [$self cget -previous] processPreviousMast $event
         } else {
@@ -435,8 +433,8 @@ snit::type OpenLCB_Logic {
         }
     }
     method processMast {event} {
-        ::log::log debug "*** $self processMast $event"
-        ::log::log debug "*** $self processMast: -next is [$self cget -next]"
+        ::log::log debug "*** $self ([$self cget -description]) ([$self cget -description]) processMast $event"
+        ::log::log debug "*** $self ([$self cget -description]) processMast: -next is [$self cget -next]"
         if {[$self evalFunction $event]} {
             $self processActions
         } elseif {[$self cget -next] ne {}} {
@@ -444,11 +442,11 @@ snit::type OpenLCB_Logic {
         }
     }
     method processLadder {event} {
-        ::log::log debug "*** $self processLadder $event"
+        ::log::log debug "*** $self ([$self cget -description]) processLadder $event"
         if {[$self evalFunction $event]} {
             $self processActions
         }
-        ::log::log debug "*** $self processLadder: -next is [$self cget -next]"
+        ::log::log debug "*** $self ([$self cget -description]) processLadder: -next is [$self cget -next]"
         if {[$self cget -next] ne {}} {
             [$self cget -next] processLadder $event
         }
@@ -764,6 +762,11 @@ snit::type OpenLCB_Logic {
             producerrangeidentified {
             }
             produceridentified {
+                if {$validity eq "valid"} {
+                    foreach l $alllogics {
+                        $l processevent $eventid
+                    }
+                }
             }
             learnevents {
             }

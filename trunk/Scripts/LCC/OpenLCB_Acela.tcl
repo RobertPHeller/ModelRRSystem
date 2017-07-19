@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 17 07:55:13 2016
-#  Last Modified : <170717.1256>
+#  Last Modified : <170719.1623>
 #
 #  Description	
 #
@@ -141,6 +141,7 @@ snit::type Acela_Control {
     }
     method producedEvents {} {return [list]}
     method pollsensor {} {}
+    method readsensor {event} {return [list {} unknown]}
     method consumeEvent {event} {
         ::log::log debug "*** $self consumeEvent $event"
         foreach evopt {activate deactivate pulseon pulseoff blink
@@ -227,6 +228,7 @@ snit::type Acela_Signal {
     }
     method producedEvents {} {return [list]}
     method pollsensor {} {}
+    method readsensor {event} {return [list {} unknown]}
     method consumeEvent {event} {
         ::log::log debug "*** $self consumeEvent $event"
         set sigcmd [$self cget -signalcommand]
@@ -294,6 +296,30 @@ snit::type Acela_Sensor {
             if {$ev ne {}} {lappend events $ev}
         }
         return $events
+    }
+    method readsensor {event} {
+        set state [[$self cget -acela] Read [$self cget -address]]
+        set ev0 [$self cget -offevent]
+        if {$ev0 ne {}} {
+            if {$event eq "*" || [$event match $ev0]} {
+                if {$state == 0} {
+                    return [list $ev0 valid]
+                } else {
+                    return [list $ev0 invalid]
+                }
+            }
+        }
+        set ev1 [$self cget -onevent]
+        if {$ev1 ne {}} {
+            if {$event eq "*" || [$event match $ev1]} {
+                if {$state == 1} {
+                    return [list $ev1 valid]
+                } else {
+                    return [list $ev1 invalid]
+                }
+            }
+        }
+        return [list {} unknown]
     }
     method pollsensor {} {
         ::log::log debug "*** $self pollsensor"
@@ -684,6 +710,13 @@ snit::type OpenLCB_Acela {
             producerrangeidentified {
             }
             produceridentified {
+                if {$validity eq "valid"} {
+                    foreach c $consumers {
+                        ::log::log debug "*** $type _eventHandler: c is $c"
+                        ::log::log debug "*** $type _eventHandler: event is [$eventid cget -eventidstring]"
+                        $c consumeEvent $eventid
+                    }
+                }
             }
             learnevents {
             }
@@ -695,9 +728,10 @@ snit::type OpenLCB_Acela {
                 }
             }
             identifyproducer {
-                foreach ev $eventsproduced {
-                    if {[$eventid match $ev]} {
-                        $transport ProducerIdentified $ev unknown
+                foreach p $producers {
+                    foreach {ev state} [$p readsensor $eventid] {break}
+                    if {$state ne "unknown"} {
+                        $transport ProducerIdentified $ev $state
                     }
                 }
             }
@@ -705,8 +739,11 @@ snit::type OpenLCB_Acela {
                 foreach ev $eventsconsumed {
                     $transport ConsumerIdentified $ev unknown
                 }
-                foreach ev $eventsproduced {
-                    $transport ProducerIdentified $ev unknown
+                foreach p $producers {
+                    foreach {ev state} [$p readsensor *] {break}
+                    if {$state ne "unknown"} {
+                        $transport ProducerIdentified $ev $state
+                    }
                 }
             }
             report {

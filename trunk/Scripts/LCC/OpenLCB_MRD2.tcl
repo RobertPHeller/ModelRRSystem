@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <170717.1256>
+#  Last Modified : <170719.1630>
 #
 #  Description	
 #
@@ -359,6 +359,13 @@ snit::type OpenLCB_MRD2 {
             producerrangeidentified {
             }
             produceridentified {
+                if {$validity eq "valid"} {
+                    foreach c $consumers {
+                        ::log::log debug "*** $type _eventHandler: device is [$c cget -sensorserial]"
+                        ::log::log debug "*** $type _eventHandler: event is [$eventid cget -eventidstring]"
+                        $c consumeEvent $eventid
+                    }
+                }
             }
             learnevents {
             }
@@ -370,9 +377,10 @@ snit::type OpenLCB_MRD2 {
                 }
             }
             identifyproducer {
-                foreach ev $eventsproduced {
-                    if {[$eventid match $ev]} {
-                        $transport ProducerIdentified $ev unknown
+                foreach p $producers {
+                    foreach evstate [$p Read $eventid] {
+                        foreach {ev state} $evstate {break}
+                        $transport ProducerIdentified $ev $state
                     }
                 }
             }
@@ -380,8 +388,11 @@ snit::type OpenLCB_MRD2 {
                 foreach ev $eventsconsumed {
                     $transport ConsumerIdentified $ev unknown
                 }
-                foreach ev $eventsproduced {
-                    $transport ProducerIdentified $ev unknown
+                foreach p $producers {
+                    foreach evstate [$p Read *] {
+                        foreach {ev state} $evstate {break}
+                        $transport ProducerIdentified $ev $state
+                    }
                 }
             }
             report {
@@ -1205,6 +1216,80 @@ snit::type OpenLCB_MRD2 {
         set old_l2 [$sensor Latch_2]
         $self configurelist $args
     }
+    method Read {eventid} {
+        set events [list]
+        $sensor GetStateData
+        set sense1 [$sensor Sense_1]
+        set sense1on [$self cget -sense1on]
+        set sense1off [$self cget -sense1off]
+        if {$sense1on ne {} && ($eventid eq "*" || [$eventid match $sense1on])} {
+            if {$sense1} {
+                append events [list $sense1on valid]
+            } else {
+                append events [list $sense1on invalid]
+            }
+        }
+        if {$sense1off ne {} && ($eventid eq "*" || [$eventid match $sense1off])} {
+            if {$sense1} {
+                append events [list $sense1off invalid]
+            } else {
+                append events [list $sense1off valid]
+            }
+        }
+        set sense2 [$sensor Sense_2]
+        set sense2on [$self cget -sense2on]
+        set sense2off [$self cget -sense2off]
+        if {$sense2on ne {} && ($eventid eq "*" || [$eventid match $sense2on])} {
+            if {$sense2} {
+                append events [list $sense2on valid]
+            } else {
+                append events [list $sense2on invalid]
+            }
+        }
+        if {$sense2off ne {} && ($eventid eq "*" || [$eventid match $sense2off])} {
+            if {$sense2} {
+                append events [list $sense2off invalid]
+            } else {
+                append events [list $sense2off valid]
+            }
+        }
+        set latch1 [$sensor Latch_1]
+        set latch1on [$self cget -latch1on]
+        set latch1off [$self cget -latch1off]
+        if {$latch1on ne {} && ($eventid eq "*" || [$eventid match $latch1on])} {
+            if {$latch1} {
+                append events [list $latch1on valid]
+            } else {
+                append events [list $latch1on invalid]
+            }
+        }
+        if {$latch1off ne {} && ($eventid eq "*" || [$eventid match $latch1off])} {
+            if {$latch1} {
+                append events [list $latch1off invalid]
+            } else {
+                append events [list $latch1off valid]
+            }
+        }
+        set latch2 [$sensor Latch_2]
+        set latch2on [$self cget -latch2on]
+        set latch2off [$self cget -latch2off]
+        if {$latch2on ne {} && ($eventid eq "*" || [$eventid match $latch2on])} {
+            if {$latch2} {
+                append events [list $latch2on valid]
+            } else {
+                append events [list $latch2on invalid]
+            }
+        }
+        if {$latch2off ne {} && ($eventid eq "*" || [$eventid match $latch2off])} {
+            if {$latch2} {
+                append events [list $latch2off invalid]
+            } else {
+                append events [list $latch2off valid]
+            }
+        }
+        return $events
+    }
+        
     method Poll {} {
         #** Poll the device.
         

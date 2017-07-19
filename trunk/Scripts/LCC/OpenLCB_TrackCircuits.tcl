@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <170717.1302>
+#  Last Modified : <170719.1540>
 #
 #  Description	
 #
@@ -777,6 +777,14 @@ snit::type OpenLCB_TrackCircuits {
             producerrangeidentified {
             }
             produceridentified {
+                if {$validity eq "valid"} {
+                    foreach t $alltracks {
+                        ::log::log debug "*** $type _eventHandler: track is [$t cget -description]"
+                        ::log::log debug "*** $type _eventHandler: event is [$eventid cget -eventidstring]"
+                        $t processevent $eventid
+                        
+                    }
+                }
             }
             learnevents {
             }

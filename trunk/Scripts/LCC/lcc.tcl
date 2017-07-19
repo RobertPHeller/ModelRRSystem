@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <170511.1041>
+#  Last Modified : <170719.1651>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -5826,7 +5826,7 @@ namespace eval lcc {
                     ## Identify events
                     set eventhandler [$self cget -eventhandler]
                     if {$eventhandler eq {}} {return}
-                    uplevel #0 $eventhandler identifyevents {}
+                    uplevel #0 "$eventhandler identifyevents {}"
                 }
                 
                 0x0A28 {
