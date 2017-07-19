@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <170717.0950>
+#  Last Modified : <170719.1538>
 #
 #  Description	
 #
@@ -569,6 +569,7 @@ snit::type OpenLCB_Dispatcher {
             exit 95
         }
         $transport SendVerifyNodeID
+        $transport IdentifyEvents
         #puts stderr "*** $type ConnectToOpenLCB: transport = $transport"
     }
     typemethod SendMyEvents {} {
@@ -605,6 +606,22 @@ snit::type OpenLCB_Dispatcher {
             producerrangeidentified {
             }
             produceridentified {
+                if {$validity eq "valid"} {
+                    foreach c $consumers {
+                        #puts stderr "*** $type _eventHandler: c is $c"
+                        #puts stderr "*** $type _eventHandler: event is [$eventid cget -eventidstring]"
+                        $c consumeEvent $eventid
+                        
+                    }
+                    if {$eventlogging} {
+                        if {![winfo exists $eventlog]} {
+                            set eventlog [lcc::EventLog .eventlog%AUTO% \
+                                          -transport $transport]
+                        }
+                        $eventlog eventReceived $eventid
+                        $eventlog open
+                    }
+                }
             }
             learnevents {
             }

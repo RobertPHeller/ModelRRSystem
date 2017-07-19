@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jun 6 11:01:16 2017
-#  Last Modified : <170718.1338>
+#  Last Modified : <170719.1700>
 #
 #  Description	
 #
@@ -442,19 +442,19 @@ snit::type OpenLCB_PiMCP23017_signal {
                 }
             }
             identifyproducer {
-                foreach ev $eventsproduced {
-                    if {[$eventid match $ev]} {
-                        $transport ProducerIdentified $ev unknown
-                    }
-                }
+                #foreach ev $eventsproduced {
+                #    if {[$eventid match $ev]} {
+                #        $transport ProducerIdentified $ev unknown
+                #    }
+                #}
             }
             identifyevents {
                 foreach ev $eventsconsumed {
                     $transport ConsumerIdentified $ev unknown
                 }
-                foreach ev $eventsproduced {
-                    $transport ProducerIdentified $ev unknown
-                }
+                #foreach ev $eventsproduced {
+                #    $transport ProducerIdentified $ev unknown
+                #}
             }
             report {
                 foreach s $signallist {
