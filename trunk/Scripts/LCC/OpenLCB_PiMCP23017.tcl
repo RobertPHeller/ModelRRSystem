@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue May 9 10:33:58 2017
-#  Last Modified : <170717.1259>
+#  Last Modified : <170720.1358>
 #
 #  Description	
 #
@@ -416,6 +416,13 @@ snit::type OpenLCB_PiMCP23017 {
             producerrangeidentified {
             }
             produceridentified {
+                if {$validity eq "valid"} {
+                    foreach c $consumers {
+                        ::log::log debug "*** $type _eventHandler: pin is [$c cget -pinnumber]"
+                        ::log::log debug "*** $type _eventHandler: event is [$eventid cget -eventidstring]"
+                        $c consumeEvent $eventid
+                    }
+                }
             }
             learnevents {
             }
@@ -427,9 +434,10 @@ snit::type OpenLCB_PiMCP23017 {
                 }
             }
             identifyproducer {
-                foreach ev $eventsproduced {
-                    if {[$eventid match $ev]} {
-                        $transport ProducerIdentified $ev unknown
+                foreach p $producers {
+                    foreach evpair [$p readsensor $eventid] {
+                        foreach {ev state} $evpair {break}
+                        $transport ProducerIdentified $ev $state
                     }
                 }
             }
@@ -437,8 +445,12 @@ snit::type OpenLCB_PiMCP23017 {
                 foreach ev $eventsconsumed {
                     $transport ConsumerIdentified $ev unknown
                 }
-                foreach ev $eventsproduced {
-                    $transport ProducerIdentified $ev unknown
+                foreach p $producers {
+                    foreach evpair [$p readsensor *] {
+                        foreach {ev state} $evpair {break}
+                        ::log::log debug "*** $type _eventHandler identifyevents: ev is [$ev cget -eventidstring], state = $state"
+                        $transport ProducerIdentified $ev $state
+                    }
                 }
             }
             report {
@@ -1145,6 +1157,37 @@ snit::type OpenLCB_PiMCP23017 {
     }
     method initpinval {} {
         set oldPin [digitalRead [GPIOPinNo gpioPinNo [$self cget -pinnumber]]]
+    }
+    method readsensor {event} {
+        ::log::log debug "*** $self readsensor $event"
+        ::log::log debug "*** $self readsensor: pinmode is [$self cget -pinmode]"
+        if {[$self cget -pinmode] ne "in"} {return [list {} unknown]}
+        set events [list]
+        set state [digitalRead [GPIOPinNo gpioPinNo [$self cget -pinnumber]]]
+        ::log::log debug "*** $self readsensor: state is $state"
+        set ev0 [$self cget -pinin0]
+        ::log::log debug "*** $self readsensor: ev0 is $ev0"
+        if {$ev0 ne {}} {
+            if {$event eq "*" || [$event match $ev0]} {
+                if {$state == 0} {
+                    lappend events [list $ev0 valid]
+                } else {
+                    lappend events [list $ev0 invalid]
+                }
+            }
+        }
+        set ev1 [$self cget -pinin1]
+        ::log::log debug "*** $self readsensor: ev1 is $ev1"
+        if {$ev1 ne {}} {
+            if {$event eq "*" || [$event match $ev1]} {
+                if {$state == 1} {
+                    lappend events [list $ev1 valid]
+                } else {
+                    lappend events [list $ev1 invalid]
+                }
+            }
+        }
+        return $events
     }
     method Poll {} {
         #** Poll the pin
