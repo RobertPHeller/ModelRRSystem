@@ -392,7 +392,11 @@ namespace eval CTCPanelWindow {
                 -centereventid -eventid -normaleventid -reverseeventid} {
                 set ev [from nodeopts $opt]
                 if {$ev eq ""} {continue}
-                lappend producedevents($ev) [list $ot $openlcbele $opt]
+                if {$ot eq "Lamp"} {
+                    lappend consumedevents($ev) [list $ot $openlcbele $opt]
+                } else {
+                    lappend producedevents($ev) [list $ot $openlcbele $opt]
+                }
             }
         }
         #parray producedevents
@@ -401,28 +405,49 @@ namespace eval CTCPanelWindow {
         $eventreporttable delete [$eventreporttable children {}]
         set font [ttk::style lookup Treeitem.text -font]
         set curowidth [$eventreporttable column opts -minwidth]
-        foreach ev [lsort -dictionary [array names producedevents]] {
-            $eventreporttable insert {} end -id "Prod_$ev" \
-                  -values [list $ev PRODUCED $producedevents($ev)] \
-                  -text   [format {%s PRODUCED %s} $ev $producedevents($ev)]
-            set optwidth [font measure $font -displayof $eventreporttable $producedevents($ev)]
-            if {$optwidth > $curowidth} {
-                $eventreporttable column opts -minwidth $optwidth
-                set curowidth $optwidth
+        foreach ev [lsort -command [myproc _evsort] \
+                    [_union [array names producedevents] \
+                     [array names consumedevents]]] {
+            if {[info exists producedevents($ev)]} {
+                $eventreporttable insert {} end -id "Prod_$ev" \
+                      -values [list $ev PRODUCED $producedevents($ev)] \
+                      -text   [format {%s PRODUCED %s} $ev $producedevents($ev)]
+                set optwidth [font measure $font -displayof $eventreporttable $producedevents($ev)]
+                if {$optwidth > $curowidth} {
+                    $eventreporttable column opts -minwidth $optwidth
+                    set curowidth $optwidth
+                }
             }
-        }
-        foreach ev [lsort -dictionary [array names consumedevents]] {
-            $eventreporttable insert {} end -id "Cons_$ev" \
-                  -values [list $ev CONSUMED $consumedevents($ev)] \
-                  -text   [format {%s CONSUMED %s} $ev $consumedevents($ev)]
-            set optwidth [font measure $font -displayof $eventreporttable $consumedevents($ev)]
-            if {$optwidth > $curowidth} {
-                $eventreporttable column opts -minwidth $optwidth
-                set curowidth $optwidth
+            if {[info exists consumedevents($ev)]} {
+                $eventreporttable insert {} end -id "Cons_$ev" \
+                      -values [list $ev CONSUMED $consumedevents($ev)] \
+                      -text   [format {%s CONSUMED %s} $ev $consumedevents($ev)]
+                set optwidth [font measure $font -displayof $eventreporttable $consumedevents($ev)]
+                if {$optwidth > $curowidth} {
+                    $eventreporttable column opts -minwidth $optwidth
+                    set curowidth $optwidth
+                }
             }
         }
         $eventreportdialog draw
     }
+    proc _union {l1 l2} {
+        set result $l1
+        foreach e2 $l2 {
+            if {$e2 ni $result} {lappend result $e2}
+        }
+        return $result
+    }
+    proc _evsort {evA evB} {
+        set evAbytes [split $evA {.}]
+        set evBbytes [split $evB {.}]
+        foreach evAbyte $evAbytes evBbyte $evBbytes {
+            set diff [expr {[scan $evAbyte %02x] - [scan $evBbyte %02x]}]
+            if {$diff != 0} {return $diff}
+        }
+        return 0
+    }
+            
     method _createEventReportDialog {} {
         if {[info exists eventreportdialog] && 
             [winfo exists $eventreportdialog]} {return}
@@ -477,7 +502,7 @@ namespace eval CTCPanelWindow {
                 set topy [lindex [$pdfobj getDrawableArea] 1]
                 incr pageno
                 $pdfobj setTextPosition 0 $topy
-                $pdfobj text [_ "Event export of $options(-filename) Events.   Page %d" $pageno]
+                $pdfobj text [_ "Event export of %s Events.   Page %d" $options(-filename) $pageno]
                 $pdfobj newLine 2
                 set cury [expr {$topy - 24}]
                 $pdfobj setFont 12 Courier
