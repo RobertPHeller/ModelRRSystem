@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Dec 16 14:39:16 2015
-#  Last Modified : <160801.0953>
+#  Last Modified : <170727.1129>
 #
 #  Description	
 #
@@ -92,7 +92,7 @@ pkgdata_SCRIPTS = raildriverd.hotplug print-usb-usermap raildriverd.udev \
 			90-raildriver.rules \
 			ButtonLegends.cls
 BUILT_SOURCES       = $(TCLKIT) raildriverio_wrap.cc sigterm_wrap.cc \
-			RaildriverIO.h
+			RaildriverIO.h hid.c
 CLEANFILES	    = $(BUILT_SOURCES) LocoTest print-usb-usermap \
 			 raildriverd.hotplug raildriverio.potlist \
 			 raildriverd.pot 90-raildriver.rules \
