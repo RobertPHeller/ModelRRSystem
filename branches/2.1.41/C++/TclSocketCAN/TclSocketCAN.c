@@ -8,7 +8,7 @@
  *  Author        : $Author$
  *  Created By    : Robert Heller
  *  Created       : Sun Apr 30 12:11:26 2017
- *  Last Modified : <170726.1519>
+ *  Last Modified : <170727.1114>
  *
  *  Description	
  *
@@ -260,7 +260,7 @@ CanInputProc(
             }
             mask = CAN_SFF_MASK;
         }
-#ifdef DEBUG                                                                   $
+#ifdef DEBUG
         fprintf(stderr,"*** -: fmt is %s\n",fmt);
 #endif
         nbytes = snprintf(buf,(size_t) bufSize,fmt,(frame.can_id & mask));
@@ -268,9 +268,9 @@ CanInputProc(
         if (nbytes >= bufSize) return bufSize;
         doff = buf+nbytes;
         bremain = bufSize-nbytes;
-#ifdef DEBUG                                                                   $
+#ifdef DEBUG
         fprintf(stderr,"*** -: frame.can_dlc is %d\n",frame.can_dlc);
-#endif                                                                          
+#endif
         for (i = 0; i < frame.can_dlc; i++) {
             nbytes = snprintf(doff,(size_t)bremain,"%02X",frame.data[i]);
             bytesRead += nbytes;
