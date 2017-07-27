@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 16:36:46 2014
-//  Last Modified : <140428.1946>
+//  Last Modified : <170727.1037>
 //
 //  Description	
 //
@@ -41,10 +41,10 @@
  * 
  * @section xpressnetthrot_maingui Main GUI
  * Its basic GUI in Throttle Mode is shown here:
- * @br
+ * @n
  * @image latex XPressNetThrottle_maingui.png "XPressNetThrottle Main GUI in Throttle Mode" width=4in
  * @image html  XPressNetThrottle_mainguiSmall.png
- * @br
+ * @n
  * On the left is a field to enter the locomotive's address, and buttons for
  * selecting the locomotive's direction and a slider for selecting the 
  * locomotive's speed.  On the right is an array of buttons to select the
@@ -54,10 +54,10 @@
  * 
  * @section xpressnetthrot_progmode Programming Mode
  * In programming mode, the Main GUI looks like this:
- * @br
+ * @n
  * @image latex XPressNetThrottle_progmode.png "XPressNetThrottle Main GUI in Programming Mode" width=4in
  * @image html  XPressNetThrottle_progmodeSmall.png
- * @br
+ * @n
  * The Manufacturer ID and Version number are fetched and filled in.  There is
  * a dropdown menu of standard (common) CVs or you can enter any other CV. The
  * existing value is displayed.  You can change it and press ENTER to update
@@ -68,7 +68,7 @@
  * to the XPressNet bus.
  * @image latex XPressNetThrottle_openport.png "XPressNetThrottle Open Port dialog"
  * @image html  XPressNetThrottle_openport.png
- * @br
+ * @n
  */
 
 #endif // __XPRESSNETTHROTTLEREFERENCE_H

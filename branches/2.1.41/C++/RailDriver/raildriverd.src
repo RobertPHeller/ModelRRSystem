@@ -44,8 +44,8 @@
 # @section raildriverdDESCRIPTION DESCRIPTION
 #
 # This is the deamon program for the Rail Driver.  It is started by the
-# USB Hotplug code. See \ref HotplugScripts for details. It should not
-# be started or stopped by hand!
+# USB Hotplug code. See \ref raildriverdHotplugScripts for details. It should 
+# not be started or stopped by hand!
 #
 # The API to use this deamon is described in <em>Model Railroad System
 # Programming Guides</em>, Part I.  User programs connect to this deamon

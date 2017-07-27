@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 15:49:31 2014
-//  Last Modified : <140428.1948>
+//  Last Modified : <170727.1036>
 //
 //  Description	
 //
@@ -82,7 +82,7 @@
  * The main window upon start up looks like this:
  * @image latex UTMain.png "The main window of the Universal Test Program" width=4in
  * @image html  UTMain.png
- * @br
+ * @n
  * The node type and initialization factors can be set.  The Display Delay
  * Factor is the number of hundredths of seconds between bit tests.  The
  * default value of 100 means a 1 second delay between output bits.  The

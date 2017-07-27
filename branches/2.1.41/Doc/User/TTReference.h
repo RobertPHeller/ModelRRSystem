@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 16:48:11 2014
-//  Last Modified : <150801.2014>
+//  Last Modified : <170727.1043>
 //
 //  Description	
 //
@@ -352,12 +352,12 @@
  * code fragments as well as through various parameter settings.  It is
  * also possible to edit the LaTeX style file that comes with the Time
  * Table program (@c TimeTable.sty) to tweak some of the fine details
- * of the formatting as well
+ * of the formatting as well.
  * @latexonly
  * \footnote{Some knowledge of how LaTeX works is recommended when messing 
  * with the style file.}
  * @endlatexonly
- * .
+ * 
  * 
  * The @c Print menu item of the @c File menu or the
  * @image latex TTprintTool.png
@@ -368,7 +368,7 @@
  * "Print Timetable" dialog, described in Section 
  * @ref timetable_ref_PrintTimetableDialog.
  *    
- * @subsection timetable_ref_PrintDialog Print Dialog
+ * @subsection timetable_ref_PrintTimetableDialog Print Timetable Dialog
  * 
  * The "Print Timetable" dialog, shown below, collects the basic
  * information needed to generate and process a LaTeX source file from
@@ -456,10 +456,10 @@
  * @subsection timetable_ref_ViewingTrains Trains
  * 
  * There are two menu items for viewing trains, @c View @c One @c Train and
- * @c View @c All @c Trains.  The @c View @cOne @c Train uses the "Select
+ * @c View @c All @c Trains.  The @c View @c One @c Train uses the "Select
  * One Train dialog" (Section @ref timetable_ref_SelectOneTrainDialog) to
  * select a train to display detailed information about and the
- * @c View @c All @cTrains menu item displays a dialog listing all of the
+ * @c View @c All @c Trains menu item displays a dialog listing all of the
  * trains, by number and name, with buttons to get more detailed information.
  * 
  * @subsection timetable_ref_ViewingStations Stations

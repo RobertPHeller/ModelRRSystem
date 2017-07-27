@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:28:13 2014
-//  Last Modified : <140429.1420>
+//  Last Modified : <170727.1043>
 //
 //  Description	
 //
@@ -105,12 +105,11 @@
  * session.  If there were problems during the operating session (such as
  * bad ordered cars or late trains), you might have to make adjustments
  * before running the car assignment process for the next session.  You
- * would use the car editor to make these adjustments
+ * would use the car editor to make these adjustments.
  * @latexonly
  * \footnote{It might be easier to use a text editor in the case of wholesale 
  * changes.}
  * @endlatexonly
- * .
  * 
  * @section fcf_tut_GeneratingReports Generating Reports
  * 
