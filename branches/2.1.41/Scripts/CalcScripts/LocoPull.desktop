@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=LocoPull
+Comment=Compute Locomotive pulling capacity
+Exec=LocoPull
+Icon=LocoPull.png
+Encoding=UTF-8
+Categories=Application;Model-Railroad-System
+

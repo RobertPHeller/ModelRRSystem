@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=MRD Sensor Loop Program
+Comment=MRD Sensor Loop Program
+Exec=MRDSensorLoop %s
+Icon=MRDSensorLoop.png
+Encoding=UTF-8
+Categories=Application;Model-Railroad-System
+
