@@ -617,6 +617,7 @@ AC_CONFIG_FILES([config_tcl.sed \
 		C++/RailDriver/linux/Makefile \
 		C++/RailDriver/mac/Makefile \
 		C++/RailDriver/windows/Makefile \
+		C++/RailDriver/systemd/Makefile \
 		C++/ParserClasses/Makefile \
 		C++/Azatrax/Makefile \
 		C++/Azatrax/Doxyfile \

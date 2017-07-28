@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Dec 16 14:39:16 2015
-#  Last Modified : <170727.1958>
+#  Last Modified : <170727.2040>
 #
 #  Description	
 #
@@ -43,7 +43,7 @@
 ##############################################################################
 
 
-SUBDIRS = linux mac windows
+SUBDIRS = linux mac windows systemd
 
 HIDAPI_HEADER = hidapi.h
 HIDAPI_SOURCE = $(HIDAPI_C)
