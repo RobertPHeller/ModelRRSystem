@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Dec 16 14:39:16 2015
-#  Last Modified : <170727.1200>
+#  Last Modified : <170727.1958>
 #
 #  Description	
 #
@@ -92,12 +92,13 @@ pkgdata_SCRIPTS = raildriverd.hotplug print-usb-usermap raildriverd.udev \
 			90-raildriver.rules \
 			ButtonLegends.cls
 
-pkgdatadir_systemd $(pkgdatadir)/systemd
+pkgdatadir_systemddir = $(pkgdatadir)/systemd
 pkgdatadir_systemd_SCRIPTS = systemd/90-raildriver.rules \
 			systemd/raildriverd-hidraw \
 			systemd/raildriverd-hidraw@.service \
 			systemd/raildriver-get-hidraw
 systemd/raildriverd-hidraw@.service : systemd/raildriverd-hidraw_AT.service
+	mkdir systemd
 	cp $(srcdir)/systemd/raildriverd-hidraw_AT.service \
 		systemd/raildriverd-hidraw@.service
 
