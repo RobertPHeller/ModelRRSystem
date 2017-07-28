@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Dec 16 14:39:16 2015
-#  Last Modified : <170727.2040>
+#  Last Modified : <170727.2056>
 #
 #  Description	
 #
@@ -98,7 +98,7 @@ pkgdatadir_systemd_SCRIPTS = systemd/90-raildriver.rules \
 			systemd/raildriverd-hidraw@.service \
 			systemd/raildriver-get-hidraw
 systemd/raildriverd-hidraw@.service : systemd/raildriverd-hidraw_AT.service
-	mkdir systemd
+	mkdir -p systemd
 	cp $(srcdir)/systemd/raildriverd-hidraw_AT.service \
 		systemd/raildriverd-hidraw@.service
 
