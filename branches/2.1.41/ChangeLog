@@ -1,3 +1,45 @@
+Sat Jul 29 11:06:10 2017 2.1.41 release candidate 1
+
+    Add TclSocketCAN code
+    Add CAN Socket I/O to LCC Scripts
+    Add CAN Socket I/O to Dispatcher
+    Add -can options to OpenLCBGCTcpHub, fix copy paste bugs in LCC Makefile.am
+    Fix Looping Issue in LCCNodeTree.tcl (I am fine, how are you? loop ) .
+    Update API Docs.
+    Add lowlevel support for the MCP23008 and MCP23017. 
+    Deal with broken wiring pi include files.
+    Add in OpenLCB_PiMCP23008 and OpenLCB_PiMCP23017 Daemons.
+    Made OpenLCBMessage more robust: allow missing sourcenid.
+    Made OpenLCBGCTcpHub more robust: check for missing destinations and broken pipes.
+    Add -log option to all of the OpenLCB daemons.
+    Remove reference to unused GPIOCMD
+    Add OpenLCB_PiSPIMax7221 (untested)
+    Add typemaps to sanely handle wiringPiSPIDataRW's data arg from Tcl.
+    Added CMRI_Slave.  Not tested!
+    Small typo in nce.tcl
+    Add OpenLCB_PiMCP23017_signal.
+    Fix silly bug in CTCPanelWindow: -heads cannot have a default of 0 -- changed to 1.
+    Fix silly bug in CTCPanelWindow: misspelled method: _deleteaspect => _deleteAspect.
+    Add Event Report (when -openlcbmode true) to CTCPanelWindow.tcl
+    Constrain the overall node description and name to what is in the <identification> tag.
+    Add debug code to LCCNodeTree.tcl
+    Add code to make sure manually entered events are processed by the local node: add -localeventhandler opt to eventDialogs, and add _typemethod _localeventhandler to OpenLCBCode.tcl (Dispatcher).
+    Fix "then" logic in OpenLCB_Logic (pass the trigering event through logic eval).
+    Separate out a separate Save menu item for all of the OpenLCB_<mumble> configurator programs.
+    Change -softwaremodel option in OpenLCB_PiMCP23017_signal to correctly reflect the softwaremodel.
+    Add code to handle initial state.
+    Further refinements of OpenLCB_Logic.
+    Event Report problems fixed: handle Lamp events correctly, proper event sorting, proper localization string in page heading.
+    Upgrade Linuxarmv7l version of Img from 1.3 to 1.4.
+    Remove extrainious double quote mark in Doxyfiles.
+    Add missing po subdir.
+    Add missing CLEANFILES element.
+    Cleanup file lists (remove dups.) in BuildBinaryDistro.sh.
+    Fix assorted Doxygen warnings.
+    Fix minor compiler warnings.
+    Add hid.c to BUILT_SOURCES (Raildriver).
+    Add systemd / udev code for RailDriver hotplug.
+
 Thr Apr 13 12:01:59 2017
 
   2.1.40 Released:
