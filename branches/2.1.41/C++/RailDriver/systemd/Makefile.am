@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jul 27 20:41:51 2017
-#  Last Modified : <170727.2043>
+#  Last Modified : <170808.0930>
 #
 #  Description	
 #
@@ -43,5 +43,11 @@
 ##############################################################################
 
 
-EXTRA_DIST = 90-raildriver.rules raildriverd-hidraw raildriver-get-hidraw \
+EXTRA_DIST = 90-raildriver.rules raildriverd-hidraw.in raildriver-get-hidraw \
 		raildriverd-hidraw_AT.service
+
+
+raildriverd-hidraw: raildriverd-hidraw.in $(top_builddir)/config.status
+	sed -e 's|=sbindir=|@sbindir@|g' < $(srcdir)/raildriverd-hidraw.in >./raildriverd-hidraw
+	
+CLEANFILES          = raildriverd-hidraw

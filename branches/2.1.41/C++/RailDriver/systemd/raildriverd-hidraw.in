@@ -199,7 +199,7 @@ pidofproc() {
 	pidof -o $$ -o $PPID -o %PPID -x ${base}
 }
 
-thedaemon=/usr/sbin/raildriverd
+thedaemon==sbindir=/raildriverd
 
 
 RETVAL=0
