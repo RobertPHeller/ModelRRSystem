@@ -5,7 +5,7 @@ EXTRA_DIST = raildriver_client.tcl xplocotest.src Doxyfile.in
 pkgdatadir = $(datadir)/$(PACKAGE)/RailDriverSupport
 pkgdata_DATA = raildriver_client.tcl pkgIndex.tcl
 
-CLEANFILES = pkgIndex.tcl xplocotest${BEXEEXT} xplocotest.kit
+CLEANFILES = pkgIndex.tcl xplocotest${BEXEEXT} xplocotest.kit xplocotest.pot
 
 man_MANS = man1/xplocotest.1
 

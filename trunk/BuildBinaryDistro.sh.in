@@ -128,11 +128,10 @@ mansubdir=`echo ${mansubdir}|sed 's|^/||g'`
 
 rm -f /tmp/BINFILES$$.list
 touch /tmp/BINFILES$$.list
-(cd ${DESTDIR}/usr/local&&find bin) >>/tmp/BINFILES$$.list
-(cd ${DESTDIR}/usr/local&&find sbin) >> /tmp/BINFILES$$.list
+echo bin sbin | tr ' ' '\n' >> /tmp/BINFILES$$.list
 (cd ${DESTDIR}/usr/local&&find lib -name 'lib*@SHLIB_SUFFIX@*') >> /tmp/BINFILES$$.list
 (cd ${DESTDIR}/usr/local&&find lib/@PACKAGE@ -name 'lib*@SHLIB_SUFFIX@') >> /tmp/BINFILES$$.list
-(cd ${DESTDIR}/usr/local&&find ${mansubdir}/man1 ${mansubdir}/man8 ) >>/tmp/BINFILES$$.list
+echo ${mansubdir}/man1 ${mansubdir}/man8 | tr ' ' '\n' >>/tmp/BINFILES$$.list
 echo lib/@PACKAGE@/pkgIndex.tcl  \
 share/@PACKAGE@/CMri \
 share/@PACKAGE@/Common  \
@@ -170,8 +169,8 @@ touch /tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find lib/@PACKAGE@ -name 'pkgIndex_*.tcl') >>/tmp/DEVFILES$$.list
 echo lib/@PACKAGE@/Installer >>/tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find share/@PACKAGE@ -name '*.pot') >>/tmp/DEVFILES$$.list
-(cd ${DESTDIR}/usr/local&&find ${mansubdir}/man3 ) >>/tmp/DEVFILES$$.list
-(cd ${DESTDIR}/usr/local&&find include ) >>/tmp/DEVFILES$$.list
+echo ${mansubdir}/man3  >>/tmp/DEVFILES$$.list
+echo include >>/tmp/DEVFILES$$.list
 echo share/@PACKAGE@/GenericThrottle  >>/tmp/DEVFILES$$.list
 (cd ${DESTDIR}/usr/local&&find share/@PACKAGE@/Doc -name 'fig*') >>/tmp/DEVFILES$$.list
 echo share/@PACKAGE@/Doc/Help.h \

@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 16:39:59 2014
-//  Last Modified : <140429.1049>
+//  Last Modified : <170727.1054>
 //
 //  Description	
 //
@@ -138,7 +138,7 @@
  * <img src="TTprintTool.png" alt="Print toolbar button">
  * @endhtmlonly
  * toolbar button.  This pops up the "Print Dialog", described in Section 
- * @ref timetable_ref_PrintDialog. This dialog collects the name of 
+ * @ref timetable_ref_PrintTimetableDialog. This dialog collects the name of 
  * the LaTeX source file, and the path to the LaTeX processing programing, as 
  * well as a few other options.  It also has a button to configure how the 
  * timetable will be formatted.  

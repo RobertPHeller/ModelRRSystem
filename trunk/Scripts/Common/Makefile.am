@@ -141,7 +141,7 @@ CommonTests${EXEEXT}: CommonTests.tcl $(CommonScripts) DeepwoodsBanner.gif \
 	-rm -rf CommonTests.vfs
 
 
-pkgIndex.tcl : $(CommonScripts)
+pkgIndex.tcl : $(CommonScripts) Version.tcl
 	for f in $(notdir $^) ; do \
 	   if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi;\
 	done

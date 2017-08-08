@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Apr 10 16:38:56 2014
-//  Last Modified : <140423.1355>
+//  Last Modified : <170727.1054>
 //
 //  Description	
 //
@@ -41,10 +41,10 @@
  * 
  * @section genericthrot_maingui Main GUI
  * Its basic GUI in Throttle Mode is shown here:
- * @br
+ * @n
  * @image latex GenericThrottle_maingui.png "GenericThrottle Main GUI in Throttle Mode" width=4in
  * @image html  GenericThrottle_mainguiSmall.png
- * @br
+ * @n
  * On the left is a field to enter the locomotive's address, and buttons for
  * selecting the locomotive's direction and a slider for selecting the 
  * locomotive's speed.  On the right is an array of buttons to select the
@@ -54,10 +54,10 @@
  * 
  * @section genericthrot_progmode Programming Mode
  * In programming mode, the Main GUI looks like this:
- * @br
+ * @n
  * @image latex GenericThrottle_progmode.png "GenericThrottle Main GUI in Programming Mode" width=4in
  * @image html  GenericThrottle_progmodeSmall.png
- * @br
+ * @n
  * The Manufacturer ID and Version number are fetched and filled in.  There is
  * a dropdown menu of standard (common) CVs or you can enter any other CV. The
  * existing value is displayed.  You can change it and press ENTER to update

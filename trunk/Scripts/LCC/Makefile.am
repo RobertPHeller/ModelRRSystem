@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <170606.1256>
+#  Last Modified : <170729.1517>
 #
 #  Description	
 #
@@ -51,7 +51,8 @@ EXTRA_DIST = lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		OpenLCB_MRD2.tcl OpenLCB_PiGPIO.tcl OpenLCB_TrackCircuits.tcl \
 		OpenLCB_Logic.tcl OpenLCB_Acela.tcl LCCNodeTree.tcl \
 		OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
-		OpenLCB_PiSPIMax7221.tcl OpenLCB_PiMCP23017_signal.tcl
+		OpenLCB_PiSPIMax7221.tcl OpenLCB_PiMCP23017_signal.tcl \
+		GenerateEventID.tcl
 
 bin_SCRIPTS = OpenLCB${EXEEXT} OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
 	OpenLCBGCTcpHub${EXEEXT} OpenLCB_TrackCircuits${EXEEXT} \
@@ -102,7 +103,7 @@ CLEANFILES = pkgIndex.tcl OpenLCB${EXEEXT} OpenLCB.pot \
 			  OpenLCB_PiMCP23017_signal${EXEEXT}
 
 pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
-		ConfigDialogs.tcl LCCNodeTree.tcl
+		ConfigDialogs.tcl LCCNodeTree.tcl GenerateEventID.tcl
 	for f in $(notdir $^) ; do \
 	   if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi;\
 	done

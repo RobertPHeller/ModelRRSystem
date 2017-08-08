@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:40:00 2014
-//  Last Modified : <170328.1101>
+//  Last Modified : <170727.1050>
 //
 //  Description	
 //
@@ -142,7 +142,7 @@
  * item under the @c File menu to create a "wrapped" version of
  * the generated program.  This is a self-contained, stand-alone
  * executable program that implements the CTC panel. See
- * Section @ref dispatche_Reference_wrapas for more information.
+ * Section @ref dispatcher_Reference_wrapas for more information.
  * 
  * @section dispatcher_LCC_Tutorial A LCC Example
  * 

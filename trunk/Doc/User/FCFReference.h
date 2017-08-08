@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:33:54 2014
-//  Last Modified : <140429.1252>
+//  Last Modified : <170727.1045>
 //
 //  Description	
 //
@@ -299,12 +299,11 @@
  * @endhtmlonly
  * toolbar button open the printer output file, using the "Open Printer 
  * Dialog", shown below. The status of the printer output, open or closed, 
- * is shown with the printer status indication,
+ * is shown with the printer status indication.
  * @image latex FCFPrinterInd.png
  * @htmlonly
  * <img src="FCFPrinterInd.png" alt="Printer status indication">
  * @endhtmlonly
- * .
  * 
  * @n
  * @image latex FCFOpenPrinterDialog.png "Open Printer Dialog"
@@ -318,12 +317,11 @@
  * <img src="FCFClosePrinterTool.png" alt="Close Printer toolbar button">
  * @endhtmlonly
  * toolbar button close the printer.The status of the printer output, open or 
- * closed, is shown with the printer status indication, 
+ * closed, is shown with the printer status indication.
  * @image latex FCFPrinterInd.png
  * @htmlonly
  * <img src="FCFPrinterInd.png" alt="Printer status indication">
  * @endhtmlonly
- * .
  * 
  * @section fcf_ref_printyard Printing yard and switch lists
  * 
@@ -676,7 +674,7 @@
  * length, ClearPlate is the clearance plate (from plate file), CarWeight
  * is car weight class (from weight file), EmptyWt is light weight in
  * tons, LoadLimit is load limit in tons, Loaded is @b L for loaded or
- * @B E for empty, Mirror? is ok to mirror @b Y for yes or @b N for no,
+ * @b E for empty, Mirror? is ok to mirror @b Y for yes or @b N for no,
  * Fixed? is fixed route @b Y for yes or @b N for no, Owner is car owner's
  * 3 character initials (from owners file), Done is car is done moving for
  * this session @b Y for yes or @b N for no, Last is last train to handle

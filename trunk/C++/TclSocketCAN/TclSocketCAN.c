@@ -8,7 +8,7 @@
  *  Author        : $Author$
  *  Created By    : Robert Heller
  *  Created       : Sun Apr 30 12:11:26 2017
- *  Last Modified : <170508.1139>
+ *  Last Modified : <170727.1114>
  *
  *  Description	
  *
@@ -45,6 +45,7 @@ static const char rcsid[] = "@(#) : $Id$";
 
 #include <stdio.h>
 #include <tcl.h>
+#include <string.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -58,6 +59,7 @@ static const char rcsid[] = "@(#) : $Id$";
 
 #include <linux/can.h>
 #include <linux/can/bcm.h>
+
 
 
 #if !defined(INT2PTR) && !defined(PTR2INT)
@@ -106,8 +108,6 @@ typedef struct CANState {
 
 #define CAN_ASYNC_SOCKET	(1<<0)	/* Asynchronous socket. */
 #define CAN_ASYNC_CONNECT	(1<<1)	/* Async connect in progress. */
-
-static CANState * CreateCANSocket(Tcl_Interp *interp, const char *myaddr);
 
 static int        CanBlockModeProc(ClientData data, int mode);
 static int        CanCloseProc(ClientData instanceData, Tcl_Interp *interp);
@@ -223,7 +223,7 @@ CanInputProc(
     int *errorCodePtr)		/* Where to store error code. */
 {
     CANState *statePtr = (CANState *) instanceData;
-    int bytesRead, state;
+    int bytesRead/*, state*/;
     int nbytes, id;
     char *doff, *fmt;
     int bremain,i;
@@ -260,7 +260,7 @@ CanInputProc(
             }
             mask = CAN_SFF_MASK;
         }
-#ifdef DEBUG                                                                   $
+#ifdef DEBUG
         fprintf(stderr,"*** -: fmt is %s\n",fmt);
 #endif
         nbytes = snprintf(buf,(size_t) bufSize,fmt,(frame.can_id & mask));
@@ -268,9 +268,9 @@ CanInputProc(
         if (nbytes >= bufSize) return bufSize;
         doff = buf+nbytes;
         bremain = bufSize-nbytes;
-#ifdef DEBUG                                                                   $
+#ifdef DEBUG
         fprintf(stderr,"*** -: frame.can_dlc is %d\n",frame.can_dlc);
-#endif                                                                          
+#endif
         for (i = 0; i < frame.can_dlc; i++) {
             nbytes = snprintf(doff,(size_t)bremain,"%02X",frame.data[i]);
             bytesRead += nbytes;
@@ -346,8 +346,8 @@ CanOutputProc(
 {
     CANState *statePtr = (CANState *) instanceData;
     int written;
-    int state;				/* Of waiting for connection. */
-    char *p;
+    /*int state;*/				/* Of waiting for connection. */
+    const char *p;
     int i;
     unsigned char tmp;
     
@@ -512,7 +512,7 @@ CanGetOptionProc(
 {
     CANState *statePtr = (CANState *) instanceData;
     size_t len = 0;
-    char buf[TCL_INTEGER_SPACE];
+    /*char buf[TCL_INTEGER_SPACE];*/
 
     if (optionName != NULL) {
 	len = strlen(optionName);
@@ -637,7 +637,7 @@ CreateSocket(
     Tcl_Interp *interp,		/* For error reporting; can be NULL. */
     const char *candev)		/* CAN device name */
 {
-    int status, sock, curState;
+    int status, sock/*, curState*/;
     struct sockaddr_can addr;
     CANState *statePtr;
     const char *errorMsg = NULL;

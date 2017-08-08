@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon May 27 14:00:55 2013
-//  Last Modified : <140324.2220>
+//  Last Modified : <170727.1049>
 //
 //  Description	
 //
@@ -270,7 +270,6 @@
  *countries not thus excluded.  In such case, this License incorporates
  *the limitation as if written in the body of this License.
  *
- * @subsection 9
  * @par  
  *  9. The Free Software Foundation may publish revised and/or new versions
  *of the General Public License from time to time.  Such new versions will
@@ -329,8 +328,8 @@
  *convey the exclusion of warranty; and each file should have at least
  *the "copyright" line and a pointer to where the full notice is found.
  *
- *    <one line to give the program's name and a brief idea of what it does.>
- *    Copyright (C) <year>  <name of author>
+ *    \<one line to give the program's name and a brief idea of what it does.\>
+ *    Copyright (C) \<year\>  \<name of author\>
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
