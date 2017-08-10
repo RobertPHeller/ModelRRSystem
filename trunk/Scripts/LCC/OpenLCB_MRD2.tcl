@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <170719.1630>
+#  Last Modified : <170729.1531>
 #
 #  Description	
 #
@@ -130,7 +130,6 @@ snit::type OpenLCB_MRD2 {
     typevariable  eventsproduced {};# Events produced.
     typevariable  defaultpollinterval 500;# Default poll interval
     typevariable  pollinterval 500;#  Poll interval
-    typecomponent editContextMenu
     
     typeconstructor {
         #** @brief Global static initialization.
@@ -435,6 +434,7 @@ snit::type OpenLCB_MRD2 {
     typecomponent main;# Main Frame.
     typecomponent scroll;# Scrolled Window.
     typecomponent editframe;# Scrollable Frame
+    typecomponent editContextMenu
     typevariable    transconstructorname {};# transport constructor
     typevariable    transopts {};# transport options
     typevariable    id_name {};# node name
@@ -442,6 +442,7 @@ snit::type OpenLCB_MRD2 {
     typevariable    pollinginterval 500;# polling interval.
     typecomponent   devices;# Device list
     typevariable    devicecount 0;# device count
+    typecomponent   generateEventID
     
     typevariable status {};# Status line
     typevariable conffilename {};# Configuration File Name
@@ -555,6 +556,7 @@ snit::type OpenLCB_MRD2 {
         package require ButtonBox
         package require ScrollTabNotebook
         package require HTMLHelp 2.0
+        package require GenerateEventID 1.0
         
         set HelpDir [file join [file dirname [file dirname [file dirname \
                                                             [info script]]]] Help]
@@ -685,6 +687,21 @@ snit::type OpenLCB_MRD2 {
                        -text [_m "Label|Add another device"] \
                        -command [mytypemethod _addblankdevice]]
         pack $adddevice -fill x
+        set nidindex [lsearch -exact $transopts -nid]
+        if {$nidindex >= 0} {
+            incr nidindex
+            set nid [lindex $nidindex $transopts]
+        } else {
+            set nid "05:01:01:01:22:00"
+        }
+        set evlist [list]
+        foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $nid] 1 end] {
+            lappend evlist [scan $oct %02x]
+        }
+        lappend evlist 0 0
+        set generateEventID [GenerateEventID create %AUTO% \
+                             -baseeventid [lcc:EventID create %AUTO% -eventidlist $evlist]]
+        
     }
     typevariable warnings
     typemethod _saveexit {} {
@@ -1028,6 +1045,21 @@ snit::type OpenLCB_MRD2 {
                 set transportOpts [eval $optsdialog]
                 if {$transportOpts ne {}} {
                     set transopts $transportOpts
+                    set nidindex [lsearch -exact $transopts -nid]
+                    if {$nidindex >= 0} {
+                        incr nidindex
+                        set nid [lindex $nidindex $transopts]
+                    } else {
+                        set nid "05:01:01:01:22:00"
+                    }
+                    set evlist [list]
+                    foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $nid] 1 end] {
+                        lappend evlist [scan $oct %02x]
+                    }
+                    lappend evlist 0 0
+                    set generateEventID [GenerateEventID create %AUTO% \
+                                         -baseeventid [lcc:EventID create %AUTO% -eventidlist $evlist]]
+                    
                 }
             }
         }

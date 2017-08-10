@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Dec 16 14:39:16 2015
-#  Last Modified : <170727.2056>
+#  Last Modified : <170808.0930>
 #
 #  Description	
 #
@@ -101,6 +101,8 @@ systemd/raildriverd-hidraw@.service : systemd/raildriverd-hidraw_AT.service
 	mkdir -p systemd
 	cp $(srcdir)/systemd/raildriverd-hidraw_AT.service \
 		systemd/raildriverd-hidraw@.service
+systemd/raildriverd-hidraw: systemd/raildriverd-hidraw.in $(top_builddir)/config.status
+	$(MAKE) -C systemd raildriverd-hidraw
 
 BUILT_SOURCES       = $(TCLKIT) raildriverio_wrap.cc sigterm_wrap.cc \
 			RaildriverIO.h hid.c 
@@ -183,6 +185,7 @@ raildriverd.hotplug : raildriverd.hotplug.in $(top_builddir)/config.status
 raildriverd.udev : raildriverd.udev.in $(top_builddir)/config.status
 	sed -e 's|=sbindir=|@sbindir@|g' < $(srcdir)/raildriverd.udev.in > ./raildriverd.udev
 	chmod +x raildriverd.udev
+	
 	
 90-raildriver.rules : 90-raildriver.rules.in 
 	cp $(srcdir)/90-raildriver.rules.in ./90-raildriver.rules
