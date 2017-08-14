@@ -65,87 +65,89 @@ void System::ReportIndustries(const WorkInProgressCallback *WIP,
 				      PrinterDevice          *printer,
 				char **outmessage) const
 {
-	double tenth, donePer;
-	DivisionMap::const_iterator Dx;
-	const Division *dx;
-	StationVector::const_iterator Sx;
-	const Station *sx;
-	IndustryVector::const_iterator Ix;
-	const Industry *ix;
-	int lenInDiv,carsInDiv,carsToDiv;
-	string divisionName;
-	static char message[256];
-	char buffer[64];
+    double tenth, donePer;
+    DivisionMap::const_iterator Dx;
+    const Division *dx;
+    StationVector::const_iterator Sx;
+    const Station *sx;
+    IndustryVector::const_iterator Ix;
+    const Industry *ix;
+    int lenInDiv,carsInDiv,carsToDiv;
+    string divisionName;
+    static char message[256];
+    char buffer[64];
 	
-	// Print system banner.
-	PrintSystemBanner(printer);
-	// Print report header
-	printer->PutLine();
-	printer->SetTypeSpacing(PrinterDevice::One);
-	printer->SetTypeSpacing(PrinterDevice::Double);
-	printer->Tab(10);
-	printer->PutLine(_("INDUSTRY Report"));
-	printer->SetTypeSpacing(PrinterDevice::Half);
-	printer->PutLine();
-	printer->PutLine();
+    // Print system banner.
+    PrintSystemBanner(printer);
+    // Print report header
+    printer->PutLine();
+    printer->SetTypeSpacing(PrinterDevice::One);
+    //printer->SetTypeSpacing(PrinterDevice::Double);
+    printer->SetTypeWeight(PrinterDevice::Bold);
+    printer->Tab(10);
+    printer->PutLine(_("INDUSTRY Report"));
+    printer->SetTypeSpacing(PrinterDevice::Half);
+    printer->PutLine();
+    printer->PutLine();
+    printer->SetTypeWeight(PrinterDevice::Normal);
 
-	// Print Industry header
-	PrintIndustryHeader(printer);
+    // Print Industry header
+    PrintIndustryHeader(printer);
 
-	// Print a dashed line
-	PrintDashedLine(printer);
+    // Print a dashed line
+    PrintDashedLine(printer);
 
-	// Start the progress meter.
-	WIP->ProgressStart(_("Industry Report In Progress..."));
-	tenth = 10.0 / (double)(divisions.size());
-	donePer = 0.0;
-	WIP->ProgressUpdate(0,_("0% Done"));
-	// For each division...
-	for (Dx = divisions.begin(); Dx != divisions.end(); Dx++) {
-	  donePer += tenth*10.0;
-	  sprintf(buffer,_("%6.2f%% Done"),donePer);
-	  WIP->ProgressUpdate((int)donePer,buffer);
-	  if ((Dx->second) == NULL) continue;	// Skip empty division slots
-	  dx = Dx->second;
-	  // Get division name and log it.
-	  divisionName = dx->Name();
-	  if (divisionName.size() == 0) continue;
-	  sprintf(message,_("Division: %s\n"),divisionName.c_str());
-	  Log->LogMessage(LogMessageCallback::Infomational,message);
-	  // Zero division totals.
-	  carsToDiv = 0;
-	  carsInDiv = 0;
-	  lenInDiv  = 0;
-	  // For ever station in this division...
-	  for (Sx = dx->stations.begin(); Sx != dx->stations.end(); Sx++) {
+    // Start the progress meter.
+    WIP->ProgressStart(_("Industry Report In Progress..."));
+    tenth = 10.0 / (double)(divisions.size());
+    donePer = 0.0;
+    WIP->ProgressUpdate(0,_("0% Done"));
+    // For each division...
+    for (Dx = divisions.begin(); Dx != divisions.end(); Dx++) {
+        donePer += tenth*10.0;
+        sprintf(buffer,_("%6.2f%% Done"),donePer);
+        WIP->ProgressUpdate((int)donePer,buffer);
+        if ((Dx->second) == NULL) continue;	// Skip empty division slots
+        dx = Dx->second;
+        // Get division name and log it.
+        divisionName = dx->Name();
+        if (divisionName.size() == 0) continue;
+        sprintf(message,_("Division: %s\n"),divisionName.c_str());
+        Log->LogMessage(LogMessageCallback::Infomational,message);
+        // Zero division totals.
+        carsToDiv = 0;
+        carsInDiv = 0;
+        lenInDiv  = 0;
+        // For ever station in this division...
+        for (Sx = dx->stations.begin(); Sx != dx->stations.end(); Sx++) {
 	    if (*Sx == NULL) continue;
 	    sx = *Sx;
 	    // For every industry at this station...
 	    for (Ix = sx->industries.begin(); Ix != sx->industries.end(); Ix++) {
-	      if (*Ix == NULL) continue;
-	      ix = *Ix;
-	      // Print this industry's information.
-	      PrintOneIndustry(ix,lenInDiv,carsInDiv,carsToDiv,Log,printer);
+                if (*Ix == NULL) continue;
+                ix = *Ix;
+                // Print this industry's information.
+                PrintOneIndustry(ix,lenInDiv,carsInDiv,carsToDiv,Log,printer);
 	    }
-	  }
-	  // Print division summary.
-	  printer->PutLine();
-	  sprintf(message,_("Totals for <%c> %s"),dx->Symbol(),dx->Name());
-	  printer->Put(message);
-	  printer->Tab(44);
-	  printer->Put("=============================>");
-	  printer->Tab(76);
-	  printer->Put(lenInDiv);
-	  printer->Tab(96);
-	  printer->Put(carsInDiv);
-	  printer->Tab(106);
-	  printer->Put(carsToDiv);
-	  printer->PutLine();
-	  printer->PutLine();
-	}
-	// Done.
-	WIP->ProgressDone(_("Done"));
-	PrintFormFeed(printer);
+        }
+        // Print division summary.
+        printer->PutLine();
+        sprintf(message,_("Totals for <%c> %s"),dx->Symbol(),dx->Name());
+        printer->Put(message);
+        printer->Tab(44);
+        printer->Put("=============================>");
+        printer->Tab(76);
+        printer->Put(lenInDiv);
+        printer->Tab(96);
+        printer->Put(carsInDiv);
+        printer->Tab(106);
+        printer->Put(carsToDiv);
+        printer->PutLine();
+        printer->PutLine();
+    }
+    // Done.
+    WIP->ProgressDone(_("Done"));
+    PrintFormFeed(printer);
 }
 
 
@@ -288,51 +290,55 @@ void System::ReportTrains(const WorkInProgressCallback *WIP,
 				      PrinterDevice          *printer,
 				char **outmessage) const
 {
-	double tenth, donePer;
-	TrainMap::const_iterator Tx;
-	const Train *tx;
-	static char message[256];
-	char buffer[64];
-
-	// System banner.
-	PrintSystemBanner(printer);
-
-	// Heading
-	printer->PutLine();
-	printer->SetTypeSpacing(PrinterDevice::One);
-	printer->SetTypeSpacing(PrinterDevice::Double);
-	printer->Tab(10);
-	printer->PutLine(_("TRAINS Report"));
-	printer->SetTypeSpacing(PrinterDevice::Half);
-	printer->PutLine();
-	printer->PutLine();
-
-	PrintDashedLine(printer);
-
-	// Start progress meter.
-	WIP->ProgressStart(_("TRAINS Report In Progress..."));
-	tenth = 10.0 / (double)(trains.size());
-	donePer = 0.0;
-	WIP->ProgressUpdate(0,_("0% Done"));
-
-	// For every train...
-	for (Tx = trains.begin(); Tx != trains.end(); Tx++) {
-	  donePer += tenth*10;
-	  sprintf(buffer,_("%6.2f%% Done"),donePer);
-	  WIP->ProgressUpdate((int)donePer,buffer);
-	  if ((Tx->second) == NULL) continue;
-	  tx = Tx->second;
-	  sprintf(message,_("%s\n"),tx->Name());
-	  Log->LogMessage(LogMessageCallback::Infomational,message);
-	  printer->PutLine();
-	  printer->SetTypeSpacing(PrinterDevice::One);
-	  printer->SetTypeSpacing(PrinterDevice::Double);
-	  printer->PutLine(tx->Name());
-	  PrintTrainOrders(tx,printer);	  
-	}
-	WIP->ProgressDone(_("Done"));
-	PrintFormFeed(printer);
-	
+    double tenth, donePer;
+    TrainMap::const_iterator Tx;
+    const Train *tx;
+    static char message[256];
+    char buffer[64];
+    
+    // System banner.
+    PrintSystemBanner(printer);
+    
+    // Heading
+    printer->PutLine();
+    printer->SetTypeSpacing(PrinterDevice::One);
+    //printer->SetTypeSpacing(PrinterDevice::Double);
+    printer->SetTypeWeight(PrinterDevice::Bold);
+    printer->Tab(10);
+    printer->PutLine(_("TRAINS Report"));
+    printer->SetTypeSpacing(PrinterDevice::Half);
+    printer->PutLine();
+    printer->PutLine();
+    printer->SetTypeWeight(PrinterDevice::Normal);
+    
+    PrintDashedLine(printer);
+    
+    // Start progress meter.
+    WIP->ProgressStart(_("TRAINS Report In Progress..."));
+    tenth = 10.0 / (double)(trains.size());
+    donePer = 0.0;
+    WIP->ProgressUpdate(0,_("0% Done"));
+    
+    // For every train...
+    for (Tx = trains.begin(); Tx != trains.end(); Tx++) {
+        donePer += tenth*10;
+        sprintf(buffer,_("%6.2f%% Done"),donePer);
+        WIP->ProgressUpdate((int)donePer,buffer);
+        if ((Tx->second) == NULL) continue;
+        tx = Tx->second;
+        sprintf(message,_("%s\n"),tx->Name());
+        Log->LogMessage(LogMessageCallback::Infomational,message);
+        printer->PutLine();
+        printer->SetTypeSpacing(PrinterDevice::One);
+        //printer->SetTypeSpacing(PrinterDevice::Double);
+        printer->SetTypeWeight(PrinterDevice::Bold);
+        printer->PutLine(tx->Name());
+        printer->SetTypeWeight(PrinterDevice::Normal);
+        PrintTrainOrders(tx,printer);	  
+    }
+    WIP->ProgressDone(_("Done"));
+    PrintFormFeed(printer);
+    
 }	
 
 /**************************************************************************
@@ -346,93 +352,95 @@ void System::ReportCars(const WorkInProgressCallback *WIP,
 				      PrinterDevice          *printer,
 				char **outmessage) const
 {
-	double tenth, donePer;
-	int done, totLines,ncOnB;
-	CarVector::const_iterator Cx;
-	const Car *car;
-	char buffer[64];
+    double tenth, donePer;
+    int done, totLines,ncOnB;
+    CarVector::const_iterator Cx;
+    const Car *car;
+    char buffer[64];
 
-	// System banner
-	PrintSystemBanner(printer);
+    // System banner
+    PrintSystemBanner(printer);
 
-	// Car report header
-	printer->PutLine();
-	printer->SetTypeSpacing(PrinterDevice::One);
-	printer->SetTypeSpacing(PrinterDevice::Double);
-	printer->Tab(10);
-	printer->PutLine(_("CARS Report"));
-	printer->SetTypeSpacing(PrinterDevice::Half);
-	printer->PutLine();
-	printer->PutLine();
+    // Car report header
+    printer->PutLine();
+    printer->SetTypeSpacing(PrinterDevice::One);
+    //printer->SetTypeSpacing(PrinterDevice::Double);
+    printer->SetTypeWeight(PrinterDevice::Bold);
+    printer->Tab(10);
+    printer->PutLine(_("CARS Report"));
+    printer->SetTypeSpacing(PrinterDevice::Half);
+    printer->PutLine();
+    printer->PutLine();
+    printer->SetTypeWeight(PrinterDevice::Normal);
 
-	totLines = 4;
+    totLines = 4;
 
-	// Car heading
-	PrintCarHeading(printer);
+    // Car heading
+    PrintCarHeading(printer);
 
-	// Start progress meter.
-	WIP->ProgressStart(_("CARS Report In Progress (Cars IN Service) ..."));
-	WIP->ProgressUpdate(0,_("0% Done"));
-	tenth = 100.0 / (double)(cars.size());
-	done=10;
-	donePer = 0.0;
-	// For every car...
-	for (Cx = cars.begin(); Cx != cars.end(); Cx++) {
-	  donePer += tenth;
-	  if (donePer > done) {
+    // Start progress meter.
+    WIP->ProgressStart(_("CARS Report In Progress (Cars IN Service) ..."));
+    WIP->ProgressUpdate(0,_("0% Done"));
+    tenth = 100.0 / (double)(cars.size());
+    done=10;
+    donePer = 0.0;
+    // For every car...
+    for (Cx = cars.begin(); Cx != cars.end(); Cx++) {
+        donePer += tenth;
+        if (donePer > done) {
 	    sprintf(buffer,_("%f%% Done"),donePer);
 	    // Update progress meter.
 	    WIP->ProgressUpdate((int)donePer,buffer);
 	    done += 10;
-	  }
-	  if (*Cx != NULL) {
+        }
+        if (*Cx != NULL) {
 	    // For non null car slots...
 	    car = *Cx;
 	    totLines++;
 	    // Check page overflow
 	    if (totLines > 55) {
-	      totLines = 0;
-	      PrintFormFeed(printer);
-	      PrintCarHeading(printer);
+                totLines = 0;
+                PrintFormFeed(printer);
+                PrintCarHeading(printer);
 	    }
 	    // Print this car's information
 	    PrintOneCarInfo(car,printer);
-	  }
-	}
-	totLines = 55;
-
-	// Process RIP track (workbench)
-	ncOnB = IndRipTrackConst()->cars.size();
-	if (ncOnB == 0) {
-	  WIP->ProgressDone(_("Done"));
-	  PrintFormFeed(printer);
-	  return;
-	}
-	tenth = 100.0 / ((double)ncOnB);
-	donePer = 0.0;
-	done = 10;
-	WIP->ProgressStart(_("CARS Report In Progress (Cars on workbench) ..."));
-	WIP->ProgressUpdate(0,"0% Done");
-	for (Cx = IndRipTrackConst()->cars.begin(); Cx != IndRipTrackConst()->cars.end(); Cx++) {
-	  donePer += tenth;
-	  if (donePer > done) {
+        }
+    }
+    totLines = 55;
+    
+    // Process RIP track (workbench)
+    ncOnB = IndRipTrackConst()->cars.size();
+    if (ncOnB == 0) {
+        WIP->ProgressDone(_("Done"));
+        PrintFormFeed(printer);
+        return;
+    }
+    tenth = 100.0 / ((double)ncOnB);
+    donePer = 0.0;
+    done = 10;
+    WIP->ProgressStart(_("CARS Report In Progress (Cars on workbench) ..."));
+    WIP->ProgressUpdate(0,"0% Done");
+    for (Cx = IndRipTrackConst()->cars.begin(); Cx != IndRipTrackConst()->cars.end(); Cx++) {
+        donePer += tenth;
+        if (donePer > done) {
 	    sprintf(buffer,_("%f%% Done"),donePer);
 	    WIP->ProgressUpdate((int)donePer,buffer);
 	    done += 10;
-	  }
-	  if (*Cx != NULL) {
+        }
+        if (*Cx != NULL) {
 	    car = *Cx;
 	    totLines++;
 	    if (totLines > 55) {
-	      totLines = 0;
-	      PrintFormFeed(printer);
-	      PrintCarHeading(printer);
+                totLines = 0;
+                PrintFormFeed(printer);
+                PrintCarHeading(printer);
 	    }
 	    PrintOneCarInfo(car,printer);
-	  }
-	}
-	WIP->ProgressDone(_("Done"));
-	PrintFormFeed(printer);
+        }
+    }
+    WIP->ProgressDone(_("Done"));
+    PrintFormFeed(printer);
 }
 
 /**************************************************************************
@@ -443,24 +451,24 @@ void System::ReportCars(const WorkInProgressCallback *WIP,
 
 void System::PrintCarHeading(PrinterDevice *printer) const
 {
-	printer->SetTypeSpacing(PrinterDevice::Half);
-	printer->PutLine();
-	printer->Put(_("RR"));
-	printer->Tab(11);
-	printer->Put(_("NUMBER"));
-	printer->Tab(20);
-	printer->Put(_("LEN"));
-	printer->Tab(25);
-	printer->Put(_("CAR TYPE"));
-	printer->Tab(56);
-	printer->Put(_("L/E"));
-	printer->Tab(60);
-	printer->Put(_("CUR STATION"));
-	printer->Tab(84);
-	printer->Put(_("LOCATION"));
-	printer->Tab(110);
-	printer->PutLine(_("DEST INDUSTRY"));
-	PrintDashedLine(printer);
+    printer->SetTypeSpacing(PrinterDevice::Half);
+    printer->PutLine();
+    printer->Put(_("RR"));
+    printer->Tab(11);
+    printer->Put(_("NUMBER"));
+    printer->Tab(20);
+    printer->Put(_("LEN"));
+    printer->Tab(25);
+    printer->Put(_("CAR TYPE"));
+    printer->Tab(56);
+    printer->Put(_("L/E"));
+    printer->Tab(60);
+    printer->Put(_("CUR STATION"));
+    printer->Tab(84);
+    printer->Put(_("LOCATION"));
+    printer->Tab(110);
+    printer->PutLine(_("DEST INDUSTRY"));
+    PrintDashedLine(printer);
 }
 
 /**************************************************************************
@@ -471,33 +479,33 @@ void System::PrintCarHeading(PrinterDevice *printer) const
 
 void System::PrintOneCarInfo(const Car *car,PrinterDevice *printer) const
 {
-	CarTypeMap::const_iterator Ct;
-	// Reporting marks
-	printer->Put(car->Marks());
-	printer->Tab(11);
-	// Car number
-	printer->Put(car->Number());
-	printer->Tab(20);
-	// Car length
-	printer->Put(car->Length());
-	printer->Tab(25);
-	// Car type
-	Ct = carTypes.find(car->Type());
-	if (Ct != carTypes.end() && (Ct->second) != NULL) {
-		printer->Put((Ct->second)->Type());
-	}
-	printer->Tab(56);
-	// Loaded or empty?
-	if (car->LoadedP()) printer->Put('L');
-	else printer->Put('E');
-	// Where the car is
-	printer->Tab(60);
-	printer->Put(car->Location()->MyStation()->Name());
-	printer->Tab(84);
-	printer->Put(car->Location()->Name());
-	printer->Tab(110);
-	// Where it is going.
-	printer->PutLine(car->Destination()->Name());
+    CarTypeMap::const_iterator Ct;
+    // Reporting marks
+    printer->Put(car->Marks());
+    printer->Tab(11);
+    // Car number
+    printer->Put(car->Number());
+    printer->Tab(20);
+    // Car length
+    printer->Put(car->Length());
+    printer->Tab(25);
+    // Car type
+    Ct = carTypes.find(car->Type());
+    if (Ct != carTypes.end() && (Ct->second) != NULL) {
+        printer->Put((Ct->second)->Type());
+    }
+    printer->Tab(56);
+    // Loaded or empty?
+    if (car->LoadedP()) printer->Put('L');
+    else printer->Put('E');
+    // Where the car is
+    printer->Tab(60);
+    printer->Put(car->Location()->MyStation()->Name());
+    printer->Tab(84);
+    printer->Put(car->Location()->Name());
+    printer->Tab(110);
+    // Where it is going.
+    printer->PutLine(car->Destination()->Name());
 }
 
 
@@ -512,60 +520,62 @@ void System::ReportCarsNotMoved(const WorkInProgressCallback *WIP,
 				      PrinterDevice          *printer,
 				char **outmessage) const
 {
-	double tenth, donePer;
-	int done, totLines/*,ncOnB*/;
-	CarVector::const_iterator Cx;
-	const Car *car;
-	IndustryMap::const_iterator Ix;
-	const Industry *ix;
-	char buffer[64];
+    double tenth, donePer;
+    int done, totLines/*,ncOnB*/;
+    CarVector::const_iterator Cx;
+    const Car *car;
+    IndustryMap::const_iterator Ix;
+    const Industry *ix;
+    char buffer[64];
 
-	PrintSystemBanner(printer);
+    PrintSystemBanner(printer);
 
-	printer->PutLine();
-	printer->SetTypeSpacing(PrinterDevice::One);
-	printer->SetTypeSpacing(PrinterDevice::Double);
-	printer->Tab(10);
-	printer->PutLine("CARS NOT MOVED Report");
-	printer->SetTypeSpacing(PrinterDevice::Half);
-	printer->PutLine();
-	printer->PutLine();
-
-	totLines = 4;
-
-	PrintCarHeading(printer);
-
-	WIP->ProgressStart(_("CARS NOT MOVED Report In Progress ..."));
-	WIP->ProgressUpdate(0,_("0% Done"));
-	tenth = 100.0 / (double)(industries.size());
-	done=10;
-	donePer = 0.0;
-	for (Ix = industries.begin(); Ix != industries.end(); Ix++) {
-	  donePer += tenth;
-	  if (donePer > done) {
+    printer->PutLine();
+    printer->SetTypeSpacing(PrinterDevice::One);
+    //printer->SetTypeSpacing(PrinterDevice::Double);
+    printer->SetTypeWeight(PrinterDevice::Bold);
+    printer->Tab(10);
+    printer->PutLine("CARS NOT MOVED Report");
+    printer->SetTypeSpacing(PrinterDevice::Half);
+    printer->PutLine();
+    printer->PutLine();
+    printer->SetTypeWeight(PrinterDevice::Normal);
+    
+    totLines = 4;
+    
+    PrintCarHeading(printer);
+    
+    WIP->ProgressStart(_("CARS NOT MOVED Report In Progress ..."));
+    WIP->ProgressUpdate(0,_("0% Done"));
+    tenth = 100.0 / (double)(industries.size());
+    done=10;
+    donePer = 0.0;
+    for (Ix = industries.begin(); Ix != industries.end(); Ix++) {
+        donePer += tenth;
+        if (donePer > done) {
 	    sprintf(buffer,_("%f%% Done"),donePer);
 	    WIP->ProgressUpdate((int)donePer,buffer);
 	    done += 10;
-	  }
-	  if (Ix->second == NULL) continue;
-	  if (Ix->first  == 0) continue;
-	  ix = Ix->second;
-	  for (Cx = ix->cars.begin(); Cx != ix->cars.end(); Cx++) {
+        }
+        if (Ix->second == NULL) continue;
+        if (Ix->first  == 0) continue;
+        ix = Ix->second;
+        for (Cx = ix->cars.begin(); Cx != ix->cars.end(); Cx++) {
 	    if (*Cx == NULL) continue;
 	    car = *Cx;
 	    if (car->MovementsThisSession() == 0) {
-	      totLines++;
-	      if (totLines > 55) {
-	      	totLines = 0;
-		PrintFormFeed(printer);
-		PrintCarHeading(printer);
-	      }
-	      PrintOneCarInfo(car,printer);
+                totLines++;
+                if (totLines > 55) {
+                    totLines = 0;
+                    PrintFormFeed(printer);
+                    PrintCarHeading(printer);
+                }
+                PrintOneCarInfo(car,printer);
 	    }
-	  }
-	}
-	WIP->ProgressDone(_("Done"));
-	PrintFormFeed(printer);
+        }
+    }
+    WIP->ProgressDone(_("Done"));
+    PrintFormFeed(printer);
 }
 
 /**************************************************************************
@@ -628,15 +638,17 @@ void System::ReportCarTypes(CarTypeReport rtype, char carType,
 
 void System::PrintCarTypesHeader(PrinterDevice *printer) const
 {
-	PrintSystemBanner(printer);
-	printer->PutLine();
-	printer->SetTypeSpacing(PrinterDevice::One);
-	printer->SetTypeSpacing(PrinterDevice::Double);
-	printer->Tab(12);
-	printer->PutLine(_("CAR TYPE Report"));
-	printer->SetTypeSpacing(PrinterDevice::Half);
-	printer->PutLine();
-	printer->PutLine();
+    PrintSystemBanner(printer);
+    printer->PutLine();
+    printer->SetTypeSpacing(PrinterDevice::One);
+    //printer->SetTypeSpacing(PrinterDevice::Double);
+    printer->SetTypeWeight(PrinterDevice::Bold);
+    printer->Tab(12);
+    printer->PutLine(_("CAR TYPE Report"));
+    printer->SetTypeSpacing(PrinterDevice::Half);
+    printer->PutLine();
+    printer->PutLine();
+    printer->SetTypeWeight(PrinterDevice::Normal);
 }
 
 /**************************************************************************
@@ -1049,17 +1061,20 @@ void System::ReportLocAll(bool printBench,
 
 void System::PrintLocCommon(PrinterDevice          *printer)
 {
-	GetIndustryCarCounts();
-
-	PrintSystemBanner(printer);
-	printer->PutLine();
-	printer->SetTypeSpacing(PrinterDevice::One);
-	printer->SetTypeSpacing(PrinterDevice::Double);
-	printer->Tab(10);
-	printer->PutLine(_("CAR LOCATION Report"));
-	printer->SetTypeSpacing(PrinterDevice::Half);
-	printer->PutLine();
-	printer->PutLine();
+    GetIndustryCarCounts();
+    
+    PrintSystemBanner(printer);
+    printer->PutLine();
+    printer->SetTypeSpacing(PrinterDevice::One);
+    //printer->SetTypeSpacing(PrinterDevice::Double);
+    printer->SetTypeWeight(PrinterDevice::Bold);
+    printer->Tab(10);
+    printer->PutLine(_("CAR LOCATION Report"));
+    printer->SetTypeSpacing(PrinterDevice::Half);
+    printer->PutLine();
+    printer->PutLine();
+    printer->SetTypeWeight(PrinterDevice::Normal);
+    printer->SetTypeSpacing(PrinterDevice::One);
 }
 
 /**************************************************************************
@@ -1152,99 +1167,102 @@ void System::ReportAnalysis(const WorkInProgressCallback *WIP,
 				      PrinterDevice          *printer,
 				char **outmessage) const
 {
-	int grandTotalCarsToDiv, icount, analysisIndustriesCount;
-	int carsToDiv;
-	DivisionMap::const_iterator Dx;
-	const Division *dx;
-	IndustryVector::const_iterator Ix;
-	const Industry *ix;
-	StationVector::const_iterator Sx;
-	const Station *sx;
-	string dname;
-	double tenth, donePer;
-	char buffer[64];
-	static char message[256];
-	
-	PrintSystemBanner(printer);
+    int grandTotalCarsToDiv, icount, analysisIndustriesCount;
+    int carsToDiv;
+    DivisionMap::const_iterator Dx;
+    const Division *dx;
+    IndustryVector::const_iterator Ix;
+    const Industry *ix;
+    StationVector::const_iterator Sx;
+    const Station *sx;
+    string dname;
+    double tenth, donePer;
+    char buffer[64];
+    static char message[256];
+    
+    PrintSystemBanner(printer);
+    
+    printer->PutLine();
+    PrintSystemBanner(printer);
+    printer->PutLine();
+    printer->SetTypeSpacing(PrinterDevice::One);
+    //printer->SetTypeSpacing(PrinterDevice::Double);
+    printer->SetTypeWeight(PrinterDevice::Bold);
+    printer->Tab(6);
+    printer->PutLine(_("Industry Utilization Analysis"));
+    printer->SetTypeSpacing(PrinterDevice::One);
+    //printer->SetTypeSpacing(PrinterDevice::Double);
+    printer->SetTypeWeight(PrinterDevice::Bold);
+    printer->Tab(15);
+    printer->Put(_("Shifts = ")); printer->Put(statsPeriod);
+    printer->PutLine();
+    printer->PutLine();
+    printer->SetTypeSpacing(PrinterDevice::Half);
+    printer->PutLine();
+    printer->PutLine();
+    printer->SetTypeWeight(PrinterDevice::Normal);              
+    
+    PrintAnalysisHeader(printer);
 
-	printer->PutLine();
-	PrintSystemBanner(printer);
-	printer->PutLine();
-	printer->SetTypeSpacing(PrinterDevice::One);
-	printer->SetTypeSpacing(PrinterDevice::Double);
-	printer->Tab(6);
-	printer->PutLine(_("Industry Utilization Analysis"));
-	printer->SetTypeSpacing(PrinterDevice::One);
-	printer->SetTypeSpacing(PrinterDevice::Double);
-	printer->Tab(15);
-	printer->Put(_("Shifts = ")); printer->Put(statsPeriod);
-	printer->PutLine();
-	printer->PutLine();
-	printer->SetTypeSpacing(PrinterDevice::Half);
-	printer->PutLine();
-	printer->PutLine();
+    PrintDashedLine(printer);
 
-	PrintAnalysisHeader(printer);
+    grandTotalCarsToDiv = 0;
 
-	PrintDashedLine(printer);
+    icount = 0;
 
-	grandTotalCarsToDiv = 0;
+    analysisIndustriesCount = 0;
 
-	icount = 0;
-
-	analysisIndustriesCount = 0;
-
-	for (Dx = divisions.begin(); Dx != divisions.end(); Dx++) {
-	  if ((dx = Dx->second) == NULL) continue;
-	  if ((dname=dx->Name()).size() == 0) continue;
-	  for (Sx = dx->stations.begin(); Sx != dx->stations.end(); Sx++) {
+    for (Dx = divisions.begin(); Dx != divisions.end(); Dx++) {
+        if ((dx = Dx->second) == NULL) continue;
+        if ((dname=dx->Name()).size() == 0) continue;
+        for (Sx = dx->stations.begin(); Sx != dx->stations.end(); Sx++) {
 	    if ((sx = *Sx) == NULL) continue;
 	    analysisIndustriesCount += sx->industries.size();
-	  }
-	}
-	tenth = 100.0 / ((double)analysisIndustriesCount);
-	WIP->ProgressStart(_("INDUSTRY Utilization Analysis in progress"));
-	WIP->ProgressUpdate(0,_("0% Done"));
-	for (Dx = divisions.begin(); Dx != divisions.end(); Dx++) {
-	  if ((dx = Dx->second) == NULL) continue;
-	  if ((dname=dx->Name()).size() == 0) continue;
-	  carsToDiv = 0;
-	  printer->PutLine();
-	  for (Sx = dx->stations.begin(); Sx != dx->stations.end(); Sx++) {
+        }
+    }
+    tenth = 100.0 / ((double)analysisIndustriesCount);
+    WIP->ProgressStart(_("INDUSTRY Utilization Analysis in progress"));
+    WIP->ProgressUpdate(0,_("0% Done"));
+    for (Dx = divisions.begin(); Dx != divisions.end(); Dx++) {
+        if ((dx = Dx->second) == NULL) continue;
+        if ((dname=dx->Name()).size() == 0) continue;
+        carsToDiv = 0;
+        printer->PutLine();
+        for (Sx = dx->stations.begin(); Sx != dx->stations.end(); Sx++) {
 	    if ((sx = *Sx) == NULL) continue;
 	    for (Ix = sx->industries.begin(); Ix != sx->industries.end(); Ix++) {
-	      icount++;
-	      donePer = icount * tenth;
-	      if ((ix = *Ix) == NULL) continue;
-	      //sprintf(message,_("Analysis of %s: %s: %s"),dname.c_str(),sx->Name(),ix->Name());
-	      PrintOneAnalysis(ix,carsToDiv,Log,printer);
-	      sprintf(buffer,_("%f%% Done"),donePer);
-	      WIP->ProgressUpdate((int)donePer,buffer);
+                icount++;
+                donePer = icount * tenth;
+                if ((ix = *Ix) == NULL) continue;
+                //sprintf(message,_("Analysis of %s: %s: %s"),dname.c_str(),sx->Name(),ix->Name());
+                PrintOneAnalysis(ix,carsToDiv,Log,printer);
+                sprintf(buffer,_("%f%% Done"),donePer);
+                WIP->ProgressUpdate((int)donePer,buffer);
 	    }
-	  }
-	  grandTotalCarsToDiv += carsToDiv;
-	  printer->PutLine();
-	  sprintf(message,_("==========  <%c> %s local industries summary --------"),dx->Symbol(),dname.c_str());
-	  printer->Put(message);
-	  printer->Tab(76);
-	  printer->Put(carsToDiv);
-	  printer->Tab(85);
-	  sprintf(buffer,"%7.2f",((double)carsToDiv)/((double)statsPeriod));
-	  printer->Put(buffer);
-	  printer->Tab(98);
-	  printer->PutLine(string('-',28));
-	}
-	printer->PutLine();
-	printer->Put(_("==========  Grand Total all divisions  ========================"));
-	printer->Tab(76);
-	printer->Put(grandTotalCarsToDiv);
-	printer->Tab(85);
-	sprintf(buffer,"%7.2f",((double)grandTotalCarsToDiv)/((double)statsPeriod));
-	printer->Put(buffer);
-	printer->Tab(98);
-	printer->PutLine(string('-',28));
-	PrintFormFeed(printer);
-	WIP->ProgressDone(_("Done"));
+        }
+        grandTotalCarsToDiv += carsToDiv;
+        printer->PutLine();
+        sprintf(message,_("==========  <%c> %s local industries summary --------"),dx->Symbol(),dname.c_str());
+        printer->Put(message);
+        printer->Tab(76);
+        printer->Put(carsToDiv);
+        printer->Tab(85);
+        sprintf(buffer,"%7.2f",((double)carsToDiv)/((double)statsPeriod));
+        printer->Put(buffer);
+        printer->Tab(98);
+        printer->PutLine(string('-',28));
+    }
+    printer->PutLine();
+    printer->Put(_("==========  Grand Total all divisions  ========================"));
+    printer->Tab(76);
+    printer->Put(grandTotalCarsToDiv);
+    printer->Tab(85);
+    sprintf(buffer,"%7.2f",((double)grandTotalCarsToDiv)/((double)statsPeriod));
+    printer->Put(buffer);
+    printer->Tab(98);
+    printer->PutLine(string('-',28));
+    PrintFormFeed(printer);
+    WIP->ProgressDone(_("Done"));
 }
 
 /**************************************************************************
@@ -1259,54 +1277,56 @@ void System::ReportCarOwners(string ownerInitials,
 				   PrinterDevice          *printer,
 			     char **outmessage) const
 {
-	OwnerMap::const_iterator Ox;
-	Owner *ox;
-	int done;
-	double tenth, donePer;
-	CarVector::const_iterator Cx;
-	const Car *car;
-	int carsOwned;
-	char buffer[32];
-	string message;
-	string ownerName = ownerInitials;
-
-	Ox = owners.find(ownerInitials);
-	if (Ox == owners.end()) return;
-	if ((ox = Ox->second) == NULL) return;
-	ownerName = ox->Name();
-	carsOwned = 0;
-
-	message  = _("CAR OWNER Report -- ");
-	message += ownerInitials;
-	message += "\n(";
-	message += ownerName;
-	message += ")";
-	WIP->ProgressStart(message);
-	tenth = 100.0 / (double)(cars.size());
-	done  = 10;
-	donePer = 0;
-	for (Cx = cars.begin(); Cx != cars.end(); Cx++) {
-	  donePer += tenth;
-	  if (donePer > done) {
+    OwnerMap::const_iterator Ox;
+    Owner *ox;
+    int done;
+    double tenth, donePer;
+    CarVector::const_iterator Cx;
+    const Car *car;
+    int carsOwned;
+    char buffer[32];
+    string message;
+    string ownerName = ownerInitials;
+    
+    Ox = owners.find(ownerInitials);
+    if (Ox == owners.end()) return;
+    if ((ox = Ox->second) == NULL) return;
+    ownerName = ox->Name();
+    carsOwned = 0;
+    
+    message  = _("CAR OWNER Report -- ");
+    message += ownerInitials;
+    message += "\n(";
+    message += ownerName;
+    message += ")";
+    WIP->ProgressStart(message);
+    tenth = 100.0 / (double)(cars.size());
+    done  = 10;
+    donePer = 0;
+    for (Cx = cars.begin(); Cx != cars.end(); Cx++) {
+        donePer += tenth;
+        if (donePer > done) {
 	    sprintf(buffer,_("%f%% Done"),donePer);
 	    WIP->ProgressUpdate((int)donePer,buffer);
 	    done += 10;
-	  }
-	  if ((car = *Cx) == NULL) continue;
-	  if (car->owner == ox) {
+        }
+        if ((car = *Cx) == NULL) continue;
+        if (car->owner == ox) {
 	    carsOwned++;
 	    if (carsOwned == 1) {
-	      PrintSystemBanner(printer);
-	      printer->PutLine();
-	      printer->SetTypeSpacing(PrinterDevice::One);
-	      printer->SetTypeSpacing(PrinterDevice::Double);
-	      printer->Tab(10);
-	      printer->Put(_("CAR OWNER Report -- "));
-	      printer->Put(ownerName);
-	      printer->SetTypeSpacing(PrinterDevice::Half);
-	      printer->PutLine();
-	      printer->PutLine();
-	      PrintDashedLine(printer);
+                PrintSystemBanner(printer);
+                printer->PutLine();
+                printer->SetTypeSpacing(PrinterDevice::One);
+                //printer->SetTypeSpacing(PrinterDevice::Double);
+                printer->SetTypeWeight(PrinterDevice::Bold);
+                printer->Tab(10);
+                printer->Put(_("CAR OWNER Report -- "));
+                printer->Put(ownerName);
+                printer->SetTypeSpacing(PrinterDevice::Half);
+                printer->PutLine();
+                printer->PutLine();
+                printer->SetTypeWeight(PrinterDevice::Normal);
+                PrintDashedLine(printer);
 	    }
 	    printer->Put(carsOwned);
 	    printer->Tab(8);
@@ -1320,21 +1340,21 @@ void System::ReportCarOwners(string ownerInitials,
 	    printer->Put(car->Length());
 	    printer->Tab(37);
 	    {
-	      string typeName;
-	      CarTypeMap::const_iterator Ct = carTypes.find(car->Type());
-	      if (Ct == carTypes.end()) typeName = _("Unknown");
-	      else if ((Ct->second) == NULL) typeName = _("Unknown");
-	      else typeName = (Ct->second)->Type();
-	      printer->Put(typeName);
+                string typeName;
+                CarTypeMap::const_iterator Ct = carTypes.find(car->Type());
+                if (Ct == carTypes.end()) typeName = _("Unknown");
+                else if ((Ct->second) == NULL) typeName = _("Unknown");
+                else typeName = (Ct->second)->Type();
+                printer->Put(typeName);
 	    }
 	    printer->Tab(70);
 	    printer->Put(_("at ")); printer->Put(car->Location()->Name());
 	    printer->Tab(96);
 	    printer->Put(_("dest ")); printer->PutLine(car->Destination()->Name());
-	  }
-	}
-	if (carsOwned > 0) PrintFormFeed(printer);
-	WIP->ProgressDone(_("Done"));
+        }
+    }
+    if (carsOwned > 0) PrintFormFeed(printer);
+    WIP->ProgressDone(_("Done"));
 }
 
 /**************************************************************************

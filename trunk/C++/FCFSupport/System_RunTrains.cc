@@ -362,7 +362,8 @@ void System::PrintAllLists(const LogMessageCallback     *Log,
 		    sprintf(tempBuffer,_("Pickup Report for Train %s\n"),tx->Name());
 		    Log->LogMessage(LogMessageCallback::Infomational,tempBuffer);
 		    printer->SetTypeSpacing(PrinterDevice::One);
-		    printer->SetTypeSpacing(PrinterDevice::Double);
+                    //printer->SetTypeSpacing(PrinterDevice::Double);
+                    printer->SetTypeWeight(PrinterDevice::Bold);
 		    printer->Put(tx->Name());
 		    printer->Tab(12);
 		    printer->Put(_("pickups = "));
@@ -375,7 +376,9 @@ void System::PrintAllLists(const LogMessageCallback     *Log,
 		    printer->Tab(64); printer->Put(_("Next Stop"));
 		    printer->Tab(94); printer->Put(_("Last Train"));
 		    printer->Tab(106); printer->PutLine(_("Destination"));
-		    printer->PutLine("");
+                    printer->PutLine("");
+                    printer->SetTypeSpacing(PrinterDevice::One);
+                    printer->SetTypeWeight(PrinterDevice::Normal);
 		    lineRem -= 5;
 //		 Print cars in train-block order!!
 //		----------------------------------
@@ -484,7 +487,8 @@ void System::PrintAllLists(const LogMessageCallback     *Log,
 		    sprintf(tempBuffer,_("Drop Report for Train %s\n"),tx->Name());
 		    Log->LogMessage(LogMessageCallback::Infomational,tempBuffer);
 		    printer->SetTypeSpacing(PrinterDevice::One);
-		    printer->SetTypeSpacing(PrinterDevice::Double);
+		    //printer->SetTypeSpacing(PrinterDevice::Double);
+                    printer->SetTypeWeight(PrinterDevice::Bold);
 		    printer->Put(tx->Name());
 		    printer->Tab(12);
 		    printer->Put(_("dropoffs = "));
@@ -497,6 +501,8 @@ void System::PrintAllLists(const LogMessageCallback     *Log,
 		    printer->Tab(64); printer->Put(_("Destination"));
 		    printer->Tab(92); printer->PutLine(_("Next Train -- this session!"));
 		    printer->PutLine("");
+                    printer->SetTypeSpacing(PrinterDevice::One);
+                    printer->SetTypeWeight(PrinterDevice::Normal);
 		    lineRem -= 5;
 //		 Print cars in alphabetical order!!
 //		-----------------------------------
@@ -1753,19 +1759,21 @@ void System::PrintFormFeed(PrinterDevice *printer) const
 
 void System::PrintSystemBanner(PrinterDevice *printer) const
 {
-	printer->SetTypeSpacing(PrinterDevice::One);
-	printer->SetTypeSpacing(PrinterDevice::Double);
-	printer->Put(UpperCase(systemName));
-	int strLen = systemName.size();
-	if (strLen < 18) printer->Put(string(18-strLen,' '));
-	printer->Put(_(" Session "));
-	printer->Put(sessionNumber);
-	printer->Put(": ");
-	printer->Put(shiftNumber);
-	printer->Put("  ");
-	printer->PutLine(Today());
-	printer->SetTypeSpacing(PrinterDevice::One);
-	printer->PutLine("");	
+    printer->SetTypeSpacing(PrinterDevice::One);
+    //printer->SetTypeSpacing(PrinterDevice::Double);
+    printer->SetTypeWeight(PrinterDevice::Bold);
+    printer->Put(UpperCase(systemName));
+    int strLen = systemName.size();
+    if (strLen < 18) printer->Put(string(18-strLen,' '));
+    printer->Put(_(" Session "));
+    printer->Put(sessionNumber);
+    printer->Put(": ");
+    printer->Put(shiftNumber);
+    printer->Put("  ");
+    printer->PutLine(Today());
+    printer->SetTypeSpacing(PrinterDevice::One);
+    printer->PutLine("");	
+    printer->SetTypeWeight(PrinterDevice::Normal);
 }
 
 /*************************************************************************
@@ -1873,7 +1881,8 @@ void System::PrintDispatcher(string banner,char trainType,PrinterDevice *printer
 	PrintSystemBanner(printer);
 	printer->PutLine("");
 	printer->SetTypeSpacing(PrinterDevice::One);
-	printer->SetTypeSpacing(PrinterDevice::Double);
+    //printer->SetTypeSpacing(PrinterDevice::Double);
+    printer->SetTypeWeight(PrinterDevice::Bold);
 	printer->Tab(6);
 	printer->Put(_("DISPATCHER Report - "));printer->PutLine(banner);
 	printer->SetTypeSpacing(PrinterDevice::Half);
@@ -1895,31 +1904,35 @@ void System::PrintDispatcher(string banner,char trainType,PrinterDevice *printer
 
 	PrintDashedLine(printer);
 
-	printer->PutLine("");
+    printer->PutLine("");
+    printer->SetTypeWeight(PrinterDevice::Normal);
 
-	for (Tx = trains.begin(); Tx != trains.end(); Tx++) {
-	  if ((Tx->second) == NULL) continue;
-	  tx = Tx->second;
-	  if (tx->Shift() == shiftNumber) {
+    for (Tx = trains.begin(); Tx != trains.end(); Tx++) {
+        if ((Tx->second) == NULL) continue;
+        tx = Tx->second;
+        if (tx->Shift() == shiftNumber) {
 	    if (tx->Type() == trainType) {
-	      total = 0;
-	      for (Gx = 0; Gx < switchList.PickIndex(); Gx++) {
-	      	if (switchList.PickTrainEq(Gx,tx)) total++;
-	      }
-	      if (total == 0) continue;
-
-	      printer->SetTypeSpacing(PrinterDevice::One);
-	      printer->SetTypeSpacing(PrinterDevice::Double);
-	      printer->Put(tx->Name());
-	      printer->Tab(8);
-	      printer->Put("______ __ _____ __/__ __/__  ");
-	      printer->Put(total);
-	      printer->PutLine("");
-	      printer->PutLine("");
+                total = 0;
+                for (Gx = 0; Gx < switchList.PickIndex(); Gx++) {
+                    if (switchList.PickTrainEq(Gx,tx)) total++;
+                }
+                if (total == 0) continue;
+                
+                printer->SetTypeSpacing(PrinterDevice::One);
+                //printer->SetTypeSpacing(PrinterDevice::Double);
+                printer->SetTypeWeight(PrinterDevice::Bold);
+                printer->Put(tx->Name());
+                printer->Tab(8);
+                printer->Put("______ __ _____ __/__ __/__  ");
+                printer->Put(total);
+                printer->PutLine("");
+                printer->PutLine("");
+                printer->SetTypeWeight(PrinterDevice::Normal);
+                printer->SetTypeSpacing(PrinterDevice::One);
 	    }
-	  }
-	}
-	PrintFormFeed(printer);
+        }
+    }
+    PrintFormFeed(printer);
 }
 
 
