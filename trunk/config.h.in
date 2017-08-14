@@ -191,6 +191,9 @@
    _GNU_SOURCE is defined. */
 #undef HAVE_NL_LOCALE_NAME
 
+/* Indicates if we have PANGO and CAIRO */
+#undef HAVE_PANGOCAIRO
+
 /* Define if your printf() function supports format strings with positions. */
 #undef HAVE_POSIX_PRINTF
 

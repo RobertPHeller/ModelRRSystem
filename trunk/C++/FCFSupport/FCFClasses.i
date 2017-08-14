@@ -58,6 +58,9 @@
 #include <LQ24Printer.h>
 #include <PostScriptPrinter.h>
 #include <PDFPrinter.h>
+#ifdef HAVE_PANGOCAIRO
+#include <PANGOCAIROPrinter.h>
+#endif
 #include "../gettext.h"
 #include <assert.h>
 static char rcsid[] = "$Id$";
@@ -103,6 +106,8 @@ SWIGEXPORT int Fcfclasses_SafeInit(Tcl_Interp *);
 
 #endif
 
+#include config.h
+
 %include Division.h
 
 %include Station.h
@@ -128,6 +133,6 @@ SWIGEXPORT int Fcfclasses_SafeInit(Tcl_Interp *);
 %include PostScriptPrinter.h
 %include PDFPrinter.h
 /*%include PCLPrinter.h*/
-
-
-
+#ifdef HAVE_PANGOCAIRO
+%include PANGOCAIROPrinter.h
+#endif

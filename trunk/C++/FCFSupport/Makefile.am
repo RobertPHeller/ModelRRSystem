@@ -77,12 +77,12 @@
 
 pkgincludedir = $(includedir)/$(PACKAGE)/FCFSupport
 
+lib_LTLIBRARIES = libfcfclasses.la
 pkginclude_HEADERS = System.h Division.h Station.h Common.h PathName.h \
 			Train.h Industry.h CarType.h Owner.h Car.h \
 			SwitchList.h CallBack.h Printer.h TextPrinter.h \
 			LQ24Printer.h PostScriptPrinter.h PDFPrinter.h \
-			PDFPrinterSupport.h
-lib_LTLIBRARIES = libfcfclasses.la
+			PDFPrinterSupport.h PANGOCAIROPrinter.h
 libfcfclasses_la_SOURCES = System.cc System_ReadDivisions.cc \
 			   System_ReadStations.cc System_ReadTrains.cc \
 			   System_ReadIndustries.cc System_ReadTrainOrders.cc \
@@ -94,7 +94,8 @@ libfcfclasses_la_SOURCES = System.cc System_ReadDivisions.cc \
 			   SwitchList.cc \
 			   PathName.cc TextPrinter.cc LQ24Printer.cc \
 			   PostScriptPrinter.cc PDFPrinter.cc \
-			   PDFPrinterSupport.cc $(pkginclude_HEADERS) \
+			   PDFPrinterSupport.cc PANGOCAIROPrinter.cc \
+			   $(pkginclude_HEADERS) \
 			   ../gettext.h
 libfcfclasses_la_XGETTEXTFILES = $(libfcfclasses_la_SOURCES)
 nodist_libfcfclasses_la_SOURCES = FCFClasses_wrap.cc ../gettext.c
@@ -104,17 +105,22 @@ else
 libfcfclasses_la_LDFLAGS = -g -version-info 0:0:0 $(TCL_STUB_LIB_SPEC)
 endif
 INCLUDES = -I$(top_builddir) -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)  
-libfcfclasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) -Wall $(KIT_EXTRA_CFLAGS)
-libfcfclasses_la_LIBADD   = $(LTLIBOBJS) $(INTLLIBS) $(TCL_STUB_LIB_SPEC)
+libfcfclasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) -Wall $(KIT_EXTRA_CFLAGS) $(PANGO_CAIRO_CFLAGS) $(CAIRO_PDF_CFLAGS)
+libfcfclasses_la_LIBADD   = $(LTLIBOBJS) $(INTLLIBS) $(CAIRO_PDF_LIBS) $(PANGO_CAIRO_LIBS) $(TCL_STUB_LIB_SPEC) 
 
 BUILT_SOURCES = FCFClasses_wrap.cc System.h
 noinst_SCRIPTS = pkgIndex.tcl
 noinst_DATA = FCFClasses.potlist
 
 EXTRA_DIST = FCFSupportGroup.h FCFClasses.i System.h.in
+
 CLEANFILES = $(BUILT_SOURCES) pkgIndex.tcl FCFClasses.potlist
 
+if HAVE_PANGOCAIRO
+SWIG_FLAGS = -tcl8 $(INCLUDES) '-DHAVE_PANGOCAIRO="1"'
+else
 SWIG_FLAGS = -tcl8 $(INCLUDES)
+endif
 
 FCFClasses_wrap.cc : FCFClasses.i $(pkginclude_HEADERS) \
 		$(top_builddir)/config.status
