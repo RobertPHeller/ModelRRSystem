@@ -240,6 +240,19 @@ else
   AC_MSG_ERROR([You don't have libusb-1.0 installed!])
 fi
 
+PKG_CHECK_EXISTS([cairo-pdf pangocairo],[have_pangocairo="yes"],[have_pangocairo="no"])
+if test ${have_pangocairo} = "yes"; then
+  AC_DEFINE(HAVE_PANGOCAIRO,1,[Indicates if we have PANGO and CAIRO])
+  PKG_CHECK_MODULES([CAIRO_PDF],[cairo-pdf])
+  PKG_CHECK_MODULES([PANGO_CAIRO],[pangocairo])
+  AC_SUBST(HAVE_PANGOCAIRO)
+  AC_MSG_RESULT([Have PANGOCAIRO and CAIRO_PDF])
+else
+  AC_MSG_WARN([You don't have PANGOCAIRO and CAIRO_PDF installed!])
+fi
+
+AM_CONDITIONAL(HAVE_PANGOCAIRO, test ${have_pangocairo} = "yes")
+
 case $target_os in
   macos | darwin*)
     AC_SUBST(HIDAPI_CFLAGS,[''])
