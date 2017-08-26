@@ -49,12 +49,10 @@ namespace eval gettext {
   #  gettext 1.0
   #
 
-proc _m {msgid} {
+proc _m {msgid args} {
   ## Handle messages with a context hint prefix (eg Label|lab).
-  set msgval [::msgcat::mc "$msgid"]
-  if {"$msgval" eq "$msgid"} {
-    set msgval [lindex [split $msgid {|}] end]
-  }
+  set msgval [eval [list ::msgcat::mc "$msgid"] $args]
+  set msgval [lindex [split $msgval {|}] end]
   return $msgval
 }
 
