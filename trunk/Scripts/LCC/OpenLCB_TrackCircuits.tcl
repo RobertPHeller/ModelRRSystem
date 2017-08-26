@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <170719.1540>
+#  Last Modified : <170825.1050>
 #
 #  Description	
 #
@@ -111,6 +111,7 @@ set argv0 [file join  [file dirname [info nameofexecutable]] OpenLCB_TrackCircui
 
 package require snit;#     require the SNIT OO framework
 package require LCC;#      require the OpenLCB code
+package require OpenLCB_Common
 package require ParseXML;# require the XML parsing code (for the conf file)
 package require gettext;#  require the localized message handler
 package require log;#      require the logging package.
@@ -242,11 +243,8 @@ snit::type CodeEventList {
     pragma -hastypeinfo no -hastypedestroy no -hasinstances no
     
     typemethod validate {object} {
-        if {([llength $object] % 1) != 0} {
-            error [_ "Not a %s type (odd list length %d): %s" $type \
-                   [llength $object] $object]
-        }
-        foreach {code event} $object {
+        foreach code_event $object {
+            lassign $code_event code event
             if {[catch {TrackCodes validate $code}]} {
                 error [_ "Not a %s type (invalid TrackCode %s): %s" $type \
                        $code $object]
@@ -342,7 +340,6 @@ snit::type OpenLCB_TrackCircuits {
     #
     # Instance options:
     # @arg -description Description (name) of the track.
-    # @arg -enabled     Whether the track is in service or not.
     # @arg -transmitters A list of transmitter code events.
     # @arg -transmitbaseevent The transmit base event.
     # @arg -receivebaseevent The revceive base event.
@@ -357,7 +354,6 @@ snit::type OpenLCB_TrackCircuits {
     variable transmitters {}
     variable receivers {}
     option -description -readonly yes -default {}
-    option -enabled -readonly yes -type snit::boolean -default false
     option -transmitters -readonly yes -default {} -type CodeEventList
     option -transmitbaseevent -readonly yes -default {} -type lcc::EventID_or_null
     option -receivebaseevent -readonly yes -default {} -type lcc::EventID_or_null
@@ -369,7 +365,6 @@ snit::type OpenLCB_TrackCircuits {
         #
         # @param ... Options:
         # @arg -description Description (name) of the track.
-        # @arg -enabled     Whether the track is in service or not.
         # @arg -transmitters A list of transmitter code events.
         # @arg -transmitbaseevent The transmit base event.
         # @arg -receivebaseevent The revceive base event.
@@ -377,11 +372,18 @@ snit::type OpenLCB_TrackCircuits {
         # @arg -receivers   A list of receiver code events.
         # @par
         
+        ::log::log debug "*** $type create $self $args"
         $self configurelist $args
-        foreach {c e} [$self cget -transmitters] {
+        ::log::log debug "*** $type create $self: [llength [$self cget -transmitters]] transmitters"
+        foreach c_e [$self cget -transmitters] {
+            ::log::log debug "*** $type create $self: c_e is $c_e"
+            lassign $c_e c e
+            ::log::log debug "*** $type create $self: c is $c, e is $e"
             lappend transmitters [Transmitter create %AUTO% -eventid $e -code $c]
         }
-        foreach {c e} [$self cget -receivers] {
+        ::log::log debug "*** $type create $self: [llength $transmitters] transmitters created"
+        foreach c_e [$self cget -receivers] {
+            lassign $c_e c e
             lappend receivers [Receiver create %AUTO% -code $c -eventid $e]
         }
     }
@@ -389,9 +391,9 @@ snit::type OpenLCB_TrackCircuits {
         #** Return a list of events this track produces.
         
         ::log::log debug "*** $self myproducedevents"
-        if {![$self cget -enabled]} {return {}}
         set havec1 no
         set producedevents [list]
+        ::log::log debug "*** $self myproducedevents: [llength $transmitters] transmitters"
         foreach t $transmitters {
             set code [$t cget -code]
             if {$code eq "None"} {continue}
@@ -416,10 +418,10 @@ snit::type OpenLCB_TrackCircuits {
         #** Return a list of events this track circuit comsumes.
         
         ::log::log debug "*** $self myconsumedevents"
-        if {![$self cget -enabled]} {return {}}
         set consumedevents [list]
         foreach t $transmitters {
             set e [$t cget -eventid]
+            ::log::log debug "*** $self myconsumedevents: for $t, e is $e"
             if {$e ne {}} {
                 lappend consumedevents $e
             }
@@ -427,6 +429,7 @@ snit::type OpenLCB_TrackCircuits {
         foreach r $receivers {
             set c [$r cget -code]
             set e [TrackCodes EventFromCode $c [$self cget -receivebaseevent]]
+            ::log::log debug "*** $self myconsumedevents: for $r, c is $c, and e is $e"
             lappend consumedevents $e
         }
         return $consumedevents
@@ -440,7 +443,6 @@ snit::type OpenLCB_TrackCircuits {
         # preceded by a Code 1 Start event.
         
         ::log::log debug "*** $self processevent $event ([$event cget -eventidstring])"
-        if {![$self cget -enabled]} {return}
         foreach t $transmitters {
             set code [$t processevent $event]
             ::log::log debug "*** $self processevent: transmitter code is $code"
@@ -502,6 +504,8 @@ snit::type OpenLCB_TrackCircuits {
     typevariable  eventsconsumed {};# Events consumed.
     typevariable  eventsproduced {};# Events produced.
     typecomponent editContextMenu
+    typecomponent xmltrackcircuitconfig
+    typecomponent generateEventID
     
     typeconstructor {
         #** @brief Global static initialization.
@@ -533,6 +537,24 @@ snit::type OpenLCB_TrackCircuits {
         }
         set conffile [from argv -configuration "tracksconf.xml"]
         #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
+        set xmltrackcircuitconfig [XmlConfiguration create %AUTO% {
+  <configure>
+    <string tagname="description" option="-description">Description</string>
+    <group tagname="transmitter" option="-transmitters" repname="Command"
+           mincount="0" maxcount="unlimited">
+      <enum tagname="code" 
+            enums="None Code7 Code4 Code3 Code8 Code2 Code9 Code6 Code5_occupied Code5_normal CodeM_failed CodeM_normal">The following Track Code will be sent</enum>
+      <eventid tagname="eventid">when this event occurs</eventid>
+    </group>
+    <eventid tagname="transmitbaseevent" option="-transmitbaseevent" roundup="16">Transmit Group Base Link</eventid>
+    <eventid tagname="receivebaseevent" option="-receivebaseevent" roundup="16">Receive Group Base Link</eventid>
+    <eventid tagname="code1startevent" option="-code1startevent" roundup="16">Upon reception of 'Code 1 Start', this event will be sent</eventid>
+    <group repname="Action" tagname="receiver" option="-receivers"
+           mincount="0" maxcount="unlimited">
+      <enum tagname="code" enums="None Code7 Code4 Code3 Code8 Code2 Code9 Code6 Code5_occupied Code5_normal CodeM_failed CodeM_normal">Upon reception of this Track Code</enum>
+      <eventid tagname="eventid">this event will be sent</eventid>
+    </group>
+  </configure>}]
         if {$configureator} {
             $type ConfiguratorGUI $conffile
             return
@@ -630,87 +652,7 @@ snit::type OpenLCB_TrackCircuits {
         ::log::log debug "*** $type typeconstructor: transport = $transport"
         
         foreach track [$configuration getElementsByTagName "track"] {
-            set trackcommand [list $type create %AUTO%]
-            ::log::log debug "*** $type typeconstructor: trackcommand is $trackcommand"
-            set description [$track getElementsByTagName "description"]
-            if {[llength $description] > 0} {
-                lappend trackcommand -description [[lindex $description 0] data]
-            }
-            ::log::log debug "*** $type typeconstructor: trackcommand is $trackcommand"
-            set enabled [$track getElementsByTagName "enabled"]
-            if {[llength $enabled] > 0} {
-                lappend trackcommand -enabled true
-            } else {
-                lappend trackcommand -enabled false
-            }
-            ::log::log debug "*** $type typeconstructor: trackcommand is $trackcommand"
-            set transmitters [list]
-            foreach transmitter [$track getElementsByTagName "transmitter"] {
-                set tag [$transmitter getElementsByTagName "code"]
-                if {[llength $tag] != 1} {
-                    ::log::logError [_ "Transmitter missing its code. skipped!"]
-                    continue
-                }
-                set tag [lindex $tag 0]
-                set code [$tag data]
-                if {[catch {TrackCodes validate $code} err]} {
-                    ::log::logError $err
-                    continue
-                }
-                set tag [$transmitter getElementsByTagName "eventid"]
-                if {[llength $tag] != 1} {
-                    ::log::logError [_ "Transmitter missing its eventid, skipped!"]
-                    continue
-                }
-                set tag [lindex $tag 0]
-                set ev [lcc::EventID create %AUTO% -eventidstring [$tag data]]
-                lappend transmitters $code $ev
-            }
-            lappend trackcommand -transmitters $transmitters
-            ::log::log debug "*** $type typeconstructor: trackcommand is $trackcommand"
-            set tag [$track getElementsByTagName "transmitbaseevent"]
-            if {[llength $tag] > 0} {
-                set tag [lindex $tag 0]
-                set ev [lcc::EventID create %AUTO% -eventidstring [$tag data]]
-                lappend trackcommand -transmitbaseevent $ev
-            }
-            ::log::log debug "*** $type typeconstructor: trackcommand is $trackcommand"
-            set tag [$track getElementsByTagName "receivebaseevent"]
-            if {[llength $tag] > 0} {
-                set tag [lindex $tag 0]
-                set ev [lcc::EventID create %AUTO% -eventidstring [$tag data]]
-                lappend trackcommand -receivebaseevent $ev
-            }
-            set tag [$track getElementsByTagName "code1startevent"]
-            if {[llength $tag] > 0} {
-                set tag [lindex $tag 0]
-                set ev [lcc::EventID create %AUTO% -eventidstring [$tag data]]
-                lappend trackcommand -code1startevent $ev
-            }
-            ::log::log debug "*** $type typeconstructor: trackcommand is $trackcommand"
-            set receivers [list]
-            foreach receiver [$track getElementsByTagName "receiver"] {
-                set tag [$receiver getElementsByTagName "code"]
-                if {[llength $tag] != 1} {
-                    ::log::logError [_ "Receiver missing its code. skipped!"]
-                    continue
-                }
-                set tag [lindex $tag 0]
-                set code [$tag data]
-                if {[catch {TrackCodes validate $code} err]} {
-                    ::log::logError $err
-                    continue
-                }
-                set tag [$receiver getElementsByTagName "eventid"]
-                if {[llength $tag] != 1} {
-                    ::log::logError [_ "Receiver missing its eventid, skipped!"]
-                    continue
-                }
-                set tag [lindex $tag 0]
-                set ev [lcc::EventID create %AUTO% -eventidstring [$tag data]]
-                lappend receivers $code $ev
-            }
-            lappend trackcommand -receivers $receivers
+            set trackcommand [$xmltrackcircuitconfig processConfig $track [list $type create %AUTO%]]
             ::log::log debug "*** $type typeconstructor: trackcommand is $trackcommand"
             set track [eval $trackcommand]
             ::log::log debug "*** $type typeconstructor: track is $track"
@@ -899,6 +841,7 @@ snit::type OpenLCB_TrackCircuits {
         # @param conffile Name of the configuration file.
         #
         
+        package require GenerateEventID 1.0
         set conffilename $conffile
         set confXML $default_confXML
         if {[file exists $conffilename]} {
@@ -918,6 +861,9 @@ snit::type OpenLCB_TrackCircuits {
         set transportopts [SimpleDOMElement %AUTO% -tag "options"]
         $transcons addchild $transportopts
         $transportopts setdata {-port 12021 -nid 05:01:01:01:22:00 -host localhost}
+        set generateEventID [GenerateEventID create %AUTO% \
+                             -baseeventid [lcc::EventID create %AUTO% \
+                                           -eventidstring "05.01.01.01.22.00.00.00"]]
         set ident [SimpleDOMElement %AUTO% -tag "identification"]
         $cdi addchild $ident
         set nameele [SimpleDOMElement %AUTO% -tag "name"]
@@ -926,7 +872,6 @@ snit::type OpenLCB_TrackCircuits {
         set descrele [SimpleDOMElement %AUTO% -tag "description"]
         $ident addchild $descrele
         $descrele setdata "Sample Description"
-        set eid 0
         set track [SimpleDOMElement %AUTO% -tag "track"]
         $cdi addchild $track
         set description [SimpleDOMElement %AUTO% -tag "description"]
@@ -943,22 +888,17 @@ snit::type OpenLCB_TrackCircuits {
             $code setdata $thecode
             set eventid [SimpleDOMElement %AUTO% -tag "eventid"]
             $transmitter addchild $eventid
-            $eventid setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-            incr eid
+            $eventid setdata [$generateEventID nextid]
         }
         set transmitbaseevent [SimpleDOMElement %AUTO% -tag "transmitbaseevent"]
         $track addchild $transmitbaseevent
-        set eid [expr {($eid + 16) & 0xF0}]
-        $transmitbaseevent setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+        $transmitbaseevent setdata [$generateEventID nextid -roundup 16]
         set receivebaseevent [SimpleDOMElement %AUTO% -tag "receivebaseevent"]
         $track addchild $receivebaseevent
-        set eid [expr {($eid + 16) & 0xF0}]
-        $receivebaseevent setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-        set eid [expr {($eid + 16) & 0xF0}]
+        $receivebaseevent setdata [$generateEventID nextid -roundup 16]
         set code1startevent [SimpleDOMElement %AUTO% -tag "code1startevent"]
         $track addchild $code1startevent
-        $code1startevent setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-        incr eid
+        $code1startevent setdata [$generateEventID nextid -roundup 16]
         for {set c 1} {$c < 11} {incr  c} {
             set thecode [TrackCodes CodeFromValue $c]
             set receiver [SimpleDOMElement %AUTO% -tag "receiver"]
@@ -968,8 +908,7 @@ snit::type OpenLCB_TrackCircuits {
             $code setdata $thecode
             set eventid [SimpleDOMElement %AUTO% -tag "eventid"]
             $receiver addchild $eventid
-            $eventid setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-            incr eid
+            $eventid setdata [$generateEventID nextid]
         }
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
@@ -995,6 +934,7 @@ snit::type OpenLCB_TrackCircuits {
         package require ButtonBox
         package require ScrollTabNotebook
         package require HTMLHelp 2.0
+        package require GenerateEventID 1.0                                     
         
         set HelpDir [file join [file dirname [file dirname [file dirname \
                                                             [info script]]]] Help]
@@ -1076,6 +1016,27 @@ snit::type OpenLCB_TrackCircuits {
                 set transopts [$coptions data]
             }
         }
+        set lastevid [$cdi attribute lastevid]
+        if {$lastevid eq {}} {
+            set nidindex [lsearch -exact $transopts -nid]
+            if {$nidindex >= 0} {
+                incr nidindex
+                set nid [lindex $transopts $nidindex]
+            } else {
+                set nid "05:01:01:01:22:00"
+            }
+            set evlist [list]
+            foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $nid] 1 end] {
+                lappend evlist [scan $oct %02x]
+            }
+            lappend evlist 0 0
+            set generateEventID [GenerateEventID create %AUTO% \
+                                 -baseeventid [lcc::EventID create %AUTO% -eventidlist $evlist]]
+        } else {
+            set generateEventID [GenerateEventID create %AUTO% \
+                                 -baseeventid [lcc::EventID create %AUTO% -eventidstring $lastevid]]
+        }
+        $xmltrackcircuitconfig configure -eventidgenerator $generateEventID
         set identificationframe [ttk::labelframe $frame.identificationframe \
                             -labelanchor nw -text [_m "Label|Identification"]]
         pack $identificationframe -fill x -expand yes
@@ -1108,7 +1069,10 @@ snit::type OpenLCB_TrackCircuits {
         set tracks [ScrollTabNotebook $frame.tracks]
         pack $tracks -expand yes -fill both
         foreach track [$cdi getElementsByTagName "track"] {
-            $type _create_and_populate_track $track
+            set trackframe [$xmltrackcircuitconfig createGUI $tracks track \
+                            $cdi $track [_m "Label|Delete Track"] \
+                            [mytypemethod _addframe] \
+                            [mytypemethod _delframe]]
         }
         set addtrack [ttk::button $frame.addtrack \
                       -text [_m "Label|Add another track"] \
@@ -1122,288 +1086,16 @@ snit::type OpenLCB_TrackCircuits {
         set cdi [lindex $cdis 0]
         set track [SimpleDOMElement %AUTO% -tag "track"]
         $cdi addchild $track
-        $type _create_and_populate_track $track
+        set trackframe [$xmltrackcircuitconfig createGUI $tracks track \
+                            $cdi $track [_m "Label|Delete Track"] \
+                            [mytypemethod _addframe] \
+                            [mytypemethod _delframe]]
     }
-    typemethod _create_and_populate_track {track} {
-        #** Create a tab for a track and populate it.
-        #
-        # @param track The track XML element.
-        
-        incr trackcount
-        set fr track$trackcount
-        set f [$track attribute frame]
-        if {$f eq {}} {
-            set attrs [$track cget -attributes]
-            lappend attrs frame $fr
-            $track configure -attributes $attrs
-        } else {
-            set attrs [$track cget -attributes]
-            set findx [lsearch -exact $attrs frame]
-            incr findx
-            set attrs [lreplace $attrs $findx $findx $fr]
-            $track configure -attributes $attrs
-        }
-        set trkframe [ttk::frame $tracks.$fr]
-        $tracks add $trkframe -text [_ "Track %d" $trackcount] -sticky news
-        set description_ [LabelEntry $trkframe.description \
-                          -label [_m "Label|Description"]]
-        pack $description_ -fill x -expand yes
-        set description [$track getElementsByTagName "description"]
-        if {[llength $description] == 1} {
-            $description_ configure -text [$description data]
-        }
-        set enabled_ [LabelComboBox $trkframe.enabled \
-                      -label [_m "Label|Track Service"] \
-                      -values {Disabled Enabled} \
-                      -editable no]
-        pack $enabled_ -fill x -expand yes
-        set enabled [$track getElementsByTagName "enabled"]
-        if {[llength $enabled] == 0} {
-            $enabled_ set Disabled
-        } else {
-            $enabled_ set Enabled
-        }
-        set transmitters [ScrollTabNotebook $trkframe.transmitters]
-        pack $transmitters -expand yes -fill both
-        foreach transmitter [$track getElementsByTagName "transmitter"] {
-            $type _create_and_populate_transmitter $track $transmitters $transmitter
-        }
-        set addtransmitter [ttk::button $trkframe.addtransmitter \
-                            -text [_m "Label|Add another transmitter"] \
-                            -command [mytypemethod _addblanktransmitter $track $transmitters]]
-        pack $addtransmitter -fill x
-        set transmitbaseevent_ [LabelEntry $trkframe.transmitbaseevent \
-                                -label [_m "Label|Transmit Group Base Link"] \
-                                ]
-        pack $transmitbaseevent_ -fill x -expand yes
-        set transmitbaseevent [$track getElementsByTagName "transmitbaseevent"]
-        if {[llength $transmitbaseevent] == 1} {
-            $transmitbaseevent_ configure -text [$transmitbaseevent data]
-        }
-
-        set receivebaseevent_ [LabelEntry $trkframe.receivebaseevent \
-                                -label [_m "Label|Receive Group Base Link"] \
-                                ]
-        pack $receivebaseevent_ -fill x -expand yes
-        set receivebaseevent [$track getElementsByTagName "receivebaseevent"]
-        if {[llength $receivebaseevent] == 1} {
-            $receivebaseevent_ configure -text [$receivebaseevent data]
-        }
-
-        set code1startevent_ [LabelEntry $trkframe.code1startevent \
-                                -label [_m "Label|Upon reception of 'Code 1 Start', this event will be sent"] \
-                                ]
-        pack $code1startevent_ -fill x -expand yes
-        set code1startevent [$track getElementsByTagName "code1startevent"]
-        if {[llength $code1startevent] == 1} {
-            $code1startevent_ configure -text [$code1startevent data]
-        }
-        set receivers [ScrollTabNotebook $trkframe.receivers]
-        pack $receivers -expand yes -fill both
-        foreach receiver [$track getElementsByTagName "receiver"] {
-            $type _create_and_populate_receiver $track $receivers $receiver
-        }
-        set addreceiver [ttk::button $trkframe.addreceiver \
-                            -text [_m "Label|Add another receiver"] \
-                            -command [mytypemethod _addblankreceiver $track $receivers]]
-        pack $addreceiver -fill x
-        set deltrack [ttk::button $trkframe.deltrack \
-                      -text [_m "Label|Delete Track"] \
-                      -command [mytypemethod _deleteTrack $track]]
-        pack $deltrack -fill x
+    typemethod _delframe {frame} {
+        $tracks forget $frame
     }
-    typemethod _deleteTrack {track} {
-        set fr [$track attribute frame]
-        set cdis [$configuration getElementsByTagName OpenLCB_TrackCircuits -depth 1]
-        set cdi [lindex $cdis 0]
-        $cdi removeChild $track
-        $tracks forget $tracks.$fr
-        destroy $tracks.$fr
-    }
-    typemethod _addblanktransmitter {track transmitters} {
-        #** Create a blank transmitter.
-        #
-        # @param track The track frame.
-        # @param transmitters The transmitters container.
-        
-        set transmitter [SimpleDOMElement %AUTO% -tag "transmitter"]
-        $track addchild $transmitter
-        set eventid [SimpleDOMElement %AUTO% -tag "eventid"]
-        $eventid setdata "00.00.00.00.00.00.00.00"
-        $transmitter addchild $eventid
-        set code [SimpleDOMElement %AUTO% -tag "code"]
-        $code setdata "[TrackCodes CodeLabel None]"
-        $transmitter addchild $code
-        $type _create_and_populate_transmitter $track $transmitters $transmitter
-    }
-    typemethod _create_and_populate_transmitter {track transmitters transmitter} {
-        #** Create and populate a transmitter.
-        #
-        # @param track The track frame.
-        # @param transmitters The transmitters container.
-        # @param transmitter The transmitter container.
-        
-        set tag [$transmitter getElementsByTagName "code"]
-        if {[llength $tag] != 1} {
-            tk_messageBox -type ok -icon warning -message [_ "Transmitter missing its code. skipped!"]
-            return
-        }
-        set tag [lindex $tag 0]
-        set code [$tag data]
-        if {[catch {TrackCodes validate $code} err]} {
-            tk_messageBox -type ok -icon warning -message $err
-            return
-        }
-        set tag [$transmitter getElementsByTagName "eventid"]
-        if {[llength $tag] != 1} {
-            tk_messageBox -type ok -icon warning -message [_ "Transmitter missing its eventid, skipped!"]
-            return
-        }
-        set tag [lindex $tag 0]
-        set evstring [$tag data]
-        set transcount 0
-        incr transcount
-        set fr trans$transcount
-        while {[winfo exists $transmitters.$fr]} {
-            incr transcount
-            set fr trans$transcount
-        }
-        set f [$transmitter attribute frame]
-        if {$f eq {}} {
-            set attrs [$transmitter cget -attributes]
-            lappend attrs frame $fr
-            $transmitter configure -attributes $attrs
-        } else {
-            set attrs [$transmitter cget -attributes]
-            set findx [lsearch -exact $attrs frame]
-            incr findx
-            set attrs [lreplace $attrs $findx $findx $fr]
-            $transmitter configure -attributes $attrs
-        }
-        set xmitframe [ttk::frame $transmitters.$fr]
-        $transmitters add $xmitframe -text [_ "Command %d" $transcount] -sticky news
-        set eventid_ [LabelEntry $xmitframe.eventid \
-                      -label [_m "Label|When this event occurs"] \
-                      -text $evstring]
-        pack $eventid_ -fill x -expand yes
-        set code_labs [list]
-        for {set c 0} {$c < 11} {incr  c} {
-            lappend code_labs [TrackCodes CodeLabel [TrackCodes CodeFromValue $c]]
-        }
-        set code_ [LabelComboBox $xmitframe.code \
-                   -label [_m "Label|the following Track Code will be sent."] \
-                   -values $code_labs -editable no]
-        pack $code_ -fill x -expand yes
-        $code_ set [lindex $code_labs [TrackCodes CodeValue $code]]
-        set del [ttk::button $xmitframe.delete \
-                 -text [_m "Label|Delete Transmitter"] \
-                 -command [mytypemethod _deletexmit $transmitters $track $transmitter]]
-        pack $del -fill x
-    }
-    typemethod _deletexmit {transmitters track transmitter} {
-        #** Delete a transmitter.
-        #
-        # @param transmitters The Transmitters container.
-        # @param track The track frame.
-        # @param transmitter The transmitter container.
-        
-        set fr [$transmitter attribute frame]
-        $track removeChild $transmitter
-        $transmitters forget $transmitters.$fr
-        destroy $transmitters.$fr
-    }
-
-    typemethod _addblankreceiver {track receivers} {
-        #** Create a blank receiver.
-        #
-        # @param track The track frame.
-        # @param receivers The receivers container.
-        
-        set receiver [SimpleDOMElement %AUTO% -tag "receiver"]
-        $track addchild $receiver
-        set code [SimpleDOMElement %AUTO% -tag "code"]
-        $code setdata "[TrackCodes CodeLabel None]"
-        $receiver addchild $code
-        set eventid [SimpleDOMElement %AUTO% -tag "eventid"]
-        $eventid setdata "00.00.00.00.00.00.00.00"
-        $receiver addchild $eventid
-        $type _create_and_populate_receiver $track $receivers $receiver
-    }
-    typemethod _create_and_populate_receiver {track receivers receiver} {
-        #** Create and populate a receiver.
-        #
-        # @param track The track frame.
-        # @param receivers The receivers container.
-        # @param receiver The receiver container.
-        
-        set tag [$receiver getElementsByTagName "code"]
-        if {[llength $tag] != 1} {
-            tk_messageBox -type ok -icon warning -message [_ "Receiver missing its code. skipped!"]
-            return
-        }
-        set tag [lindex $tag 0]
-        set code [$tag data]
-        if {[catch {TrackCodes validate $code} err]} {
-            tk_messageBox -type ok -icon warning -message $err
-            return
-        }
-        set tag [$receiver getElementsByTagName "eventid"]
-        if {[llength $tag] != 1} {
-            tk_messageBox -type ok -icon warning -message [_ "Receiver missing its eventid, skipped!"]
-            return
-        }
-        set tag [lindex $tag 0]
-        set evstring [$tag data]
-        set transcount 0
-        incr transcount
-        set fr recv$transcount
-        while {[winfo exists $receivers.$fr]} {
-            incr transcount
-            set fr recv$transcount
-        }
-        set f [$receiver attribute frame]
-        if {$f eq {}} {
-            set attrs [$receiver cget -attributes]
-            lappend attrs frame $fr
-            $receiver configure -attributes $attrs
-        } else {
-            set attrs [$receiver cget -attributes]
-            set findx [lsearch -exact $attrs frame]
-            incr findx
-            set attrs [lreplace $attrs $findx $findx $fr]
-            $receiver configure -attributes $attrs
-        }
-        set recvframe [ttk::frame $receivers.$fr]
-        $receivers add $recvframe -text [_ "Action %d" $transcount] -sticky news
-        set code_labs [list]
-        for {set c 0} {$c < 11} {incr  c} {
-            lappend code_labs [TrackCodes CodeLabel [TrackCodes CodeFromValue $c]]
-        }
-        set code_ [LabelComboBox $recvframe.code \
-                   -label [_m "Label|Upon reception of this Track Code"] \
-                   -values $code_labs -editable no]
-        pack $code_ -fill x -expand yes
-        $code_ set [lindex $code_labs [TrackCodes CodeValue $code]]
-        set eventid_ [LabelEntry $recvframe.eventid \
-                      -label [_m "Label|this event will be sent"] \
-                      -text $evstring]
-        pack $eventid_ -fill x -expand yes
-        set del [ttk::button $recvframe.delete \
-                 -text [_m "Label|Delete Receiver"] \
-                 -command [mytypemethod _deleterecv $receivers $track $receiver]]
-        pack $del -fill x
-    }
-    typemethod _deleterecv {receivers track receiver} {
-        #** Delete a receiver.
-        #
-        # @param receivers The receivers container.
-        # @param track The track frame.
-        # @param receiver The receiver container.
-        
-        set fr [$receiver attribute frame]
-        $track removeChild $receiver
-        $receivers forget $receivers.$fr
-        destroy $receivers.$fr
+    typemethod _addframe {parent frame count} {
+        $parent add $frame -text [_m "LABEL|Track %d" $count] -sticky news
     }
     typevariable warnings
     typemethod _saveexit {} {
@@ -1421,6 +1113,18 @@ snit::type OpenLCB_TrackCircuits {
         set warnings 0
         set cdis [$configuration getElementsByTagName OpenLCB_TrackCircuits -depth 1]
         set cdi [lindex $cdis 0]
+        set lastevid [$cdi attribute lastevid]
+        if {$lastevid eq {}} {
+            set attrs [$cdi cget -attributes]
+            lappend attrs lastevid [$generateEventID currentid]
+            $cdi configure -attributes $attrs
+        } else {
+            set attrs [$cdi cget -attributes]
+            set findx [lsearch -exact $attrs lastevid]
+            incr findx
+            set attrs [lreplace $attrs $findx $findx [$generateEventID currentid]]
+            $cdi configure -attributes $attrs
+        }
         set transcons [$cdi getElementsByTagName "transport"]
         if {[llength $transcons] < 1} {
             set transcons [SimpleDOMElement %AUTO% -tag "transport"]
@@ -1457,7 +1161,7 @@ snit::type OpenLCB_TrackCircuits {
         }
         $descrele setdata $id_description
         foreach track [$cdi getElementsByTagName "track"] {
-            $type _copy_from_gui_to_XML $track
+            $xmltrackcircuitconfig copyFromGUI $tracks $track warnings
         }
         
         if {$warnings > 0} {
@@ -1469,154 +1173,9 @@ snit::type OpenLCB_TrackCircuits {
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
+            close $conffp
         }
         return yes
-    }
-    typemethod _copy_from_gui_to_XML {track} {
-        #** Copy from the GUI to the track XML
-        # 
-        # @param track Track XML element.
-        
-        set fr [$track attribute frame]
-        set frbase $tracks.$fr
-        set description_ [$frbase.description get]
-        if {$description_ eq ""} {
-            set description [$track getElementsByTagName "description"]
-            if {[llength $description] == 1} {
-                $track removeChild $description
-            }
-        } else {
-            set description [$track getElementsByTagName "description"]
-            if {[llength $description] < 1} {
-                set description [SimpleDOMElement %AUTO% -tag "description"]
-                $track addchild $description
-            }
-            $description setdata $description_
-        }
-        set enabled_ [$frbase.enabled get]
-        switch $enabled_ {
-            Disabled {
-                set enabled [$track getElementsByTagName "enabled"]
-                if {[llength $enabled] > 0} {
-                    $track removeChild $enabled
-                }
-            }
-            Enabled {
-                set enabled [$track getElementsByTagName "enabled"]
-                if {[llength $enabled] < 1} {
-                    set enabled [SimpleDOMElement %AUTO% -tag "enabled"]
-                    $track addchild $enabled
-                }
-            }
-        }
-        set transmitters $frbase.transmitters
-        foreach transmitter [$track getElementsByTagName "transmitter"] {
-            set codetag [$transmitter getElementsByTagName "code"]
-            set eventidtag [$transmitter getElementsByTagName "eventid"]
-            set fr [$transmitter attribute frame]
-            set xmitframe $transmitters.$fr
-            set cvals [$xmitframe.code cget -values]
-            set cval  [lsearch -exact $cvals [$xmitframe.code get]]
-            $codetag setdata [TrackCodes CodeFromValue $cval]
-            set eventid "[$xmitframe.eventid get]"
-            if {$eventid ne "" && [catch {lcc::eventidstring validate $eventid}]} {
-                tk_messageBox -type ok -icon warning \
-                      -message [_ "Event ID for command code %s is not a valid event id string: %s!" [$xmitframe.code get] $eventid]
-                set eventid ""
-                incr warnings
-            }
-            $eventidtag setdata $eventid
-            
-        }
-        
-        set transmitbaseevent_ [$frbase.transmitbaseevent get]
-        if {$transmitbaseevent_ ne "" && [catch {lcc::eventidstring validate $transmitbaseevent_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for transmit base event is not a valid event id string: %s!" $eventid]
-            set transmitbaseevent_ ""
-            incr warnings
-        }
-        if {$transmitbaseevent_ eq "00.00.00.00.00.00.00.00" ||
-            $transmitbaseevent_ eq ""} {
-            set transmitbaseevent [$track getElementsByTagName "transmitbaseevent"]
-            if {[llength $transmitbaseevent] == 1} {
-                $track removeChild $transmitbaseevent
-            }
-        } else {
-            set transmitbaseevent [$track getElementsByTagName "transmitbaseevent"]
-            if {[llength $transmitbaseevent] < 1} {
-                set transmitbaseevent [SimpleDOMElement %AUTO% -tag "transmitbaseevent"]
-                $track addchild $transmitbaseevent
-            }
-            $transmitbaseevent setdata $transmitbaseevent_
-        }
-        
-        set receivebaseevent_ [$frbase.receivebaseevent get]
-        if {$receivebaseevent_ ne "" && [catch {lcc::eventidstring validate $receivebaseevent_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for receive base event is not a valid event id string: %s!" $eventid]
-            set receivebaseevent_ ""
-            incr warnings
-        }
-        if {$receivebaseevent_ eq "00.00.00.00.00.00.00.00" ||
-            $receivebaseevent_ eq ""} {
-            set receivebaseevent [$track getElementsByTagName "receivebaseevent"]
-            if {[llength $receivebaseevent] == 1} {
-                $track removeChild $receivebaseevent
-            }
-        } else {
-            set receivebaseevent [$track getElementsByTagName "receivebaseevent"]
-            if {[llength $receivebaseevent] < 1} {
-                set receivebaseevent [SimpleDOMElement %AUTO% -tag "receivebaseevent"]
-                $track addchild $receivebaseevent
-            }
-            $receivebaseevent setdata $receivebaseevent_
-        }
-        
-        set code1startevent_ [$frbase.code1startevent get]
-        if {$code1startevent_ ne "" && [catch {lcc::eventidstring validate $code1startevent_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for code1 start event is not a valid event id string: %s!" $eventid]
-            set code1startevent_ ""
-            incr warnings
-        }
-        if {$code1startevent_ eq "00.00.00.00.00.00.00.00" ||
-            $code1startevent_ eq ""} {
-            set code1startevent [$track getElementsByTagName "code1startevent"]
-            if {[llength $code1startevent] == 1} {
-                $track removeChild $code1startevent
-            }
-        } else {
-            set code1startevent [$track getElementsByTagName "code1startevent"]
-            if {[llength $code1startevent] < 1} {
-                set code1startevent [SimpleDOMElement %AUTO% -tag "code1startevent"]
-                $track addchild $code1startevent
-            }
-            $code1startevent setdata $code1startevent_
-        }
-        
-        set receivers $frbase.receivers
-        foreach receiver [$track getElementsByTagName "receiver"] {
-            set codetag [$receiver getElementsByTagName "code"]
-            set eventidtag [$receiver getElementsByTagName "eventid"]
-            set fr [$receiver attribute frame]
-            set recvframe $receivers.$fr
-            set cvals [$recvframe.code cget -values]
-            set cval  [lsearch -exact $cvals [$recvframe.code get]]
-            $codetag setdata [TrackCodes CodeFromValue $cval]
-            set eventid "[$recvframe.eventid get]"
-            if {$eventid ne "" && [catch {lcc::eventidstring validate $eventid}]} {
-                tk_messageBox -type ok -icon warning \
-                      -message [_ "Event ID for action code %s is not a valid event id string: %s!" [$recvframe.code get] $eventid]
-                set eventid ""
-                incr warnings
-            }
-            
-            $eventidtag setdata $eventid
-        }
-        
-            
-        
     }
     typemethod _exit {} {
         #** Exit function.  Bound to the Exit file menu item.

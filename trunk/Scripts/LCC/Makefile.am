@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <170729.1517>
+#  Last Modified : <170817.1416>
 #
 #  Description	
 #
@@ -52,7 +52,7 @@ EXTRA_DIST = lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		OpenLCB_Logic.tcl OpenLCB_Acela.tcl LCCNodeTree.tcl \
 		OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
 		OpenLCB_PiSPIMax7221.tcl OpenLCB_PiMCP23017_signal.tcl \
-		GenerateEventID.tcl
+		GenerateEventID.tcl OpenLCB_Common.tcl
 
 bin_SCRIPTS = OpenLCB${EXEEXT} OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
 	OpenLCBGCTcpHub${EXEEXT} OpenLCB_TrackCircuits${EXEEXT} \
@@ -103,7 +103,8 @@ CLEANFILES = pkgIndex.tcl OpenLCB${EXEEXT} OpenLCB.pot \
 			  OpenLCB_PiMCP23017_signal${EXEEXT}
 
 pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
-		ConfigDialogs.tcl LCCNodeTree.tcl GenerateEventID.tcl
+		ConfigDialogs.tcl LCCNodeTree.tcl GenerateEventID.tcl \
+		OpenLCB_Common.tcl
 	for f in $(notdir $^) ; do \
 	   if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi;\
 	done
@@ -283,6 +284,8 @@ endif
 
 OpenLCB_MRD2SCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 			$(top_srcdir)/Scripts/LCC/lcc.tcl \
+			$(top_srcdir)/Scripts/LCC/OpenLCB_Common.tcl \
+			$(top_srcdir)/Scripts/LCC/GenerateEventID.tcl \
 			$(top_builddir)/Scripts/Common/Version.tcl \
 			$(top_srcdir)/Scripts/Common/ParseXML.tcl \
 			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
@@ -345,6 +348,8 @@ endif
 
 OpenLCB_PiGPIOSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 			$(top_srcdir)/Scripts/LCC/lcc.tcl \
+			$(top_srcdir)/Scripts/LCC/OpenLCB_Common.tcl \
+			$(top_srcdir)/Scripts/LCC/GenerateEventID.tcl \
 			$(top_builddir)/Scripts/Common/Version.tcl \
 			$(top_srcdir)/Scripts/Common/ParseXML.tcl \
 			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
@@ -407,6 +412,8 @@ endif
 	
 OpenLCB_PiMCP23008SCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 			$(top_srcdir)/Scripts/LCC/lcc.tcl \
+			$(top_srcdir)/Scripts/LCC/OpenLCB_Common.tcl \
+			$(top_srcdir)/Scripts/LCC/GenerateEventID.tcl \
 			$(top_builddir)/Scripts/Common/Version.tcl \
 			$(top_srcdir)/Scripts/Common/ParseXML.tcl \
 			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
@@ -464,6 +471,8 @@ endif
 	
 OpenLCB_PiMCP23017SCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 			$(top_srcdir)/Scripts/LCC/lcc.tcl \
+			$(top_srcdir)/Scripts/LCC/OpenLCB_Common.tcl \
+			$(top_srcdir)/Scripts/LCC/GenerateEventID.tcl \
 			$(top_builddir)/Scripts/Common/Version.tcl \
 			$(top_srcdir)/Scripts/Common/ParseXML.tcl \
 			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
@@ -521,6 +530,8 @@ endif
 	
 OpenLCB_PiSPIMax7221SCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 			$(top_srcdir)/Scripts/LCC/lcc.tcl \
+			$(top_srcdir)/Scripts/LCC/OpenLCB_Common.tcl \
+			$(top_srcdir)/Scripts/LCC/GenerateEventID.tcl \
 			$(top_builddir)/Scripts/Common/Version.tcl \
 			$(top_srcdir)/Scripts/Common/ParseXML.tcl \
 			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
@@ -578,6 +589,8 @@ endif
 	
 OpenLCB_PiMCP23017_signalSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 			$(top_srcdir)/Scripts/LCC/lcc.tcl \
+			$(top_srcdir)/Scripts/LCC/OpenLCB_Common.tcl \
+			$(top_srcdir)/Scripts/LCC/GenerateEventID.tcl \
 			$(top_builddir)/Scripts/Common/Version.tcl \
 			$(top_srcdir)/Scripts/Common/ParseXML.tcl \
 			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
@@ -635,6 +648,8 @@ endif
 	
 OpenLCB_TrackCircuitsSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 				$(top_srcdir)/Scripts/LCC/lcc.tcl \
+				$(top_srcdir)/Scripts/LCC/OpenLCB_Common.tcl \
+			$(top_srcdir)/Scripts/LCC/GenerateEventID.tcl \
 				$(top_builddir)/Scripts/Common/Version.tcl \
 				$(top_srcdir)/Scripts/Common/ParseXML.tcl \
 				$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
@@ -691,6 +706,8 @@ endif
 
 OpenLCB_LogicSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 				$(top_srcdir)/Scripts/LCC/lcc.tcl \
+				$(top_srcdir)/Scripts/LCC/OpenLCB_Common.tcl \
+			$(top_srcdir)/Scripts/LCC/GenerateEventID.tcl \
 				$(top_builddir)/Scripts/Common/Version.tcl \
 				$(top_srcdir)/Scripts/Common/ParseXML.tcl \
 				$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
@@ -747,6 +764,8 @@ endif
 
 OpenLCB_AcelaSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 			$(top_srcdir)/Scripts/LCC/lcc.tcl \
+			$(top_srcdir)/Scripts/LCC/OpenLCB_Common.tcl \
+			$(top_srcdir)/Scripts/LCC/GenerateEventID.tcl \
 			$(top_builddir)/Scripts/Common/Version.tcl \
 			$(top_srcdir)/Scripts/Common/ParseXML.tcl \
 			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \

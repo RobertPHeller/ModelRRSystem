@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 7 10:36:33 2016
-#  Last Modified : <170719.1739>
+#  Last Modified : <170826.1009>
 #
 #  Description	
 #
@@ -88,6 +88,7 @@ set argv0 [file join  [file dirname [info nameofexecutable]] OpenLCB_PiGPIO]
 package require Tclwiringpi;#  require the Tclwiringpi package
 package require snit;#     require the SNIT OO framework
 package require LCC;#      require the OpenLCB code
+package require OpenLCB_Common;# Common code
 package require ParseXML;# require the XML parsing code (for the conf file)
 package require gettext;#  require the localized message handler
 package require log;#      require the logging package.
@@ -96,7 +97,6 @@ set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirn
 							[info script]]]] Messages]]
 
 snit::enum PinModes -values {disabled in out high low}
-
 snit::type GPIOPinNo {
     pragma  -hastypeinfo false -hastypedestroy false -hasinstances false
     
@@ -197,6 +197,8 @@ snit::type OpenLCB_PiGPIO {
     typevariable  pollinterval 500;#  Poll interval
     typevariable  GPIOCMD;#           gpio command
     typecomponent editContextMenu
+    typecomponent xmlgpioconfig;# Common GPIO config object
+    typecomponent eventgenerator;# Event Generator
     
     typeconstructor {
         #** @brief Global static initialization.
@@ -231,6 +233,16 @@ snit::type OpenLCB_PiGPIO {
         }
         set conffile [from argv -configuration "pigpioconf.xml"]
         #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
+        set xmlgpioconfig [XmlConfiguration create %AUTO% {
+                           <configure>
+                           <string option="-description" tagname="description">Description</string>
+                           <enum option="-pinnumber" tagname="number" enums="0 1 2 3 4 5 6 7 21 22 23 24 25 26 27 28 29">GPIO Pin Number</enum>
+                           <enum option="-pinmode" tagname="mode" enums="disabled in out high low">Pin Mode</enum>
+                           <eventid option="-pinin0" tagname="pinin0">Pin Low In Event</eventid>
+                           <eventid option="-pinin1" tagname="pinin1">Pin High In Event</eventid>
+                           <eventid option="-pinout0" tagname="pinout0">Pin Low Out Event</eventid>
+                           <eventid option="-pinout1" tagname="pinout1">Pin High Out Event</eventid>
+                           </configure>}]
         if {$configureator} {
             $type ConfiguratorGUI $conffile
             return
@@ -335,57 +347,20 @@ snit::type OpenLCB_PiGPIO {
         exec $GPIOCMD unexportall;# flush all existing exported pins
         
         foreach pin [$configuration getElementsByTagName "pin"] {
-            set pincommand [list $type create %AUTO%]
+            set pincommand [$xmlgpioconfig processConfig $pin [list $type create %AUTO%]
             set consume no
             set produce no
-            set pinno [$pin getElementsByTagName "number"]
-            if {[llength $pinno] != 1} {
-                ::log::logError [_ "Missing or multiple pin numbers"]
-                exit 94
-            }
-            set thepin [$pinno data]
-            GPIOPinNo validate $thepin
-            lappend pincommand -pinnumber $thepin
-            set description [$pin getElementsByTagName "description"]
-            if {[llength $description] > 0} {
-                lappend pincommand -description [[lindex $description 0] data]
-            }
-            set pinmode [$pin getElementsByTagName "mode"]
-            if {[llength $pinmode] != 1} {
-                ::log::logError [_ "Missing or multiple pin modes"]
-                exit 93
-            }
-            set themode [string tolower [$pinmode data]]
-            PinModes validate $themode
-            lappend pincommand -pinmode $themode
-            switch $themode {
+            set pin [eval $pincommand]
+            switch [$pin cget -pinmode] {
                 in {
-                    foreach k {pinin0 pinin1} {
-                        set tag [$pin getElementsByTagName $k]
-                        if {[llength $tag] == 0} {continue}
-                        set tag [lindex $tag 0]
-                        set produce yes
-                        set ev [lcc::EventID create %AUTO% -eventidstring [$tag data]]
-                        lappend pincommand -$k $ev
-                        lappend eventsproduced $ev
-                    }
+                    set produce yes
                 }
                 out -
                 high -
                 low {
-                    foreach k {pinout0 pinout1} {
-                        set tag [$pin getElementsByTagName $k]
-                        if {[llength $tag] == 0} {continue}
-                        set tag [lindex $tag 0]
-                        set consume yes
-                        set ev [lcc::EventID create %AUTO% -eventidstring [$tag data]]
-                        lappend pincommand -$k $ev
-                        lappend eventsconsumed $ev
-                    }
-                    
+                    set consume yes
                 }
             }
-            set pin [eval $pincommand]
             if {$consume} {lappend consumers $pin}
             if {$produce} {lappend producers $pin}
             if {!$consume && !$produce} {
@@ -533,7 +508,7 @@ snit::type OpenLCB_PiGPIO {
     typevariable    id_description {};# node description
     typevariable    pollinginterval 500;# polling interval.
     typecomponent   pins;# Pin list
-    typevariable    pincount 0;# pin count
+    typecomponent   generateEventID
     
     typevariable status {};# Status line
     typevariable conffilename {};# Configuration File Name
@@ -577,6 +552,7 @@ snit::type OpenLCB_PiGPIO {
         # @param conffile Name of the configuration file.
         #
         
+        package require GenerateEventID 1.0
         set conffilename $conffile
         set confXML $default_confXML
         if {[file exists $conffilename]} {
@@ -602,9 +578,11 @@ snit::type OpenLCB_PiGPIO {
         $ident addchild $nameele
         $nameele setdata "Sample Name"
         set descrele [SimpleDOMElement %AUTO% -tag "description"]
+        set generateEventID [GenerateEventID create %AUTO% \
+                             -baseeventid [lcc::EventID create %AUTO% \
+                                           -eventidstring "05.01.01.01.22.00.00.00"]]
         $ident addchild $descrele
         $descrele setdata "Sample Description"
-        set eid 0
         set pollele [SimpleDOMElement %AUTO% -tag "pollinterval"]
         $cdi addchild $pollele
         $pollele setdata 500
@@ -622,8 +600,7 @@ snit::type OpenLCB_PiGPIO {
         foreach eventtag {pinin0 pinin1} {
             set tagele [SimpleDOMElement %AUTO% -tag $eventtag]
             $pin addchild $tagele
-            $tagele setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-            incr eid
+            $tagele setdata [$generateEventID nextid]
         }
         set pin [SimpleDOMElement %AUTO% -tag "pin"]
         $cdi addchild $pin
@@ -639,12 +616,15 @@ snit::type OpenLCB_PiGPIO {
         foreach eventtag {pinout0 pinout1} {
             set tagele [SimpleDOMElement %AUTO% -tag $eventtag]
             $pin addchild $tagele
-            $tagele setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-            incr eid
+            $tagele setdata [$generateEventID nextid]
         }
+        set attrs [$cdi cget -attributes]
+        lappend attrs lastevid [$generateEventID currentid]
+        $cdi configure -attributes $attrs
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
+            close $conffp
         }
         ::exit
     }
@@ -667,6 +647,7 @@ snit::type OpenLCB_PiGPIO {
         package require ButtonBox
         package require ScrollTabNotebook
         package require HTMLHelp 2.0
+        package require GenerateEventID 1.0
         
         set HelpDir [file join [file dirname [file dirname [file dirname \
                                                             [info script]]]] Help]
@@ -748,6 +729,27 @@ snit::type OpenLCB_PiGPIO {
                 set transopts [$coptions data]
             }
         }
+        set lastevid [$cdi attribute lastevid]
+        if {$lastevid eq {}} {
+            set nidindex [lsearch -exact $transopts -nid]
+            if {$nidindex >= 0} {
+                incr nidindex
+                set nid [lindex $transopts $nidindex]
+            } else {
+                set nid "05:01:01:01:22:00"
+            }
+            set evlist [list]
+            foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $nid] 1 end] {
+                lappend evlist [scan $oct %02x]
+            }
+            lappend evlist 0 0
+            set generateEventID [GenerateEventID create %AUTO% \
+                                 -baseeventid [lcc::EventID create %AUTO% -eventidlist $evlist]]
+        } else {
+            set generateEventID [GenerateEventID create %AUTO% \
+                                 -baseeventid [lcc::EventID create %AUTO% -eventidstring $lastevid]]
+        }
+        $xmlgpioconfig configure -eventidgenerator $generateEventID
         set identificationframe [ttk::labelframe $frame.identificationframe \
                             -labelanchor nw -text [_m "Label|Identification"]]
         pack $identificationframe -fill x -expand yes
@@ -790,12 +792,20 @@ snit::type OpenLCB_PiGPIO {
         set pins [ScrollTabNotebook $frame.pins]
         pack $pins -expand yes -fill both
         foreach pin [$cdi getElementsByTagName "pin"] {
-            $type _create_and_populate_pin $pin
+            set pinframe [$xmlgpioconfig createGUI $pins pin $cdi \
+                          $pin [_m "Label|Delete Pin"] \
+                          [mytypemethod _addframe] [mytypemethod _delframe]]
         }
         set addpin [ttk::button $frame.addpin \
                     -text [_m "Label|Add another pin"] \
                     -command [mytypemethod _addblankpin]]
         pack $addpin -fill x
+    }
+    typemethod _addframe {parent frame count} {
+        $devices add $frame -text [_ "Pin %d" $count] -sticky news
+    }
+    typemethod _delframe {frame} {
+        $devices forget $frame
     }
     typevariable warnings
     typemethod _saveexit {} {
@@ -813,6 +823,18 @@ snit::type OpenLCB_PiGPIO {
         set warnings 0
         set cdis [$configuration getElementsByTagName OpenLCB_PiGPIO -depth 1]
         set cdi [lindex $cdis 0]
+        set lastevid [$cdi attribute lastevid]
+        if {$lastevid eq {}} {
+            set attrs [$cdi cget -attributes]
+            lappend attrs lastevid [$generateEventID currentid]
+            $cdi configure -attributes $attrs
+        } else {
+            set attrs [$cdi cget -attributes]
+            set findx [lsearch -exact $attrs lastevid]
+            incr findx
+            set attrs [lreplace $attrs $findx $findx [$generateEventID currentid]]
+            $cdi configure -attributes $attrs
+        }
         set transcons [$cdi getElementsByTagName "transport"]
         if {[llength $transcons] < 1} {
             set transcons [SimpleDOMElement %AUTO% -tag "transport"]
@@ -856,7 +878,7 @@ snit::type OpenLCB_PiGPIO {
         $pollele setdata $pollinginterval
         
         foreach pin [$cdi getElementsByTagName "pin"] {
-            $type _copy_from_gui_to_XML $pin
+            $xmlgpioconfig copyFromGUI $pins $pin warnings
         }
         
         if {$warnings > 0} {
@@ -867,125 +889,9 @@ snit::type OpenLCB_PiGPIO {
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
+            close $conffp
         }
         return yes
-    }
-    typemethod _copy_from_gui_to_XML {pin} {
-        #** Copy from the GUI to the Pin XML
-        # 
-        # @param pin Pin XML element.
-        
-        set fr [$pin attribute frame]
-        set frbase $pins.$fr
-        set pinno [$pin getElementsByTagName "number"]
-        if {[llength $pinno] < 1} {
-            set pinno [SimpleDOMElement %AUTO% -tag "number"]
-            $pin addchild $pinno
-        }
-        $pinno setdata [$frbase.pinno get]
-        set pinmode [$pin getElementsByTagName "mode"]
-        if {[llength $pinmode] < 1} {
-            set pinmode [SimpleDOMElement %AUTO% -tag "mode"]
-            $pin addchild $pinmode
-        }
-        $pinmode setdata [$frbase.pinmode get]
-        set description_ [$frbase.description get]
-        if {$description_ eq ""} {
-            set description [$pin getElementsByTagName "description"]
-            if {[llength $description] == 1} {
-                $pin removeChild $description
-            }
-        } else {
-            set description [$pin getElementsByTagName "description"]
-            if {[llength $description] < 1} {
-                set description [SimpleDOMElement %AUTO% -tag "description"]
-                $pin addchild $description
-            }
-            $description setdata $description_
-        }
-        set pinin0_ [$frbase.pinin0 get]
-        if {$pinin0_ ne "" && [catch {lcc::eventidstring validate $pinin0_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Pin in 0 is not a valid event id string: %s!" $pinin0_]
-            set pinin0_ ""
-            incr warnings
-        }
-        if {$pinin0_ eq ""} {
-            set pinin0 [$pin getElementsByTagName "pinin0"]
-            if {[llength $pinin0] == 1} {
-                $pin removeChild $pinin0
-            }
-        } else {
-            set pinin0 [$pin getElementsByTagName "pinin0"]
-            if {[llength $pinin0] < 1} {
-                set pinin0 [SimpleDOMElement %AUTO% -tag "pinin0"]
-                $pin addchild $pinin0
-            }
-            $pinin0 setdata $pinin0_
-        }
-        
-        set pinin1_ [$frbase.pinin1 get]
-        if {$pinin1_ ne "" && [catch {lcc::eventidstring validate $pinin1_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Pin in 1 is not a valid event id string: %s!" $pinin1_]
-            set pinin1_ ""
-            incr warnings
-        }
-        if {$pinin1_ eq ""} {
-            set pinin1 [$pin getElementsByTagName "pinin1"]
-            if {[llength $pinin1] == 1} {
-                $pin removeChild $pinin1
-            }
-        } else {
-            set pinin1 [$pin getElementsByTagName "pinin1"]
-            if {[llength $pinin1] < 1} {
-                set pinin1 [SimpleDOMElement %AUTO% -tag "pinin1"]
-                $pin addchild $pinin1
-            }
-            $pinin1 setdata $pinin1_
-        }
-        
-        set pinout0_ [$frbase.pinout0 get]
-        if {$pinout0_ ne "" && [catch {lcc::eventidstring validate $pinout0_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Pin out 0 is not a valid event id string: %s!" $pinout0_]
-            set pinout0_ ""
-            incr warnings
-        }
-        if {$pinout0_ eq ""} {
-            set pinout0 [$pin getElementsByTagName "pinout0"]
-            if {[llength $pinout0] == 1} {
-                $pin removeChild $pinout0
-            }
-        } else {
-            set pinout0 [$pin getElementsByTagName "pinout0"]
-            if {[llength $pinout0] < 1} {
-                set pinout0 [SimpleDOMElement %AUTO% -tag "pinout0"]
-                $pin addchild $pinout0
-            }
-            $pinout0 setdata $pinout0_
-        }
-        
-        set pinout1_ [$frbase.pinout1 get]
-        if {$pinout1_ ne "" && [catch {lcc::eventidstring validate $pinout1_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Pin out 1 is not a valid event id string: %s!" $pinout1_]
-            set pinout1_ ""
-            incr warnings
-        }
-        if {$pinout1_ eq ""} {
-            set pinout1 [$pin getElementsByTagName "pinout1"]
-            if {[llength $pinout1] == 1} {
-                $pin removeChild $pinout1
-            }
-        } else {
-            set pinout1 [$pin getElementsByTagName "pinout1"]
-            if {[llength $pinout1] < 1} {
-                set pinout1 [SimpleDOMElement %AUTO% -tag "pinout1"]
-                $pin addchild $pinout1
-            }
-            $pinout1 setdata $pinout1_
-        }
     }
     typemethod _exit {} {
         #** Exit function.  Bound to the Exit file menu item.
@@ -1022,87 +928,6 @@ snit::type OpenLCB_PiGPIO {
             }
         }
     }
-    typemethod _create_and_populate_pin {pin} {
-        #** Create a tab for a  pin and populate it.
-        #
-        # @param pin The pin XML element.
-        
-        incr pincount
-        set fr pin$pincount
-        set f [$pin attribute frame]
-        if {$f eq {}} {
-            set attrs [$pin cget -attributes]
-            lappend attrs frame $fr
-            $pin configure -attributes $attrs
-        } else {
-            set attrs [$pin cget -attributes]
-            set findx [lsearch -exact $attrs frame]
-            incr findx
-            set attrs [lreplace $attrs $findx $findx $fr]
-            $pin configure -attributes $attrs
-        }
-        set pinframe [ttk::frame \
-                      $pins.$fr]
-        $pins add $pinframe \
-              -text [_ "Pin %d" $pincount] -sticky news
-        set pinno_ [LabelComboBox $pinframe.pinno \
-                    -label [_m "Label|GPIO Pin Number"] \
-                    -values [GPIOPinNo AllPins]]
-        $pinno_ set [lindex [GPIOPinNo AllPins] 0]
-        pack $pinno_ -fill x -expand yes
-        set pinno [$pin getElementsByTagName "number"]
-        if {[llength $pinno] == 1} {
-            $pinno_ set [$pinno data]
-        }
-        set pinmode_ [LabelComboBox $pinframe.pinmode \
-                      -label [_m "Label|Pin Mode"] \
-                      -values [PinModes cget -values]]
-        pack $pinmode_ -fill x -expand yes
-        $pinmode_ set [lindex [PinModes cget -values] 0]
-        set pinmode [$pin getElementsByTagName "mode"]
-        if {[llength $pinno] == 1} {
-            $pinmode_ set [$pinmode data]
-        }
-        set description_ [LabelEntry $pinframe.description \
-                          -label [_m "Label|Description"]]
-        pack $description_ -fill x -expand yes
-        set description [$pin getElementsByTagName "description"]
-        if {[llength $description] == 1} {
-            $description_ configure -text [$description data]
-        }
-        set pinin0_ [LabelEntry $pinframe.pinin0 \
-                       -label [_m "Label|Pin Low In Event"]]
-        pack $pinin0_ -fill x -expand yes
-        set pinin0 [$pin getElementsByTagName "pinin0"]
-        if {[llength $pinin0] == 1} {
-            $pinin0_ configure -text [$pinin0 data]
-        }
-        set pinin1_ [LabelEntry $pinframe.pinin1 \
-                        -label [_m "Label|Pin High In Event"]]
-        pack $pinin1_ -fill x -expand yes
-        set pinin1 [$pin getElementsByTagName "pinin1"]
-        if {[llength $pinin1] == 1} {
-            $pinin1_ configure -text [$pinin1 data]
-        }
-        set pinout0_ [LabelEntry $pinframe.pinout0 \
-                       -label [_m "Label|Pin Low Out Event"]]
-        pack $pinout0_ -fill x -expand yes
-        set pinout0 [$pin getElementsByTagName "pinout0"]
-        if {[llength $pinout0] == 1} {
-            $pinout0_ configure -text [$pinout0 data]
-        }
-        set pinout1_ [LabelEntry $pinframe.pinout1 \
-                        -label [_m "Label|Pin High Out Event"]]
-        pack $pinout1_ -fill x -expand yes
-        set pinout1 [$pin getElementsByTagName "pinout1"]
-        if {[llength $pinout1] == 1} {
-            $pinout1_ configure -text [$pinout1 data]
-        }
-        set delpin [ttk::button $pinframe.deletepin \
-                       -text [_m "Label|Delete pin"] \
-                       -command [mytypemethod _deletepin $pin]]
-        pack $delpin -fill x
-    }
     typemethod _addblankpin {} {
         #** Create a new blank pin.
         
@@ -1110,19 +935,9 @@ snit::type OpenLCB_PiGPIO {
         set cdi [lindex $cdis 0]
         set pin [SimpleDOMElement %AUTO% -tag "pin"]
         $cdi addchild $pin
-        $type _create_and_populate_pin $pin
-    }
-    typemethod _deletePin {pin} {
-        #** Delete a pin
-        #
-        # @param pin The pin's XML element.
-        
-        set fr [$pin attribute frame]
-        set cdis [$configuration getElementsByTagName OpenLCB_PiGPIO -depth 1]
-        set cdi [lindex $cdis 0]
-        $cdi removeChild $pin
-        $pins forget $pins.$fr
-        destroy $pins.$fr
+        set pinframe [$xmlgpioconfig createGUI $pins pin $cdi $pin \
+                      [_m "Label|Delete Pin"] \
+                      [mytypemethod _addframe] [mytypemethod _delframe]]
     }
     
     

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 17 07:55:13 2016
-#  Last Modified : <170719.1623>
+#  Last Modified : <170825.1047>
 #
 #  Description	
 #
@@ -88,6 +88,7 @@ set argv0 [file join  [file dirname [info nameofexecutable]] OpenLCB_Acela]
 package require CTIAcela;# require the CTIAcela package
 package require snit;#     require the SNIT OO framework
 package require LCC;#      require the OpenLCB code
+package require OpenLCB_Common;# Common OpenLCB code
 package require ParseXML;# require the XML parsing code (for the conf file)
 package require gettext;#  require the localized message handler
 package require log;#      require the logging package.
@@ -180,16 +181,13 @@ snit::listtype AspectArgumentList -minlen 2 -maxlen 4 \
 snit::type EventAspectList {
     pragma  -hastypeinfo no -hastypedestroy no -hasinstances no
     typemethod validate {object} {
-        if {([llength $object] & 1) != 0} {
-            error [_ "Not an EventAspectList: %s (odd list length)" $object]
-        } else {
-            foreach {e al} $object {
-                if {[catch {lcc::EventID validate $e}]} {
-                    error [_ "Not an EventAspectList: %s (badevent: %s)" $object $e]
-                }
-                if {[catch {AspectArgumentList validate $al}]} {
-                    error [_ "Not an EventAspectList: %s (bad AspectArgumentList: %s)" $object $al]
-                }
+        foreach e_al $object {
+            foreach {e al} $e_al {break}
+            if {[catch {lcc::EventID validate $e}]} {
+                error [_ "Not an EventAspectList: %s (badevent: %s)" $object $e]
+            }
+            if {[catch {AspectArgumentList validate $al}]} {
+                error [_ "Not an EventAspectList: %s (bad AspectArgumentList: %s)" $object $al]
             }
         }
         return $object
@@ -221,7 +219,8 @@ snit::type Acela_Signal {
     method producerP {} {return no}
     method consumedEvents {} {
         set events [list]
-        foreach {ev al} [$self cget -eventaspectlist] {
+        foreach ev_al [$self cget -eventaspectlist] {
+            foreach {ev al} $ev_al {break}
             if {$ev ne {}} {lappend events $ev}
         }
         return $events
@@ -232,7 +231,8 @@ snit::type Acela_Signal {
     method consumeEvent {event} {
         ::log::log debug "*** $self consumeEvent $event"
         set sigcmd [$self cget -signalcommand]
-        foreach {ev al} [$self cget -eventaspectlist] {
+        foreach ev_al [$self cget -eventaspectlist] {
+            foreach {ev al} $ev_al {break}
             if {$ev eq {}} {continue}
             if {[$ev match $event]} {
                 ::log::log debug "*** $self consumeEvent: event matches"
@@ -367,6 +367,9 @@ snit::type OpenLCB_Acela {
     typevariable  eventsproduced {};# Events produced.
     typecomponent acelanet;#          The acela network instance.
     typecomponent editContextMenu
+    typecomponent xmlcontrolconfig;# Common control config object
+    typecomponent xmlsensorconfig;# Common sensor config object
+    typecomponent xmlsignalconfig;# Common signal config object
     
     typeconstructor {
         #** @brief Global static initialization.
@@ -399,6 +402,43 @@ snit::type OpenLCB_Acela {
         }
         set conffile [from argv -configuration "acelaconf.xml"]
         #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
+        set xmlcontrolconfig [XmlConfiguration create %AUTO% {
+                             <configure>
+                             <string option="-description" tagname="description">Description</string>
+                             <int option="-address" tagname="address" min="0" max="65535">Address</int>
+                             <int option="-pulsewidth" tagname="pulsewidth" min="0" max="255">Pulse Width</int>
+                             <int option="-blinkperiod" tagname="blinkperiod" min="0" max="255">Blink Period</int>
+                             <eventid option="-activate" tagname="activate">Activate EventID</eventid>
+                             <eventid option="-deactivate" tagname="deactivate">Deactivate EventID</eventid>
+                             <eventid option="-pulseon" tagname="pulseon">Pulse On EventID</eventid>
+                             <eventid option="-pulseoff" tagname="pulseoff">Pulse Off EventID</eventid>
+                             <eventid option="-blink" tagname="blink">Blink EventID</eventid>
+                             <eventid option="-revblink" tagname="revblink">Reverse Blink EventID</eventid>
+                             </configure>}]
+        set xmlsensorconfig [XmlConfiguration create %AUTO% {
+                             <configure>
+                             <string option="-description" tagname="description">Description</string>
+                             <int option="-address" tagname="address" min="0" max="65535">Address</int>
+                             <int option="-filterthresh" tagname="filterthresh" min="0" max="255">Filter Threshold</int>
+                             <enum option="-filterselect" tagname="filterselect" enums="noise bounce gap dirty" default="noise">Filter Select</enum>
+                             <enum option="-polarity" tagname="polarity" enums="normal invert" noise="normal">Filter Select</enum>
+                             </configure>}]
+        set xmlsignalconfig [XmlConfiguration create %AUTO% {
+                             <configure>
+                             <string option="-description" tagname="description">Description</string>
+                             <int option="-address" tagname="address" min="0" max="65535">Address</int>
+                             <enum option="-signalcommand" tagname="signalcommand" enums="Signal2 Signal3 Signal4" default="Signal2">Signal Command</enum>
+                             <group repname="Aspect" 
+                             option="-eventaspectlist" 
+                             tagname="aspect" mincount="0" 
+                             maxcount="unlimited">
+                             <eventid tagname="eventid">When this event Occurs</eventid>
+                             <list tagname="arglist" mincount="2" maxcount="4" >the following lamp arguments will be sent</list>
+                             </group>
+                             </configure>} \
+                               -configcallback [mytypemethod _signalaspectconfig] \
+                               -guicallback [mytypemethod _signalaspectguicallback] \
+                               -copyfromcallback [mytypemethod _signalaspectcopyfromcallback]]
         if {$configureator} {
             $type ConfiguratorGUI $conffile
             return
@@ -505,32 +545,7 @@ snit::type OpenLCB_Acela {
         $acelanet ResetNetwork
         $acelanet NetworkOnline
         foreach control [$configuration getElementsByTagName "control"] {
-            set command [list $type create Control%AUTO% -ioclasstype Control]
-            set addr [$control getElementsByTagName "address"]
-            if {[llength $addr] != 1} {
-                ::log::logError [_ "A control's address is missing, skipping!"]
-                continue
-            }
-            if {[catch {::ctiacela::addresstype validate [$addr data]}]} {
-                ::log::logError [_ "A control's address is bad: %s" [$addr data]]
-                continue
-            }
-            lappend command -address [$addr data]
-            foreach tag {description pulsewidth blinkperiod} {
-                set tagele [$control getElementsByTagName $tag]
-                if {[llength $tagele] > 0} {
-                    set tagele [llindex $tagele 0]
-                    lappend command -$tag [$tagele data]
-                }
-            }
-            foreach tag {activate deactivate pulseon pulseoff blink revblink} {
-                set tagele [$control getElementsByTagName $tag]
-                if {[llength $tagele] > 0} {
-                    set tagele [llindex $tagele 0]
-                    lappend command -$tag [lcc::EventID create %AUTO% \
-                                           -eventidstring [$tagele data]]
-                }
-            }
+            set command [$xmlcontrolconfig processConfig $control [list $type create Control%AUTO% -ioclasstype Control]]
             ::log::log debug "*** (control) command = '$command'"
             set io [eval $command]
             lappend iolist $io
@@ -541,57 +556,8 @@ snit::type OpenLCB_Acela {
         }
         set hassignals no
         foreach signal  [$configuration getElementsByTagName "signal"] {
-            set command [list $type create Signal%AUTO% -ioclasstype Signal]
-            set addr [$signal getElementsByTagName "address"]
-            if {[llength $addr] != 1} {
-                ::log::logError [_ "A signal's address is missing, skipping!"]
-                continue
-            }
-            if {[catch {::ctiacela::addresstype validate [$addr data]}]} {
-                ::log::logError [_ "A signal's address is bad: %s" [$addr data]]
-                continue
-            }
-            lappend command -address [$addr data]
-            set descr [$signal getElementsByTagName "description"]
-            if {[llength $descr] > 0} {
-                lappend command -description "[[lindex $descr 0] data]"
-            }
-            set sigcmd [$signal getElementsByTagName "signalcommand"]
-            if {[llength $sigcmd] != 1} {
-                ::log::logError [_ "A signal's command type is missing, skipping!"]
-                continue
-            }
-            set signalcmd [$sigcmd data]
-            if {[catch {::SignalCommands validate $signalcmd}]} {
-                ::log::logError [_ "Bad signal command type: %s, skipping!" $signalcmd]
-                continue
-            }
-            lappend command -signalcommand $signalcmd
-            set eventaspectlist [list]
-            foreach aspect [$signal getElementsByTagName "aspect"] {
-                set evtag [$aspect getElementsByTagName "eventid"]
-                if {[llength $evtag] != 1} {
-                    ::log::logError [_ "A signal's aspect event is missing, skipping!"]
-                    continue
-                }
-                set event [$evtag data]
-                set altag [$aspect getElementsByTagName "arglist"]
-                if {[llength $altag] != 1} {
-                    ::log::logError [_ "A signal's aspect arglist is missing, skipping!"]
-                    continue
-                }
-                lappend eventaspectlist [lcc::EventID %AUTO% -eventidstring $event] "[$altag data]"
-            }
-            if {[llength $eventaspectlist] < 2} {
-                ::log::logError [_ "A signal has no aspects, skipping!"]
-                continue
-            }
-            if {[catch {EventAspectList validate $eventaspectlist} why]} {
-                ::log::logError [_ "A signal's event aspect list (%s) is illformed (%s), skipping!" $eventaspectlist $why]
-                continue
-            }
+            set command [$xmlsignalconfig processConfig $signal [list $type create Signal%AUTO% -ioclasstype Signal]]
             set hassignals yes
-            lappend command -eventaspectlist "$eventaspectlist"
             ::log::log debug "*** (signal) command = '$command'"
             set io [eval $command]
             lappend iolist $io
@@ -624,32 +590,7 @@ snit::type OpenLCB_Acela {
             }
         }
         foreach sensor  [$configuration getElementsByTagName "sensor"] {
-            set command [list $type create Sensor%AUTO% -ioclasstype Sensor]
-            set addr [$sensor getElementsByTagName "address"]
-            if {[llength $addr] != 1} {
-                ::log::logError [_ "A sensor's address is missing, skipping!"]
-                continue
-            }
-            if {[catch {::ctiacela::addresstype validate [$addr data]}]} {
-                ::log::logError [_ "A sensor's address is bad: %s" [$addr data]]
-                continue
-            }
-            lappend command -address [$addr data]
-            foreach tag {description filterthresh filterselect polarity} {
-                set tagele [$sensor getElementsByTagName $tag]
-                if {[llength $tagele] > 0} {
-                    set tagele [lindex $tagele 0]
-                    lappend command -$tag [$tagele data]
-                }
-            }
-            foreach tag {onevent offevent} {
-                set tagele [$sensor getElementsByTagName $tag]
-                if {[llength $tagele] > 0} {
-                    set tagele [lindex $tagele 0]
-                    lappend command -$tag [lcc::EventID create %AUTO% \
-                                           -eventidstring [$tagele data]]
-                }
-            }
+            set command [$xmlsensorconfig processConfig $sensor [list $type create Sensor%AUTO% -ioclasstype Sensor]]
             ::log::log debug "*** (sensor) command = '$command'"
             set io [eval $command]
             lappend iolist $io
@@ -791,15 +732,14 @@ snit::type OpenLCB_Acela {
     typevariable    id_name {};# node name
     typevariable    id_description {};# node description
     typevariable    acelaport {};# acelaport.
+    typecomponent   generateEventID
     typecomponent   controls
-    typevariable    controlcount 0
     typecomponent   signals
-    typevariable    signalcount 0
     typevariable    blinkrate
     typevariable    yellowhue
     typevariable    brightness
     typecomponent   sensors
-    typevariable    sensorcount 0
+
     
     typevariable status {};# Status line
     typevariable conffilename {};# Configuration File Name
@@ -843,6 +783,7 @@ snit::type OpenLCB_Acela {
         # @param conffile Name of the configuration file.
         #
         
+        package require GenerateEventID 1.0                                     
         set conffilename $conffile
         set confXML $default_confXML
         if {[file exists $conffilename]} {
@@ -862,6 +803,9 @@ snit::type OpenLCB_Acela {
         set transportopts [SimpleDOMElement %AUTO% -tag "options"]
         $transcons addchild $transportopts
         $transportopts setdata {-port 12021 -nid 05:01:01:01:22:00 -host localhost}
+        set generateEventID [GenerateEventID create %AUTO% \
+                             -baseeventid [lcc::EventID create %AUTO% \
+                                           -eventidstring "05.01.01.01.22.00.00.00"]]
         set ident [SimpleDOMElement %AUTO% -tag "identification"]
         $cdi addchild $ident
         set nameele [SimpleDOMElement %AUTO% -tag "name"]
@@ -886,7 +830,6 @@ snit::type OpenLCB_Acela {
         set brightness_ [SimpleDOMElement %AUTO% -tag "brightness"]
         $cdi addchild $brightness_
         $brightness_ setdata 255
-        set eid 0
         set control [SimpleDOMElement %AUTO% -tag "control"]
         $cdi addchild $control
         set address [SimpleDOMElement %AUTO% -tag "address"]
@@ -904,8 +847,7 @@ snit::type OpenLCB_Acela {
         foreach eventtag {activate deactivate pulseon pulseoff blink revblink} {
             set tagele [SimpleDOMElement %AUTO% -tag $eventtag]
             $control addchild $tagele
-            $tagele setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-            incr eid
+            $tagele setdata [$generateEventID nextid]
         }
         set signal [SimpleDOMElement %AUTO% -tag "signal"]
         $cdi addchild $signal
@@ -922,7 +864,7 @@ snit::type OpenLCB_Acela {
         $signal addchild $aspect
         set eventidtag [SimpleDOMElement %AUTO% -tag "eventid"]
         $aspect addchild $eventidtag
-        $eventidtag setdata [format {05.01.01.01.22.00.00.%02x} $eid]
+        $eventidtag setdata [$generateEventID nextid]
         incr eid
         set arglisttag [SimpleDOMElement %AUTO% -tag "arglist"]
         $aspect addchild $arglisttag
@@ -947,12 +889,14 @@ snit::type OpenLCB_Acela {
         foreach eventtag {onevent offevent} {
             set tagele [SimpleDOMElement %AUTO% -tag $eventtag]
             $sensor addchild $tagele
-            $tagele setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-            incr eid
+            $tagele setdata [$generateEventID nextid]
         }
+        set attrs [$cdi cget -attributes]
+        lappend attrs lastevid [$generateEventID currentid]
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
+            close $conffp
         }
         ::exit
     }
@@ -963,6 +907,7 @@ snit::type OpenLCB_Acela {
         #
         # @param conffile Name of the configuration file.
         
+        #puts stderr "*** $type ConfiguratorGUI \"$conffile\""
         package require Tk
         package require tile
         package require ParseXML
@@ -974,6 +919,7 @@ snit::type OpenLCB_Acela {
         package require ButtonBox
         package require ScrollTabNotebook
         package require HTMLHelp 2.0
+        package require GenerateEventID 1.0
         
         set HelpDir [file join [file dirname [file dirname [file dirname \
                                                             [info script]]]] Help]
@@ -1056,6 +1002,30 @@ snit::type OpenLCB_Acela {
                 set transopts [$coptions data]
             }
         }
+        set lastevid [$cdi attribute lastevid]
+        if {$lastevid eq {}} {
+            set nidindex [lsearch -exact $transopts -nid]
+            if {$nidindex >= 0} {
+                incr nidindex
+                set nid [lindex $transopts $nidindex]
+            } else {
+                set nid "05:01:01:01:22:00"
+            }
+            set evlist [list]
+            foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $nid] 1 end] {
+                lappend evlist [scan $oct %02x]
+            }
+            lappend evlist 0 0
+            set generateEventID [GenerateEventID create %AUTO% \
+                                 -baseeventid [lcc::EventID create %AUTO% -eventidlist $evlist]]
+        } else {
+            set generateEventID [GenerateEventID create %AUTO% \
+                                 -baseeventid [lcc::EventID create %AUTO% -eventidstring $lastevid]]
+        }
+        $xmlcontrolconfig configure -eventidgenerator $generateEventID
+        $xmlsensorconfig  configure -eventidgenerator $generateEventID
+        $xmlsignalconfig  configure -eventidgenerator $generateEventID
+        #puts stderr "*** $type ConfiguratorGUI: generateEventID is $generateEventID"
         set identificationframe [ttk::labelframe $frame.identificationframe \
                             -labelanchor nw -text [_m "Label|Identification"]]
         pack $identificationframe -fill x -expand yes
@@ -1096,8 +1066,13 @@ snit::type OpenLCB_Acela {
         }
         set controls [ScrollTabNotebook $frame.controls]
         pack $controls -expand yes -fill both
+        #puts stderr "*** $type ConfiguratorGUI: controls is $controls"
         foreach control [$cdi getElementsByTagName "control"] {
-            $type _create_and_populate_control $control
+            set controlframe [$xmlcontrolconfig createGUI $controls control \
+                              $cdi $control [_m "Label|Delete Control"] \
+                              [mytypemethod _addframe "Control %d"] \
+                              [mytypemethod _delframe $controls]]
+            #puts stderr "*** $type ConfiguratorGUI: controlframe is $controlframe"
         }
         set addcontrol [ttk::button $frame.addcontrol \
                        -text [_m "Label|Add another control"] \
@@ -1106,7 +1081,10 @@ snit::type OpenLCB_Acela {
         set signals [ScrollTabNotebook $frame.signals]
         pack $signals -expand yes -fill both
         foreach signal [$cdi getElementsByTagName "signal"] {
-            $type _create_and_populate_signal $signal
+            set signalframe [$xmlsignalconfig createGUI $signals signal \
+                             $cdi $signal [_m "Label|Delete Signal"] \
+                             [mytypemethod _addframe "Signal %d"] \
+                             [mytypemethod _delframe $signals]]
         }
         set addsignal [ttk::button $frame.addsignal \
                        -text [_m "Label|Add another signal"] \
@@ -1146,7 +1124,10 @@ snit::type OpenLCB_Acela {
         set sensors [ScrollTabNotebook $frame.sensors]
         pack $sensors -expand yes -fill both
         foreach sensor [$cdi getElementsByTagName "sensor"] {
-            $type _create_and_populate_sensor $sensor
+            set sensorframe [$xmlsensorconfig createGUI $sensors sensor \
+                             $cdi $sensor [_m "Label|Delete Sensor"] \
+                             [mytypemethod _addframe "Sensor %d"] \
+                             [mytypemethod _delframe $sensors ]]
         }
         set addsensor [ttk::button $frame.addsensor \
                        -text [_m "Label|Add another sensor"] \
@@ -1154,297 +1135,41 @@ snit::type OpenLCB_Acela {
         pack $addsensor -fill x
         
     }
-    typemethod _create_and_populate_control {control} {
-        incr controlcount
-        set fr control$controlcount
-        set f [$control attribute frame]
-        if {$f eq {}} {
-            set attrs [$control cget -attributes]
-            lappend attrs frame $fr
-            $control configure -attributes $attrs
-        } else {
-            set attrs [$control cget -attributes]
-            set findx [lsearch -exact $attrs frame] 
-            incr findx
-            set attrs [lreplace $attrs $findx $findx $fr]
-            $control configure -attributes $attrs
-        }
-        set ctrlframe [ttk::frame $controls.$fr]
-        $controls add $ctrlframe \
-              -text [_ "Control %d" $controlcount] -sticky news
-        set address_ [LabelSpinBox $ctrlframe.addressSB \
-                      -label [_m "Label|Address"] \
-                      -range {0 65535 1}]
-        pack $address_ -fill x -expand yes
-        set address [$control getElementsByTagName "address"]
-        if {[llength $address] == 1} {
-            $address_ set [$address data]
-        } else {
-            $address_ set 0
-        }
-        foreach tag {description pulsewidth blinkperiod activate deactivate 
-                     pulseon pulseoff blink revblink} \
-              lab [list [_m "Label|Description"] [_m "Label|Pulse Width"] \
-                   [_m "Label|Blink Period"] [_m "Label|Activate EventID"] \
-                   [_m "Label|Deactivate EventID"] \
-                   [_m "Label|Pulse On EventID"] \
-                   [_m "Label|Pulse Off EventID"] [_m "Label|Blink EventID"] \
-                   [_m "Label|Reverse Blink  EventID"]] \
-              wcons {LabelEntry LabelSpinBox LabelSpinBox LabelEntry 
-                     LabelEntry LabelEntry LabelEntry LabelEntry LabelEntry} \
-              default {{} 0 0 {} {} {} {} {} {}} {
-             set widget [$wcons $ctrlframe.$tag -label $lab]
-             if {$wcons eq "LabelSpinBox"} {
-                 $widget configure -range {0 255 1}
-             }
-             $widget configure -text $default
-             pack $widget -fill x -expand yes
-             set tagele [$control getElementsByTagName $tag]
-             if {[llength $tagele] > 0} {
-                 $widget configure -text [[lindex $tagele 0] data]
-             }
-         }
-         set delcontrol [ttk::button $ctrlframe.delcontrol \
-                         -text [_m "Label|Delete Control"] \
-                         -command [mytypemethod _deleteControl $control]]
-         pack $delcontrol -fill x
-            
+    typemethod _addframe {label parent frame count} {
+        $parent add $frame -text [format $label $count] -sticky news
     }
     typemethod _addblankcontrol {} {
         set cdis [$configuration getElementsByTagName OpenLCB_Acela -depth 1]
         set cdi [lindex $cdis 0]
         set control [SimpleDOMElement %AUTO% -tag "control"]
         $cdi addchild $control
-        $type _create_and_populate_control $control
+        set controlframe [$xmlcontrolconfig createGUI $controls control \
+                          $cdi $control [_m "Label|Delete Control"] \
+                          [mytypemethod _addframe "Control %d"] \
+                          [mytypemethod _delframe $controls]]
     }
-    typemethod _deleteControl {control} {
-        set fr [$control attribute frame]
-        set cdis [$configuration getElementsByTagName OpenLCB_Acela -depth 1]
-        set cdi [lindex $cdis 0]
-        $cdi removeChild $control
-        $controls forget $controls.$fr
-        destroy $controls.$fr
-    }
-    typemethod _create_and_populate_signal {signal} {
-        incr signalcount
-        set fr signal$signalcount
-        set f [$signal attribute frame]
-        if {$f eq {}} {
-            set attrs [$signal cget -attributes]
-            lappend attrs frame $fr
-            $signal configure -attributes $attrs
-        } else {
-            set attrs [$signal cget -attributes]
-            set findx [lsearch -exact $attrs frame] 
-            incr findx
-            set attrs [lreplace $attrs $findx $findx $fr]
-            $signal configure -attributes $attrs
-        }
-        set sigframe [ttk::frame $signals.$fr]
-        $signals add $sigframe \
-              -text [_ "Signal %d" $signalcount] -sticky news
-        set address_ [LabelSpinBox $sigframe.addressSB \
-                      -label [_m "Label|Address"] \
-                      -range {0 65535 1}]
-        pack $address_ -fill x -expand yes
-        set address [$signal getElementsByTagName "address"]
-        if {[llength $address] == 1} {
-            $address_ set [$address data]
-        } else {
-            $address_ set 0
-        }
-        set description_ [LabelEntry $sigframe.description \
-                          -label [_m "Label|Description"]]
-        pack $description_ -fill x -expand yes
-        set description [$signal getElementsByTagName "description"]
-        if {[llength $description] > 0} {
-            $description_ configure -text [[lindex $description 0] data]
-        }
-        set signalcommand_ [LabelComboBox $sigframe.signalcommand \
-                            -label [_m "Label|Signal Command"] \
-                            -values [SignalCommands cget -values] \
-                            -editable no]
-        pack $signalcommand_ -fill x -expand yes
-        set signalcommand [$signal getElementsByTagName "signalcommand"]
-        if {[llength $signalcommand] > 0} {
-            $signalcommand_ set [[lindex $signalcommand 0] data]
-        } else {
-            $signalcommand_ set [lindex [SignalCommands cget -values] 0]
-        }
-        set eventaspectlist_ [ScrollTabNotebook $sigframe.eventaspectlist]
-        pack $eventaspectlist_ -fill both -expand yes
-        foreach aspect [$signal getElementsByTagName "aspect"] {
-            $type _create_and_populate_signal_aspect $signal $eventaspectlist_ $aspect
-        }
-        set addaspect [ttk::button $sigframe.addaspect \
-                       -text [_m "Label|Add another aspect"] \
-                       -command [mytypemethod _addblankaspect $signal $eventaspectlist_]]
-        pack $addaspect -fill x
-    }
-    typemethod _create_and_populate_signal_aspect {signal aspectlist aspect} {
-        
-        set tag [$aspect getElementsByTagName "eventid"]
-        if {[llength $tag] != 1} {
-            tk_messageBox -type ok -icon warning -message [_ "Aspect missing its EventID. skipped!"]
-            return
-        }
-        set tag [lindex $tag 0]
-        set evstring [$tag data]
-        set tag [$aspect getElementsByTagName "arglist"]
-        if {[llength $tag] != 1} {
-            tk_messageBox -type ok -icon warning -message [_ "Aspect missing its arglist, skipped!"]
-            return
-        }
-        set tag [lindex $tag 0]
-        set arglist [$tag data]
-        #puts stderr "*** $type _create_and_populate_signal_aspect: arglist = \{$arglist\}"
-        if {[catch {AspectArgumentList validate $arglist} why]} {
-            tk_messageBox -type ok -icon warning -message [_ "Invalid aspect ArgumentList: %s (%s), aspect skipped!" $arglist $why]
-            return
-        }
-        set aspectcount 0
-        incr aspectcount
-        set fr aspect$aspectcount
-        while {[winfo exists $aspectlist.$fr]} {
-            incr aspectcount
-            set fr aspect$aspectcount
-        }
-        set f [$aspect attribute frame]
-        if {$f eq {}} {
-            set attrs [$aspect cget -attributes]
-            lappend attrs frame $fr
-            $aspect configure -attributes $attrs
-        } else {
-            set attrs [$aspect cget -attributes]
-            set findx [lsearch -exact $attrs frame]
-            incr findx
-            set attrs [lreplace $attrs $findx $findx $fr]
-            $aspect configure -attributes $attrs
-        }
-        set aspectframe [ttk::frame $aspectlist.$fr]
-        $aspectlist add $aspectframe -text [_ "Aspect %d" $aspectcount] -sticky news
-        set eventid_ [LabelEntry $aspectframe.eventid \
-                      -label [_m "Label|When this event occurs"] \
-                      -text $evstring]
-        pack $eventid_ -fill x -expand yes
-        set argl_ [LabelEntry $aspectframe.arglist \
-                   -label [_m "Label|the following lamp arguments will be sent."] \
-                   -text $arglist]
-        pack $argl_ -fill x -expand yes
-        set del [ttk::button $aspectframe.delete \
-                 -text [_m "Label|Delete Aspect"] \
-                 -command [mytypemethod _deleteAspect $aspectlist $signal $aspect]]
-        pack $del -fill x
-    }
-    typemethod _deleteAspect {aspectlist signal aspect} {
-        set fr [$aspect attribute frame]
-        $signal removeChild $aspect
-        $aspectlist forget $aspectlist.$fr
-        destroy $aspectlist.$fr
-    }
-    typemethod _addblankaspect {signal aspectlist} {
-        set aspect [SimpleDOMElement %AUTO% -tag "aspect"]
-        $signal addchild $aspect
-        set eventid [SimpleDOMElement %AUTO% -tag "eventid"]
-        $eventid setdata "00.00.00.00.00.00.00.00"
-        $aspect addchild $eventid
-        set arglist [SimpleDOMElement %AUTO% -tag "arglist"]
-        $arglist setdata [list off off off off]
-        $aspect addchild $arglist
-        #$aspect display stderr
-        $type _create_and_populate_signal_aspect $signal $aspectlist $aspect
+    typemethod _delframe {parentWidget frame} {
+        $parentWidget forget $frame
     }
     typemethod _addblanksignal {} {
         set cdis [$configuration getElementsByTagName OpenLCB_Acela -depth 1]
         set cdi [lindex $cdis 0]
         set signal [SimpleDOMElement %AUTO% -tag "signal"]
         $cdi addchild $signal
-        $type _create_and_populate_signal $signal
-    }
-    typemethod _create_and_populate_sensor {sensor} {
-        incr sensorcount
-        set fr sensor$sensorcount
-        set f [$sensor attribute frame]
-        if {$f eq {}} {
-            set attrs [$sensor cget -attributes]
-            lappend attrs frame $fr
-            $sensor configure -attributes $attrs
-        } else {
-            set attrs [$sensor cget -attributes]
-            set findx [lsearch -exact $attrs frame] 
-            incr findx
-            set attrs [lreplace $attrs $findx $findx $fr]
-            $sensor configure -attributes $attrs
-        }
-        set sensframe [ttk::frame $sensors.$fr]
-        $sensors add $sensframe \
-              -text [_ "Sensor %d" $sensorcount] -sticky news
-        set address_ [LabelSpinBox $sensframe.addressSB \
-                      -label [_m "Label|Address"] \
-                      -range {0 65535 1}]
-        pack $address_ -fill x -expand yes
-        set address [$sensor getElementsByTagName "address"]
-        if {[llength $address] == 1} {
-            $address_ set [$address data]
-        } else {
-            $address_ set 0
-        }
-        foreach tag {description filterthresh filterselect polarity onevent 
-                     offevent} \
-              lab [list [_m "Label|Description"] [_m "Label|Filter Threshold"] \
-                   [_m "Label|Filter Select"] [_m "Label|Polarity"] \
-                   [_m "Label|On EventID"] \
-                   [_m "Label|Off EventID"]] \
-              wcons {LabelEntry LabelSpinBox LabelComboBox LabelComboBox 
-                     LabelEntry LabelEntry} \
-              default {{} 0 noise normal {} {}} {
-             set widget [$wcons $sensframe.$tag -label $lab]
-             switch $tag {
-                 filterthresh {
-                     $widget configure -range {0 31 1}
-                     $widget set 0
-                 }
-                 filterselect {
-                     $widget configure \
-                           -values [::ctiacela::selecttype cget -values] \
-                           -editable no
-                     $widget set [lindex [$widget configure -values] 0]
-                 }
-                 polarity {
-                     $widget configure \
-                           -values [::ctiacela::polaritytype cget -values] \
-                           -editable no
-                     $widget set [lindex [$widget configure -values] 0]
-                 }
-             }
-             $widget configure -text $default
-             pack $widget -fill x -expand yes
-             set tagele [$sensor getElementsByTagName $tag]
-             if {[llength $tagele] > 0} {
-                 #puts stderr "*** $type _create_and_populate_sensor: tag = $tag"
-                 #puts stderr "*** $type _create_and_populate_sensor: tag data is [[lindex $tagele 0] data]"
-                 $widget configure -text [[lindex $tagele 0] data]
-             }
-         }
-         set delsensor [ttk::button $sensframe.delsensor \
-                         -text [_m "Label|Delete sensor"] \
-                         -command [mytypemethod _deleteSensor $sensor]]
-         pack $delsensor -fill x
+        set signalframe [$xmlsignalconfig createGUI $signals signal \
+                         $cdi $signal [_m "Label|Delete Signal"] \
+                         [mytypemethod _addframe "Signal %d"] \
+                         [mytypemethod _delframe $signals]]
     }
     typemethod _addblanksensor {} {
         set cdis [$configuration getElementsByTagName OpenLCB_Acela -depth 1]
         set cdi [lindex $cdis 0]
         set sensor [SimpleDOMElement %AUTO% -tag "sensor"]
         $cdi addchild $sensor
-        $type _create_and_populate_sensor $sensor
-    }
-    typemethod _deleteSensor {sensor} {
-        set fr [$sensor attribute frame]
-        set cdis [$configuration getElementsByTagName OpenLCB_Acela -depth 1]
-        set cdi [lindex $cdis 0]
-        $cdi removeChild $sensor
-        $sensors forget $sensors.$fr
-        destory $sensors.$fr
+        set sensorframe [$xmlsensorconfig createGUI $sensors sensor \
+                         $cdi $sensor [_m "Label|Delete Sensor"] \
+                         [mytypemethod _addframe "Sensor %d"] \
+                         [mytypemethod _delframe $sensors ]]
     }
     
     typevariable warnings
@@ -1463,6 +1188,18 @@ snit::type OpenLCB_Acela {
         set warnings 0
         set cdis [$configuration getElementsByTagName OpenLCB_Acela -depth 1]
         set cdi [lindex $cdis 0]
+        set lastevid [$cdi attribute lastevid]
+        if {$lastevid eq {}} {
+            set attrs [$cdi cget -attributes]
+            lappend attrs lastevid [$generateEventID currentid]
+            $cdi configure -attributes $attrs
+        } else {
+            set attrs [$cdi cget -attributes]
+            set findx [lsearch -exact $attrs lastevid]
+            incr findx
+            set attrs [lreplace $attrs $findx $findx [$generateEventID currentid]]
+            $cdi configure -attributes $attrs
+        }
         set transcons [$cdi getElementsByTagName "transport"]
         if {[llength $transcons] < 1} {
             set transcons [SimpleDOMElement %AUTO% -tag "transport"]
@@ -1505,10 +1242,10 @@ snit::type OpenLCB_Acela {
         }
         $acelaport_ setdata $acelaport
         foreach control [$cdi getElementsByTagName "control"] {
-            $type _copy_control_from_gui_to_XML $control
+            $xmlcontrolconfig copyFromGUI $controls $control warnings
         }
         foreach signal [$cdi getElementsByTagName "signal"] {
-            $type _copy_signal_from_gui_to_XML $signal
+            $xmlsignalconfig copyFromGUI $signals $signal warnings
         }
         set blinkrate_ [$cdi getElementsByTagName "blinkrate"]
         if {[llength $blinkrate_] < 1} {
@@ -1530,7 +1267,7 @@ snit::type OpenLCB_Acela {
         $brightness_ setdata $brightness
         
         foreach sensor  [$cdi getElementsByTagName "sensor"] {
-            $type _copy_sensor_from_gui_to_XML $sensor
+            $xmlsensorconfig copyFromGUI $sensors $sensor warnings
         }
         if {$warnings > 0} {
             tk_messageBox -type ok -icon info \
@@ -1540,128 +1277,10 @@ snit::type OpenLCB_Acela {
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
+            close $conffp
         }
         return yes
     }
-    typemethod _copy_control_from_gui_to_XML {control} {
-        set fr [$control attribute frame]
-        set frbase $controls.$fr
-        set address [$control getElementsByTagName "address"]
-        if {[llength $address] < 1} {
-            set address [SimpleDOMElement %AUTO% -tag "address"]
-            $control addchild $address
-        }
-        $address setdata [$frbase.addressSB get]
-        foreach tag {description pulsewidth blinkperiod activate deactivate 
-            pulseon pulseoff blink revblink} {
-            set tagval [$frbase.$tag get]
-            if {[lsearch {activate deactivate pulseon pulseoff blink revblink} $tag] >=0} {
-                if {$tagval ne "" && [catch {lcc::eventidstring validate $tagval}]} {
-                    tk_messageBox -type ok -icon warning \
-                          -message [_ "Event ID for %s is not a valid event id string: %s!" $tag $tagval]
-                    set tagval {}
-                    incr warnings
-                }
-            }
-            if {$tagval eq ""} {
-                set tagele [$control getElementsByTagName $tag]
-                if {[llength $tagele] == 1} {
-                    $control removeChild $tagele
-                }
-            } else {
-                set tagele [$control getElementsByTagName $tag]
-                if {[llength $tagele] < 1} {
-                    set tagele [SimpleDOMElement %AUTO% -tag $tag]
-                    $control addchild $tagele
-                }
-                $tagele setdata $tagval
-            }
-        }
-    }
-    typemethod _copy_signal_from_gui_to_XML {signal} {
-        set fr [$signal attribute frame]
-        set frbase $signals.$fr
-        set address [$signal getElementsByTagName "address"]
-        if {[llength $address] < 1} {
-            set address [SimpleDOMElement %AUTO% -tag "address"]
-            $signal addchild $address
-        }
-        $address setdata [$frbase.addressSB get]
-        foreach tag {description signalcommand} {
-            set tagval [$frbase.$tag get]
-            if {$tagval eq ""} {
-                set tagele [$signal getElementsByTagName $tag]
-                if {[llength $tagele] == 1} {
-                    $signal removeChild $tagele
-                }
-            } else {
-                set tagele [$signal getElementsByTagName $tag]
-                if {[llength $tagele] < 1} {
-                    set tagele [SimpleDOMElement %AUTO% -tag $tag]
-                    $signal addchild $tagele
-                }
-                $tagele setdata $tagval
-            }
-        }
-        set aspectlist $frbase.eventaspectlist
-        foreach aspect [$signal getElementsByTagName "aspect"] {
-            set eventidtag [$aspect getElementsByTagName "eventid"]
-            set arglisttag [$aspect getElementsByTagName "arglist"]
-            set fr [$aspect attribute frame]
-            set aspectframe $aspectlist.$fr
-            set eventid "[$aspectframe.eventid get]"
-            if {[catch {lcc::eventidstring validate $eventid}]} {
-                tk_messageBox -type ok -icon warning -message [_ "Aspect EventID malformed: %s" $eventid]
-                incr warnings
-            } else {
-                $eventidtag setdata "$eventid"
-            }
-            set arglist "[$aspectframe.arglist get]"
-            if {[catch {AspectArgumentList validate $arglist}]} {
-                tk_messageBox -type ok -icon warning -message [_ "Aspect aspect lamp arglist malformed: %s" $arglist]
-                incr warnings
-            } else {
-                $arglisttag setdata "$arglist"
-            }
-        }
-    }
-    typemethod _copy_sensor_from_gui_to_XML {sensor} {
-        set fr [$sensor attribute frame]
-        set frbase $sensors.$fr
-        set address [$sensor getElementsByTagName "address"]
-        if {[llength $address] < 1} {
-            set address [SimpleDOMElement %AUTO% -tag "address"]
-            $sensor addchild $address
-        }
-        $address setdata [$frbase.addressSB get]
-        foreach tag {description filterthresh filterselect polarity onevent 
-                     offevent} {
-            set tagval [$frbase.$tag get]
-            if {[lsearch {onevent offevent} $tag] >=0} {
-                if {$tagval ne "" && [catch {lcc::eventidstring validate $tagval}]} {
-                    tk_messageBox -type ok -icon warning \
-                          -message [_ "Event ID for %s is not a valid event id string: %s!" $tag $tagval]
-                    incr warnings
-                    set tagval {}
-                }
-            }
-            if {$tagval eq ""} {
-                set tagele [$sensor getElementsByTagName $tag]
-                if {[llength $tagele] == 1} {
-                    $sensor removeChild $tagele
-                }
-            } else {
-                set tagele [$sensor getElementsByTagName $tag]
-                if {[llength $tagele] < 1} {
-                    set tagele [SimpleDOMElement %AUTO% -tag $tag]
-                    $sensor addchild $tagele
-                }
-                $tagele setdata $tagval
-            }
-        }
-        
-    }
-    
     
     typemethod _exit {} {
         #** Exit function.  Bound to the Exit file menu item.

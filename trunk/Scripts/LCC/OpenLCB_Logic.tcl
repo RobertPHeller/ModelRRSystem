@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 25 14:52:47 2016
-#  Last Modified : <170719.1844>
+#  Last Modified : <170825.1048>
 #
 #  Description	
 #
@@ -100,6 +100,7 @@ set argv0 [file join  [file dirname [info nameofexecutable]] OpenLCB_Logic]
 
 package require snit;#     require the SNIT OO framework
 package require LCC;#      require the OpenLCB code
+package require OpenLCB_Common;# Common OpenLCB code
 package require ParseXML;# require the XML parsing code (for the conf file)
 package require gettext;#  require the localized message handler
 package require log;#      require the logging package.
@@ -483,6 +484,7 @@ snit::type OpenLCB_Logic {
     typevariable  eventsconsumed {};# Events consumed.
     typevariable  eventsproduced {};# Events produced.
     typecomponent editContextMenu
+    typecomponent xmllogicconfig;# Common logic config object
     
     typeconstructor {
         #** @brief Global static initialization.
@@ -514,6 +516,26 @@ snit::type OpenLCB_Logic {
         }
         set conffile [from argv -configuration "logicsconf.xml"]
         #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
+        set xmllogicconfig [XmlConfiguration create %AUTO% {
+                            <configure>
+                            <string tagname="description" option="-description">Description</string>
+                            <eventid tagname="v1oneventid" option="-v1oneventid">Set variable #1 true.</eventid>
+                            <eventid tagname="v1offeventid" option="-v1offeventid">Set variable #1 false.</eventid>
+                            <eventid tagname="v2oneventid" option="-v2oneventid">Set variable #2 true.</eventid>
+                            <eventid tagname="v2offeventid" option="-v2offeventid">Set variable #2 false.</eventid>
+                            <enum tagname="grouptype" option="-grouptype" enums="mast ladder single" default="single">Group Type</enum>
+                            <enum tagname="logicfunction" option="-logic" enums="and or xor andch orch then true" default="and">Logic Function</enum>
+                            <int tagname="delay" option="-delay" min="0">Delay Period, miliseconds</int>
+                            <boolean tagname="retriggerable" option="-retriggerable">Retriggerable?</boolean>
+                            <boolean tagname="action1delay" option="-action1delay">Action 1 Delay?</boolean>
+                            <eventid tagname="action1eventid" option="-action1eventid">Action 1 Send Event:</eventid>
+                            <boolean tagname="action2delay" option="-action2delay">Action 2 Delay?</boolean>
+                            <eventid tagname="action2eventid" option="-action2eventid">Action 2 Send Event:</eventid>
+                            <boolean tagname="action3delay" option="-action3delay">Action 3 Delay?</boolean>
+                            <eventid tagname="action3eventid" option="-action3eventid">Action 3 Send Event:</eventid>
+                            <boolean tagname="action4delay" option="-action4delay">Action 4 Delay?</boolean>
+                            <eventid tagname="action4eventid" option="-action4eventid">Action 4 Send Event:</eventid>
+                            </configure>}]
         if {$configureator} {
             $type ConfiguratorGUI $conffile
             return
@@ -613,80 +635,7 @@ snit::type OpenLCB_Logic {
         set previous {}
         set previousGroup single
         foreach logic [$configuration getElementsByTagName "logic"] {
-            set logiccommand [list $type create %AUTO%]
-            ::log::log debug "*** $type typeconstructor: logiccommand is $logiccommand"
-            set description [$logic getElementsByTagName "description"]
-            if {[llength $description] > 0} {
-                lappend logiccommand -description [[lindex $description 0] data]
-            }
-            set grouptype [$logic getElementsByTagName "grouptype"]
-            if {[llength $grouptype] < 1} {
-                set group single
-            } else {
-                set group [[lindex $grouptype 0] data]
-            }
-            lappend logiccommand -grouptype $group
-            set v1onevent [$logic getElementsByTagName "v1onevent"]
-            if {[llength $v1onevent] > 0} {
-                lappend logiccommand -v1oneventid [lcc::EventID create %AUTO% -eventidstring "[[lindex $v1onevent 0] data]"]
-            }
-            set v1offevent [$logic getElementsByTagName "v1offevent"]
-            if {[llength $v1offevent] > 0} {
-                lappend logiccommand -v1offeventid [lcc::EventID create %AUTO% -eventidstring "[[lindex $v1offevent 0] data]"]
-            }
-            set logicfunction [$logic getElementsByTagName "logicfunction"]
-            if {[llength $logicfunction] > 0} {
-                lappend logiccommand -logic [[lindex $logicfunction 0] data]
-            }
-            set v2onevent [$logic getElementsByTagName "v2onevent"]
-            if {[llength $v2onevent] > 0} {
-                lappend logiccommand -v2oneventid [lcc::EventID create %AUTO% -eventidstring "[[lindex $v2onevent 0] data]"]
-            }
-            set v2offevent [$logic getElementsByTagName "v2offevent"]
-            if {[llength $v2offevent] > 0} {
-                lappend logiccommand -v2offeventid [lcc::EventID create %AUTO% -eventidstring "[[lindex $v2offevent 0] data]"]
-            }
-            set delay [$logic getElementsByTagName "delay"]
-            if {[llength $delay] > 0} {
-                lappend logiccommand -delay [[lindex $delay 0] data]
-            }
-            set retriggerable [$logic getElementsByTagName "retriggerable"]
-            if {[llength $retriggerable] > 0} {
-                lappend logiccommand -retriggerable [[lindex $retriggerable 0] data]
-            }
-            set action1delay [$logic getElementsByTagName "action1delay"]
-            if {[llength $action1delay] > 0} {
-                lappend logiccommand -action1delay [[lindex $action1delay 0] data]
-            }
-            set action1event [$logic getElementsByTagName "action1event"]
-            if {[llength $action1event] > 0} {
-                lappend logiccommand -action1eventid [lcc::EventID create %AUTO% -eventidstring "[[lindex $action1event 0] data]"]
-            }
-            set action2delay [$logic getElementsByTagName "action2delay"]
-            if {[llength $action2delay] > 0} {
-                lappend logiccommand -action2delay [[lindex $action2delay 0] data]
-            }
-            set action2event [$logic getElementsByTagName "action2event"]
-            if {[llength $action2event] > 0} {
-                lappend logiccommand -action2eventid [lcc::EventID create %AUTO% -eventidstring "[[lindex $action2event 0] data]"]
-            }
-            set action3delay [$logic getElementsByTagName "action3delay"]
-            if {[llength $action3delay] > 0} {
-                lappend logiccommand -action3delay [[lindex $action3delay 0] data]
-            }
-            set action3event [$logic getElementsByTagName "action3event"]
-            if {[llength $action3event] > 0} {
-                lappend logiccommand -action3eventid [lcc::EventID create %AUTO% -eventidstring "[[lindex $action3event 0] data]"]
-            }
-            set action4delay [$logic getElementsByTagName "action4delay"]
-            if {[llength $action4delay] > 0} {
-                lappend logiccommand -action4delay [[lindex $action4delay 0] data]
-            }
-            set action4event [$logic getElementsByTagName "action4event"]
-            if {[llength $action4event] > 0} {
-                lappend logiccommand -action4eventid [lcc::EventID create %AUTO% -eventidstring "[[lindex $action4event 0] data]"]
-            }
-            
+            set logiccommand [$xmllogicconfig processConfig $logic [list $type create %AUTO%]]
             ::log::log debug "*** $type typeconstructor: logiccommand is $logiccommand"
             set logic [eval $logiccommand]
             ::log::log debug "*** $type typeconstructor: logic is $logic"
@@ -695,6 +644,7 @@ snit::type OpenLCB_Logic {
                 $previous configure -next $logic
                 $logic configure -grouptype $previousGroup
             }
+            set group [$logic cget -grouptype]
             if {$group ne "single"} {
                 set previous $logic
             }
@@ -844,9 +794,8 @@ snit::type OpenLCB_Logic {
     typevariable    transopts {};# transport options
     typevariable    id_name {};# node name
     typevariable    id_description {};# node description
+    typecomponent   generateEventID
     typecomponent   logics;# logic list
-    typevariable    logiccount 0;# logic count
-    
     typevariable status {};# Status line
     typevariable conffilename {};# Configuration File Name
     
@@ -889,6 +838,7 @@ snit::type OpenLCB_Logic {
         # @param conffile Name of the configuration file.
         #
         
+        package require GenerateEventID 1.0
         set conffilename $conffile
         set confXML $default_confXML
         if {[file exists $conffilename]} {
@@ -908,6 +858,9 @@ snit::type OpenLCB_Logic {
         set transportopts [SimpleDOMElement %AUTO% -tag "options"]
         $transcons addchild $transportopts
         $transportopts setdata {-port 12021 -nid 05:01:01:01:22:00 -host localhost}
+        set generateEventID [GenerateEventID create %AUTO% \
+                             -baseeventid [lcc::EventID create %AUTO% \
+                                           -eventidstring "05.01.01.01.22.00.00.00"]]
         set ident [SimpleDOMElement %AUTO% -tag "identification"]
         $cdi addchild $ident
         set nameele [SimpleDOMElement %AUTO% -tag "name"]
@@ -916,7 +869,6 @@ snit::type OpenLCB_Logic {
         set descrele [SimpleDOMElement %AUTO% -tag "description"]
         $ident addchild $descrele
         $descrele setdata "Sample Description"
-        set eid 0
         set logic [SimpleDOMElement %AUTO% -tag "logic"]
         $cdi addchild $logic
         set description [SimpleDOMElement %AUTO% -tag "description"]
@@ -928,8 +880,7 @@ snit::type OpenLCB_Logic {
         foreach eventtag {v1onevent v1offevent} {
             set tagele [SimpleDOMElement %AUTO% -tag $eventtag]
             $logic addchild $tagele
-            $tagele setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-            incr eid
+            $tagele setdata [$generateEventID nextid]
         }
         set logicfunction [SimpleDOMElement %AUTO% -tag "logicfunction"]
         $logic addchild $logicfunction
@@ -937,8 +888,7 @@ snit::type OpenLCB_Logic {
         foreach eventtag {v2onevent v2offevent} {
             set tagele [SimpleDOMElement %AUTO% -tag $eventtag]
             $logic addchild $tagele
-            $tagele setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-            incr eid
+            $tagele setdata [$generateEventID nextid]
         }
         set delay [SimpleDOMElement %AUTO% -tag "delay"]
         $logic addchild $delay
@@ -949,8 +899,7 @@ snit::type OpenLCB_Logic {
         foreach a {1 2 3 4} {
             set event [SimpleDOMElement %AUTO% -tag [format {action%devent} $a]]
             $logic addchild $event
-            $event setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-            incr eid
+            $event setdata [$generateEventID nextid]
             set delay [SimpleDOMElement %AUTO% -tag [format {action%ddelay} $a]]
             $logic addchild $delay
             $delay setdata false
@@ -979,6 +928,7 @@ snit::type OpenLCB_Logic {
         package require ButtonBox
         package require ScrollTabNotebook
         package require HTMLHelp 2.0
+        package require GenerateEventID 1.0
         
         set HelpDir [file join [file dirname [file dirname [file dirname \
                                                             [info script]]]] Help]
@@ -1060,6 +1010,27 @@ snit::type OpenLCB_Logic {
                 set transopts [$coptions data]
             }
         }
+        set lastevid [$cdi attribute lastevid]
+        if {$lastevid eq {}} {
+            set nidindex [lsearch -exact $transopts -nid]
+            if {$nidindex >= 0} {
+                incr nidindex
+                set nid [lindex $transopts $nidindex]
+            } else {
+                set nid "05:01:01:01:22:00"
+            }
+            set evlist [list]
+            foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $nid] 1 end] {
+                lappend evlist [scan $oct %02x]
+            }
+            lappend evlist 0 0
+            set generateEventID [GenerateEventID create %AUTO% \
+                                 -baseeventid [lcc::EventID create %AUTO% -eventidlist $evlist]]
+        } else {
+            set generateEventID [GenerateEventID create %AUTO% \
+                                 -baseeventid [lcc::EventID create %AUTO% -eventidstring $lastevid]]
+        }
+        $xmllogicconfig configure -eventidgenerator $generateEventID
         set identificationframe [ttk::labelframe $frame.identificationframe \
                             -labelanchor nw -text [_m "Label|Identification"]]
         pack $identificationframe -fill x -expand yes
@@ -1092,7 +1063,10 @@ snit::type OpenLCB_Logic {
         set logics [ScrollTabNotebook $frame.tracks]
         pack $logics -expand yes -fill both
         foreach logic [$cdi getElementsByTagName "logic"] {
-            $type _create_and_populate_logic $logic
+            set logicframe [$xmllogicconfig createGUI $logics logic \
+                            $cdi $logic [_m "Label|Delete Logic"] \
+                            [mytypemethod _addframe] \
+                            [mytypemethod _delframe]]
         }
         set addlogic [ttk::button $frame.addlogic \
                       -text [_m "Label|Add another logic"] \
@@ -1105,176 +1079,16 @@ snit::type OpenLCB_Logic {
         set cdi [lindex $cdis 0]
         set logic [SimpleDOMElement %AUTO% -tag "logic"]
         $cdi addchild $logic
-        $type _create_and_populate_logic $logic
+        set logicframe [$xmllogicconfig createGUI $logics logic \
+                        $cdi $logic [_m "Label|Delete Logic"] \
+                        [mytypemethod _addframe] \
+                        [mytypemethod _delframe]]
     }
-    typemethod _create_and_populate_logic {logic} {
-        #** Create a tab for a logic and populate it.
-        #
-        # @param logic The logic XML element.
-        
-        #puts stderr "*** $type _create_and_populate_logic $logic"
-        incr logiccount
-        set fr logic$logiccount
-        set f [$logic attribute frame]
-        if {$f eq {}} {
-            set attrs [$logic cget -attributes]
-            lappend attrs frame $fr
-            $logic configure -attributes $attrs
-        } else {
-            set attrs [$logic cget -attributes]
-            set findx [lsearch -exact $attrs frame]
-            incr findx
-            set attrs [lreplace $attrs $findx $findx $fr]
-            $logic configure -attributes $attrs
-        }
-        #puts stderr "*** $type _create_and_populate_logic: fr = $fr"
-        set lcxframe [ttk::frame $logics.$fr]
-        $logics add $lcxframe -text [_ "Logic %d" $logiccount] -sticky news
-        set description_ [LabelEntry $lcxframe.description \
-                          -label [_m "Label|Description"]]
-        pack $description_ -fill x -expand yes
-        set description [$logic getElementsByTagName "description"]
-        if {[llength $description] == 1} {
-            $description_ configure -text [$description data]
-        }
-        #puts stderr "*** $type _create_and_populate_logic: description_ = $description_"
-        set grouptype_ [LabelComboBox $lcxframe.grouptype \
-                        -label [_m "Label|Group Type"] \
-                        -values [GroupType AllGroupTypeLabels] \
-                        -editable no]
-        pack $grouptype_ -fill x -expand yes
-        set grouptype [$logic getElementsByTagName "grouptype"]
-        if {[llength $grouptype] < 1} {
-            set group single
-        } else {
-            set group [[lindex $grouptype 0] data]
-        }
-        $grouptype_ set [GroupType GroupTypeLabel $group]
-        #puts stderr "*** $type _create_and_populate_logic: grouptype_ = $grouptype_"
-        set v1onevent_ [LabelEntry $lcxframe.v1onevent \
-                        -label [_m "Label|Set variable #1 true."] ]
-        pack $v1onevent_ -fill x -expand yes
-        set v1onevent [$logic getElementsByTagName "v1onevent"]
-        if {[llength $v1onevent] > 0} {
-            $v1onevent_ configure -text "[[lindex $v1onevent 0] data]"
-        } else {
-            $v1onevent_ configure -text "00.00.00.00.00.00.00.00"
-        }
-        set v1offevent_ [LabelEntry $lcxframe.v1offevent \
-                        -label [_m "Label|Set variable #1 false."] ]
-        pack $v1offevent_ -fill x -expand yes
-        set v1offevent [$logic getElementsByTagName "v1offevent"]
-        if {[llength $v1offevent] > 0} {
-            $v1offevent_ configure -text "[[lindex $v1offevent 0] data]"
-        } else {
-            $v1offevent_ configure -text "00.00.00.00.00.00.00.00"
-        }
-        set logicfunction_ [LabelComboBox $lcxframe.logicfunction \
-                        -label [_m "Label|Logic Function"] \
-                        -values [Logic AllLogicLabels] \
-                        -editable no]
-        pack $logicfunction_ -fill x -expand yes
-        set logicfunction [$logic getElementsByTagName "logicfunction"]
-        if {[llength $logicfunction] < 1} {
-            set logicfun and
-        } else {
-            set logicfun [[lindex $logicfunction 0] data]
-        }
-        #puts stderr "*** $type _create_and_populate_logic: logicfun = $logicfun"
-        $logicfunction_ set [Logic LogicLabel $logicfun]
-        
-        set v2onevent_ [LabelEntry $lcxframe.v2onevent \
-                        -label [_m "Label|Set variable #2 true."] ]
-        pack $v2onevent_ -fill x -expand yes
-        set v2onevent [$logic getElementsByTagName "v2onevent"]
-        if {[llength $v2onevent] > 0} {
-            $v2onevent_ configure -text "[[lindex $v2onevent 0] data]"
-        } else {
-            $v2onevent_ configure -text "00.00.00.00.00.00.00.00"
-        }
-        set v2offevent_ [LabelEntry $lcxframe.v2offevent \
-                        -label [_m "Label|Set variable #2 false."] ]
-        pack $v2offevent_ -fill x -expand yes
-        set v2offevent [$logic getElementsByTagName "v2offevent"]
-        if {[llength $v2offevent] > 0} {
-            $v2offevent_ configure -text "[[lindex $v2offevent 0] data]"
-        } else {
-            $v2offevent_ configure -text "00.00.00.00.00.00.00.00"
-        }
-        
-        set delay_ [LabelSpinBox $lcxframe.delay \
-                    -label [_m "Label|Delay Period, miliseconds"] \
-                    -range {0 86400000 1}]
-        pack $delay_ -fill x -expand yes
-        set delay [$logic getElementsByTagName "delay"]
-        if {[llength $delay] > 0} {
-            $delay_ set [[lindex $delay 0] data]
-        } else {
-            $delay_ set 0
-        }
-        set retriggerable_ [LabelComboBox $lcxframe.retriggerable \
-                            -label [_m "Label|Retriggerable?"] \
-                            -values [list [_m "Answer|No"] [_m "Answer|Yes"]] \
-                            -editable no]
-        pack $retriggerable_ -fill x -expand yes
-        set retriggerable [$logic getElementsByTagName "retriggerable"]
-        if {[llength $retriggerable] > 0} {
-            if {[[lindex $retriggerable 0] data]} {
-                $retriggerable_ set [_m "Answer|Yes"]
-            } else {
-                $retriggerable_ set [_m "Answer|No"]
-            }
-        } else {
-            $retriggerable_ set [_m "Answer|No"]
-        }
-        #puts stderr "*** $type _create_and_populate_logic: retriggerable_ = $retriggerable_"
-        set actions [ScrollTabNotebook $lcxframe.actions]
-        pack $actions -expand yes -fill both
-        foreach a {1 2 3 4} {
-            #puts stderr "*** $type _create_and_populate_logic: a = $a"
-            set aframe [ttk::frame [format {%s.action%d} $actions $a]]
-            #puts stderr "*** $type _create_and_populate_logic: aframe = $aframe"
-            $actions add $aframe -text [_ "Action %d" $a] -sticky news
-            set action_delay_ [LabelComboBox $aframe.delay \
-                               -label [_m "Label|Delay?"] \
-                               -values [list [_m "Answer|No"] [_m "Answer|Yes"]] \
-                               -editable no]
-            pack $action_delay_ -fill x -expand yes
-            set action_delay [$logic getElementsByTagName [format "action%ddelay" $a]]
-            #puts stderr "*** $type _create_and_populate_logic: action_delay = $action_delay"
-            if {[llength $action_delay] > 0} {
-                if {[[lindex $action_delay 0] data]} {
-                    $action_delay_ set [_m "Answer|Yes"]
-                } else {
-                    $action_delay_ set [_m "Answer|No"]
-                }
-            } else {
-                $action_delay_ set [_m "Answer|No"]
-            }
-            #puts stderr "*** $type _create_and_populate_logic: action_delay_ = $action_delay_"
-            set action_event_ [LabelEntry $aframe.event \
-                               -label [_m "Label|Send Event:"]]
-            pack $action_event_ -fill x -expand yes
-            set action_event [$logic getElementsByTagName [format "action%devent" $a]]
-            if {[llength $action_event] > 0} {
-                $action_event_ configure -text "[[lindex $action_event 0] data]"
-            } else {
-                $action_event_ configure -text "00.00.00.00.00.00.00.00"
-            }
-            #puts stderr "*** $type _create_and_populate_logic: action_event_ = $action_event_"
-        }
-        set dellogic [ttk::button $lcxframe.dellogic \
-                      -text [_m "Label|Delete Logic"] \
-                      -command [mytypemethod _deleteLogic $logic]]
-        pack $dellogic -fill x
+    typemethod _delframe {frame} {
+        $logics forget $frame
     }
-    typemethod _deleteLogic {logic} {
-        set fr [$logic attribute frame]
-        set cdis [$configuration getElementsByTagName OpenLCB_Logic -depth 1]
-        set cdi [lindex $cdis 0]
-        $cdi removeChild $logic
-        $logics forget $logics.$fr
-        destroy $logics.$fr
+    typemethod _addframe {parent frame count} {
+        $parent add $frame -text [_m "LABEL|Logic %d" $count] -sticky news
     }
     typevariable warnings
     typemethod _saveexit {} {
@@ -1292,6 +1106,18 @@ snit::type OpenLCB_Logic {
         set warnings 0
         set cdis [$configuration getElementsByTagName OpenLCB_Logic -depth 1]
         set cdi [lindex $cdis 0]
+        set lastevid [$cdi attribute lastevid]
+        if {$lastevid eq {}} {
+            set attrs [$cdi cget -attributes]
+            lappend attrs lastevid [$generateEventID currentid]
+            $cdi configure -attributes $attrs
+        } else {
+            set attrs [$cdi cget -attributes]
+            set findx [lsearch -exact $attrs lastevid]
+            incr findx
+            set attrs [lreplace $attrs $findx $findx [$generateEventID currentid]]
+            $cdi configure -attributes $attrs
+        }
         set transcons [$cdi getElementsByTagName "transport"]
         if {[llength $transcons] < 1} {
             set transcons [SimpleDOMElement %AUTO% -tag "transport"]
@@ -1328,16 +1154,18 @@ snit::type OpenLCB_Logic {
         }
         $descrele setdata $id_description
         foreach logic [$cdi getElementsByTagName "logic"] {
-            $type _copy_from_gui_to_XML $logic
+            $xmllogicconfig copyFromGUI $logics $logic warnings
         }
         if {$warnings > 0} {
             tk_messageBox -type ok -icon info \
                   -message [_ "There were %d warnings.  Please correct and try again." $warnings]
             return no
         }
+        
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
+            close $conffp
         }
         return yes
     }
