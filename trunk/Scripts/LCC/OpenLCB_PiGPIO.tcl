@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 7 10:36:33 2016
-#  Last Modified : <170826.1109>
+#  Last Modified : <170826.1639>
 #
 #  Description	
 #
@@ -200,6 +200,9 @@ snit::type OpenLCB_PiGPIO {
     typecomponent xmlgpioconfig;# Common GPIO config object
     typecomponent eventgenerator;# Event Generator
     
+    OpenLCB_Common::transportProcs
+    OpenLCB_Common::identificationProcs
+    
     typeconstructor {
         #** @brief Global static initialization.
         #
@@ -287,42 +290,11 @@ snit::type OpenLCB_PiGPIO {
             ::log::logError [_ "Could not parse configuration file %s: %s" $conffile $configuration]
             exit 98
         }
-        set transcons [$configuration getElementsByTagName "transport"]
-        set constructor [$transcons getElementsByTagName "constructor"]
-        if {$constructor eq {}} {
-            ::log::logError [_ "Transport constructor missing!"]
-            exit 97
-        }
-        set options [$transcons getElementsByTagName "options"]
-        set transportOpts {}
-        if {$options ne {}} {
-            set transportOpts [$options data]
-        } else {
-            ::log::log debug "*** $type typeconstructor: no options."
-        }
-        
-        set transportConstructors [info commands ::lcc::[$constructor data]]
-        if {[llength $transportConstructors] > 0} {
-            set transportConstructor [lindex $transportConstructors 0]
-        }
-        if {$transportConstructor eq {}} {
-            ::log::logError [_ "No valid transport constructor found!"]
-            exit 96
-        }
+        getTransport [$configuration getElementsByTagName "transport"] \
+              transportConstructor transportOpts
         set nodename ""
         set nodedescriptor ""
-        set ident [$configuration getElementsByTagName "identification"]
-        if {[llength $ident] > 0} {
-             set ident [lindex $ident 0]
-             set nodenameele [$ident getElementsByTagName "name"]
-             if {[llength $nodenameele] > 0} {
-                 set nodename [[lindex $nodenameele 0] data]
-             }
-             set nodedescriptorele [$ident getElementsByTagName "description"]
-             if {[llength $nodedescriptorele] > 0} {
-                 set nodedescriptor [[lindex $nodedescriptorele 0] data]
-             }
-        }
+        getIdentification [$configuration getElementsByTagName "identification"]  nodename nodedescriptor
         if {[catch {eval [list lcc::OpenLCBNode %AUTO% \
                           -transport $transportConstructor \
                           -eventhandler [mytypemethod _eventHandler] \
@@ -502,10 +474,6 @@ snit::type OpenLCB_PiGPIO {
     typecomponent main;# Main Frame.
     typecomponent scroll;# Scrolled Window.
     typecomponent editframe;# Scrollable Frame
-    typevariable    transconstructorname {};# transport constructor
-    typevariable    transopts {};# transport options
-    typevariable    id_name {};# node name
-    typevariable    id_description {};# node description
     typevariable    pollinginterval 500;# polling interval.
     typecomponent   pins;# Pin list
     typecomponent   generateEventID
@@ -564,22 +532,8 @@ snit::type OpenLCB_PiGPIO {
         set configuration [ParseXML create %AUTO% $confXML]
         set cdis [$configuration getElementsByTagName OpenLCB_PiGPIO -depth 1]
         set cdi [lindex $cdis 0]
-        set transcons [SimpleDOMElement %AUTO% -tag "transport"]
-        $cdi addchild $transcons
-        set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
-        $transcons addchild $constructor
-        $constructor setdata "CANGridConnectOverTcp"
-        set transportopts [SimpleDOMElement %AUTO% -tag "options"]
-        $transcons addchild $transportopts
-        $transportopts setdata {-port 12021 -nid 05:01:01:01:22:00 -host localhost}
-        set ident [SimpleDOMElement %AUTO% -tag "identification"]
-        $cdi addchild $ident
-        set nameele [SimpleDOMElement %AUTO% -tag "name"]
-        $ident addchild $nameele
-        $nameele setdata "Sample Name"
-        set descrele [SimpleDOMElement %AUTO% -tag "description"]
-        $ident addchild $descrele
-        $descrele setdata "Sample Description"
+        SampleTransport $cdi
+        SampleItentification $cdi
         set pollele [SimpleDOMElement %AUTO% -tag "pollinterval"]
         $cdi addchild $pollele
         $pollele setdata 500
@@ -690,45 +644,7 @@ snit::type OpenLCB_PiGPIO {
                        [$scroll getframe].editframe -constrainedwidth yes]
         $scroll setwidget $editframe
         set frame [$editframe getframe]
-        set transconsframe [ttk::labelframe $frame.transportconstuctor \
-                            -labelanchor nw -text [_m "Label|Transport"]]
-        pack $transconsframe -fill x -expand yes
-        set transconstructor [LabelFrame $transconsframe.transconstructor \
-                              -text [_m "Label|Constructor"]]
-        pack $transconstructor -fill x -expand yes
-        set cframe [$transconstructor getframe]
-        set transcname [ttk::entry $cframe.transcname \
-                        -state readonly \
-                        -textvariable [mytypevar transconstructorname]]
-        pack $transcname -side left -fill x -expand yes
-        set transcnamesel [ttk::button $cframe.transcnamesel \
-                           -text [_m "Label|Select"] \
-                           -command [mytypemethod _seltransc]]
-        pack $transcnamesel -side right
-        set transoptsframe [LabelFrame $transconsframe.transoptsframe \
-                              -text [_m "Label|Constructor Opts"]]
-        pack $transoptsframe -fill x -expand yes
-        set oframe [$transoptsframe getframe]
-        set transoptsentry [ttk::entry $oframe.transoptsentry \
-                        -state readonly \
-                        -textvariable [mytypevar transopts]]
-        pack $transoptsentry -side left -fill x -expand yes
-        set tranoptssel [ttk::button $oframe.tranoptssel \
-                         -text [_m "Label|Select"] \
-                         -command [mytypemethod _seltransopt]]
-        pack $tranoptssel -side right
-        
-        set transcons [$cdi getElementsByTagName "transport"]
-        if {[llength $transcons] == 1} {
-            set constructor [$transcons getElementsByTagName "constructor"]
-            if {[llength $constructor] == 1} {
-                set transconstructorname [$constructor data]
-            }
-            set coptions [$transcons getElementsByTagName "options"]
-            if {[llength $coptions] == 1} {
-                set transopts [$coptions data]
-            }
-        }
+        TransportGUI $frame $cdi
         set lastevid [$cdi attribute lastevid]
         if {$lastevid eq {}} {
             set nidindex [lsearch -exact $transopts -nid]
@@ -750,34 +666,7 @@ snit::type OpenLCB_PiGPIO {
                                  -baseeventid [lcc::EventID create %AUTO% -eventidstring $lastevid]]
         }
         $xmlgpioconfig configure -eventidgenerator $generateEventID
-        set identificationframe [ttk::labelframe $frame.identificationframe \
-                            -labelanchor nw -text [_m "Label|Identification"]]
-        pack $identificationframe -fill x -expand yes
-        set identificationname [LabelFrame $identificationframe.identificationname \
-                                -text [_m "Label|Name"]]
-        pack $identificationname -fill x -expand yes
-        set nframe [$identificationname getframe]
-        set idname [ttk::entry $nframe.idname \
-                        -textvariable [mytypevar id_name]]
-        pack $idname -side left -fill x -expand yes
-        set identificationdescrframe [LabelFrame $identificationframe.identificationdescrframe \
-                              -text [_m "Label|Description"]]
-        pack $identificationdescrframe -fill x -expand yes
-        set dframe [$identificationdescrframe getframe]
-        set identificationdescrentry [ttk::entry $dframe.identificationdescrentry \
-                        -textvariable [mytypevar id_description]]
-        pack $identificationdescrentry -side left -fill x -expand yes
-        set ident [$cdi getElementsByTagName "identification"]
-        if {[llength $ident] == 1} {
-            set nameele [$ident getElementsByTagName "name"]
-            if {[llength $nameele] == 1} {
-                set id_name [$nameele data]
-            }
-            set descrele [$ident getElementsByTagName "description"]
-            if {[llength $descrele] == 1} {
-                set id_description [$descrele data]
-            }
-        }
+        IdentificationGUI $frame $cdi
         
         set pollintervalLE [LabelSpinBox $frame.pollintervalLE \
                             -label [_m "Label|Poll Interfal"] \
@@ -835,41 +724,8 @@ snit::type OpenLCB_PiGPIO {
             set attrs [lreplace $attrs $findx $findx [$generateEventID currentid]]
             $cdi configure -attributes $attrs
         }
-        set transcons [$cdi getElementsByTagName "transport"]
-        if {[llength $transcons] < 1} {
-            set transcons [SimpleDOMElement %AUTO% -tag "transport"]
-            $cdi addchild $transcons
-        }
-        set constructor [$transcons getElementsByTagName "constructor"]
-        if {[llength $constructor] < 1} {
-            set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
-            $transcons addchild $constructor
-        }
-        $constructor setdata $transconstructorname
-        set coptions [$transcons getElementsByTagName "options"]
-        if {[llength $coptions] < 1} {
-            set coptions [SimpleDOMElement %AUTO% -tag "options"]
-            $transcons addchild $coptions
-        }
-        $coptions setdata $transopts
-        
-        set ident [$cdi getElementsByTagName "identification"]
-        if {[llength $ident] < 1} {
-            set ident [SimpleDOMElement %AUTO% -tag "identification"]
-            $cdi addchild $ident
-        }
-        set nameele [$ident getElementsByTagName "name"]
-        if {[llength $nameele] < 1} {
-            set nameele [SimpleDOMElement %AUTO% -tag "name"]
-            $ident addchild $nameele
-        }
-        $nameele setdata $id_name 
-        set descrele [$ident getElementsByTagName "description"]
-        if {[llength $descrele] < 1} {
-            set descrele [SimpleDOMElement %AUTO% -tag "description"]
-            $ident addchild $descrele
-        }
-        $descrele setdata $id_description
+        CopyTransFromGUI $cdi
+        CopyIdentFromGUI $cdi
         set pollele [$cdi getElementsByTagName "pollinterval"]
         if {[llength $pollele] < 1} {
             set pollele [SimpleDOMElement %AUTO% -tag "pollinterval"]
@@ -898,35 +754,6 @@ snit::type OpenLCB_PiGPIO {
         # Does not save the configuration data!
         
         ::exit
-    }
-    typemethod _seltransc {} {
-        #** Select a transport constructor.
-        
-        set result [lcc::OpenLCBNode selectTransportConstructor]
-        if {$result ne {}} {
-            if {$result ne $transconstructorname} {set transopts {}}
-            set transconstructorname [namespace tail $result]
-        }
-    }
-    typemethod _seltransopt {} {
-        #** Select transport constructor options.
-        
-        if {$transconstructorname ne ""} {
-            set transportConstructors [info commands ::lcc::$transconstructorname]
-            ::log::log debug "*** $type typeconstructor: transportConstructors is $transportConstructors"
-            if {[llength $transportConstructors] > 0} {
-                set transportConstructor [lindex $transportConstructors 0]
-            }
-            if {$transportConstructor ne {}} {
-                set optsdialog [list $transportConstructor \
-                                drawOptionsDialog]
-                foreach x $transopts {lappend optsdialog $x}
-                set transportOpts [eval $optsdialog]
-                if {$transportOpts ne {}} {
-                    set transopts $transportOpts
-                }
-            }
-        }
     }
     typemethod _addblankpin {} {
         #** Create a new blank pin.
