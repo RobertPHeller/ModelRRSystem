@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <170729.1531>
+#  Last Modified : <170824.1511>
 #
 #  Description	
 #
@@ -87,6 +87,7 @@ set argv0 [file join  [file dirname [info nameofexecutable]] OpenLCB_MRD2]
 package require Azatrax;#  require the Azatrax package
 package require snit;#     require the SNIT OO framework
 package require LCC;#      require the OpenLCB code
+package require OpenLCB_Common;# Common OpenLCB code
 package require ParseXML;# require the XML parsing code (for the conf file)
 package require gettext;#  require the localized message handler
 package require log;#      require the logging package.
@@ -130,6 +131,8 @@ snit::type OpenLCB_MRD2 {
     typevariable  eventsproduced {};# Events produced.
     typevariable  defaultpollinterval 500;# Default poll interval
     typevariable  pollinterval 500;#  Poll interval
+    typecomponent xmldeviceconfig;# Common device config object
+    typecomponent eventgenerator;# Event Generator
     
     typeconstructor {
         #** @brief Global static initialization.
@@ -162,6 +165,22 @@ snit::type OpenLCB_MRD2 {
         }
         set conffile [from argv -configuration "mrd2conf.xml"]
         #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
+        set xmldeviceconfig [XmlConfiguration create %AUTO% {
+                             <configure>
+                               <string option="-description" tagname="description">Description</string>
+                               <string option="-sensorserial" tagname="serial">Serial Number</string>
+                               <eventid option="-sense1on" tagname="sense1on">Sense 1 On</eventid>
+                               <eventid option="-sense1off" tagname="sense1off">Sense 1 Off</eventid>
+                               <eventid option="-sense2on" tagname="sense2on">Sense 2 On</eventid>
+                               <eventid option="-sense2off" tagname="sense2off">Sense 2 Off</eventid>
+                               <eventid option="-latch1on" tagname="latch1on">Latch 1 On</eventid>
+                               <eventid option="-latch1off" tagname="latch1off">Latch 1 Off</eventid>
+                               <eventid option="-latch2on" tagname="latch2on">Latch 2 On</eventid>
+                               <eventid option="-latch2off" tagname="latch2off">Latch 2 Off</eventid>
+                               <eventid option="-setchan1" tagname="setchan1">Set Channel 1</eventid>
+                               <eventid option="-setchan2" tagname="setchan2">Set Channel 2</eventid>
+                             </configure>}]
+        
         if {$configureator} {
             $type ConfiguratorGUI $conffile
             return
@@ -263,45 +282,11 @@ snit::type OpenLCB_MRD2 {
         }
         
         foreach device [$configuration getElementsByTagName "device"] {
-            set devicecommand [list $type create %AUTO%]
-            set consume no
-            set produce no
-            set serial [$device getElementsByTagName "serial"]
-            if {[llength $serial] != 1} {
-                ::log::logError [_ "Missing or multiple serial numbers"]
-                exit 94
-            }
-            lappend devicecommand -sensorserial [$serial data]
-            set description [$device getElementsByTagName "description"]
-            if {[llength $description] > 0} {
-                lappend devicecommand -description [[lindex $description 0] data]
-            }
-            foreach k {sense1on sense1off sense2on sense2off latch1on 
-                       latch1off latch2on latch2off} {
-                set tag [$device getElementsByTagName $k]
-                if {[llength $tag] == 0} {continue}
-                set tag [lindex $tag 0]
-                set produce yes
-                set ev [lcc::EventID create %AUTO% -eventidstring [$tag data]]
-                lappend devicecommand -$k $ev
-                lappend eventsproduced $ev
-            }
-            foreach k {setchan1 setchan2} {
-                set tag [$device getElementsByTagName $k]
-                if {[llength $tag] == 0} {continue}
-                set tag [lindex $tag 0]
-                set consume yes
-                set ev [lcc::EventID create %AUTO% -eventidstring [$tag data]]
-                lappend devicecommand -$k $ev
-                lappend eventsconsumed $ev
-            }
-            if {!$consume && !$produce} {
-                ::log::log warning [_ "Useless device (S# %s) (neither consumes or produces events)" [$serial data]]
-                continue
-            }
+            set devicecommand [$xmldeviceconfig processConfig $device [list $type create %AUTO%]]
+            ::log::log debug "*** $type typeconstructor: devicecommand = $devicecommand"
             set dev [eval $devicecommand]
-            if {$consume} {lappend consumers $dev}
-            if {$produce} {lappend producers $dev}
+            if {[$dev canConsume]} {lappend consumers $dev}
+            if {[$dev canProduce]} {lappend producers $dev}
             lappend devicelist $dev
         }
         if {[llength $devicelist] == 0} {
@@ -441,7 +426,6 @@ snit::type OpenLCB_MRD2 {
     typevariable    id_description {};# node description
     typevariable    pollinginterval 500;# polling interval.
     typecomponent   devices;# Device list
-    typevariable    devicecount 0;# device count
     typecomponent   generateEventID
     
     typevariable status {};# Status line
@@ -486,6 +470,7 @@ snit::type OpenLCB_MRD2 {
         # @param conffile Name of the configuration file.
         #
         
+        package require GenerateEventID 1.0
         set conffilename $conffile
         set confXML $default_confXML
         if {[file exists $conffilename]} {
@@ -505,6 +490,9 @@ snit::type OpenLCB_MRD2 {
         set transportopts [SimpleDOMElement %AUTO% -tag "options"]
         $transcons addchild $transportopts
         $transportopts setdata {-port 12021 -nid 05:01:01:01:22:00 -host localhost}
+        set generateEventID [GenerateEventID create %AUTO% \
+                             -baseeventid [lcc::EventID create %AUTO% \
+                                           -eventidstring "05.01.01.01.22.00.00.00"]]
         set ident [SimpleDOMElement %AUTO% -tag "identification"]
         $cdi addchild $ident
         set nameele [SimpleDOMElement %AUTO% -tag "name"]
@@ -513,7 +501,6 @@ snit::type OpenLCB_MRD2 {
         set descrele [SimpleDOMElement %AUTO% -tag "description"]
         $ident addchild $descrele
         $descrele setdata "Sample Description"
-        set eid 0
         set pollele [SimpleDOMElement %AUTO% -tag "pollinterval"]
         $cdi addchild $pollele
         $pollele setdata 500
@@ -529,12 +516,15 @@ snit::type OpenLCB_MRD2 {
             latch1off latch2on latch2off setchan1 setchan2} {
             set tagele [SimpleDOMElement %AUTO% -tag $eventtag]
             $device addchild $tagele
-            $tagele setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-            incr eid
+            $tagele setdata [$generateEventID nextid]
         }
+        set attrs [$cdi cget -attributes]
+        lappend attrs lastevid [$generateEventID currentid]
+        $cdi configure -attributes $attrs
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
+            close $conffp
         }
         ::exit
     }
@@ -638,6 +628,27 @@ snit::type OpenLCB_MRD2 {
                 set transopts [$coptions data]
             }
         }
+        set lastevid [$cdi attribute lastevid]
+        if {$lastevid eq {}} {
+            set nidindex [lsearch -exact $transopts -nid]
+            if {$nidindex >= 0} {
+                incr nidindex
+                set nid [lindex $transopts $nidindex]
+            } else {
+                set nid "05:01:01:01:22:00"
+            }
+            set evlist [list]
+            foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $nid] 1 end] {
+                lappend evlist [scan $oct %02x]
+            }
+            lappend evlist 0 0
+            set generateEventID [GenerateEventID create %AUTO% \
+                                 -baseeventid [lcc::EventID create %AUTO% -eventidlist $evlist]]
+        } else {
+            set generateEventID [GenerateEventID create %AUTO% \
+                                 -baseeventid [lcc::EventID create %AUTO% -eventidstring $lastevid]]
+        }
+        $xmldeviceconfig configure -eventidgenerator $generateEventID
         set identificationframe [ttk::labelframe $frame.identificationframe \
                             -labelanchor nw -text [_m "Label|Identification"]]
         pack $identificationframe -fill x -expand yes
@@ -681,27 +692,20 @@ snit::type OpenLCB_MRD2 {
         set devices [ScrollTabNotebook $frame.devices]
         pack $devices -expand yes -fill both
         foreach device [$cdi getElementsByTagName "device"] {
-            $type _create_and_populate_device $device
+            set devframe [$xmldeviceconfig createGUI $devices device $cdi \
+                          $device [_m "Label|Delete Device"] \
+                          [mytypemethod _addframe] [mytypemethod _delframe]]
         }
         set adddevice [ttk::button $frame.adddevice \
                        -text [_m "Label|Add another device"] \
                        -command [mytypemethod _addblankdevice]]
         pack $adddevice -fill x
-        set nidindex [lsearch -exact $transopts -nid]
-        if {$nidindex >= 0} {
-            incr nidindex
-            set nid [lindex $nidindex $transopts]
-        } else {
-            set nid "05:01:01:01:22:00"
-        }
-        set evlist [list]
-        foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $nid] 1 end] {
-            lappend evlist [scan $oct %02x]
-        }
-        lappend evlist 0 0
-        set generateEventID [GenerateEventID create %AUTO% \
-                             -baseeventid [lcc:EventID create %AUTO% -eventidlist $evlist]]
-        
+    }
+    typemethod _addframe {parent frame count} {
+        $devices add $frame -text [_ "Device %d" $count] -sticky news
+    }
+    typemethod _delframe {frame} {
+        $devices forget $frame
     }
     typevariable warnings
     typemethod _saveexit {} {
@@ -719,6 +723,18 @@ snit::type OpenLCB_MRD2 {
         set warnings 0
         set cdis [$configuration getElementsByTagName OpenLCB_MRD2 -depth 1]
         set cdi [lindex $cdis 0]
+        set lastevid [$cdi attribute lastevid]
+        if {$lastevid eq {}} {
+            set attrs [$cdi cget -attributes]
+            lappend attrs lastevid [$generateEventID currentid]
+            $cdi configure -attributes $attrs
+        } else {
+            set attrs [$cdi cget -attributes]
+            set findx [lsearch -exact $attrs lastevid]
+            incr findx
+            set attrs [lreplace $attrs $findx $findx [$generateEventID currentid]]
+            $cdi configure -attributes $attrs
+        }
         set transcons [$cdi getElementsByTagName "transport"]
         if {[llength $transcons] < 1} {
             set transcons [SimpleDOMElement %AUTO% -tag "transport"]
@@ -762,7 +778,7 @@ snit::type OpenLCB_MRD2 {
         $pollele setdata $pollinginterval
         
         foreach device [$cdi getElementsByTagName "device"] {
-            $type _copy_from_gui_to_XML $device
+            $xmldeviceconfig copyFromGUI $devices $device warnings
         }
         
         if {$warnings > 0} {
@@ -773,246 +789,9 @@ snit::type OpenLCB_MRD2 {
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
+            close $conffp
         }
         return yes
-    }
-    typemethod _copy_from_gui_to_XML {device} {
-        #** Copy from the GUI to the Device XML
-        # 
-        # @param device Device XML element.
-        
-        set fr [$device attribute frame]
-        set frbase $devices.$fr
-        set serial [$device getElementsByTagName "serial"]
-        if {[llength $serial] < 1} {
-            set serial [SimpleDOMElement %AUTO% -tag "serial"]
-            $device addchild $serial
-        }
-        $serial setdata [$frbase.serial get]
-        set description_ [$frbase.description get]
-        if {$description_ eq ""} {
-            set description [$device getElementsByTagName "description"]
-            if {[llength $description] == 1} {
-                $device removeChild $description
-            }
-        } else {
-            set description [$device getElementsByTagName "description"]
-            if {[llength $description] < 1} {
-                set description [SimpleDOMElement %AUTO% -tag "description"]
-                $device addchild $description
-            }
-            $description setdata $description_
-        }
-        set sense1on_ [$frbase.sense1on get]
-        if {$sense1on_ ne "" && [catch {lcc::eventidstring validate $sense1on_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Sense 1 on is not a valid event id string: %s!" $sense1on_]
-            set sense1on_ ""
-            incr warnings
-        }
-        if {$sense1on_ eq ""} {
-            set sense1on [$device getElementsByTagName "sense1on"]
-            if {[llength $sense1on] == 1} {
-                $device removeChild $sense1on
-            }
-        } else {
-            set sense1on [$device getElementsByTagName "sense1on"]
-            if {[llength $sense1on] < 1} {
-                set sense1on [SimpleDOMElement %AUTO% -tag "sense1on"]
-                $device addchild $sense1on
-            }
-            $sense1on setdata $sense1on_
-        }
-        
-        set sense1off_ [$frbase.sense1off get]
-        if {$sense1off_ ne "" && [catch {lcc::eventidstring validate $sense1off_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Sense 1 off is not a valid event id string: %s!" $sense1off_]
-            set sense1off_ ""
-            incr warnings
-        }
-        if {$sense1off_ eq ""} {
-            set sense1off [$device getElementsByTagName "sense1off"]
-            if {[llength $sense1off] == 1} {
-                $device removeChild $sense1off
-            }
-        } else {
-            set sense1off [$device getElementsByTagName "sense1off"]
-            if {[llength $sense1off] < 1} {
-                set sense1off [SimpleDOMElement %AUTO% -tag "sense1off"]
-                $device addchild $sense1off
-            }
-            $sense1off setdata $sense1off_
-        }
-        
-        set sense2on_ [$frbase.sense2on get]
-        if {$sense2on_ ne "" && [catch {lcc::eventidstring validate $sense2on_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Sense 2 on is not a valid event id string: %s!" $sense2on_]
-            set sense2on_ ""
-            incr warnings
-        }
-        if {$sense2on_ eq ""} {
-            set sense2on [$device getElementsByTagName "sense2on"]
-            if {[llength $sense2on] == 1} {
-                $device removeChild $sense2on
-            }
-        } else {
-            set sense2on [$device getElementsByTagName "sense2on"]
-            if {[llength $sense2on] < 1} {
-                set sense2on [SimpleDOMElement %AUTO% -tag "sense2on"]
-                $device addchild $sense2on
-            }
-            $sense2on setdata $sense2on_
-        }
-        
-        set sense2off_ [$frbase.sense2off get]
-        if {$sense2off_ ne "" && [catch {lcc::eventidstring validate $sense2off_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Sense 2 off is not a valid event id string: %s!" $sense2off_]
-            set sense2off_ ""
-            incr warnings
-        }
-        if {$sense2off_ eq ""} {
-            set sense2off [$device getElementsByTagName "sense2off"]
-            if {[llength $sense2off] == 1} {
-                $device removeChild $sense2off
-            }
-        } else {
-            set sense2off [$device getElementsByTagName "sense2off"]
-            if {[llength $sense2off] < 1} {
-                set sense2off [SimpleDOMElement %AUTO% -tag "sense2off"]
-                $device addchild $sense2off
-            }
-            $sense2off setdata $sense2off_
-        }
-        
-        set latch1on_ [$frbase.latch1on get]
-        if {$latch1on_ ne "" && [catch {lcc::eventidstring validate $latch1on_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Latch 1 on is not a valid event id string: %s!" $latch1on_]
-            set latch1on_ ""
-            incr warnings
-        }
-        if {$latch1on_ eq ""} {
-            set latch1on [$device getElementsByTagName "latch1on"]
-            if {[llength $latch1on] == 1} {
-                $device removeChild $latch1on
-            }
-        } else {
-            set latch1on [$device getElementsByTagName "latch1on"]
-            if {[llength $latch1on] < 1} {
-                set latch1on [SimpleDOMElement %AUTO% -tag "latch1on"]
-                $device addchild $latch1on
-            }
-            $latch1on setdata $latch1on_
-        }
-        
-        set latch1off_ [$frbase.latch1off get]
-        if {$latch1off_ ne "" && [catch {lcc::eventidstring validate $latch1off_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Latch 1 off is not a valid event id string: %s!" $latch1off_]
-            set latch1off_ ""
-            incr warnings
-        }
-        if {$latch1off_ eq ""} {
-            set latch1off [$device getElementsByTagName "latch1off"]
-            if {[llength $latch1off] == 1} {
-                $device removeChild $latch1off
-            }
-        } else {
-            set latch1off [$device getElementsByTagName "latch1off"]
-            if {[llength $latch1off] < 1} {
-                set latch1off [SimpleDOMElement %AUTO% -tag "latch1off"]
-                $device addchild $latch1off
-            }
-            $latch1off setdata $latch1off_
-        }
-        
-        set latch2on_ [$frbase.latch2on get]
-        if {$latch2on_ ne "" && [catch {lcc::eventidstring validate $latch2on_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Latch 2 on is not a valid event id string: %s!" $latch2on_]
-            set latch2on_ ""
-            incr warnings
-        }
-        if {$latch2on_ eq ""} {
-            set latch2on [$device getElementsByTagName "latch2on"]
-            if {[llength $latch2on] == 1} {
-                $device removeChild $latch2on
-            }
-        } else {
-            set latch2on [$device getElementsByTagName "latch2on"]
-            if {[llength $latch2on] < 1} {
-                set latch2on [SimpleDOMElement %AUTO% -tag "latch2on"]
-                $device addchild $latch2on
-            }
-            $latch2on setdata $latch2on_
-        }
-        
-        set latch2off_ [$frbase.latch2off get]
-        if {$latch2off_ ne "" && [catch {lcc::eventidstring validate $latch2off_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Latch 2 off is not a valid event id string: %s!" $latch2off_]
-            set latch2off_ ""
-            incr warnings
-        }
-        if {$latch2off_ eq ""} {
-            set latch2off [$device getElementsByTagName "latch2off"]
-            if {[llength $latch2off] == 1} {
-                $device removeChild $latch2off
-            }
-        } else {
-            set latch2off [$device getElementsByTagName "latch2off"]
-            if {[llength $latch2off] < 1} {
-                set latch2off [SimpleDOMElement %AUTO% -tag "latch2off"]
-                $device addchild $latch2off
-            }
-            $latch2off setdata $latch2off_
-        }
-        
-        set setchan1_ [$frbase.setchan1 get]
-        if {$setchan1_ ne "" && [catch {lcc::eventidstring validate $setchan1_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Set channel 1 is not a valid event id string: %s!" $setchan1_]
-            set setchan1_ ""
-            incr warnings
-        }
-        if {$setchan1_ eq ""} {
-            set setchan1 [$device getElementsByTagName "setchan1"]
-            if {[llength $setchan1] == 1} {
-                $device removeChild $setchan1
-            }
-        } else {
-            set setchan1 [$device getElementsByTagName "setchan1"]
-            if {[llength $setchan1] < 1} {
-                set setchan1 [SimpleDOMElement %AUTO% -tag "setchan1"]
-                $device addchild $setchan1
-            }
-            $setchan1 setdata $setchan1_
-        }
-        
-        set setchan2_ [$frbase.setchan2 get]
-        if {$setchan2_ ne "" && [catch {lcc::eventidstring validate $setchan2_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for Set Channel 2 is not a valid event id string: %s!" $setchan2_]
-            set setchan2_ ""
-            incr warnings
-        }
-        if {$setchan2_ eq ""} {
-            set setchan2 [$device getElementsByTagName "setchan2"]
-            if {[llength $setchan2] == 1} {
-                $device removeChild $setchan2
-            }
-        } else {
-            set setchan2 [$device getElementsByTagName "setchan2"]
-            if {[llength $setchan2] < 1} {
-                set setchan2 [SimpleDOMElement %AUTO% -tag "setchan2"]
-                $device addchild $setchan2
-            }
-            $setchan2 setdata $setchan2_
-        }
-        
     }
     typemethod _exit {} {
         #** Exit function.  Bound to the Exit file menu item.
@@ -1064,118 +843,6 @@ snit::type OpenLCB_MRD2 {
             }
         }
     }
-    typemethod _create_and_populate_device {device} {
-        #** Create a tab for a  device and populate it.
-        #
-        # @param device The device XML element.
-        
-        incr devicecount
-        set fr device$devicecount
-        set f [$device attribute frame]
-        if {$f eq {}} {
-            set attrs [$device cget -attributes]
-            lappend attrs frame $fr
-            $device configure -attributes $attrs
-        } else {
-            set attrs [$device cget -attributes]
-            set findx [lsearch -exact $attrs frame]
-            incr findx
-            set attrs [lreplace $attrs $findx $findx $fr]
-            $device configure -attributes $attrs
-        }
-        set devframe [ttk::frame \
-                      $devices.$fr]
-        $devices add $devframe \
-              -text [_ "Device %d" $devicecount] -sticky news
-        set serial_ [LabelEntry $devframe.serial \
-                     -label [_m "Label|Serial Number"]]
-        pack $serial_ -fill x -expand yes
-        set serial [$device getElementsByTagName "serial"]
-        if {[llength $serial] == 1} {
-            $serial_ configure -text [$serial data]
-        }
-        set description_ [LabelEntry $devframe.description \
-                          -label [_m "Label|Description"]]
-        pack $description_ -fill x -expand yes
-        set description [$device getElementsByTagName "description"]
-        if {[llength $description] == 1} {
-            $description_ configure -text [$description data]
-        }
-        set sense1on_ [LabelEntry $devframe.sense1on \
-                       -label [_m "Label|Sense 1 On"]]
-        pack $sense1on_ -fill x -expand yes
-        set sense1on [$device getElementsByTagName "sense1on"]
-        if {[llength $sense1on] == 1} {
-            $sense1on_ configure -text [$sense1on data]
-        }
-        set sense1off_ [LabelEntry $devframe.sense1off \
-                        -label [_m "Label|Sense 1 Off"]]
-        pack $sense1off_ -fill x -expand yes
-        set sense1off [$device getElementsByTagName "sense1off"]
-        if {[llength $sense1off] == 1} {
-            $sense1off_ configure -text [$sense1off data]
-        }
-        set sense2on_ [LabelEntry $devframe.sense2on \
-                       -label [_m "Label|Sense 2 On"]]
-        pack $sense2on_ -fill x -expand yes
-        set sense2on [$device getElementsByTagName "sense2on"]
-        if {[llength $sense2on] == 1} {
-            $sense2on_ configure -text [$sense2on data]
-        }
-        set sense2off_ [LabelEntry $devframe.sense2off \
-                        -label [_m "Label|Sense 2 Off"]]
-        pack $sense2off_ -fill x -expand yes
-        set sense2off [$device getElementsByTagName "sense2off"]
-        if {[llength $sense2off] == 1} {
-            $sense2off_ configure -text [$sense2off data]
-        }
-        set latch1on_ [LabelEntry $devframe.latch1on \
-                       -label [_m "Label|Latch 1 On"]]
-        pack $latch1on_ -fill x -expand yes
-        set latch1on [$device getElementsByTagName "latch1on"]
-        if {[llength $latch1on] == 1} {
-            $latch1on_ configure -text [$latch1on data]
-        }
-        set latch1off_ [LabelEntry $devframe.latch1off \
-                        -label [_m "Label|Latch 1 Off"]]
-        pack $latch1off_ -fill x -expand yes
-        set latch1off [$device getElementsByTagName "latch1off"]
-        if {[llength $latch1off] == 1} {
-            $latch1off_ configure -text [$latch1off data]
-        }
-        set latch2on_ [LabelEntry $devframe.latch2on \
-                       -label [_m "Label|Latch 2 On"]]
-        pack $latch2on_ -fill x -expand yes
-        set latch2on [$device getElementsByTagName "latch2on"]
-        if {[llength $latch2on] == 1} {
-            $latch2on_ configure -text [$latch2on data]
-        }
-        set latch2off_ [LabelEntry $devframe.latch2off \
-                        -label [_m "Label|Latch 2 Off"]]
-        pack $latch2off_ -fill x -expand yes
-        set latch2off [$device getElementsByTagName "latch2off"]
-        if {[llength $latch2off] == 1} {
-            $latch2off_ configure -text [$latch2off data]
-        }
-        set setchan1_ [LabelEntry $devframe.setchan1 \
-                       -label [_m "Label|Setchan 1"]]
-        pack $setchan1_ -fill x -expand yes
-        set setchan1 [$device getElementsByTagName "setchan1"]
-        if {[llength $setchan1] == 1} {
-            $setchan1_ configure -text [$setchan1 data]
-        }
-        set setchan2_ [LabelEntry $devframe.setchan2 \
-                       -label [_m "Label|Setchan 2"]]
-        pack $setchan2_ -fill x -expand yes
-        set setchan2 [$device getElementsByTagName "setchan2"]
-        if {[llength $setchan2] == 1} {
-            $setchan2_ configure -text [$setchan2 data]
-        }
-        set deldevice [ttk::button $devframe.deletedev \
-                       -text [_m "Label|Delete Device"] \
-                       -command [mytypemethod _deleteDevice $device]]
-        pack $deldevice -fill x
-    }
     typemethod _addblankdevice {} {
         #** Create a new blank device.
         
@@ -1183,19 +850,9 @@ snit::type OpenLCB_MRD2 {
         set cdi [lindex $cdis 0]
         set device [SimpleDOMElement %AUTO% -tag "device"]
         $cdi addchild $device
-        $type _create_and_populate_device $device
-    }
-    typemethod _deleteDevice {device} {
-        #** Delete a device
-        #
-        # @param device The device's XML element.
-        
-        set fr [$device attribute frame]
-        set cdis [$configuration getElementsByTagName OpenLCB_MRD2 -depth 1]
-        set cdi [lindex $cdis 0]
-        $cdi removeChild $device
-        $devices forget $devices.$fr
-        destroy $devices.$fr
+        set devframe [$xmldeviceconfig createGUI $devices device $cdi $device \
+                      [_m "Label|Delete Device"] \
+                      [mytypemethod _addframe] [mytypemethod _delframe]]
     }
     
     
@@ -1387,6 +1044,20 @@ snit::type OpenLCB_MRD2 {
         }
         return false
     }
+    method canConsume {} {
+        if {[$self cget -setchan1] ne {} || [$self cget -setchan2] ne {}} {
+            return yes
+        } else {
+            return no
+        }
+    }
+    method canProduce {} {
+        foreach evopt {sense1on sense1off sense2on sense2off latch1on latch1off latch2on latch2off} {
+            if {[$self cget -$ev] ne {}} {return yes}
+        }
+        return no
+    }
+    
 }
 
 vwait forever

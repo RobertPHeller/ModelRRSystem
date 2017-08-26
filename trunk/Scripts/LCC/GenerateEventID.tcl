@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jul 29 14:30:39 2017
-#  Last Modified : <170729.1518>
+#  Last Modified : <170825.1021>
 #
 #  Description	
 #
@@ -52,7 +52,23 @@ snit::type GenerateEventID {
             $self configure -baseeventid [lcc::EventID create %AUTO%]
         }
     }
-    method nextid {} {
+    method nextid {args} {
+        set roundup [from args -roundup 1]
+        if {$roundup > 1} {
+            set idlist [$options(-baseeventid) cget -eventidlist]
+            set lastbyte [lindex $idlist 7]
+            set next [expr {(($lastbyte + $roundup - 1) / $roundup)*$roundup}]
+            set i 7
+            while {$next > 255} {
+                lset idlist $i 0
+                incr i -1
+                set next [expr {1 + [lindex $idlist $i]}]
+            }
+            if {$i >= 0} {
+                lset idlist $i $next
+            }
+            $options(-baseeventid) configure -eventidlist $idlist
+        }
         set idstring [$options(-baseeventid) cget -eventidstring]
         set idlist [$options(-baseeventid) cget -eventidlist]
         set next 256
@@ -69,6 +85,9 @@ snit::type GenerateEventID {
         }
         $options(-baseeventid) configure -eventidlist $idlist
         return $idstring
+    }
+    method currentid {} {
+        return [$options(-baseeventid) cget -eventidstring]
     }
 }
 

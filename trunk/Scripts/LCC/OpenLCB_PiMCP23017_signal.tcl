@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jun 6 11:01:16 2017
-#  Last Modified : <170719.1700>
+#  Last Modified : <170826.1405>
 #
 #  Description	
 #
@@ -91,6 +91,7 @@ set argv0 [file join  [file dirname [info nameofexecutable]] OpenLCB_PiMCP23017_
 package require Tclwiringpi;#  require the Tclwiringpi package
 package require snit;#     require the SNIT OO framework
 package require LCC;#      require the OpenLCB code
+package require OpenLCB_Common;# Common config code
 package require ParseXML;# require the XML parsing code (for the conf file)
 package require gettext;#  require the localized message handler
 package require log;#      require the logging package.
@@ -199,7 +200,8 @@ snit::type OpenLCB_PiMCP23017_signal {
     typevariable  baseI2Caddress 0x20;# Base I2C address.
     typevariable  defaultI2CAddr 7;#  Default I2C address offset
     typevariable  I2CAddr 7;#         I2C address offset
-    
+    typecomponent xmlsignalconfig;# Common Signal config object
+    typecomponent eventgenerator;# Event Generator
     
     typecomponent editContextMenu
     
@@ -234,6 +236,17 @@ snit::type OpenLCB_PiMCP23017_signal {
         }
         set conffile [from argv -configuration "pimcp23017signalconf.xml"]
         #puts stderr "*** $type typeconstructor: configureator = $configureator, debugnotvis = $debugnotvis, conffile = $conffile"
+        set xmlsignalconfig [XmlConfiguration create %AUTO% {
+                             <configure>
+                             <string option="-description" tagname="description">Description</string>
+                             <int option="-pinnumber" tagname="number" min="0" max="15">Start Pin Number</int>
+                             <int default="1" option="-ledcount" tagname="ledcount" min="1" max="8">LED Count</int>
+                             <enum enums="anode cathode" option="-common" tagname="common">Common</enum>
+                             <group option="-aspectlist" tagname="aspect" repname="Aspect" mincount="0" maxcount="unlimited">
+                             <eventid tagname="eventid">Event ID</eventid>
+                             <bytebits tagname="bits">Aspect Bits</bytebits>
+                             </group>
+                             </configure>}]
         if {$configureator} {
             $type ConfiguratorGUI $conffile
             return
@@ -339,53 +352,7 @@ snit::type OpenLCB_PiMCP23017_signal {
         mcp23017Setup 64 [expr {$baseI2Caddress | $I2CAddr}]
         
         foreach signal [$configuration getElementsByTagName "signal"] {
-            set signalcommand [list $type create %AUTO%]
-            set pinno [$signal getElementsByTagName "number"]
-            if {[llength $pinno] != 1} {
-                ::log::logError [_ "Missing or multiple pin numbers"]
-                exit 94
-            }
-            set thepin [$pinno data]
-            GPIOPinNo validate $thepin
-            lappend signalcommand -pinnumber $thepin
-            set ledcount [$signal getElementsByTagName "ledcount"]
-            if {[llength $ledcount] != 1} {
-                ::log::logError [_ "Missing or multiple ledcount"]
-                exit 93
-            }
-            set thecount [$ledcount data]
-            LEDCount validate $thecount
-            set lastpin [expr {$thepin + $thecount - 1}]
-            GPIOPinNo validate $lastpin
-            lappend signalcommand -ledcount $thecount
-            set common [$signal getElementsByTagName "common"]
-            if {[llength $common] == 1} {
-                set thecommon [$common data]
-                CommonMode validate $thecommon
-                lappend signalcommand -common $thecommon
-            }
-            set description [$signal getElementsByTagName "description"]
-            if {[llength $description] > 0} {
-                lappend pincommand -description [[lindex $description 0] data]
-            }
-            set aspectlist [list]
-            foreach aspect [$signal getElementsByTagName "aspect"] {
-                set evele [$aspect getElementsByTagName "eventid"]
-                if {[llength $evele] != 1} {
-                    error [_ "Missing or multiple aspect events"]
-                }
-                set ev [lcc::EventID create %AUTO% -eventidstring [[lindex $evele 0] data]]
-                set aspectbitsele  [$aspect getElementsByTagName "bits"]
-                if {[llength $aspectbitsele] != 1} {
-                    error [_ "Missing or multiple aspect bits"]
-                }
-                set aspectbits [[lindex $aspectbitsele 0] data]
-                Binary8 validate $aspectbits
-                lappend aspectlist [list $ev $aspectbits]
-                lappend eventsconsumed $ev
-            }
-            AspectList validate $aspectlist
-            lappend signalcommand -aspectlist $aspectlist
+            set signalcommand [$xmlsignalconfig processConfig $signal [list $type create %AUTO%]]
             set signalobj [eval $signalcommand]
             lappend signallist $signalobj
         }
@@ -502,8 +469,7 @@ snit::type OpenLCB_PiMCP23017_signal {
     typevariable    id_description {};# node description
     typevariable    mcp23017address 7;# The address of the MCP23017
     typecomponent   signalnotebook;# Signal Notebook
-    typevariable    signalcount 0;# signal count
-    typevariable    aspectcounts -array {}
+    typecomponent   generateEventID
     
     typevariable status {};# Status line
     typevariable conffilename {};# Configuration File Name
@@ -547,6 +513,7 @@ snit::type OpenLCB_PiMCP23017_signal {
         # @param conffile Name of the configuration file.
         #
         
+        package require GenerateEventID 1.0
         set conffilename $conffile
         set confXML $default_confXML
         if {[file exists $conffilename]} {
@@ -574,10 +541,12 @@ snit::type OpenLCB_PiMCP23017_signal {
         set descrele [SimpleDOMElement %AUTO% -tag "description"]
         $ident addchild $descrele
         $descrele setdata "Sample Description"
-        set eid 0
         set i2caddrele [SimpleDOMElement %AUTO% -tag "i2caddress"]
         $cdi addchild $i2caddrele
-        $pollele setdata 7
+        $i2caddrele setdata 7
+        set generateEventID [GenerateEventID create %AUTO% \
+                             -baseeventid [lcc::EventID create %AUTO% \
+                                           -eventidstring "05.01.01.01.22.00.00.00"]]
         set signal [SimpleDOMElement %AUTO% -tag "signal"]
         $cdi addchild $signal
         set descrele [SimpleDOMElement %AUTO% -tag "description"]
@@ -597,8 +566,7 @@ snit::type OpenLCB_PiMCP23017_signal {
         $signal addchild $aspect
         set aspectev [SimpleDOMElement %AUTO% -tag "eventid"]
         $aspect addchild $aspectev
-        $aspectev setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-        incr eid
+        $aspectev setdata [$generateEventID currentid]
         set aspectbits [SimpleDOMElement %AUTO% -tag "bits"]
         $aspect addchild $aspectbits
         $aspectbits setdata B00100001;# green over red
@@ -606,8 +574,7 @@ snit::type OpenLCB_PiMCP23017_signal {
         $signal addchild $aspect
         set aspectev [SimpleDOMElement %AUTO% -tag "eventid"]
         $aspect addchild $aspectev
-        $aspectev setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-        incr eid
+        $aspectev setdata [$generateEventID currentid]
         set aspectbits [SimpleDOMElement %AUTO% -tag "bits"] 
         $aspect addchild $aspectbits
         $aspectbits setdata B00010001;# yellow over red 
@@ -615,8 +582,7 @@ snit::type OpenLCB_PiMCP23017_signal {
         $signal addchild $aspect
         set aspectev [SimpleDOMElement %AUTO% -tag "eventid"]
         $aspect addchild $aspectev
-        $aspectev setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-        incr eid
+        $aspectev setdata [$generateEventID currentid]
         set aspectbits [SimpleDOMElement %AUTO% -tag "bits"] 
         $aspect addchild $aspectbits
         $aspectbits setdata B00001001;# red over red 
@@ -624,8 +590,7 @@ snit::type OpenLCB_PiMCP23017_signal {
         $signal addchild $aspect
         set aspectev [SimpleDOMElement %AUTO% -tag "eventid"]
         $aspect addchild $aspectev
-        $aspectev setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-        incr eid
+        $aspectev setdata [$generateEventID currentid]
         set aspectbits [SimpleDOMElement %AUTO% -tag "bits"] 
         $aspect addchild $aspectbits
         $aspectbits setdata B00001010;# red over yellow 
@@ -633,14 +598,17 @@ snit::type OpenLCB_PiMCP23017_signal {
         $signal addchild $aspect
         set aspectev [SimpleDOMElement %AUTO% -tag "eventid"]
         $aspect addchild $aspectev
-        $aspectev setdata [format {05.01.01.01.22.00.00.%02x} $eid]
-        incr eid
+        $aspectev setdata [$generateEventID currentid]
         set aspectbits [SimpleDOMElement %AUTO% -tag "bits"] 
         $aspect addchild $aspectbits
         $aspectbits setdata B00001100;# red over green 
+        set attrs [$cdi cget -attributes]
+        lappend attrs lastevid [$generateEventID currentid]
+        $cdi configure -attributes $attrs
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
+            close $conffp
         }
         ::exit
     }
@@ -663,6 +631,7 @@ snit::type OpenLCB_PiMCP23017_signal {
         package require ButtonBox
         package require ScrollTabNotebook
         package require HTMLHelp 2.0
+        package require GenerateEventID 1.0
         
         set HelpDir [file join [file dirname [file dirname [file dirname \
                                                             [info script]]]] Help]
@@ -744,6 +713,27 @@ snit::type OpenLCB_PiMCP23017_signal {
                 set transopts [$coptions data]
             }
         }
+        set lastevid [$cdi attribute lastevid]
+        if {$lastevid eq {}} {
+            set nidindex [lsearch -exact $transopts -nid]
+            if {$nidindex >= 0} {
+                incr nidindex
+                set nid [lindex $transopts $nidindex]
+            } else {
+                set nid "05:01:01:01:22:00"
+            }
+            set evlist [list]
+            foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $nid] 1 end] {
+                lappend evlist [scan $oct %02x]
+            }
+            lappend evlist 0 0
+            set generateEventID [GenerateEventID create %AUTO% \
+                                 -baseeventid [lcc::EventID create %AUTO% -eventidlist $evlist]]
+        } else {
+            set generateEventID [GenerateEventID create %AUTO% \
+                                 -baseeventid [lcc::EventID create %AUTO% -eventidstring $lastevid]]
+        }
+        $xmlsignalconfig configure -eventidgenerator $generateEventID
         set identificationframe [ttk::labelframe $frame.identificationframe \
                             -labelanchor nw -text [_m "Label|Identification"]]
         pack $identificationframe -fill x -expand yes
@@ -786,12 +776,20 @@ snit::type OpenLCB_PiMCP23017_signal {
         set signalnotebook [ScrollTabNotebook $frame.signals]
         pack $signalnotebook -expand yes -fill both
         foreach signal [$cdi getElementsByTagName "signal"] {
-            $type _create_and_populate_signal $signal
+            set signalframe [$xmlsignalconfig createGUI $signalnotebook \
+                             signal $cdi $signal [_m "Label|Delete Signal"] \
+                             [mytypemethod _addframe] [mytypemethod _delframe]]
         }
         set addsignal [ttk::button $frame.addsignal \
                     -text [_m "Label|Add another signal"] \
                     -command [mytypemethod _addblanksignal]]
         pack $addsignal -fill x
+    }
+    typemethod _addframe {parent frame count} {
+        $signalnotebook add $frame -text [_ "Signal %d" $count] -sticky news
+    }
+    typemethod _delframe {frame} {
+        $signalnotebook forget $frame
     }
     typevariable warnings
     typemethod _saveexit {} {
@@ -809,6 +807,18 @@ snit::type OpenLCB_PiMCP23017_signal {
         set warnings 0
         set cdis [$configuration getElementsByTagName OpenLCB_PiMCP23017_Signal -depth 1]
         set cdi [lindex $cdis 0]
+        set lastevid [$cdi attribute lastevid]
+        if {$lastevid eq {}} {
+            set attrs [$cdi cget -attributes]
+            lappend attrs lastevid [$generateEventID currentid]
+            $cdi configure -attributes $attrs
+        } else {
+            set attrs [$cdi cget -attributes]
+            set findx [lsearch -exact $attrs lastevid]
+            incr findx
+            set attrs [lreplace $attrs $findx $findx [$generateEventID currentid]]
+            $cdi configure -attributes $attrs
+        }
         set transcons [$cdi getElementsByTagName "transport"]
         if {[llength $transcons] < 1} {
             set transcons [SimpleDOMElement %AUTO% -tag "transport"]
@@ -852,7 +862,7 @@ snit::type OpenLCB_PiMCP23017_signal {
         $i2caddrele setdata $mcp23017address
         
         foreach signal [$cdi getElementsByTagName "signal"] {
-            $type _copy_signal_from_gui_to_XML $signal
+            $xmlsignalconfig copyFromGUI $signalnotebook $signal warnings
         }
         
         if {$warnings > 0} {
@@ -863,105 +873,9 @@ snit::type OpenLCB_PiMCP23017_signal {
         if {![catch {open $conffilename w} conffp]} {
             puts $conffp {<?xml version='1.0'?>}
             $configuration displayTree $conffp
+            close $conffp
         }
         return yes
-    }
-    typemethod _copy_signal_from_gui_to_XML {signal} {
-        #** Copy from the GUI to the Signal XML
-        #
-        # @param signal Signal XML element.
-        
-        set fr [$signal attribute frame]
-        set frbase $signalnotebook.$fr
-        set pinno [$signal getElementsByTagName "number"]
-        if {[llength $pinno] < 1} {
-            set pinno [SimpleDOMElement %AUTO% -tag "number"]
-            $signal addchild $pinno
-        }
-        $pinno setdata [$frbase.pinno get]
-        set ledcount [$signal getElementsByTagName "ledcount"]
-        if {[llength $ledcount] < 1} {
-            set ledcount [SimpleDOMElement %AUTO% -tag "ledcount"]
-            $signal addchild $ledcount
-        }
-        set count [$frbase.ledcount get]
-        set lastpin [expr {[$pinno data] + $count - 1}]
-        if {[catch {GPIOPinNo validate $lastpin}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "LED Count exceeds the remaining available pins: %d (%d-%d)" $count [$pinno data] $lastpin]
-            incr warnings
-            set lastpin 15
-            set count [expr {$lastpin - [$pinno data] + 1}]
-        }
-        $ledcount setdata $count
-        set common [$signal getElementsByTagName "common"]
-        if {[llength $common] < 1} {
-            set common [SimpleDOMElement %AUTO% -tag "common"]
-            $signal addchild $common
-        }
-        $common setdata [$frbase.common get]
-        set description_ [$frbase.description get]
-        if {$description_ eq ""} {
-            set description [$signal getElementsByTagName "description"]
-            if {[llength $description] == 1} {
-                $signal removeChild $description
-            }
-        } else {
-            set description [$signal getElementsByTagName "description"]
-            if {[llength $description] < 1} {
-                set description [SimpleDOMElement %AUTO% -tag "description"]
-                $signal addchild $description
-            }
-            $description setdata $description_
-        }
-        foreach aspect [$signal getElementsByTagName "aspect"] {
-            $type _copy_aspect_from_gui_to_XML $signal $aspect
-        }
-    }
-    typemethod _copy_aspect_from_gui_to_XML {signal aspect} {
-        #** Copy from the GUI to the Signal's aspect XML
-        #
-        # @param signal Signal XML element.
-        # @param aspect Aspect XML element.
-        
-        set fr [$signal attribute frame]
-        set frbase $signalnotebook.$fr
-        set afr [$aspect attribute frame]
-        set afrbase $frbase.aspectNB.$afr
-        set evstring [$afrbase.eventidLE get]
-        set aspbits  [$afrbase.aspbitsLE get]
-        if {[catch {Binary8 validate $aspbits}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Illformed Aspect bits: %s!" $aspbits]
-            incr warnings
-            set aspectbitsele [$aspect getElementsByTagName "bits"]
-            if {[llength $aspectbitsele] > 0} {
-                $aspect removeChild $aspectbitsele
-            }
-        } else {
-            set aspectbitsele [$aspect getElementsByTagName "bits"]
-            if {[llength $aspectbitsele] < 1} {
-                set aspectbitsele [SimpleDOMElement %AUTO% -tag "bits"]
-                $aspect addchild $aspectbitsele
-            }
-            $aspectbitsele setdata $aspbits
-        }
-        if {[catch {lcc::eventidstring validate $evstring}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for aspect %s is not a valid event id string: %s!" $aspbits $evstring]
-            incr warnings
-            set eventidele [$aspect getElementsByTagName "eventid"]
-            if {[llength $eventidele] > 0} {
-                $aspect removeChild $eventidele
-            }
-        } else {
-            set eventidele [$aspect getElementsByTagName "eventid"]
-            if {[llength $eventidele] < 1} {
-                set eventidele [SimpleDOMElement %AUTO% -tag "eventid"]
-                $aspect addchild $eventidele
-            }
-            $eventidele setdata $evstring
-        }
     }
     typemethod _exit {} {
         #** Exit function.  Bound to the Exit file menu item.
@@ -998,136 +912,6 @@ snit::type OpenLCB_PiMCP23017_signal {
             }
         }
     }
-    typemethod _create_and_populate_signal {signal} {
-        #** Create a tab for a  signal and populate it.
-        #
-        # @param signal The signal XML element.
-        
-        incr signalcount
-        set fr signal$signalcount
-        set f [$signal attribute frame]
-        if {$f eq {}} {
-            set attrs [$signal cget -attributes]
-            lappend attrs frame $fr
-            $signal configure -attributes $attrs
-        } else {
-            set attrs [$signal cget -attributes]
-            set findx [lsearch -exact $attrs frame]
-            incr findx
-            set attrs [lreplace $attrs $findx $findx $fr]
-            $signal configure -attributes $attrs
-        }
-        set signalframe [ttk::frame \
-                      $signalnotebook.$fr]
-        $signalnotebook add $signalframe \
-              -text [_ "Signal %d" $signalcount] -sticky news
-        set pinno_ [LabelSpinBox $signalframe.pinno \
-                    -label [_m "Label|Start Pin Number"] \
-                    -range {0 15 1}]
-        $pinno_ set 0
-        pack $pinno_ -fill x -expand yes
-        set pinno [$signal getElementsByTagName "number"]
-        if {[llength $pinno] == 1} {
-            $pinno_ set [$pinno data]
-        }
-        set ledcount_ [LabelSpinBox $signalframe.ledcount \
-                       -label [_m "Label|LED Count"] \
-                       -range {1 8 1}]
-        $ledcount_ set 1
-        pack $ledcount_ -fill x -expand yes
-        set ledcount [$signal getElementsByTagName "ledcount"]
-        if {[llength $ledcount] == 1} {
-            $ledcount_ set [$ledcount data]
-        }
-        set common_ [LabelComboBox $signalframe.common \
-                     -label [_m "Label|Common"] \
-                     -values [CommonMode cget -values] \
-                     -editable no]
-        $common_ set cathode
-        pack $common_ -fill x -expand ye
-        set common [$signal getElementsByTagName "common"]
-        if {[llength $common] == 1} {
-            $common_ set [$common data]
-        }
-        set description_ [LabelEntry $signalframe.description \
-                          -label [_m "Label|Description"]]
-        pack $description_ -fill x -expand yes
-        set description [$signal getElementsByTagName "description"]
-        if {[llength $description] == 1} {
-            $description_ configure -text [$description data]
-        }
-        # aspects...  
-        set aspectNB [ScrollTabNotebook $signalframe.aspectNB]
-        pack $aspectNB -fill both -expand yes
-        if {![info exists aspectcounts($fr)]} {
-            set aspectcounts($fr) 0
-        }
-        foreach aspect [$signal getElementsByTagName "aspect"] {
-            $type _create_and_populate_signal_aspect $signal $aspect
-        }
-        set addaspect [ttk::button $signalframe.addaspect \
-                       -text [_m "Label|Add another aspect"] \
-                       -command [mytypemethod _addaspect $signal]]
-        pack $addaspect -fill x
-        set delsignal [ttk::button $signalframe.deletesignal \
-                       -text [_m "Label|Delete signal"] \
-                       -command [mytypemethod _deleteSignal $signal]]
-        pack $delsignal -fill x
-    }
-    typemethod _create_and_populate_signal_aspect {signal aspect} {
-        #** Create and populate a signal aspect instance.
-        #
-        # @param signal Signal XML element.
-        # @param aspect Aspect XML element.
-        
-        #puts stderr "$type _create_and_populate_signal_aspect $signal $aspect"
-        set fr [$signal attribute frame]
-        set frbase $signalnotebook.$fr
-        incr aspectcounts($fr)
-        set afr aspect$aspectcounts($fr)
-        set af [$aspect attribute frame]
-        #puts stderr "$type _create_and_populate_signal_aspect: fr = $fr, frbase = $frbase, afr = $afr, af = $af"        
-        if {$af eq {}} {
-            set attrs [$aspect cget -attributes]
-            lappend attrs frame $afr
-            $aspect configure -attributes $attrs
-        } else {
-            set attrs [$aspect cget -attributes]
-            set findx [lsearch -exact $attrs frame]
-            incr findx
-            set attrs [lreplace $attrs $findx $findx $afr]
-            $aspect configure -attributes $attrs
-        }
-        set aspectframe [ttk::frame \
-                         $frbase.aspectNB.$afr]
-        #puts stderr "$type _create_and_populate_signal_aspect: aspectframe = $aspectframe"
-        $frbase.aspectNB add $aspectframe \
-              -text [_ "Aspect %d" $aspectcounts($fr)] -sticky news
-        set afrbase $aspectframe
-        #puts stderr "$type _create_and_populate_signal_aspect: afrbase = $afrbase"
-        set eventidLE [LabelEntry $afrbase.eventidLE \
-                   -label [_m "Label|Event ID"]]
-        pack $eventidLE -fill x -expand yes
-        set eventidele [$aspect getElementsByTagName "eventid"]
-        if {[llength $eventidele] < 1} {
-            $eventidLE configure -text "00.00.00.00.00.00.00.00"
-        } else {
-            $eventidLE configure -text [[lindex $eventidele 0] data]
-        }
-        set aspbitsLE [LabelEntry $afrbase.aspbitsLE \
-                       -label [_m "Label|Aspect Bits"]]
-        pack $aspbitsLE -fill x -expand yes
-        set aspectbitsele [$aspect getElementsByTagName "bits"]
-        if {[llength $aspectbitsele] < 1} {
-            $aspbitsLE configure -text [Binary8 convertto 0]
-        } else {
-            $aspbitsLE configure -text [[lindex $aspectbitsele 0] data]
-        }
-        set delaspect [ttk::button $afrbase.deleteaspect \
-                       -text [_m "Label|Delete aspect"] \
-                       -command [mytypemethod _deleteAspect $signal $aspect]]
-        pack $delaspect -fill x
-    }
     typemethod _addblanksignal {} {
         #** Create a new blank signal.
         
@@ -1135,57 +919,9 @@ snit::type OpenLCB_PiMCP23017_signal {
         set cdi [lindex $cdis 0]
         set signal [SimpleDOMElement %AUTO% -tag "signal"]
         $cdi addchild $signal
-        $type _create_and_populate_signal $signal
-    }
-    typemethod _deleteSignal {signal} {
-        #** Delete a signal
-        #
-        # @param signal The signal's XML element.
-        
-        set fr [$signal attribute frame]
-        set cdis [$configuration getElementsByTagName OpenLCB_PiMCP23017_Signal -depth 1]
-        set cdi [lindex $cdis 0]
-        $type _deleteallaspects $signal
-        $cdi removeChild $signal
-        $signalnotebook forget $signalnotebook.$fr
-        destroy $signalnotebook.$fr
-    }
-    typemethod _deleteallaspects {signal} {
-        #** Delete all aspects of a signal
-        #
-        # @param signal The signal whose aspects are to be removed.
-        
-        foreach aspect [$signal getElementsByTagName "aspect"] {
-            $type _deleteAspect $signal $aspect
-        }
-    }
-    typemethod _addaspect {signal} {
-        #** Add an aspect to a signal.
-        #
-        # @param signal The signal's XML element.
-        
-        set aspect [SimpleDOMElement %AUTO% -tag "aspect"]
-        $signal addchild $aspect
-        $type _create_and_populate_signal_aspect $signal $aspect
-    }
-    typemethod _deleteAspect {signal aspect} {
-        #** Delete a signal's aspect
-        #
-        # @param signal The signal's XML element.
-        # @param aspect The aspects's XML element.
-        
-        #puts stderr "*** type _deleteAspect $signal $aspect"
-        set fr [$signal attribute frame]
-        #puts stderr "*** type _deleteAspect: fr = $fr"
-        set frbase $signalnotebook.$fr
-        #puts stderr "*** type _deleteAspect: frbase = $frbase"
-        set afr [$aspect attribute frame]
-        #puts stderr "*** type _deleteAspect: afr = $afr"
-        set afrbase $frbase.aspectNB.$afr
-        #puts stderr "*** type _deleteAspect: afrbase = $afrbase"
-        $frbase.aspectNB forget $afrbase
-        $signal removeChild $aspect
-        destroy $afrbase
+        set signalframe [$xmlsignalconfig createGUI $signalnotebook \
+                         signal $cdi $signal [_m "Label|Delete Signal"] \
+                         [mytypemethod _addframe] [mytypemethod _delframe]]
     }
     
     
@@ -1222,6 +958,10 @@ snit::type OpenLCB_PiMCP23017_signal {
                     digitalWrite $pin $::LOW
                 }
             }
+        }
+        foreach e_b [$self cget -aspectlist] {
+            lassign $e_b e b
+            lappend eventsconsumed $e
         }
     }
     method consumeEvent {event} {

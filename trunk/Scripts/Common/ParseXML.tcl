@@ -39,7 +39,7 @@
 # hold XML elements.
 #
 
-## @addtogroup AmazonGlacierLib
+## @addtogroup TclCommon
 # @{
 
 
@@ -215,6 +215,20 @@ snit::type SimpleDOMElement {
     regsub -all {'} $quoted {\&apos;} quoted
     regsub -all {"} $quoted {\&quot;} quoted
     return "$quoted"
+  }
+  typemethod validate {object} {
+      ## @brief Validation typemethod.
+      # Raises an error if its argument is not a SimpleDOMElement object.
+      #
+      # @param object The object to typecheck.
+      # @return The object or raise an error.
+      if {[catch {$object info type} thetype]} {
+          error [_ "Not a %s: %s" $type $object]
+      } elseif {$type ne $thetype} {
+          error [_ "Not a %s: %s" $type $object]
+      } else {
+          return $object
+      }
   }
 }
 
