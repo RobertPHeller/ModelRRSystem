@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 7 10:36:33 2016
-#  Last Modified : <170826.1009>
+#  Last Modified : <170826.1109>
 #
 #  Description	
 #
@@ -347,7 +347,7 @@ snit::type OpenLCB_PiGPIO {
         exec $GPIOCMD unexportall;# flush all existing exported pins
         
         foreach pin [$configuration getElementsByTagName "pin"] {
-            set pincommand [$xmlgpioconfig processConfig $pin [list $type create %AUTO%]
+            set pincommand [$xmlgpioconfig processConfig $pin [list $type create %AUTO%]]
             set consume no
             set produce no
             set pin [eval $pincommand]
@@ -578,14 +578,14 @@ snit::type OpenLCB_PiGPIO {
         $ident addchild $nameele
         $nameele setdata "Sample Name"
         set descrele [SimpleDOMElement %AUTO% -tag "description"]
-        set generateEventID [GenerateEventID create %AUTO% \
-                             -baseeventid [lcc::EventID create %AUTO% \
-                                           -eventidstring "05.01.01.01.22.00.00.00"]]
         $ident addchild $descrele
         $descrele setdata "Sample Description"
         set pollele [SimpleDOMElement %AUTO% -tag "pollinterval"]
         $cdi addchild $pollele
         $pollele setdata 500
+        set generateEventID [GenerateEventID create %AUTO% \
+                             -baseeventid [lcc::EventID create %AUTO% \
+                                           -eventidstring "05.01.01.01.22.00.00.00"]]
         set pin [SimpleDOMElement %AUTO% -tag "pin"]
         $cdi addchild $pin
         set descrele [SimpleDOMElement %AUTO% -tag "description"]
@@ -802,10 +802,10 @@ snit::type OpenLCB_PiGPIO {
         pack $addpin -fill x
     }
     typemethod _addframe {parent frame count} {
-        $devices add $frame -text [_ "Pin %d" $count] -sticky news
+        $pins add $frame -text [_ "Pin %d" $count] -sticky news
     }
     typemethod _delframe {frame} {
-        $devices forget $frame
+        $pins forget $frame
     }
     typevariable warnings
     typemethod _saveexit {} {
