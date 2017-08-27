@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun May 14 09:33:18 2017
-#  Last Modified : <170826.1616>
+#  Last Modified : <170826.2049>
 #
 #  Description	
 #
@@ -169,7 +169,6 @@ snit::type OpenLCB_PiSPIMax7221 {
     typevariable  spi 0;#             The SPI channel.
     typevariable  speed 2500000;#     The SPI Speed (2.5Mhz).
     typecomponent xmlsignalconfig;# Common Signal config object
-    typecomponent eventgenerator;# Event Generator
     
     # the opcodes for the MAX7221 and MAX7219
     typevariable OP_NOOP   0

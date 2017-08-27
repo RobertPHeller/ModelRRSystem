@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 7 10:36:33 2016
-#  Last Modified : <170826.1639>
+#  Last Modified : <170826.2041>
 #
 #  Description	
 #
@@ -198,7 +198,6 @@ snit::type OpenLCB_PiGPIO {
     typevariable  GPIOCMD;#           gpio command
     typecomponent editContextMenu
     typecomponent xmlgpioconfig;# Common GPIO config object
-    typecomponent eventgenerator;# Event Generator
     
     OpenLCB_Common::transportProcs
     OpenLCB_Common::identificationProcs

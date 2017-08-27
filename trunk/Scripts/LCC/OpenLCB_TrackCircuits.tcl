@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Aug 10 12:44:31 2016
-#  Last Modified : <170825.1050>
+#  Last Modified : <170826.2103>
 #
 #  Description	
 #
@@ -507,6 +507,9 @@ snit::type OpenLCB_TrackCircuits {
     typecomponent xmltrackcircuitconfig
     typecomponent generateEventID
     
+    OpenLCB_Common::transportProcs
+    OpenLCB_Common::identificationProcs
+    
     typeconstructor {
         #** @brief Global static initialization.
         #
@@ -598,6 +601,11 @@ snit::type OpenLCB_TrackCircuits {
             ::log::logError [_ "Could not parse configuration file %s: %s" $conffile $configuration]
             exit 98
         }
+        getTransport [$configuration getElementsByTagName "transport"] \
+              transportConstructor transportOpts
+        set nodename ""
+        set nodedescriptor ""
+        getIdentification [$configuration getElementsByTagName "identification"]  nodename nodedescriptor
         set transcons [$configuration getElementsByTagName "transport"]
         set constructor [$transcons getElementsByTagName "constructor"]
         if {$constructor eq {}} {
@@ -634,6 +642,11 @@ snit::type OpenLCB_TrackCircuits {
                  set nodedescriptor [[lindex $nodedescriptorele 0] data]
              }
         }
+        getTransport [$configuration getElementsByTagName "transport"] \
+              transportConstructor transportOpts
+        set nodename ""
+        set nodedescriptor ""
+        getIdentification [$configuration getElementsByTagName "identification"]  nodename nodedescriptor
         if {[catch {eval [list lcc::OpenLCBNode %AUTO% \
                           -transport $transportConstructor \
                           -eventhandler [mytypemethod _eventHandler] \
@@ -792,12 +805,7 @@ snit::type OpenLCB_TrackCircuits {
     typecomponent main;# Main Frame.
     typecomponent scroll;# Scrolled Window.
     typecomponent editframe;# Scrollable Frame
-    typevariable    transconstructorname {};# transport constructor
-    typevariable    transopts {};# transport options
-    typevariable    id_name {};# node name
-    typevariable    id_description {};# node description
     typecomponent   tracks;# Track list
-    typevariable    trackcount 0;# Track count
     
     typevariable status {};# Status line
     typevariable conffilename {};# Configuration File Name
@@ -853,26 +861,11 @@ snit::type OpenLCB_TrackCircuits {
         set configuration [ParseXML create %AUTO% $confXML]
         set cdis [$configuration getElementsByTagName OpenLCB_TrackCircuits -depth 1]
         set cdi [lindex $cdis 0]
-        set transcons [SimpleDOMElement %AUTO% -tag "transport"]
-        $cdi addchild $transcons
-        set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
-        $transcons addchild $constructor
-        $constructor setdata "CANGridConnectOverTcp"
-        set transportopts [SimpleDOMElement %AUTO% -tag "options"]
-        $transcons addchild $transportopts
-        $transportopts setdata {-port 12021 -nid 05:01:01:01:22:00 -host localhost}
+        SampleTransport $cdi
+        SampleItentification $cdi
         set generateEventID [GenerateEventID create %AUTO% \
                              -baseeventid [lcc::EventID create %AUTO% \
                                            -eventidstring "05.01.01.01.22.00.00.00"]]
-        set ident [SimpleDOMElement %AUTO% -tag "identification"]
-        $cdi addchild $ident
-        set nameele [SimpleDOMElement %AUTO% -tag "name"]
-        $ident addchild $nameele
-        $nameele setdata "Sample Name"
-        set descrele [SimpleDOMElement %AUTO% -tag "description"]
-        $ident addchild $descrele
-        $descrele setdata "Sample Description"
-        set track [SimpleDOMElement %AUTO% -tag "track"]
         $cdi addchild $track
         set description [SimpleDOMElement %AUTO% -tag "description"]
         $track addchild $description
@@ -977,45 +970,7 @@ snit::type OpenLCB_TrackCircuits {
                        [$scroll getframe].editframe -constrainedwidth yes]
         $scroll setwidget $editframe
         set frame [$editframe getframe]
-        set transconsframe [ttk::labelframe $frame.transportconstuctor \
-                            -labelanchor nw -text [_m "Label|Transport"]]
-        pack $transconsframe -fill x -expand yes
-        set transconstructor [LabelFrame $transconsframe.transconstructor \
-                              -text [_m "Label|Constructor"]]
-        pack $transconstructor -fill x -expand yes
-        set cframe [$transconstructor getframe]
-        set transcname [ttk::entry $cframe.transcname \
-                        -state readonly \
-                        -textvariable [mytypevar transconstructorname]]
-        pack $transcname -side left -fill x -expand yes
-        set transcnamesel [ttk::button $cframe.transcnamesel \
-                           -text [_m "Label|Select"] \
-                           -command [mytypemethod _seltransc]]
-        pack $transcnamesel -side right
-        set transoptsframe [LabelFrame $transconsframe.transoptsframe \
-                              -text [_m "Label|Constructor Opts"]]
-        pack $transoptsframe -fill x -expand yes
-        set oframe [$transoptsframe getframe]
-        set transoptsentry [ttk::entry $oframe.transoptsentry \
-                        -state readonly \
-                        -textvariable [mytypevar transopts]]
-        pack $transoptsentry -side left -fill x -expand yes
-        set tranoptssel [ttk::button $oframe.tranoptssel \
-                         -text [_m "Label|Select"] \
-                         -command [mytypemethod _seltransopt]]
-        pack $tranoptssel -side right
-        
-        set transcons [$cdi getElementsByTagName "transport"]
-        if {[llength $transcons] == 1} {
-            set constructor [$transcons getElementsByTagName "constructor"]
-            if {[llength $constructor] == 1} {
-                set transconstructorname [$constructor data]
-            }
-            set coptions [$transcons getElementsByTagName "options"]
-            if {[llength $coptions] == 1} {
-                set transopts [$coptions data]
-            }
-        }
+        TransportGUI $frame $cdi
         set lastevid [$cdi attribute lastevid]
         if {$lastevid eq {}} {
             set nidindex [lsearch -exact $transopts -nid]
@@ -1037,34 +992,7 @@ snit::type OpenLCB_TrackCircuits {
                                  -baseeventid [lcc::EventID create %AUTO% -eventidstring $lastevid]]
         }
         $xmltrackcircuitconfig configure -eventidgenerator $generateEventID
-        set identificationframe [ttk::labelframe $frame.identificationframe \
-                            -labelanchor nw -text [_m "Label|Identification"]]
-        pack $identificationframe -fill x -expand yes
-        set identificationname [LabelFrame $identificationframe.identificationname \
-                                -text [_m "Label|Name"]]
-        pack $identificationname -fill x -expand yes
-        set nframe [$identificationname getframe]
-        set idname [ttk::entry $nframe.idname \
-                        -textvariable [mytypevar id_name]]
-        pack $idname -side left -fill x -expand yes
-        set identificationdescrframe [LabelFrame $identificationframe.identificationdescrframe \
-                              -text [_m "Label|Description"]]
-        pack $identificationdescrframe -fill x -expand yes
-        set dframe [$identificationdescrframe getframe]
-        set identificationdescrentry [ttk::entry $dframe.identificationdescrentry \
-                        -textvariable [mytypevar id_description]]
-        pack $identificationdescrentry -side left -fill x -expand yes
-        set ident [$cdi getElementsByTagName "identification"]
-        if {[llength $ident] == 1} {
-            set nameele [$ident getElementsByTagName "name"]
-            if {[llength $nameele] == 1} {
-                set id_name [$nameele data]
-            }
-            set descrele [$ident getElementsByTagName "description"]
-            if {[llength $descrele] == 1} {
-                set id_description [$descrele data]
-            }
-        }
+        IdentificationGUI $frame $cdi
         
         set tracks [ScrollTabNotebook $frame.tracks]
         pack $tracks -expand yes -fill both
@@ -1125,41 +1053,8 @@ snit::type OpenLCB_TrackCircuits {
             set attrs [lreplace $attrs $findx $findx [$generateEventID currentid]]
             $cdi configure -attributes $attrs
         }
-        set transcons [$cdi getElementsByTagName "transport"]
-        if {[llength $transcons] < 1} {
-            set transcons [SimpleDOMElement %AUTO% -tag "transport"]
-            $cdi addchild $transcons
-        }
-        set constructor [$transcons getElementsByTagName "constructor"]
-        if {[llength $constructor] < 1} {
-            set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
-            $transcons addchild $constructor
-        }
-        $constructor setdata $transconstructorname
-        set coptions [$transcons getElementsByTagName "options"]
-        if {[llength $coptions] < 1} {
-            set coptions [SimpleDOMElement %AUTO% -tag "options"]
-            $transcons addchild $coptions
-        }
-        $coptions setdata $transopts
-        
-        set ident [$cdi getElementsByTagName "identification"]
-        if {[llength $ident] < 1} {
-            set ident [SimpleDOMElement %AUTO% -tag "identification"]
-            $cdi addchild $ident
-        }
-        set nameele [$ident getElementsByTagName "name"]
-        if {[llength $nameele] < 1} {
-            set nameele [SimpleDOMElement %AUTO% -tag "name"]
-            $ident addchild $nameele
-        }
-        $nameele setdata $id_name 
-        set descrele [$ident getElementsByTagName "description"]
-        if {[llength $descrele] < 1} {
-            set descrele [SimpleDOMElement %AUTO% -tag "description"]
-            $ident addchild $descrele
-        }
-        $descrele setdata $id_description
+        CopyTransFromGUI $cdi
+        CopyIdentFromGUI $cdi
         foreach track [$cdi getElementsByTagName "track"] {
             $xmltrackcircuitconfig copyFromGUI $tracks $track warnings
         }
@@ -1182,35 +1077,6 @@ snit::type OpenLCB_TrackCircuits {
         # Does not save the configuration data!
         
         ::exit
-    }
-    typemethod _seltransc {} {
-        #** Select a transport constructor.
-        
-        set result [lcc::OpenLCBNode selectTransportConstructor]
-        if {$result ne {}} {
-            if {$result ne $transconstructorname} {set transopts {}}
-            set transconstructorname [namespace tail $result]
-        }
-    }
-    typemethod _seltransopt {} {
-        #** Select transport constructor options.
-        
-        if {$transconstructorname ne ""} {
-            set transportConstructors [info commands ::lcc::$transconstructorname]
-            ::log::log debug "*** $type typeconstructor: transportConstructors is $transportConstructors"
-            if {[llength $transportConstructors] > 0} {
-                set transportConstructor [lindex $transportConstructors 0]
-            }
-            if {$transportConstructor ne {}} {
-                set optsdialog [list $transportConstructor \
-                                drawOptionsDialog]
-                foreach x $transopts {lappend optsdialog $x}
-                set transportOpts [eval $optsdialog]
-                if {$transportOpts ne {}} {
-                    set transopts $transportOpts
-                }
-            }
-        }
     }
     
 }

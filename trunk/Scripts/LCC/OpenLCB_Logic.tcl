@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 25 14:52:47 2016
-#  Last Modified : <170825.1048>
+#  Last Modified : <170826.2057>
 #
 #  Description	
 #
@@ -486,6 +486,9 @@ snit::type OpenLCB_Logic {
     typecomponent editContextMenu
     typecomponent xmllogicconfig;# Common logic config object
     
+    OpenLCB_Common::transportProcs
+    OpenLCB_Common::identificationProcs
+    
     typeconstructor {
         #** @brief Global static initialization.
         #
@@ -579,42 +582,11 @@ snit::type OpenLCB_Logic {
             ::log::logError [_ "Could not parse configuration file %s: %s" $conffile $configuration]
             exit 98
         }
-        set transcons [$configuration getElementsByTagName "transport"]
-        set constructor [$transcons getElementsByTagName "constructor"]
-        if {$constructor eq {}} {
-            ::log::logError [_ "Transport constructor missing!"]
-            exit 97
-        }
-        set options [$transcons getElementsByTagName "options"]
-        set transportOpts {}
-        if {$options ne {}} {
-            set transportOpts [$options data]
-        } else {
-            ::log::log debug "*** $type typeconstructor: no options."
-        }
-        
-        set transportConstructors [info commands ::lcc::[$constructor data]]
-        if {[llength $transportConstructors] > 0} {
-            set transportConstructor [lindex $transportConstructors 0]
-        }
-        if {$transportConstructor eq {}} {
-            ::log::logError [_ "No valid transport constructor found!"]
-            exit 96
-        }
+        getTransport [$configuration getElementsByTagName "transport"] \
+              transportConstructor transportOpts
         set nodename ""
         set nodedescriptor ""
-        set ident [$configuration getElementsByTagName "identification"]
-        if {[llength $ident] > 0} {
-             set ident [lindex $ident 0]
-             set nodenameele [$ident getElementsByTagName "name"]
-             if {[llength $nodenameele] > 0} {
-                 set nodename [[lindex $nodenameele 0] data]
-             }
-             set nodedescriptorele [$ident getElementsByTagName "description"]
-             if {[llength $nodedescriptorele] > 0} {
-                 set nodedescriptor [[lindex $nodedescriptorele 0] data]
-             }
-        }
+        getIdentification [$configuration getElementsByTagName "identification"]  nodename nodedescriptor
         if {[catch {eval [list lcc::OpenLCBNode %AUTO% \
                           -transport $transportConstructor \
                           -eventhandler [mytypemethod _eventHandler] \
@@ -790,10 +762,6 @@ snit::type OpenLCB_Logic {
     typecomponent main;# Main Frame.
     typecomponent scroll;# Scrolled Window.
     typecomponent editframe;# Scrollable Frame
-    typevariable    transconstructorname {};# transport constructor
-    typevariable    transopts {};# transport options
-    typevariable    id_name {};# node name
-    typevariable    id_description {};# node description
     typecomponent   generateEventID
     typecomponent   logics;# logic list
     typevariable status {};# Status line
@@ -850,25 +818,11 @@ snit::type OpenLCB_Logic {
         set configuration [ParseXML create %AUTO% $confXML]
         set cdis [$configuration getElementsByTagName OpenLCB_Logic -depth 1]
         set cdi [lindex $cdis 0]
-        set transcons [SimpleDOMElement %AUTO% -tag "transport"]
-        $cdi addchild $transcons
-        set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
-        $transcons addchild $constructor
-        $constructor setdata "CANGridConnectOverTcp"
-        set transportopts [SimpleDOMElement %AUTO% -tag "options"]
-        $transcons addchild $transportopts
-        $transportopts setdata {-port 12021 -nid 05:01:01:01:22:00 -host localhost}
+        SampleTransport $cdi
+        SampleItentification $cdi
         set generateEventID [GenerateEventID create %AUTO% \
                              -baseeventid [lcc::EventID create %AUTO% \
                                            -eventidstring "05.01.01.01.22.00.00.00"]]
-        set ident [SimpleDOMElement %AUTO% -tag "identification"]
-        $cdi addchild $ident
-        set nameele [SimpleDOMElement %AUTO% -tag "name"]
-        $ident addchild $nameele
-        $nameele setdata "Sample Name"
-        set descrele [SimpleDOMElement %AUTO% -tag "description"]
-        $ident addchild $descrele
-        $descrele setdata "Sample Description"
         set logic [SimpleDOMElement %AUTO% -tag "logic"]
         $cdi addchild $logic
         set description [SimpleDOMElement %AUTO% -tag "description"]
@@ -971,45 +925,7 @@ snit::type OpenLCB_Logic {
                        [$scroll getframe].editframe -constrainedwidth yes]
         $scroll setwidget $editframe
         set frame [$editframe getframe]
-        set transconsframe [ttk::labelframe $frame.transportconstuctor \
-                            -labelanchor nw -text [_m "Label|Transport"]]
-        pack $transconsframe -fill x -expand yes
-        set transconstructor [LabelFrame $transconsframe.transconstructor \
-                              -text [_m "Label|Constructor"]]
-        pack $transconstructor -fill x -expand yes
-        set cframe [$transconstructor getframe]
-        set transcname [ttk::entry $cframe.transcname \
-                        -state readonly \
-                        -textvariable [mytypevar transconstructorname]]
-        pack $transcname -side left -fill x -expand yes
-        set transcnamesel [ttk::button $cframe.transcnamesel \
-                           -text [_m "Label|Select"] \
-                           -command [mytypemethod _seltransc]]
-        pack $transcnamesel -side right
-        set transoptsframe [LabelFrame $transconsframe.transoptsframe \
-                              -text [_m "Label|Constructor Opts"]]
-        pack $transoptsframe -fill x -expand yes
-        set oframe [$transoptsframe getframe]
-        set transoptsentry [ttk::entry $oframe.transoptsentry \
-                        -state readonly \
-                        -textvariable [mytypevar transopts]]
-        pack $transoptsentry -side left -fill x -expand yes
-        set tranoptssel [ttk::button $oframe.tranoptssel \
-                         -text [_m "Label|Select"] \
-                         -command [mytypemethod _seltransopt]]
-        pack $tranoptssel -side right
-        
-        set transcons [$cdi getElementsByTagName "transport"]
-        if {[llength $transcons] == 1} {
-            set constructor [$transcons getElementsByTagName "constructor"]
-            if {[llength $constructor] == 1} {
-                set transconstructorname [$constructor data]
-            }
-            set coptions [$transcons getElementsByTagName "options"]
-            if {[llength $coptions] == 1} {
-                set transopts [$coptions data]
-            }
-        }
+        TransportGUI $frame $cdi
         set lastevid [$cdi attribute lastevid]
         if {$lastevid eq {}} {
             set nidindex [lsearch -exact $transopts -nid]
@@ -1031,34 +947,7 @@ snit::type OpenLCB_Logic {
                                  -baseeventid [lcc::EventID create %AUTO% -eventidstring $lastevid]]
         }
         $xmllogicconfig configure -eventidgenerator $generateEventID
-        set identificationframe [ttk::labelframe $frame.identificationframe \
-                            -labelanchor nw -text [_m "Label|Identification"]]
-        pack $identificationframe -fill x -expand yes
-        set identificationname [LabelFrame $identificationframe.identificationname \
-                                -text [_m "Label|Name"]]
-        pack $identificationname -fill x -expand yes
-        set nframe [$identificationname getframe]
-        set idname [ttk::entry $nframe.idname \
-                        -textvariable [mytypevar id_name]]
-        pack $idname -side left -fill x -expand yes
-        set identificationdescrframe [LabelFrame $identificationframe.identificationdescrframe \
-                              -text [_m "Label|Description"]]
-        pack $identificationdescrframe -fill x -expand yes
-        set dframe [$identificationdescrframe getframe]
-        set identificationdescrentry [ttk::entry $dframe.identificationdescrentry \
-                        -textvariable [mytypevar id_description]]
-        pack $identificationdescrentry -side left -fill x -expand yes
-        set ident [$cdi getElementsByTagName "identification"]
-        if {[llength $ident] == 1} {
-            set nameele [$ident getElementsByTagName "name"]
-            if {[llength $nameele] == 1} {
-                set id_name [$nameele data]
-            }
-            set descrele [$ident getElementsByTagName "description"]
-            if {[llength $descrele] == 1} {
-                set id_description [$descrele data]
-            }
-        }
+        IdentificationGUI $frame $cdi
         
         set logics [ScrollTabNotebook $frame.tracks]
         pack $logics -expand yes -fill both
@@ -1118,41 +1007,8 @@ snit::type OpenLCB_Logic {
             set attrs [lreplace $attrs $findx $findx [$generateEventID currentid]]
             $cdi configure -attributes $attrs
         }
-        set transcons [$cdi getElementsByTagName "transport"]
-        if {[llength $transcons] < 1} {
-            set transcons [SimpleDOMElement %AUTO% -tag "transport"]
-            $cdi addchild $transcons
-        }
-        set constructor [$transcons getElementsByTagName "constructor"]
-        if {[llength $constructor] < 1} {
-            set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
-            $transcons addchild $constructor
-        }
-        $constructor setdata $transconstructorname
-        set coptions [$transcons getElementsByTagName "options"]
-        if {[llength $coptions] < 1} {
-            set coptions [SimpleDOMElement %AUTO% -tag "options"]
-            $transcons addchild $coptions
-        }
-        $coptions setdata $transopts
-        
-        set ident [$cdi getElementsByTagName "identification"]
-        if {[llength $ident] < 1} {
-            set ident [SimpleDOMElement %AUTO% -tag "identification"]
-            $cdi addchild $ident
-        }
-        set nameele [$ident getElementsByTagName "name"]
-        if {[llength $nameele] < 1} {
-            set nameele [SimpleDOMElement %AUTO% -tag "name"]
-            $ident addchild $nameele
-        }
-        $nameele setdata $id_name 
-        set descrele [$ident getElementsByTagName "description"]
-        if {[llength $descrele] < 1} {
-            set descrele [SimpleDOMElement %AUTO% -tag "description"]
-            $ident addchild $descrele
-        }
-        $descrele setdata $id_description
+        CopyTransFromGUI $cdi
+        CopyIdentFromGUI $cdi
         foreach logic [$cdi getElementsByTagName "logic"] {
             $xmllogicconfig copyFromGUI $logics $logic warnings
         }
@@ -1169,210 +1025,12 @@ snit::type OpenLCB_Logic {
         }
         return yes
     }
-    typemethod _copy_from_gui_to_XML {logic} {
-        #** Copy from the GUI to the logic XML
-        # 
-        # @param logic Logic XML element.
-        
-        set fr [$logic attribute frame]
-        set frbase $logics.$fr
-        set description_ [$frbase.description get]
-        if {$description_ eq ""} {
-            set description [$logic getElementsByTagName "description"]
-            if {[llength $description] == 1} {
-                $logic removeChild $description
-            }
-        } else {
-            set description [$logic getElementsByTagName "description"]
-            if {[llength $description] < 1} {
-                set description [SimpleDOMElement %AUTO% -tag "description"]
-                $logic addchild $description
-            }
-            $description setdata $description_
-        }
-        set groupval [GroupType GroupTypeFromLabel "[$frbase.grouptype get]"]
-        set grouptype [$logic getElementsByTagName "grouptype"]
-        if {[llength $grouptype] < 1} {
-            set grouptype [SimpleDOMElement %AUTO% -tag "grouptype"]
-            $logic addchild $grouptype
-        }
-        $grouptype setdata $groupval
-        set v1onevent_ "[$frbase.v1onevent get]"
-        set v1onevent [$logic getElementsByTagName "v1onevent"]
-        if {$v1onevent_ ne "" && [catch {lcc::eventidstring validate $v1onevent_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for v1 on event is not a valid event id string: %s!" $v1onevent_]
-            set $v1onevent_ ""
-            incr warnings
-        }
-        if {$v1onevent_ eq "" || $v1onevent_ eq "00.00.00.00.00.00.00.00"} {
-            if {[llength $v1onevent] == 1} {
-                $logic removeChild $v1onevent
-            }
-        } else {
-            if {[llength $v1onevent] < 1} {
-                set v1onevent [SimpleDOMElement %AUTO% -tag "v1onevent"]
-                $logic addchild $v1onevent
-            }
-            $v1onevent setdata $v1onevent_
-        }
-        set v1offevent_ "[$frbase.v1offevent get]"
-        set v1offevent [$logic getElementsByTagName "v1offevent"]
-        if {$v1offevent_ ne "" && [catch {lcc::eventidstring validate $v1offevent_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for v1 off event is not a valid event id string: %s!" $v1offevent_]
-            set $v1offevent_ ""
-            incr warnings
-        }
-        if {$v1offevent_ eq "" || $v1offevent_ eq "00.00.00.00.00.00.00.00"} {
-            if {[llength $v1offevent] == 1} {
-                $logic removeChild $v1offevent
-            }
-        } else {
-            if {[llength $v1offevent] < 1} {
-                set v1offevent [SimpleDOMElement %AUTO% -tag "v1offevent"]
-                $logic addchild $v1offevent
-            }
-            $v1offevent setdata $v1offevent_
-        }
-        set logicfunval [Logic LogicFromLabel "[$frbase.logicfunction get]"]
-        set logicfunction [$logic getElementsByTagName "logicfunction"]
-        if {[llength $logicfunction] < 1} {
-            set logicfunction [SimpleDOMElement %AUTO% -tag "logicfunction"]
-            $logic addchild $logicfunction
-        }
-        $logicfunction setdata $logicfunval
-        set v2onevent_ "[$frbase.v2onevent get]"
-        set v2onevent [$logic getElementsByTagName "v2onevent"]
-        if {$v2onevent_ ne "" && [catch {lcc::eventidstring validate $v2onevent_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for v2 on event is not a valid event id string: %s!" $v2onevent_]
-            set $v2onevent_ ""
-            incr warnings
-        }
-        if {$v2onevent_ eq "" || $v2onevent_ eq "00.00.00.00.00.00.00.00"} {
-            if {[llength $v2onevent] == 1} {
-                $logic removeChild $v2onevent
-            }
-        } else {
-            if {[llength $v2onevent] < 1} {
-                set v2onevent [SimpleDOMElement %AUTO% -tag "v2onevent"]
-                $logic addchild $v2onevent
-            }
-            $v2onevent setdata $v2onevent_
-        }
-        set v2offevent_ "[$frbase.v2offevent get]"
-        set v2offevent [$logic getElementsByTagName "v2offevent"]
-        if {$v2offevent_ ne "" && [catch {lcc::eventidstring validate $v2offevent_}]} {
-            tk_messageBox -type ok -icon warning \
-                  -message [_ "Event ID for v2 off event is not a valid event id string: %s!" $v2offevent_]
-            set $v2offevent_ ""
-            incr warnings
-        }
-        if {$v2offevent_ eq "" || $v2offevent_ eq "00.00.00.00.00.00.00.00"} {
-            if {[llength $v2offevent] == 1} {
-                $logic removeChild $v2offevent
-            }
-        } else {
-            if {[llength $v2offevent] < 1} {
-                set v2offevent [SimpleDOMElement %AUTO% -tag "v2offevent"]
-                $logic addchild $v2offevent
-            }
-            $v2offevent setdata $v2offevent_
-        }
-        set delay_ "[$frbase.delay get]"
-        set delay [$logic getElementsByTagName "delay"]
-        if {[llength $delay] < 1} {
-            set delay [SimpleDOMElement %AUTO% -tag "delay"]
-            $logic addchild $delay
-        }
-        $delay setdata $delay_
-        set retriggerable_ false
-        if {"[$frbase.retriggerable get]" eq [_m "Answer|Yes"]} {
-            set retriggerable_ true
-        }
-        set retriggerable [$logic getElementsByTagName "retriggerable"]
-        if {[llength $retriggerable] < 1} {
-            set retriggerable [SimpleDOMElement %AUTO% -tag "retriggerable"]
-            $logic addchild $retriggerable
-        }
-        $retriggerable setdata $retriggerable_
-        foreach a {1 2 3 4} {
-            set aframe [format {%s.action%d} $frbase.actions $a]
-            set action_event_ "[$aframe.event get]"
-            set action_event [$logic getElementsByTagName [format "action%devent" $a]]
-            if {$action_event_ ne "" && [catch {lcc::eventidstring validate $action_event_}]} {
-                tk_messageBox -type ok -icon warning \
-                      -message [_ "Event ID for action %d on event is not a valid event id string: %s!" $a $action_event_]
-                set $action_event_ ""
-                incr warnings
-            }
-            if {$action_event_ eq "" || $action_event_ eq "00.00.00.00.00.00.00.00"} {
-                if {[llength $action_event] > 0} {
-                    $logic removeChild $action_event
-                }
-                set action_delay [$logic getElementsByTagName [format "action%ddelay" $a]]
-                if {[llength $action_delay] > 0} {
-                    $logic removeChild $action_delay
-                }
-                continue
-            } else {
-                if {[llength $action_event] < 1} {
-                    set action_event [SimpleDOMElement %AUTO% -tag [format "action%devent" $a]]
-                    $logic addchild $action_event
-                }
-                $action_event setdata $action_event_
-            }
-            set action_delay_ false
-            if {"[$aframe.delay get]" eq [_m "Answer|Yes"]} {
-                set action_delay_ true
-            }
-            set action_delay [$logic getElementsByTagName [format "action%ddelay" $a]]
-            if {[llength $action_delay] < 1} {
-                set action_delay [SimpleDOMElement %AUTO% -tag [format "action%ddelay" $a]]
-                $logic addchild $action_delay
-            }
-            $action_delay setdata $action_delay_
-        }
-    }
     typemethod _exit {} {
         #** Exit function.  Bound to the Exit file menu item.
         # Does not save the configuration data!
         
         ::exit
     }
-    typemethod _seltransc {} {
-        #** Select a transport constructor.
-        
-        set result [lcc::OpenLCBNode selectTransportConstructor]
-        if {$result ne {}} {
-            if {$result ne $transconstructorname} {set transopts {}}
-            set transconstructorname [namespace tail $result]
-        }
-    }
-    typemethod _seltransopt {} {
-        #** Select transport constructor options.
-        
-        if {$transconstructorname ne ""} {
-            set transportConstructors [info commands ::lcc::$transconstructorname]
-            ::log::log debug "*** $type typeconstructor: transportConstructors is $transportConstructors"
-            if {[llength $transportConstructors] > 0} {
-                set transportConstructor [lindex $transportConstructors 0]
-            }
-            if {$transportConstructor ne {}} {
-                set optsdialog [list $transportConstructor \
-                                drawOptionsDialog]
-                foreach x $transopts {lappend optsdialog $x}
-                set transportOpts [eval $optsdialog]
-                if {$transportOpts ne {}} {
-                    set transopts $transportOpts
-                }
-            }
-        }
-    }
-    
-    
-        
 }
                 
             

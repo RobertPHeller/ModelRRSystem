@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jun 6 11:01:16 2017
-#  Last Modified : <170826.1623>
+#  Last Modified : <170826.2048>
 #
 #  Description	
 #
@@ -201,7 +201,6 @@ snit::type OpenLCB_PiMCP23017_signal {
     typevariable  defaultI2CAddr 7;#  Default I2C address offset
     typevariable  I2CAddr 7;#         I2C address offset
     typecomponent xmlsignalconfig;# Common Signal config object
-    typecomponent eventgenerator;# Event Generator
     
     typecomponent editContextMenu
     
