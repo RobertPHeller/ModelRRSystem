@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 17 10:46:46 2017
-#  Last Modified : <170826.0937>
+#  Last Modified : <170826.1504>
 #
 #  Description	
 #
@@ -686,5 +686,219 @@ snit::type XmlConfiguration {
         }
     }
 }
+
+namespace eval OpenLCB_Common {}
+
+snit::macro OpenLCB_Common::transportProcs {} {
+    typevariable    transconstructorname {};# transport constructor
+    typevariable    transopts {};# transport options
+    
+    proc getTransport {transcons transportConstructorVar transportOptsVar} {
+        upvar $transportConstructorVar transportConstructor
+        upvar $transportOptsVar transportOpts
         
+        set constructor [$transcons getElementsByTagName "constructor"]
+        if {$constructor eq {}} {
+            ::log::logError [_ "Transport constructor missing!"]
+            exit 97
+        }
+        set options [$transcons getElementsByTagName "options"]
+        set transportOpts {}
+        if {$options ne {}} {
+            set transportOpts [$options data]
+        } else {
+            ::log::log debug "getTransport: no options."
+        }
+    
+        set transportConstructors [info commands ::lcc::[$constructor data]]
+        if {[llength $transportConstructors] > 0} {
+            set transportConstructor [lindex $transportConstructors 0]
+        }
+        if {$transportConstructor eq {}} {
+            ::log::logError [_ "No valid transport constructor found!"]
+            exit 96
+        }
+    }
+    proc SampleTransport {cdi} {
+        set transcons [SimpleDOMElement %AUTO% -tag "transport"]
+        $cdi addchild $transcons
+        set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
+        $transcons addchild $constructor
+        $constructor setdata "CANGridConnectOverTcp"
+        set transportopts [SimpleDOMElement %AUTO% -tag "options"]
+        $transcons addchild $transportopts
+        $transportopts setdata {-port 12021 -nid 05:01:01:01:22:00 -host localhost}
+    }
+    proc TransportGUI {frame cdi} {
+        set transconsframe [ttk::labelframe $frame.transportconstuctor \
+                            -labelanchor nw -text [_m "Label|Transport"]]
+        pack $transconsframe -fill x -expand yes
+        set transconstructor [LabelFrame $transconsframe.transconstructor \
+                              -text [_m "Label|Constructor"]]
+        pack $transconstructor -fill x -expand yes
+        set cframe [$transconstructor getframe]
+        set transcname [ttk::entry $cframe.transcname \
+                        -state readonly \
+                        -textvariable [mytypevar transconstructorname]]
+        pack $transcname -side left -fill x -expand yes
+        set transcnamesel [ttk::button $cframe.transcnamesel \
+                           -text [_m "Label|Select"] \
+                           -command [myproc _seltransc]]
+        pack $transcnamesel -side right
+        set transoptsframe [LabelFrame $transconsframe.transoptsframe \
+                              -text [_m "Label|Constructor Opts"]]
+        pack $transoptsframe -fill x -expand yes
+        set oframe [$transoptsframe getframe]
+        set transoptsentry [ttk::entry $oframe.transoptsentry \
+                        -state readonly \
+                        -textvariable [mytypevar transopts]]
+        pack $transoptsentry -side left -fill x -expand yes
+        set tranoptssel [ttk::button $oframe.tranoptssel \
+                         -text [_m "Label|Select"] \
+                         -command [myproc _seltransopt]]
+        pack $tranoptssel -side right
+        
+        set transcons [$cdi getElementsByTagName "transport"]
+        if {[llength $transcons] == 1} {
+            set constructor [$transcons getElementsByTagName "constructor"]
+            if {[llength $constructor] == 1} {
+                set transconstructorname [$constructor data]
+            }
+            set coptions [$transcons getElementsByTagName "options"]
+            if {[llength $coptions] == 1} {
+                set transopts [$coptions data]
+            }
+        }
+    }
+    proc CopyTransFromGUI {cdi} {
+        set transcons [$cdi getElementsByTagName "transport"]
+        if {[llength $transcons] < 1} {
+            set transcons [SimpleDOMElement %AUTO% -tag "transport"]
+            $cdi addchild $transcons
+        }
+        set constructor [$transcons getElementsByTagName "constructor"]
+        if {[llength $constructor] < 1} {
+            set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
+            $transcons addchild $constructor
+        }
+        $constructor setdata $transconstructorname
+        set coptions [$transcons getElementsByTagName "options"]
+        if {[llength $coptions] < 1} {
+            set coptions [SimpleDOMElement %AUTO% -tag "options"]
+            $transcons addchild $coptions
+        }
+        $coptions setdata $transopts
+    }
+    proc _seltransc {} {
+        #** Select a transport constructor.
+        
+        set result [lcc::OpenLCBNode selectTransportConstructor]
+        if {$result ne {}} {
+            if {$result ne $transconstructorname} {set transopts {}}
+            set transconstructorname [namespace tail $result]
+        }
+    }
+    proc _seltransopt {} {
+        #** Select transport constructor options.
+        
+        if {$transconstructorname ne ""} {
+            set transportConstructors [info commands ::lcc::$transconstructorname]
+            puts stderr "*** _seltransopt: transportConstructors is $transportConstructors"
+            if {[llength $transportConstructors] > 0} {
+                set transportConstructor [lindex $transportConstructors 0]
+            }
+            if {$transportConstructor ne {}} {
+                set optsdialog [list $transportConstructor \
+                                drawOptionsDialog]
+                foreach x $transopts {lappend optsdialog $x}
+                set transportOpts [eval $optsdialog]
+                if {$transportOpts ne {}} {
+                    set transopts $transportOpts
+                }
+            }
+        }
+    }
+}
+
+snit::macro OpenLCB_Common::identificationProcs {} {
+    typevariable    id_name {};# node name
+    typevariable    id_description {};# node description
+    
+    proc getIdentification {ident nodenameVar nodedescriptorVar} {
+        upvar $nodenameVar nodename
+        upvar $nodedescriptorVar nodedescriptor
+        
+        if {[llength $ident] > 0} {
+             set ident [lindex $ident 0]
+             set nodenameele [$ident getElementsByTagName "name"]
+             if {[llength $nodenameele] > 0} {
+                 set nodename [[lindex $nodenameele 0] data]
+             }
+             set nodedescriptorele [$ident getElementsByTagName "description"]
+             if {[llength $nodedescriptorele] > 0} {
+                 set nodedescriptor [[lindex $nodedescriptorele 0] data]
+             }
+        }
+    }
+    proc SampleItentification {cdi} {
+        set ident [SimpleDOMElement %AUTO% -tag "identification"]
+        $cdi addchild $ident
+        set nameele [SimpleDOMElement %AUTO% -tag "name"]
+        $ident addchild $nameele
+        $nameele setdata "Sample Name"
+        set descrele [SimpleDOMElement %AUTO% -tag "description"]
+        $ident addchild $descrele
+        $descrele setdata "Sample Description"
+    }
+    proc IdentificationGUI {frame cdi} {
+        set identificationframe [ttk::labelframe $frame.identificationframe \
+                            -labelanchor nw -text [_m "Label|Identification"]]
+        pack $identificationframe -fill x -expand yes
+        set identificationname [LabelFrame $identificationframe.identificationname \
+                                -text [_m "Label|Name"]]
+        pack $identificationname -fill x -expand yes
+        set nframe [$identificationname getframe]
+        set idname [ttk::entry $nframe.idname \
+                        -textvariable [mytypevar id_name]]
+        pack $idname -side left -fill x -expand yes
+        set identificationdescrframe [LabelFrame $identificationframe.identificationdescrframe \
+                              -text [_m "Label|Description"]]
+        pack $identificationdescrframe -fill x -expand yes
+        set dframe [$identificationdescrframe getframe]
+        set identificationdescrentry [ttk::entry $dframe.identificationdescrentry \
+                        -textvariable [mytypevar id_description]]
+        pack $identificationdescrentry -side left -fill x -expand yes
+        set ident [$cdi getElementsByTagName "identification"]
+        if {[llength $ident] == 1} {
+            set nameele [$ident getElementsByTagName "name"]
+            if {[llength $nameele] == 1} {
+                set id_name [$nameele data]
+            }
+            set descrele [$ident getElementsByTagName "description"]
+            if {[llength $descrele] == 1} {
+                set id_description [$descrele data]
+            }
+        }
+    }
+    proc CopyIdentFromGUI {cdi} {
+        set ident [$cdi getElementsByTagName "identification"]
+        if {[llength $ident] < 1} {
+            set ident [SimpleDOMElement %AUTO% -tag "identification"]
+            $cdi addchild $ident
+        }
+        set nameele [$ident getElementsByTagName "name"]
+        if {[llength $nameele] < 1} {
+            set nameele [SimpleDOMElement %AUTO% -tag "name"]
+            $ident addchild $nameele
+        }
+        $nameele setdata $id_name 
+        set descrele [$ident getElementsByTagName "description"]
+        if {[llength $descrele] < 1} {
+            set descrele [SimpleDOMElement %AUTO% -tag "description"]
+            $ident addchild $descrele
+        }
+        $descrele setdata $id_description
+    }
+}
+
 package provide OpenLCB_Common 1.0
