@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jun 26 11:43:33 2016
-#  Last Modified : <170826.2047>
+#  Last Modified : <170828.1734>
 #
 #  Description	
 #
@@ -715,6 +715,18 @@ snit::type OpenLCB_MRD2 {
         set old_l1 [$sensor Latch_1]
         set old_l2 [$sensor Latch_2]
         $self configurelist $args
+        foreach o {sense1on sense1off sense2on sense2off latch1on latch1off latch2on latch2off} {
+            set ev [$self cget -$o]
+            if {$ev ne {}} {
+                lappend eventsproduced $ev
+            }
+        }
+        foreach o {setchan1 setchan2} {
+            set ev [$self cget -$o]
+            if {$ev ne {}} {
+                lappend eventsconsumed $ev
+            }
+        }
     }
     method Read {eventid} {
         set events [list]

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 17 10:46:46 2017
-#  Last Modified : <170826.1504>
+#  Last Modified : <170831.1312>
 #
 #  Description	
 #
@@ -193,7 +193,7 @@ snit::type XmlConfiguration {
                 if {[llength $confs] >= 1} {
                     set val [[lindex $confs 0] data]
                     if {[llength $val] < $mincount} {
-                        puts stderr [_ "List too short: %s, needs to be at list %d elements long" \
+                        puts stderr [_ "List too short: %s, needs to be at least %d elements long" \
                                      $val $mincount]
                         return $result
                     } elseif {[llength $val] > $maxcount} {
