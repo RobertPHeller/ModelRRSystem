@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <170817.1416>
+#  Last Modified : <170828.1708>
 #
 #  Description	
 #
@@ -52,11 +52,11 @@ EXTRA_DIST = lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		OpenLCB_Logic.tcl OpenLCB_Acela.tcl LCCNodeTree.tcl \
 		OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
 		OpenLCB_PiSPIMax7221.tcl OpenLCB_PiMCP23017_signal.tcl \
-		GenerateEventID.tcl OpenLCB_Common.tcl
+		GenerateEventID.tcl OpenLCB_Common.tcl OpenLCB_CMRI.tcl
 
 bin_SCRIPTS = OpenLCB${EXEEXT} OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
 	OpenLCBGCTcpHub${EXEEXT} OpenLCB_TrackCircuits${EXEEXT} \
-	OpenLCB_Acela${EXEEXT} OpenLCB_Logic${EXEEXT}
+	OpenLCB_Acela${EXEEXT} OpenLCB_Logic${EXEEXT} OpenLCB_CMRI${EXEEXT}
 if HAVE_WIRINGPI
 bin_SCRIPTS += OpenLCB_PiGPIO${EXEEXT} OpenLCB_PiMCP23008${EXEEXT} \
 		OpenLCB_PiMCP23017${EXEEXT} OpenLCB_PiSPIMax7221${EXEEXT} \
@@ -824,6 +824,66 @@ endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB_Acela${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf OpenLCB_Acela.vfs
 
+OpenLCB_CMRISCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
+				$(top_srcdir)/Scripts/LCC/lcc.tcl \
+				$(top_srcdir)/Scripts/LCC/OpenLCB_Common.tcl \
+				$(top_srcdir)/Scripts/LCC/GenerateEventID.tcl \
+				$(top_builddir)/Scripts/Common/Version.tcl \
+				$(top_srcdir)/Scripts/Common/ParseXML.tcl \
+				$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+		                $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
+		                $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+	        	        $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+		                $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+				$(top_srcdir)/Scripts/Common/gettext.tcl \
+				$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+				$(top_srcdir)/Scripts/Common/mainwindow.tcl \
+				$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+				$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+				$(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
+		                $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+	        	        $(top_srcdir)/Scripts/Common/snitrotext.tcl \
+	                	$(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
+				$(top_srcdir)/Scripts/Common/questhead.xbm \
+        	                $(top_srcdir)/Scripts/Common/unknown.xpm \
+        	                $(top_srcdir)/Scripts/ControlSupport/CmriSupport.tcl \
+        	                $(top_srcdir)/Scripts/CMri/cmri.tcl
+
+OpenLCB_CMRI${EXEEXT}: OpenLCB_CMRI.tcl \
+			$(OpenLCB_CMRISCRIPTS) \
+			$(top_builddir)/po/OpenLCB/msgfiles \
+			$(top_builddir)/Doc/User/OpenLCB/index.html \
+			$(SOCKETCAN_DEPS)
+	-rm -f  OpenLCB_CMRI.kit
+	-rm -rf  OpenLCB_CMRI.vfs
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB_CMRI.tcl
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap OpenLCB_CMRI.kit
+	-rm -f  OpenLCB_CMRI.kit
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB_CMRI \
+		lib $(SNITLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB_CMRI \
+		lib $(TCLLOGLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB_CMRI \
+		lib $(URILIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_CMRI \
+		lib/Common $(OpenLCB_CMRISCRIPTS)
+	$(UNZIP) -qq -d OpenLCB_CMRI.vfs/lib \
+		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
+	$(UNZIP) -qq -d OpenLCB_CMRI.vfs/lib \
+		$(top_srcdir)/BuildData/$(IMG_ZIP)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_CMRI \
+		Common
+if HAVE_CAN
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_CMRI \
+		lib/TclSocketCAN $(SOCKETCAN_FILES)
+endif
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_CMRI \
+		Help $(top_builddir)/Doc/User/OpenLCB/*
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_CMRI \
+		Messages $(top_builddir)/po/OpenLCB/*.msg
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB_CMRI${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
+	-rm -rf OpenLCB_CMRI.vfs
+
 	
 
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
@@ -846,11 +906,12 @@ man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
 	man1/OpenLCBGCTcpHub.1 man1/OpenLCB_PiGPIO.1 \
 	man1/OpenLCB_PiMCP23008.1 man1/OpenLCB_PiMCP23017.1 \
 	man1/OpenLCB_PiSPIMax7221.1 man1/OpenLCB_PiMCP23017_signal.1 \
+	man1/OpenLCB_CMRI.1 \
 	man1/OpenLCB_TrackCircuits.1 man1/OpenLCB_Logic.1: Doxyfile \
 	OpenLCB.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl OpenLCBGCTcpHub.tcl \
 	OpenLCB_PiGPIO.tcl OpenLCB_TrackCircuits.tcl OpenLCB_Logic.tcl \
 	OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
-	OpenLCB_PiMCP23017_signal.tcl
+	OpenLCB_PiMCP23017_signal.tcl OpenLCB_CMRI.tcl
 	-rm -rf man1
 	$(DOXYGEN) Doxyfile
 	
