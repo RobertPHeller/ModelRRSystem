@@ -362,16 +362,17 @@ proc GetAllSerialPorts {} {
 	set allports [list [glob -nocomplain /dev/tty.* /dev/cu.*]]
     }
   }
-  #puts stderr "*** GetAllSerialPorts: allports = $allports"
+  puts stderr "*** GetAllSerialPorts: allports = $allports"
+  return $allports
   foreach port $allports {
-    #puts stderr "*** GetAllSerialPorts: port = $port"
+    puts stderr "*** GetAllSerialPorts: port = $port"
     if {[catch {open $port r} chan]} {continue}
-    #puts stderr "*** GetAllSerialPorts: chan = $chan"
+    puts stderr "*** GetAllSerialPorts: chan = $chan"
     if {![catch {fconfigure $chan -mode}]} {lappend result $port}
     close $chan
-    #puts stderr "*** GetAllSerialPorts (loop): result = $result"
+    puts stderr "*** GetAllSerialPorts (loop): result = $result"
   }
-  #puts stderr "*** GetAllSerialPorts: result = $result"
+  puts stderr "*** GetAllSerialPorts: result = $result"
   return $result
 }
 
