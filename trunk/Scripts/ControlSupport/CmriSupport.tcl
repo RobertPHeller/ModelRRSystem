@@ -40,7 +40,7 @@
 #* 
 
 package require snit
-package require cmri 2.0.0
+package require Cmri 2.0.0
 
 ## @defgroup CmriSupport Cmri Support code
 #  @{
@@ -59,6 +59,7 @@ namespace eval CmriSupport {
 #  CmriSupport 1.2
 #
 
+  snit::integer byte -min 0 -max 255
 
   snit::type CmriNode {
   ## @brief CMR/I node type.  
@@ -179,15 +180,16 @@ namespace eval CmriSupport {
     typecomponent _cmriPort
     # @private Holds the open CMR/I port object.
     typemethod openport {{port "/dev/ttyS0"} {baud 9600} {maxtries 10000}} {
-    ## Open the CMR/I port.  This type method opens the CMR/I port.
-    # @param port The serial port connected to the CMR/I network.
-    # @param baud The BAUD rate to be used.
-    # @param maxtries The maximum number of retries.
-
-      if {![catch {set _cmriPort} oldport]} {
-	error "The port is already open ($oldport),  close it first!"
-      }
-      set _cmriPort [CMri "$port" -baud $baud -maxtries $maxtries]
+        ## Open the CMR/I port.  This type method opens the CMR/I port.
+        # @param port The serial port connected to the CMR/I network.
+        # @param baud The BAUD rate to be used.
+        # @param maxtries The maximum number of retries.
+        
+        catch {set _cmriPort} oldport
+        if {$oldport ne {}} {
+            error "The port is already open ($oldport),  close it first!"
+        }
+        set _cmriPort [cmri::CMri create %AUTO% "$port" -baud $baud -maxtries $maxtries]
     }
     typemethod closeport {} {
     ## Close the CMR/I port.  This type method closes the CMR/I port.
@@ -289,11 +291,12 @@ namespace eval CmriSupport {
         # @param portnum Number of the output port.
         # @param byte Value to write.
         
-        $self _ValidateByte $byte
+        CmriSupport::byte validate $byte
         if {$portnum < 0 || $portnum >= $options(-outputports)} {
             error "Port number ($portnum) out of range (0..$options(-outputports))"
         }
         lset outputbuffer $portnum $byte
+        puts stderr "*** $self setport: outputbuffer is $outputbuffer"
         $self outputs
     }
     method setbitfield {portnum mask bits} {
@@ -302,8 +305,8 @@ namespace eval CmriSupport {
         # @param mask Bit mask.
         # @param bits Bits (must already shifted into position!).
         
-        $self _ValidateByte $mask
-        $self _ValidateByte $bits
+        CmriSupport::byte validate $mask
+        CmriSupport::byte validate $bits
         if {$portnum < 0 || $portnum >= $options(-outputports)} {
             error "Port number ($portnum) out of range (0..$options(-outputports))"
         }
