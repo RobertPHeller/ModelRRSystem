@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <170719.1651>
+#  Last Modified : <171001.1322>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -3056,6 +3056,25 @@ namespace eval lcc {
                 $self destroy
             }
         }
+        proc listeq {a b} {
+            ## @brief Compare two lists.
+            # Compares two lists for equality.
+            #
+            # @param a First list to compare.
+            # @param b Second list to compare.
+            # @return A boolean value: true if the lists are the same, false 
+            # if not.
+            
+            if {[llength $a] != [llength $b]} {
+                return false
+            }
+            foreach aele $a bele $b {
+                if {$aele != $bele} {
+                    return false
+                }
+            }
+            return true
+        }
         method _sendmessage {canmessage} {
             ## Send a low-level CAN bus message using the Grid Connect format.
             # 
@@ -3103,6 +3122,25 @@ namespace eval lcc {
             return $count
         }
         
+        proc listeq {a b} {
+            ## @brief Compare two lists.
+            # Compares two lists for equality.
+            #
+            # @param a First list to compare.
+            # @param b Second list to compare.
+            # @return A boolean value: true if the lists are the same, false 
+            # if not.
+            
+            if {[llength $a] != [llength $b]} {
+                return false
+            }
+            foreach aele $a bele $b {
+                if {$aele != $bele} {
+                    return false
+                }
+            }
+            return true
+        }
         typemethod findAvailableComPorts {} {
             ## @brief Return a list of available (USB) serial ports.
             # This method does a platform specific search for possible 
