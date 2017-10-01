@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <170511.1256>
+#  Last Modified : <171001.1619>
 #
 #  Description	
 #
@@ -197,7 +197,7 @@ snit::type OpenLCBGCTcpHub {
             foreach op {-can -can0 -can1 -can2 -can3 -can4 -can5 -can6 -can7 -can8 -can9} {
                 set socketname [from argv $op]
                 if {$socketname eq ""} {continue}
-                if {[catch {TclSocketCAN $socketname} sockfd]} {
+                if {[catch {SocketCAN $socketname} sockfd]} {
                     ::log::logError [_ "CAN Socket to %s not opened: %s" $socketname $sockfd]
                     continue
                 } else {
