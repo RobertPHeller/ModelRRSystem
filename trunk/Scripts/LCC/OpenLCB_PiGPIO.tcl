@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 7 10:36:33 2016
-#  Last Modified : <170826.2041>
+#  Last Modified : <171002.1213>
 #
 #  Description	
 #
@@ -335,7 +335,7 @@ snit::type OpenLCB_PiGPIO {
             if {$consume} {lappend consumers $pin}
             if {$produce} {lappend producers $pin}
             if {!$consume && !$produce} {
-                ::log::log warning [_ "Useless pin (%d) (neither consumes or produces events)" $thepin]
+                ::log::log warning [_ "Useless pin (%d) (neither consumes or produces events)" [$pin cget -pinnumber]]
             } else {
                 lappend pinlist $pin
             }
