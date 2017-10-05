@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 7 10:36:33 2016
-#  Last Modified : <171002.1213>
+#  Last Modified : <171004.1941>
 #
 #  Description	
 #
@@ -97,6 +97,7 @@ set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirn
 							[info script]]]] Messages]]
 
 snit::enum PinModes -values {disabled in out high low}
+snit::enum PullModes  -values {up down tri}
 snit::type GPIOPinNo {
     pragma  -hastypeinfo false -hastypedestroy false -hasinstances false
     
@@ -174,7 +175,8 @@ snit::type OpenLCB_PiGPIO {
     #
     # Instance options:
     # @arg -pinnumber The pin number
-    # @arg -pinmode   The pin's mode
+    # @arg -pinmode   The pin's mode, one of disabled, in, out, high, or low.
+    # @arg -pinpullmode The pin's pullmode, one of up, down, or tri.
     # @arg -pinin0    Event ID to send when the pin's input value goes to 0.
     # @arg -pinin1    Event ID to send when the pin's input value goes to 1.
     # @arg -pinout0   Event ID to trigger setting the pin's output to 0.
@@ -240,6 +242,7 @@ snit::type OpenLCB_PiGPIO {
                            <string option="-description" tagname="description">Description</string>
                            <enum option="-pinnumber" tagname="number" enums="0 1 2 3 4 5 6 7 21 22 23 24 25 26 27 28 29">GPIO Pin Number</enum>
                            <enum option="-pinmode" tagname="mode" enums="disabled in out high low">Pin Mode</enum>
+                           <enum option="-pinpullmode" tagname="pullmode" enums="up down tri">Pull Mode</enum>
                            <eventid option="-pinin0" tagname="pinin0">Pin Low In Event</eventid>
                            <eventid option="-pinin1" tagname="pinin1">Pin High In Event</eventid>
                            <eventid option="-pinout0" tagname="pinout0">Pin Low Out Event</eventid>
@@ -772,6 +775,7 @@ snit::type OpenLCB_PiGPIO {
     variable oldPin 0;# The saved value of the pin (input mode only)
     option -pinnumber -readonly yes -type GPIOPinNo -default 0
     option -pinmode -readonly yes -type PinModes -default disabled
+    option -pinpullmode -readonly yes -type PullModes -default up
     option -pinin0 -type lcc::EventID_or_null -readonly yes -default {}
     option -pinin1 -type lcc::EventID_or_null -readonly yes -default {}
     option -pinout0 -type lcc::EventID_or_null -readonly yes -default {}
@@ -783,6 +787,7 @@ snit::type OpenLCB_PiGPIO {
         # @param ... Options:
         # @arg -pinnumber The pin number
         # @arg -pinmode   The pin's mode
+        # @arg -pinpullmode The pin's pull mode
         # @arg -pinin0    Event ID to send when the pin's input value goes to 0.
         # @arg -pinin1    Event ID to send when the pin's input value goes to 1.
         # @arg -pinout0   Event ID to trigger setting the pin's output to 0.
@@ -795,6 +800,7 @@ snit::type OpenLCB_PiGPIO {
         if {[$self cget -pinmode] eq "disabled"} {
             exec "$GPIOCMD" unexport $bcmpinno
         } else {
+            exec "$GPIOCMD" mode   [$self cget -pinnumber] [$self cget -pinpullmode]
             exec "$GPIOCMD" export $bcmpinno [$self cget -pinmode]
         }
     }
