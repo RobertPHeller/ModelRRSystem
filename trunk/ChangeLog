@@ -1,3 +1,14 @@
+Wed Nov  8 09:54:03 2017 2.1.42 release candidate 1
+
+    Move use a common configuration logic for OpenLCB_ daemon nodes using an 
+      internal XML tree and implementing something like a CDI.
+    Add OpenLCB_CMRI daemon.
+    Add Pango/Cairo PDF printer for FCFSupport.
+    Improve printing in FCFSupport to better support letter paper, by using 
+      Bold instead of double width printing, since wide carriage printers are
+      get few and far between.
+    Assorted minor bug fixes.
+
 Sat Jul 29 11:06:10 2017 2.1.41 release candidate 1
 
     Add TclSocketCAN code
