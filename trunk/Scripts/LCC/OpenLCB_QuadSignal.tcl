@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Nov 30 10:02:35 2017
-#  Last Modified : <171130.1228>
+#  Last Modified : <171130.1439>
 #
 #  Description	
 #
@@ -159,9 +159,14 @@ snit::listtype HeadList -minlen 1 -maxlen 3 -type Head
 snit::type Aspect {
     pragma  -hastypeinfo false -hastypedestroy false -hasinstances false
     typemethod validate {value} {
+        #puts stderr "*** Aspect validate $value"
         if {[llength $value] == 3} {
+            #puts stderr "*** Aspect validate: value element 0 is [lindex $value 0]"
             lcc::EventID validate [lindex $value 0]
-            HeadList validate [lindex $value 2]
+            #puts stderr "*** Aspect validate: value element 1 is [lindex $value 1]"
+            #puts stderr "*** Aspect validate: value element 2 is [lindex $value 2]"
+            set heads [lindex $value 2]
+            HeadList validate $heads
         } else {
             error [_ "Not a valid Aspect: %s" $value]
         }
@@ -200,8 +205,8 @@ snit::type OpenLCB_QuadSignal {
     typevariable  I2CAddr 7;#         I2C address offset
     typecomponent xmlmastconfig;#     Common Mast config object
     typevariable  blinkstate 0;#      Global Current blink state
-    typevariable  ON $::HIGH;#        LED On value (reset by common mode)
-    typevariable  OFF $::LOW;#        LED Off value (reset by common mode)
+    typevariable  ON {};#             LED On value (set by common mode)
+    typevariable  OFF {};#            LED Off value (set by common mode)
     
     typecomponent editContextMenu
     
@@ -334,8 +339,10 @@ snit::type OpenLCB_QuadSignal {
         mcp23017Setup 64 [expr {$baseI2Caddress | $I2CAddr}]
         
         set commonmode [$configuration getElementsByTagName "commonmode"]
+        ::log::log debug "*** $type typeconstructor: commonmode is $commonmode"
         if {[llength $commonmode] > 0} {
-            set commonmode [lindex $commonmode 0]
+            set commonmode [[lindex $commonmode 0] data]
+            ::log::log debug "*** $type typeconstructor: commonmode is $commonmode" 
             switch [string tolower $commonmode] {
                 anode {
                     set ON $::HIGH
@@ -346,7 +353,11 @@ snit::type OpenLCB_QuadSignal {
                     set OFF $::HIGH
                 }
             }
+        } else {
+            set ON $::HIGH
+            set OFF $::LOW
         }
+        ::log::log debug "*** $type typeconstructor: ON is $ON, OFF is $OFF"
         for {set i 0} {$i < 16} {incr i} {
             pinMode [expr {$i + 64}] $::OUTPUT
             pullUpDnControl [expr {$i + 64}] $::PUD_UP
@@ -424,10 +435,10 @@ snit::type OpenLCB_QuadSignal {
                 #}
             }
             report {
-                foreach s $signallist {
-                    ::log::log debug "*** $type _eventHandler: signal is [$s cget -pinnumber]"
+                foreach m $mastlist {
+                    ::log::log debug "*** $type _eventHandler: mast is [$m cget -description]"
                     ::log::log debug "*** $type _eventHandler: event is [$eventid cget -eventidstring]"
-                    $s consumeEvent $eventid
+                    $m consumeEvent $eventid
                     
                 }
             }
@@ -758,7 +769,7 @@ snit::type OpenLCB_QuadSignal {
             set generateEventID [GenerateEventID create %AUTO% \
                                  -baseeventid [lcc::EventID create %AUTO% -eventidstring $lastevid]]
         }
-        $xmlsignalconfig configure -eventidgenerator $generateEventID
+        $xmlmastconfig configure -eventidgenerator $generateEventID
         IdentificationGUI $frame $cdi
         
         set i2caddressLE [LabelSpinBox $frame.i2caddressLE \
@@ -772,7 +783,7 @@ snit::type OpenLCB_QuadSignal {
             set mcp23017address [$i2caddrele data]
         }
         set commonmodeLE [LabelComboBox $frame.commonmodeLE \
-                          -label [_m "Label|I2C Common Mode"] \
+                          -label [_m "Label|Common Mode"] \
                           -textvariable [mytypevar thecommonmode] \
                           -values {anode cathode} \
                           -editable no]
@@ -787,7 +798,7 @@ snit::type OpenLCB_QuadSignal {
         pack $mastnotebook -expand yes -fill both
         foreach mast [$cdi getElementsByTagName "mast"] {
             set mastframe [$xmlmastconfig createGUI $mastnotebook \
-                             mast $cdi $signal [_m "Label|Delete Mast"] \
+                             mast $cdi $mast [_m "Label|Delete Mast"] \
                              [mytypemethod _addframe] [mytypemethod _delframe]]
         }
         set addmast [ttk::button $frame.addmast \
@@ -873,8 +884,8 @@ snit::type OpenLCB_QuadSignal {
         set cdi [lindex $cdis 0]
         set mast [SimpleDOMElement %AUTO% -tag "mast"]
         $cdi addchild $mast
-        set mastframe [$xmlsignalconfig createGUI $mastnotebook \
-                         mast $cdi $signal [_m "Label|Delete Mast"] \
+        set mastframe [$xmlmastconfig createGUI $mastnotebook \
+                         mast $cdi $mast [_m "Label|Delete Mast"] \
                          [mytypemethod _addframe] [mytypemethod _delframe]]
     }
     
@@ -893,6 +904,7 @@ snit::type OpenLCB_QuadSignal {
         $self configurelist $args
         foreach e_n_hs [$self cget -aspectlist] {
             lassign $e_n_hs e n hs
+            ::log::log debug "*** $type create $self: e: $e, n: $n, hs: $hs"
             lappend eventsconsumed $e
         }
     }
@@ -916,11 +928,15 @@ snit::type OpenLCB_QuadSignal {
             return
         }
         lassign $currentaspect aspev name heads
+        ::log::log debug "*** $self doblink: heads: $heads"
         foreach h $heads {
+            ::log::log debug "*** $self doblink: h: $h"
             foreach l $h {
+                ::log::log debug "*** $self doblink: l: $l"
                 lassign $l id effect
                 set pin [LampID gpioPinNo $id]
                 if {$pin < 0} {continue}
+                ::log::log debug "*** $self doblink: pin = $pin, effect = $effect"
                 switch $effect {
                     on {digitalWrite $pin $ON}
                     off {digitalWrite $pin $OFF}
