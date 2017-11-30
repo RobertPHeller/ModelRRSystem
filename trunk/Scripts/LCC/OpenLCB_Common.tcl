@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 17 10:46:46 2017
-#  Last Modified : <170831.1312>
+#  Last Modified : <171130.1426>
 #
 #  Description	
 #
@@ -65,6 +65,7 @@ snit::type XmlConfiguration {
         return $result
     }
     method _process1Config {n itemconf result} {
+        #puts stderr "*** $self _process1Config $n $itemconf $result"
         set option [$n attribute option]
         set tagname [$n attribute tagname]
         set confs [$itemconf getElementsByTagName $tagname]
@@ -232,8 +233,13 @@ snit::type XmlConfiguration {
                         foreach gn [$n children] {
                             set r [$self _process1Config $gn $c $r]
                         }
-                        lappend val $r
+                        if {[llength [$n children]] == 1} {
+                            lappend val [lindex $r 0]
+                        } else {
+                            lappend val $r
+                        }
                     }
+                    #puts stderr "*** $self _process1Config: val is $val"
                     if {$option ne {}} {
                         lappend result $option $val
                     } else {
@@ -419,6 +425,11 @@ snit::type XmlConfiguration {
                 set groupnotebook [ScrollTabNotebook $frame.$tagname]
                 pack $groupnotebook -expand yes -fill x
                 set gcount 0
+                while {[llength $confs] < $mincount} {
+                    set tconf [SimpleDOMElement %AUTO% -tag $tagname]
+                    $itemconf addchild $tconf
+                    set confs [$itemconf getElementsByTagName $tagname]
+                }
                 foreach c $confs {
                     incr gcount
                     set gfr gframe$gcount
