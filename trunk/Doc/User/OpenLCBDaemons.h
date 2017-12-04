@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Aug 14 14:40:15 2016
-//  Last Modified : <170515.1032>
+//  Last Modified : <171204.1627>
 //
 //  Description	
 //
@@ -103,7 +103,7 @@
  * useful functions.  These daemons are:
  *   @li @ref MRD2 The OpenLCB_MRD2 daemon implememts an OpenLCB node
  * that implements the EventExchange protocol for Azatrax MRD2 boards.
- *   @li @ref OpenLCB_PiGPIO The OpenLCB_PiGPIO daemon implememts an OpenLCB
+ *   @li @ref PiGPIO The OpenLCB_PiGPIO daemon implememts an OpenLCB
  *   node that implements the EventExchange protocol for Raspberry Pi GPIO
  *   pins.
  *   @li @ref PiMCP23008 The OpenLCB_PiMCP23008 daemon implememts an 
@@ -112,6 +112,17 @@
  *   @li @ref PiMCP23017 The OpenLCB_PiMCP23017 daemon implememts an 
  *   OpenLCB node that implements the EventExchange protocol for the GPIO pins
  *   on a MCP23017 I2C port expander connected to a Raspberry Pi.
+ *   @li @ref PiMCP23017signal The OpenLCB_PiMCP23017_signal daemon 
+ *   implememts an OpenLCB node that implements the EventExchange protocol for 
+ *   the GPIO pins on a MCP23017 I2C port expander connected to a Raspberry Pi.
+ *   This version groups the pins into signal heads and all pins are set to
+ *   to output mode.
+ *   @li @ref QuadSignal The OpenLCB_QuadSignal daemon implememts an
+ *   OpenLCB node that implements the EventExchange protocol for the 
+ *   MCP23017-based quad signal head HAT for the Raspberry Pi. Each signal 
+ *   mast can have 1, 2, or 3 "heads".  Each head has four "lamps" (unused 
+ *   lamps can be set to "None"). For a given aspect, a lamp can be on, off, 
+ *   blink, or reverse blink.
  *   @li @ref PiSPIMax7221 The OpenLCB_PiSPIMax7221 daemon implememts an 
  *   OpenLCB node that implements the EventExchange protocol for a SPI 
  *   connected MAX7221 Signal Driver board connected to a Raspberry Pi.
@@ -121,7 +132,9 @@
  *   @li @ref Logic The OpenLCB_Login daemon implememts
  *   an OpenLCB node that implements logic blocks using OpenLCB Events.
  *   @li @ref Acela The OpenLCB_Acela daemon implememts an OpenLCB node
- *   that implements EventExchange protocol for a CTIAcela network.
+ *   that implements the EventExchange protocol for a CTIAcela network.
+ *   @li @ref CMRI The OpenLCB_CMRI daemon implememts the 
+ *   EventExchange protocol for a C/MRI network.
  * 
  * All of these programs normally run as non-interactive daemon processes and
  * use a configuration file in XML format to define the detailed operation of
@@ -151,10 +164,11 @@
  *    transports. There is a @b Select button next to the constructor field to 
  *    select the transport to use. The options for the transport constructor 
  *    can be selected with the @b Select button next to the transport options 
- *    field.  The three transports are: 
- *    - CANGridConnectOverUSBSerial: Grid Connect CAN over USBSerial
+ *    field.  The four transports are: 
+ *    - CANGridConnectOverUSBSerial: Grid Connect CAN over USB Serial
  *    - CANGridConnectOverTcp: Grid Connect CAN over Tcp
- *    - OpenLCBOverTcp: OpenLCB over Tcp
+ *    - CANGridConnectOverCANSocket: Grid Connect CAN over CAN Socket
+ *    - OpenLCBOverTcp: OpenLCB over Tcp (binary)
  * 
  * 
  * @subsection MRD2 EventExchange node for Azatrax MRD2 boards.
@@ -526,6 +540,202 @@
     </xs:schema>
    @endverbatim
  * 
+ * @subsection PiMCP23017signal EventExchange node for MCP23017 as signal heads.
+ * 
+ * The OpenLCB_PiMCP23017_signal daemon is used to tie groups of a MCP23017's
+ * GPIO pins into signal heads and all pins are set to to output mode. A 
+ * MCP23017 is a 16 bit I2C port expander that can be connected to a 
+ * Raspberry Pi.
+ *
+ * In addition to the @ref CommonNodeConfiguration "Common Node Configuration" 
+ * fields the OpenLCB_PiMCP23017 daemon has a field containing the low 3 bits 
+ * of the address of the MCP23017's I2C address (the default is 7).  Then for
+ * each signal there is a tab containing these fields:
+ *  - description A textual description of the signal.
+ *  - number The number of the first pin used by the signal.
+ *  - ledcount The number of LEDs used by the signal.
+ *  - common Either anode or cathode to indicate if the LEDs are wired as 
+ *    common anode or common cathode.
+ *  - zero or more Aspect tabs, containing:
+ *    - eventid The event ID for this aspect.
+ *    - bits The aspect's bit field as a binary number (letter B followed by 
+ *      1s (on) and 0s (off).
+ * 
+ * @subsubsection PiMCP23017_signal_XMLSchema XML Schema for configuration files
+ *
+ * @verbatim
+    <?xml version="1.0" ?>
+    <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl" ?>
+    <!-- XML Schema for OpenLCB_PiMCP23017_signal configuration files -->
+    <xs:schema version="OpenLCB_PiMCP23017_signal 1.0"
+     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <xs:element name="OpenLCB_PiMCP23017_signal" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            This is the configuration container for the OpenLCB_PiMCP23017_signal daemon.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="transport" minOccurs="1" maxOccurs="1">
+              <xs:annotation>
+                 <xs:documentation>
+                   This defines the transport to use for this node.
+                 </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="constructor" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="options" minOccurs="1" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="identification" minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+                  This is the node identification section.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="name" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType></xs:complexType>
+            </xs:element>
+            <xs:element name="i2caddress" minOccurs="0" maxOccurs="1" />
+            <xs:element name="signal" minOccurs="0" maxOccurs="unbound">
+              <xs:annotation>
+                <xs:documentation>
+                  This defines one signal.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="number" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="ledcount" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="common" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="aspect" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="eventid" minOccurs="1" maxOccurs="1" />
+                        <xs:element name="bits" minOccurs="1" maxOccurs="1" />
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:schema>
+   @endverbatim
+ * 
+ * @subsection QuadSignal EventExchange node for the quad signal head HAT.
+ *
+ * The OpenLCB_QuadSignal daemon implememts an OpenLCB node that implements 
+ * the EventExchange protocol for the MCP23017-based quad signal head HAT for 
+ * the Raspberry Pi. Each signal mast can have 1, 2, or 3 "heads".  Each head 
+ * has four "lamps" (unused lamps can be set to "None"). For a given aspect, a 
+ * lamp can be on, off, blink, or reverse blink.
+ * In addition to the @ref CommonNodeConfiguration "Common Node Configuration" 
+ * fields the OpenLCB_PiMCP23017 daemon has a field containing the low 3 bits 
+ * of the address of the MCP23017's I2C address (the default is 7).  Then for
+ * each signal mast there is a tab containing these fields:
+ *  - description A textual description of the signal.
+ *  - zero or more Aspect tabs, each containing:
+ *    - eventid The event ID for this aspect.
+ *    - name The name of the aspect.
+ *    - one or more Head tabs, each containing:
+ *      - four Lamp tabs, each containing:
+ *        - id The lamp id, one of None, H1-G, H1-Y, H1-R, H1-L, H2-G, H2-Y,
+ *              H2-R, H2-L, H3-G, H3-Y, H3-R, H3-L, H4-G, H4-Y, H4-R, or H4-L.
+ *        - effect The lamp effect, one of off, on, blink, or reverseblink.
+ *
+ * @subsubsection QuadSignal_XMLSchema XML Schema for configuration files
+ *
+ * @verbatim
+    <?xml version="1.0" ?>
+    <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl" ?>
+    <!-- XML Schema for OpenLCB_PiMCP23017_signal configuration files -->
+    <xs:schema version="OpenLCB_PiMCP23017_signal 1.0"
+     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <xs:element name="OpenLCB_PiMCP23017_signal" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            This is the configuration container for the OpenLCB_PiMCP23017_signal daemon.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="transport" minOccurs="1" maxOccurs="1">
+              <xs:annotation>
+                 <xs:documentation>
+                   This defines the transport to use for this node.
+                 </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="constructor" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="options" minOccurs="1" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="identification" minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+                  This is the node identification section.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="name" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType></xs:complexType>
+            </xs:element>
+            <xs:element name="i2caddress" minOccurs="0" maxOccurs="1" />
+            <xs:element name="mast" minOccurs="0" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="aspect" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="eventid" minOccurs="1" maxOccurs="1" />
+                        <xs:element name="name" minOccurs="1" maxOccurs="1" />
+                        <xs:element name="head" minOccurs="1" maxOccurs="unbounded">
+                          <xs:complexType>
+                            <xs:sequence>
+                              <xs:element name="lamp" minOccurs="4" maxOccurs="4" >
+                                <xs:complexType>
+                                  <xs:sequence>
+                                    <xs:element name="id" minOccurs="1" maxOccurs="1" />
+                                    <xs:element name="effect" minOccurs="1" maxOccurs="1" />
+                                  </xs:sequence>
+                                </xs:complexType>
+                              </xs:element>
+                            </xs:sequence>
+                          </xs:complexType>
+                        </xs:element>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:schema>
+   @endverbatim
+ * 
+
+
  * @subsection PiSPIMax7221 EventExchange node for a SPI connected MAX7221 Signal Driver.
  * 
  * The OpenLCB_PiSPIMax7221 daemon is used to implement upto 8 signal masts 
@@ -733,7 +943,7 @@
  * 
  * @subsection Logic EventExchange node for logic blocks.
  * 
- * The OpenLCB_Logics daemon is used to implement one or more logic blocks. 
+ * The OpenLCB_Logic daemon is used to implement one or more logic blocks. 
  * Each logic can be standalone or part of a mast or ladder group.
  * 
  * In addition to the @ref CommonNodeConfiguration "Common Node Configuration" 
@@ -998,7 +1208,128 @@
         </xs:complexType>
       </xs:element>
     </xs:schema>
-     @endverbatim
+   @endverbatim
+ * 
+ * @subsection CMRI EventExchange node for a C/MRI network.
+ * 
+ * The OpenLCB_CMRI daemon implememts the EventExchange protocol for a C/MRI 
+ * network, tying event production to the inputs and outputs connected to a 
+ * C/MRI network.
+ * 
+ * In addition to the @ref CommonNodeConfiguration "Common Node Configuration" 
+ * fields the OpenLCB_CMRI has these global fields:
+ *  - port The serial port the C/MRI network is on.
+ *  - baud The baud rate to use.
+ *  - maxtries The maximum number of retries.
+ * Then there are zero or more node tabs with these fields:
+ *  - description The description of the node.
+ *  - address This is the address of the node.
+ *  - type    The type of card (SUSIC, USIC, or SMINI).
+ *  - cardmap The card map list (SUSIC or USIC).
+ *  - yellowmap The yellow map list (SMINI).
+ *  - numberofyellow The number of yellows (SMINI).
+ *  - inputports The number of 8-bit input ports.
+ *  - outputports The number of 8-bit output ports.
+ *  - delay The delay value to use (older SUSIC and USIC nodes).
+ *  - zero or more input tabs:
+ *    - eventid The event to produce.
+ *    - byte The byte (port) offset.
+ *    - mask The mask value.
+ *    - comp The comparison operator (== or !=).
+ *    - value The value to compare to.
+ *  - zero or more output tabs:
+ *    - eventid The event to consume.
+ *    - byte The byte (port) offset.
+ *    - mask The mask value.
+ *    - value The value to write.
+ * 
+ * @subsubsection CMRI_XMLSchema XML Schema for configuration files
+ * 
+ * @verbatim
+    <?xml version="1.0" ?>
+    <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl" ?>
+    <!-- XML Schema for OpenLCB_Acela configuration files -->
+    <xs:schema version="OpenLCB_Acela 1.0"
+       xmlns:xs="http://www.w3.org/2001/XMLSchema"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <xs:element name="OpenLCB_Acela" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            This is the configuration container for the OpenLCB_Acela daemon.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="transport" minOccurs="1" maxOccurs="1">
+              <xs:annotation>
+                 <xs:documentation>
+                   This defines the transport to use for this node.
+                 </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="constructor" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="options" minOccurs="1" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="identification" minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+                  This is the node identification section.
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="name" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
+                </xs:sequence>
+              </xs:complexType></xs:complexType>
+            </xs:element>
+            <xs:element name="port" minOccurs="1" maxOccurs="1" />
+            <xs:element name="baud" minOccurs="1" maxOccurs="1" />
+            <xs:element name="maxtries" minOccurs="1" maxOccurs="1" />
+            <xs:element name="node" minOccurs="0" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="description" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="address" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="type" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="cardmap" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="yellowmap" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="numberofyellow" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="inputports" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="outputports" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="delay" minOccurs="1" maxOccurs="1" />
+                  <xs:element name="input" minOccurs="0" maxOccurs="unbounded" >
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="eventid" minOccurs="1" maxOccurs="1" />
+                        <xs:element name="byte" minOccurs="1" maxOccurs="1" />
+                        <xs:element name="mask" minOccurs="1" maxOccurs="1" />
+                        <xs:element name="comp" minOccurs="1" maxOccurs="1" />
+                        <xs:element name="value" minOccurs="1" maxOccurs="1" />
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                  <xs:element name="output" minOccurs="0" maxOccurs="unbounded" >
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="eventid" minOccurs="1" maxOccurs="1" />
+                        <xs:element name="byte" minOccurs="1" maxOccurs="1" />
+                        <xs:element name="mask" minOccurs="1" maxOccurs="1" />
+                        <xs:element name="value" minOccurs="1" maxOccurs="1" />
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:schema>
+   @endverbatim
  */
 
 #endif // __OPENLCBDAEMONS_H

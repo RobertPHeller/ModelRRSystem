@@ -633,10 +633,13 @@ INPUT                  = @srcdir@/Preface.h \
                          @top_srcdir@/Scripts/LCC/OpenLCB_PiGPIO.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_PiMCP23008.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_PiMCP23017.tcl \
+                         @top_srcdir@/Scripts/LCC/OpenLCB_PiMCP23017_signal.tcl \
+                         @top_srcdir@/Scripts/LCC/OpenLCB_QuadSignal.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_PiSPIMax7221.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_TrackCircuits.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_Logic.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_Acela.tcl \
+                         @top_srcdir@/Scripts/LCC/OpenLCB_CMRI.tcl \
                          @srcdir@/Help.h \
                          @builddir@/UserManual_Version.h @srcdir@/COPYING.h
 
