@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jun 6 11:01:16 2017
-#  Last Modified : <170826.2048>
+#  Last Modified : <171204.1215>
 #
 #  Description	
 #
@@ -41,7 +41,7 @@
 #*****************************************************************************
 
 
-## @page OpenLCB_PiMCP23017_signal.tcl OpenLCB PiMCP23017 as signal driver node
+## @page PiMCP23017_signal OpenLCB PiMCP23017 as signal driver node
 # @brief OpenLCB PiMCP23017 as signal driver node
 #
 #

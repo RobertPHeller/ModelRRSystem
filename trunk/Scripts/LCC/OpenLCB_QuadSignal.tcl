@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Nov 30 10:02:35 2017
-#  Last Modified : <171130.1439>
+#  Last Modified : <171204.1203>
 #
 #  Description	
 #
@@ -51,10 +51,16 @@
 #
 # @section QuadSignalDESCRIPTION DESCRIPTION
 #
-# @section QuadSignalPARAMETERS PARAMETERS                                   
-#                                                                               
-# None                                                                          
-#                                                                               
+# This program is a daemon that implements an OpenLCB node for the 
+# MCP23017-based quad signal head HAT for the Raspberry Pi. Each signal mast 
+# can have 1, 2, or 3 "heads".  Each head has four "lamps" (unused lamps can 
+# be set to "None"). For a given aspect, a lamp can be on, off, blink, or 
+# reverse blink.
+#
+# @section QuadSignalPARAMETERS PARAMETERS
+#
+# None
+#
 # @section QuadSignalOPTIONS OPTIONS
 #
 # @arg -log  logfilename The name of the logfile.  Defaults to 
