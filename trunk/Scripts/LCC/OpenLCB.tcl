@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <170503.1139>
+#  Last Modified : <180106.0945>
 #
 #  Description	
 #
@@ -568,12 +568,12 @@ snit::type OpenLCB {
                     # error...
                     set error [expr {[lindex $_datagramdata 2] << 8}]
                     set error [expr {$error | [lindex $_datagramdata 3]}]
-                    #$logmessages insert end "[format {Read Reply error %04X} $error]"
-                    #set message { }
-                    #foreach b [lrange $_datagramdata 4 end] {
-                    #    append message [format %c $b]
-                    #}
-                    #$logmessages insert end "$message\n"
+                    $logmessages insert end "[format {Read Reply error %04X} $error]"
+                    set message { }
+                    foreach b [lrange $_datagramdata 4 end] {
+                        append message [format %c $b]
+                    }
+                    $logmessages insert end "$message\n"
                 }
                 
             }

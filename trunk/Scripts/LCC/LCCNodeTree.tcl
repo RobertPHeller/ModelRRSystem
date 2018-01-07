@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Sep 19 09:18:09 2016
-#  Last Modified : <170622.0950>
+#  Last Modified : <180107.1114>
 #
 #  Description	
 #
@@ -137,7 +137,9 @@ snit::widgetadaptor LCCNodeTree {
         $self _insertSimpleNodeInfo $mynid [$transport ReturnMySimpleNodeInfo]
         $self _insertSupportedProtocols $mynid [$transport ReturnMySupportedProtocols]
         $hull tag bind protocol_CDI <ButtonPress-1> [mymethod _ReadCDI %x %y]
+        $hull tag bind protocol_CDI <ButtonPress-2> {}
         $hull tag bind protocol_MemoryConfig <ButtonPress-1> [mymethod _MemoryConfig %x %y]
+        $hull tag bind protocol_MemoryConfig <ButtonPress-2> {}
         update idle
         $transport SendVerifyNodeID
     }
@@ -318,9 +320,13 @@ snit::widgetadaptor LCCNodeTree {
     variable CDIs_xml  -array {}
     #* CDI Forms (indexed by Node IDs).
     variable CDIs_FormTLs -array {}
+    #* Button lock
+    variable buttonLock no
     method _ReadCDI {x y} {
         #* Read in a CDI for the node at x,y
         
+        if {$buttonLock} {return}
+        set buttonLock yes
         putdebug "*** $self _ReadCDI $x $y"
         set id [$hull identify row $x $y]
         putdebug "*** $self _ReadCDI: id = $id"
@@ -328,7 +334,13 @@ snit::widgetadaptor LCCNodeTree {
         putdebug "*** $self _ReadCDI: nid = $nid"
         putdebug "*** $self _ReadCDI: \[info exists CDIs_text($nid)\] => [info exists CDIs_text($nid)]"
         if {![info exists CDIs_text($nid)] ||
-            $CDIs_text($nid) eq ""} {
+            $CDIs_text($nid) eq "" || ![info exists CDIs_xml($nid)] ||
+            $CDIs_xml($nid) eq {} || ![info exists CDIs_FormTLs($nid)] ||
+            $CDIs_FormTLs($nid) eq {}} {
+            if {[info exists CDIs_FormTLs($nid)] && 
+                [winfo exists $CDIs_FormTLs($nid)]} {
+                catch {destory $CDIs_FormTLs($nid)}
+            }
             putdebug "*** $self _ReadCDI: Going to read CDI for $nid"
             $transport configure -datagramhandler [mymethod _datagramHandler]
             set data [list 0x20 0x84 0x0FF]
@@ -337,9 +349,18 @@ snit::widgetadaptor LCCNodeTree {
             $transport SendDatagram $nid $data
             vwait [myvar _iocomplete]
             $transport configure -datagramhandler {}
-            unset _currentnid
+            catch {unset _currentnid}
+            hexdump [format "*** %s _ReadCDI: datagram received (Get Address Space Information): " $self] $_datagramdata
             set present [expr {[lindex $_datagramdata 1] == 0x87}]
-            if {!$present} {return}
+            putdebug "*** $self _ReadCDI: present is $present"
+            if {!$present} {
+                putdebug "*** $self _ReadCDI: CDI not present?"
+                tk_messageBox -icon warning \
+                      -message [_ "CDI is not present for %s!" $nid] \
+                      -type ok
+                return
+            }
+            putdebug "*** $self _ReadCDI: CDI present..."
             set lowest 0x00000000
             set highest [expr {[lindex $_datagramdata 3] << 24}]
             set highest [expr {$highest | ([lindex $_datagramdata 4] << 16)}]
@@ -375,7 +396,7 @@ snit::widgetadaptor LCCNodeTree {
                 $transport SendDatagram $nid $data
                 vwait [myvar _iocomplete]
                 $transport configure -datagramhandler {}
-                unset _currentnid
+                catch {unset _currentnid}
                 putdebug [format {*** %s _ReadCDI: address = %08X} $self $address]
                 hexdump [format "*** %s _ReadCDI: datagram received: " $self] $_datagramdata
                 set status [lindex $_datagramdata 1]
@@ -415,7 +436,7 @@ snit::widgetadaptor LCCNodeTree {
             putdebug [format {*** %s _ReadCDI: Last address block was at: = %08X} $self $address]
             if {[catch {ParseXML %AUTO% $CDIs_text($nid)} parsedCDI]} {
                 tk_messageBox -type ok -icon error \
-                      -message [_ "Could not parse the CDI because %s" $parsedCDI]
+                      -message [_ "Could not parse the CDI (1) because %s" $parsedCDI]
                 return
             }
             set CDIs_xml($nid) $parsedCDI
@@ -425,38 +446,11 @@ snit::widgetadaptor LCCNodeTree {
                    -cdi $CDIs_xml($nid) -nid $nid -transport $transport \
                    -debugprint [myproc putdebug]]
             putdebug "*** $self _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
-        } elseif {![info exists CDIs_xml($nid)] ||
-            $CDIs_xml($nid) eq {}} {
-            
-            if {[catch {ParseXML %AUTO% $CDIs_text($nid)} parsedCDI]} {
-                tk_messageBox -type ok -icon error \
-                      -message [_ "Could not parse the CDI because %s" $parsedCDI]
-                return
-            }
-            set CDIs_xml($nid) $parsedCDI
-            putdebug "*** $self _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"
-            set CDIs_FormTLs($nid) \
-                  [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
-                   -cdi $CDIs_xml($nid) \
-                   -nid $nid \
-                   -transport $transport \
-                   -debugprint [myproc putdebug]]
-            putdebug "*** $self _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
-        } elseif {![info exists CDIs_FormTLs($nid)] ||
-                  $CDIs_FormTLs($nid) eq {} ||
-                  ![winfo exists $CDIs_FormTLs($nid)]} {
-            putdebug "*** $self _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"
-            set CDIs_FormTLs($nid) \
-                  [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
-                   -cdi $CDIs_xml($nid) \
-                   -nid $nid \
-                   -transport $transport \
-                   -debugprint [myproc putdebug]]
-            putdebug "*** $self _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
         } else {
             putdebug "*** $self _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
             wm deiconify $CDIs_FormTLs($nid)
         }
+        set buttonLock no
     }
     method _ViewCDI {} {
         set cdifile [tk_getOpenFile -defaultextension .xml \
@@ -477,7 +471,7 @@ snit::widgetadaptor LCCNodeTree {
         close $infp
         if {[catch {ParseXML %AUTO% $CDIs_text($cdifile)} parsedCDI]} {
             tk_messageBox -type ok -icon error \
-                  -message [_ "Could not parse the CDI because %s" $parsedCDI]
+                  -message [_ "Could not parse the CDI (3) because %s" $parsedCDI]
             return
         }
         set CDIs_xml($cdifile) $parsedCDI
@@ -494,7 +488,9 @@ snit::widgetadaptor LCCNodeTree {
     }
     method _MemoryConfig {x y} {
         #* Configure the memory for the node at x,y
-
+        
+        if {$buttonLock} {return}
+        set buttonLock yes
         putdebug "*** $self _MemoryConfig $x $y"
         set id [$hull identify row $x $y]
         putdebug "*** $self _MemoryConfig: id = $id"
@@ -545,6 +541,7 @@ snit::widgetadaptor LCCNodeTree {
               -destnid $nid \
               -transport $transport \
               -debugprint [myproc putdebug]
+        set buttonLock no
     }
     
         
