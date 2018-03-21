@@ -339,7 +339,7 @@ structbodyelt : D FLOAT FLOAT EOL
 		  INTEGER EOL
 	      | M INTEGER INTEGER  FLOAT FLOAT FLOAT INTEGER FLOAT FLOAT
 		  INTEGER INTEGER EOL
-              | F INTEGER INTEGER FLOAT INTEGER EOL fblock
+              | F INTEGER INTEGER FLOAT INTEGER INTEGERorNULL EOL fblock
 	      | A INTEGER INTEGER FLOAT FLOAT FLOAT FLOAT INTEGER FLOAT FLOAT
 		  EOL
 	      | B INTEGER INTEGER FLOAT FLOAT FLOAT INTEGER FLOAT FLOAT INTEGER INTEGER EOL
@@ -348,6 +348,11 @@ structbodyelt : D FLOAT FLOAT EOL
 	      | Y INTEGER INTEGER FLOAT INTEGER EOL fblock
 	      | Z INTEGER FLOAT FLOAT FLOAT INTEGER FLOAT STRING EOL
 	      ;
+	      
+INTEGERorNULL : 
+              | INTEGER
+              ;
+              
 fblock : 
        | fblock1 fblock 
        ;
@@ -369,18 +374,28 @@ trackbody : {$$ = NULL;}
 
 trackbodyelt : T INTEGER FLOAT FLOAT FLOAT trackbodyelt1 EOL
 			{$$ = TrackBodyElt::ConnectedTrackEnd($2,$3,$4,$5);}
+	     | T INTEGER INTEGER FLOAT FLOAT FLOAT trackbodyelt4 EOL
+	               {$$ = TrackBodyElt::ConnectedTrackEnd($3,$4,$5,$6);}
 	     | E FLOAT FLOAT FLOAT trackbodyelt1 EOL
 	     		{$$ = TrackBodyElt::UnConnectedTrackEnd($2,$3,$4);}
+	     | E INTEGER FLOAT FLOAT FLOAT trackbodyelt4 EOL
+	                {$$ = TrackBodyElt::UnConnectedTrackEnd($3,$4,$5);}
 	     ;
 
 trackbodyelt1 :
 	      | INTEGER FLOAT FLOAT floatornullorstring
 	      ;
+              /* 0      0.0   0.0   0.0/"x"       0.0   0       0       0       1.308060 */
+trackbodyelt4 : INTEGER FLOAT FLOAT floatorstring FLOAT INTEGER INTEGER INTEGER FLOAT ;
 
 floatornullorstring :
 	    | FLOAT
 	    | STRING {delete $1;}
 	    ;
+	    
+floatorstring : FLOAT
+              | STRING {delete $1;}
+              ;
 
 straight : STRAIGHT INTEGER INTEGER INTEGER INTEGER INTEGER scalename INTEGER
 		    EOL trackbody END EOL {trackGraph->InsertStraightTrack($2,$10);};
