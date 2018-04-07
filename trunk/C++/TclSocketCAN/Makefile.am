@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Apr 30 11:46:29 2017
-#  Last Modified : <170430.2004>
+#  Last Modified : <180407.1124>
 #
 #  Description	
 #
@@ -56,7 +56,7 @@ else
 libtclsocketcan_la_LDFLAGS = -g -version-info 0:0:0 $(TCL_STUB_LIB_SPEC)
 endif
 INCLUDES = -I$(top_builddir) -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)  
-libtclsocketcan_la_CFLAGS = -g -DUSE_TCL_STUBS -DTCLSOCKETCAN_VERSIONLIB=\"$(TCLSOCKETCAN_VERSIONLIB)\" $(INCLUDES) -Wall $(KIT_EXTRA_CFLAGS)
+libtclsocketcan_la_CFLAGS =  -g -DUSE_TCL_STUBS -DTCLSOCKETCAN_VERSIONLIB=\"$(TCLSOCKETCAN_VERSIONLIB)\" $(INCLUDES) -Wall $(KIT_EXTRA_CFLAGS)
 libtclsocketcan_la_LIBADD   = $(TCL_STUB_LIB_SPEC)
 
 BUILT_SOURCES = TclSocketCAN_wrap.c

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <171130.1232>
+#  Last Modified : <180404.1441>
 #
 #  Description	
 #
@@ -1001,5 +1001,5 @@ $(top_builddir)/Scripts/CTIAcela/pkgIndex.tcl : \
 	$(MAKE) -C $(top_builddir)/Scripts/CTIAcela
 
 $(top_builddir)/C++/TclSocketCAN/libtclsocketcan.la : \
-	$(top_srcdir)/C++/TclSocketCAN/*.i
+	$(top_srcdir)/C++/TclSocketCAN/*.i $(top_srcdir)/C++/TclSocketCAN/*.c
 	$(MAKE) -C $(top_builddir)/C++/TclSocketCAN

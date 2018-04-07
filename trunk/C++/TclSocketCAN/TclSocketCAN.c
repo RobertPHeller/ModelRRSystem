@@ -8,7 +8,7 @@
  *  Author        : $Author$
  *  Created By    : Robert Heller
  *  Created       : Sun Apr 30 12:11:26 2017
- *  Last Modified : <170727.1114>
+ *  Last Modified : <180407.1028>
  *
  *  Description	
  *
@@ -235,10 +235,10 @@ CanInputProc(
 #endif
     *errorCodePtr = 0;
     nbytes = read(statePtr->fd, &frame, sizeof(frame));
-#ifdef DEBUG                                                                    
+#ifdef DEBUG
     fprintf(stderr,"*** -: nbytes = %d\n",nbytes);
     fprintf(stderr,"*** -: frame.can_id = %08X\n",frame.can_id);
-#endif                                                                          
+#endif
     
     if (nbytes > -1) {
         if (nbytes < sizeof(frame)) {
@@ -281,14 +281,8 @@ CanInputProc(
         *doff++ = ';';
         bremain--;
         if (bremain < 1) return bufSize;
-        *doff++ = '\r';
-        bremain--;
-        if (bremain < 1) return bufSize;
-        *doff++ = '\n';
-        bremain--;
-        if (bremain < 1) return bufSize;
         *doff++ = '\0';
-        bytesRead += 3;
+        bytesRead += 1;
         return bytesRead;
     }
     if (errno == ECONNRESET) {
@@ -351,16 +345,26 @@ CanOutputProc(
     int i;
     unsigned char tmp;
     
-    
+
     struct can_frame frame;
     written = toWrite;
     *errorCodePtr = 0;
-    if (*buf != ':' || toWrite < 7) {
+#ifdef DEBUG
+    fprintf(stderr,"*** CanOutputProc(): *buf is '%c', toWrite = %d\n",*buf,toWrite);
+#endif
+    /* flush newline and other garbage. */
+    for (p = buf; toWrite > 0 && *p != ':'; p++) toWrite--;
+    if (toWrite == 0) return written-toWrite;
+    /* Start of GC Message... */
+    if (*p != ':' || toWrite < 7) {
         *errorCodePtr = ENOMSG;
         return -1;
     }
-    p = buf+1;toWrite--;
+    p++;toWrite--;
     memset(&frame,0,sizeof(frame));
+#ifdef DEBUG
+    fprintf(stderr,"*** CanOutputProc(): *p = '%c'\n",*p);
+#endif
     if (*p == 'X') {
         p++;
         toWrite--;
@@ -387,12 +391,18 @@ CanOutputProc(
             frame.can_id |= tmp;
         }
     }
+#ifdef DEBUG
+    fprintf(stderr,"*** CanOutputProc(): *p = '%c'\n",*p);
+#endif
     if (*p == 'R') {
         frame.can_id |= CAN_RTR_FLAG;
     } else if (*p != 'N') {
         *errorCodePtr = ENOMSG;
         return -1;
     }
+#ifdef DEBUG
+    fprintf(stderr,"*** CanOutputProc(): *p = '%c'\n",*p);
+#endif
     p++;toWrite--;
     while (toWrite > 0 && *p != ';' && frame.can_dlc < 8) {
         if ((tmp = asc2nibble(*p++)) > 0x0F) {
@@ -413,14 +423,6 @@ CanOutputProc(
         *errorCodePtr = ENOMSG;
         return -1;
     }
-    if (toWrite-- > 0 && *p++ != '\r') {
-        *errorCodePtr = ENOMSG;
-        return -1;
-    }
-    if (toWrite-- > 0 && *p++ != '\n') {
-        *errorCodePtr = ENOMSG;
-        return -1;
-    }
 #ifdef DEBUG
     fprintf(stderr,"*** CanOutputProc(): frame.can_id is %08X\n",frame.can_id);
 #endif
@@ -430,7 +432,15 @@ CanOutputProc(
     }
 #ifdef DEBUG                                                                    
     fprintf(stderr,"*** CanOutputProc():  written = %d, toWrite = %d, written-toWrite = %d\n",written,toWrite,written-toWrite);
-#endif                                                                          
+#endif
+#ifdef DEBUG
+    if (toWrite > 0) {
+        fprintf(stderr,"*** CanOutputProc(): *p = %d\n",*p);
+    }
+#endif
+#ifdef DEBUG
+    fprintf(stderr,"*** CanOutputProc(): *errorCodePtr = %d\n",*errorCodePtr);
+#endif
     return written-toWrite;
 }
 
@@ -718,16 +728,6 @@ int SocketCAN(Tcl_Interp *interp, const char *candev)
     statePtr->channel = Tcl_CreateChannel(&canChannelType, channelName,
                                           (ClientData) statePtr, 
                                           (TCL_READABLE | TCL_WRITABLE));
-    if (Tcl_SetChannelOption(interp, statePtr->channel, "-translation",
-                             "auto crlf") == TCL_ERROR) {
-        Tcl_Close(NULL, statePtr->channel);
-        return TCL_ERROR;
-    }
-    if (Tcl_SetChannelOption(interp, statePtr->channel, "-buffering",
-                             "line") == TCL_ERROR) {
-        Tcl_Close(NULL, statePtr->channel);
-        return TCL_ERROR;
-    }
     Tcl_RegisterChannel(interp, statePtr->channel);
     Tcl_AppendResult(interp, channelName, NULL);
     return TCL_OK;          
