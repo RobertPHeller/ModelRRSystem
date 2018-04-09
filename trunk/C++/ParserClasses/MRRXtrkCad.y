@@ -126,6 +126,10 @@ extern const double INCHESperMM /* =  25.3807106598*/,
  <tbe> TrackBodyElt pointer values.
  <trb> TurnoutBody pointer values.
  <trbe> TurnoutBodyElt pointer values.
+ <tbb> BezierBody pointer values.
+ <tbbe> BezierBodyElt pointer values.
+ <tcb> CornuBody pointer values.
+ <tcbe> CornuBodyElt pointer values.
  <il> IntegerList pointer values.
  <spl> StringPairList pointer values.
 */
@@ -138,6 +142,10 @@ extern const double INCHESperMM /* =  25.3807106598*/,
 	TrackBodyElt *tbe;
 	TurnoutBody *trb;
 	TurnoutBodyElt *trbe;
+	BezierBody *tbb;
+	BezierBodyElt *tbbe;
+	CornuBody *tcb;
+	CornuBodyElt *tcbe;
 	IntegerList *il;
 	StringPairList *spl;
 }
@@ -192,6 +200,16 @@ extern const double INCHESperMM /* =  25.3807106598*/,
 %token STRUCTURE
 /* DRAW */
 %token DRAW
+/* BEZIER */
+%token BEZIER
+/* BZRLIN */
+%token BZRLIN
+/* CORNU */
+%token CORNU
+/* SUBSEGS */
+%token SUBSEGS
+/* SUBSEND */
+%token SUBSEND
 /* CURVE */
 %token CURVE
 /* TURNOUT */
@@ -244,6 +262,10 @@ extern const double INCHESperMM /* =  25.3807106598*/,
 %token Z
 /* Q */
 %token Q
+/* W */
+%token W
+/* H */
+%token H
 /* BLOCK */
 %token BLOCK
 /* TRK */
@@ -258,6 +280,10 @@ extern const double INCHESperMM /* =  25.3807106598*/,
 %token SENSOR
 /* CONTROL */
 %token CONTROL
+/* ADJUSTABLE */
+%token ADJUSTABLE
+/* PIER */
+%token PIER
 /* Typed non-terminals.*/
 /* Non-terminals that have values. */
 /* trackbody <tb> */
@@ -268,6 +294,18 @@ extern const double INCHESperMM /* =  25.3807106598*/,
 %type <tbe> trackbodyelt
 /* turnoutbodyelt <trbe> */
 %type <trbe> turnoutbodyelt
+/* bezierbody <tbb> */
+%type <tbb> bezierbody
+/* bezierbodyelt <tbb> */
+%type <tbbe> bezierbodyelt
+/* cornubody <tcb> */
+%type <tcb> cornubody
+/* bzsegments <tcb> */
+%type <tcb> bzsegments
+/* cornubodyelt <tcbe> */
+%type <tcb> cornubodyelt
+/* bzsegment <tcbe> */
+%type <tcbe> bzsegment
 /* intlist <il> */
 %type <il> intlist
 /* tracklist <il> */
@@ -292,7 +330,10 @@ definition : version
 	   | layers
 	   | structure
 	   | draw
+	   | cornu
 	   | curve
+	   | bezier
+	   | bzrlin
 	   | straight
 	   | turnout
 	   | turntable
@@ -327,7 +368,7 @@ layers : LAYERS INTEGER INTEGER INTEGER INTEGER INTEGER INTEGER INTEGER
        ;
 
 structure : STRUCTURE INTEGER INTEGER INTEGER INTEGER INTEGER scalename
-		      INTEGER FLOAT FLOAT INTEGER FLOAT STRING EOL structbody 
+		      INTEGER FLOAT FLOAT INTEGER FLOAT STRING EOL adjopt pieropt structbody 
 		      END EOL {delete $13;} ;
 
 structbody : 
@@ -347,8 +388,19 @@ structbodyelt : D FLOAT FLOAT EOL
 	      | G INTEGER INTEGER FLOAT FLOAT FLOAT FLOAT INTEGER EOL
 	      | Y INTEGER INTEGER FLOAT INTEGER EOL fblock
 	      | Z INTEGER FLOAT FLOAT FLOAT INTEGER FLOAT STRING EOL
+	      | H INTEGER INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT EOL SUBSEGS EOL bzlsegments SUBSEND EOL
 	      ;
 	      
+bzlsegments :
+            | bzlsegment bzlsegments
+            ;
+            
+bzlsegment :  L INTEGER INTEGER FLOAT FLOAT FLOAT INTEGER FLOAT FLOAT
+		  INTEGER EOL
+           |  A INTEGER INTEGER FLOAT FLOAT FLOAT FLOAT INTEGER FLOAT FLOAT
+		  EOL
+	   ;
+
 INTEGERorNULL : 
               | INTEGER
               ;
@@ -364,9 +416,75 @@ fblock1 : FLOAT FLOAT INTEGER EOL;
 draw : DRAW INTEGER INTEGER INTEGER INTEGER INTEGER FLOAT FLOAT INTEGER FLOAT
 	    EOL structbody END EOL;
 
+/* BZRLIN<sp>index<sp>layer<sp>0<sp>0<sp>line-width<sp>scale<sp>visible<sp>X1<sp>Y1<sp>X2<sp>Y2<sp>X3<sp>Y3<sp>X4<sp>Y4<sp>0<sp>desc-X<sp>desc-Y */
+bzrlin: BZRLIN INTEGER INTEGER INTEGER INTEGER INTEGER scalename INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT INTEGER FLOAT FLOAT EOL bzrlinbody  END EOL;
+
+bzrlinbody : 
+           | bzrlinbodyelt bzrlinbody
+           ;
+
+bzrlinbodyelt : A INTEGER INTEGER FLOAT    FLOAT      FLOAT     FLOAT      INTEGER FLOAT      FLOAT EOL
+              | L INTEGER INTEGER FLOAT FLOAT FLOAT INTEGER FLOAT FLOAT
+		  INTEGER EOL
+            | SUBSEGS EOL
+            | SUBSEND EOL
+            | H INTEGER INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT EOL
+	      ;
+
 curve : CURVE INTEGER INTEGER INTEGER INTEGER INTEGER scalename INTEGER FLOAT
 	      FLOAT INTEGER FLOAT INTEGER FLOAT FLOAT EOL trackbody END EOL
 		 {trackGraph->InsertCurveTrack($2,$17,$9,$10,$12);};
+             /* index   layer   twidth  color   0.000 scale     vis     X1    Y1    X2    Y2    X3    Y3    X4    Y4    0       desc-X desc-Y */
+bezier : BEZIER INTEGER INTEGER INTEGER INTEGER FLOAT scalename INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT INTEGER FLOAT FLOAT EOL bezierbody END EOL
+                {trackGraph->InsertBezierTrack($2,$21,$9,$10,$11,$12,$13,$14,$15,$16);}
+                ;
+
+bezierbody : {$$ = NULL;}
+           | bezierbodyelt bezierbody 
+               {if ($1 == NULL) {$$ = $2;} else {$$ = BezierBody::ConsBezierBody($1,$2);}}
+           ;
+
+bezierbodyelt : trackbodyelt {$$ = BezierBodyElt::MakeTrackEnd($1);}
+	      | C INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT EOL
+		{$$ = BezierBodyElt::MakeCurveSegment($4,$5,$6,$7,$8);}
+	      | C INTEGER INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT EOL
+		{$$ = BezierBodyElt::MakeCurveSegment($5,$6,$7,$9,$10);}
+	      | S INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT EOL
+                {$$ = BezierBodyElt::MakeStraightSegment($4,$5,$6,$7);}  
+	      | S INTEGER INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT EOL
+	        {$$ = BezierBodyElt::MakeStraightSegment($5,$6,$8,$9);}
+              ;
+
+    /* CORNU index   layer   width   0       0       scale     visible pos1x pos1y angle1  radius1 center1x center1y pos2x pos2y angle2 radius2 center2x center2y */
+cornu: CORNU INTEGER INTEGER INTEGER INTEGER INTEGER scalename INTEGER FLOAT FLOAT FLOAT   FLOAT   FLOAT    FLOAT    FLOAT FLOAT FLOAT  FLOAT   FLOAT    FLOAT EOL cornubody END EOL
+             {trackGraph->InsertCornuTrack($2,$22,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20);}
+     ;
+     
+cornubody : {$$ = NULL;}
+          | trackbodyelt cornubody
+            {$$ = CornuBody::ConsCornuBody(CornuBodyElt::MakeTrackEnd($1),$2);}
+          | cornubodyelt cornubody 
+            {$$ = CornuBody::ConcatCornuBody($1,$2);}
+          ;
+
+cornubodyelt : W INTEGER INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT EOL SUBSEGS EOL bzsegments SUBSEND EOL {$$ = $16;}
+          ;
+
+bzsegments : {$$ = NULL;}
+           | bzsegment bzsegments
+             {$$ = CornuBody::ConsCornuBody($1,$2);}
+           ;
+           
+bzsegment : S INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT EOL
+            {$$ = CornuBodyElt::MakeStraightSegment($4,$5,$6,$7);}
+	  | S INTEGER INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT EOL
+	    {$$ = CornuBodyElt::MakeStraightSegment($5,$6,$8,$9);}
+	  | C INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT EOL
+	    {$$ = CornuBodyElt::MakeCurveSegment($4,$5,$6,$7,$8);}
+	  | C INTEGER INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT EOL
+	    {$$ = CornuBodyElt::MakeCurveSegment($5,$6,$7,$9,$10);}
+          ;
+          
 
 trackbody : {$$ = NULL;}
           | trackbodyelt trackbody {$$ = TrackBody::ConsTrackBody($1,$2);}
@@ -401,8 +519,16 @@ straight : STRAIGHT INTEGER INTEGER INTEGER INTEGER INTEGER scalename INTEGER
 		    EOL trackbody END EOL {trackGraph->InsertStraightTrack($2,$10);};
 
 turnout : TURNOUT INTEGER INTEGER INTEGER INTEGER INTEGER scalename INTEGER
-		  FLOAT FLOAT INTEGER FLOAT STRING {TurnoutBodyElt::InitTSegId();} EOL turnoutbody END EOL
-		{trackGraph->InsertTurnOut($2, $9, $10, $12, $13, $16);};
+		  FLOAT FLOAT INTEGER FLOAT STRING {TurnoutBodyElt::InitTSegId();} EOL adjopt pieropt turnoutbody END EOL
+		{trackGraph->InsertTurnOut($2, $9, $10, $12, $13, $18);};
+
+adjopt :
+       | ADJUSTABLE FLOAT FLOAT EOL
+       ;
+
+pieropt :
+        | PIER FLOAT STRING EOL {delete $3;}
+        ;
 
 turnoutbody : {$$ = NULL;}
 	    | turnoutbodyelt turnoutbody {
@@ -497,17 +623,22 @@ static char rcsid[] = "$Id: MRRXtrkCad.y 624 2008-04-21 23:36:58Z heller $";
 
 int MRRXtrkCad::lookup_word(const char *word) const
 {
+    /* *** MUST BE IN ALPHABETICAL ORDER (for binary search) *** */
 	static const struct {
 		const char *w;
 		int id;
 	} reserved_words[] = {
 		{"A", A},
+		{"ADJUSTABLE", ADJUSTABLE},
 		{"ASPECT", ASPECT},
 		{"B", B},
+		{"BEZIER", BEZIER},
 		{"BLOCK", BLOCK},
+		{"BZRLIN", BZRLIN},
 		{"C", C},
 		{"CAR", CAR},
 		{"CONTROL", CONTROL},
+		{"CORNU", CONTROL},
 		{"CURRENT", CURRENT},
 		{"CURVE", CURVE },
 		{"D", D},
@@ -516,6 +647,7 @@ int MRRXtrkCad::lookup_word(const char *word) const
 		{"END", END},
 		{"F", F},
 		{"G", G},
+		{"H", H},
 		{"HO", HO},
 		{"J", J},
 		{"JOINT", JOINT},
@@ -528,6 +660,7 @@ int MRRXtrkCad::lookup_word(const char *word) const
 		{"NOTE", NOTE},
 		{"O", O},
 		{"P", P},
+		{"PIER", PIER},
 		{"Q", Q},
 		{"ROOMSIZE", ROOMSIZE},
 		{"S", S},
@@ -536,6 +669,8 @@ int MRRXtrkCad::lookup_word(const char *word) const
                 {"SIGNAL", SIGNAL},
 		{"STRAIGHT", STRAIGHT},
 		{"STRUCTURE", STRUCTURE},
+                {"SUBSEGS", SUBSEGS},
+                {"SUBSEND", SUBSEND},
 		{"SWITCHMOTOR", SWITCHMOTOR},
 		{"T", T},
 		{"TEXT", TEXT},
@@ -544,6 +679,7 @@ int MRRXtrkCad::lookup_word(const char *word) const
 		{"TURNOUT", TURNOUT},
 		{"TURNTABLE", TURNTABLE},
 		{"VERSION", _VERSION},
+		{"W", W},
 		{"X", X},
 		{"Y", Y},
 		{"Z", Z} };
