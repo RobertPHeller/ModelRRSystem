@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <171001.1619>
+#  Last Modified : <180404.1605>
 #
 #  Description	
 #
@@ -116,8 +116,6 @@ snit::type OpenLCBGCTcpHub {
     typevariable defaultport 12021
     #** @brief Default Tcp/Ip port number.
     
-    option -eoltranslation -readonly yes -default auto
-    
     typeconstructor {
         #** @brief Global static initialization.
         #
@@ -176,7 +174,7 @@ snit::type OpenLCBGCTcpHub {
                     ::log::logError [_ "%s is not a terminal port." $dev]
                     continue
                 }
-                $type create %AUTO% $ttyfd localhost $dev -eoltranslation crlf
+                $type create %AUTO% $ttyfd localhost $dev
             }
         }
         foreach op {-remote -remote0 -remote1 -remote2 -remote3 -remote4 -remote5 -remote6 -remote7 -remote8 -remote9} {
@@ -201,7 +199,7 @@ snit::type OpenLCBGCTcpHub {
                     ::log::logError [_ "CAN Socket to %s not opened: %s" $socketname $sockfd]
                     continue
                 } else {
-                    $type create %AUTO% $sockfd localhost $socketname -eoltranslation {auto crlf}
+                    $type create %AUTO% $sockfd localhost $socketname
                 }
             }
         } else {
@@ -311,7 +309,10 @@ snit::type OpenLCBGCTcpHub {
     #** NID to alias map
     variable _timeout 0
     #** Timeout flag.
-    
+    variable messageBuffer ""
+    #** Message buffer
+    variable readState "waitforstart"
+    #** Read State
     constructor {ch rhost rport args} {
         #** Connection constructor.  Construct a connection.
         #
@@ -330,9 +331,9 @@ snit::type OpenLCBGCTcpHub {
         install mtiheader using lcc::MTIHeader          %AUTO%
         install canheader using lcc::CANHeader          %AUTO%
         lappend _allNodes $self
-        $self configurelist $args
-        fconfigure $channel -buffering line -translation [$self cget -eoltranslation]
-        fileevent $channel readable [mymethod _messageReader]
+        #$self configurelist $args
+        fconfigure $channel -buffering none -translation binary
+        fileevent $channel readable [mymethod _readByte]
         #$self populateAliasMap
         ::log::log debug "*** $type create $self: _allNodes = $_allNodes"
     }
@@ -340,7 +341,7 @@ snit::type OpenLCBGCTcpHub {
         #** Destructor -- clean things up.
         
         ::log::log debug "*** $self destroy"
-        ::log::logMsg [_ "Closing connection from %s on port %d" $remoteHost $remotePort]
+        ::log::logMsg [_ "Closing connection from %s on port %s" $remoteHost $remotePort]
         catch {close $channel}
         set nindix [lsearch -exact $_allNodes $self]
         if {$nindix >= 0} {
@@ -358,6 +359,7 @@ snit::type OpenLCBGCTcpHub {
         foreach dest [array names _routeTable] {
             ::log::log debug "*** $self destroy:   $dest => $_routeTable($dest)"
         }
+        ::log::log debug "*** $self destroy: end of _routeTable"
     }
     method getAliasOfNID {nid} {
         #** Fetch the alias of a NID
@@ -436,7 +438,7 @@ snit::type OpenLCBGCTcpHub {
         #** Send a message.
         # @param message The  message to send.
         
-        if {[catch {puts $channel $message;flush $channel} err]} {
+        if {[catch {puts -nonewline $channel $message;flush $channel} err]} {
             ::log::logMsg [_ "Caught error on %s: %s" $channel $err]
             catch {$self destroy}
         }
@@ -447,7 +449,7 @@ snit::type OpenLCBGCTcpHub {
         # @param canmessage The (binary) CANMessage to send.
         
         $gcmessage configure -canmessage $canmessage
-        if {[catch {puts $channel [$gcmessage toString];flush $channel} err]} {
+        if {[catch {puts -nonewline $channel [$gcmessage toString];flush $channel} err]} {
             ::log::logMsg [_ "Caught error on %s: %s" $channel $err]
             catch {$self destroy}
         }
@@ -496,47 +498,64 @@ snit::type OpenLCBGCTcpHub {
         #puts stderr "*** $self _timedout"
         incr _timeoutFlag
     }
-        
-    method _messageReader {} {
-        #** Message reader handler.
-        ::log::log debug "*** $self _messageReader entered."
-        if {[gets $channel message] >= 0} {
-            ::log::log debug "*** $self _messageReader: message = $message"
-            $gcreply configure -message $message
-            set r [$gcreply createReply]
-            $canheader setHeader [$r getHeader]
-            $type UpdateRoute [$canheader cget -srcid] $self
-            ::log::log debug "*** $self _messageReader: canheader : [$canheader configure]"
-            ::log::log debug "*** $self _messageReader: r = [$r toString]"
-            if {[$canheader cget -openlcbframe]} {
-                $mtiheader setHeader [$canheader getHeader]
-                $mtidetail setHeader [$canheader getHeader]
-                ::log::log debug  "*** $self _messageReader: mtiheader : [$mtiheader configure]"
-                ::log::log debug "*** $self _messageReader: mtidetail : [$mtidetail configure]"
-                set srcid [$canheader cget -srcid]
-                set destid 0
-                if {[$mtiheader cget -frametype] == 1} {
-                    set mti [$mtiheader cget -mti]
-                    if {[$mtidetail cget -addressp]} {
-                        set destid [expr {(([lindex [$r getData] 0] & 0x0F) << 8) | [lindex [$r getData] 1]}]
-                    }
-                } elseif {[$mtidetail cget -streamordatagram]} {
-                    set destid [$mtidetail cget -destid]
-                }
-                if {$destid eq 0} {
-                    ::log::log debug "$self _messageReader: Broadcasting $message"
-                    $type Broadcast $message -except $self
-                } else {
-                    ::log::log debug "$self _messageReader: Routing to $destid $message"
-                    $type SendTo $destid $message -except $self
-                }
-            } else {
-                # Not a OpenLCB message -- pass it throgh
-                $type Broadcast $message -except $self
-            }
-        } else {
+    method _readByte {} {
+        ::log::log debug "*** $self _readByte entered."
+        set ch [read $channel 1]
+        if {$ch eq ""} {
             # Error reading -- probably EOF / disconnect.
             $self destroy
+        }
+        if {![info exists readState]} {return}
+        switch $readState {
+            waitforstart {
+                if {$ch ne ":"} {return}
+                set messageBuffer $ch
+                set readState readmessage
+            }
+            readmessage {
+                append messageBuffer $ch
+                if {$ch eq ";"} {
+                    $self _messageReader $messageBuffer
+                    set readState waitforstart
+                    set buffer ""
+                }
+            }
+        }
+    }
+    method _messageReader {message} {
+        #** Message reader handler.
+        ::log::log debug "*** $self _messageReader $message"
+        $gcreply configure -message $message
+        set r [$gcreply createReply]
+        $canheader setHeader [$r getHeader]
+        $type UpdateRoute [$canheader cget -srcid] $self
+        ::log::log debug "*** $self _messageReader: canheader : [$canheader configure]"
+        ::log::log debug "*** $self _messageReader: r = [$r toString]"
+        if {[$canheader cget -openlcbframe]} {
+            $mtiheader setHeader [$canheader getHeader]
+            $mtidetail setHeader [$canheader getHeader]
+            ::log::log debug  "*** $self _messageReader: mtiheader : [$mtiheader configure]"
+            ::log::log debug "*** $self _messageReader: mtidetail : [$mtidetail configure]"
+            set srcid [$canheader cget -srcid]
+            set destid 0
+            if {[$mtiheader cget -frametype] == 1} {
+                set mti [$mtiheader cget -mti]
+                if {[$mtidetail cget -addressp]} {
+                    set destid [expr {(([lindex [$r getData] 0] & 0x0F) << 8) | [lindex [$r getData] 1]}]
+                }
+            } elseif {[$mtidetail cget -streamordatagram]} {
+                set destid [$mtidetail cget -destid]
+            }
+            if {$destid eq 0} {
+                ::log::log debug "$self _messageReader: Broadcasting $message"
+                $type Broadcast $message -except $self
+            } else {
+                ::log::log debug "$self _messageReader: Routing to $destid $message"
+                $type SendTo $destid $message -except $self
+            }
+        } else {
+            # Not a OpenLCB message -- pass it throgh
+            $type Broadcast $message -except $self
         }
     }
     

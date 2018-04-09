@@ -93,6 +93,8 @@ using namespace boost;
 #endif
 #include <TrackBody.h>
 #include <TurnoutBody.h>
+#include <BezierBody.h>
+#include <CornuBody.h>
 #include <IntegerList.h>
 #include <StringPairList.h>
 
@@ -941,7 +943,13 @@ public:
 	~TrackGraph();
 	/**  Insert a (circular) curved piece of track.
 	  */
-	void InsertCurveTrack(int number,TrackBody *tb,float orgX,float orgY,float radius);
+        void InsertCurveTrack(int number,TrackBody *tb,float orgX,float orgY,float radius);
+        /**  Insert a bezier curved piece of track.
+          */
+        void InsertBezierTrack(int number,BezierBody *trb,float x1, float y1,float x2, float y2,float x3, float y3,float x4, float y4);
+        /**  Insert a cornu curved piece of track.
+          */
+        void InsertCornuTrack(int number,CornuBody *trb,float pos1x,float pos1y,float angle1,float radius1,float center1x,float center1y,float pos2x,float pos2y,float angle2,float radius2,float center2x,float center2y);
 	/**  Insert a straight piece of track.
 	  */
 	void InsertStraightTrack(int number,TrackBody *tb);

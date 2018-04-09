@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <180106.0945>
+#  Last Modified : <180107.1255>
 #
 #  Description	
 #
@@ -301,6 +301,7 @@ snit::type OpenLCB {
         # Lazy eval for event log.
         set sendlog {}
         # Create node tree widget.
+        # ($mainWindow setstatus text, $mainWindow setprogress pval)
         set nodetree [LCCNodeTree [$mainWindow scrollwindow getframe].nodetree \
                       -transport $transport]
         # Bind scrollbars.

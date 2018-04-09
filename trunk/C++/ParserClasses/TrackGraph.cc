@@ -73,6 +73,8 @@ namespace Parsers {
 //const int TrackGraph::ElementCount = 512;
 
 int TurnoutBodyElt::segCount = 0;
+int CornuBodyElt::segCount = 0;
+int BezierBodyElt::segCount = 0;
 
 TrackGraph::TrackGraph()
 {
@@ -239,6 +241,114 @@ float TrackGraph::LengthOfCurve(float radius, float a1, float a2)
 	      result = theta  * fabs(radius);
 
 	return result;
+}
+
+void TrackGraph::InsertBezierTrack(int number,BezierBody *trb,float _x1, float _y1,float _x2, float _y2,float _x3, float _y3,float _x4, float _y4)
+{
+    float xc, yc, x1, y1, x2, y2, radius, a0, a1, a2;
+    float length = 0;
+    IdNodeMap::iterator pos;
+    bool inserted;
+    Node newNode, connection;
+    graph_traits < Graph >::edge_descriptor e;
+    
+    int i;
+    
+    newNode = AddNewNode(number,Track);
+    TrackBody *tb = trb->BezierEnds();
+    TrackBody *ne;
+    for (i = 0; tb != NULL; tb = ne, i++) {
+        if (tb->element->index > 0)
+            connection = AddNewNode(tb->element->index);
+        else	connection = none;
+        tie(e, inserted) = add_edge(newNode,connection,
+                                    EdgeValues(tb->element->index,
+                                               tb->element->x,
+                                               tb->element->y,
+                                               tb->element->a),nodes);
+        //delete tb->element; (Memory freed elsewhere)
+        ne = tb->next;
+        delete tb;
+    }
+    BezierBody *p;
+    for (p = trb; p != NULL; p = p->next) {
+        const BezierBodyElt *e = p->Element();
+        int iseg;
+
+        switch (e->TheType()) {
+        case BezierBodyElt::BezierStraightSegment:
+            iseg = e->GetStraightSegment(x1,y1,x2,y2);
+            length += LengthOfStraight(x1,y1,x2,y2);
+            break;            
+        case BezierBodyElt::BezierCurvedSegment:
+            iseg = e->GetCurveSegment(radius, xc, yc, a0, a1);
+            a2 = (a1)    * (M_PI/180.0);
+            length += LengthOfCurve(radius,0.0,a2);
+            break;
+        default:
+            break;
+        }
+    }
+    nodes[newNode].length = length;
+    graph_traits<Graph>::out_edge_iterator ie, last;
+    for (tie(ie,last) = out_edges(newNode,nodes); ie != last; ++ie) {
+        nodes[*ie].length = nodes[newNode].length;
+    }
+    BezierBody::CleanUpBezierBody(trb);		
+}
+
+void TrackGraph::InsertCornuTrack(int number,CornuBody *trb,float pos1x,float pos1y,float angle1,float radius1,float center1x,float center1y,float pos2x,float pos2y,float angle2,float radius2,float center2x,float center2y)
+{
+    float xc, yc, x1, y1, x2, y2, radius, a0, a1, a2;
+    float length = 0;
+    IdNodeMap::iterator pos;
+    bool inserted;
+    Node newNode, connection;
+    graph_traits < Graph >::edge_descriptor e;
+    
+    int i;
+    
+    newNode = AddNewNode(number,Track);
+    TrackBody *tb = trb->CornuEnds();
+    TrackBody *ne;
+    for (i = 0; tb != NULL; tb = ne, i++) {
+        if (tb->element->index > 0)
+            connection = AddNewNode(tb->element->index);
+        else	connection = none;
+        tie(e, inserted) = add_edge(newNode,connection,
+                                    EdgeValues(tb->element->index,
+                                               tb->element->x,
+                                               tb->element->y,
+                                               tb->element->a),nodes);
+        // delete tb->element; (Memory freed elsewhere)
+        ne = tb->next;
+        delete tb;
+    }
+    CornuBody *p;
+    for (p = trb; p != NULL; p = p->next) {
+        const CornuBodyElt *e = p->Element();
+        int iseg;
+
+        switch (e->TheType()) {
+        case CornuBodyElt::CornuStraightSegment:
+            iseg = e->GetStraightSegment(x1,y1,x2,y2);
+            length += LengthOfStraight(x1,y1,x2,y2);
+            break;            
+        case CornuBodyElt::CornuCurvedSegment:
+            iseg = e->GetCurveSegment(radius, xc, yc, a0, a1);
+            a2 = (a1)    * (M_PI/180.0);
+            length += LengthOfCurve(radius,0.0,a2);
+            break;
+        default:
+            break;
+        }
+    }
+    nodes[newNode].length = length;
+    graph_traits<Graph>::out_edge_iterator ie, last;
+    for (tie(ie,last) = out_edges(newNode,nodes); ie != last; ++ie) {
+        nodes[*ie].length = nodes[newNode].length;
+    }
+    CornuBody::CleanUpCornuBody(trb);		
 }
 
 void TrackGraph::InsertJointTrack(int number,TrackBody *tb,float l0, float l1, float angle, float R, float L)

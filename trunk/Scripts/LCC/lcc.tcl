@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <171001.1606>
+#  Last Modified : <180407.1051>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -2505,7 +2505,7 @@ namespace eval lcc {
             install mycanalias using CanAlias %AUTO% -nid [from args -nid]
             # @par
             set parent [from args -parent]
-            $parent readevent [mymethod _messageReader]
+            $parent setreader [mymethod _messageReader]
             while {![$self _reserveMyAlias]} {
             }
             $self configurelist $args
@@ -2884,153 +2884,148 @@ namespace eval lcc {
                 return yes
             }
         }
-        method _messageReader {} {
+        method _messageReader {message} {
             ## Handling incoming messages.  Handle control (CAN) messages
             # here.  OpenLCB messages are assembled possibly from multiple CAN
             # messages and then dispatched to the upper level message handler.
             
-            if {[$parent read message] >= 0} {
-                #puts stderr "*** $self _messageReader: message = $message"
-                $gcreply configure -message $message
-                set r [$gcreply createReply]
-                $canheader setHeader [$r getHeader]
-                #puts stderr "*** $self _messageReader: canheader : [$canheader configure]"
-                #puts stderr "*** $self _messageReader: r = [$r toString]"
-                if {[$canheader cget -openlcbframe]} {
-                    $mtiheader setHeader [$canheader getHeader]
-                    $mtidetail setHeader [$canheader getHeader]
-                    #puts stderr "*** $self _messageReader: mtiheader : [$mtiheader configure]"
-                    #puts stderr "*** $self _messageReader: mtidetail : [$mtidetail configure]"
-                    set srcid [$canheader cget -srcid]
-                    set flagbits 0
-                    set destid 0
-                    set doff 0
-                    if {[$mtiheader cget -frametype] == 1} {
-                        set mti [$mtiheader cget -mti]
-                        if {[$mtidetail cget -addressp]} {
-                            set doff 2
-                            set destid [expr {(([lindex [$r getData] 0] & 0x0F) << 8) | [lindex [$r getData] 1]}]
-                            set flagbits [expr {([lindex [$r getData] 0] & 0xF0) >> 4}]
-                            if {$destid != [$self getMyAlias] && ![$self cget -promisciousmode]} {
-                                # The message is not addressed to me, discard it.
-                                return
-                            }
-                        }
-                        set datacomplete no
-                        if {$flagbits == 0x00} {
-                            #puts stderr "*** $self _messageReader: doff = $doff"
-                            set datacomplete [$self _flags0 $srcid $r $doff]
-                            #puts stderr "*** $self _messageReader: $r getData is [$r getData]"
-                            #puts stderr "*** $self _messageReader: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
-                        } elseif {$flagbits == 0x01} {
-                            set messagebuffers($srcid,$mti) [lrange [$r getData] 2 end]
-                        } elseif {$flagbits == 0x03} {
-                            eval [list lappend messagebuffers($srcid,$mti)] [lrange [$r getData] 2 end]
-                        } elseif {$flagbits == 0x02} {
-                            eval [list lappend messagebuffers($srcid,$mti)] [lrange [$r getData] 2 end]
-                            set datacomplete yes
-                        }
-                        if {$datacomplete} {
-                            if {[$self getNIDofAlias $srcid] eq "" && 
-                                ([$mtiheader cget -mti] == 0x0100 ||
-                                 [$mtiheader cget -mti] == 0x0101 || 
-                                 [$mtiheader cget -mti] == 0x0170 ||
-                                 [$mtiheader cget -mti] == 0x0171)} {
-                                # InitComplete message.  Capture the NID.
-                                set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
-                                $self updateAliasMap $srcnid $srcid
-                            }
-                            if {$messagehandler ne {}} {
-                                set m [lcc::OpenLCBMessage %AUTO% \
-                                       -mti [$mtiheader cget -mti] \
-                                       -sourcenid [$self getNIDofAlias $srcid] \
-                                       -data      $messagebuffers($srcid,$mti)]
-                                if {$destid != 0} {
-                                    $m configure \
-                                          -destnid [$self getNIDofAlias $destid]
-                                }
-                                set doff 0
-                                if {[$mtidetail cget -eventp]} {
-                                    set evstart $doff
-                                    set evend   [expr {$doff + 7}]
-                                    incr doff 8
-                                    set edata [lrange $messagebuffers($srcid,$mti) $evstart $evend]
-                                    set eid [lcc::EventID %AUTO% -eventidlist $edata]
-                                    $m configure -eventid $eid
-                                    $m configure -data [lrange $messagebuffers($srcid,$mti) $doff end]
-                                }
-                                uplevel #0 $messagehandler $m
-                            }
-                            catch {unset messagebuffers($srcid,$mti)}
-                        }
-                    } elseif {[$mtidetail cget -streamordatagram]} {
-                        set destid [$mtidetail cget -destid]
+            #puts stderr "*** $self _messageReader: message = $message"
+            $gcreply configure -message $message
+            set r [$gcreply createReply]
+            $canheader setHeader [$r getHeader]
+            #puts stderr "*** $self _messageReader: canheader : [$canheader configure]"
+            #puts stderr "*** $self _messageReader: r = [$r toString]"
+            if {[$canheader cget -openlcbframe]} {
+                $mtiheader setHeader [$canheader getHeader]
+                $mtidetail setHeader [$canheader getHeader]
+                #puts stderr "*** $self _messageReader: mtiheader : [$mtiheader configure]"
+                #puts stderr "*** $self _messageReader: mtidetail : [$mtidetail configure]"
+                set srcid [$canheader cget -srcid]
+                set flagbits 0
+                set destid 0
+                set doff 0
+                if {[$mtiheader cget -frametype] == 1} {
+                    set mti [$mtiheader cget -mti]
+                    if {[$mtidetail cget -addressp]} {
+                        set doff 2
+                        set destid [expr {(([lindex [$r getData] 0] & 0x0F) << 8) | [lindex [$r getData] 1]}]
+                        set flagbits [expr {([lindex [$r getData] 0] & 0xF0) >> 4}]
                         if {$destid != [$self getMyAlias] && ![$self cget -promisciousmode]} {
                             # The message is not addressed to me, discard it.
                             return
                         }
-                        set datacomplete no
-                        switch [$mtidetail cget -datagramcontent] {
-                            complete {
-                                set datagrambuffers($srcid) [$r getData]
-                                set datacomplete yes
-                            }
-                            first {
-                                set datagrambuffers($srcid) [$r getData]
-                            }
-                            middle {
-                                eval [list lappend datagrambuffers($srcid)] [$r getData]
-                            }
-                            last {
-                                eval [list lappend datagrambuffers($srcid)] [$r getData]
-                                set datacomplete yes
-                            }
-                        }
-                        if {$datacomplete} {
-                            set m [lcc::OpenLCBMessage %AUTO% -mti 0x1C48 \
-                                   -sourcenid [$self getNIDofAlias $srcid] \
-                                   -destnid   [$self getNIDofAlias $destid] \
-                                   -data      $datagrambuffers($srcid)]
-                            unset datagrambuffers($srcid)
-                            if {$messagehandler ne {}} {
-                                uplevel #0 $messagehandler $m
-                            }
-                        }
                     }
-                } else {
-                    # Not a OpenLCB message.
-                    # Check for an Error Information Report
-                    set vf [$canheader cget -variablefield]
-                    #puts stderr "[format {*** %s _messageReader: vf = 0x%04X} $self $vf]"
-                    if {$vf == 0x0701} {
-                        # AMD frame
-                        #puts stderr "*** $self _messageReader: received AMD frame"
-                        set srcalias [$canheader cget -srcid]
-                        set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
-                        #puts stderr "[format {*** %s _messageReader: srcalias = 0x%03X, srcnid = %s} $self $srcalias $srcnid]"
-                        $self updateAliasMap $srcnid $srcalias
-                    } elseif {$vf == 0x0702} {
-                        set nidlist [$mycanalias getMyNIDList]
-                        # AME frame
-                        if {[listeq [lrange [$r getData] 0 5] {0 0 0 0 0 0}] || [listeq [lrange [$r getData] 0 5] $nidlist]} {
-                            $canheader configure -openlcbframe no \
-                                  -variablefield 0x0701 -srcid [$self getMyAlias]
-                            $self _sendmessage [CanMessage %AUTO% \
-                                                -header [$canheader getHeader] \
-                                                -extended yes \
-                                                -data $nidlist -length 6]
+                    set datacomplete no
+                    if {$flagbits == 0x00} {
+                        #puts stderr "*** $self _messageReader: doff = $doff"
+                        set datacomplete [$self _flags0 $srcid $r $doff]
+                        #puts stderr "*** $self _messageReader: $r getData is [$r getData]"
+                        #puts stderr "*** $self _messageReader: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
+                    } elseif {$flagbits == 0x01} {
+                        set messagebuffers($srcid,$mti) [lrange [$r getData] 2 end]
+                    } elseif {$flagbits == 0x03} {
+                        eval [list lappend messagebuffers($srcid,$mti)] [lrange [$r getData] 2 end]
+                    } elseif {$flagbits == 0x02} {
+                        eval [list lappend messagebuffers($srcid,$mti)] [lrange [$r getData] 2 end]
+                        set datacomplete yes
+                    }
+                    if {$datacomplete} {
+                        if {[$self getNIDofAlias $srcid] eq "" && 
+                            ([$mtiheader cget -mti] == 0x0100 ||
+                             [$mtiheader cget -mti] == 0x0101 || 
+                             [$mtiheader cget -mti] == 0x0170 ||
+                             [$mtiheader cget -mti] == 0x0171)} {
+                            # InitComplete message.  Capture the NID.
+                            set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
+                            $self updateAliasMap $srcnid $srcid
                         }
-                    } elseif {$vf >= 0x0710 || $vf <= 0x0713} {
-                        # Was an Error Information Report -- flag it.
-                        incr _timeoutFlag -2
-                    } else {
-                        
-                        #### Node ID Alias Collision handling... NYI
+                        if {$messagehandler ne {}} {
+                            set m [lcc::OpenLCBMessage %AUTO% \
+                                   -mti [$mtiheader cget -mti] \
+                                   -sourcenid [$self getNIDofAlias $srcid] \
+                                   -data      $messagebuffers($srcid,$mti)]
+                            if {$destid != 0} {
+                            $m configure \
+                                  -destnid [$self getNIDofAlias $destid]
+                        }
+                        set doff 0
+                        if {[$mtidetail cget -eventp]} {
+                            set evstart $doff
+                            set evend   [expr {$doff + 7}]
+                            incr doff 8
+                            set edata [lrange $messagebuffers($srcid,$mti) $evstart $evend]
+                            set eid [lcc::EventID %AUTO% -eventidlist $edata]
+                            $m configure -eventid $eid
+                            $m configure -data [lrange $messagebuffers($srcid,$mti) $doff end]
+                        }
+                        uplevel #0 $messagehandler $m
+                    }
+                    catch {unset messagebuffers($srcid,$mti)}
+                }
+            } elseif {[$mtidetail cget -streamordatagram]} {
+                set destid [$mtidetail cget -destid]
+                if {$destid != [$self getMyAlias] && ![$self cget -promisciousmode]} {
+                    # The message is not addressed to me, discard it.
+                    return
+                }
+                set datacomplete no
+                switch [$mtidetail cget -datagramcontent] {
+                    complete {
+                        set datagrambuffers($srcid) [$r getData]
+                        set datacomplete yes
+                    }
+                    first {
+                        set datagrambuffers($srcid) [$r getData]
+                    }
+                    middle {
+                        eval [list lappend datagrambuffers($srcid)] [$r getData]
+                    }
+                    last {
+                        eval [list lappend datagrambuffers($srcid)] [$r getData]
+                        set datacomplete yes
                     }
                 }
-            } else {
-                # Error reading -- probably EOF / disconnect.
-                $self destroy
+                if {$datacomplete} {
+                    set m [lcc::OpenLCBMessage %AUTO% -mti 0x1C48 \
+                           -sourcenid [$self getNIDofAlias $srcid] \
+                           -destnid   [$self getNIDofAlias $destid] \
+                           -data      $datagrambuffers($srcid)]
+                    unset datagrambuffers($srcid)
+                    if {$messagehandler ne {}} {
+                        uplevel #0 $messagehandler $m
+                    }
+                }
+            }
+        } else {
+            # Not a OpenLCB message.
+            # Check for an Error Information Report
+            set vf [$canheader cget -variablefield]
+            #puts stderr "[format {*** %s _messageReader: vf = 0x%04X} $self $vf]"
+            if {$vf == 0x0701} {
+                # AMD frame
+                #puts stderr "*** $self _messageReader: received AMD frame"
+                set srcalias [$canheader cget -srcid]
+                set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
+                #puts stderr "[format {*** %s _messageReader: srcalias = 0x%03X, srcnid = %s} $self $srcalias $srcnid]"
+                $self updateAliasMap $srcnid $srcalias
+            } elseif {$vf == 0x0702} {
+                set nidlist [$mycanalias getMyNIDList]
+                # AME frame
+                if {[listeq [lrange [$r getData] 0 5] {0 0 0 0 0 0}] || [listeq [lrange [$r getData] 0 5] $nidlist]} {
+                    $canheader configure -openlcbframe no \
+                          -variablefield 0x0701 -srcid [$self getMyAlias]
+                    $self _sendmessage [CanMessage %AUTO% \
+                                        -header [$canheader getHeader] \
+                                        -extended yes \
+                                        -data $nidlist -length 6]
+                }
+                } elseif {$vf >= 0x0710 || $vf <= 0x0713} {
+                    # Was an Error Information Report -- flag it.
+                    incr _timeoutFlag -2
+                } else {
+                    
+                    #### Node ID Alias Collision handling... NYI
+                }
             }
         }
         proc listeq {a b} {
@@ -3176,21 +3171,56 @@ namespace eval lcc {
                 error [_ "%s is not a terminal port." $options(-port)]
                 return
             }
-            fconfigure $ttyfd -buffering line -translation {crlf crlf}
+            fconfigure $ttyfd -buffering none -translation {binary binary}
             #puts stderr [list *** $type create $self fconfigure $ttyfd = [fconfigure $ttyfd]]
             install gccomponent using lcc::CANGridConnect %AUTO% -parent $self -nid [from args -nid]
             $self configurelist $args
         }
-        method read {messageV} {
-            upvar $messageV message
-            return [gets $ttyfd message]
-        }
         method write {message} {
-            puts $ttyfd $message
+            #puts stderr "*** $self write $message"
+            puts  -nonewline $ttyfd $message
             flush $ttyfd
         }
-        method readevent {script} {
-            fileevent $ttyfd readable $script
+        variable messageBuffer ""
+        #** Message buffer
+        variable readState "waitforstart"
+        #** Read State
+        variable reader {}
+        #** Message reader function
+        method setreader {_reader} {
+            #puts stderr "*** $self setreader $_reader"
+            set reader $_reader
+            if {$reader ne ""} {
+                fileevent $ttyfd readable [mymethod _readByte]
+            } else {
+                fileevent $ttyfd readable {}
+            }
+            #puts stderr "*** $self setreader: \[fileevent $ttyfd readable\] is \{[fileevent $ttyfd readable]\}"
+        }
+        method _readByte {} {
+            #puts stderr "*** $self _readByte"
+            set ch [read $ttyfd 1]
+            #puts stderr "*** $self _readByte: ch is '$ch'"
+            if {$ch eq ""} {
+                # Error reading -- probably EOF / disconnect.
+                $self destroy
+            }
+            switch $readState {
+                waitforstart {
+                    if {$ch ne ":"} {return}
+                    set messageBuffer $ch
+                    set readState readmessage
+                }
+                readmessage {
+                    append messageBuffer $ch
+                    if {$ch eq ";"} {
+                        #puts stderr "*** $self _readByte: messageBuffer is '$messageBuffer'"
+                        uplevel #0 $reader $messageBuffer
+                        set readState waitforstart
+                        set messageBuffer ""
+                    }
+                }
+            }
         }
         typemethod findAvailableComPorts {} {
             ## @brief Return a list of available (USB) serial ports.
@@ -3704,21 +3734,55 @@ namespace eval lcc {
                 return
             }
             #puts stderr "*** $type create: port opened: $socket"
-            fconfigure $socket -buffering line -translation auto
+            fconfigure $socket -buffering none -translation {binary binary}
             #puts stderr [list *** $type create $self fconfigure $socket = [fconfigure $socket]]
             install gccomponent using lcc::CANGridConnect %AUTO% -parent $self -nid [from args -nid]
             $self configurelist $args
         }
-        method read {messageV} {
-            upvar $messageV message
-            return [gets $socket message]
-        }
         method write {message} {
-            puts $socket $message
+            #puts stderr "*** $self write $message"
+            puts -nonewline $socket $message
             flush $socket
         }
-        method readevent {script} {
-            fileevent $socket readable $script
+        variable messageBuffer ""
+        #** Message buffer
+        variable readState "waitforstart"
+        #** Read State
+        variable reader {}
+        #** Message reader function
+        method setreader {_reader} {
+            #puts stderr "*** $self setreader $_reader"
+            set reader $_reader
+            if {$reader ne ""} {
+                fileevent $socket readable [mymethod _readByte]
+            } else {
+                fileevent $socket readable {}
+            }
+            #puts stderr "*** $self setreader: \[fileevent $ttyfd readable\] is \{[fileevent $ttyfd readable]\}"
+        }
+        method _readByte {} {
+            #puts stderr "*** $self _readByte"
+            set ch [read $socket 1]
+            #puts stderr "*** $self _readByte: ch is '$ch'"
+            if {$ch eq ""} {
+                # Error reading -- probably EOF / disconnect.
+                $self destroy
+            }
+            switch $readState {
+                waitforstart {
+                    if {$ch ne ":"} {return}
+                    set messageBuffer $ch
+                    set readState readmessage
+                }
+                readmessage {
+                    append messageBuffer $ch
+                    if {$ch eq ";"} {
+                        uplevel #0 $reader $messageBuffer
+                        set readState waitforstart
+                        set messageBuffer ""
+                    }
+                }
+            }
         }
         typecomponent portnidandhostDialog
         ## Dialog to ask the user for a port, host, and Node ID.
@@ -3879,21 +3943,55 @@ namespace eval lcc {
                 return
             }
             #puts stderr "*** $type create: port opened: $socket"
-            #fconfigure $socket -buffering line -translation auto
+            fconfigure $socket -buffering none -translation binary
             #puts stderr [list *** $type create $self fconfigure $socket = [fconfigure $socket]]
             install gccomponent using lcc::CANGridConnect %AUTO% -parent $self -nid [from args -nid]
             $self configurelist $args
         }
-        method read {messageV} {
-            upvar $messageV message
-            return [gets $socket message]
+        variable messageBuffer ""
+        #** Message buffer
+        variable readState "waitforstart"
+        #** Read State
+        variable reader {}
+        #** Message reader function
+        method setreader {_reader} {
+            #puts stderr "*** $self setreader $_reader"
+            set reader $_reader
+            if {$reader ne ""} {
+                fileevent $socket readable [mymethod _readByte]
+            } else {
+                fileevent $socket readable {}
+            }
+            #puts stderr "*** $self setreader: \[fileevent $ttyfd readable\] is \{[fileevent $ttyfd readable]\}"
+        }
+        method _readByte {} {
+            #puts stderr "*** $self _readByte"
+            set ch [read $socket 1]
+            #puts stderr "*** $self _readByte: ch is '$ch'"
+            if {$ch eq ""} {
+                # Error reading -- probably EOF / disconnect.
+                $self destroy
+            }
+            switch $readState {
+                waitforstart {
+                    if {$ch ne ":"} {return}
+                    set messageBuffer $ch
+                    set readState readmessage
+                }
+                readmessage {
+                    append messageBuffer $ch
+                    if {$ch eq ";"} {
+                        uplevel #0 $reader $messageBuffer
+                        set readState waitforstart
+                        set messageBuffer ""
+                    }
+                }
+            }
         }
         method write {message} {
-            puts $socket $message
+            #puts stderr "*** $self write $message"
+            puts -nonewline $socket $message
             flush $socket
-        }
-        method readevent {script} {
-            fileevent $socket readable $script
         }
         typecomponent socketnamenidDialog
         ## Dialog to ask the user for a socket name and Node ID.

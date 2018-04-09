@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 28 13:51:24 2014
-#  Last Modified : <140414.1132>
+#  Last Modified : <180205.1622>
 #
 #  Description	
 #
@@ -440,8 +440,8 @@ snit::widget SelectLocomotive {
         pack $lf -fill x -expand yes
         install locoList using ttk::combobox [$lf getframe].locoList \
               -state normal
-        bind ttk::combobox <Return> [mymethod _addnewloco]
-        bind ttk::combobox <<ComboboxSelected>> [mymethod invoke]
+        bind $locoList <Return> [mymethod _addnewloco]
+        bind $locoList <<ComboboxSelected>> [mymethod invoke]
         pack  $locoList -side left -fill x
         $self configurelist $args
         $locoList configure -values $options(-defaultlist)
@@ -450,21 +450,23 @@ snit::widget SelectLocomotive {
     
     method _addnewloco {} {
         ## @private Add new loco. Bound to the locoList ComboBox entry.
+        
+        #puts stderr "*** $self _addnewloco"
         set newloco [$locoList get]
         if {[catch {LocomotiveAddress validate $newloco}]} {
             tk_messageBox -type ok -icon error -message [_ "Not a valid address: %s" $newloco]
             return
         }
-        puts stderr "*** $self _addnewloco: newloco = $newloco"
+        #puts stderr "*** $self _addnewloco: newloco = $newloco"
         set savedLocos [$locoList cget -values]
-        puts stderr "*** $self _addnewloco: savedLocos (initial) $savedLocos"
+        #puts stderr "*** $self _addnewloco: savedLocos (initial) $savedLocos"
         set indx [lsearch -exact $savedLocos $newloco]
-        puts stderr "*** $self _addnewloco: indx = $indx"
+        #puts stderr "*** $self _addnewloco: indx = $indx"
         if {$indx >= 0} {
             $locoList set $newloco
         } else {
             lappend savedLocos $newloco
-            puts stderr "*** $self _addnewloco: savedLocos (updated) $savedLocos"
+            #puts stderr "*** $self _addnewloco: savedLocos (updated) $savedLocos"
             set l [llength $savedLocos]
             if {$l > $options(-maxsaved)} {
                 set s [expr {$l - $options(-maxsaved)}]
@@ -484,6 +486,7 @@ snit::widget SelectLocomotive {
         ## Method to invoke the widget.  This calls the script (if any) defined by
         # the -command option.
         
+        #puts stderr "*** $self invoke: options(-command) is $options(-command)"
         if {$options(-command) ne ""} {
             set cmd [concat $options(-command) [$self currentLocomotive]]
             uplevel #0 $cmd
