@@ -1,0 +1,471 @@
+package require Tk
+package require tile
+package require snit
+package require MainWindow
+package require ScrollWindow
+package require ROText
+package require snitStdMenuBar
+package require LabelFrames
+package require LCC
+package require ParseXML
+package require ConfigurationEditor
+
+snit::type LCCTest {
+    pragma -hastypeinfo false
+    pragma -hastypedestroy false
+    pragma -hasinstances false
+    
+    typecomponent mainWindow
+    typecomponent logmessages
+    typecomponent commandLF
+    typecomponent   command
+    typecomponent lcc
+    
+    typeconstructor {
+        set mainWindow [mainwindow .main -scrolling yes -height 600 -width 800]
+        pack $mainWindow -expand yes -fill both
+        $mainWindow menu entryconfigure file "Exit" -command {exit}
+        set logmessages [ROText [$mainWindow scrollwindow getframe].logmessages]
+        $mainWindow scrollwindow setwidget $logmessages
+        set main [winfo parent [$mainWindow scrollwindow getframe]]
+        set commandLF [LabelFrame $main.commandLF -text "Command:"]
+        pack $commandLF -expand yes -fill x
+        set clf [$commandLF  getframe]
+        set command [ttk::entry $clf.command]
+        pack $command -side left -fill x
+        bind $command <Return> [mytypemethod runcommand]
+        set button [ttk::button $clf.button -text "Enter" \
+                    -command [mytypemethod runcommand]]
+        pack $button -side right
+        set lcc [eval [list lcc::LCCBufferUSB %AUTO% -eventhandler [mytypemethod eventhandler]] $::argv]
+        $mainWindow showit
+    }
+    typevariable datagrambuffers -array {}
+    typevariable memoryspaceinfos -array {}
+    typevariable _readcompleteFlag 0
+    typevariable simplenodeinfo -array {}
+    typevariable simplenodeinfo_meta -array {}
+    typemethod eventhandler {canmessage} {
+        set mtiheader [lcc::MTIHeader %AUTO%]
+        $mtiheader setHeader [$canmessage getHeader]
+        set mtidetail [lcc::MTIDetail %AUTO%]
+        $mtidetail setHeader [$canmessage getHeader]
+        $logmessages insert end "CAN: [$canmessage toString]\n"
+        $logmessages insert end "  MTI Header:\n"
+        $logmessages insert end "     Frametype: [format {  %X} [$mtiheader cget -frametype]]\n"
+        $logmessages insert end "     CAN-MTI  : [format {%03X} [$mtiheader cget -mti]]\n"
+        $logmessages insert end "     SrcID    : [format {%03X} [$mtiheader cget -srcid]]\n"
+        $logmessages insert end "  MTI Detail:\n"
+        if {[$mtidetail cget -streamordatagram]} {
+            $logmessages insert end "     Content    : [$mtidetail cget -datagramcontent]\n"   
+            $logmessages insert end "     Destid     : [format {%03X} [$mtidetail cget -destid]]\n"
+        } else {
+            $logmessages insert end "     Special?   : [$mtidetail cget -special]\n"
+            $logmessages insert end "     Stream?    : [$mtidetail cget -streamordatagram]\n"
+            $logmessages insert end "     Priority   : [format {%X} [$mtidetail cget -priority]]\n"
+            $logmessages insert end "     Type Within: [format {%X} [$mtidetail cget -typewithin]]\n"
+            $logmessages insert end "     Simple?    : [$mtidetail cget -simple]\n"
+            $logmessages insert end "     AddressP   : [$mtidetail cget -addressp]\n"
+            $logmessages insert end "     EventP     : [$mtidetail cget -eventp]\n"
+            $logmessages insert end "     Modifier   : [format {%X} [$mtidetail cget -modifier]]\n"
+        }
+        set datacomplete no
+        if {[$mtidetail cget -streamordatagram]} {
+            set srcid [$mtiheader cget -srcid]
+            switch [$mtidetail cget -datagramcontent] {
+                complete {
+                    set datagrambuffers($srcid) [$canmessage getData]
+                    set datacomplete yes
+                }
+                first {
+                    set datagrambuffers($srcid) [$canmessage getData]
+                }
+                middle {
+                    eval [list lappend datagrambuffers($srcid)] [$canmessage getData]
+                }
+                last {
+                    eval [list lappend datagrambuffers($srcid)] [$canmessage getData]
+                    set datacomplete yes
+                }
+            }
+            if {$datacomplete} {
+                $lcc DatagramAck $srcid
+                $logmessages insert end "Datagram Received:"
+                foreach b $datagrambuffers($srcid) {
+                     $logmessages insert end [format { %02X} $b]
+                }
+                $logmessages insert end "\n"
+                switch [format {0x%02X} [lindex $datagrambuffers($srcid) 1]] {
+                    0x82 {
+                        # Get Config Options Reply
+                        set availcmds [expr {([lindex $datagrambuffers($srcid) 2] << 8) | [lindex $datagrambuffers($srcid) 3]}]
+                        set writelens [lindex $datagrambuffers($srcid) 4]
+                        set highest   [lindex $datagrambuffers($srcid) 5]
+                        set lowest    [lindex $datagrambuffers($srcid) 6]
+                        $logmessages insert end "Get Config Options Reply:\n"
+                        $logmessages insert end "    Available Commands:\n"
+                        if {($availcmds & 0x08000) != 0} {
+                            $logmessages insert end "        Write under mask\n"
+                        }
+                        if {($availcmds & 0x04000) != 0} {
+                            $logmessages insert end "        Unaligned reads allowed\n"
+                        }
+                        if {($availcmds & 0x02000) != 0} {
+                            $logmessages insert end "        Unaligned writes allowed\n"
+                        }
+                        if {($availcmds & 0x00800) != 0} {
+                            $logmessages insert end "        Read from address space 0xFC\n"
+                        }
+                        if {($availcmds & 0x00400) != 0} {
+                            $logmessages insert end "        Read from address space 0xFB\n"
+                        }
+                        if {($availcmds & 0x00200) != 0} {
+                            $logmessages insert end "        Write to address space 0xFB\n"
+                        }
+                        $logmessages insert end "    Write lengths:\n"
+                        if {($writelens & 0x080) != 0} {
+                            $logmessages insert end "        1 byte write\n"
+                        }
+                        if {($writelens & 0x040) != 0} {
+                            $logmessages insert end "        2 byte write\n"
+                        }
+                        if {($writelens & 0x020) != 0} {
+                            $logmessages insert end "        4 byte writes\n"
+                        }
+                        if {($writelens & 0x010) != 0} {
+                            $logmessages insert end "        64 byte writes (full only)\n"
+                        }
+                        if {($writelens & 0x002) != 0} {
+                            $logmessages insert end "        arbitrary writes\n"
+                        }
+                        if {($writelens & 0x001) != 0} {
+                            $logmessages insert end "        stream writes\n"
+                        }
+                        $logmessages insert end "[format {    Highest address space: %02X} $highest]\n"
+                        $logmessages insert end "[format {    Lowest address space: %02X} $lowest]\n"
+                    }
+                    0x86 -
+                    0x87 {
+                        # Get Address Space Information Reply
+                        set present [expr {[lindex $datagrambuffers($srcid) 1] == 0x87}]
+                        set space   [lindex $datagrambuffers($srcid) 2]
+                        set highest [expr {[lindex $datagrambuffers($srcid) 3] << 24}]
+                        set highest [expr {$highest | ([lindex $datagrambuffers($srcid) 4] << 16)}]
+                        set highest [expr {$highest | ([lindex $datagrambuffers($srcid) 5] << 8)}]
+                        set highest [expr {$highest | [lindex $datagrambuffers($srcid) 6]}]
+                        set flags   [lindex $datagrambuffers($srcid) 7]
+                        if {($flags & 0x02) != 0} {
+                            set lowest [expr {[lindex $datagrambuffers($srcid) 8] << 24}]
+                            set lowest [expr {$lowest | ([lindex $datagrambuffers($srcid) 9] << 16)}]
+                            set lowest [expr {$lowest | ([lindex $datagrambuffers($srcid) 10] << 8)}]
+                            set lowest [expr {$lowest | [lindex $datagrambuffers($srcid) 11]}]
+                            set descroff 12
+                        } else {
+                            set lowest 0
+                            set descroff 8
+                        }
+                        set writable [expr {($flags & 0x01) == 0}]
+                        set descr {}
+                        foreach d [lrange $datagrambuffers($srcid) $descroff end] {
+                            append descr [format %c $d]
+                        }
+                        $logmessages insert end "Address Space Info Reply:\n"
+                        $logmessages insert end "[format {    Space: %02x} $space]\n"
+                        set memoryspaceinfos($srcid,[format {%02X} $space],present) $present
+                        if {$present} {
+                            $logmessages insert end "    Is present.\n"
+                            $logmessages insert end "[format {    Low address: %08X} $lowest]\n"
+                            $logmessages insert end "[format {    High address: %08X} $highest]\n"
+                            if {$writable} {
+                                $logmessages insert end "    Is writable.\n"
+                            } else {
+                                $logmessages insert end "    Is not writable.\n"
+                            }
+                            if {$descr ne ""} {$logmessages insert end "[format {    Description: %s} $descr]\n"}
+                            set memoryspaceinfos($srcid,[format {%02X} $space],lowest) $lowest
+                            set memoryspaceinfos($srcid,[format {%02X} $space],highest) $highest
+                            set memoryspaceinfos($srcid,[format {%02X} $space],writable) $writable
+                        } else {
+                            $logmessages insert end "    Is not present.\n"
+                        }
+                    }
+                }
+                incr _readcompleteFlag
+            }
+        }
+        if {[$mtiheader cget -mti] == 0x0668} {
+            # Protocol Support Report
+            set report [lrange [$canmessage getData] 2 4]
+            set protocols [list]
+            if {([lindex $report 0] & 0x80) != 0} {
+                lappend protocols Simple
+            }
+            if {([lindex $report 0] & 0x40) != 0} {
+                lappend protocols Datagram
+            }
+            if {([lindex $report 0] & 0x20) != 0} {
+                lappend protocols Stream
+            }
+            if {([lindex $report 0] & 0x10) != 0} {
+                lappend protocols MemoryConfig
+            }
+            if {([lindex $report 0] & 0x08) != 0} {
+                lappend protocols Reservation
+            }
+            if {([lindex $report 0] & 0x04) != 0} {
+                lappend protocols EventExchange
+            }
+            if {([lindex $report 0] & 0x02) != 0} {
+                lappend protocols Itentification
+            }
+            if {([lindex $report 0] & 0x01) != 0} {
+                lappend protocols TeachLearn
+            }
+            
+            if {([lindex $report 1] & 0x80) != 0} {
+                lappend protocols RemoteButton
+            }
+            if {([lindex $report 1] & 0x40) != 0} {
+                lappend protocols AbbreviatedDefaultCDI
+            }
+            if {([lindex $report 1] & 0x20) != 0} {
+                lappend protocols Display
+            }
+            if {([lindex $report 1] & 0x10) != 0} {
+                lappend protocols SimpleNodeInfo
+            }
+            if {([lindex $report 1] & 0x08) != 0} {
+                lappend protocols CDI
+            }
+            if {([lindex $report 1] & 0x04) != 0} {
+                lappend protocols Traction
+            }
+            if {([lindex $report 1] & 0x02) != 0} {
+                lappend protocols FDI
+            }
+            if {([lindex $report 1] & 0x01) != 0} {
+                lappend protocols DCC
+            }
+            
+            if {([lindex $report 2] & 0x80) != 0} {
+                lappend protocols SimpleTrainNode
+            }
+            if {([lindex $report 2] & 0x40) != 0} {
+                lappend protocols FunctionConfiguration
+            }
+            $logmessages insert end "[format {Node %03X supports: %s} [$mtiheader cget -srcid] $protocols]\n"
+        } elseif {[$mtiheader cget -mti] == 0x0A28} {
+            # Datagram Received OK
+            set flags [lindex [$canmessage getData] 2]
+            if {$flags eq ""} {set flags 0}
+            $logmessages insert end "[format {Datagram Received OK from Node %03X, flags: %02X} [$mtiheader cget -srcid] $flags]\n"
+        } elseif {[$mtiheader cget -mti] == 0x0A48} {
+            # Datagram Rejected
+            set error [expr {[lindex [$canmessage getData] 2] << 8}]
+            set error [expr {$error | [lindex [$canmessage getData] 3]}]
+            $logmessages insert end "[format {Datagram Rejected  from Node %03X, error: %04X} [$mtiheader cget -srcid] $error]\n"
+        } elseif {[$mtiheader cget -mti] == 0x0A08} {
+            # Simple node information reply
+            set from [$mtiheader cget -srcid]
+            set flags [expr {([lindex [$canmessage getData] 0] & 0x030) >> 4}]
+            #puts stderr "[format {*** %s eventhandler: fddd is %02x%02x} $type [lindex [$canmessage getData] 0] [lindex [$canmessage getData] 1]]"
+            #puts stderr "*** $type eventhandler: flags = $flags"
+            switch $flags {
+                0 {
+                   # Single frame
+                   eval [list lappend simplenodeinfo($from)] [lrange [$canmessage getData] 2 end]
+                   set simplenodeinfo_meta($from,v1) [lindex $simplenodeinfo($from) 0]
+                   if {$simplenodeinfo_meta($from,v1) == 1} {
+                       set simplenodeinfo_meta($from,v1) 4
+                   }
+                   set simplenodeinfo_meta($from,expectedNULs) [expr {$simplenodeinfo_meta($from,v1) + 2}]
+                   $logmessages insert end "simplenodeinfo($from) = $simplenodeinfo($from)\n"
+                   if {[countNUL $simplenodeinfo($from)] >= $simplenodeinfo_meta($from,expectedNULs)} {
+                       incr _readcompleteFlag
+                   }
+                }
+                1 {
+                   # First of multiple frames
+                   set simplenodeinfo($from) [lrange [$canmessage getData] 2 end]
+                }
+                2 {
+                   # Middle of multiple frames
+                   eval [list lappend simplenodeinfo($from)] [lrange [$canmessage getData] 2 end]
+                }
+                3 {
+                   # Last of multiple frames
+                   eval [list lappend simplenodeinfo($from)] [lrange [$canmessage getData] 2 end]
+                   $logmessages insert end "simplenodeinfo($from) = $simplenodeinfo($from)\n"
+                   incr _readcompleteFlag
+                }
+            }
+        }
+    }
+    typevariable CDIs_text -array {}
+    typevariable CDIs_xml  -array {}
+    typemethod runcommand {} {
+        set thecommand [$command get]
+        $logmessages insert end "Command entered: $thecommand\n"
+        switch [lindex $thecommand 0] {
+            verify {
+                $lcc verifynode
+            }
+            protosupport {
+                $lcc protosupport [lindex $thecommand 1]
+            }
+            identifyevents {
+                $lcc identifyevents -address [lindex $thecommand 1]
+            }
+            identifyconsumer {
+                $lcc identifyconsumer [lindex $thecommand 1]
+            }
+            getAliasOfNID {
+                set alias [$lcc getAliasOfNID [lindex $thecommand 1]]
+                $logmessages insert end "[format {The alias of %s is 0x%03X} [lindex $thecommand 1] $alias]\n"
+            }
+            getNIDOfAlias {
+                set nid [$lcc getNIDOfAlias [lindex $thecommand 1]]
+                $logmessages insert end "[format {The NID of 0x%03X is %s} [lindex $thecommand 1] $nid]\n"
+            }
+            produceevent {
+                $lcc produceevent [lcc::EventID %AUTO% -eventidstring [lindex $thecommand 1]]
+            }
+            dumpMaps {
+                foreach nid [$lcc getAllNIDs] {
+                    $logmessages insert end "[format {The alias of %s is 0x%03X} $nid [$lcc getAliasOfNID $nid]]\n"
+                }
+                foreach alias [$lcc getAllAliases] {
+                    $logmessages insert end "[format {The NID of 0x%03X is %s} $alias [$lcc getNIDofAlias $alias]]\n"
+                }
+            }
+            getConfigOptions {
+                $lcc getConfigOptions [lindex $thecommand 1]
+            }
+            getAddrSpaceInfo {
+                $lcc getAddrSpaceInfo [lindex $thecommand 1] [lindex $thecommand 2]
+            }
+            getSimpleNodeInfo {
+                set _readcompleteFlag 0
+                set address [expr {[lindex $thecommand 1]}]
+                set simplenodeinfo($address) [list]
+                $lcc getSimpleNodeInfo $address
+                vwait [mytypevar _readcompleteFlag]
+                $logmessages insert end "[format {The Simple Node Info of %03X is:} $address]\n"
+                set strings1 [lindex $simplenodeinfo($address) 0]
+                # If version 1, then 4 strings (???), other wise version == number of strings
+                if {$strings1 == 1} {set strings1 4}
+                set i 1
+                set names1 {manufact model hvers svers}
+                for {set istring 0} {$istring < $strings1} {incr istring} {
+                    set s ""
+                    while {[lindex $simplenodeinfo($address) $i] != 0} {
+                        append s [format %c [lindex $simplenodeinfo($address) $i]]
+                        incr i
+                    }
+                    $logmessages insert end "[format {    %s: %s} [lindex $names1 $istring] $s]\n"
+                    incr i
+                }
+                set strings2 [lindex $simplenodeinfo($address) $i]
+                if {$strings2 == 1} {set strings2 2}
+                # If version 1, then 2 strings (???), other wise version == number of strings
+                incr i
+                set names2 {name descr}
+                for {set istring 0} {$istring < $strings2} {incr istring} {
+                    set s ""
+                    while {[lindex $simplenodeinfo($address) $i] != 0} {
+                        append s [format %c [lindex $simplenodeinfo($address) $i]]
+                        incr i
+                    }
+                    $logmessages insert end "[format {    %s: %s} [lindex $names2 $istring] $s]\n"
+                    incr i
+                }
+            }
+                
+            DatagramRead {
+                $lcc DatagramRead [lindex $thecommand 1] [lindex $thecommand 2] [lindex $thecommand 3] [lindex $thecommand 4]
+            }
+            ReadCDI {
+                set sourceaddress [expr {[lindex $thecommand 1]}]
+                #puts stderr "*** $type runcommand (ReadCDI): sourceaddress = $sourceaddress"
+                set _readcompleteFlag 0
+                $lcc getAddrSpaceInfo $sourceaddress 0x0FF
+                #puts stderr "*** $type runcommand (ReadCDI): after $lcc getAddrSpaceInfo $sourceaddress 0x0FF"
+                #puts stderr "*** $type runcommand (ReadCDI): about to vwait on [mytypevar _readcompleteFlag]"
+                vwait [mytypevar _readcompleteFlag]
+                #puts stderr "*** $type runcommand (ReadCDI): after vwait: memoryspaceinfos() contains these indexes: [array names memoryspaceinfos]"
+                if {$memoryspaceinfos($sourceaddress,FF,present)} {
+                    set start $memoryspaceinfos($sourceaddress,FF,lowest)
+                    set end   [expr {$memoryspaceinfos($sourceaddress,FF,highest) + 64}]
+                    #puts stderr "[format {*** $type runcommand (ReadCDI): start = %08X} $start]"
+                    #puts stderr "[format {*** $type runcommand (ReadCDI): end = %08X} $end]"
+                    set CDIs_text($sourceaddress) {}
+                    for {set address $start} {$address < $end} {incr address $size} {
+                        #puts stderr "[format {*** $type runcommand (ReadCDI): address = %08X (end = %08X)} $address $end]"
+                        set size [expr {$end - $address}]
+                        if {$size > 64} {set size 64}
+                        #puts stderr "[format {*** $type runcommand (ReadCDI): size = %d} $size]"
+                        $lcc DatagramRead $sourceaddress 0x0FF $address $size
+                        vwait [mytypevar _readcompleteFlag]
+                        set status [lindex $datagrambuffers($sourceaddress) 1]
+                        if {$status == 0x53} {
+                            set respaddress [expr {[lindex $datagrambuffers($sourceaddress) 2] << 24}]
+                            set respaddress [expr {$respaddress | ([lindex $datagrambuffers($sourceaddress) 3] << 16)}]
+                            set respaddress [expr {$respaddress | ([lindex $datagrambuffers($sourceaddress) 4] << 8)}]
+                            set respaddress [expr {$respaddress | [lindex $datagrambuffers($sourceaddress) 5]}]
+                            #puts stderr "[format {*** $type runcommand (ReadCDI): respaddress = %08X - address = %08X} $respaddress $address]"
+                            if {$respaddress == $address} {
+                                set bytes [lrange $datagrambuffers($sourceaddress) 6 end]
+                                set count 0
+                                foreach b $bytes {
+                                    if {$b == 0} {break}
+                                    append CDIs_text($sourceaddress) [format {%c} $b]
+                                    incr count
+                                    if {$count >= $size} {break}
+                                }
+                                #puts stderr "[format {*** $type runcommand (ReadCDI): count = %d (size = %d)} $count $size]"
+                            } else {
+                                # ??? (bad return address)
+                            }
+                        } else {
+                            # error...
+                            set error [expr {[lindex $datagrambuffers($sourceaddress) 2] << 8}]
+                            set error [expr {$error | [lindex $datagrambuffers($sourceaddress) 3]}]
+                            $logmessages insert end "[format {Read Reply error %04X} $error]"
+                            set message { }
+                            foreach b [lrange $datagrambuffers($sourceaddress) 4 end] {
+                                append message [format %c $b]
+                            }
+                            $logmessages insert end "$message\n"
+                        }
+                        #puts stderr "[format {*** $type runcommand (ReadCDI): next address = %08X} [expr {$address + $size}]]]"
+
+                    }
+                    $logmessages insert end "[format {CDI for %03X is} $sourceaddress]\n"
+                    $logmessages insert end "\{$CDIs_text($sourceaddress)\}\n"
+                    set CDIs_xml($sourceaddress) [ParseXML %AUTO% \
+                                                  $CDIs_text($sourceaddress)]
+                    set CDIs_FormTLs($sourceaddress) \
+                        [lcc::ConfigurationEditor .cdi$sourceaddress \
+                            -cdi $CDIs_xml($sourceaddress) \
+                            -alias $sourceaddress \
+                            -transport $lcc ]
+                } else {
+                    # No CDI...
+                }
+            }            
+        }
+    }
+    proc countNUL {list} {
+       set count 0
+       set start 0
+       while {[set i [lsearch -start $start $list 0]] >= 0} {
+           incr count
+           set start [expr {$i + 1}]
+       }
+       return $count
+   }
+}
+
+        
+
+
