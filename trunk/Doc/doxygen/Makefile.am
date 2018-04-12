@@ -4,6 +4,8 @@ ParserClassesHeaders = \
 	$(top_srcdir)/C++/ParserClasses/ParseFile.h \
 	$(top_srcdir)/C++/ParserClasses/TrackBody.h \
 	$(top_srcdir)/C++/ParserClasses/TurnoutBody.h \
+	$(top_srcdir)/C++/ParserClasses/BezierBody.h \
+	$(top_srcdir)/C++/ParserClasses/CornuBody.h \
 	$(top_srcdir)/C++/ParserClasses/TrackGraph.h \
 	$(top_srcdir)/C++/ParserClasses/SocketPair.h \
 	$(top_builddir)/C++/ParserClasses/MRRXtrkCad.tab.h
@@ -123,9 +125,7 @@ html/index.html latex/refman.tex man/man3 : Doxyfile $(C_INTERNALS_H) \
 	-rm -rf html latex man
 	-chmod +x tcldoxyfilter.sh
 	$(DOXYGEN)
-	-rm -f man/man3/*.h.3 man/man3/*.tcl.3 man/man3/*.i.3 \
-		man/man3/localtime_r.3 \
-		man/man3/asctime_r.3 man/man3/mkstemp.3
+	-rm -f man/man3/*.h.3mrr man/man3/*.tcl.3mrr man/man3/*.i.3mrr
 	
 
 internals.pdf: latex/refman.tex
@@ -137,7 +137,7 @@ clean-local:
 	-rm -f doxygen.log  internals.pdf
 
 
-install-data-hook: html/index.html man/man3
+install-data-hook: html/index.html man/man3mrr
 	$(INSTALL) -d $(DESTDIR)$(pkgdatadir)/InternalsHTML
 	for p in html/*; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
@@ -146,13 +146,13 @@ install-data-hook: html/index.html man/man3
 	  $(INSTALL_DATA) "$$d$$p" "$(DESTDIR)$(pkgdatadir)/InternalsHTML/$$f"; \
 	done
 	test -z "$(man3dir)" || $(mkdir_p) "$(DESTDIR)$(man3dir)"
-	@list=man/man3/* ; \
+	@list=man/man3mrr/* ; \
 	for i in $$list; do \
 	  file=$$i; \
 	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
 	  case "$$ext" in \
 	    3*) ;; \
-	    *) ext='3' ;; \
+	    *) ext='3mrr' ;; \
 	  esac; \
 	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
 	  inst=`echo $$inst | sed -e 's/^.*\///'`; \
@@ -168,13 +168,13 @@ uninstall-hook:
 	  echo " rm -f '$(DESTDIR)$(pkgdatadir)/InternalsHTML/$$f'"; \
 	  rm -f "$(DESTDIR)$(pkgdatadir)/InternalsHTML/$$f"; \
 	done
-	@list=man/man3/* ; \
+	@list=man/man3mrr/* ; \
 	for i in $$list; do \
 	  file=$$i; fi; \
 	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
 	  case "$$ext" in \
 	    3*) ;; \
-	    *) ext='3' ;; \
+	    *) ext='3mrr' ;; \
 	  esac; \
 	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
 	  inst=`echo $$inst | sed -e 's/^.*\///'`; \
