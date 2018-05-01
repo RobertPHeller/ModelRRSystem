@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <180404.1441>
+#  Last Modified : <180501.1343>
 #
 #  Description	
 #
@@ -53,7 +53,8 @@ EXTRA_DIST = lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
 		OpenLCB_PiSPIMax7221.tcl OpenLCB_PiMCP23017_signal.tcl \
 		GenerateEventID.tcl OpenLCB_Common.tcl OpenLCB_CMRI.tcl \
-		OpenLCB_QuadSignal.tcl
+		OpenLCB_QuadSignal.tcl ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl \
+		OpenLCB_PiPCA9685.tcl
 
 bin_SCRIPTS = OpenLCB${EXEEXT} OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
 	OpenLCBGCTcpHub${EXEEXT} OpenLCB_TrackCircuits${EXEEXT} \
@@ -62,7 +63,7 @@ if HAVE_WIRINGPI
 bin_SCRIPTS += OpenLCB_PiGPIO${EXEEXT} OpenLCB_PiMCP23008${EXEEXT} \
 		OpenLCB_PiMCP23017${EXEEXT} OpenLCB_PiSPIMax7221${EXEEXT} \
 		OpenLCB_PiMCP23017_signal${EXEEXT} \
-		OpenLCB_QuadSignal${EXEEXT}
+		OpenLCB_QuadSignal${EXEEXT} OpenLCB_PiPCA9685${EXEEXT}
 endif
 
 pkgdatadir = $(datadir)/$(PACKAGE)/LCC
@@ -81,7 +82,7 @@ if HAVE_WIRINGPI
 man_MANS += man1/OpenLCB_PiGPIO.1 man1/OpenLCB_PiMCP23008.1 \
 		man1/OpenLCB_PiMCP23017.1 man1/OpenLCB_PiSPIMax7221.1
 		man1/OpenLCB_PiMCP23017_signal.1 \
-		man1/OpenLCB_QuadSignal.1
+		man1/OpenLCB_QuadSignal.1 OpenLCB_PiPCA9685.1
 endif
 
 if HAVE_CAN
@@ -105,10 +106,11 @@ CLEANFILES = pkgIndex.tcl OpenLCB${EXEEXT} OpenLCB.pot \
 			  OpenLCB_PiSPIMax7221${EXEEXT} \
 			  OpenLCB_PiMCP23017_signal${EXEEXT} \
 			  OpenLCB_QuadSignal${EXEEXT}
+			  OpenLCB_PiPCA9685${EXEEXT}
 
 pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		ConfigDialogs.tcl LCCNodeTree.tcl GenerateEventID.tcl \
-		OpenLCB_Common.tcl
+		OpenLCB_Common.tcl ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl
 	for f in $(notdir $^) ; do \
 	   if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi;\
 	done
@@ -144,7 +146,8 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
                 OpenLCBGCTcpHub.tcl OpenLCB_PiGPIO.tcl LCCNodeTree.tcl \
                 OpenLCB_TrackCircuits.tcl OpenLCB_Acela.tcl OpenLCB_Logic.tcl \
                 OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
-                OpenLCB_PiSPIMax7221.tcl \
+                OpenLCB_PiSPIMax7221.tcl OpenLCB_PiPCA9685.tcl PCA9685.tcl \
+                ADAFruitDC_AND_STEPPER.tcl \
 		$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m \
@@ -154,6 +157,8 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
 		         OpenLCBGCTcpHub.tcl OpenLCB_PiGPIO.tcl \
 		         OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
 		         OpenLCB_PiSPIMax7221.tcl \
+		         ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl \
+		         OpenLCB_PiPCA9685.tcl \
 		         OpenLCB_TrackCircuits.tcl OpenLCB_Acela.tcl \
 		         OpenLCB_Logic.tcl LCCNodeTree.tcl) \
 		Scripts/Common/snitStdMenuBar.tcl|\
@@ -732,6 +737,89 @@ OpenLCB_TrackCircuitsSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 				$(top_srcdir)/Scripts/Common/questhead.xbm \
         	                $(top_srcdir)/Scripts/Common/unknown.xpm
 
+OpenLCB_PiPCA9685SCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
+			$(top_srcdir)/Scripts/LCC/lcc.tcl \
+			$(top_srcdir)/Scripts/LCC/OpenLCB_Common.tcl \
+			$(top_srcdir)/Scripts/LCC/GenerateEventID.tcl \
+			$(top_srcdir)/Scripts/LCC/PCA9685.tcl \
+			$(top_builddir)/Scripts/Common/Version.tcl \
+			$(top_srcdir)/Scripts/Common/ParseXML.tcl \
+			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+	                $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
+	                $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+	                $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+	                $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+			$(top_srcdir)/Scripts/Common/gettext.tcl \
+			$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+			$(top_srcdir)/Scripts/Common/mainwindow.tcl \
+			$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+			$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+			$(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
+	                $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+	                $(top_srcdir)/Scripts/Common/snitrotext.tcl \
+	                $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
+			$(top_srcdir)/Scripts/Common/questhead.xbm \
+			$(top_srcdir)/Scripts/Common/unknown.xpm
+
+
+OpenLCB_PiPCA9685${EXEEXT}: OpenLCB_PiPCA9685.tcl $(OpenLCB_PiPCA9685SCRIPTS) \
+	$(top_builddir)/po/OpenLCB/msgfiles $(WiringPiDependFiles) \
+	$(top_builddir)/Doc/User/OpenLCB/index.html $(SOCKETCAN_DEPS)
+	-rm -f  OpenLCB_PiPCA9685.kit
+	-rm -rf  OpenLCB_PiPCA9685.vfs
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB_PiPCA9685.tcl
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap OpenLCB_PiPCA9685.kit
+	-rm -f  OpenLCB_PiPCA9685.kit
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB_PiPCA9685 \
+		lib $(SNITLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB_PiPCA9685 \
+		lib $(TCLLOGLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB_PiPCA9685 \
+		lib $(URILIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiPCA9685 \
+		lib/Common $(OpenLCB_PiPCA9685SCRIPTS)
+	$(UNZIP) -qq -d OpenLCB_PiPCA9685.vfs/lib \
+		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
+	$(UNZIP) -qq -d OpenLCB_PiPCA9685.vfs/lib \
+		$(top_srcdir)/BuildData/$(IMG_ZIP)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_PiPCA9685 \
+		Common
+if HAVE_CAN
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiPCA9685 \
+		lib/TclSocketCAN $(SOCKETCAN_FILES)
+endif
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiPCA9685 \
+		lib/WiringPi $(WiringPiSupportFiles)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiPCA9685 \
+		Help $(top_builddir)/Doc/User/OpenLCB/*
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB_PiPCA9685 \
+		Messages $(top_builddir)/po/OpenLCB/*.msg
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB_PiPCA9685${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
+	-rm -rf OpenLCB_PiPCA9685.vfs
+	
+OpenLCB_TrackCircuitsSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
+				$(top_srcdir)/Scripts/LCC/lcc.tcl \
+				$(top_srcdir)/Scripts/LCC/OpenLCB_Common.tcl \
+			$(top_srcdir)/Scripts/LCC/GenerateEventID.tcl \
+				$(top_builddir)/Scripts/Common/Version.tcl \
+				$(top_srcdir)/Scripts/Common/ParseXML.tcl \
+				$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+		                $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
+		                $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+	        	        $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+		                $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+				$(top_srcdir)/Scripts/Common/gettext.tcl \
+				$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+				$(top_srcdir)/Scripts/Common/mainwindow.tcl \
+				$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+				$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+				$(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
+		                $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+	        	        $(top_srcdir)/Scripts/Common/snitrotext.tcl \
+	                	$(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
+				$(top_srcdir)/Scripts/Common/questhead.xbm \
+        	                $(top_srcdir)/Scripts/Common/unknown.xpm
+
 OpenLCB_TrackCircuits${EXEEXT}: OpenLCB_TrackCircuits.tcl \
 			$(OpenLCB_TrackCircuitsSCRIPTS) \
 			$(top_builddir)/po/OpenLCB/msgfiles \
@@ -910,7 +998,8 @@ OpenLCB_CMRISCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 				$(top_srcdir)/Scripts/Common/questhead.xbm \
         	                $(top_srcdir)/Scripts/Common/unknown.xpm \
         	                $(top_srcdir)/Scripts/ControlSupport/CmriSupport.tcl \
-        	                $(top_srcdir)/Scripts/CMri/cmri.tcl
+        	                $(top_srcdir)/Scripts/CMri/cmri.tcl 
+        	                
 
 OpenLCB_CMRI${EXEEXT}: OpenLCB_CMRI.tcl \
 			$(OpenLCB_CMRISCRIPTS) \
