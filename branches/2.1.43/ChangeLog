@@ -1,3 +1,15 @@
+Tue May  1 15:09:22 2018 2.1.43
+
+    Update GC transports -- remove the *need* for newlines
+    Update parser for XTrakCAD 5.1.0
+    Add comment about mainWindow setstatus/setprogress
+    Minor bugfix in snitCabWidgets.tcl: proper binding for locoList combobox.
+    Updates to OpenLCB and LCCNodeTree.tcl: handle mulitple clicks on CDI 
+      (protect non-reentrant code)
+    Update documentation for OpenLCB virtual nodes.
+    Handle special case of a group in a group (psuedo CDI for virtual nodes)
+    Add OpenLCB_QuadSignal
+
 Wed Nov  8 09:54:03 2017 2.1.42 release candidate 1
 
     Move use a common configuration logic for OpenLCB_ daemon nodes using an 
