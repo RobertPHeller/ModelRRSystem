@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue May 1 09:31:57 2018
-#  Last Modified : <180501.1101>
+#  Last Modified : <180503.1041>
 #
 #  Description	
 #
@@ -222,17 +222,48 @@ snit::type StepperMotor {
             set s_per_s [expr {$s_per_s / double($MICROSTEPS)}]
             set steps   [expr {$steps * $MICROSTEPS}]
         }
-            
+        
         for {set s 0} {$s < $steps} {incr s} {
             set lateststep [$self oneStep $direction $stepstyle]
             after [expr {int($s_per_s * 1000)}]
         }
-        if ($stepstyle eq "MICROSTEP") {
+        if {$stepstyle eq "MICROSTEP"} {
             # this is an edge case, if we are in between full steps, lets just keep going
             # so we end on a full step
             while {$lateststep != 0 && $lateststep != $MICROSTEPS} {
                 set lateststep [$self oneStep $direction $stepstyle]
                 after [expr {int($s_per_s * 1000)}]
+            }
+        }
+    }
+    variable after_step_id {}
+    method astep {steps direction stepstyle} {
+        if {$after_step_id ne {}} {return}
+        StepperStyle validate $stepstyle
+        StepperDir   validate $direction
+        
+        set s_per_s $sec_per_step
+        set lateststep 0
+        
+        if ($stepstyle eq "INTERLEAVE") {
+            set s_per_s [expr {$s_per_s / 2.0}]
+        }
+        if ($stepstyle eq "MICROSTEP") {
+            set s_per_s [expr {$s_per_s / double($MICROSTEPS)}]
+            set steps   [expr {$steps * $MICROSTEPS}]
+        }
+        
+        $self aOneStep $direction $stepstyle $lateststep $steps $s_per_s
+    }
+    method aOneStep {direction stepstyle lateststep steps s_per_s} {
+        set after_step_id {}
+        if {$steps > 0} {
+            set lateststep [$self oneStep $direction $stepstyle]
+            set after_step_id [after [expr {int($s_per_s * 1000)}] [mymethod aOneStep $direction $stepstyle $lateststep [expr {$steps - 1}] $s_per_s]]
+        } elseif {$stepstyle eq "MICROSTEP"} {
+            if {$lateststep != 0 && $lateststep != $MICROSTEPS} {
+                set lateststep [$self oneStep $direction $stepstyle]
+                set after_step_id [after [expr {int($s_per_s * 1000)}] [mymethod aOneStep $direction $stepstyle $lateststep $steps $s_per_s]]
             }
         }
     }
