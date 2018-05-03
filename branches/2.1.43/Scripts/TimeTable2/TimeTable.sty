@@ -1,0 +1,145 @@
+%* 
+%* ------------------------------------------------------------------
+%* Model Railroad System by Deepwoods Software
+%* ------------------------------------------------------------------
+%* TimeTable.sty - TimeTable LaTeX package file for use with MRR Time Table system
+%* Created by Robert Heller on Sat Feb 16 09:17:39 2002
+%* ------------------------------------------------------------------
+%* Modification History: $Log: TimeTable.sty,v $
+%* Modification History: Revision 1.1  2006/05/20 14:23:16  heller
+%* Modification History: Added LaTeX Style file
+%* Modification History:
+%* Modification History: Revision 1.1  2002/11/10 14:27:46  heller
+%* Modification History: Updated for Time Table scripts
+%* Modification History:
+%* ------------------------------------------------------------------
+%* Contents:
+%* ------------------------------------------------------------------
+%*  
+%*     Model RR System, Version 2
+%*     Copyright (C) 1994-2002  Robert Heller D/B/A Deepwoods Software
+%* 			51 Locke Hill Road
+%* 			Wendell, MA 01379-9728
+%* 
+%*     This program is free software; you can redistribute it and/or modify
+%*     it under the terms of the GNU General Public License as published by
+%*     the Free Software Foundation; either version 2 of the License, or
+%*     (at your option) any later version.
+%* 
+%*     This program is distributed in the hope that it will be useful,
+%*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%*     GNU General Public License for more details.
+%* 
+%*     You should have received a copy of the GNU General Public License
+%*     along with this program; if not, write to the Free Software
+%*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+%* 
+%*  
+%* 
+%
+\NeedsTeXFormat{LaTeX2e}
+%
+\ProvidesPackage{TimeTable}[2002/02/16 V0.1 TimeTable Package]
+%
+\RequirePackage{ifthen}
+\RequirePackage{pslatex}
+\RequirePackage{calc}
+%
+\newcounter{rr@hours}
+\newcounter{rr@minutes}
+
+\newlength{\rr@zerosf}
+\settowidth{\rr@zerosf}{\textsf{\footnotesize 0}}
+\newlength{\rr@zerosfbf}
+\settowidth{\rr@zerosfbf}{\textsf{\footnotesize \bfseries 0}}
+
+%
+\newcommand{\rrtimetwentyfour}[1]{%
+	\setcounter{rr@hours}{#1/60}%
+	\setcounter{rr@minutes}{#1-\value{rr@hours}*60}%
+	\textsf{%
+		 \ifthenelse{\value{rr@hours}<10}{0}{}\therr@hours:%
+		 \ifthenelse{\value{rr@minutes}<10}{0}{}\therr@minutes}}
+\newcommand{\rrtimetwelvea}[1]{%
+	\setcounter{rr@hours}{#1/60}%
+	\setcounter{rr@minutes}{#1-\value{rr@hours}*60}%
+	\textsf{%
+		\ifthenelse{\value{rr@hours}<12}{%
+		   \ifthenelse{\value{rr@hours}=0}{12:%
+			\ifthenelse{\value{rr@minutes}<10}{0}{}\therr@minutes%
+			a}{%
+			\ifthenelse{\value{rr@hours}<10}{\hspace*\rr@zerosf}{}\therr@hours:%
+			\ifthenelse{\value{rr@minutes}<10}{0}{}\therr@minutes%
+			a}%
+		}{%
+		   \setcounter{rr@hours}{\value{rr@hours}-12}%
+		   \ifthenelse{\value{rr@hours}=0}{12:%
+			\ifthenelse{\value{rr@minutes}<10}{0}{}\therr@minutes%
+			p}{%
+			\ifthenelse{\value{rr@hours}<10}{\hspace*\rr@zerosf}{}\therr@hours:%
+			\ifthenelse{\value{rr@minutes}<10}{0}{}\therr@minutes%
+			p}%
+		}%
+	}%
+}
+\newcommand{\rrtimetwelveAMPM}[1]{%
+	\setcounter{rr@hours}{#1/60}% rrtimetwelveAMPM
+	\setcounter{rr@minutes}{#1-\value{rr@hours}*60}%
+	\textsf{%
+		\ifthenelse{\value{rr@hours}<12}{%
+		   \ifthenelse{\value{rr@hours}=0}{12:%
+			\ifthenelse{\value{rr@minutes}<10}{0}{}\therr@minutes%
+			AM}{%
+			\ifthenelse{\value{rr@hours}<10}{\hspace*\rr@zerosf}{}\therr@hours:%
+			\ifthenelse{\value{rr@minutes}<10}{0}{}\therr@minutes%
+			AM}%
+		}{%
+		   \setcounter{rr@hours}{\value{rr@hours}-12}%
+		   \ifthenelse{\value{rr@hours}=0}{12:%
+			\ifthenelse{\value{rr@minutes}<10}{0}{}\therr@minutes%
+			PM}{%
+			\ifthenelse{\value{rr@hours}<10}{\hspace*\rr@zerosf}{}\therr@hours:%
+			\ifthenelse{\value{rr@minutes}<10}{0}{}\therr@minutes%
+			PM}%
+		}%
+	}%
+}
+\newcommand{\rrtimetwelvelB}[1]{%
+	\setcounter{rr@hours}{#1/60}% rrtimetwelvelB
+	\setcounter{rr@minutes}{#1-\value{rr@hours}*60}%
+	\textsf{%
+		\ifthenelse{\value{rr@hours}<12}{%
+		   \ifthenelse{\value{rr@hours}=0}{12:%
+			\ifthenelse{\value{rr@minutes}<10}{0}{}\therr@minutes%
+			}{%
+			\ifthenelse{\value{rr@hours}<10}{\hspace*\rr@zerosf}{}\therr@hours:%
+			\ifthenelse{\value{rr@minutes}<10}{0}{}\therr@minutes%
+			}%
+		}{\bfseries%
+		   \setcounter{rr@hours}{\value{rr@hours}-12}%
+		   \ifthenelse{\value{rr@hours}=0}{12:%
+			\ifthenelse{\value{rr@minutes}<10}{0}{}\therr@minutes%
+			}{%
+			\ifthenelse{\value{rr@hours}<10}{\hspace*\rr@zerosfbf}{}\therr@hours:%
+			\ifthenelse{\value{rr@minutes}<10}{0}{}\therr@minutes%
+			}%
+		}%
+	}%
+}
+
+\advance\oddsidemargin by -1in
+\advance\evensidemargin by -1.5in
+\advance\topmargin BY -1in
+\advance\textwidth by 2.5in
+\advance\textheight by 1in
+
+\newlength{\stationwidth}
+\setlength{\stationwidth}{1.5in}
+\newlength{\timecolumnwidth}
+\setlength{\timecolumnwidth}{.5in}
+\newlength{\stationwidthonear}
+\setlength{\stationwidthonear}{1.25in}
+\newlength{\stationwidthtwoar}
+\setlength{\stationwidthtwoar}{1in}
+

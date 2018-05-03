@@ -1,0 +1,137 @@
+%* 
+%* ------------------------------------------------------------------
+%* AzatraxProgramming.tex - Using Azatrax device interfaces
+%* Created by Robert Heller on Fri Dec  2 09:35:04 2011
+%* ------------------------------------------------------------------
+%* Modification History: $Log$
+%* Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+%* Modification History: Add it copyright notice headers
+%* Modification History:
+%* ------------------------------------------------------------------
+%* Contents:
+%* ------------------------------------------------------------------
+%*  
+%*     Model RR System, Version 2
+%*     Copyright (C) 1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software
+%* 			51 Locke Hill Road
+%* 			Wendell, MA 01379-9728
+%* 
+%*     This program is free software; you can redistribute it and/or modify
+%*     it under the terms of the GNU General Public License as published by
+%*     the Free Software Foundation; either version 2 of the License, or
+%*     (at your option) any later version.
+%* 
+%*     This program is distributed in the hope that it will be useful,
+%*     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%*     GNU General Public License for more details.
+%* 
+%*     You should have received a copy of the GNU General Public License
+%*     along with this program; if not, write to the Free Software
+%*     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+%* 
+%*  
+%* 
+
+
+\chapter{Using the Azatrax device Interfaces.}
+\label{chapt:Azatrax:AzatraxProgramming}
+\typeout{$Id$}
+
+\section{aztrax::Azatrax Class}
+\label{sect:Azatrax:AzatraxClass}
+
+\begin{lstlisting}[caption={azatrax::Azatrax Class (simplified public interface)}, 
+		  language=C++,label=lst:Azatrax:AzatraxClass]
+class aztrax::Azatrax {
+public:
+	~Azatrax();
+	static int NumberOfOpenDevices();
+	static char ** AllConnectedDevices();
+	static Azatrax *OpenDevice(const char *serialnumber, 
+				unsigned short int idProduct=0,
+				char **outmessage=NULL);
+	friend class aztrax::MRD;
+	friend class aztrax::SL2;
+	friend class aztrax::SR4;
+	enum {
+		idAzatraxVendor,
+		idMRDProduct,
+		idSL2Product,
+		idSR4Product 
+	};
+	ErrorCode RestoreLEDFunction() const;
+	ErrorCode Identify_1() const;
+	ErrorCode GetStateData();
+	uint8_t PacketCount() const;
+	const char *SerialNumber() const;
+	const char *MyProduct() const;
+	unsigned short int MyProductId() const;
+	static unsigned short int ProductIdCode(const char *productName);
+};
+\end{lstlisting}
+
+The Azatrax Interface\cite{internals} has both a C++ and a Tcl API and
+this chapter will cover both. Both APIs use the same underlying
+code\footnote{In fact the same shared library.}. The API is based on the
+C++ classes that encapsulates the various Azatrax devices, the MRD2-S or
+MRD2-U (MRD class), the SR4 (the MRD class), or the SL2 (the SL2 class).
+Each Azatrax device has a factory set serial number.
+
+The Azatrax class is the base class for all of the Azatrax device
+classes. Its constructor should not be called directly.  Instead the
+\texttt{OpenDevice} static member should be called.  This member
+function will return a device specific instance (at this time, one of
+aztrax::MRD, aztrax::SR4, or aztrax::SL2), depending on the type of
+device opened.  The device will be opened based on its serial number
+and optionally by a specific product type.  The result of
+\texttt{OpenDevice} function should be cast to a specific device class.
+It will never really be a base Azatrax class instance, since the base
+class has little functional usefulness.  The device specific classes
+implement both the common functionallity of the base class and all of
+the device specific functionallity.
+
+\section{aztrax::MRD Class}
+\begin{lstlisting}[caption={azatrax::MRD Class (simplified public interface)},
+		   language=C++,label=lst:Azatrax:MRDClass]
+#define ErrorCode int
+class azatrax::MRD public azatrax::Azatrax{
+public:
+	enum OperatingMode_Type { NonTurnoutSeparate,
+				  NonTurnoutDirectionSensing, 
+				  TurnoutSolenoid, 
+				  TurnoutMotor };
+	~MRD();
+	ErrorCode SetChan1() const;
+	ErrorCode SetChan2() const;
+	ErrorCode ClearExternallyChanged() const;
+	ErrorCode DisableExternal() const;
+	ErrorCode EnableExternal() const;
+	ErrorCode RestoreLEDFunction() const;
+	ErrorCode Identify_2() const;
+	ErrorCode Identify_1_2() const;
+	ErrorCode ResetStopwatch() const;
+	bool Sense_1() const;
+	bool Sense_2() const;
+	bool Latch_1() const;
+	bool Latch_2() const;
+	bool HasRelays() const;
+	bool ResetStatus() const;
+	bool StopwatchTicking() const;
+	bool ExternallyChanged() const;
+	bool AllowingExternalChanges() const;
+	OperatingMode_Type OperatingMode() const;
+	void Stopwatch(uint8_t &fract, uint8_t &seconds, uint8_t &minutes,
+			uint8_t &hours) const; }; 
+\end{lstlisting} 
+The MRD2-S has two relays and the MRD2-U has no relays.  Both devices
+have two sensors and a stopwatch. The class instance is connected to a
+device using its unique serial number, using the aztrax::Azatrax static
+method, \texttt{OpenDevice}, see
+Section~\ref{sect:Azatrax:AzatraxClass}, and
+Listing~\ref{lst:Azatrax:AzatraxClass}. This class exposes a collection
+of methods to send command bytes to the device, a method to retrieve
+the device's state data and a collection of methods to access the
+device's state data, once it has been retrieved.
+
+
