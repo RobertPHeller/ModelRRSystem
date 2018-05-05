@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <180501.1343>
+#  Last Modified : <180504.1954>
 #
 #  Description	
 #
@@ -714,29 +714,6 @@ endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB_QuadSignal${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf OpenLCB_QuadSignal.vfs
 	
-OpenLCB_TrackCircuitsSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
-				$(top_srcdir)/Scripts/LCC/lcc.tcl \
-				$(top_srcdir)/Scripts/LCC/OpenLCB_Common.tcl \
-			$(top_srcdir)/Scripts/LCC/GenerateEventID.tcl \
-				$(top_builddir)/Scripts/Common/Version.tcl \
-				$(top_srcdir)/Scripts/Common/ParseXML.tcl \
-				$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
-		                $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
-		                $(top_srcdir)/Scripts/Common/snitdialog.tcl \
-	        	        $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
-		                $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
-				$(top_srcdir)/Scripts/Common/gettext.tcl \
-				$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
-				$(top_srcdir)/Scripts/Common/mainwindow.tcl \
-				$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
-				$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
-				$(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
-		                $(top_srcdir)/Scripts/Common/snitLFs.tcl \
-	        	        $(top_srcdir)/Scripts/Common/snitrotext.tcl \
-	                	$(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
-				$(top_srcdir)/Scripts/Common/questhead.xbm \
-        	                $(top_srcdir)/Scripts/Common/unknown.xpm
-
 OpenLCB_PiPCA9685SCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 			$(top_srcdir)/Scripts/LCC/lcc.tcl \
 			$(top_srcdir)/Scripts/LCC/OpenLCB_Common.tcl \
