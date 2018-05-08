@@ -28,6 +28,10 @@
         <id>H1-R</id>
         <effect>off</effect>
       </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
     </head>
   </aspect>
   <aspect>
@@ -44,6 +48,10 @@
       </lamp>
       <lamp>
         <id>H1-R</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
         <effect>off</effect>
       </lamp>
     </head>
@@ -63,6 +71,10 @@
       <lamp>
         <id>H1-R</id>
         <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
       </lamp>
     </head>
   </aspect>
@@ -85,6 +97,10 @@
         <id>H2-R</id>
         <effect>off</effect>
       </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
     </head>
     <head>
       <lamp>
@@ -98,6 +114,10 @@
       <lamp>
         <id>H3-R</id>
         <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
       </lamp>
     </head>
   </aspect>
@@ -117,6 +137,10 @@
         <id>H2-R</id>
         <effect>off</effect>
       </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
     </head>
     <head>
       <lamp>
@@ -130,6 +154,10 @@
       <lamp>
         <id>H3-R</id>
         <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
       </lamp>
     </head>
   </aspect>
@@ -149,6 +177,10 @@
         <id>H2-R</id>
         <effect>on</effect>
       </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
     </head>
     <head>
       <lamp>
@@ -161,6 +193,10 @@
       </lamp>
       <lamp>
         <id>H3-R</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
         <effect>off</effect>
       </lamp>
     </head>
@@ -181,6 +217,10 @@
         <id>H2-R</id>
         <effect>on</effect>
       </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
     </head>
     <head>
       <lamp>
@@ -194,6 +234,10 @@
       <lamp>
         <id>H3-R</id>
         <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
       </lamp>
     </head>
   </aspect>
@@ -216,6 +260,10 @@
         <id>H4-R</id>
         <effect>off</effect>
       </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
     </head>
   </aspect>
   <aspect>
@@ -232,6 +280,10 @@
       </lamp>
       <lamp>
         <id>H4-R</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
         <effect>off</effect>
       </lamp>
     </head>
@@ -251,6 +303,10 @@
       <lamp>
         <id>H4-R</id>
         <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
       </lamp>
     </head>
   </aspect>

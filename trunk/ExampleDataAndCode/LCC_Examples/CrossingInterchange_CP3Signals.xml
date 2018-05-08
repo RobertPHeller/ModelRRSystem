@@ -28,6 +28,10 @@
         <id>H1-R</id>
         <effect>off</effect>
       </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
     </head>
   </aspect>
   <aspect>
@@ -44,6 +48,10 @@
       </lamp>
       <lamp>
         <id>H1-R</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
         <effect>off</effect>
       </lamp>
     </head>
@@ -63,6 +71,10 @@
       <lamp>
         <id>H1-R</id>
         <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
       </lamp>
     </head>
   </aspect>
@@ -85,6 +97,10 @@
         <id>H2-R</id>
         <effect>off</effect>
       </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
     </head>
   </aspect>
   <aspect>
@@ -101,6 +117,10 @@
       </lamp>
       <lamp>
         <id>H2-R</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
         <effect>off</effect>
       </lamp>
     </head>
@@ -120,6 +140,10 @@
       <lamp>
         <id>H2-R</id>
         <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
       </lamp>
     </head>
   </aspect>
@@ -142,6 +166,10 @@
         <id>H3-R</id>
         <effect>off</effect>
       </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
     </head>
   </aspect>
   <aspect>
@@ -158,6 +186,10 @@
       </lamp>
       <lamp>
         <id>H3-R</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
         <effect>off</effect>
       </lamp>
     </head>
@@ -177,6 +209,10 @@
       <lamp>
         <id>H3-R</id>
         <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
       </lamp>
     </head>
   </aspect>
@@ -199,6 +235,10 @@
         <id>H4-R</id>
         <effect>off</effect>
       </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
     </head>
   </aspect>
   <aspect>
@@ -215,6 +255,10 @@
       </lamp>
       <lamp>
         <id>H4-R</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
         <effect>off</effect>
       </lamp>
     </head>
@@ -235,8 +279,11 @@
         <id>H4-R</id>
         <effect>on</effect>
       </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
     </head>
   </aspect>
 </mast>
-
 </OpenLCB_QuadSignal>

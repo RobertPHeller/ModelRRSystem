@@ -9,7 +9,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue May 8 13:34:27 2018
-#  Last Modified : <180508.1441>
+#  Last Modified : <180508.1446>
 #
 #  Description	
 #
@@ -177,6 +177,10 @@ snit::type Signal {
                 } else {
                     puts $fp "        <effect>off</effect>"
                 }
+                puts $fp "      </lamp>"
+                puts $fp "      <lamp>"
+                puts $fp "        <id>None</id>"
+                puts $fp "        <effect>off</effect>"
                 puts $fp "      </lamp>"
                 puts $fp "    </head>"
             }
