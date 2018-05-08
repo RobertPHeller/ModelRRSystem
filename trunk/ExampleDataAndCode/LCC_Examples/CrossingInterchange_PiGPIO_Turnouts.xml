@@ -1,0 +1,44 @@
+<?xml version='1.0'?>
+<OpenLCB_PiGPIO lastevid="05.01.01.01.22.00.00.10">
+  <transport>
+    <constructor>CANGridConnectOverCANSocket</constructor>
+    <options>-nid 05:01:01:01:22:01 -socketname vcan0</options>
+  </transport>
+  <identification>
+    <name>CrossingInterchange Turnout Control</name>
+    <description>CrossingInterchange Turnout Control</description>
+  </identification>
+  <pollinterval>500</pollinterval>
+  <pin frame="pin1">
+    <description>SW1 Motor</description>
+    <number>0</number>
+    <mode>out</mode>
+    <pullmode>up</pullmode>
+    <pinout0>05.01.01.01.22.00.01.01</pinout0>
+    <pinout1>05.01.01.01.22.00.01.02</pinout1>
+  </pin>
+  <pin frame="pin2">
+    <description>SW1 Point Sense</description>
+    <number>2</number>
+    <mode>in</mode>
+    <pullmode>up</pullmode>
+    <pinin0>05.01.01.01.22.00.01.03</pinin0>
+    <pinin1>05.01.01.01.22.00.01.04</pinin1>
+  </pin>
+  <pin frame="pin3">
+    <description>SW2 Motor</description>
+    <number>1</number>
+    <mode>out</mode>
+    <pullmode>up</pullmode>
+    <pinout0>05.01.01.01.22.00.02.01</pinout0>
+    <pinout1>05.01.01.01.22.00.02.02</pinout1>
+  </pin>
+  <pin frame="pin4">
+    <description>SW2 Point Sense</description>
+    <number>3</number>
+    <mode>in</mode>
+    <pullmode>up</pullmode>
+    <pinin0>05.01.01.01.22.00.02.03</pinin0>
+    <pinin1>05.01.01.01.22.00.02.04</pinin1>
+  </pin>
+</OpenLCB_PiGPIO>
