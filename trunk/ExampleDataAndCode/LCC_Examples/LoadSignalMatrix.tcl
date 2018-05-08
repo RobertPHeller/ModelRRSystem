@@ -9,7 +9,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue May 8 13:34:27 2018
-#  Last Modified : <180508.1430>
+#  Last Modified : <180508.1441>
 #
 #  Description	
 #
@@ -150,36 +150,37 @@ snit::type Signal {
         foreach e [lsort [array names aspectEvents]] {
             set colors $aspectEvents($e)
             puts $fp "  <aspect>"
-            puts $fp "  <eventid>$e</eventid>"
-            puts $fp "  <name>[colors2aspectname $colors]</name>"
+            puts $fp "    <eventid>$e</eventid>"
+            puts $fp "    <name>[colors2aspectname $colors]</name>"
             foreach c $colors h $heads {
-                puts $fp "  <head>"
-                puts $fp "    <lamp>"
-                puts $fp "      <id>[format {H%d-G} $h]</id>"
+                puts $fp "    <head>"
+                puts $fp "      <lamp>"
+                puts $fp "        <id>[format {H%d-G} $h]</id>"
                 if {$c eq "green"} {
-                    puts $fp "      <effect>on</effect>"
+                    puts $fp "        <effect>on</effect>"
                 } else {
-                    puts $fp "      <effect>off</effect>"
+                    puts $fp "        <effect>off</effect>"
                 }
-                puts $fp "    </lamp>"
-                puts $fp "    <lamp>"
-                puts $fp "      <id>[format {H%d-Y} $h]</id>"
+                puts $fp "      </lamp>"
+                puts $fp "      <lamp>"
+                puts $fp "        <id>[format {H%d-Y} $h]</id>"
                 if {$c eq "yellow"} {
-                    puts $fp "      <effect>on</effect>"
+                    puts $fp "        <effect>on</effect>"
                 } else {
-                    puts $fp "      <effect>off</effect>"
+                    puts $fp "        <effect>off</effect>"
                 }
-                puts $fp "    </lamp>"
-                puts $fp "    <lamp>"
-                puts $fp "      <id>[format {H%d-R} $h]</id>"
+                puts $fp "      </lamp>"
+                puts $fp "      <lamp>"
+                puts $fp "        <id>[format {H%d-R} $h]</id>"
                 if {$c eq "red"} {
-                    puts $fp "      <effect>on</effect>"
+                    puts $fp "        <effect>on</effect>"
                 } else {
-                    puts $fp "      <effect>off</effect>"
+                    puts $fp "        <effect>off</effect>"
                 }
-                puts $fp "    </lamp>"
-                puts $fp "  </head>"
+                puts $fp "      </lamp>"
+                puts $fp "    </head>"
             }
+            puts $fp "  </aspect>"
         }
         puts $fp "</mast>"
         if {$HNumber > 4} {
