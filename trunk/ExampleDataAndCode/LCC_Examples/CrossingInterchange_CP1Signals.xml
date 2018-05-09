@@ -2,13 +2,13 @@
 <OpenLCB_QuadSignal lastevid="05.01.01.01.22.00.00.0A">
   <transport>
     <constructor>CANGridConnectOverCANSocket</constructor>
-    <options>-nid 05:01:01:01:22:03 -socketname vcan0</options>
+    <options>-nid 05:01:01:01:22:02 -socketname vcan0</options>
   </transport>
   <identification>
     <name>CrossingInterchange CP1Signals</name>
     <description>CrossingInterchange Control Point 1 Signals</description>
   </identification>
-  <i2caddress>1</i2caddress>
+  <i2caddress>0</i2caddress>
   <commonmode>anode</commonmode>
 <mast>
   <description>S1S</description>
