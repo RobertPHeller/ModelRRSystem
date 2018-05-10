@@ -1,314 +1,314 @@
 <?xml version='1.0'?>
 <OpenLCB_QuadSignal lastevid="05.01.01.01.22.00.00.0A">
-  <mast frame="mast1">
-    <aspect frame="gframe1">
-      <head frame="gframe1">
-        <lamp frame="gframe1">
-          <id>H1-G</id>
-          <effect>on</effect>
-        </lamp>
-        <lamp frame="gframe2">
-          <id>H1-Y</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe3">
-          <id>H1-R</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe4">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-      </head>
-      <head frame="gframe2">
-        <lamp frame="gframe1">
-          <id>H2-Y</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe2">
-          <id>H2-R</id>
-          <effect>on</effect>
-        </lamp>
-        <lamp frame="gframe3">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe4">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-      </head>
-      <eventid>05.01.01.01.22.00.01.10</eventid>
-      <name>Clear</name>
-    </aspect>
-    <description>S1S</description>
-    <aspect frame="gframe2">
-      <head frame="gframe1">
-        <lamp frame="gframe1">
-          <id>H1-G</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe2">
-          <id>H1-Y</id>
-          <effect>on</effect>
-        </lamp>
-        <lamp frame="gframe3">
-          <id>H1-R</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe4">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-      </head>
-      <head frame="gframe2">
-        <lamp frame="gframe1">
-          <id>H2-Y</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe2">
-          <id>H2-R</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe3">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe4">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-      </head>
-      <eventid>05.01.01.01.22.00.01.11</eventid>
-      <name>Aproach</name>
-    </aspect>
-    <aspect frame="gframe3">
-      <head frame="gframe1">
-        <lamp frame="gframe1">
-          <id>H1-G</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe2">
-          <id>H1-Y</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe3">
-          <id>H1-R</id>
-          <effect>on</effect>
-        </lamp>
-        <lamp frame="gframe4">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-      </head>
-      <head frame="gframe2">
-        <lamp frame="gframe1">
-          <id>H2-Y</id>
-          <effect>on</effect>
-        </lamp>
-        <lamp frame="gframe2">
-          <id>H2-R</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe3">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe4">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-      </head>
-      <eventid>05.01.01.01.22.00.01.12</eventid>
-      <name>Approach Limited</name>
-    </aspect>
-    <aspect frame="gframe4">
-      <head frame="gframe1">
-        <lamp frame="gframe1">
-          <id>H1-G</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe2">
-          <id>H1-Y</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe3">
-          <id>H1-R</id>
-          <effect>on</effect>
-        </lamp>
-        <lamp frame="gframe4">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-      </head>
-      <head frame="gframe2">
-        <lamp frame="gframe1">
-          <id>H2-Y</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe2">
-          <id>H2-R</id>
-          <effect>on</effect>
-        </lamp>
-        <lamp frame="gframe3">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe4">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-      </head>
-      <eventid>05.01.01.01.22.00.01.13</eventid>
-      <name>Stop</name>
-    </aspect>
-  </mast>
   <transport>
     <constructor>CANGridConnectOverCANSocket</constructor>
-    <options>-nid 05:01:01:01:22:03 -socketname vcan0</options>
+    <options>-nid 05:01:01:01:22:02 -socketname vcan0</options>
   </transport>
   <identification>
     <name>CrossingInterchange CP1Signals</name>
     <description>CrossingInterchange Control Point 1 Signals</description>
   </identification>
-  <i2caddress>1</i2caddress>
+  <i2caddress>0</i2caddress>
   <commonmode>anode</commonmode>
-  <mast frame="mast2">
-    <aspect frame="gframe1">
-      <head frame="gframe1">
-        <lamp frame="gframe1">
-          <id>H3-G</id>
-          <effect>on</effect>
-        </lamp>
-        <lamp frame="gframe2">
-          <id>H3-Y</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe3">
-          <id>H3-R</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe4">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-      </head>
-      <eventid>05.01.01.01.22.00.01.20</eventid>
-      <name>Clear</name>
-    </aspect>
-    <aspect frame="gframe2">
-      <head frame="gframe1">
-        <lamp frame="gframe1">
-          <id>H3-G</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe2">
-          <id>H3-Y</id>
-          <effect>on</effect>
-        </lamp>
-        <lamp frame="gframe3">
-          <id>H3-R</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe4">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-      </head>
-      <eventid>05.01.01.01.22.00.01.21</eventid>
-      <name>Approach</name>
-    </aspect>
-    <aspect frame="gframe3">
-      <head frame="gframe1">
-        <lamp frame="gframe1">
-          <id>H3-G</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe2">
-          <id>H3-Y</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe3">
-          <id>H3-R</id>
-          <effect>on</effect>
-        </lamp>
-        <lamp frame="gframe4">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-      </head>
-      <eventid>05.01.01.01.22.00.01.22</eventid>
-      <name>Stop</name>
-    </aspect>
-    <description>S1MN</description>
-  </mast>
-  <mast frame="mast3">
-    <aspect frame="gframe1">
-      <head frame="gframe1">
-        <lamp frame="gframe1">
-          <id>H4-G</id>
-          <effect>on</effect>
-        </lamp>
-        <lamp frame="gframe2">
-          <id>H4-Y</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe3">
-          <id>H4-R</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe4">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-      </head>
-      <eventid>05.01.01.01.22.00.01.30</eventid>
-      <name>Clear</name>
-    </aspect>
-    <aspect frame="gframe2">
-      <head frame="gframe1">
-        <lamp frame="gframe1">
-          <id>H4-G</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe2">
-          <id>H4-Y</id>
-          <effect>on</effect>
-        </lamp>
-        <lamp frame="gframe3">
-          <id>H4-R</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe4">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-      </head>
-      <eventid>05.01.01.01.22.00.01.31</eventid>
-      <name>Approach</name>
-    </aspect>
-    <aspect frame="gframe3">
-      <head frame="gframe1">
-        <lamp frame="gframe1">
-          <id>H4-G</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe2">
-          <id>H4-Y</id>
-          <effect>off</effect>
-        </lamp>
-        <lamp frame="gframe3">
-          <id>H4-R</id>
-          <effect>on</effect>
-        </lamp>
-        <lamp frame="gframe4">
-          <id>None</id>
-          <effect>off</effect>
-        </lamp>
-      </head>
-      <eventid>05.01.01.01.22.00.01.32</eventid>
-      <name>Stop</name>
-    </aspect>
-    <description>S1IN</description>
-  </mast>
+<mast>
+  <description>S1S</description>
+  <aspect>
+    <eventid>05.01.01.01.22.00.01.10</eventid>
+    <name>Clear</name>
+    <head>
+      <lamp>
+        <id>H1-G</id>
+        <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>H1-Y</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H1-R</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
+    </head>
+    <head>
+      <lamp>
+        <id>H2-G</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H2-Y</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H2-R</id>
+        <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
+    </head>
+  </aspect>
+  <aspect>
+    <eventid>05.01.01.01.22.00.01.11</eventid>
+    <name>Approach</name>
+    <head>
+      <lamp>
+        <id>H1-G</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H1-Y</id>
+        <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>H1-R</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
+    </head>
+    <head>
+      <lamp>
+        <id>H2-G</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H2-Y</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H2-R</id>
+        <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
+    </head>
+  </aspect>
+  <aspect>
+    <eventid>05.01.01.01.22.00.01.12</eventid>
+    <name>Approach Limited</name>
+    <head>
+      <lamp>
+        <id>H1-G</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H1-Y</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H1-R</id>
+        <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
+    </head>
+    <head>
+      <lamp>
+        <id>H2-G</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H2-Y</id>
+        <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>H2-R</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
+    </head>
+  </aspect>
+  <aspect>
+    <eventid>05.01.01.01.22.00.01.13</eventid>
+    <name>Stop</name>
+    <head>
+      <lamp>
+        <id>H1-G</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H1-Y</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H1-R</id>
+        <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
+    </head>
+    <head>
+      <lamp>
+        <id>H2-G</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H2-Y</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H2-R</id>
+        <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
+    </head>
+  </aspect>
+</mast>
+<mast>
+  <description>S1MN</description>
+  <aspect>
+    <eventid>05.01.01.01.22.00.01.20</eventid>
+    <name>Clear</name>
+    <head>
+      <lamp>
+        <id>H3-G</id>
+        <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>H3-Y</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H3-R</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
+    </head>
+  </aspect>
+  <aspect>
+    <eventid>05.01.01.01.22.00.01.21</eventid>
+    <name>Approach</name>
+    <head>
+      <lamp>
+        <id>H3-G</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H3-Y</id>
+        <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>H3-R</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
+    </head>
+  </aspect>
+  <aspect>
+    <eventid>05.01.01.01.22.00.01.22</eventid>
+    <name>Stop</name>
+    <head>
+      <lamp>
+        <id>H3-G</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H3-Y</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H3-R</id>
+        <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
+    </head>
+  </aspect>
+</mast>
+<mast>
+  <description>S1IN</description>
+  <aspect>
+    <eventid>05.01.01.01.22.00.01.30</eventid>
+    <name>Clear</name>
+    <head>
+      <lamp>
+        <id>H4-G</id>
+        <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>H4-Y</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H4-R</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
+    </head>
+  </aspect>
+  <aspect>
+    <eventid>05.01.01.01.22.00.01.31</eventid>
+    <name>Approach</name>
+    <head>
+      <lamp>
+        <id>H4-G</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H4-Y</id>
+        <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>H4-R</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
+    </head>
+  </aspect>
+  <aspect>
+    <eventid>05.01.01.01.22.00.01.32</eventid>
+    <name>Stop</name>
+    <head>
+      <lamp>
+        <id>H4-G</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H4-Y</id>
+        <effect>off</effect>
+      </lamp>
+      <lamp>
+        <id>H4-R</id>
+        <effect>on</effect>
+      </lamp>
+      <lamp>
+        <id>None</id>
+        <effect>off</effect>
+      </lamp>
+    </head>
+  </aspect>
+</mast>
 </OpenLCB_QuadSignal>
