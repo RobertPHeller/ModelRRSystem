@@ -123,7 +123,7 @@
   </aspect>
   <aspect>
     <eventid>05.01.01.01.22.00.02.11</eventid>
-    <name>Stop</name>
+    <name>Approach</name>
     <head>
       <lamp>
         <id>H2-G</id>
@@ -131,7 +131,7 @@
       </lamp>
       <lamp>
         <id>H2-Y</id>
-        <effect>off</effect>
+        <effect>on</effect>
       </lamp>
       <lamp>
         <id>H2-R</id>
@@ -163,7 +163,7 @@
   </aspect>
   <aspect>
     <eventid>05.01.01.01.22.00.02.12</eventid>
-    <name>Stop</name>
+    <name>Approach Limited</name>
     <head>
       <lamp>
         <id>H2-G</id>
