@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 10 15:47:38 2018
-//  Last Modified : <180510.1702>
+//  Last Modified : <180510.1857>
 //
 //  Description	
 //
@@ -47,12 +47,16 @@
  * simple interchange between two rail lines that meet at a level crossing.
  * The layout module is shown here:
  * @image html CrossingInterchange_Small.png
- * @image latex CrossingInterchange.png "Crossing Interchange Layout" width=4in
+ * @image latex CrossingInterchange.png "Crossing Interchange Layout" height=3.25in
  * @latexonly
  * \footnote{There is an XTrkCAD file, named \texttt{CrossingInterchange.xtc},
  * and a PDF file, named \texttt{CrossingInterchange.pdf}, in the examples
  * distribution directory.}
  * @endlatexonly
+ * @htmlonly
+ * <h4 style="text-align:center;">Crossing Interchange Layout</h4>
+ * <br clear="all" />
+ * @endhtmlonly
  * 
  * We will control the two turnouts with a SMCSenseHAT.  This board uses 4
  * GPIO pins on the Raspberry Pi, two to set the motors and two to sense the
@@ -83,26 +87,78 @@
  * boards.
  *  - 3 @b QuadSignalCA @b HATs to light the 12 signal heads.
  * 
+ * The @b SMCSenseHAT is hardwired to use Wiring Pi pins 0, 1, 2, and 3 (BCM 
+ * pins 17, 18, 27, and 22).  The PiGPIO XML file included with this example, 
+ * maps Motor 1 (pin 0 for motor control and pind 2 for point sense) to SW1 
+ * and motor 2 (pin 1 for motor control and pin 3 for point sense) to SW2.
+ * 
  * The @b SMCSenseHAT is connected as shown here:
  * @image html CrossingInterchange_SMCSenseHAT_Small.png
- * @image latex CrossingInterchange_SMCSenseHAT.png "Connecting the SMCSenseHAT" width=4in
+ * @image latex CrossingInterchange_SMCSenseHAT.png "Connecting the SMCSenseHAT" height=3.5in
+ * @htmlonly
+ * <h4 style="text-align:center;">Connecting the SMCSenseHAT</h4>
+ * <br clear="all" />
+ * @endhtmlonly
  * 
  * The @b Adafruit @b Perma-Proto @b HAT is wired as shown below.  The only 
  * components installed on this board are a pair of 6 position screw terminals.
  * It is possible to use a board that simply has screw terminals for the GPIO
  * pins (like the Adafruit Pi-EzConnect Terminal Block Breakout HAT) instead 
- * of wiring up a board like this.
- * @image html CrossingInterchange_OccupencyHAT_Small.jpg 
- * @image latex CrossingInterchange_OccupencyHAT.jpg "Wiring and connecting the @b Adafruit @b Perma-Proto @b HAT." width=4in
+ * of wiring up a board like this.  The PiGPIO XML file included with this 
+ * example maps the GPIO pins like this:
+ *  - WPi 4 (BCM 23) to OS2
+ *  - WPi 5 (BCM 24) to Main One
+ *  - WPi 6 (BCM 25) to Crossing OS
+ *  - WPi 7 (BCM 4) to OS1
+ *  - WPi 21 (BCM 5) to Interchange
+ *  - WPi 22 (BCM 6) to Main Two
+ *  - WPi 23 (BCM 13) to Main One West
+ *  - WPi 26 (BCM 12) to Main Two South
  * 
- * The 3 @b QuadSignalCA @b HATs are wired as shown below. Be sure to note the
- * address jumpers on these boards.
+ * This is how the GPIOs are wired:
+ * @image html CrossingInterchange_OccupencyHAT_Small.jpg 
+ * @image latex CrossingInterchange_OccupencyHAT.jpg "Wiring and connecting the Adafruit Perma-Proto HAT." height=3in
+ * @htmlonly
+ * <h4 style="text-align:center;">Wiring and connecting the Adafruit Perma-Proto HAT.</h4>
+ * <br clear="all" />
+ * @endhtmlonly
+ * 
+ * The QuadSignal XML files included with this example maps the signals like 
+ * this:
+ *  - First board (i2c address 0): 
+ *    - S1S H1 and H2
+ *    - S1MN H3
+ *    - S1IN H4
+ *  - Second board (i2c address 1):
+ *    - S2ME H1
+ *    - S2W  H2 and H3
+ *    - S2IE H4
+ *  - Third board (i2c address 2):
+ *    - S3W  H1
+ *    - S3N  H2
+ *    - S3E  H3
+ *    - S3S  H4
+ *
+ * This is how the @b QuadSignalCA @b HATs are wired (be sure to take note of 
+ * the address jumpers):
  * @image html CrossingInterchange_CP1Signals_Small.png
- * @image latex CrossingInterchange_CP1Signals.png "Connecting the signals at Control Point 1." width=4in
+ * @image latex CrossingInterchange_CP1Signals.png "Connecting the signals at Control Point 1." height=2.75in
+ * @htmlonly
+ * <h4 style="text-align:center;">Connecting the signals at Control Point 1.</h4>
+ * <br clear=="all" />
+ * @endhtmlonly
  * @image html CrossingInterchange_CP2Signals_Small.png
- * @image latex CrossingInterchange_CP2Signals.png "Connecting the signals at Control Point 2." width=4in
+ * @image latex CrossingInterchange_CP2Signals.png "Connecting the signals at Control Point 2." height=2.75in
+ * @htmlonly
+ * <h4 style="text-align:center;">Connecting the signals at Control Point 3.</h4>
+ * <br clear=="all" />
+ * @endhtmlonly
  * @image html CrossingInterchange_CP3Signals_Small.png
- * @image latex CrossingInterchange_CP3Signals.png "Connecting the signals at Control Point 3." width=4in
+ * @image latex CrossingInterchange_CP3Signals.png "Connecting the signals at Control Point 3." height=2.75in
+ * @htmlonly
+ * <h4 style="text-align:center;">Connecting the signals at Control Point 3.</h4>
+ * <br clear=="all" />
+ * @endhtmlonly
  *
  */
 
