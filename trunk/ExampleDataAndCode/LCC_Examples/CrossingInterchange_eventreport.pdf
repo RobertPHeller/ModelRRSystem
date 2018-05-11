@@ -1,0 +1,339 @@
+%PDF-1.4
+%едц
+4 0 obj
+<</Type /Page
+/Parent 2 0 R
+/Resources 3 0 R
+/MediaBox [0 0 612 792]
+/Contents [5 0 R ]
+>>
+endobj
+
+5 0 obj
+<<
+/Length 6 0 R
+>>
+stream
+/Courier 12 Tf
+0 Tr
+12 TL
+BT
+1 0 0 1 36 756 Tm
+(Event export of CrossingInterchange.tcl Events.   Page 1) Tj
+1 0 0 1 36 732 Tm
+/Courier 12 Tf
+0 Tr
+12 TL
+1 0 0 1 36 732 Tm
+(Event ID                  P/C        Details...) Tj
+1 0 0 1 36 708 Tm
+1 0 0 1 36 708 Tm
+(05.01.01.01.22.00.00.01   CONSUMED   {Switch SW1 -occupiedeventid}       ) Tj
+1 0 0 1 36 696 Tm
+1 0 0 1 36 696 Tm
+(05.01.01.01.22.00.00.02   CONSUMED   {Switch SW1 -notoccupiedeventid}    ) Tj
+1 0 0 1 36 684 Tm
+1 0 0 1 36 684 Tm
+(05.01.01.01.22.00.00.03   CONSUMED   {Switch SW2 -occupiedeventid}       ) Tj
+1 0 0 1 36 672 Tm
+1 0 0 1 36 672 Tm
+(05.01.01.01.22.00.00.04   CONSUMED   {Switch SW2 -notoccupiedeventid}    ) Tj
+1 0 0 1 36 660 Tm
+1 0 0 1 36 660 Tm
+(05.01.01.01.22.00.00.05   CONSUMED   {Block Interchange -occupiedeventid}) Tj
+1 0 0 1 36 648 Tm
+1 0 0 1 36 648 Tm
+(05.01.01.01.22.00.00.06   CONSUMED   {Block Interchange -notoccupiedevent) Tj
+1 0 0 1 36 636 Tm
+(                                     id}                                 ) Tj
+1 0 0 1 36 624 Tm
+1 0 0 1 36 624 Tm
+(05.01.01.01.22.00.00.07   CONSUMED   {Block MainOne -occupiedeventid}    ) Tj
+1 0 0 1 36 612 Tm
+1 0 0 1 36 612 Tm
+(05.01.01.01.22.00.00.08   CONSUMED   {Block MainOne -notoccupiedeventid} ) Tj
+1 0 0 1 36 600 Tm
+1 0 0 1 36 600 Tm
+(05.01.01.01.22.00.00.09   CONSUMED   {Block MainTwo -occupiedeventid}    ) Tj
+1 0 0 1 36 588 Tm
+1 0 0 1 36 588 Tm
+(05.01.01.01.22.00.00.0a   CONSUMED   {Block MainTwo -notoccupiedeventid} ) Tj
+1 0 0 1 36 576 Tm
+1 0 0 1 36 576 Tm
+(05.01.01.01.22.00.00.0b   CONSUMED   {Block Crossing -occupiedeventid}   ) Tj
+1 0 0 1 36 564 Tm
+1 0 0 1 36 564 Tm
+(05.01.01.01.22.00.00.0c   CONSUMED   {Block Crossing -notoccupiedeventid}) Tj
+1 0 0 1 36 552 Tm
+1 0 0 1 36 552 Tm
+(05.01.01.01.22.00.00.0d   CONSUMED   {Block MainOneWest -occupiedeventid}) Tj
+1 0 0 1 36 540 Tm
+1 0 0 1 36 540 Tm
+(05.01.01.01.22.00.00.0e   CONSUMED   {Block MainOneWest -notoccupiedevent) Tj
+1 0 0 1 36 528 Tm
+(                                     id}                                 ) Tj
+1 0 0 1 36 516 Tm
+1 0 0 1 36 516 Tm
+(05.01.01.01.22.00.00.0f   CONSUMED   {Block MainTwoSouth -occupiedeventid) Tj
+1 0 0 1 36 504 Tm
+(                                     }                                   ) Tj
+1 0 0 1 36 492 Tm
+1 0 0 1 36 492 Tm
+(05.01.01.01.22.00.00.10   CONSUMED   {Block MainTwoSouth -notoccupiedeven) Tj
+1 0 0 1 36 480 Tm
+(                                     tid}                                ) Tj
+1 0 0 1 36 468 Tm
+1 0 0 1 36 468 Tm
+(05.01.01.01.22.00.01.01   PRODUCED   {SwitchPlate SW1_Plate -normaleventi) Tj
+1 0 0 1 36 456 Tm
+(                                     d}                                  ) Tj
+1 0 0 1 36 444 Tm
+1 0 0 1 36 444 Tm
+(05.01.01.01.22.00.01.02   PRODUCED   {SwitchPlate SW1_Plate -reverseevent) Tj
+1 0 0 1 36 432 Tm
+(                                     id}                                 ) Tj
+1 0 0 1 36 420 Tm
+1 0 0 1 36 420 Tm
+(05.01.01.01.22.00.01.03   CONSUMED   {Switch SW1 -statenormaleventid} {Sw) Tj
+1 0 0 1 36 408 Tm
+(                                     itchPlate SW1_Plate -normalindonev} ) Tj
+1 0 0 1 36 396 Tm
+(                                     {SwitchPlate SW1_Plate -reverseindof) Tj
+1 0 0 1 36 384 Tm
+(                                     fev}                                ) Tj
+1 0 0 1 36 372 Tm
+1 0 0 1 36 372 Tm
+(05.01.01.01.22.00.01.04   CONSUMED   {Switch SW1 -statereverseeventid} {S) Tj
+1 0 0 1 36 360 Tm
+(                                     witchPlate SW1_Plate -normalindoffev) Tj
+1 0 0 1 36 348 Tm
+(                                     } {SwitchPlate SW1_Plate -reverseind) Tj
+1 0 0 1 36 336 Tm
+(                                     onev}                               ) Tj
+1 0 0 1 36 324 Tm
+1 0 0 1 36 324 Tm
+(05.01.01.01.22.00.01.10   CONSUMED   {Signal S1S -aspect {green red}}    ) Tj
+1 0 0 1 36 312 Tm
+1 0 0 1 36 312 Tm
+(05.01.01.01.22.00.01.11   CONSUMED   {Signal S1S -aspect {yellow red}}   ) Tj
+1 0 0 1 36 300 Tm
+1 0 0 1 36 300 Tm
+(05.01.01.01.22.00.01.12   CONSUMED   {Signal S1S -aspect {red yellow}}   ) Tj
+1 0 0 1 36 288 Tm
+1 0 0 1 36 288 Tm
+(05.01.01.01.22.00.01.13   CONSUMED   {Signal S1S -aspect {red red}}      ) Tj
+1 0 0 1 36 276 Tm
+1 0 0 1 36 276 Tm
+(05.01.01.01.22.00.01.20   CONSUMED   {Signal S1MN -aspect green}         ) Tj
+1 0 0 1 36 264 Tm
+1 0 0 1 36 264 Tm
+(05.01.01.01.22.00.01.21   CONSUMED   {Signal S1MN -aspect yellow}        ) Tj
+1 0 0 1 36 252 Tm
+1 0 0 1 36 252 Tm
+(05.01.01.01.22.00.01.22   CONSUMED   {Signal S1MN -aspect red}           ) Tj
+1 0 0 1 36 240 Tm
+1 0 0 1 36 240 Tm
+(05.01.01.01.22.00.01.30   CONSUMED   {Signal S1IN -aspect green}         ) Tj
+1 0 0 1 36 228 Tm
+1 0 0 1 36 228 Tm
+(05.01.01.01.22.00.01.31   CONSUMED   {Signal S1IN -aspect yellow}        ) Tj
+1 0 0 1 36 216 Tm
+1 0 0 1 36 216 Tm
+(05.01.01.01.22.00.01.32   CONSUMED   {Signal S1IN -aspect red}           ) Tj
+1 0 0 1 36 204 Tm
+1 0 0 1 36 204 Tm
+(05.01.01.01.22.00.02.01   PRODUCED   {SwitchPlate SW2_Plate -normaleventi) Tj
+1 0 0 1 36 192 Tm
+(                                     d}                                  ) Tj
+1 0 0 1 36 180 Tm
+1 0 0 1 36 180 Tm
+(05.01.01.01.22.00.02.02   PRODUCED   {SwitchPlate SW2_Plate -reverseevent) Tj
+1 0 0 1 36 168 Tm
+(                                     id}                                 ) Tj
+1 0 0 1 36 156 Tm
+1 0 0 1 36 156 Tm
+(05.01.01.01.22.00.02.03   CONSUMED   {Switch SW2 -statenormaleventid} {Sw) Tj
+1 0 0 1 36 144 Tm
+(                                     itchPlate SW2_Plate -normalindonev} ) Tj
+1 0 0 1 36 132 Tm
+(                                     {SwitchPlate SW2_Plate -reverseindof) Tj
+1 0 0 1 36 120 Tm
+(                                     fev}                                ) Tj
+1 0 0 1 36 108 Tm
+1 0 0 1 36 108 Tm
+(05.01.01.01.22.00.02.04   CONSUMED   {Switch SW2 -statereverseeventid} {S) Tj
+1 0 0 1 36 96 Tm
+(                                     witchPlate SW2_Plate -normalindoffev) Tj
+1 0 0 1 36 84 Tm
+(                                     } {SwitchPlate SW2_Plate -reverseind) Tj
+1 0 0 1 36 72 Tm
+(                                     onev}                               ) Tj
+1 0 0 1 36 60 Tm
+
+ET
+
+endstream
+endobj
+
+6 0 obj
+6093
+endobj
+
+7 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/Name /Courier
+/BaseFont /Courier
+>>
+endobj
+8 0 obj
+<</Type /Page
+/Parent 2 0 R
+/Resources 3 0 R
+/MediaBox [0 0 612 792]
+/Contents [9 0 R ]
+>>
+endobj
+
+9 0 obj
+<<
+/Length 10 0 R
+>>
+stream
+/Courier 12 Tf
+0 Tr
+12 TL
+BT
+1 0 0 1 36 756 Tm
+(Event export of CrossingInterchange.tcl Events.   Page 2) Tj
+1 0 0 1 36 732 Tm
+/Courier 12 Tf
+0 Tr
+12 TL
+1 0 0 1 36 732 Tm
+(Event ID                  P/C        Details...) Tj
+1 0 0 1 36 708 Tm
+1 0 0 1 36 708 Tm
+(05.01.01.01.22.00.02.10   CONSUMED   {Signal S2W -aspect {green red}}    ) Tj
+1 0 0 1 36 696 Tm
+1 0 0 1 36 696 Tm
+(05.01.01.01.22.00.02.11   CONSUMED   {Signal S2W -aspect {yellow red}}   ) Tj
+1 0 0 1 36 684 Tm
+1 0 0 1 36 684 Tm
+(05.01.01.01.22.00.02.12   CONSUMED   {Signal S2W -aspect {red yellow}}   ) Tj
+1 0 0 1 36 672 Tm
+1 0 0 1 36 672 Tm
+(05.01.01.01.22.00.02.13   CONSUMED   {Signal S2W -aspect {red red}}      ) Tj
+1 0 0 1 36 660 Tm
+1 0 0 1 36 660 Tm
+(05.01.01.01.22.00.02.20   CONSUMED   {Signal S2ME -aspect green}         ) Tj
+1 0 0 1 36 648 Tm
+1 0 0 1 36 648 Tm
+(05.01.01.01.22.00.02.21   CONSUMED   {Signal S2ME -aspect yellow}        ) Tj
+1 0 0 1 36 636 Tm
+1 0 0 1 36 636 Tm
+(05.01.01.01.22.00.02.22   CONSUMED   {Signal S2ME -aspect red}           ) Tj
+1 0 0 1 36 624 Tm
+1 0 0 1 36 624 Tm
+(05.01.01.01.22.00.02.30   CONSUMED   {Signal S2IE -aspect green}         ) Tj
+1 0 0 1 36 612 Tm
+1 0 0 1 36 612 Tm
+(05.01.01.01.22.00.02.31   CONSUMED   {Signal S2IE -aspect yellow}        ) Tj
+1 0 0 1 36 600 Tm
+1 0 0 1 36 600 Tm
+(05.01.01.01.22.00.02.32   CONSUMED   {Signal S2IE -aspect red}           ) Tj
+1 0 0 1 36 588 Tm
+1 0 0 1 36 588 Tm
+(05.01.01.01.22.00.03.10   CONSUMED   {Signal S3W -aspect green}          ) Tj
+1 0 0 1 36 576 Tm
+1 0 0 1 36 576 Tm
+(05.01.01.01.22.00.03.11   CONSUMED   {Signal S3W -aspect yellow}         ) Tj
+1 0 0 1 36 564 Tm
+1 0 0 1 36 564 Tm
+(05.01.01.01.22.00.03.12   CONSUMED   {Signal S3W -aspect red}            ) Tj
+1 0 0 1 36 552 Tm
+1 0 0 1 36 552 Tm
+(05.01.01.01.22.00.03.20   CONSUMED   {Signal S3N -aspect green}          ) Tj
+1 0 0 1 36 540 Tm
+1 0 0 1 36 540 Tm
+(05.01.01.01.22.00.03.21   CONSUMED   {Signal S3N -aspect yellow}         ) Tj
+1 0 0 1 36 528 Tm
+1 0 0 1 36 528 Tm
+(05.01.01.01.22.00.03.22   CONSUMED   {Signal S3N -aspect red}            ) Tj
+1 0 0 1 36 516 Tm
+1 0 0 1 36 516 Tm
+(05.01.01.01.22.00.03.30   CONSUMED   {Signal S3E -aspect green}          ) Tj
+1 0 0 1 36 504 Tm
+1 0 0 1 36 504 Tm
+(05.01.01.01.22.00.03.31   CONSUMED   {Signal S3E -aspect yellow}         ) Tj
+1 0 0 1 36 492 Tm
+1 0 0 1 36 492 Tm
+(05.01.01.01.22.00.03.32   CONSUMED   {Signal S3E -aspect red}            ) Tj
+1 0 0 1 36 480 Tm
+1 0 0 1 36 480 Tm
+(05.01.01.01.22.00.03.40   CONSUMED   {Signal S3S -aspect green}          ) Tj
+1 0 0 1 36 468 Tm
+1 0 0 1 36 468 Tm
+(05.01.01.01.22.00.03.41   CONSUMED   {Signal S3S -aspect yellow}         ) Tj
+1 0 0 1 36 456 Tm
+1 0 0 1 36 456 Tm
+(05.01.01.01.22.00.03.42   CONSUMED   {Signal S3S -aspect red}            ) Tj
+1 0 0 1 36 444 Tm
+
+ET
+
+endstream
+endobj
+
+10 0 obj
+2777
+endobj
+
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+
+2 0 obj
+<<
+/Type /Pages
+/Count 2
+/Kids [4 0 R 8 0 R ]
+>>
+endobj
+
+3 0 obj
+<<
+/ProcSet[/PDF /Text /ImageC]
+/Font <<
+/Courier 7 0 R
+>>
+>>
+endobj
+
+xref
+0 11
+0000000000 65535 f 
+0000009358 00000 n 
+0000009408 00000 n 
+0000009473 00000 n 
+0000000014 00000 n 
+0000000121 00000 n 
+0000006267 00000 n 
+0000006288 00000 n 
+0000006398 00000 n 
+0000006505 00000 n 
+0000009336 00000 n 
+trailer
+<<
+/Size 11
+/Root 1 0 R
+>>
+
+startxref
+9551
+%%EOF
