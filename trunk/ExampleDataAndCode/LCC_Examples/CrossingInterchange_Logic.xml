@@ -1,5 +1,5 @@
 <?xml version='1.0'?>
-<OpenLCB_Logic lastevid="05.01.01.01.22.00.00.50">
+<OpenLCB_Logic lastevid="05.01.01.01.22.00.00.7A">
   <logic frame="logic1">
     <description>S1S Stop</description>
     <v1oneventid>05.01.01.01.22.00.00.01</v1oneventid>
