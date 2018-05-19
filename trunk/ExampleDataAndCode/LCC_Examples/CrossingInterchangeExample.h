@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 10 15:47:38 2018
-//  Last Modified : <180510.1857>
+//  Last Modified : <180519.1119>
 //
 //  Description	
 //
@@ -58,11 +58,13 @@
  * <br clear="all" />
  * @endhtmlonly
  * 
+ * @section CrossingInterchangeExample_hw Hardware used.
+ * 
  * We will control the two turnouts with a SMCSenseHAT.  This board uses 4
  * GPIO pins on the Raspberry Pi, two to set the motors and two to sense the
  * state of the switch motors.
  * 
- * Signaling will be with three color single head signals and with 
+ * Signaling will be with 8 three color single head signals and with 2
  * 3 over 2 double head signals at the point entrance to the turnouts.  There
  * is a total of twelve heads and we will use three QuadSignalCA HATs and
  * common anode LED signals.
@@ -89,7 +91,7 @@
  * 
  * The @b SMCSenseHAT is hardwired to use Wiring Pi pins 0, 1, 2, and 3 (BCM 
  * pins 17, 18, 27, and 22).  The PiGPIO XML file included with this example, 
- * maps Motor 1 (pin 0 for motor control and pind 2 for point sense) to SW1 
+ * maps Motor 1 (pin 0 for motor control and pin 2 for point sense) to SW1 
  * and motor 2 (pin 1 for motor control and pin 3 for point sense) to SW2.
  * 
  * The @b SMCSenseHAT is connected as shown here:
@@ -160,6 +162,19 @@
  * <br clear=="all" />
  * @endhtmlonly
  *
+ * @section CrossingInterchangeExample_sw Software used.
+ * 
+ * This example uses these 3 OpenLCB daemons:
+ *  -# OpenLCB_QuadSignal (three instances, one for each QuadSignalDriverCA hat).
+ *  -# OpenLCB_PiGPIO (for both the SMCSenseHat and the detector inputs)
+ *  -# OpenLCB_Logic (to implement the signaling logic)
+ * 
+ * This example also uses a CTC panel created by the Dispatcher program.
+ * 
+ * Each deamon instance's configuration is taken from an XML file (included in
+ * this example's distribution directory) and the CTC panel exists as a 
+ * Tcl/Tk source file (which is also included in this example's distribution
+ * directory).
  */
 
 #endif // __CROSSINGINTERCHANGEEXAMPLE_H
