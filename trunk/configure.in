@@ -184,12 +184,6 @@ if test ${cross_compiling} = "yes"; then
 fi
 AM_PROG_LIBTOOL
 AX_PKG_DOXYGEN(1.6.0, [], [ AC_MSG_ERROR([DOXYGEN 1.6.0 is required to build.]) ])
-AC_PATH_PROG(PDFLATEX,pdflatex,/bin/true)
-AC_PATH_PROG(LATEX,latex,/bin/true)
-AC_PATH_PROG(MAKEINDEX,makeindex,/bin/true)
-AC_PATH_PROG(BIBTEX,bibtex,/bin/true)
-AC_PATH_PROG(DVIPS,dvips,/bin/true)
-AC_PATH_PROG(PS2PDF,ps2pdf,/bin/true)
 AM_GNU_GETTEXT
 case $target_os in
   macos | darwin*)
@@ -497,6 +491,7 @@ case $target_os in
     AC_SUBST(TCLKITRUN, tclkit-darwin-univ-aqua)
     AC_SUBST(KIT_EXTRA_CFLAGS,['-arch i386 -arch x86_64'])
     AC_SUBST(NEED_APP_BUNDLE,[true])
+    AC_SUBST(BINTRUE,[/usr/bin/true])
     ;;
   linux-gnu*)
     case $target_cpu in
@@ -518,6 +513,7 @@ case $target_os in
      esac
      AC_SUBST(KIT_EXTRA_CFLAGS,[])
      AC_SUBST(NEED_APP_BUNDLE,[false])
+     AC_SUBST(BINTRUE,[/bin/true])
      ;;
 
    mingw32* | winnt | windows* | cygwin)
@@ -526,6 +522,7 @@ case $target_os in
      AC_SUBST(EXEEXT, .exe)
      AC_SUBST(KIT_EXTRA_CFLAGS,[])
      AC_SUBST(NEED_APP_BUNDLE,[false])
+     AC_SUBST(BINTRUE,[/bin/true])
      ;;
    *) 
      AC_MSG_ERROR([Unsupported Operating System: $target_os])
@@ -533,6 +530,13 @@ case $target_os in
 esac
 AC_MSG_RESULT([IMG_ZIP is $IMG_ZIP and TCLKITRUN is $TCLKITRUN])
 AM_CONDITIONAL(MACOSX, test x${NEED_APP_BUNDLE} = xtrue)                        
+
+AC_PATH_PROG(PDFLATEX,pdflatex,$BINTRUE)
+AC_PATH_PROG(LATEX,latex,$BINTRUE)
+AC_PATH_PROG(MAKEINDEX,makeindex,$BINTRUE)
+AC_PATH_PROG(BIBTEX,bibtex,$BINTRUE)
+AC_PATH_PROG(DVIPS,dvips,$BINTRUE)
+AC_PATH_PROG(PS2PDF,ps2pdf,$BINTRUE)
 
 AC_MSG_CHECKING([Checking build tclkit])
 case $build_os in 
