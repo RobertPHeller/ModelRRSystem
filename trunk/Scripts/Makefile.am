@@ -45,8 +45,14 @@ else
 CMRISLAVE =
 endif
 
+if DONT_HAVE_BISONXX
+DISPATCHER =
+else
+DISPATCHER = Dispatcher
+endif
 
-SUBDIRS = Common GRSupport Dispatcher CameraScripts \
+
+SUBDIRS = Common GRSupport $(DISPATCHER) CameraScripts \
 	  CalcScripts FreightCarForwarder2 \
 	  TimeTable2 ControlSupport MainProgram GenericThrottle CMri \
 	  XPressNet NCE LocoNet RailDriverSupport Satellite CTIAcela \
