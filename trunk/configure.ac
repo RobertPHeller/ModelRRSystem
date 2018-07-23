@@ -354,6 +354,7 @@ else
 	${BUILD_DIR}/../tcl8.4.*/unix \
 	${BUILD_DIR}/../tcl8.5.*/unix \
 	/usr/share /usr/lib64 /usr/lib \
+	/System/Library/Frameworks/Tcl.framework/Versions/8.5"
   for i in $dirs ; do
     if test -d "$i" -a -f "$i/tclConfig.sh"; then
 	TCL_LIB_DIR=`cd $i; pwd`
