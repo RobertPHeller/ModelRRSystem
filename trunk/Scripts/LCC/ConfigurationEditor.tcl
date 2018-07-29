@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <170312.1645>
+#  Last Modified : <180729.1510>
 #
 #  Description	
 #
@@ -1775,8 +1775,8 @@ namespace eval lcc {
                 lappend data [expr {($value >> $shift) & 0xFF}]
             }
             set retdata [$self _writememory $space $address $data]
-            if {[llength $retdata] == 1} {
-                if {$retdata == 0} {
+            if {[llength $retdata] <= 1} {
+                if {$retdata eq {} || $retdata == 0} {
                     ## OK
                     return
                 } else {
@@ -1845,8 +1845,8 @@ namespace eval lcc {
                 lappend data [expr {($value >> $shift) & 0xFF}]
             }
             set retdata [$self _writememory $space $address $data]
-            if {[llength $retdata] == 1} {
-                if {$retdata == 0} {
+            if {[llength $retdata] <= 1} {
+                if {$retdata eq {} || $retdata == 0} {
                     ## OK
                     return
                 } else {
@@ -1935,8 +1935,8 @@ namespace eval lcc {
                 if {$remain > 64} {set remain 64}
                 set a [expr {$address + $off}]
                 set retdata [$self _writememory $space $a [lrange $fulldata $off [expr {($off + $remain) - 1}]]]
-                if {[llength $retdata] == 1} {
-                    if {$retdata == 0} {
+                if {[llength $retdata] <= 1} {
+                    if {$retdata eq {} || $retdata == 0} {
                         ## OK
                         continue
                     } else {
@@ -2019,8 +2019,8 @@ namespace eval lcc {
                 if {$remain > 64} {set remain 64}
                 set a [expr {$address + $off}]
                 set retdata [$self _writememory $space $a [lrange $fulldata $off [expr {($off + $remain) - 1}]]]
-                if {[llength $retdata] == 1} {
-                    if {$retdata == 0} {
+                if {[llength $retdata] <= 1} {
+                    if {$retdata eq {} || $retdata == 0} {
                         ## OK
                         continue
                     } else {
@@ -2088,8 +2088,8 @@ namespace eval lcc {
             set evid [lcc::EventID %AUTO% -eventidstring $valuemap([$widget get])]
             set data [$evid cget -eventidlist]
             set retdata [$self _writememory $space $address $data]
-            if {[llength $retdata] == 1} {
-                if {$retdata == 0} {
+            if {[llength $retdata] <= 1} {
+                if {$retdata eq {} || $retdata == 0} {
                     ## OK
                     return
                 } else {
@@ -2149,8 +2149,8 @@ namespace eval lcc {
             set evid [lcc::EventID %AUTO% -eventidstring [$widget get]]
             set data [$evid cget -eventidlist]
             set retdata [$self _writememory $space $address $data]
-            if {[llength $retdata] == 1} {
-                if {$retdata == 0} {
+            if {[llength $retdata] <= 1} {
+                if {$retdata eq {} || $retdata == 0} {
                     ## OK
                     return
                 } else {
@@ -2164,7 +2164,7 @@ namespace eval lcc {
                     if {$c == 0} {break}
                     append errormessage [format %c $c]
                 }
-            }
+            } 
             tk_messageBox -type ok -icon error \
                   -message [_ "There was an error: %d (%s)" \
                             $errorcode $errormessage]
