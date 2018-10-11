@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Aug 17 10:46:46 2017
-#  Last Modified : <171130.1426>
+#  Last Modified : <181011.1406>
 #
 #  Description	
 #
@@ -50,6 +50,7 @@ snit::type XmlConfiguration {
     option -copyfromcallback -default {} -readonly yes
     option -eventidgenerator -default {}
     variable xml
+    method getrawxml {} {return $xml}
     constructor {confXML args} {
         if {[catch {ParseXML create %AUTO% $confXML} xml]} {
             error [_ "Could not parse configuration %s:" $xml]
@@ -260,6 +261,29 @@ snit::type XmlConfiguration {
         return $result
     }
     variable guicount 0
+    method createGUINoNoteBook {parentWidget itemconf} {
+        incr guicount
+        set fr config${guicount}
+        set f [$itemconf attribute frame]
+        if {$f eq {}} {
+            set attrs [$itemconf cget -attributes]
+            lappend attrs frame $fr
+            $itemconf configure -attributes $attrs
+        } else {
+            set attrs [$itemconf cget -attributes]
+            set findx [lsearch -exact $attrs frame]
+            incr findx
+            set attrs [lreplace $attrs $findx $findx $fr]
+            $itemconf configure -attributes $attrs
+        }
+        set frame [ttk::frame $parentWidget.$fr]
+        set configuration [lindex [$xml getElementsByTagName "configure"] 0]
+        foreach n [$configuration children] {
+            #puts stderr "*** $self createGUI: n is $n"
+            $self _create1GUI $frame $n $itemconf
+        }
+        return $frame
+    }
     method createGUI {parentWidget key parentconf itemconf dellabel \
               addtoparent delfromparent} {
         #puts stderr "*** $self createGUI $parentWidget $key $parentconf $itemconf \"$dellabel\" \"$addtoparent\" \"$delfromparent\""
@@ -446,26 +470,35 @@ snit::type XmlConfiguration {
                         $c configure -attributes $attrs
                     }
                     set gframe [ttk::frame $groupnotebook.$gfr]
-                    $groupnotebook add $gframe \
-                          -text [format "%s %d" $repname $gcount] -sticky news
+                    if {$mincount != 1 && $maxcount != 1} {
+                        $groupnotebook add $gframe \
+                              -text [format "%s %d" $repname $gcount] -sticky news
+                    } else {
+                        $groupnotebook add $gframe \
+                              -text [format "%s" $repname] -sticky news
+                    }
                     foreach n1 [$n children] {
                         $self _create1GUI $gframe $n1 $c
                     }
-                    set delgui [ttk::button $gframe.deletegui \
-                                -text [_m "Label|Delete %s" $repname] \
-                                -command [mymethod _deleteGui $itemconf \
-                                          $groupnotebook $c \
-                                          [mymethod _deleteGroupGUI $frame.add$repname $groupnotebook $n $itemconf]]]
-                    pack $delgui -fill x -expand yes
+                    if {$mincount != $maxcount} {
+                        set delgui [ttk::button $gframe.deletegui \
+                                    -text [_m "Label|Delete %s" $repname] \
+                                    -command [mymethod _deleteGui $itemconf \
+                                              $groupnotebook $c \
+                                              [mymethod _deleteGroupGUI $frame.add$repname $groupnotebook $n $itemconf]]]
+                        pack $delgui -fill x -expand yes
+                    }
                 }
                 # Add group replication...
                 #puts stderr "*** $self _create1GUI (group branch): frame = $frame, repname = $repname"
-                set addgui [ttk::button $frame.add$repname \
-                            -text [_m "Label|Add %s" $repname] \
-                            -command [mymethod _addGui $n $itemconf \
-                                      $groupnotebook]]
-                if {$gcount < $maxcount} {
-                    pack $addgui -fill x -expand yes
+                if {$mincount != $maxcount} {
+                    set addgui [ttk::button $frame.add$repname \
+                                -text [_m "Label|Add %s" $repname] \
+                                -command [mymethod _addGui $n $itemconf \
+                                          $groupnotebook]]
+                    if {$gcount < $maxcount} {
+                        pack $addgui -fill x -expand yes
+                    }
                 }
             }
             custom {
@@ -696,219 +729,322 @@ snit::type XmlConfiguration {
             }
         }
     }
+    method SampleConfiguration {parentconf} {
+        set configuration [lindex [$xml getElementsByTagName "configure"] 0]
+        foreach n [$configuration children] {
+            $self _SampleConfiguration $n $parentconf
+        }
+    }
+    method _SampleConfiguration {n cdi} {
+        set tagname [$n attribute tagname]
+        set default [$n attribute default]
+        switch [$n cget -tag] {
+            int {
+                set newtag [SimpleDOMElement %AUTO% -tag $tagname] 
+                $cdi addchild $newtag
+                set min [$n attribute min]
+                if {$min eq {}} {set min [expr {0x7fffffff * -1}]}
+                set max [$n attribute max]
+                if {$max eq {}} {set max [expr {0x7fffffff * 1}]}
+                set range [expr {$max - $min}]
+                set initval [expr {$min + int(rand()*$range)}]
+                $newtag setdata $initval
+            }
+            string {
+                set newtag [SimpleDOMElement %AUTO% -tag $tagname] 
+                $cdi addchild $newtag
+                $newtag setdata "Sample String"
+            }
+            eventid {
+                set newtag [SimpleDOMElement %AUTO% -tag $tagname] 
+                $cdi addchild $newtag
+                $newtag setdata [[$self cget -eventidgenerator] nextid]
+            }
+            enum {
+                set newtag [SimpleDOMElement %AUTO% -tag $tagname] 
+                $cdi addchild $newtag
+                set enums [$n attribute enums]
+                set ie [expr {int(rand()*[llendth $enums])}]
+                $newtag setdata [lindex $enums $ie]
+            }
+            boolean {
+                set newtag [SimpleDOMElement %AUTO% -tag $tagname] 
+                $cdi addchild $newtag
+                set val [expr {(int(rand()*2))?"true":"false"}]
+                $newtag setdata $val
+            }
+            bytebits {
+                set newtag [SimpleDOMElement %AUTO% -tag $tagname] 
+                $cdi addchild $newtag
+                set ival [expr {int(rand()*256)}]
+                set val "B"
+                for {set i 7} {$i >= 0} {incr i -1} {
+                    append val [expr {(($ival >> $i) & 1)?"1":"0"}]
+                }
+                $newtag setdata $val
+            }
+            list {
+                set newtag [SimpleDOMElement %AUTO% -tag $tagname] 
+                $cdi addchild $newtag
+                set mincount [$n attribute mincount]
+                if {$mincount eq {}} {set mincount 1}
+                set maxcount [$n attribute maxcount]
+                if {$maxcount eq {}} {set maxcount 1}
+                if {$maxcount eq "unlimited"} {set maxcount 0x7fffffff}
+                set eletype [$n attribute eletype]
+                set range [expr {$maxcount - $mincount}]
+                set len [expr {$mincount + int(rand()*$range)}]
+                set l [list]
+                for {set i 0} {$i < $len} {incr i} {
+                    lappend l "element"
+                }
+                $newtag setdata $l
+            }
+            group {
+                set mincount [$n attribute mincount]
+                if {$mincount eq {}} {set mincount 1}
+                set maxcount [$n attribute maxcount]
+                if {$maxcount eq {}} {set maxcount 1}
+                if {$maxcount eq "unlimited"} {set maxcount 0x7fffffff}
+                set range [expr {$maxcount - $mincount}]
+                set len [expr {$mincount + int(rand()*$range)}]
+                for {set i 0} {$i < $len} {incr i} {
+                    set newtag [SimpleDOMElement %AUTO% -tag $tagname] 
+                    $cdi addchild $newtag
+                    foreach c [$n children] {
+                        $self _SampleConfiguration $c $newtag
+                    }
+                }
+            }
+            custom {
+            }
+            default {
+            }
+        }
+    }
 }
 
 namespace eval OpenLCB_Common {}
 
-snit::macro OpenLCB_Common::transportProcs {} {
+snit::macro OpenLCB_Common::transportProcs {{getprocs yes} {guiprocs yes}} {
     typevariable    transconstructorname {};# transport constructor
     typevariable    transopts {};# transport options
     
-    proc getTransport {transcons transportConstructorVar transportOptsVar} {
-        upvar $transportConstructorVar transportConstructor
-        upvar $transportOptsVar transportOpts
-        
-        set constructor [$transcons getElementsByTagName "constructor"]
-        if {$constructor eq {}} {
-            ::log::logError [_ "Transport constructor missing!"]
-            exit 97
-        }
-        set options [$transcons getElementsByTagName "options"]
-        set transportOpts {}
-        if {$options ne {}} {
-            set transportOpts [$options data]
-        } else {
-            ::log::log debug "getTransport: no options."
-        }
-    
-        set transportConstructors [info commands ::lcc::[$constructor data]]
-        if {[llength $transportConstructors] > 0} {
-            set transportConstructor [lindex $transportConstructors 0]
-        }
-        if {$transportConstructor eq {}} {
-            ::log::logError [_ "No valid transport constructor found!"]
-            exit 96
-        }
-    }
-    proc SampleTransport {cdi} {
-        set transcons [SimpleDOMElement %AUTO% -tag "transport"]
-        $cdi addchild $transcons
-        set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
-        $transcons addchild $constructor
-        $constructor setdata "CANGridConnectOverTcp"
-        set transportopts [SimpleDOMElement %AUTO% -tag "options"]
-        $transcons addchild $transportopts
-        $transportopts setdata {-port 12021 -nid 05:01:01:01:22:00 -host localhost}
-    }
-    proc TransportGUI {frame cdi} {
-        set transconsframe [ttk::labelframe $frame.transportconstuctor \
-                            -labelanchor nw -text [_m "Label|Transport"]]
-        pack $transconsframe -fill x -expand yes
-        set transconstructor [LabelFrame $transconsframe.transconstructor \
-                              -text [_m "Label|Constructor"]]
-        pack $transconstructor -fill x -expand yes
-        set cframe [$transconstructor getframe]
-        set transcname [ttk::entry $cframe.transcname \
-                        -state readonly \
-                        -textvariable [mytypevar transconstructorname]]
-        pack $transcname -side left -fill x -expand yes
-        set transcnamesel [ttk::button $cframe.transcnamesel \
-                           -text [_m "Label|Select"] \
-                           -command [myproc _seltransc]]
-        pack $transcnamesel -side right
-        set transoptsframe [LabelFrame $transconsframe.transoptsframe \
-                              -text [_m "Label|Constructor Opts"]]
-        pack $transoptsframe -fill x -expand yes
-        set oframe [$transoptsframe getframe]
-        set transoptsentry [ttk::entry $oframe.transoptsentry \
-                        -state readonly \
-                        -textvariable [mytypevar transopts]]
-        pack $transoptsentry -side left -fill x -expand yes
-        set tranoptssel [ttk::button $oframe.tranoptssel \
-                         -text [_m "Label|Select"] \
-                         -command [myproc _seltransopt]]
-        pack $tranoptssel -side right
-        
-        set transcons [$cdi getElementsByTagName "transport"]
-        if {[llength $transcons] == 1} {
+    if {$getprocs} {
+        proc getTransport {transcons transportConstructorVar transportOptsVar} {
+            upvar $transportConstructorVar transportConstructor
+            upvar $transportOptsVar transportOpts
+            
             set constructor [$transcons getElementsByTagName "constructor"]
-            if {[llength $constructor] == 1} {
-                set transconstructorname [$constructor data]
+            if {$constructor eq {}} {
+                ::log::logError [_ "Transport constructor missing!"]
+                exit 97
             }
-            set coptions [$transcons getElementsByTagName "options"]
-            if {[llength $coptions] == 1} {
-                set transopts [$coptions data]
+            set options [$transcons getElementsByTagName "options"]
+            set transportOpts {}
+            if {$options ne {}} {
+                set transportOpts [$options data]
+            } else {
+                ::log::log debug "getTransport: no options."
             }
-        }
-    }
-    proc CopyTransFromGUI {cdi} {
-        set transcons [$cdi getElementsByTagName "transport"]
-        if {[llength $transcons] < 1} {
-            set transcons [SimpleDOMElement %AUTO% -tag "transport"]
-            $cdi addchild $transcons
-        }
-        set constructor [$transcons getElementsByTagName "constructor"]
-        if {[llength $constructor] < 1} {
-            set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
-            $transcons addchild $constructor
-        }
-        $constructor setdata $transconstructorname
-        set coptions [$transcons getElementsByTagName "options"]
-        if {[llength $coptions] < 1} {
-            set coptions [SimpleDOMElement %AUTO% -tag "options"]
-            $transcons addchild $coptions
-        }
-        $coptions setdata $transopts
-    }
-    proc _seltransc {} {
-        #** Select a transport constructor.
-        
-        set result [lcc::OpenLCBNode selectTransportConstructor]
-        if {$result ne {}} {
-            if {$result ne $transconstructorname} {set transopts {}}
-            set transconstructorname [namespace tail $result]
-        }
-    }
-    proc _seltransopt {} {
-        #** Select transport constructor options.
-        
-        if {$transconstructorname ne ""} {
-            set transportConstructors [info commands ::lcc::$transconstructorname]
-            puts stderr "*** _seltransopt: transportConstructors is $transportConstructors"
+            
+            set transportConstructors [info commands ::lcc::[$constructor data]]
             if {[llength $transportConstructors] > 0} {
                 set transportConstructor [lindex $transportConstructors 0]
             }
-            if {$transportConstructor ne {}} {
-                set optsdialog [list $transportConstructor \
-                                drawOptionsDialog]
-                foreach x $transopts {lappend optsdialog $x}
-                set transportOpts [eval $optsdialog]
-                if {$transportOpts ne {}} {
-                    set transopts $transportOpts
+            if {$transportConstructor eq {}} {
+                ::log::logError [_ "No valid transport constructor found!"]
+                exit 96
+            }
+        }
+    }
+    if {$guiprocs} {
+        proc SampleTransport {cdi} {
+            set transcons [SimpleDOMElement %AUTO% -tag "transport"]
+            $cdi addchild $transcons
+            set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
+            $transcons addchild $constructor
+            $constructor setdata "CANGridConnectOverTcp"
+            set transportopts [SimpleDOMElement %AUTO% -tag "options"]
+            $transcons addchild $transportopts
+            $transportopts setdata {-port 12021 -nid 05:01:01:01:22:00 -host localhost}
+        }
+        proc TransportGUI {frame cdi} {
+            set transconsframe [ttk::labelframe $frame.transportconstuctor \
+                                -labelanchor nw -text [_m "Label|Transport"]]
+            pack $transconsframe -fill x -expand yes
+            set transconstructor [LabelFrame $transconsframe.transconstructor \
+                                  -text [_m "Label|Constructor"]]
+            pack $transconstructor -fill x -expand yes
+            set cframe [$transconstructor getframe]
+            set transcname [ttk::entry $cframe.transcname \
+                            -state readonly \
+                            -textvariable [mytypevar transconstructorname]]
+            pack $transcname -side left -fill x -expand yes
+            set transcnamesel [ttk::button $cframe.transcnamesel \
+                               -text [_m "Label|Select"] \
+                               -command [myproc _seltransc]]
+            pack $transcnamesel -side right
+            set transoptsframe [LabelFrame $transconsframe.transoptsframe \
+                                -text [_m "Label|Constructor Opts"]]
+            pack $transoptsframe -fill x -expand yes
+            set oframe [$transoptsframe getframe]
+            set transoptsentry [ttk::entry $oframe.transoptsentry \
+                                -state readonly \
+                                -textvariable [mytypevar transopts]]
+            pack $transoptsentry -side left -fill x -expand yes
+            set tranoptssel [ttk::button $oframe.tranoptssel \
+                             -text [_m "Label|Select"] \
+                             -command [myproc _seltransopt]]
+            pack $tranoptssel -side right
+            
+            set transcons [$cdi getElementsByTagName "transport"]
+            if {[llength $transcons] == 1} {
+                set constructor [$transcons getElementsByTagName "constructor"]
+                if {[llength $constructor] == 1} {
+                    set transconstructorname [$constructor data]
+                }
+                set coptions [$transcons getElementsByTagName "options"]
+                if {[llength $coptions] == 1} {
+                    set transopts [$coptions data]
+                }
+            }
+        }
+        proc CopyTransFromGUI {cdi} {
+            set transcons [$cdi getElementsByTagName "transport"]
+            if {[llength $transcons] < 1} {
+                set transcons [SimpleDOMElement %AUTO% -tag "transport"]
+                $cdi addchild $transcons
+            }
+            set constructor [$transcons getElementsByTagName "constructor"]
+            if {[llength $constructor] < 1} {
+                set constructor [SimpleDOMElement %AUTO% -tag "constructor"]
+                $transcons addchild $constructor
+            }
+            $constructor setdata $transconstructorname
+            set coptions [$transcons getElementsByTagName "options"]
+            if {[llength $coptions] < 1} {
+                set coptions [SimpleDOMElement %AUTO% -tag "options"]
+                $transcons addchild $coptions
+            }
+            $coptions setdata $transopts
+        }
+    }
+    if {$getprocs} {
+        proc _seltransc {} {
+            #** Select a transport constructor.
+            
+            set result [lcc::OpenLCBNode selectTransportConstructor]
+            if {$result ne {}} {
+                if {$result ne $transconstructorname} {set transopts {}}
+                set transconstructorname [namespace tail $result]
+            }
+        }
+        proc _seltransopt {} {
+            #** Select transport constructor options.
+            
+            if {$transconstructorname ne ""} {
+                set transportConstructors [info commands ::lcc::$transconstructorname]
+                puts stderr "*** _seltransopt: transportConstructors is $transportConstructors"
+                if {[llength $transportConstructors] > 0} {
+                    set transportConstructor [lindex $transportConstructors 0]
+                }
+                if {$transportConstructor ne {}} {
+                    set optsdialog [list $transportConstructor \
+                                    drawOptionsDialog]
+                    foreach x $transopts {lappend optsdialog $x}
+                    set transportOpts [eval $optsdialog]
+                    if {$transportOpts ne {}} {
+                        set transopts $transportOpts
+                    }
                 }
             }
         }
     }
 }
 
-snit::macro OpenLCB_Common::identificationProcs {} {
+snit::macro OpenLCB_Common::identificationProcs {{getprocs yes} {guiprocs yes}} {
     typevariable    id_name {};# node name
     typevariable    id_description {};# node description
     
-    proc getIdentification {ident nodenameVar nodedescriptorVar} {
-        upvar $nodenameVar nodename
-        upvar $nodedescriptorVar nodedescriptor
-        
-        if {[llength $ident] > 0} {
-             set ident [lindex $ident 0]
-             set nodenameele [$ident getElementsByTagName "name"]
-             if {[llength $nodenameele] > 0} {
-                 set nodename [[lindex $nodenameele 0] data]
-             }
-             set nodedescriptorele [$ident getElementsByTagName "description"]
-             if {[llength $nodedescriptorele] > 0} {
-                 set nodedescriptor [[lindex $nodedescriptorele 0] data]
-             }
-        }
-    }
-    proc SampleItentification {cdi} {
-        set ident [SimpleDOMElement %AUTO% -tag "identification"]
-        $cdi addchild $ident
-        set nameele [SimpleDOMElement %AUTO% -tag "name"]
-        $ident addchild $nameele
-        $nameele setdata "Sample Name"
-        set descrele [SimpleDOMElement %AUTO% -tag "description"]
-        $ident addchild $descrele
-        $descrele setdata "Sample Description"
-    }
-    proc IdentificationGUI {frame cdi} {
-        set identificationframe [ttk::labelframe $frame.identificationframe \
-                            -labelanchor nw -text [_m "Label|Identification"]]
-        pack $identificationframe -fill x -expand yes
-        set identificationname [LabelFrame $identificationframe.identificationname \
-                                -text [_m "Label|Name"]]
-        pack $identificationname -fill x -expand yes
-        set nframe [$identificationname getframe]
-        set idname [ttk::entry $nframe.idname \
-                        -textvariable [mytypevar id_name]]
-        pack $idname -side left -fill x -expand yes
-        set identificationdescrframe [LabelFrame $identificationframe.identificationdescrframe \
-                              -text [_m "Label|Description"]]
-        pack $identificationdescrframe -fill x -expand yes
-        set dframe [$identificationdescrframe getframe]
-        set identificationdescrentry [ttk::entry $dframe.identificationdescrentry \
-                        -textvariable [mytypevar id_description]]
-        pack $identificationdescrentry -side left -fill x -expand yes
-        set ident [$cdi getElementsByTagName "identification"]
-        if {[llength $ident] == 1} {
-            set nameele [$ident getElementsByTagName "name"]
-            if {[llength $nameele] == 1} {
-                set id_name [$nameele data]
-            }
-            set descrele [$ident getElementsByTagName "description"]
-            if {[llength $descrele] == 1} {
-                set id_description [$descrele data]
+    if {$getprocs} {
+        proc getIdentification {ident nodenameVar nodedescriptorVar} {
+            upvar $nodenameVar nodename
+            upvar $nodedescriptorVar nodedescriptor
+            
+            if {[llength $ident] > 0} {
+                set ident [lindex $ident 0]
+                set nodenameele [$ident getElementsByTagName "name"]
+                if {[llength $nodenameele] > 0} {
+                    set nodename [[lindex $nodenameele 0] data]
+                }
+                set nodedescriptorele [$ident getElementsByTagName "description"]
+                if {[llength $nodedescriptorele] > 0} {
+                    set nodedescriptor [[lindex $nodedescriptorele 0] data]
+                }
             }
         }
     }
-    proc CopyIdentFromGUI {cdi} {
-        set ident [$cdi getElementsByTagName "identification"]
-        if {[llength $ident] < 1} {
+    if {$guiprocs} {
+        proc SampleItentification {cdi} {
             set ident [SimpleDOMElement %AUTO% -tag "identification"]
             $cdi addchild $ident
-        }
-        set nameele [$ident getElementsByTagName "name"]
-        if {[llength $nameele] < 1} {
             set nameele [SimpleDOMElement %AUTO% -tag "name"]
             $ident addchild $nameele
-        }
-        $nameele setdata $id_name 
-        set descrele [$ident getElementsByTagName "description"]
-        if {[llength $descrele] < 1} {
+            $nameele setdata "Sample Name"
             set descrele [SimpleDOMElement %AUTO% -tag "description"]
             $ident addchild $descrele
+            $descrele setdata "Sample Description"
         }
-        $descrele setdata $id_description
+        proc IdentificationGUI {frame cdi} {
+            set identificationframe [ttk::labelframe $frame.identificationframe \
+                                     -labelanchor nw -text [_m "Label|Identification"]]
+            pack $identificationframe -fill x -expand yes
+            set identificationname [LabelFrame $identificationframe.identificationname \
+                                    -text [_m "Label|Name"]]
+            pack $identificationname -fill x -expand yes
+            set nframe [$identificationname getframe]
+            set idname [ttk::entry $nframe.idname \
+                        -textvariable [mytypevar id_name]]
+            pack $idname -side left -fill x -expand yes
+            set identificationdescrframe [LabelFrame $identificationframe.identificationdescrframe \
+                                          -text [_m "Label|Description"]]
+            pack $identificationdescrframe -fill x -expand yes
+            set dframe [$identificationdescrframe getframe]
+            set identificationdescrentry [ttk::entry $dframe.identificationdescrentry \
+                                          -textvariable [mytypevar id_description]]
+            pack $identificationdescrentry -side left -fill x -expand yes
+            set ident [$cdi getElementsByTagName "identification"]
+            if {[llength $ident] == 1} {
+                set nameele [$ident getElementsByTagName "name"]
+                if {[llength $nameele] == 1} {
+                    set id_name [$nameele data]
+                }
+                set descrele [$ident getElementsByTagName "description"]
+                if {[llength $descrele] == 1} {
+                    set id_description [$descrele data]
+                }
+            }
+        }
+        proc CopyIdentFromGUI {cdi} {
+            set ident [$cdi getElementsByTagName "identification"]
+            if {[llength $ident] < 1} {
+                set ident [SimpleDOMElement %AUTO% -tag "identification"]
+                $cdi addchild $ident
+            }
+            set nameele [$ident getElementsByTagName "name"]
+            if {[llength $nameele] < 1} {
+                set nameele [SimpleDOMElement %AUTO% -tag "name"]
+                $ident addchild $nameele
+            }
+            $nameele setdata $id_name 
+            set descrele [$ident getElementsByTagName "description"]
+            if {[llength $descrele] < 1} {
+                set descrele [SimpleDOMElement %AUTO% -tag "description"]
+                $ident addchild $descrele
+            }
+            $descrele setdata $id_description
+        }
     }
 }
 
