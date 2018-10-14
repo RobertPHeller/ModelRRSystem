@@ -676,6 +676,7 @@ INPUT                  = @top_srcdir@/Doc/doxygen/titlepage.h \
                          @top_srcdir@/Scripts/Common/gettext.tcl \
                          @top_srcdir@/Scripts/Common/ParseXML.tcl \
                          @top_srcdir@/Scripts/Common/snitScrollNotebook.tcl \
+                         @top_srcdir@/Scripts/LinuxGpio/LinuxGpio.tcl \
                          @top_srcdir@/Scripts/ControlSupport/CmriSupport.tcl \
                          @top_srcdir@/Scripts/RailDriverSupport/raildriver_client.tcl \
                          @top_srcdir@/Scripts/GRSupport/GRSupportTclGroup.h \
