@@ -51,10 +51,15 @@ else
 DISPATCHER = Dispatcher
 endif
 
+if TARGET_IS_LINUX
+LINUXGPIO = LinuxGpio
+else
+LINUXGPIO =
+endif
 
 SUBDIRS = Common GRSupport $(DISPATCHER) CameraScripts \
 	  CalcScripts FreightCarForwarder2 \
 	  TimeTable2 ControlSupport MainProgram GenericThrottle CMri \
 	  XPressNet NCE LocoNet RailDriverSupport Satellite CTIAcela \
-	  LCC $(CMRISLAVE)
+	  LCC $(CMRISLAVE) $(LINUXGPIO)
 

@@ -269,6 +269,9 @@ case $target_os in
     ;;
 esac
 
+
+AM_CONDITIONAL(TARGET_IS_LINUX, test ${target_os} = "linux-gnu")
+
 AM_CONDITIONAL(CROSSCOMPILING,test ${cross_compiling} = "yes")
 if test ${cross_compiling} = "yes"; then
   LIB_MRR_PATCH_LEVELLIB=`echo $MRR_PATCH_LEVELLIB|sed 's/\./-/g'`
@@ -676,6 +679,7 @@ AC_CONFIG_FILES([config_tcl.sed \
 		Scripts/CTIAcela/Makefile \
 		Scripts/CMRI_Slave/Makefile \
 		Scripts/CMRI_Slave/Doxyfile \
+                Scripts/LinuxGpio/Makefile \
 	  Doc/Makefile \
 		Doc/Support/Makefile \
 		Doc/User/Makefile \

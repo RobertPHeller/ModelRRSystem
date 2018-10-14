@@ -30,6 +30,8 @@ XPressNetTcls = $(top_srcdir)/Scripts/XPressNet/xpressnet.tcl
 
 NCETcls = $(top_srcdir)/Scripts/NCE/nce.tcl
 
+LinuxGpioTcls = $(top_srcdir)/Scripts/LinuxGpio/LinuxGpio.tcl
+
 FCFSupportHeaders = $(top_srcdir)/C++/FCFSupport/FCFSupportGroup.h \
 	$(top_builddir)/C++/FCFSupport/System.h \
 	$(top_srcdir)/C++/FCFSupport/Division.h \
@@ -101,7 +103,9 @@ OTHER_TCL_INTERNALS_TCLS = $(top_srcdir)/Scripts/RailDriverSupport/raildriver_cl
 TCL_INTERNALS_TCLS = $(COMMON_TCL_INTERNALS_TCLS) \
 			$(GRSUPPORT_TCL_INTERNALS_TCLS) \
 			$(CONTROL_SUPPORT_TCL_INTERNALS_TCLS) \
-			$(SERIAL_TCL_INTERNALS_TCLS)
+			$(SERIAL_TCL_INTERNALS_TCLS) \
+			$(OTHER_TCL_INTERNALS_TCLS) \
+			$(LinuxGpioTcls)
 TCL_INTERNALS_HERE = #IntroTclInternals.tex common_part.tex grsupport_part.tex control_support_part.tex
 
 EXTRA_DIST = $(C_INTERNALS_H_HERE) tcldoxyfilter.sh.in
