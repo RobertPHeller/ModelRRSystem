@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Oct 13 21:45:14 2018
-#  Last Modified : <181013.2203>
+#  Last Modified : <181013.2326>
 #
 #  Description	
 #
@@ -54,16 +54,37 @@ namespace eval linuxgpio {
         option -direction -default in -type linuxgpio::pindirection -readonly yes
         constructor {args} {
             $self configurelist $args
+            #puts stderr "*** $type create $self: [$self configure]"
+            #puts stderr "*** $type create $self: EXPORT is $EXPORT"
             if {[catch {open $EXPORT w} exportFp]} {
                 error "Could not export pin: $exportFp"
             }
             puts $exportFp [format %d [$self cget -pinnumber]]
             close $exportFp
-            if {[catch {open [format $DIRECTIONFMT [$self cget -pinnumber]] w} dirFp]} {
+            set dirfile [format $DIRECTIONFMT [$self cget -pinnumber]]
+            set start [clock milliseconds]
+            while {true} {
+                set g [file attributes $dirfile -group]
+                #puts stderr "*** $type create $self: g is $g"
+                if {$g eq "gpio"} {break}
+            }
+            while {true} {
+                set perms [file attributes $dirfile -permissions]
+                #puts stderr "*** $type create $self: perms are $perms"
+                if {$perms eq "00770"} {break}
+            }
+            set delta [expr {[clock milliseconds] - $start}]
+            #puts stderr "*** $type create $self: delta = $delta"
+            #puts stderr "*** $type create $self: [glob {/sys/class/gpio/*}]"
+            #puts stderr "*** $type create $self: after export"
+            #puts stderr "*** $type create $self: dirfile is '$dirfile'"
+            #puts stderr "*** $type create $self: dirfile's attrs: [file attributes $dirfile]"
+            if {[catch {open $dirfile w} dirFp]} {
                 error "Could not set pin direction: $dirFp"
             }
             puts $dirFp [$self cget -direction]
             close $dirFp
+            #puts stderr "*** $type create $self: after set direction"
         }
         method read {} {
             if {[catch {open [format $VALUEFMT [$self cget -pinnumber]] r} valFp]} {
