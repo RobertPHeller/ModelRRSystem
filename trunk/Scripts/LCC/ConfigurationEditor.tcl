@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <190130.1856>
+#  Last Modified : <190130.2224>
 #
 #  Description	
 #
@@ -104,6 +104,7 @@ namespace eval lcc {
         ## Scrollable Frame
         
         option -cdi -readonly yes
+        option -layoutdb -default {}
         option -nid -readonly yes -type lcc::nid -default "05:01:01:01:22:00"
         option -transport -readonly yes -default {}
         option -displayonly -readonly yes -type snit::boolean -default false
@@ -115,8 +116,8 @@ namespace eval lcc {
         delegate option -width to editframe
         delegate option -areawidth to editframe
         
-        component layoutcontroldb
-        
+        variable layoutcontroldb
+        ## Layout control DB object
         variable cdi
         ## CDI XML Object.
         variable _ioComplete
@@ -128,9 +129,7 @@ namespace eval lcc {
         
         typevariable _menu {
             "[_m {Menu|&File}]" {file:menu} {file} 0 {
-                {command [_m "Menu|File|&Load Layout Control DB"] {file:load} "[_ {Load a Layout Control DB File}]" {Ctrl l} -command "[mymethod _loadLCDB]"}
-                {command [_m "Menu|File|&Save Layout Control DB"] {file:save} "[_ {Save a Layout Control DB File}]" {Ctrl s} -command "[mymethod _saveLCDB]"}
-                {command [_m "Menu|File|&Close"] {file:close} "[_ {Close the editor}]" {Ctrl c} -command "[mymethod _close]"}
+                {command "[_m {Menu|File|&Close}]" {file:close} "[_ {Close the editor}]" {Ctrl c} -command "[mymethod _close]"}
             } "[_m {Menu|&Edit}]" {edit} {edit} 0 {
                 {command "[_m {Menu|Edit|Cu&t}]" {edit:cut edit:havesel} "[_ {Cut selection to the paste buffer}]" {Ctrl x} -command {StdMenuBar EditCut} -state disabled}
                 {command "[_m {Menu|Edit|&Copy}]" {edit:copy edit:havesel} "[_ {Copy selection to the paste buffer}]" {Ctrl c} -command {StdMenuBar EditCopy} -state disabled}
@@ -140,64 +139,10 @@ namespace eval lcc {
                 {separator}
                 {command "[_m {Menu|Edit|Select All}]" {edit:selectall} "[_ {Select everything}]" {} -command {StdMenuBar EditSelectAll}}
                 {command "[_m {Menu|Edit|De-select All}]" {edit:deselectall edit:havesel} "[_ {Select nothing}]" {} -command {StdMenuBar EditSelectNone} -state disabled}
-                {separator}
-                {command "[_m {Menu|Edit|New Turnout}]" {edit:newTurnout} "[_ {Create new turnout}]" {} -command [mymethod _newTurnout]}
-                {command "[_m {Menu|Edit|New Block}]" {edit:newBlock} "[_ {Create new block}]" {} -command [mymethod _newBlock]}
-                {command "[_m {Menu|Edit|New Signal}]" {edit:newSignal} "[_ {Create new signal}]" {} -command [mymethod _newSignal]}
-                {command "[_m {Menu|Edit|New Sensor}]" {edit:newSensor} "[_ {Create new sensor}]" {} -command [mymethod _newSensor]}
-                {command "[_m {Menu|Edit|New Control}]" {edit:newControl} "[_ {Create new control}]" {} -command [mymethod _newControl]}
             }
         }
         ## Generic menu.
         
-        component newTurnoutDialog
-        component newBlockDialog
-        component newSignalDialog
-        component newSensorDialog
-        component newControlDialog
-        
-        method _buildDialogs {} {
-            install newTurnoutDialog using ::lcc::NewTurnoutDialog $win.newTurnoutDialog -parent $win
-            install newBlockDialog   using ::lcc::NewBlockDialog   $win.newBlockDialog -parent $win
-            install newSignalDialog  using ::lcc::NewSignalDialog  $win.newSignalDialog -parent $win
-            install newSensorDialog  using ::lcc::NewSensorDialog  $win.newSensorDialog -parent $win
-            install newControlDialog using ::lcc::NewControlDialog $win.newControlDialog -parent $win
-        }
-        method _newTurnout {} {
-            $newTurnoutDialog draw -db $layoutcontroldb
-        }
-        method _newBlock {} {
-            $newBlockDialog   draw -db $layoutcontroldb
-        }
-        method _newSignal {} {
-            $newSignalDialog  draw -db $layoutcontroldb
-        }
-        method _newSensor {} {
-            $newSensorDialog  draw -db $layoutcontroldb
-        }
-        method _newControl {} {
-            $newControlDialog draw -db $layoutcontroldb
-        }
-        
-        method _loadLCDB {} {
-            set filename [tk_getOpenFile -defaultextension .xml \
-                          -filetypes {{{XML Files} {.xml} TEXT}
-                          {{All Files} *     TEXT}
-                      } -parent . -title "XML File to open"]
-            if {"$filename" ne {}} {
-                set layoutcontroldb [LayoutControlDB olddb $filename]
-            }
-        }
-        
-        method _saveLCDB {} {
-            set filename [tk_getSaveFile -defaultextension .xml \
-                          -filetypes {{{XML Files} {.xml} TEXT}
-                          {{All Files} *     TEXT}
-                      } -parent . -title "XML File to open"]
-            if {"$filename" ne {}} {
-                $layoutcontroldb savedb "$filename"
-            }
-        }
         method putdebug {message} {
             ## Print message using debug output, if any.
             #
@@ -269,12 +214,20 @@ namespace eval lcc {
             $self putdebug "*** $type create $self: win = $win, about to wm title $win ..."
             wm title $win [_ "CDI Configuration Tool for Node ID %s" [$self cget -nid]]
             set address 0
-            $self _processXMLnode $cdi [$editframe getframe] -1 address
-            $self 
-            # $self _processXMLnode $cdi [$main getframe] -1 address
             [$main getmenu edit] configure -postcommand [mymethod edit_checksel]
+            $self putdebug "*** $type create $self: configured -postcommand to edit menu"
             set layoutcontroldb [LayoutControlDB newdb]
-            $self _buildDialogs
+            $self putdebug "*** $type create $self: initialized Layout Control DB"
+            $self _processXMLnode $cdi [$editframe getframe] -1 address
+            $self putdebug "*** $type create $self: processed CDI"
+            # $self _processXMLnode $cdi [$main getframe] -1 address
+            $self putdebug "*** $type create $self: _readall names: [array names _readall]"
+            if {!$options(-displayonly)} {
+                foreach s [array names _readall] {
+                    $self _readall $s
+                }
+                $self putdebug "*** $type create $self: _readall completed"
+            }
         }
         method edit_checksel {} {
             if {[catch {selection get}]} {
@@ -440,8 +393,6 @@ namespace eval lcc {
                     pack $readall -fill x -anchor center
                     if {$options(-displayonly)} {
                         $readall configure -state disabled
-                    } else {
-                        $self _readall $space
                     }
                     ## Print/Export the entire segment?
                     if {!$options(-displayonly)} {
@@ -763,7 +714,9 @@ namespace eval lcc {
                         $widget insert end {00.00.00.00.00.00.00.00}
                         set readermethod _eventidEntryRead
                         set writermethod _eventidEntryWrite
-                        bind $widget <3> "[mymethod _eventContext %W %X %Y];break"
+                        if {[$self cget -layoutdb] ne {}} {
+                            bind $widget <3> "[mymethod _eventContext %W %X %Y];break"
+                        }
                     }
                     pack $widget -fill x
                     set readwrite [ButtonBox $eventidframe.readwrite \
@@ -802,7 +755,7 @@ namespace eval lcc {
             set screenbottom [winfo screenheight $w]
             update idle
             set h [winfo reqheight $w]
-            puts stderr "*** checkrow: gcol=$gcol, grow=$grow, h=$h"
+            #puts stderr "*** checkrow: gcol=$gcol, grow=$grow, h=$h"
             if {($gcol == 0 && ($h + 50) > $screenbottom) || 
                 ($gcol > 0 && $grow >= $lastrow)} {
                 incr gcol
@@ -811,6 +764,8 @@ namespace eval lcc {
             }
         }
         method _eventContext {entry rootx rooty} {
+            set layoutcontroldb [$self cget -layoutdb]
+            if {$layoutcontroldb eq {}} {return}
             set l [$layoutcontroldb getElementsByTagName layout]
             set items [$l children]
             toplevel $win.em
@@ -821,11 +776,11 @@ namespace eval lcc {
             set lastrow 0
             grid columnconfigure $win.em $gcol -weight 0
             foreach i $items {
-                puts stderr "*** $self _eventContextAny: gcol = $gcol, grow = $grow"
+                $self putdebug "*** $self _eventContextAny: gcol = $gcol, grow = $grow"
                 set n [$i getElementsByTagName name -depth 1]
-                puts stderr "*** $self _eventContextAny: \[\$n data] = [$n data]"
+                $self putdebug "*** $self _eventContextAny: \[\$n data] = [$n data]"
                 set tag [$i cget -tag]
-                puts stderr "*** $self _eventContextAny: tag = $tag"
+                $self putdebug "*** $self _eventContextAny: tag = $tag"
                 switch $tag {
                     block {
                         incr idx
@@ -1841,12 +1796,16 @@ namespace eval lcc {
                 return {}
             }
             set status [lindex $datagrambuffer 1]
-            set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
-            set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
-            if {$respaddr != $address} {
-                ## wrong address...
+            if {[llength $datagrambuffer] > 1} {
+                set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
+                set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
+                set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
+                set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
+                if {$respaddr != $address} {
+                    ## wrong address...
+                }
+            } else {
+                puts stderr "*** $self _readmemory: short read? datagrambuffer is $datagrambuffer"
             }
             if {$status == 0x50 || $status == 0x58} {
                 set respspace [lindex $datagrambuffer 6]
@@ -1924,12 +1883,14 @@ namespace eval lcc {
                 return 0
             }
             set status [lindex $datagrambuffer 1]
-            set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
-            set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
-            if {$respaddr != $address} {
-                ## wrong address...
+            if {[llength $datagrambuffer] > 1} {
+                set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
+                set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
+                set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
+                set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
+                if {$respaddr != $address} {
+                    ## wrong address...
+                }
             }
             if {$status == 0x10 || $status == 0x18} {
                 set respspace [lindex $datagrambuffer 6]
@@ -2412,231 +2373,6 @@ namespace eval lcc {
             }
         }
     }
-    snit::widgetadaptor NewTurnoutDialog {
-        delegate option -parent to hull
-        option -db
-        
-        component nameLE;#                  Name of object
-        constructor {args} {
-            installhull using Dialog -bitmap questhead -default add \
-                  -cancel cancel -modal local -transient yes \
-                  -side bottom -title [_ "New Turnout"] \
-                  -parent [from args -parent]
-            $hull add add    -text Add    -command [mymethod _Add]
-            $hull add cancel -text Cancel -command [mymethod _Cancel]
-            wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
-            set frame [$hull getframe]
-            install nameLE using LabelEntry $frame.nameLE \
-                  -label [_m "Label|Name:"] -text {}
-            pack $nameLE -fill x
-            $self configurelist $args
-        }
-        method draw {args} {
-            $self configurelist $args
-            set options(-parent) [$self cget -parent]
-            return [$hull draw]
-        }
-        method _Add {} {
-            set name "[$nameLE cget -text]"
-            [$self cget -db] newTurnout $name
-            $hull withdraw
-            return [$hull enddialog {}]
-        }
-        method _Cancel {} {
-            $hull withdraw
-            return [$hull enddialog {}]
-        }
-    }
-    snit::widgetadaptor NewBlockDialog {
-        delegate option -parent to hull
-        option -db
-        component nameLE;#                  Name of object
-        constructor {args} {
-            installhull using Dialog -bitmap questhead -default add \
-                  -cancel cancel -modal local -transient yes \
-                  -side bottom -title [_ "New Block"] \
-                  -parent [from args -parent]
-            $hull add add    -text Add    -command [mymethod _Add]
-            $hull add cancel -text Cancel -command [mymethod _Cancel]
-            wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
-            set frame [$hull getframe]
-            install nameLE using LabelEntry $frame.nameLE \
-                  -label [_m "Label|Name:"] -text {}
-            pack $nameLE -fill x
-            $self configurelist $args
-        }
-        method draw {args} {
-            $self configurelist $args
-            set options(-parent) [$self cget -parent]
-            return [$hull draw]
-        }
-        method _Add {} {
-            set name "[$nameLE cget -text]"
-            [$self cget -db] newBlock $name
-            $hull withdraw
-            return [$hull enddialog {}]
-        }
-        method _Cancel {} {
-            $hull withdraw
-            return [$hull enddialog {}]
-        }
-    }
-    snit::widgetadaptor NewSignalDialog {
-        delegate option -parent to hull
-        option -db
-        component nameLE;#                  Name of object
-        component aspectlistLF
-        component   aspectlistSTabNB
-        variable    aspectlist -array {}
-        component   addaspectB
-        
-        constructor {args} {
-            installhull using Dialog -bitmap questhead -default add \
-                  -cancel cancel -modal local -transient yes \
-                  -side bottom -title [_ "New Signal"] \
-                  -parent [from args -parent]
-            $hull add add    -text Add    -command [mymethod _Add]
-            $hull add cancel -text Cancel -command [mymethod _Cancel]
-            wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
-            set frame [$hull getframe]
-            install nameLE using LabelEntry $frame.nameLE \
-                  -label [_m "Label|Name:"] -text {}
-            pack $nameLE -fill x
-            install aspectlistLF using ttk::labelframe $frame.aspectlistLF \
-                  -labelanchor nw -text [_m "Label|Signal Aspect Events"]
-            pack $aspectlistLF -fill x
-            install aspectlistSTabNB using ScrollTabNotebook \
-                  $aspectlistLF.aspectlistSTabNB
-            pack $aspectlistSTabNB -expand yes -fill both
-            install addaspectB using ttk::button $aspectlistLF.addaspectB \
-                  -text [_m "Label|Add another aspect"] \
-                  -command [mymethod _addaspect]
-            $self configurelist $args
-        }
-        method _addaspect {} {
-            set aspectcount 0
-            incr aspectcount
-            set fr aspect$aspectcount
-            while {[winfo exists $aspectlistSTabNB.$fr]} {
-                incr aspectcount
-                set fr aspect$aspectcount
-            }
-            set aspectlist($aspectcount,frame) $fr
-            ttk::frame $aspectlistSTabNB.$fr
-            $aspectlistSTabNB add $aspectlistSTabNB.$fr -text [_ "Aspect %d" $aspectcount] -sticky news
-            set aspl_ [LabelEntry $aspectlistSTabNB.$fr.aspl \
-                       -label [_m "Label|Aspect Name"] \
-                       -text {}]
-            pack $aspl_ -fill x
-            set aspectlist($aspectcount,aspl) {}
-            set asplook_ [LabelEntry $aspectlistSTabNB.$fr.asplook \
-                       -label [_m "Label|Aspect Look"] \
-                       -text {}]
-            pack $asplook_ -fill x
-            set aspectlist($aspectcount,asplook) {}
-            set del [ttk::button $aspectlistSTabNB.$fr.delete \
-                     -text [_m "Label|Delete Aspect"] \
-                     -command [mymethod _deleteAspect $aspectcount]]
-            pack $del -fill x
-        }
-        method _deleteAspect {index} {
-            set fr $aspectlist($index,frame)
-            $aspectlistSTabNB forget $aspectlistSTabNB.$fr
-            unset $aspectlist($index,frame)
-            unset $aspectlist($index,asplook)
-            unset $aspectlist($index,aspl)
-        }
-        method draw {args} {
-            $self configurelist $args
-            set options(-parent) [$self cget -parent]
-            return [$hull draw]
-        }
-        method _Add {} {
-            set name "[$nameLE cget -text]"
-            [$self cget -db] newSignal $name
-            foreach a [lsort [array names aspectlist -glob *,frame]] {
-                regsub {^([[:digit:]]+),frame} => index
-                [$self cget -db] addAspect $name \
-                      -aspect [[$aspectlist($index,aspl)] get] \
-                      -look   [[$aspectlist($index,asplook)] get]
-            }
-            $hull withdraw
-            return [$hull enddialog {}]
-        }
-        method _Cancel {} {
-            $hull withdraw
-            return [$hull enddialog {}]
-        }
-    }
-    snit::widgetadaptor NewSensorDialog {
-        delegate option -parent to hull
-        option -db
-        component nameLE;#                  Name of object
-        constructor {args} {
-            installhull using Dialog -bitmap questhead -default add \
-                  -cancel cancel -modal local -transient yes \
-                  -side bottom -title [_ "New Sensor"] \
-                  -parent [from args -parent]
-            $hull add add    -text Add    -command [mymethod _Add]
-            $hull add cancel -text Cancel -command [mymethod _Cancel]
-            wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
-            set frame [$hull getframe]
-            install nameLE using LabelEntry $frame.nameLE \
-                  -label [_m "Label|Name:"] -text {}
-            pack $nameLE -fill x
-            $self configurelist $args
-        }
-        method draw {args} {
-            $self configurelist $args
-            set options(-parent) [$self cget -parent]
-            return [$hull draw]
-        }
-        method _Add {} {
-            set name "[$nameLE cget -text]"
-            [$self cget -db] newSensor $name
-            $hull withdraw
-            return [$hull enddialog {}]
-        }
-        method _Cancel {} {
-            $hull withdraw
-            return [$hull enddialog {}]
-        }
-    }
-    snit::widgetadaptor NewControlDialog {
-        delegate option -parent to hull
-        option -db
-        component nameLE;#                  Name of object
-        constructor {args} {
-            installhull using Dialog -bitmap questhead -default add \
-                  -cancel cancel -modal local -transient yes \
-                  -side bottom -title [_ "New Control"] \
-                  -parent [from args -parent]
-            $hull add add    -text Add    -command [mymethod _Add]
-            $hull add cancel -text Cancel -command [mymethod _Cancel]
-            wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
-            set frame [$hull getframe]
-            install nameLE using LabelEntry $frame.nameLE \
-                  -label [_m "Label|Name:"] -text {}
-            pack $nameLE -fill x
-            $self configurelist $args
-        }
-        method draw {args} {
-            $self configurelist $args
-            set options(-parent) [$self cget -parent]
-            return [$hull draw]
-        }
-        method _Add {} {
-            set name "[$nameLE cget -text]"
-            [$self cget -db] newControl $name
-            $hull withdraw
-            return [$hull enddialog {}]
-        }
-        method _Cancel {} {
-            $hull withdraw
-            return [$hull enddialog {}]
-        }
-    }
-    
 }
 
 package provide ConfigurationEditor 1.0
