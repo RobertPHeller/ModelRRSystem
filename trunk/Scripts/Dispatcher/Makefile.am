@@ -90,7 +90,8 @@ CommonLibFiles = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif \
 		 $(top_srcdir)/Scripts/Common/ReadConfiguration.tcl \
 		 $(top_srcdir)/Scripts/Common/gettext.tcl \
 		 $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
-		 $(top_srcdir)/Scripts/Common/ParseXML.tcl
+		 $(top_srcdir)/Scripts/Common/ParseXML.tcl \
+		 $(top_srcdir)/Scripts/LCC/LayoutControlDB.tcl
 
 CXXSupport = Mrr
 CXXSupportFiles =  $(top_builddir)/C++/ParserClasses/.libs/libMRRParserClasses$(SHLIB_SUFFIX) \
@@ -144,6 +145,7 @@ OpenLCBSupportFiles = $(top_srcdir)/Scripts/LCC/ConfigDialogs.tcl \
 		      $(top_srcdir)/Scripts/LCC/eventDialogs.tcl \
 		      $(top_srcdir)/Scripts/LCC/lcc.tcl \
 		      $(top_srcdir)/Scripts/LCC/LCCNodeTree.tcl \
+		      $(top_srcdir)/Scripts/LCC/LayoutControlDB.tcl \
 		      $(top_builddir)/Scripts/LCC/pkgIndex.tcl
 OpenLCBDependFiles  = $(OpenLCBSupportFiles)
 

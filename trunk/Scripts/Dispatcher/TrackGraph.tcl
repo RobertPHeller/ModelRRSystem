@@ -46,6 +46,7 @@ package require ROText
 package require ListBox
 package require IconImage
 package require csv
+package require LayoutControlDB
 
 namespace eval TrackGraph {
   snit::type TrackGraph {
@@ -382,6 +383,9 @@ namespace eval TrackGraph {
                  -text [_m "Button|Extract Controls"] \
                  -command [mymethod extractcontrols] \
                  -state disabled
+           $buttons add ttk::button makedb \
+                 -text [_m "Button|Make Layout Control DB"] \
+                 -command [mymethod makelayoutcontroldb]
            $buttons add ttk::button dismis -text [_m "Button|Dismis"] \
                  -command [mymethod close]
            $self configure -title [_ "Layout Controls"]
@@ -726,6 +730,51 @@ namespace eval TrackGraph {
        }
        method close {} {
            wm withdraw $win
+       }
+       method makelayoutcontroldb {} {
+           set filename [tk_getSaveFile -defaultextension .xml \
+                         -filetypes {{{XML Files} {.xml} TEXT}
+                         {{All Files} *     TEXT}
+                     } -parent . -title "XML File to open"]
+           set layoutdb [LayoutControlDB newdb]
+           foreach n [lsort -command [myproc _nodetypeorder] $options(-nodes)] {
+               _makelayoutcontrol $layoutdb $n
+           }
+           $layoutdb savedb $filename
+       }
+       proc _makelayoutcontrol {db node} {
+           switch [$node TypeOfNode] {
+               TrackGraph::Block {
+                   set eventids [split [$node SenseScript] :]
+                   lassign $eventids occ clr 
+                   $db newBlock [$node NameOfNode] -occupiedevent $occ -clearevent $clr
+               }
+               TrackGraph::SwitchMotor {
+                   set mnorm [$node NormalActionScript]
+                   set mrev  [$node ReverseActionScript]
+                   lassign [split [$node SenseScript] :] pnorm prev 
+                   $db newTurnout [$node NameOfNode] -normalmotorevent $mnorm \
+                         -reversemotorevent $mrev \
+                         -normalpointsevent $pnorm \
+                         -reversepointsevent $prev
+               }
+               TrackGraph::Signal {
+                   $db newSignal [$node NameOfNode]
+                   set sname [$node NameOfNode]
+                   foreach asp [$node SignalAspects] {
+                       lassign $asp name script 
+                       $db addAspect $sname -aspect $name -look $name -eventid $script
+                   }
+               }
+               TrackGraph::Sensor {
+                   lassign [split [node SenseScript] :] on off 
+                   $db newSensor [$node NameOfNode] -onevent $on -offevent $off
+               }
+               TrackGraph::Control {
+                   lassign [split [node SenseScript] :] on off 
+                   $db newControl [$node NameOfNode] -onevent $on -offevent $off
+               }
+           }
        }
    }
 }
