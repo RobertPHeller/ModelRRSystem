@@ -52,6 +52,8 @@ package require ROText
 package require ScrollTabNotebook
 package require csv
 package require LayoutControlDB
+package require LayoutControlDBDialogs
+package require GenerateEventID
 
 catch {Dispatcher::SplashWorkMessage "Loading CTC Panel Window Code" 16}
 
@@ -90,7 +92,25 @@ namespace eval CTCPanelWindow {
     }
     
     component layoutcontroldb -inherit yes
+    component eventIdGenerator
+    delegate method nextid to eventIdGenerator
+    option -baseevent
     
+    option -layoutcontroldb -default {} \
+          -configuremethod _set_layoutcontroldb \
+          -cgetmethod _get_layoutcontroldb
+    method _set_layoutcontroldb {o v} {
+        puts stderr "[list *** $self _set_layoutcontroldb $o $v]"
+        if {$v eq {}} {
+            set layoutcontroldb [::lcc::LayoutControlDB newdb]
+        } else {
+            ::lcc::LayoutControlDB validate $v
+            set layoutcontroldb $v
+        }
+    }
+    method _get_layoutcontroldb {o} {
+        return $layoutcontroldb
+    }
     option -filename -default {newctcpanel.tcl}
     delegate option -width to ctcpanel
     delegate option -height to ctcpanel
@@ -244,8 +264,6 @@ namespace eval CTCPanelWindow {
             {command "[_m {Menu|Panel|Delete Object}]" {} "[_ {Delete Panel Object}]" {} -command "[mymethod deletepanelobject]"}
             {separator}
             {command "[_m {Menu|Panel|Configure}]" {} "[_ {Configure Panel Options}]" {} -command "[mymethod configurepanel]"}
-            {separator}
-            {command "[_m {Menu|Panel|Load Layout Control DB}]" {} "[_ {Load Layout Control DB}]" {} -command "[mymethod loadlayoutcontroldb]"}
         } "[_m {Menu|&C/Mri}]" cmri cmri 0 {
             {command "[_m {Menu|C/Mri|Add node}]" {} "[_ {Add CMRI node}]" {} -command "[mymethod addcmrinode]"}
             {command "[_m {Menu|C/Mri|Edit node}]" {} "[_ {Edit CMRI node}]" {} -command "[mymethod editcmrinode]"}
@@ -256,12 +274,12 @@ namespace eval CTCPanelWindow {
             {command "[_m {Menu|Azatrax|Delete node}]" {} "[_ {Delete Azatrax node}]" {} -command "[mymethod deleteazatraxnode]"}
         }
     }
-    constructor {args} {
+    constructor {args} {                                                        
       wm protocol $win WM_DELETE_WINDOW {Dispatcher::CarefulExit}
       wm withdraw $win
       wm title $win {}
       
-      #puts stderr "*** $type create $self $args"
+      puts stderr "*** $type create $self $args"
       if {[WrapIt::CanWrapP]} {
 	set wrapasstate normal
 	WrapIt::CheckPackageBaseDir
@@ -281,9 +299,9 @@ namespace eval CTCPanelWindow {
       }
       
       set mainmenu [StdMenuBar MakeMenu -file [subst $_filemenu] -edit [subst $_editmenu] ]
-      #puts stderr "*** CTCPanelWindow::create: mainmenu = $mainmenu (length is [llength $mainmenu])"
+      puts stderr "*** CTCPanelWindow::create: mainmenu = $mainmenu (length is [llength $mainmenu])"
       set extramenus [subst $_extramenus]
-      #puts stderr "*** CTCPanelWindow::create: extramenus = $extramenus (length is [llength $extramenus])"
+      puts stderr "*** CTCPanelWindow::create: extramenus = $extramenus (length is [llength $extramenus])"
       
       install main using mainwindow $win.main \
 	-menu $mainmenu \
@@ -334,6 +352,19 @@ namespace eval CTCPanelWindow {
 
       $self configurelist $args
       
+      if {$options(-openlcbmode)} {
+          if {$options(-baseevent) eq {}} {
+              set temp $options(-openlcbtransportopts)
+              set nid [from temp -nid]
+              if {$nid eq {}} {set nid "05:01:01:01:22:00"}
+              set options(-baseevent) "[regsub -all {:} $nid {.}].00.00"
+          }
+          
+              
+          install eventIdGenerator using GenerateEventID %AUTO% \
+                -baseeventid [lcc::EventID %AUTO% \
+                              -eventidstring $options(-baseevent)]
+      }
       $swframe configure -width [expr {[$ctcpanel cget -width] + 15}] \
 			 -height [$ctcpanel cget -height]
       wm title $win $options(-name)
@@ -361,8 +392,6 @@ namespace eval CTCPanelWindow {
       $zoomMenu add command -label {1:8} -command "$ctcpanel setZoom .125"
       $zoomMenu add command -label {1:16} -command "$ctcpanel setZoom .0625"
       
-      set layoutcontroldb [LayoutControlDB newdb]
-      
       [$main mainframe getmenu edit] configure -postcommand [mymethod edit_checksel]
       $main showit
       set OpenWindows($options(-name)) $win
@@ -372,7 +401,6 @@ namespace eval CTCPanelWindow {
 	$self AddModule SimpleMode
 	$self GenerateMainLoop
       }
-    
     }
     method EventReport {} {
         array set producedevents {}
@@ -669,6 +697,10 @@ namespace eval CTCPanelWindow {
       puts $fp [list -openlcbtransport "$options(-openlcbtransport)"]
       puts -nonewline $fp {# }
       puts $fp [list -openlcbtransportopts "$options(-openlcbtransportopts)"]
+      if {$eventIdGenerator ne {}} {
+          puts -nonewline $fp {# }
+          puts $fp [list -baseevent [$eventIdGenerator currentid]]
+      }
       set line "# "
       append line [concat additionalPackages $additionalPackages]
       puts $fp $line
@@ -1069,6 +1101,7 @@ namespace eval CTCPanelWindow {
 	return
       }
       set opts [list -filename "$filename"]
+      lappend opts -layoutcontroldb [from args -layoutcontroldb {}]
       set buffer {}
       set aplist {}
       array unset eums
@@ -1328,10 +1361,7 @@ namespace eval CTCPanelWindow {
       $editContextMenu bind Text
       $editContextMenu bind ROText
       $editContextMenu bind Spinbox
-      
     }
-                
-                
     typemethod createnewDialog {} {
       if {![string equal "$newDialog" {}] && [winfo exists $newDialog]} {return}
       set newDialog [Dialog .newCTCPanelWindowDialog \
@@ -1528,8 +1558,11 @@ namespace eval CTCPanelWindow {
             }
         }
     }
+    typevariable _layoutcontroldb {}
     typemethod new {args} {
+      puts stderr "[list *** $type new $args]"
       set _simpleMode [from args -simplemode no]
+      set _layoutcontroldb [from args -layoutcontroldb {}]  
       $type createnewDialog 
       set parent [from args -parent .]
       $newDialog configure -parent $parent
@@ -1562,7 +1595,8 @@ namespace eval CTCPanelWindow {
 				     -cmrispeed 9600 \
 				     -cmriretries 10000 \
 				     -hasazatrax 1 \
-				     -simplemode yes
+                                     -simplemode yes \
+                                     -layoutcontroldb $_layoutcontroldb
       } else {
 	$type create .ctcpanel%AUTO% -name "[$new_nameLE cget -text]" \
               -width [$new_widthLSB cget -text] \
@@ -1577,7 +1611,8 @@ namespace eval CTCPanelWindow {
               -openlcbmode $_openlcbMode \
               -openlcbtransport "$_transconstructorname" \
               -openlcbtransportopts "$_transopts" \
-              -simplemode no
+              -simplemode no \
+              -layoutcontroldb $_layoutcontroldb
       }
       
       return [$newDialog enddialog Create]
@@ -1765,16 +1800,6 @@ namespace eval CTCPanelWindow {
         install addExternalUserModuleDialog using CTCPanelWindow::AddExternalUserModuleDialog $win.addExternalUserModuleDialog -parent $win
     }
 
-    method loadlayoutcontroldb {} {
-        set filename [tk_getOpenFile -defaultextension .xml \
-                      -filetypes {{{XML Files} {.xml} TEXT}
-                      {{All Files} *     TEXT}
-                  } -parent . -title "XML File to open"]
-        if {"$filename" ne {}} {
-            set layoutcontroldb [LayoutControlDB olddb $filename]
-        }
-    }
-    
     method addblocktopanel {node args} {
       #puts stderr "*** $self addblocktopanel $node $args"
       set result [eval [list $addPanelObjectDialog draw -simplemode $options(-simplemode) -openlcbmode $options(-openlcbmode) -mode add -setoftypes {StraightBlock CurvedBlock HiddenBlock StubYard ThroughYard EndBumper}] $args]
@@ -2625,6 +2650,9 @@ namespace eval CTCPanelWindow {
 	}
       }
     }
+  
+                
+    
   }
   snit::widgetadaptor AddPanelObjectDialog {
     delegate option -parent to hull
@@ -2761,6 +2789,11 @@ namespace eval CTCPanelWindow {
     component oneventidLE
     component offeventidLE
     
+    component newTurnoutDialog
+    component newBlockDialog
+    component newSignalDialog
+    component newSensorDialog
+    component newControlDialog
     
     typevariable objectTypeOptions -array {
 	SWPlate {xyctl label normalcommand reversecommand}
@@ -3191,6 +3224,11 @@ namespace eval CTCPanelWindow {
       
       $self configurelist $args
       bind $win <<ComboboxSelected>> [mymethod redrawgraphic]
+      install newTurnoutDialog using ::lcc::NewTurnoutDialog $win.newTurnoutDialog -parent $win
+      install newBlockDialog   using ::lcc::NewBlockDialog   $win.newBlockDialog -parent $win
+      install newSignalDialog  using ::lcc::NewSignalDialog  $win.newSignalDialog -parent $win
+      install newSensorDialog  using ::lcc::NewSensorDialog  $win.newSensorDialog -parent $win
+      install newControlDialog using ::lcc::NewControlDialog $win.newControlDialog -parent $win
       
     }
     method _eventContext {entry rootx rooty taglist} {
@@ -3217,6 +3255,58 @@ namespace eval CTCPanelWindow {
                             $entry $i [lrange $taglist 1 end]]] -column $gcol \
                   -row $grow -sticky news
         }
+        switch [lindex $taglist 0] {
+            turnout {
+                checkrow $win.em gcol grow $lastrow
+                incr grow
+                grid [button $win.em.new -text [_m {Button|New Turnout}] \
+                      -command [mymethod _eventContext1_newTurnout \
+                                [list destroy $win.em] \
+                                $entry [$self cget -parent] \
+                                [lrange $taglist 1 end]]] -column $gcol \
+                      -row $grow -sticky news
+            }
+            block {
+                checkrow $win.em gcol grow $lastrow
+                incr grow
+                grid [button $win.em.new -text [_m {Button|New Block}] \
+                      -command [mymethod _eventContext1_newBlock \
+                                [list destroy $win.em] \
+                                $entry [$self cget -parent] \
+                                [lrange $taglist 1 end]]] -column $gcol \
+                      -row $grow -sticky news
+            }
+            signal {
+                checkrow $win.em gcol grow $lastrow
+                incr grow
+                grid [button $win.em.new -text [_m {Button|New Signal}] \
+                      -command [mymethod _eventContext1_newSignal \
+                                [list destroy $win.em] \
+                                $entry [$self cget -parent] \
+                                [lrange $taglist 1 end]]] -column $gcol \
+                      -row $grow -sticky news
+            }
+            sensor {
+                checkrow $win.em gcol grow $lastrow
+                incr grow
+                grid [button $win.em.new -text [_m {Button|New Sensor}] \
+                      -command [mymethod _eventContext1_newSensor \
+                                [list destroy $win.em] \
+                                $entry [$self cget -parent] \
+                                [lrange $taglist 1 end]]] -column $gcol \
+                      -row $grow -sticky news
+            }
+            control {
+                checkrow $win.em gcol grow $lastrow
+                incr grow
+                grid [button $win.em.new -text [_m {Button|New Control}] \
+                      -command [mymethod _eventContext1_newControl \
+                                [list destroy $win.em] \
+                                $entry [$self cget -parent] \
+                                [lrange $taglist 1 end]]] -column $gcol \
+                      -row $grow -sticky news
+            }
+        }
         grid [button $win.em.dismis -text [_m {Button|Dismis}] \
               -command [list destroy $win.em]] -column 0 \
               -row [expr {$lastrow + 1}] \
@@ -3238,8 +3328,48 @@ namespace eval CTCPanelWindow {
         foreach t $taglist {
             set tag [$tag getElementsByTagName $t -depth 1]
         }
-        $entry delete 0 end
-        $entry insert end [$tag data]
+        set oldeventID [$entry get]
+        if {[$tag data] eq {} && "$oldeventID" ne {}} {
+            $tag setdata $oldeventID
+        } elseif {[$tag data] eq {} && "$oldeventID" eq {}} {
+            $tag setdata [[$self cget -parent] nextid]
+            $entry insert end [$tag data]
+        } else {
+            $entry delete 0 end
+            $entry insert end [$tag data]
+        }
+    }
+    method _eventContext1_newTurnout {dismiscmd entry db taglist} {
+        set new [$newTurnoutDialog draw -db $db]
+        if {$new ne {}} {
+            $self _eventContext1 $dismiscmd $entry $new $taglist
+        }            
+    }
+    method _eventContext1_newBlock {dismiscmd entry db taglist} {
+        set new [$newBlockDialog draw -db $db]
+        if {$new ne {}} {
+            $self _eventContext1 $dismiscmd $entry $new $taglist
+        }            
+    }
+    method _eventContext1_newSignal {dismiscmd entry db taglist} {
+        set new [$newSignalDialog draw -db $db]
+        if {$new ne {}} {
+            $self _eventContext1 $dismiscmd $entry $new $taglist
+        }            
+    }
+    method _eventContext1_newSensor {dismiscmd entry db taglist} {
+        set new [$newSensorDialog draw -db $db]
+        if {$new ne {}} {
+            $self _eventContext1 $dismiscmd $entry $new $taglist
+        }            
+    }
+    method _eventContext1_newControl {dismiscmd entry db taglist} {
+        set new [$newControlDialog draw -db $db]
+        if {$new ne {}} {
+            $self _eventContext1 $dismiscmd $entry $new $taglist
+        }            
+    }
+    method _eventContext1_newAny {dismiscmd entry db} {
     }
     proc checkrow {w gcolVar growVar lastrow} {
         upvar $gcolVar gcol

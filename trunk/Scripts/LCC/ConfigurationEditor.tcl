@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <190130.2224>
+#  Last Modified : <190131.1039>
 #
 #  Description	
 #
@@ -216,7 +216,7 @@ namespace eval lcc {
             set address 0
             [$main getmenu edit] configure -postcommand [mymethod edit_checksel]
             $self putdebug "*** $type create $self: configured -postcommand to edit menu"
-            set layoutcontroldb [LayoutControlDB newdb]
+            set layoutcontroldb [::lcc::LayoutControlDB newdb]
             $self putdebug "*** $type create $self: initialized Layout Control DB"
             $self _processXMLnode $cdi [$editframe getframe] -1 address
             $self putdebug "*** $type create $self: processed CDI"

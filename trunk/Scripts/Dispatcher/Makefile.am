@@ -37,7 +37,7 @@ DispatcherScripts = NodeGraphCanvas.tcl PrintDialog.tcl TrackGraph.tcl \
 		    CTCPanelWindow.tcl WrapIt.tcl
 
 DispatcherImages  = banner.gif search.gif load.gif largePrinter.gif \
-		    largeImage.gif 
+		    largeImage.gif loaddb.gif
 
 DispatcherControlIcons = Block.xpm SwitchMotor.xpm Signal.xpm Sensor.xpm \
 			 Control.xpm
@@ -91,7 +91,9 @@ CommonLibFiles = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif \
 		 $(top_srcdir)/Scripts/Common/gettext.tcl \
 		 $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
 		 $(top_srcdir)/Scripts/Common/ParseXML.tcl \
-		 $(top_srcdir)/Scripts/LCC/LayoutControlDB.tcl
+		 $(top_srcdir)/Scripts/LCC/LayoutControlDB.tcl \
+		 $(top_srcdir)/Scripts/LCC/LayoutControlDBDialogs.tcl \
+		 $(top_srcdir)/Scripts/LCC/GenerateEventID.tcl
 
 CXXSupport = Mrr
 CXXSupportFiles =  $(top_builddir)/C++/ParserClasses/.libs/libMRRParserClasses$(SHLIB_SUFFIX) \
@@ -146,6 +148,8 @@ OpenLCBSupportFiles = $(top_srcdir)/Scripts/LCC/ConfigDialogs.tcl \
 		      $(top_srcdir)/Scripts/LCC/lcc.tcl \
 		      $(top_srcdir)/Scripts/LCC/LCCNodeTree.tcl \
 		      $(top_srcdir)/Scripts/LCC/LayoutControlDB.tcl \
+		      $(top_srcdir)/Scripts/LCC/LayoutControlDBDialogs.tcl \
+		      $(top_srcdir)/Scripts/LCC/GenerateEventID.tcl \
 		      $(top_builddir)/Scripts/LCC/pkgIndex.tcl
 OpenLCBDependFiles  = $(OpenLCBSupportFiles)
 

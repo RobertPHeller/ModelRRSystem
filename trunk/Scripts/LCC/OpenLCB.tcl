@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <190130.2228>
+#  Last Modified : <190131.1509>
 #
 #  Description	
 #
@@ -107,6 +107,7 @@ package require LCCNodeTree
 package require LayoutControlDB
 package require Dialog
 package require ScrollTabNotebook                                      
+package require LayoutControlDBDialogs
 
 global HelpDir
 set HelpDir [file join [file dirname [file dirname [file dirname \
@@ -116,231 +117,6 @@ set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirn
 							[info script]]]] Messages]]
 #puts stderr "*** msgfiles = $msgfiles"
 
-snit::widgetadaptor NewTurnoutDialog {
-    delegate option -parent to hull
-    option -db
-    
-    component nameLE;#                  Name of object
-    constructor {args} {
-        installhull using Dialog -bitmap questhead -default add \
-              -cancel cancel -modal local -transient yes \
-              -side bottom -title [_ "New Turnout"] \
-              -parent [from args -parent]
-        $hull add add    -text Add    -command [mymethod _Add]
-        $hull add cancel -text Cancel -command [mymethod _Cancel]
-        wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
-        set frame [$hull getframe]
-        install nameLE using LabelEntry $frame.nameLE \
-              -label [_m "Label|Name:"] -text {}
-        pack $nameLE -fill x
-        $self configurelist $args
-    }
-    method draw {args} {
-        $self configurelist $args
-        set options(-parent) [$self cget -parent]
-        return [$hull draw]
-    }
-    method _Add {} {
-        set name "[$nameLE cget -text]"
-        [$self cget -db] newTurnout $name
-        $hull withdraw
-        return [$hull enddialog {}]
-    }
-    method _Cancel {} {
-        $hull withdraw
-        return [$hull enddialog {}]
-    }
-}
-snit::widgetadaptor NewBlockDialog {
-    delegate option -parent to hull
-    option -db
-    component nameLE;#                  Name of object
-    constructor {args} {
-        installhull using Dialog -bitmap questhead -default add \
-              -cancel cancel -modal local -transient yes \
-              -side bottom -title [_ "New Block"] \
-              -parent [from args -parent]
-        $hull add add    -text Add    -command [mymethod _Add]
-        $hull add cancel -text Cancel -command [mymethod _Cancel]
-        wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
-        set frame [$hull getframe]
-        install nameLE using LabelEntry $frame.nameLE \
-              -label [_m "Label|Name:"] -text {}
-        pack $nameLE -fill x
-        $self configurelist $args
-    }
-    method draw {args} {
-        $self configurelist $args
-        set options(-parent) [$self cget -parent]
-        return [$hull draw]
-    }
-    method _Add {} {
-        set name "[$nameLE cget -text]"
-        [$self cget -db] newBlock $name
-        $hull withdraw
-        return [$hull enddialog {}]
-    }
-    method _Cancel {} {
-        $hull withdraw
-        return [$hull enddialog {}]
-    }
-}
-snit::widgetadaptor NewSignalDialog {
-    delegate option -parent to hull
-    option -db
-    component nameLE;#                  Name of object
-    component aspectlistLF
-    component   aspectlistSTabNB
-    variable    aspectlist -array {}
-    component   addaspectB
-    
-    constructor {args} {
-        installhull using Dialog -bitmap questhead -default add \
-              -cancel cancel -modal local -transient yes \
-              -side bottom -title [_ "New Signal"] \
-              -parent [from args -parent]
-        $hull add add    -text Add    -command [mymethod _Add]
-        $hull add cancel -text Cancel -command [mymethod _Cancel]
-        wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
-        set frame [$hull getframe]
-        install nameLE using LabelEntry $frame.nameLE \
-              -label [_m "Label|Name:"] -text {}
-        pack $nameLE -fill x
-        install aspectlistLF using ttk::labelframe $frame.aspectlistLF \
-              -labelanchor nw -text [_m "Label|Signal Aspect Events"]
-        pack $aspectlistLF -fill x
-        install aspectlistSTabNB using ScrollTabNotebook \
-              $aspectlistLF.aspectlistSTabNB
-        pack $aspectlistSTabNB -expand yes -fill both
-        install addaspectB using ttk::button $aspectlistLF.addaspectB \
-              -text [_m "Label|Add another aspect"] \
-              -command [mymethod _addaspect]
-        $self configurelist $args
-    }
-    method _addaspect {} {
-        set aspectcount 0
-        incr aspectcount
-        set fr aspect$aspectcount
-        while {[winfo exists $aspectlistSTabNB.$fr]} {
-            incr aspectcount
-            set fr aspect$aspectcount
-        }
-        set aspectlist($aspectcount,frame) $fr
-        ttk::frame $aspectlistSTabNB.$fr
-        $aspectlistSTabNB add $aspectlistSTabNB.$fr -text [_ "Aspect %d" $aspectcount] -sticky news
-        set aspl_ [LabelEntry $aspectlistSTabNB.$fr.aspl \
-                   -label [_m "Label|Aspect Name"] \
-                   -text {}]
-        pack $aspl_ -fill x
-        set aspectlist($aspectcount,aspl) {}
-        set asplook_ [LabelEntry $aspectlistSTabNB.$fr.asplook \
-                      -label [_m "Label|Aspect Look"] \
-                      -text {}]
-        pack $asplook_ -fill x
-        set aspectlist($aspectcount,asplook) {}
-        set del [ttk::button $aspectlistSTabNB.$fr.delete \
-                 -text [_m "Label|Delete Aspect"] \
-                 -command [mymethod _deleteAspect $aspectcount]]
-        pack $del -fill x
-    }
-    method _deleteAspect {index} {
-        set fr $aspectlist($index,frame)
-        $aspectlistSTabNB forget $aspectlistSTabNB.$fr
-        unset $aspectlist($index,frame)
-        unset $aspectlist($index,asplook)
-        unset $aspectlist($index,aspl)
-    }
-    method draw {args} {
-        $self configurelist $args
-        set options(-parent) [$self cget -parent]
-        return [$hull draw]
-    }
-    method _Add {} {
-        set name "[$nameLE cget -text]"
-        [$self cget -db] newSignal $name
-        foreach a [lsort [array names aspectlist -glob *,frame]] {
-            regsub {^([[:digit:]]+),frame} => index
-            [$self cget -db] addAspect $name \
-                  -aspect [[$aspectlist($index,aspl)] get] \
-                  -look   [[$aspectlist($index,asplook)] get]
-        }
-        $hull withdraw
-        return [$hull enddialog {}]
-    }
-    method _Cancel {} {
-        $hull withdraw
-        return [$hull enddialog {}]
-    }
-}
-snit::widgetadaptor NewSensorDialog {
-    delegate option -parent to hull
-    option -db
-    component nameLE;#                  Name of object
-    constructor {args} {
-        installhull using Dialog -bitmap questhead -default add \
-              -cancel cancel -modal local -transient yes \
-              -side bottom -title [_ "New Sensor"] \
-              -parent [from args -parent]
-        $hull add add    -text Add    -command [mymethod _Add]
-        $hull add cancel -text Cancel -command [mymethod _Cancel]
-        wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
-        set frame [$hull getframe]
-        install nameLE using LabelEntry $frame.nameLE \
-              -label [_m "Label|Name:"] -text {}
-        pack $nameLE -fill x
-        $self configurelist $args
-    }
-    method draw {args} {
-        $self configurelist $args
-        set options(-parent) [$self cget -parent]
-        return [$hull draw]
-    }
-    method _Add {} {
-        set name "[$nameLE cget -text]"
-        [$self cget -db] newSensor $name
-        $hull withdraw
-        return [$hull enddialog {}]
-    }
-    method _Cancel {} {
-        $hull withdraw
-        return [$hull enddialog {}]
-    }
-}
-snit::widgetadaptor NewControlDialog {
-    delegate option -parent to hull
-    option -db
-    component nameLE;#                  Name of object
-    constructor {args} {
-        installhull using Dialog -bitmap questhead -default add \
-              -cancel cancel -modal local -transient yes \
-              -side bottom -title [_ "New Control"] \
-              -parent [from args -parent]
-        $hull add add    -text Add    -command [mymethod _Add]
-        $hull add cancel -text Cancel -command [mymethod _Cancel]
-        wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
-        set frame [$hull getframe]
-        install nameLE using LabelEntry $frame.nameLE \
-              -label [_m "Label|Name:"] -text {}
-        pack $nameLE -fill x
-        $self configurelist $args
-    }
-    method draw {args} {
-        $self configurelist $args
-        set options(-parent) [$self cget -parent]
-        return [$hull draw]
-    }
-    method _Add {} {
-        set name "[$nameLE cget -text]"
-        [$self cget -db] newControl $name
-        $hull withdraw
-        return [$hull enddialog {}]
-    }
-    method _Cancel {} {
-        $hull withdraw
-        return [$hull enddialog {}]
-    }
-}
-    
 snit::type OpenLCB {
     #*************************************************************************
     # OpenLCB Main program -- provide node configuration and event monitoring.
@@ -373,12 +149,12 @@ snit::type OpenLCB {
         
     typemethod _buildDialogs {} {
         putdebug "*** $type _buildDialogs"
-        set newTurnoutDialog [NewTurnoutDialog .main.newTurnoutDialog -parent .main]
+        set newTurnoutDialog [::lcc::NewTurnoutDialog .main.newTurnoutDialog -parent .main]
         putdebug "*** $type _buildDialogs: newTurnoutDialog is $newTurnoutDialog"
-        set newBlockDialog   [NewBlockDialog   .main.newBlockDialog -parent .main]
-        set newSignalDialog  [NewSignalDialog  .main.newSignalDialog -parent .main]
-        set newSensorDialog  [NewSensorDialog  .main.newSensorDialog -parent .main]
-        set newControlDialog [NewControlDialog .main.newControlDialog -parent .main]
+        set newBlockDialog   [::lcc::NewBlockDialog   .main.newBlockDialog -parent .main]
+        set newSignalDialog  [::lcc::NewSignalDialog  .main.newSignalDialog -parent .main]
+        set newSensorDialog  [::lcc::NewSensorDialog  .main.newSensorDialog -parent .main]
+        set newControlDialog [::lcc::NewControlDialog .main.newControlDialog -parent .main]
     }
     typemethod _newTurnout {} {
         putdebug "*** $type _newTurnout: newTurnoutDialog is $newTurnoutDialog"
@@ -403,7 +179,7 @@ snit::type OpenLCB {
                       {{All Files} *     TEXT}
                   } -parent . -title "XML File to open"]
         if {"$filename" ne {}} {
-            set layoutcontroldb [LayoutControlDB olddb $filename]
+            set layoutcontroldb [::lcc::LayoutControlDB olddb $filename]
             foreach cdiform [array names CDIs_FormTLs] {
                 set tl $CDIs_FormTLs($cdiform)
                 if {[winfo exists $tl] && ![$tl cget -displayonly]} {
@@ -633,7 +409,7 @@ snit::type OpenLCB {
         # Get our Node ID.
         set mynid [$transport cget -nid]
         putdebug "*** $type typeconstructor: mynid = $mynid"
-        set layoutcontroldb [LayoutControlDB newdb]
+        set layoutcontroldb [::lcc::LayoutControlDB newdb]
         $type _buildDialogs
         # Pop the main window on the screen.
         $mainWindow showit

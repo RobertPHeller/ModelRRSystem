@@ -52,6 +52,8 @@ namespace eval TrackGraph {
   snit::type TrackGraph {
     typecomponent layoutname
     typecomponent layoutControlsDialog
+    typecomponent layoutcontroldb
+    
     typeconstructor {
         set layoutname {}
     }
@@ -264,6 +266,19 @@ namespace eval TrackGraph {
       set layoutname [new_MRRXtrkCad [file nativename "$filename"]]
       $layoutname ProcessFile
       $layoutname CompressGraph
+    }
+    typemethod LoadLayoutControlDB {filename} {
+        set layoutcontroldb [::lcc::LayoutControlDB olddb $filename]
+        set l [$layoutcontroldb getElementsByTagName layout]
+        foreach c [$l children] {
+            set tag [$c cget -tag]
+            set n   [$c getElementsByTagName name -depth 1]
+            puts stderr "*** $type LoadLayoutControlDB: $tag - [$n data]"
+        }
+    }
+    typemethod getLayoutControlDB {} {
+        puts stderr "*** $type getLayoutControlDB: layoutcontroldb is '$layoutcontroldb'"
+        return $layoutcontroldb
     }
     typemethod ViewLayoutControls {} {
         $type buildLayoutControlsDialog
@@ -736,7 +751,7 @@ namespace eval TrackGraph {
                          -filetypes {{{XML Files} {.xml} TEXT}
                          {{All Files} *     TEXT}
                      } -parent . -title "XML File to open"]
-           set layoutdb [LayoutControlDB newdb]
+           set layoutdb [::lcc::LayoutControlDB newdb]
            foreach n [lsort -command [myproc _nodetypeorder] $options(-nodes)] {
                _makelayoutcontrol $layoutdb $n
            }
