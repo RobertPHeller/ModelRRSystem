@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Jan 30 10:06:50 2019
-#  Last Modified : <190131.1515>
+#  Last Modified : <190131.1928>
 #
 #  Description	
 #
@@ -55,7 +55,7 @@ namespace eval lcc {
                 return $object
             }
         }
-        
+        option -filename -default {layout.xml} -type snit::stringtype
         component db -inherit yes 
         typevariable emptyLayout {<?xml version='1.0'?><layout/>}
         typemethod newdb {{name %%AUTO%%}} {
@@ -67,7 +67,10 @@ namespace eval lcc {
             }
             set xml [read $fp]
             close $fp
-            return [$type create $name $xml]
+            return [$type create $name $xml -filename $filename]
+        }
+        method save {} {
+            $self savedb [$self cget -filename]
         }
         method savedb {filename} {
             if {[file exists $filename]} {
@@ -82,7 +85,7 @@ namespace eval lcc {
         }
         constructor {xml args} {
             install db using ParseXML %%AUTO%% $xml
-            #$self configurelist $args
+            $self configurelist $args
         }
         method newTurnout {{name CP1} args} {
             set layout [$self getElementsByTagName layout]

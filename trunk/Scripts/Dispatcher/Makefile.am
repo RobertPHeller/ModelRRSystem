@@ -37,7 +37,7 @@ DispatcherScripts = NodeGraphCanvas.tcl PrintDialog.tcl TrackGraph.tcl \
 		    CTCPanelWindow.tcl WrapIt.tcl
 
 DispatcherImages  = banner.gif search.gif load.gif largePrinter.gif \
-		    largeImage.gif loaddb.gif
+		    largeImage.gif loaddb.gif savedb.gif
 
 DispatcherControlIcons = Block.xpm SwitchMotor.xpm Signal.xpm Sensor.xpm \
 			 Control.xpm

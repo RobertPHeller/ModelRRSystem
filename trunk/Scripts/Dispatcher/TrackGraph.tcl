@@ -276,6 +276,10 @@ namespace eval TrackGraph {
             puts stderr "*** $type LoadLayoutControlDB: $tag - [$n data]"
         }
     }
+    typemethod SaveLayoutControlDB {} {
+        puts stderr "*** $type SaveLayoutControlDB: filename is [$layoutcontroldb cget -filename]"
+        $layoutcontroldb save
+    }
     typemethod getLayoutControlDB {} {
         puts stderr "*** $type getLayoutControlDB: layoutcontroldb is '$layoutcontroldb'"
         return $layoutcontroldb

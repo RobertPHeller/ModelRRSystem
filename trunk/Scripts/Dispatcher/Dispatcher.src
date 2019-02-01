@@ -278,6 +278,10 @@ proc Dispatcher::MainWindow {} {
 	command -label [_m "Menu|File|Load Layout Control DB..."] \
 	-dynamichelp [_ "Open and Load Layout Control DB"] \
 	-command Dispatcher::LoadLayoutControlDB
+  $Main menu insert file [_m "Menu|File|Open..."] \
+	command -label [_m "Menu|File|Save Layout Control DB..."] \
+	-dynamichelp [_ "Save Layout Control DB"] \
+	-command Dispatcher::SaveLayoutControlDB
   $Main menu entryconfigure file [_m "Menu|File|Open..."] \
 	-command Dispatcher::OpenCTCPanelWindow \
 	-dynamichelp [_ "Open an existing CTC Panel Window file"] \
@@ -293,6 +297,11 @@ proc Dispatcher::MainWindow {} {
 	-command Dispatcher::LoadLayoutControlDB \
 	-helptext [_ "Open and Load Layout Control DB"] \
 	-text [_m "Toolbar|Load Layout Control DB"] -compound top
+  image create photo SaveDBButtonImage -file [file join $ImageDir savedb.gif]
+  $Main toolbar addbutton tools savedb -image SaveDBButtonImage \
+	-command Dispatcher::SaveLayoutControlDB \
+	-helptext [_ "Save Layout Control DB"] \
+	-text [_m "Toolbar|Save Layout Control DB"] -compound top
   image create photo OpenButtonImage -file [file join $CommonImageDir open.gif]
   $Main toolbar addbutton tools open -image OpenButtonImage \
 	-command "CTCPanelWindow::CTCPanelWindow open -parent . -layoutcontroldb [TrackGraph::TrackGraph getLayoutControlDB]" \
@@ -577,6 +586,10 @@ proc Dispatcher::LoadLayoutControlDB {{filename {}}} {
   foreach window $WindowList {
       catch {$window configure -layoutcontroldb [TrackGraph::TrackGraph getLayoutControlDB]}
   }
+}
+
+proc Dispatcher::SaveLayoutControlDB {} {
+    TrackGraph::TrackGraph SaveLayoutControlDB
 }
     
 

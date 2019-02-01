@@ -3259,6 +3259,7 @@ namespace eval CTCPanelWindow {
             turnout {
                 checkrow $win.em gcol grow $lastrow
                 incr grow
+                if {$lastrow < $grow} {set lastrow $grow}
                 grid [button $win.em.new -text [_m {Button|New Turnout}] \
                       -command [mymethod _eventContext1_newTurnout \
                                 [list destroy $win.em] \
@@ -3269,6 +3270,7 @@ namespace eval CTCPanelWindow {
             block {
                 checkrow $win.em gcol grow $lastrow
                 incr grow
+                if {$lastrow < $grow} {set lastrow $grow}
                 grid [button $win.em.new -text [_m {Button|New Block}] \
                       -command [mymethod _eventContext1_newBlock \
                                 [list destroy $win.em] \
@@ -3279,6 +3281,7 @@ namespace eval CTCPanelWindow {
             signal {
                 checkrow $win.em gcol grow $lastrow
                 incr grow
+                if {$lastrow < $grow} {set lastrow $grow}
                 grid [button $win.em.new -text [_m {Button|New Signal}] \
                       -command [mymethod _eventContext1_newSignal \
                                 [list destroy $win.em] \
@@ -3289,6 +3292,7 @@ namespace eval CTCPanelWindow {
             sensor {
                 checkrow $win.em gcol grow $lastrow
                 incr grow
+                if {$lastrow < $grow} {set lastrow $grow}
                 grid [button $win.em.new -text [_m {Button|New Sensor}] \
                       -command [mymethod _eventContext1_newSensor \
                                 [list destroy $win.em] \
@@ -3299,6 +3303,7 @@ namespace eval CTCPanelWindow {
             control {
                 checkrow $win.em gcol grow $lastrow
                 incr grow
+                if {$lastrow < $grow} {set lastrow $grow}
                 grid [button $win.em.new -text [_m {Button|New Control}] \
                       -command [mymethod _eventContext1_newControl \
                                 [list destroy $win.em] \
