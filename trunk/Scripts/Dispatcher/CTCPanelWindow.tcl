@@ -100,7 +100,7 @@ namespace eval CTCPanelWindow {
           -configuremethod _set_layoutcontroldb \
           -cgetmethod _get_layoutcontroldb
     method _set_layoutcontroldb {o v} {
-        puts stderr "[list *** $self _set_layoutcontroldb $o $v]"
+        #puts stderr "[list *** $self _set_layoutcontroldb $o $v]"
         if {$v eq {}} {
             set layoutcontroldb [::lcc::LayoutControlDB newdb]
         } else {
@@ -279,7 +279,7 @@ namespace eval CTCPanelWindow {
       wm withdraw $win
       wm title $win {}
       
-      puts stderr "*** $type create $self $args"
+      #puts stderr "*** $type create $self $args"
       if {[WrapIt::CanWrapP]} {
 	set wrapasstate normal
 	WrapIt::CheckPackageBaseDir
@@ -299,9 +299,9 @@ namespace eval CTCPanelWindow {
       }
       
       set mainmenu [StdMenuBar MakeMenu -file [subst $_filemenu] -edit [subst $_editmenu] ]
-      puts stderr "*** CTCPanelWindow::create: mainmenu = $mainmenu (length is [llength $mainmenu])"
+      #puts stderr "*** CTCPanelWindow::create: mainmenu = $mainmenu (length is [llength $mainmenu])"
       set extramenus [subst $_extramenus]
-      puts stderr "*** CTCPanelWindow::create: extramenus = $extramenus (length is [llength $extramenus])"
+      #puts stderr "*** CTCPanelWindow::create: extramenus = $extramenus (length is [llength $extramenus])"
       
       install main using mainwindow $win.main \
 	-menu $mainmenu \
@@ -645,6 +645,10 @@ namespace eval CTCPanelWindow {
       if {[string length "$filename"] == 0} {return}
       if {[file exists "$filename"]} {
 	file rename -force "$filename" "${filename}~"
+      }
+      if {[$layoutcontroldb IsDirtyP]} {
+          #$layoutcontroldb savedb "[file rootname $filename].xml"
+          $layoutcontroldb save
       }
       if {[catch {open "$filename" w} fp]} {
 	catch {file rename -force "${filename}~" "$filename"}
@@ -3336,8 +3340,10 @@ namespace eval CTCPanelWindow {
         set oldeventID [$entry get]
         if {[$tag data] eq {} && "$oldeventID" ne {}} {
             $tag setdata $oldeventID
+            [$self cget -parent] SetDirty
         } elseif {[$tag data] eq {} && "$oldeventID" eq {}} {
             $tag setdata [[$self cget -parent] nextid]
+            [$self cget -parent] SetDirty
             $entry insert end [$tag data]
         } else {
             $entry delete 0 end
@@ -3401,11 +3407,11 @@ namespace eval CTCPanelWindow {
         set lastrow 0
         grid columnconfigure $win.em $gcol -weight 0
         foreach i $items {
-            puts stderr "*** $self _eventContextAny: gcol = $gcol, grow = $grow"
+            #puts stderr "*** $self _eventContextAny: gcol = $gcol, grow = $grow"
             set n [$i getElementsByTagName name -depth 1]
-            puts stderr "*** $self _eventContextAny: \[\$n data] = [$n data]"
+            #puts stderr "*** $self _eventContextAny: \[\$n data] = [$n data]"
             set tag [$i cget -tag]
-            puts stderr "*** $self _eventContextAny: tag = $tag"
+            #puts stderr "*** $self _eventContextAny: tag = $tag"
             switch $tag {
                 block {
                     incr idx

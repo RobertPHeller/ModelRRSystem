@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jan 31 15:01:56 2019
-#  Last Modified : <190131.1601>
+#  Last Modified : <190202.1208>
 #
 #  Description	
 #
@@ -149,6 +149,7 @@ namespace eval lcc {
             install addaspectB using ttk::button $aspectlistLF.addaspectB \
                   -text [_m "Label|Add another aspect"] \
                   -command [mymethod _addaspect]
+            pack $addaspectB -expand yes -fill x
             $self configurelist $args
         }
         method _addaspect {} {
@@ -166,12 +167,12 @@ namespace eval lcc {
                        -label [_m "Label|Aspect Name"] \
                        -text {}]
             pack $aspl_ -fill x
-            set aspectlist($aspectcount,aspl) {}
+            set aspectlist($aspectcount,aspl) $aspl_
             set asplook_ [LabelEntry $aspectlistSTabNB.$fr.asplook \
                           -label [_m "Label|Aspect Look"] \
                           -text {}]
             pack $asplook_ -fill x
-            set aspectlist($aspectcount,asplook) {}
+            set aspectlist($aspectcount,asplook) $asplook_
             set del [ttk::button $aspectlistSTabNB.$fr.delete \
                      -text [_m "Label|Delete Aspect"] \
                      -command [mymethod _deleteAspect $aspectcount]]
@@ -193,10 +194,12 @@ namespace eval lcc {
             set name "[$nameLE cget -text]"
             set result [[$self cget -db] newSignal $name]
             foreach a [lsort [array names aspectlist -glob *,frame]] {
-                regsub {^([[:digit:]]+),frame} => index
+                #puts stderr "*** $self _Add: a is '$a'"
+                regexp {^([[:digit:]]+),frame} $a => index
+                #puts stderr "*** $self _Add: index is $index"
                 [$self cget -db] addAspect $name \
-                      -aspect [[$aspectlist($index,aspl)] get] \
-                      -look   [[$aspectlist($index,asplook)] get]
+                      -aspect [$aspectlist($index,aspl) get] \
+                      -look   [$aspectlist($index,asplook) get]
             }
             $hull withdraw
             return [$hull enddialog $result]

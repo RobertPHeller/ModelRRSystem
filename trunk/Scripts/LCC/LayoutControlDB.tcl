@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Jan 30 10:06:50 2019
-#  Last Modified : <190131.1928>
+#  Last Modified : <190202.1010>
 #
 #  Description	
 #
@@ -57,6 +57,7 @@ namespace eval lcc {
         }
         option -filename -default {layout.xml} -type snit::stringtype
         component db -inherit yes 
+        variable isdirty no
         typevariable emptyLayout {<?xml version='1.0'?><layout/>}
         typemethod newdb {{name %%AUTO%%}} {
             return [$type create $name $emptyLayout]
@@ -71,6 +72,7 @@ namespace eval lcc {
         }
         method save {} {
             $self savedb [$self cget -filename]
+            set isdirty no
         }
         method savedb {filename} {
             if {[file exists $filename]} {
@@ -81,6 +83,7 @@ namespace eval lcc {
             }
             puts $fp {<?xml version='1.0'?>}
             $db displayTree $fp
+            set isdirty no
             close $fp
         }
         constructor {xml args} {
@@ -110,6 +113,7 @@ namespace eval lcc {
             set rev [[$layout info type] create %%AUTO%% -tag reverse]
             $rev setdata [from args -reversepointsevent]
             $pointstag addchild $rev
+            set isdirty yes
             return $newturnout
         }
         method newBlock {{name BK1} args} {
@@ -125,6 +129,7 @@ namespace eval lcc {
             set clr [[$layout info type] create %%AUTO%% -tag clear]
             $clr setdata [from args -clearevent]
             $newblock addchild $clr
+            set isdirty yes
             return $newblock
         }
         method newSignal {{name SIG1}} {
@@ -134,6 +139,7 @@ namespace eval lcc {
             set nametag [[$layout info type] create %%AUTO%% -tag name]
             $newsignal addchild $nametag
             $nametag setdata $name
+            set isdirty yes
             return $newsignal
         }
         method addAspect {signalname args} {
@@ -147,6 +153,7 @@ namespace eval lcc {
                     break
                 }
             }
+            set isdirty yes
         }
         proc addaspectHelper {s aspect eventid look} {
             set aspecttag [[$s info type] create %%AUTO%% -tag aspect]
@@ -242,7 +249,8 @@ namespace eval lcc {
             }
             return {}
         }
-        
+        method SetDirty {} {set isdirty yes}
+        method IsDirtyP {} {return $isdirty}
     }
 }
 

@@ -347,10 +347,12 @@ proc Dispatcher::MainWindow {} {
                   WrapIt::SetTclkit [::Dispatcher::Configuration getoption tclkit]}
               
   $Main menu add view command \
-        -label [_m "Menu|View|Layout Controls"] \
+        -label [_m "Menu|View|Layout Controls (from XtrkCAD)"] \
         -state disabled \
         -command "TrackGraph::TrackGraph ViewLayoutControls"
-              
+  $Main menu add view command \
+        -label [_m "Menu|View|Layout Control DB"] \
+        -command "TrackGraph::TrackGraph ViewLayoutControlDB"
   $Main menu delete help [_m "Menu|Help|On Keys..."]
   $Main menu delete help [_m "Menu|Help|Index..."]
   $Main menu add help command \
