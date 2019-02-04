@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <190131.1039>
+#  Last Modified : <190204.1301>
 #
 #  Description	
 #
@@ -64,6 +64,71 @@ namespace eval lcc {
     #
     # ConfigurationEditor 1.0
     
+    snit::widgetadaptor ReadallProgress {
+        delegate option -parent to hull
+        
+        component spaceLE
+        component itemsE
+        variable itemsRead
+        component progress
+        
+        delegate option -totalitems to progress as -maximum
+        option -space -type snit::integer -default 0
+        
+        constructor {args} {
+            installhull using Dialog -bitmap questhead -default dismis \
+                  -modal none -transient yes \
+                  -side bottom -title [_ "Reading Configuration"] \
+                  -parent [from args -parent]
+            $hull add dismis -text [_m "Button|Dismiss"] \
+                  -state disabled -command [mymethod _Dismis]
+            wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Dismis]
+            set frame [$hull getframe]
+            install spaceLE using LabelEntry $frame.spaceLE \
+                  -label [_m "Label|Space:"] \
+                  -text  {} -state readonly
+            pack $spaceLE -fill x
+            install itemsE using ttk::entry $frame.itemsE \
+                  -textvariable [myvar itemsRead] \
+                  -state readonly
+            pack $itemsE -expand yes -fill x
+            install progress using ttk::progressbar $frame.progress \
+                  -orient horizontal -mode determinate
+            pack $progress -expand yes -fill x
+            $self configurelist $args
+        }
+        method draw {args} {
+            #puts stderr "*** $self draw $args"
+            $self configurelist $args
+            set options(-parent) [$self cget -parent]
+            $hull itemconfigure dismis -state disabled
+            $spaceLE configure -text [format "0x%02X" [$self cget -space]]
+            update idle
+            return [$hull draw]
+        }
+        method withdraw {} {
+            $hull withdraw
+            return [$hull enddialog {}]
+        }
+        method _Dismis {} {
+            $hull withdraw
+            return [$hull enddialog {}]
+        }
+        method Update {itemsread} {
+            #puts stderr "*** $self Update $itemsread"
+            set itemsRead [_ "%d items read of %d" $itemsread \
+                           [$progress cget -maximum]]
+            $progress configure -value $itemsread
+            update idle
+        }
+        method Done {} {
+            #puts stderr "*** $self Done"
+            $hull itemconfigure dismis -state normal
+            update idle
+        }
+    }
+        
+    
     snit::widget ConfigurationEditor {
         ## @brief Generate OpenLCB Memory Configuration Window.
         # Create a toplevel to configure a node's Memory using that
@@ -103,8 +168,15 @@ namespace eval lcc {
         component editframe
         ## Scrollable Frame
         
+        component readallProgressDialog
+        
+        
         option -cdi -readonly yes
-        option -layoutdb -default {}
+        option -layoutdb -default {};# -configuremethod _traceopt
+        #method _traceopt {o v} {
+        #    puts stderr "*** $self _traceopt $o $v"
+        #    set options($o) $v
+        #}
         option -nid -readonly yes -type lcc::nid -default "05:01:01:01:22:00"
         option -transport -readonly yes -default {}
         option -displayonly -readonly yes -type snit::boolean -default false
@@ -221,6 +293,9 @@ namespace eval lcc {
             $self _processXMLnode $cdi [$editframe getframe] -1 address
             $self putdebug "*** $type create $self: processed CDI"
             # $self _processXMLnode $cdi [$main getframe] -1 address
+            install readallProgressDialog using \
+                  lcc::ReadallProgress $win.readallProgressDialog \
+                  -parent $win
             $self putdebug "*** $type create $self: _readall names: [array names _readall]"
             if {!$options(-displayonly)} {
                 foreach s [array names _readall] {
@@ -228,7 +303,9 @@ namespace eval lcc {
                 }
                 $self putdebug "*** $type create $self: _readall completed"
             }
+            
         }
+        
         method edit_checksel {} {
             if {[catch {selection get}]} {
                 $main setmenustate edit:havesel disabled
@@ -278,6 +355,7 @@ namespace eval lcc {
             # @param space The current space.
             # @param address_var The name of the address variable.
             
+            update idle
             $self putdebug "*** $self _processXMLnode $n $frame $space $address_var"
             upvar $address_var address
             $self putdebug "*** $self _processXMLnode: tag is [$n cget -tag] at address [format %08x $address]"
@@ -714,9 +792,7 @@ namespace eval lcc {
                         $widget insert end {00.00.00.00.00.00.00.00}
                         set readermethod _eventidEntryRead
                         set writermethod _eventidEntryWrite
-                        if {[$self cget -layoutdb] ne {}} {
-                            bind $widget <3> "[mymethod _eventContext %W %X %Y];break"
-                        }
+                        bind $widget <3> "[mymethod _eventContext %W %X %Y]"
                     }
                     pack $widget -fill x
                     set readwrite [ButtonBox $eventidframe.readwrite \
@@ -764,9 +840,12 @@ namespace eval lcc {
             }
         }
         method _eventContext {entry rootx rooty} {
+            #puts stderr "*** $self _eventContext $entry $rootx $rooty"
             set layoutcontroldb [$self cget -layoutdb]
+            #puts stderr "*** $self _eventContext: layoutcontroldb is $layoutcontroldb"
             if {$layoutcontroldb eq {}} {return}
             set l [$layoutcontroldb getElementsByTagName layout]
+            #puts stderr "*** $self _eventContext: l is $l"
             set items [$l children]
             toplevel $win.em
             wm overrideredirect $win.em 1
@@ -899,6 +978,7 @@ namespace eval lcc {
             if {$rootx < 0} {set rootx 0}
             if {$rooty < 0} {set rooty 0}
             wm geometry $win.em +$rootx+$rooty
+            return -code break
         }
         typevariable printexportfiletypes {
             {{PDF (printable) Files} {.pdf}     }
@@ -2367,9 +2447,21 @@ namespace eval lcc {
             # @param space The parameter space to read from.
             
             if {![catch {set _readall($space)} rbs]} {
+                $readallProgressDialog withdraw
+                $readallProgressDialog draw -parent $win \
+                      -totalitems [llength $rbs] -space $space
+                set count 0
+                $readallProgressDialog Update $count
                 foreach rb $rbs {
                     $rb invoke
+                    incr count
+                    #puts stderr "*** $self _readall: count = $count"
+                    if {($count % 50) == 0} {
+                        $readallProgressDialog Update $count
+                    }
                 }
+                $readallProgressDialog Update $count
+                $readallProgressDialog Done
             }
         }
     }

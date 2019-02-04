@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <190131.1509>
+#  Last Modified : <190204.1251>
 #
 #  Description	
 #
@@ -155,6 +155,7 @@ snit::type OpenLCB {
         set newSignalDialog  [::lcc::NewSignalDialog  .main.newSignalDialog -parent .main]
         set newSensorDialog  [::lcc::NewSensorDialog  .main.newSensorDialog -parent .main]
         set newControlDialog [::lcc::NewControlDialog .main.newControlDialog -parent .main]
+        
     }
     typemethod _newTurnout {} {
         putdebug "*** $type _newTurnout: newTurnoutDialog is $newTurnoutDialog"
@@ -180,6 +181,7 @@ snit::type OpenLCB {
                   } -parent . -title "XML File to open"]
         if {"$filename" ne {}} {
             set layoutcontroldb [::lcc::LayoutControlDB olddb $filename]
+            $nodetree configure -layoutdb $layoutcontroldb
             foreach cdiform [array names CDIs_FormTLs] {
                 set tl $CDIs_FormTLs($cdiform)
                 if {[winfo exists $tl] && ![$tl cget -displayonly]} {
@@ -396,12 +398,14 @@ snit::type OpenLCB {
         # Hook in help files.
         HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
         
+        set layoutcontroldb [::lcc::LayoutControlDB newdb]
         # Lazy eval for event log.
         set sendlog {}
         # Create node tree widget.
         # ($mainWindow setstatus text, $mainWindow setprogress pval)
         set nodetree [LCCNodeTree [$mainWindow scrollwindow getframe].nodetree \
-                      -transport $transport]
+                      -transport $transport \
+                      -layoutdb $layoutcontroldb]
         # Bind scrollbars.
         $mainWindow scrollwindow setwidget $nodetree
         
@@ -409,7 +413,6 @@ snit::type OpenLCB {
         # Get our Node ID.
         set mynid [$transport cget -nid]
         putdebug "*** $type typeconstructor: mynid = $mynid"
-        set layoutcontroldb [::lcc::LayoutControlDB newdb]
         $type _buildDialogs
         # Pop the main window on the screen.
         $mainWindow showit
@@ -627,6 +630,7 @@ snit::type OpenLCB {
             set end   [expr {$highest + 64}]
             set CDIs_text($nid) {}
             set EOS_Seen no
+            putdebug "*** $type _ReadCDI: About to fire up progress dialog"
             for {set address $start} {$address < $end && !$EOS_Seen} {incr address $size} {
                 set size [expr {$end - $address}]
                 if {$size > 64} {set size 64}
@@ -677,7 +681,6 @@ snit::type OpenLCB {
                     }
                     $logmessages insert end "$message\n"
                 }
-                
             }
             set CDIs_xml($nid) [ParseXML %AUTO% $CDIs_text($nid)]
             putdebug "*** $type _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"

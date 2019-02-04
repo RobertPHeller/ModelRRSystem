@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Sep 19 09:18:09 2016
-#  Last Modified : <180107.1114>
+#  Last Modified : <190204.1249>
 #
 #  Description	
 #
@@ -49,6 +49,63 @@ package require LCC
 package require ConfigurationEditor
 package require ConfigDialogs
 
+snit::widgetadaptor ReadCDIProgress {
+    delegate option -parent to hull
+    
+    component bytesE
+    variable  bytesRead
+    component progress
+    
+    
+    delegate option -totalbytes to progress as -maximum
+    
+    constructor {args} {
+        installhull using Dialog -bitmap questhead -default dismis \
+              -modal none -transient yes \
+              -side bottom -title [_ "Reading CDI"] \
+              -parent [from args -parent]
+        $hull add dismis -text [_m "Button|Dismiss"] \
+              -state disabled -command [mymethod _Dismis]
+        wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Dismis]
+        set frame [$hull getframe]
+        install bytesE using ttk::entry $frame.bytesE \
+              -textvariable [myvar bytesRead] \
+              -state readonly
+        pack $bytesE -expand yes -fill x
+        install progress using ttk::progressbar $frame.progress \
+              -orient horizontal -mode determinate
+        pack $progress -expand yes -fill x
+        $self configurelist $args
+    }
+    method draw {args} {
+        #puts stderr "*** $self draw $args"
+        $self configurelist $args
+        set options(-parent) [$self cget -parent]
+        $hull itemconfigure dismis -state disabled
+        update idle
+        return [$hull draw]
+    }
+    method withdraw {} {
+        $hull withdraw
+        return [$hull enddialog {}]
+    }
+    method _Dismis {} {
+        $hull withdraw
+        return [$hull enddialog {}]
+    }
+    method Update {bytesread} {
+        #puts stderr "*** $self Update $bytesread"
+        set bytesRead [_ "%5d bytes read of %5d" $bytesread \
+                       [$progress cget -maximum]]
+        $progress configure -value $bytesread
+        update idle
+    }
+    method Done {} {
+        #puts stderr "*** $self Done"
+        $hull itemconfigure dismis -state normal
+        update idle
+    }
+}
 
 
 snit::widgetadaptor LCCNodeTree {
@@ -58,6 +115,7 @@ snit::widgetadaptor LCCNodeTree {
     #
     # Options: 
     # @arg -transport The OpenLCB transport object.
+    # @arg -layoutdb  The layout DB
     #
     # @par
     
@@ -73,6 +131,14 @@ snit::widgetadaptor LCCNodeTree {
         # @param v The transport.
         
         set transport $v
+    }
+    option -layoutdb -default {} \
+          -configuremethod _passthroughLayoutDB
+    method _passthroughLayoutDB {o v} {
+        set options($o) $v
+        foreach nid [array names CDIs_FormTLs] {
+            $CDIs_FormTLs($nid) configure -layoutdb $v
+        }
     }
     variable mynid {}
     ## My NID.
@@ -115,6 +181,7 @@ snit::widgetadaptor LCCNodeTree {
         }
     }
 
+    component readCDIProgress
     
     constructor {args} {
         ## @publicsection Construct a LCC Node Tree
@@ -142,6 +209,7 @@ snit::widgetadaptor LCCNodeTree {
         $hull tag bind protocol_MemoryConfig <ButtonPress-2> {}
         update idle
         $transport SendVerifyNodeID
+        install readCDIProgress using ReadCDIProgress $win.readCDIProgress -parent $win
     }
     method messageHandler {message} {
         ## Message handler -- handle incoming messages.
@@ -380,6 +448,8 @@ snit::widgetadaptor LCCNodeTree {
             set end $highest
             set CDIs_text($nid) {}
             set EOS_Seen no
+            $readCDIProgress withdraw
+            $readCDIProgress draw -parent $win -totalbytes [expr {$end - $start}]
             for {set address $start} {!$EOS_Seen} {incr address $size} {
                 # Always read 64 bytes, even if this means reading past the 
                 # "end".
@@ -431,8 +501,9 @@ snit::widgetadaptor LCCNodeTree {
                     #}
                     #$logmessages insert end "$message\n"
                 }
-                
+                $readCDIProgress Update [expr {($address + $size)-$start}]
             }
+            $readCDIProgress Done
             putdebug [format {*** %s _ReadCDI: Last address block was at: = %08X} $self $address]
             if {[catch {ParseXML %AUTO% $CDIs_text($nid)} parsedCDI]} {
                 tk_messageBox -type ok -icon error \
@@ -444,7 +515,8 @@ snit::widgetadaptor LCCNodeTree {
             set CDIs_FormTLs($nid) \
                   [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
                    -cdi $CDIs_xml($nid) -nid $nid -transport $transport \
-                   -debugprint [myproc putdebug]]
+                   -debugprint [myproc putdebug] \
+                   -layoutdb [$self cget -layoutdb]]
             putdebug "*** $self _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
         } else {
             putdebug "*** $self _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
