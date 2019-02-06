@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <180504.1954>
+#  Last Modified : <190131.1508>
 #
 #  Description	
 #
@@ -54,7 +54,8 @@ EXTRA_DIST = lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		OpenLCB_PiSPIMax7221.tcl OpenLCB_PiMCP23017_signal.tcl \
 		GenerateEventID.tcl OpenLCB_Common.tcl OpenLCB_CMRI.tcl \
 		OpenLCB_QuadSignal.tcl ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl \
-		OpenLCB_PiPCA9685.tcl
+		OpenLCB_PiPCA9685.tcl LayoutControlDB.tcl \
+		LayoutControlDBDialogs.tcl
 
 bin_SCRIPTS = OpenLCB${EXEEXT} OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
 	OpenLCBGCTcpHub${EXEEXT} OpenLCB_TrackCircuits${EXEEXT} \
@@ -110,7 +111,8 @@ CLEANFILES = pkgIndex.tcl OpenLCB${EXEEXT} OpenLCB.pot \
 
 pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		ConfigDialogs.tcl LCCNodeTree.tcl GenerateEventID.tcl \
-		OpenLCB_Common.tcl ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl
+		OpenLCB_Common.tcl ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl \
+		LayoutControlDB.tcl LayoutControlDBDialogs.tcl
 	for f in $(notdir $^) ; do \
 	   if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi;\
 	done
@@ -136,6 +138,8 @@ OpenLCBSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
                 $(top_srcdir)/Scripts/LCC/eventDialogs.tcl \
                 $(top_srcdir)/Scripts/LCC/ConfigDialogs.tcl \
                 $(top_srcdir)/Scripts/LCC/LCCNodeTree.tcl \
+                $(top_srcdir)/Scripts/LCC/LayoutControlDB.tcl \
+		$(top_srcdir)/Scripts/LCC/LayoutControlDBDialogs.tcl \
 		$(top_builddir)/Scripts/Common/Version.tcl \
 		$(top_srcdir)/Scripts/Common/questhead.xbm \
 		$(top_srcdir)/Scripts/Common/unknown.xpm
@@ -1013,7 +1017,24 @@ endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB_CMRI${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf OpenLCB_CMRI.vfs
 
-	
+#LayoutControlDB: LayoutControlDB.tcl $(top_srcdir)/Scripts/Common/ParseXML.tcl
+#	-rm -f  LayoutControlDB.kit
+#	-rm -rf  LayoutControlDB.vfs
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/LayoutControlDB.tcl
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap LayoutControlDB.kit
+#	-rm -f  LayoutControlDB.kit
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit LayoutControlDB \
+#		lib $(SNITLIB)
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit LayoutControlDB \
+#		lib $(URILIB)
+#	$(UNZIP) -qq -d LayoutControlDB.vfs/lib \
+#		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit LayoutControlDB \
+#		lib/Common $(top_srcdir)/Scripts/Common/ParseXML.tcl
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit LayoutControlDB \
+#		Common
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap LayoutControlDB -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
+#	-rm -rf LayoutControlDB.vfs
 
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <180729.1510>
+#  Last Modified : <190204.1301>
 #
 #  Description	
 #
@@ -55,12 +55,79 @@ package require LCC
 package require pdf4tcl
 package require struct::matrix
 package require csv
+package require LayoutControlDB
+package require Dialog
 
 namespace eval lcc {
     ## 
     # @section ConfigurationEditor Package provided
     #
     # ConfigurationEditor 1.0
+    
+    snit::widgetadaptor ReadallProgress {
+        delegate option -parent to hull
+        
+        component spaceLE
+        component itemsE
+        variable itemsRead
+        component progress
+        
+        delegate option -totalitems to progress as -maximum
+        option -space -type snit::integer -default 0
+        
+        constructor {args} {
+            installhull using Dialog -bitmap questhead -default dismis \
+                  -modal none -transient yes \
+                  -side bottom -title [_ "Reading Configuration"] \
+                  -parent [from args -parent]
+            $hull add dismis -text [_m "Button|Dismiss"] \
+                  -state disabled -command [mymethod _Dismis]
+            wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Dismis]
+            set frame [$hull getframe]
+            install spaceLE using LabelEntry $frame.spaceLE \
+                  -label [_m "Label|Space:"] \
+                  -text  {} -state readonly
+            pack $spaceLE -fill x
+            install itemsE using ttk::entry $frame.itemsE \
+                  -textvariable [myvar itemsRead] \
+                  -state readonly
+            pack $itemsE -expand yes -fill x
+            install progress using ttk::progressbar $frame.progress \
+                  -orient horizontal -mode determinate
+            pack $progress -expand yes -fill x
+            $self configurelist $args
+        }
+        method draw {args} {
+            #puts stderr "*** $self draw $args"
+            $self configurelist $args
+            set options(-parent) [$self cget -parent]
+            $hull itemconfigure dismis -state disabled
+            $spaceLE configure -text [format "0x%02X" [$self cget -space]]
+            update idle
+            return [$hull draw]
+        }
+        method withdraw {} {
+            $hull withdraw
+            return [$hull enddialog {}]
+        }
+        method _Dismis {} {
+            $hull withdraw
+            return [$hull enddialog {}]
+        }
+        method Update {itemsread} {
+            #puts stderr "*** $self Update $itemsread"
+            set itemsRead [_ "%d items read of %d" $itemsread \
+                           [$progress cget -maximum]]
+            $progress configure -value $itemsread
+            update idle
+        }
+        method Done {} {
+            #puts stderr "*** $self Done"
+            $hull itemconfigure dismis -state normal
+            update idle
+        }
+    }
+        
     
     snit::widget ConfigurationEditor {
         ## @brief Generate OpenLCB Memory Configuration Window.
@@ -101,7 +168,15 @@ namespace eval lcc {
         component editframe
         ## Scrollable Frame
         
+        component readallProgressDialog
+        
+        
         option -cdi -readonly yes
+        option -layoutdb -default {};# -configuremethod _traceopt
+        #method _traceopt {o v} {
+        #    puts stderr "*** $self _traceopt $o $v"
+        #    set options($o) $v
+        #}
         option -nid -readonly yes -type lcc::nid -default "05:01:01:01:22:00"
         option -transport -readonly yes -default {}
         option -displayonly -readonly yes -type snit::boolean -default false
@@ -113,7 +188,8 @@ namespace eval lcc {
         delegate option -width to editframe
         delegate option -areawidth to editframe
         
-        
+        variable layoutcontroldb
+        ## Layout control DB object
         variable cdi
         ## CDI XML Object.
         variable _ioComplete
@@ -125,7 +201,7 @@ namespace eval lcc {
         
         typevariable _menu {
             "[_m {Menu|&File}]" {file:menu} {file} 0 {
-                {command [_m "Menu|File|&Close"] {file:close} "[_ {Close the editor}]" {Ctrl c} -command "[mymethod _close]"}
+                {command "[_m {Menu|File|&Close}]" {file:close} "[_ {Close the editor}]" {Ctrl c} -command "[mymethod _close]"}
             } "[_m {Menu|&Edit}]" {edit} {edit} 0 {
                 {command "[_m {Menu|Edit|Cu&t}]" {edit:cut edit:havesel} "[_ {Cut selection to the paste buffer}]" {Ctrl x} -command {StdMenuBar EditCut} -state disabled}
                 {command "[_m {Menu|Edit|&Copy}]" {edit:copy edit:havesel} "[_ {Copy selection to the paste buffer}]" {Ctrl c} -command {StdMenuBar EditCopy} -state disabled}
@@ -210,10 +286,26 @@ namespace eval lcc {
             $self putdebug "*** $type create $self: win = $win, about to wm title $win ..."
             wm title $win [_ "CDI Configuration Tool for Node ID %s" [$self cget -nid]]
             set address 0
-            $self _processXMLnode $cdi [$editframe getframe] -1 address
-            # $self _processXMLnode $cdi [$main getframe] -1 address
             [$main getmenu edit] configure -postcommand [mymethod edit_checksel]
+            $self putdebug "*** $type create $self: configured -postcommand to edit menu"
+            set layoutcontroldb [::lcc::LayoutControlDB newdb]
+            $self putdebug "*** $type create $self: initialized Layout Control DB"
+            $self _processXMLnode $cdi [$editframe getframe] -1 address
+            $self putdebug "*** $type create $self: processed CDI"
+            # $self _processXMLnode $cdi [$main getframe] -1 address
+            install readallProgressDialog using \
+                  lcc::ReadallProgress $win.readallProgressDialog \
+                  -parent $win
+            $self putdebug "*** $type create $self: _readall names: [array names _readall]"
+            if {!$options(-displayonly)} {
+                foreach s [array names _readall] {
+                    $self _readall $s
+                }
+                $self putdebug "*** $type create $self: _readall completed"
+            }
+            
         }
+        
         method edit_checksel {} {
             if {[catch {selection get}]} {
                 $main setmenustate edit:havesel disabled
@@ -263,6 +355,7 @@ namespace eval lcc {
             # @param space The current space.
             # @param address_var The name of the address variable.
             
+            update idle
             $self putdebug "*** $self _processXMLnode $n $frame $space $address_var"
             upvar $address_var address
             $self putdebug "*** $self _processXMLnode: tag is [$n cget -tag] at address [format %08x $address]"
@@ -699,6 +792,7 @@ namespace eval lcc {
                         $widget insert end {00.00.00.00.00.00.00.00}
                         set readermethod _eventidEntryRead
                         set writermethod _eventidEntryWrite
+                        bind $widget <3> "[mymethod _eventContext %W %X %Y]"
                     }
                     pack $widget -fill x
                     set readwrite [ButtonBox $eventidframe.readwrite \
@@ -716,6 +810,175 @@ namespace eval lcc {
                 }
             }
             #update idle
+        }
+        method _eventContext1 {dismiscmd entry item taglist} {
+            uplevel #0 $dismiscmd
+            set tag $item
+            foreach t $taglist {
+                set tag [$tag getElementsByTagName $t -depth 1]
+            }
+            set oldeventID [$entry get]
+            if {[$tag data] eq {} && "$oldeventID" ne {}} {
+                $tag setdata $oldeventID
+            } else {
+                $entry delete 0 end
+                $entry insert end [$tag data]
+            }
+        }
+        proc checkrow {w gcolVar growVar lastrow} {
+            upvar $gcolVar gcol
+            upvar $growVar grow
+            set screenbottom [winfo screenheight $w]
+            update idle
+            set h [winfo reqheight $w]
+            #puts stderr "*** checkrow: gcol=$gcol, grow=$grow, h=$h"
+            if {($gcol == 0 && ($h + 50) > $screenbottom) || 
+                ($gcol > 0 && $grow >= $lastrow)} {
+                incr gcol
+                set grow -1
+                grid columnconfigure $w $gcol -weight 0
+            }
+        }
+        method _eventContext {entry rootx rooty} {
+            #puts stderr "*** $self _eventContext $entry $rootx $rooty"
+            set layoutcontroldb [$self cget -layoutdb]
+            #puts stderr "*** $self _eventContext: layoutcontroldb is $layoutcontroldb"
+            if {$layoutcontroldb eq {}} {return}
+            set l [$layoutcontroldb getElementsByTagName layout]
+            #puts stderr "*** $self _eventContext: l is $l"
+            set items [$l children]
+            toplevel $win.em
+            wm overrideredirect $win.em 1
+            set idx 0
+            set gcol 0
+            set grow -1
+            set lastrow 0
+            grid columnconfigure $win.em $gcol -weight 0
+            foreach i $items {
+                $self putdebug "*** $self _eventContextAny: gcol = $gcol, grow = $grow"
+                set n [$i getElementsByTagName name -depth 1]
+                $self putdebug "*** $self _eventContextAny: \[\$n data] = [$n data]"
+                set tag [$i cget -tag]
+                $self putdebug "*** $self _eventContextAny: tag = $tag"
+                switch $tag {
+                    block {
+                        incr idx
+                        checkrow $win.em gcol grow $lastrow
+                        incr grow
+                        if {$lastrow < $grow} {set lastrow $grow}
+                        grid [button $win.em.b$idx -text "[$n data]:[_m {Button|Occupied}]" \
+                              -command [mymethod _eventContext1 [list destroy $win.em] \
+                                        $entry $i {occupied}]] -column $gcol \
+                              -row $grow -sticky news
+                        incr idx
+                        checkrow $win.em gcol grow $lastrow
+                        incr grow
+                        if {$lastrow < $grow} {set lastrow $grow}
+                        grid [button $win.em.b$idx -text "[$n data]:[_m {Button|Clear}]" \
+                              -command [mymethod _eventContext1 [list destroy $win.em] \
+                                        $entry $i {clear}]] -column $gcol \
+                              -row $grow -sticky news
+                    }
+                    turnout {
+                        incr idx
+                        checkrow $win.em gcol grow $lastrow
+                        incr grow
+                        if {$lastrow < $grow} {set lastrow $grow}
+                        grid [button $win.em.b$idx -text "[$n data]:[_m {Button|Motor}]:[_m {Button|Normal}]" \
+                              -command [mymethod _eventContext1 [list destroy $win.em] \
+                                        $entry $i {motor normal}]] -column $gcol \
+                              -row $grow -sticky news
+                        incr idx
+                        checkrow $win.em gcol grow $lastrow
+                        incr grow
+                        if {$lastrow < $grow} {set lastrow $grow}
+                        grid [button $win.em.b$idx -text "[$n data]:[_m {Button|Motor}]:[_m {Button|Reversed}]" \
+                              -command [mymethod _eventContext1 [list destroy $win.em] \
+                                        $entry $i {motor reverse}]] -column $gcol \
+                              -row $grow -sticky news
+                        incr idx
+                        checkrow $win.em gcol grow $lastrow
+                        incr grow
+                        if {$lastrow < $grow} {set lastrow $grow}
+                        grid [button $win.em.b$idx -text "[$n data]:[_m {Button|Points}]:[_m {Button|Normal}]" \
+                              -command [mymethod _eventContext1 [list destroy $win.em] \
+                                        $entry $i {points normal}]] -column $gcol \
+                              -row $grow -sticky news
+                        incr idx
+                        checkrow $win.em gcol grow $lastrow
+                        incr grow
+                        if {$lastrow < $grow} {set lastrow $grow}
+                        grid [button $win.em.b$idx -text "[$n data]:[_m {Button|Points}]:[_m {Button|Reverse}]" \
+                              -command [mymethod _eventContext1 [list destroy $win.em] \
+                                        $entry $i {points reverse}]] -column $gcol \
+                              -row $grow -sticky news
+                    }
+                    signal {
+                        foreach a [$i getElementsByTagName aspect -depth 1] {
+                            set na [$a getElementsByTagName name -depth 1]
+                            incr idx
+                            checkrow $win.em gcol grow $lastrow
+                            incr grow
+                            if {$lastrow < $grow} {set lastrow $grow}
+                            grid [button $win.em.b$idx -text "[$n data]:[$na data]" \
+                                  -command [mymethod _eventContext1 [list destroy $win.em] \
+                                            $entry $a {eventid}]] -column $gcol \
+                                  -row $grow -sticky news
+                        }
+                    }
+                    sensor {
+                        incr idx
+                        checkrow $win.em gcol grow $lastrow
+                        incr grow
+                        if {$lastrow < $grow} {set lastrow $grow}
+                        grid [button $win.em.b$idx -text "[$n data]:[_m {Button|On}]" \
+                              -command [mymethod _eventContext1 [list destroy $win.em] \
+                                        $entry $i {on}]] -column $gcol \
+                              -row $grow -sticky news
+                        incr idx
+                        checkrow $win.em gcol grow $lastrow
+                        incr grow
+                        if {$lastrow < $grow} {set lastrow $grow}
+                        grid [button $win.em.b$idx -text "[$n data]:[_m {Button|Off}]" \
+                              -command [mymethod _eventContext1 [list destroy $win.em] \
+                                        $entry $i {off}]] -column $gcol \
+                              -row $grow -sticky news
+                    }
+                    control {
+                        incr idx
+                        checkrow $win.em gcol grow $lastrow
+                        incr grow
+                        if {$lastrow < $grow} {set lastrow $grow}
+                        grid [button $win.em.b$idx -text "[$n data]:[_m {Button|On}]" \
+                              -command [mymethod _eventContext1 [list destroy $win.em] \
+                                        $entry $i {on}]] -column $gcol \
+                              -row $grow -sticky news
+                        incr idx
+                        checkrow $win.em gcol grow $lastrow
+                        incr grow
+                        if {$lastrow < $grow} {set lastrow $grow}
+                        grid [button $win.em.b$idx -text "[$n data]:[_m {Button|Off}]" \
+                              -command [mymethod _eventContext1 [list destroy $win.em] \
+                                        $entry $i {off}]] -column $gcol \
+                              -row $grow -sticky news
+                    }
+                }
+            }
+            grid [button $win.em.dismis -text [_m {Button|Dismis}] \
+                  -command [list destroy $win.em]] -column 0 \
+                  -row [expr {$lastrow + 1}] \
+                  -columnspan [expr {$gcol + 1}] -sticky news
+            update idle
+            set h [winfo reqheight $win.em]
+            set w [winfo reqwidth  $win.em]
+            set screenbottom [winfo screenheight $win.em]
+            set screenright  [winfo screenwidth  $win.em]
+            if {($rootx + $w) > $screenright} {set rootx [expr {$screenright - $w}]}
+            if {($rooty + $h) > $screenbottom} {set rooty [expr {$screenbottom - $h}]}
+            if {$rootx < 0} {set rootx 0}
+            if {$rooty < 0} {set rooty 0}
+            wm geometry $win.em +$rootx+$rooty
+            return -code break
         }
         typevariable printexportfiletypes {
             {{PDF (printable) Files} {.pdf}     }
@@ -1613,12 +1876,16 @@ namespace eval lcc {
                 return {}
             }
             set status [lindex $datagrambuffer 1]
-            set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
-            set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
-            if {$respaddr != $address} {
-                ## wrong address...
+            if {[llength $datagrambuffer] > 1} {
+                set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
+                set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
+                set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
+                set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
+                if {$respaddr != $address} {
+                    ## wrong address...
+                }
+            } else {
+                puts stderr "*** $self _readmemory: short read? datagrambuffer is $datagrambuffer"
             }
             if {$status == 0x50 || $status == 0x58} {
                 set respspace [lindex $datagrambuffer 6]
@@ -1696,12 +1963,14 @@ namespace eval lcc {
                 return 0
             }
             set status [lindex $datagrambuffer 1]
-            set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
-            set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
-            set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
-            if {$respaddr != $address} {
-                ## wrong address...
+            if {[llength $datagrambuffer] > 1} {
+                set respaddr [expr {[lindex $datagrambuffer 2] << 24}]
+                set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
+                set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
+                set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
+                if {$respaddr != $address} {
+                    ## wrong address...
+                }
             }
             if {$status == 0x10 || $status == 0x18} {
                 set respspace [lindex $datagrambuffer 6]
@@ -2178,13 +2447,26 @@ namespace eval lcc {
             # @param space The parameter space to read from.
             
             if {![catch {set _readall($space)} rbs]} {
+                $readallProgressDialog withdraw
+                $readallProgressDialog draw -parent $win \
+                      -totalitems [llength $rbs] -space $space
+                set count 0
+                $readallProgressDialog Update $count
                 foreach rb $rbs {
                     $rb invoke
+                    incr count
+                    #puts stderr "*** $self _readall: count = $count"
+                    if {($count % 50) == 0} {
+                        $readallProgressDialog Update $count
+                    }
                 }
+                $readallProgressDialog Update $count
+                $readallProgressDialog Done
             }
         }
     }
 }
 
 package provide ConfigurationEditor 1.0
+
 

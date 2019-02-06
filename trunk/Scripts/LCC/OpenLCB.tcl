@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <180107.1255>
+#  Last Modified : <190204.1251>
 #
 #  Description	
 #
@@ -104,6 +104,10 @@ package require ConfigurationEditor
 package require EventDialogs
 package require ConfigDialogs
 package require LCCNodeTree
+package require LayoutControlDB
+package require Dialog
+package require ScrollTabNotebook                                      
+package require LayoutControlDBDialogs
 
 global HelpDir
 set HelpDir [file join [file dirname [file dirname [file dirname \
@@ -136,6 +140,67 @@ snit::type OpenLCB {
     
     typevariable _debug no;# Debug flag
     
+    typecomponent layoutcontroldb
+    typecomponent newTurnoutDialog
+    typecomponent newBlockDialog
+    typecomponent newSignalDialog
+    typecomponent newSensorDialog
+    typecomponent newControlDialog
+        
+    typemethod _buildDialogs {} {
+        putdebug "*** $type _buildDialogs"
+        set newTurnoutDialog [::lcc::NewTurnoutDialog .main.newTurnoutDialog -parent .main]
+        putdebug "*** $type _buildDialogs: newTurnoutDialog is $newTurnoutDialog"
+        set newBlockDialog   [::lcc::NewBlockDialog   .main.newBlockDialog -parent .main]
+        set newSignalDialog  [::lcc::NewSignalDialog  .main.newSignalDialog -parent .main]
+        set newSensorDialog  [::lcc::NewSensorDialog  .main.newSensorDialog -parent .main]
+        set newControlDialog [::lcc::NewControlDialog .main.newControlDialog -parent .main]
+        
+    }
+    typemethod _newTurnout {} {
+        putdebug "*** $type _newTurnout: newTurnoutDialog is $newTurnoutDialog"
+        $newTurnoutDialog draw -db $layoutcontroldb
+    }
+    typemethod _newBlock {} {
+        $newBlockDialog   draw -db $layoutcontroldb
+    }
+    typemethod _newSignal {} {
+        $newSignalDialog  draw -db $layoutcontroldb
+    }
+    typemethod _newSensor {} {
+        $newSensorDialog  draw -db $layoutcontroldb
+    }
+    typemethod _newControl {} {
+        $newControlDialog draw -db $layoutcontroldb
+    }
+        
+    typemethod _loadLCDB {} {
+        set filename [tk_getOpenFile -defaultextension .xml \
+                      -filetypes {{{XML Files} {.xml} TEXT}
+                      {{All Files} *     TEXT}
+                  } -parent . -title "XML File to open"]
+        if {"$filename" ne {}} {
+            set layoutcontroldb [::lcc::LayoutControlDB olddb $filename]
+            $nodetree configure -layoutdb $layoutcontroldb
+            foreach cdiform [array names CDIs_FormTLs] {
+                set tl $CDIs_FormTLs($cdiform)
+                if {[winfo exists $tl] && ![$tl cget -displayonly]} {
+                    $tl configure -layoutdb $layoutcontroldb
+                }
+            }
+        }
+    }
+        
+    typemethod _saveLCDB {} {
+        set filename [tk_getSaveFile -defaultextension .xml \
+                      -filetypes {{{XML Files} {.xml} TEXT}
+                      {{All Files} *     TEXT}
+                  } -parent . -title "XML File to open"]
+        if {"$filename" ne {}} {
+            $layoutcontroldb savedb "$filename"
+        }
+    }
+
     proc putdebug {message} {
         if {$_debug} {
             puts stderr $message
@@ -280,8 +345,43 @@ snit::type OpenLCB {
         # menu.
         $mainWindow menu entryconfigure file "Exit" -command [mytypemethod _carefulExit]
         $mainWindow menu insert file "Print..." command \
-              -label [_m "Label|File|Send Event"] \
+              -label [_m "Menu|File|Send Event"] \
               -command [mytypemethod _SendEvent]
+        $mainWindow menu insert file "Print..." command \
+              -label [_m "Menu|File|Load Layout Control DB"] \
+              -dynamichelp "[_ {Load a Layout Control DB File}]" \
+              -accelerator Ctrl+L \
+              -underline 0 \
+              -command "[mytypemethod _loadLCDB]"
+        bind [winfo toplevel $mainWindow] <Control-Key-L> [mytypemethod _loadLCDB]
+        $mainWindow menu insert file "Print..." command \
+              -label [_m "Menu|File|Save Layout Control DB"] \
+              -dynamichelp "[_ {Save a Layout Control DB File}]" \
+              -accelerator Ctrl+S \
+              -underline 0 \
+              -command "[mytypemethod _saveLCDB]"
+        bind [winfo toplevel $mainWindow] <Control-Key-S> [mytypemethod _saveLCDB]
+        $mainWindow menu add edit separator
+        $mainWindow menu add edit command \
+              -label [_m "Menu|Edit|New Turnout"] \
+              -dynamichelp "[_ {Create new turnout}]" \
+              -command "[mytypemethod _newTurnout]"
+        $mainWindow menu add edit command \
+              -label [_m "Menu|Edit|New Block"] \
+              -dynamichelp "[_ {Create new block}]" \
+              -command "[mytypemethod _newBlock]"
+        $mainWindow menu add edit command \
+              -label [_m "Menu|Edit|New Signal"] \
+              -dynamichelp "[_ {Create new signal}]" \
+              -command "[mytypemethod _newSignal]"
+        $mainWindow menu add edit command \
+              -label [_m "Menu|Edit|New Sensor"] \
+              -dynamichelp "[_ {Create new sensor}]" \
+              -command "[mytypemethod _newSensor]"
+        $mainWindow menu add edit command \
+              -label [_m "Menu|Edit|New Control"] \
+              -dynamichelp "[_ {Create new control}]" \
+              -command "[mytypemethod _newControl]"
         $mainWindow menu entryconfigure help "On Help..." -command {HTMLHelp help Help}
         $mainWindow menu delete help "On Keys..."
         $mainWindow menu delete help "Index..."
@@ -298,12 +398,14 @@ snit::type OpenLCB {
         # Hook in help files.
         HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
         
+        set layoutcontroldb [::lcc::LayoutControlDB newdb]
         # Lazy eval for event log.
         set sendlog {}
         # Create node tree widget.
         # ($mainWindow setstatus text, $mainWindow setprogress pval)
         set nodetree [LCCNodeTree [$mainWindow scrollwindow getframe].nodetree \
-                      -transport $transport]
+                      -transport $transport \
+                      -layoutdb $layoutcontroldb]
         # Bind scrollbars.
         $mainWindow scrollwindow setwidget $nodetree
         
@@ -311,11 +413,13 @@ snit::type OpenLCB {
         # Get our Node ID.
         set mynid [$transport cget -nid]
         putdebug "*** $type typeconstructor: mynid = $mynid"
+        $type _buildDialogs
         # Pop the main window on the screen.
         $mainWindow showit
         update idle
         putdebug "*** $type typeconstructor: done."
     }
+    
     typemethod _eventHandler {command eventid {validity {}}} {
         #* Event handler -- when a PCER message is received, pop up an
         #* event received pop up.
@@ -526,6 +630,7 @@ snit::type OpenLCB {
             set end   [expr {$highest + 64}]
             set CDIs_text($nid) {}
             set EOS_Seen no
+            putdebug "*** $type _ReadCDI: About to fire up progress dialog"
             for {set address $start} {$address < $end && !$EOS_Seen} {incr address $size} {
                 set size [expr {$end - $address}]
                 if {$size > 64} {set size 64}
@@ -576,13 +681,14 @@ snit::type OpenLCB {
                     }
                     $logmessages insert end "$message\n"
                 }
-                
             }
             set CDIs_xml($nid) [ParseXML %AUTO% $CDIs_text($nid)]
             putdebug "*** $type _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"
             set CDIs_FormTLs($nid) \
                   [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
-                   -cdi $CDIs_xml($nid) -nid $nid -transport $transport \
+                   -cdi $CDIs_xml($nid) -nid $nid \
+                   -layoutdb $layoutcontroldb \
+                   -transport $transport \
                    -debugprint [myproc putdebug]]
             putdebug "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
         } elseif {![info exists CDIs_xml($nid)] ||
@@ -596,6 +702,7 @@ snit::type OpenLCB {
                    -cdi $CDIs_xml($nid) \
                    -nid $nid \
                    -transport $transport \
+                   -layoutdb $layoutcontroldb \
                    -debugprint [myproc putdebug]]
             putdebug "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
         } elseif {![info exists CDIs_FormTLs($nid)] ||
@@ -607,6 +714,7 @@ snit::type OpenLCB {
                    -cdi $CDIs_xml($nid) \
                    -nid $nid \
                    -transport $transport \
+                   -layoutdb $layoutcontroldb \
                    -debugprint [myproc putdebug]]
             putdebug "*** $type _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
         } else {
@@ -715,3 +823,4 @@ snit::type OpenLCB {
         return $count
     }
 }
+

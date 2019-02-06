@@ -51,6 +51,9 @@ package require ScrollWindow
 package require ROText
 package require ScrollTabNotebook
 package require csv
+package require LayoutControlDB
+package require LayoutControlDBDialogs
+package require GenerateEventID
 
 catch {Dispatcher::SplashWorkMessage "Loading CTC Panel Window Code" 16}
 
@@ -87,7 +90,27 @@ namespace eval CTCPanelWindow {
 	error [_ "Duplicate %s: %s" $option $value]
       }
     }
-      
+    
+    component layoutcontroldb -inherit yes
+    component eventIdGenerator
+    delegate method nextid to eventIdGenerator
+    option -baseevent
+    
+    option -layoutcontroldb -default {} \
+          -configuremethod _set_layoutcontroldb \
+          -cgetmethod _get_layoutcontroldb
+    method _set_layoutcontroldb {o v} {
+        #puts stderr "[list *** $self _set_layoutcontroldb $o $v]"
+        if {$v eq {}} {
+            set layoutcontroldb [::lcc::LayoutControlDB newdb]
+        } else {
+            ::lcc::LayoutControlDB validate $v
+            set layoutcontroldb $v
+        }
+    }
+    method _get_layoutcontroldb {o} {
+        return $layoutcontroldb
+    }
     option -filename -default {newctcpanel.tcl}
     delegate option -width to ctcpanel
     delegate option -height to ctcpanel
@@ -251,7 +274,7 @@ namespace eval CTCPanelWindow {
             {command "[_m {Menu|Azatrax|Delete node}]" {} "[_ {Delete Azatrax node}]" {} -command "[mymethod deleteazatraxnode]"}
         }
     }
-    constructor {args} {
+    constructor {args} {                                                        
       wm protocol $win WM_DELETE_WINDOW {Dispatcher::CarefulExit}
       wm withdraw $win
       wm title $win {}
@@ -329,6 +352,19 @@ namespace eval CTCPanelWindow {
 
       $self configurelist $args
       
+      if {$options(-openlcbmode)} {
+          if {$options(-baseevent) eq {}} {
+              set temp $options(-openlcbtransportopts)
+              set nid [from temp -nid]
+              if {$nid eq {}} {set nid "05:01:01:01:22:00"}
+              set options(-baseevent) "[regsub -all {:} $nid {.}].00.00"
+          }
+          
+              
+          install eventIdGenerator using GenerateEventID %AUTO% \
+                -baseeventid [lcc::EventID %AUTO% \
+                              -eventidstring $options(-baseevent)]
+      }
       $swframe configure -width [expr {[$ctcpanel cget -width] + 15}] \
 			 -height [$ctcpanel cget -height]
       wm title $win $options(-name)
@@ -610,6 +646,10 @@ namespace eval CTCPanelWindow {
       if {[file exists "$filename"]} {
 	file rename -force "$filename" "${filename}~"
       }
+      if {[$layoutcontroldb IsDirtyP]} {
+          #$layoutcontroldb savedb "[file rootname $filename].xml"
+          $layoutcontroldb save
+      }
       if {[catch {open "$filename" w} fp]} {
 	catch {file rename -force "${filename}~" "$filename"}
 	tk_messageBox -type ok -icon error  -parent $win \
@@ -661,6 +701,10 @@ namespace eval CTCPanelWindow {
       puts $fp [list -openlcbtransport "$options(-openlcbtransport)"]
       puts -nonewline $fp {# }
       puts $fp [list -openlcbtransportopts "$options(-openlcbtransportopts)"]
+      if {$eventIdGenerator ne {}} {
+          puts -nonewline $fp {# }
+          puts $fp [list -baseevent [$eventIdGenerator currentid]]
+      }
       set line "# "
       append line [concat additionalPackages $additionalPackages]
       puts $fp $line
@@ -1061,6 +1105,7 @@ namespace eval CTCPanelWindow {
 	return
       }
       set opts [list -filename "$filename"]
+      lappend opts -layoutcontroldb [from args -layoutcontroldb {}]
       set buffer {}
       set aplist {}
       array unset eums
@@ -1320,10 +1365,7 @@ namespace eval CTCPanelWindow {
       $editContextMenu bind Text
       $editContextMenu bind ROText
       $editContextMenu bind Spinbox
-      
     }
-                
-                
     typemethod createnewDialog {} {
       if {![string equal "$newDialog" {}] && [winfo exists $newDialog]} {return}
       set newDialog [Dialog .newCTCPanelWindowDialog \
@@ -1520,8 +1562,11 @@ namespace eval CTCPanelWindow {
             }
         }
     }
+    typevariable _layoutcontroldb {}
     typemethod new {args} {
+      puts stderr "[list *** $type new $args]"
       set _simpleMode [from args -simplemode no]
+      set _layoutcontroldb [from args -layoutcontroldb {}]  
       $type createnewDialog 
       set parent [from args -parent .]
       $newDialog configure -parent $parent
@@ -1554,7 +1599,8 @@ namespace eval CTCPanelWindow {
 				     -cmrispeed 9600 \
 				     -cmriretries 10000 \
 				     -hasazatrax 1 \
-				     -simplemode yes
+                                     -simplemode yes \
+                                     -layoutcontroldb $_layoutcontroldb
       } else {
 	$type create .ctcpanel%AUTO% -name "[$new_nameLE cget -text]" \
               -width [$new_widthLSB cget -text] \
@@ -1569,7 +1615,8 @@ namespace eval CTCPanelWindow {
               -openlcbmode $_openlcbMode \
               -openlcbtransport "$_transconstructorname" \
               -openlcbtransportopts "$_transopts" \
-              -simplemode no
+              -simplemode no \
+              -layoutcontroldb $_layoutcontroldb
       }
       
       return [$newDialog enddialog Create]
@@ -1743,18 +1790,18 @@ namespace eval CTCPanelWindow {
     component selectAZATRAXNodeDialog
     component editUserCodeDialog
     component addExternalUserModuleDialog
-
+    
     method buildDialogs {} {
 
-      install addPanelObjectDialog using CTCPanelWindow::AddPanelObjectDialog $win.addPanelObjectDialog -parent $win -ctcpanel $ctcpanel
-      install selectPanelObjectDialog using CTCPanelWindow::SelectPanelObjectDialog $win.selectPanelObjectDialog -parent $win -ctcpanel $ctcpanel
-      install configurePanelDialog using CTCPanelWindow::ConfigurePanelDialog $win.configurePanelDialog -parent $win
-      install addCMRINodeDialog using CTCPanelWindow::AddCMRINodeDialog $win.addCMRINodeDialog -parent $win
-      install selectCMRINodeDialog using CTCPanelWindow::SelectCMRINodeDialog $win.selectCMRINodeDialog -parent $win
-      install addAZATRAXNodeDialog using CTCPanelWindow::AddAZATRAXNodeDialog $win.addAZATRAXNodeDialog -parent $win
-      install selectAZATRAXNodeDialog using CTCPanelWindow::SelectAZATRAXNodeDialog $win.selectAZATRAXNodeDialog -parent $win
-      install editUserCodeDialog  using CTCPanelWindow::EditUserCodeDialog $win.editUserCodeDialog -parent $win
-      install addExternalUserModuleDialog using CTCPanelWindow::AddExternalUserModuleDialog $win.addExternalUserModuleDialog -parent $win
+        install addPanelObjectDialog using CTCPanelWindow::AddPanelObjectDialog $win.addPanelObjectDialog -parent $win -ctcpanel $ctcpanel
+        install selectPanelObjectDialog using CTCPanelWindow::SelectPanelObjectDialog $win.selectPanelObjectDialog -parent $win -ctcpanel $ctcpanel
+        install configurePanelDialog using CTCPanelWindow::ConfigurePanelDialog $win.configurePanelDialog -parent $win
+        install addCMRINodeDialog using CTCPanelWindow::AddCMRINodeDialog $win.addCMRINodeDialog -parent $win
+        install selectCMRINodeDialog using CTCPanelWindow::SelectCMRINodeDialog $win.selectCMRINodeDialog -parent $win
+        install addAZATRAXNodeDialog using CTCPanelWindow::AddAZATRAXNodeDialog $win.addAZATRAXNodeDialog -parent $win
+        install selectAZATRAXNodeDialog using CTCPanelWindow::SelectAZATRAXNodeDialog $win.selectAZATRAXNodeDialog -parent $win
+        install editUserCodeDialog  using CTCPanelWindow::EditUserCodeDialog $win.editUserCodeDialog -parent $win
+        install addExternalUserModuleDialog using CTCPanelWindow::AddExternalUserModuleDialog $win.addExternalUserModuleDialog -parent $win
     }
 
     method addblocktopanel {node args} {
@@ -2607,6 +2654,9 @@ namespace eval CTCPanelWindow {
 	}
       }
     }
+  
+                
+    
   }
   snit::widgetadaptor AddPanelObjectDialog {
     delegate option -parent to hull
@@ -2743,6 +2793,11 @@ namespace eval CTCPanelWindow {
     component oneventidLE
     component offeventidLE
     
+    component newTurnoutDialog
+    component newBlockDialog
+    component newSignalDialog
+    component newSensorDialog
+    component newControlDialog
     
     typevariable objectTypeOptions -array {
 	SWPlate {xyctl label normalcommand reversecommand}
@@ -3074,34 +3129,44 @@ namespace eval CTCPanelWindow {
       install occupiedeventidLE using LabelEntry $optionsFrame.occupiedeventidLE \
             -label [_m "Label|Occupied EventID:"] \
             -labelwidth $lwidth
+      $occupiedeventidLE bind <3> "[mymethod _eventContext %W %X %Y {block occupied}];break"
       install notoccupiedeventidLE using LabelEntry $optionsFrame.notoccupiedeventidLE \
             -label [_m "Label|Not Occupied EventID:"] \
             -labelwidth $lwidth
+      $notoccupiedeventidLE bind <3> "[mymethod _eventContext %W %X %Y {block clear}];break"
       install statenormaleventidLE using LabelEntry $optionsFrame.statenormaleventidLE \
             -label [_m "Label|State Normal EventID:"] \
             -labelwidth $lwidth
+      $statenormaleventidLE bind <3> "[mymethod _eventContext %W %X %Y {turnout points normal}];break"
       install statereverseeventidLE using LabelEntry $optionsFrame.statereverseeventidLE \
             -label [_m "Label|State Reversed EventID:"] \
             -labelwidth $lwidth
+      $statereverseeventidLE bind <3> "[mymethod _eventContext %W %X %Y {turnout points reverse}];break"
       # Actions
       install lefteventidLE using LabelEntry $optionsFrame.lefteventidLE \
             -label [_m "Label|Left EventID:"] \
             -labelwidth $lwidth
+      $lefteventidLE bind <3> "[mymethod _eventContextAny %W %X %Y];break"
       install righteventidLE using LabelEntry $optionsFrame.righteventidLE \
             -label [_m "Label|Right EventID:"] \
             -labelwidth $lwidth
+      $righteventidLE bind <3> "[mymethod _eventContextAny %W %X %Y];break"
       install centereventidLE using LabelEntry $optionsFrame.centereventidLE \
             -label [_m "Label|Center EventID:"] \
             -labelwidth $lwidth
+      $centereventidLE bind <3> "[mymethod _eventContextAny %W %X %Y];break"
       install eventidLE using LabelEntry $optionsFrame.eventidLE \
             -label [_m "Label|Command EventID:"] \
             -labelwidth $lwidth
+      $eventidLE bind <3> "[mymethod _eventContextAny %W %X %Y];break"
       install normaleventidLE using LabelEntry $optionsFrame.normaleventidLE \
             -label [_m "Label|Normal EventID:"] \
             -labelwidth $lwidth
+      $normaleventidLE bind <3> "[mymethod _eventContext %W %X %Y {turnout motor normal}];break"
       install reverseeventidLE using LabelEntry $optionsFrame.reverseeventidLE \
             -label [_m "Label|Reverse EventID:"] \
             -labelwidth $lwidth
+      $reverseeventidLE bind <3> "[mymethod _eventContext %W %X %Y {turnout motor reverse}];break"
       # Indicators
       install aspectlistLF using ttk::labelframe $optionsFrame.aspectlistLF \
             -labelanchor nw -text [_m "Label|Signal Aspect Events"]
@@ -3115,43 +3180,395 @@ namespace eval CTCPanelWindow {
       install normalindonevLE using LabelEntry $optionsFrame.normalindonevLE \
             -label [_m "Label|Normal Indicator On EventID:"] \
             -labelwidth $lwidth
+      $normalindonevLE bind <3> "[mymethod _eventContext %W %X %Y {turnout points normal}];break"
       install normalindoffevLE using LabelEntry $optionsFrame.normalindoffevLE \
             -label [_m "Label|Normal Indicator Off EventID:"] \
             -labelwidth $lwidth
-      install centerindonevLE using LabelEntry $optionsFrame.centerindonevLE \
+      $normalindoffevLE bind <3> "[mymethod _eventContext %W %X %Y {turnout points reverse}];break"
+      install centerindonevLE  using LabelEntry $optionsFrame.centerindonevLE \
             -label [_m "Label|Center Indicator On EventID:"] \
             -labelwidth $lwidth
+      $centerindonevLE bind <3> "[mymethod _eventContextAny %W %X %Y];break"
       install centerindoffevLE using LabelEntry $optionsFrame.centerindoffevLE \
             -label [_m "Label|Center Indicator Off EventID:"] \
             -labelwidth $lwidth
+      $centerindoffevLE bind <3> "[mymethod _eventContextAny %W %X %Y];break"
       install reverseindonevLE using LabelEntry $optionsFrame.reverseindonevLE \
             -label [_m "Label|Reverse Indicator On EventID:"] \
             -labelwidth $lwidth
+      $reverseindonevLE bind <3> "[mymethod _eventContext %W %X %Y {turnout points reverse}];break"
       install reverseindoffevLE using LabelEntry $optionsFrame.reverseindoffevLE \
             -label [_m "Label|Reverse Indicator Off EventID:"] \
             -labelwidth $lwidth
+      $reverseindoffevLE bind <3> "[mymethod _eventContext %W %X %Y {turnout points normal}];break"
       install leftindonevLE using LabelEntry $optionsFrame.leftindonevLE \
             -label [_m "Label|Left Indicator On EventID:"] \
             -labelwidth $lwidth
+      $leftindonevLE bind <3> "[mymethod _eventContextAny %W %X %Y];break"
       install leftindoffevLE using LabelEntry $optionsFrame.leftindoffevLE \
             -label [_m "Label|Left Indicator Off EventID:"] \
             -labelwidth $lwidth
+      $leftindoffevLE bind <3> "[mymethod _eventContextAny %W %X %Y];break"
       install rightindonevLE using LabelEntry $optionsFrame.rightindonevLE \
             -label [_m "Label|Right Indicator On EventID:"] \
             -labelwidth $lwidth
+      $rightindonevLE bind <3> "[mymethod _eventContextAny %W %X %Y];break"
       install rightindoffevLE using LabelEntry $optionsFrame.rightindoffevLE \
             -label [_m "Label|Right Indicator Off EventID:"] \
             -labelwidth $lwidth
+      $rightindoffevLE bind <3> "[mymethod _eventContextAny %W %X %Y];break"
       install oneventidLE using LabelEntry $optionsFrame.oneventidLE \
             -label [_m "Label|Lamp On EventID:"] \
             -labelwidth $lwidth
+      $oneventidLE bind <3> "[mymethod _eventContextAny %W %X %Y];break"
       install offeventidLE using LabelEntry $optionsFrame.offeventidLE \
             -label [_m "Label|Lamp Off EventID:"] \
             -labelwidth $lwidth
+      $oneventidLE bind <3> "[mymethod _eventContextAny %W %X %Y];break"
       
       $self configurelist $args
       bind $win <<ComboboxSelected>> [mymethod redrawgraphic]
+      install newTurnoutDialog using ::lcc::NewTurnoutDialog $win.newTurnoutDialog -parent $win
+      install newBlockDialog   using ::lcc::NewBlockDialog   $win.newBlockDialog -parent $win
+      install newSignalDialog  using ::lcc::NewSignalDialog  $win.newSignalDialog -parent $win
+      install newSensorDialog  using ::lcc::NewSensorDialog  $win.newSensorDialog -parent $win
+      install newControlDialog using ::lcc::NewControlDialog $win.newControlDialog -parent $win
       
+    }
+    method _eventContext {entry rootx rooty taglist} {
+        #puts stderr "*** $self _eventContext $entry $taglist"
+        set l [[$self cget -parent] getElementsByTagName layout]
+        #puts stderr "*** $self _eventContext: l = $l"
+        set items [$l getElementsByTagName [lindex $taglist 0] -depth 1]
+        #puts stderr "*** $self _eventContext: items = $items"
+        toplevel $win.em
+        wm overrideredirect $win.em 1
+        set idx 0
+        set gcol 0
+        set grow -1
+        set lastrow 0
+        grid columnconfigure $win.em $gcol -weight 0
+        foreach i $items {
+            set n [$i getElementsByTagName name -depth 1]
+            incr idx
+            checkrow $win.em gcol grow $lastrow
+            incr grow
+            if {$lastrow < $grow} {set lastrow $grow}
+            grid [button $win.em.b$idx -text [$n data] \
+                  -command [mymethod _eventContext1 [list destroy $win.em] \
+                            $entry $i [lrange $taglist 1 end]]] -column $gcol \
+                  -row $grow -sticky news
+        }
+        switch [lindex $taglist 0] {
+            turnout {
+                checkrow $win.em gcol grow $lastrow
+                incr grow
+                if {$lastrow < $grow} {set lastrow $grow}
+                grid [button $win.em.new -text [_m {Button|New Turnout}] \
+                      -command [mymethod _eventContext1_newTurnout \
+                                [list destroy $win.em] \
+                                $entry [$self cget -parent] \
+                                [lrange $taglist 1 end]]] -column $gcol \
+                      -row $grow -sticky news
+            }
+            block {
+                checkrow $win.em gcol grow $lastrow
+                incr grow
+                if {$lastrow < $grow} {set lastrow $grow}
+                grid [button $win.em.new -text [_m {Button|New Block}] \
+                      -command [mymethod _eventContext1_newBlock \
+                                [list destroy $win.em] \
+                                $entry [$self cget -parent] \
+                                [lrange $taglist 1 end]]] -column $gcol \
+                      -row $grow -sticky news
+            }
+            signal {
+                checkrow $win.em gcol grow $lastrow
+                incr grow
+                if {$lastrow < $grow} {set lastrow $grow}
+                grid [button $win.em.new -text [_m {Button|New Signal}] \
+                      -command [mymethod _eventContext1_newSignal \
+                                [list destroy $win.em] \
+                                $entry [$self cget -parent] \
+                                [lrange $taglist 1 end]]] -column $gcol \
+                      -row $grow -sticky news
+            }
+            sensor {
+                checkrow $win.em gcol grow $lastrow
+                incr grow
+                if {$lastrow < $grow} {set lastrow $grow}
+                grid [button $win.em.new -text [_m {Button|New Sensor}] \
+                      -command [mymethod _eventContext1_newSensor \
+                                [list destroy $win.em] \
+                                $entry [$self cget -parent] \
+                                [lrange $taglist 1 end]]] -column $gcol \
+                      -row $grow -sticky news
+            }
+            control {
+                checkrow $win.em gcol grow $lastrow
+                incr grow
+                if {$lastrow < $grow} {set lastrow $grow}
+                grid [button $win.em.new -text [_m {Button|New Control}] \
+                      -command [mymethod _eventContext1_newControl \
+                                [list destroy $win.em] \
+                                $entry [$self cget -parent] \
+                                [lrange $taglist 1 end]]] -column $gcol \
+                      -row $grow -sticky news
+            }
+        }
+        grid [button $win.em.dismis -text [_m {Button|Dismis}] \
+              -command [list destroy $win.em]] -column 0 \
+              -row [expr {$lastrow + 1}] \
+              -columnspan [expr {$gcol + 1}] -sticky news
+        update idle
+        set h [winfo reqheight $win.em]
+        set w [winfo reqwidth  $win.em]
+        set screenbottom [winfo screenheight $win.em]
+        set screenright  [winfo screenwidth  $win.em]
+        if {($rootx + $w) > $screenright} {set rootx [expr {$screenright - $w}]}
+        if {($rooty + $h) > $screenbottom} {set rooty [expr {$screenbottom - $h}]}
+        if {$rootx < 0} {set rootx 0}
+        if {$rooty < 0} {set rooty 0}
+        wm geometry $win.em +$rootx+$rooty
+    }
+    method _eventContext1 {dismiscmd entry item taglist} {
+        uplevel #0 $dismiscmd
+        set tag $item
+        foreach t $taglist {
+            set tag [$tag getElementsByTagName $t -depth 1]
+        }
+        set oldeventID [$entry get]
+        if {[$tag data] eq {} && "$oldeventID" ne {}} {
+            $tag setdata $oldeventID
+            [$self cget -parent] SetDirty
+        } elseif {[$tag data] eq {} && "$oldeventID" eq {}} {
+            $tag setdata [[$self cget -parent] nextid]
+            [$self cget -parent] SetDirty
+            $entry insert end [$tag data]
+        } else {
+            $entry delete 0 end
+            $entry insert end [$tag data]
+        }
+    }
+    method _eventContext1_newTurnout {dismiscmd entry db taglist} {
+        set new [$newTurnoutDialog draw -db $db]
+        if {$new ne {}} {
+            $self _eventContext1 $dismiscmd $entry $new $taglist
+        }            
+    }
+    method _eventContext1_newBlock {dismiscmd entry db taglist} {
+        set new [$newBlockDialog draw -db $db]
+        if {$new ne {}} {
+            $self _eventContext1 $dismiscmd $entry $new $taglist
+        }            
+    }
+    method _eventContext1_newSignal {dismiscmd entry db taglist} {
+        set new [$newSignalDialog draw -db $db]
+        if {$new ne {}} {
+            $self _eventContext1 $dismiscmd $entry $new $taglist
+        }            
+    }
+    method _eventContext1_newSensor {dismiscmd entry db taglist} {
+        set new [$newSensorDialog draw -db $db]
+        if {$new ne {}} {
+            $self _eventContext1 $dismiscmd $entry $new $taglist
+        }            
+    }
+    method _eventContext1_newControl {dismiscmd entry db taglist} {
+        set new [$newControlDialog draw -db $db]
+        if {$new ne {}} {
+            $self _eventContext1 $dismiscmd $entry $new $taglist
+        }            
+    }
+    method _eventContext1_newAny {dismiscmd entry db} {
+    }
+    proc checkrow {w gcolVar growVar lastrow} {
+        upvar $gcolVar gcol
+        upvar $growVar grow
+        set screenbottom [winfo screenheight $w]
+        update idle
+        set h [winfo reqheight $w]
+        puts stderr "*** checkrow: gcol=$gcol, grow=$grow, h=$h"
+        if {($gcol == 0 && ($h + 50) > $screenbottom) || 
+            ($gcol > 0 && $grow >= $lastrow)} {
+            incr gcol
+            set grow -1
+            grid columnconfigure $w $gcol -weight 0
+        }
+    }
+    method _eventContextAny {entry rootx rooty} {
+        set l [[$self cget -parent] getElementsByTagName layout]
+        set items [$l children]
+        toplevel $win.em
+        wm overrideredirect $win.em 1
+        set idx 0
+        set gcol 0
+        set grow -1
+        set lastrow 0
+        grid columnconfigure $win.em $gcol -weight 0
+        foreach i $items {
+            #puts stderr "*** $self _eventContextAny: gcol = $gcol, grow = $grow"
+            set n [$i getElementsByTagName name -depth 1]
+            #puts stderr "*** $self _eventContextAny: \[\$n data] = [$n data]"
+            set tag [$i cget -tag]
+            #puts stderr "*** $self _eventContextAny: tag = $tag"
+            switch $tag {
+                block {
+                    incr idx
+                    checkrow $win.em gcol grow $lastrow
+                    incr grow
+                    if {$lastrow < $grow} {set lastrow $grow}
+                    grid [button $win.em.b$idx -text "[$n data]:[_m {Button|Occupied}]" \
+                          -command [mymethod _eventContext1 [list destroy $win.em] \
+                                    $entry $i {occupied}]] -column $gcol \
+                          -row $grow -sticky news
+                    incr idx
+                    checkrow $win.em gcol grow $lastrow
+                    incr grow
+                    if {$lastrow < $grow} {set lastrow $grow}
+                    grid [button $win.em.b$idx -text "[$n data]:[_m {Button|Clear}]" \
+                          -command [mymethod _eventContext1 [list destroy $win.em] \
+                                    $entry $i {clear}]] -column $gcol \
+                          -row $grow -sticky news
+                }
+                turnout {
+                    incr idx
+                    checkrow $win.em gcol grow $lastrow
+                    incr grow
+                    if {$lastrow < $grow} {set lastrow $grow}
+                    grid [button $win.em.b$idx -text "[$n data]:[_m {Button|Motor}]:[_m {Button|Normal}]" \
+                          -command [mymethod _eventContext1 [list destroy $win.em] \
+                                    $entry $i {motor normal}]] -column $gcol \
+                          -row $grow -sticky news
+                    incr idx
+                    checkrow $win.em gcol grow $lastrow
+                    incr grow
+                    if {$lastrow < $grow} {set lastrow $grow}
+                    grid [button $win.em.b$idx -text "[$n data]:[_m {Button|Motor}]:[_m {Button|Reversed}]" \
+                          -command [mymethod _eventContext1 [list destroy $win.em] \
+                                    $entry $i {motor reverse}]] -column $gcol \
+                          -row $grow -sticky news
+                    incr idx
+                    checkrow $win.em gcol grow $lastrow
+                    incr grow
+                    if {$lastrow < $grow} {set lastrow $grow}
+                    grid [button $win.em.b$idx -text "[$n data]:[_m {Button|Points}]:[_m {Button|Normal}]" \
+                          -command [mymethod _eventContext1 [list destroy $win.em] \
+                                    $entry $i {points normal}]] -column $gcol \
+                          -row $grow -sticky news
+                    incr idx
+                    checkrow $win.em gcol grow $lastrow
+                    incr grow
+                    if {$lastrow < $grow} {set lastrow $grow}
+                    grid [button $win.em.b$idx -text "[$n data]:[_m {Button|Points}]:[_m {Button|Reverse}]" \
+                          -command [mymethod _eventContext1 [list destroy $win.em] \
+                                    $entry $i {points reverse}]] -column $gcol \
+                          -row $grow -sticky news
+                }
+                signal {
+                    foreach a [$i getElementsByTagName aspect -depth 1] {
+                        set na [$a getElementsByTagName name -depth 1]
+                        incr idx
+                        checkrow $win.em gcol grow $lastrow
+                        incr grow
+                        if {$lastrow < $grow} {set lastrow $grow}
+                        grid [button $win.em.b$idx -text "[$n data]:[$na data]" \
+                              -command [mymethod _eventContext1 [list destroy $win.em] \
+                                    $entry $a {eventid}]] -column $gcol \
+                              -row $grow -sticky news
+                    }
+                }
+                sensor {
+                    incr idx
+                    checkrow $win.em gcol grow $lastrow
+                    incr grow
+                    if {$lastrow < $grow} {set lastrow $grow}
+                    grid [button $win.em.b$idx -text "[$n data]:[_m {Button|On}]" \
+                          -command [mymethod _eventContext1 [list destroy $win.em] \
+                                    $entry $i {on}]] -column $gcol \
+                          -row $grow -sticky news
+                    incr idx
+                    checkrow $win.em gcol grow $lastrow
+                    incr grow
+                    if {$lastrow < $grow} {set lastrow $grow}
+                    grid [button $win.em.b$idx -text "[$n data]:[_m {Button|Off}]" \
+                          -command [mymethod _eventContext1 [list destroy $win.em] \
+                                    $entry $i {off}]] -column $gcol \
+                          -row $grow -sticky news
+                }
+                control {
+                    incr idx
+                    checkrow $win.em gcol grow $lastrow
+                    incr grow
+                    if {$lastrow < $grow} {set lastrow $grow}
+                    grid [button $win.em.b$idx -text "[$n data]:[_m {Button|On}]" \
+                          -command [mymethod _eventContext1 [list destroy $win.em] \
+                                    $entry $i {on}]] -column $gcol \
+                          -row $grow -sticky news
+                    incr idx
+                    checkrow $win.em gcol grow $lastrow
+                    incr grow
+                    if {$lastrow < $grow} {set lastrow $grow}
+                    grid [button $win.em.b$idx -text "[$n data]:[_m {Button|Off}]" \
+                          -command [mymethod _eventContext1 [list destroy $win.em] \
+                                    $entry $i {off}]] -column $gcol \
+                          -row $grow -sticky news
+                }
+            }
+        }
+        grid [button $win.em.dismis -text [_m {Button|Dismis}] \
+              -command [list destroy $win.em]] -column 0 \
+              -row [expr {$lastrow + 1}] \
+              -columnspan [expr {$gcol + 1}] -sticky news
+        update idle
+        set h [winfo reqheight $win.em]
+        set w [winfo reqwidth  $win.em]
+        set screenbottom [winfo screenheight $win.em]
+        set screenright  [winfo screenwidth  $win.em]
+        if {($rootx + $w) > $screenright} {set rootx [expr {$screenright - $w}]}
+        if {($rooty + $h) > $screenbottom} {set rooty [expr {$screenbottom - $h}]}
+        if {$rootx < 0} {set rootx 0}
+        if {$rooty < 0} {set rooty 0}
+        wm geometry $win.em +$rootx+$rooty
+    }
+    method _eventContextSignal {entry rootx rooty} {
+        set l [[$self cget -parent] getElementsByTagName layout]
+        set signals [$l getElementsByTagName signal -depth 1]
+        toplevel $win.em
+        wm overrideredirect $win.em 1
+        set idx 0
+        set gcol 0
+        set grow -1
+        set lastrow 0
+        grid columnconfigure $win.em $gcol -weight 0
+        foreach s $signals {
+            set n [$s getElementsByTagName name -depth 1]
+            foreach a [$s getElementsByTagName aspect -depth 1] {
+                set na [$a getElementsByTagName name -depth 1]
+                incr idx
+                checkrow $win.em gcol grow $lastrow
+                incr grow
+                if {$lastrow < $grow} {set lastrow $grow}
+                grid [button $win.em.b$idx -text "[$n data]:[$na data]" \
+                      -command [mymethod _eventContext1 [list destroy $win.em] \
+                                $entry $a {event}]] -column $gcol \
+                      -row $grow -sticky news
+            }
+        }
+        grid [button $win.em.dismis -text [_m {Button|Dismis}] \
+              -command [list destroy $win.em]] -column 0 \
+              -row [expr {$lastrow + 1}] \
+              -columnspan [expr {$gcol + 1}] -sticky news
+        update idle
+        set h [winfo reqheight $win.em]
+        set w [winfo reqwidth  $win.em]
+        set screenbottom [winfo screenheight $win.em]
+        set screenright  [winfo screenwidth  $win.em]
+        if {($rootx + $w) > $screenright} {set rootx [expr {$screenright - $w}]}
+        if {($rooty + $h) > $screenbottom} {set rooty [expr {$screenbottom - $h}]}
+        if {$rootx < 0} {set rootx 0}
+        if {$rooty < 0} {set rooty 0}
+        wm geometry $win.em +$rootx+$rooty
     }
     method updateSR {canvas newheight newwidth} {
       set newSR 0
@@ -3903,6 +4320,7 @@ namespace eval CTCPanelWindow {
                       -label [_m "Label|When this event occurs"] \
                       -text "00.00.00.00.00.00.00.00"]
         pack $eventid_ -fill x
+        $eventid_ bind <3> "[mymethod _eventContextSignal %W %X %Y];break"
         set aspectlist($aspectcount,eventid) "00.00.00.00.00.00.00.00"
         set aspl_ [LabelEntry $aspectlistSTabNB.$fr.aspl \
                    -label [_m "Label|the following aspect will be displayed."] \

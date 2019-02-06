@@ -102,6 +102,8 @@ package require Splash
 package require MainWindow
 package require ReadConfiguration
 package require LabelFrames
+package require LayoutControlDB
+
 lappend auto_path [file join [file dirname [file dirname [file dirname [info script]]]] \
                    CodeLibrary LCC]
 #puts stderr "*** auto_path is $auto_path"
@@ -256,33 +258,53 @@ proc Dispatcher::MainWindow {} {
   $Main toolbar add tools
   $Main toolbar show tools
   $Main menu entryconfigure file [_m "Menu|File|New"] \
-		-command "CTCPanelWindow::CTCPanelWindow new -parent . -simplemode $Dispatcher::SimpleMode" \
-		-dynamichelp [_ "New CTC Panel Window"] \
-		-label [_m "Menu|File|New CTC Panel Window"] \
-		-accelerator {Ctrl-N}
+        -command Dispatcher::NewCTCPanelWindow \
+        -dynamichelp [_ "New CTC Panel Window"] \
+        -label [_m "Menu|File|New CTC Panel Window"] \
+        -underline 0 \
+        -accelerator {Ctrl-N}
   image create photo NewButtonImage -file [file join $CommonImageDir new.gif]
   $Main toolbar addbutton tools new -image NewButtonImage \
-	-command "CTCPanelWindow::CTCPanelWindow new -parent . -simplemode $Dispatcher::SimpleMode"\
+	-command Dispatcher::NewCTCPanelWindow \
 	-helptext "New CTC Panel Window" \
 	-text [_m "Toolbar|New CTC Window"] -compound top
   $Main menu insert file [_m "Menu|File|Open..."] \
-	command -label [_m "Menu|File|Load..."] \
+	command -label [_m "Menu|File|Load XtrkCAD Layout..."] \
 	-dynamichelp [_ "Open and Load XTrkCad Layout File"] \
 	-command Dispatcher::LoadLayout \
 	-underline 0 \
 	-accelerator {Ctrl-L}
+  $Main menu insert file [_m "Menu|File|Open..."] \
+	command -label [_m "Menu|File|Load Layout Control DB..."] \
+	-dynamichelp [_ "Open and Load Layout Control DB"] \
+	-command Dispatcher::LoadLayoutControlDB
+  $Main menu insert file [_m "Menu|File|Open..."] \
+	command -label [_m "Menu|File|Save Layout Control DB..."] \
+	-dynamichelp [_ "Save Layout Control DB"] \
+	-command Dispatcher::SaveLayoutControlDB
   $Main menu entryconfigure file [_m "Menu|File|Open..."] \
-	-command "CTCPanelWindow::CTCPanelWindow open -parent ." \
+	-command Dispatcher::OpenCTCPanelWindow \
 	-dynamichelp [_ "Open an existing CTC Panel Window file"] \
+        -underline 0 \
 	-accelerator {Ctrl-O}
   image create photo LoadButtonImage -file [file join $ImageDir load.gif]
   $Main toolbar addbutton tools load -image LoadButtonImage \
 	-command Dispatcher::LoadLayout \
 	-helptext [_ "Open and Load XTrkCad Layout File"] \
 	-text [_m "Toolbar|Load XTrkCad File"] -compound top
+  image create photo LoadDBButtonImage -file [file join $ImageDir loaddb.gif]
+  $Main toolbar addbutton tools loaddb -image LoadDBButtonImage \
+	-command Dispatcher::LoadLayoutControlDB \
+	-helptext [_ "Open and Load Layout Control DB"] \
+	-text [_m "Toolbar|Load Layout Control DB"] -compound top
+  image create photo SaveDBButtonImage -file [file join $ImageDir savedb.gif]
+  $Main toolbar addbutton tools savedb -image SaveDBButtonImage \
+	-command Dispatcher::SaveLayoutControlDB \
+	-helptext [_ "Save Layout Control DB"] \
+	-text [_m "Toolbar|Save Layout Control DB"] -compound top
   image create photo OpenButtonImage -file [file join $CommonImageDir open.gif]
   $Main toolbar addbutton tools open -image OpenButtonImage \
-	-command "CTCPanelWindow::CTCPanelWindow open -parent ." \
+	-command "CTCPanelWindow::CTCPanelWindow open -parent . -layoutcontroldb [TrackGraph::TrackGraph getLayoutControlDB]" \
 	-helptext [_ "Open an existing CTC Panel Window file"] \
 	-text [_m "Toolbar|Open CTC File"] -compound top
   $Main menu entryconfigure file [_m "Menu|File|Save As..."] -state disabled
@@ -325,10 +347,12 @@ proc Dispatcher::MainWindow {} {
                   WrapIt::SetTclkit [::Dispatcher::Configuration getoption tclkit]}
               
   $Main menu add view command \
-        -label [_m "Menu|View|Layout Controls"] \
+        -label [_m "Menu|View|Layout Controls (from XtrkCAD)"] \
         -state disabled \
         -command "TrackGraph::TrackGraph ViewLayoutControls"
-              
+  $Main menu add view command \
+        -label [_m "Menu|View|Layout Control DB"] \
+        -command "TrackGraph::TrackGraph ViewLayoutControlDB"
   $Main menu delete help [_m "Menu|Help|On Keys..."]
   $Main menu delete help [_m "Menu|Help|Index..."]
   $Main menu add help command \
@@ -536,6 +560,41 @@ package require NodeGraphCanvas
 
 package require TrackGraph
 
+proc Dispatcher::NewCTCPanelWindow {} {
+    variable SimpleMode
+    CTCPanelWindow::CTCPanelWindow new -parent . \
+          -simplemode $Dispatcher::SimpleMode \
+          -layoutcontroldb [TrackGraph::TrackGraph getLayoutControlDB]
+}
+
+proc Dispatcher::OpenCTCPanelWindow {} {
+    CTCPanelWindow::CTCPanelWindow open -parent . \
+          -layoutcontroldb [TrackGraph::TrackGraph getLayoutControlDB]
+}
+
+
+proc Dispatcher::LoadLayoutControlDB {{filename {}}} {
+  if {[string length "$filename"]  == 0} {
+    set filename [tk_getOpenFile -defaultextension .xml \
+				 -filetypes {
+				     {{XML Files} {.xml} TEXT}
+				     {{All Files}     *      TEXT}
+				  } \
+				 -parent . -title "Layout Control DB file to open"]
+  }
+  if {[string length "$filename"]  == 0} {return}
+  TrackGraph::TrackGraph LoadLayoutControlDB $filename
+  variable WindowList
+  foreach window $WindowList {
+      catch {$window configure -layoutcontroldb [TrackGraph::TrackGraph getLayoutControlDB]}
+  }
+}
+
+proc Dispatcher::SaveLayoutControlDB {} {
+    TrackGraph::TrackGraph SaveLayoutControlDB
+}
+    
+
 proc Dispatcher::LoadLayout {{filename {}}} {
   variable CanvasWindow
   variable Main
@@ -637,7 +696,8 @@ proc Dispatcher::EmitLayout {{filename {}}} {
 
 
 package require CTCPanelWindow
-  
+package require WrapIt
+
 Dispatcher::MainWindow
 
 if {$::tcl_platform(os) eq "Darwin"} {
