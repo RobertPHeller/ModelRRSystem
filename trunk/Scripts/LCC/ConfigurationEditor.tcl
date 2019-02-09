@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <190204.1301>
+#  Last Modified : <190209.1417>
 #
 #  Description	
 #
@@ -56,6 +56,7 @@ package require pdf4tcl
 package require struct::matrix
 package require csv
 package require LayoutControlDB
+package require LayoutControlDBDialogs
 package require Dialog
 
 namespace eval lcc {
@@ -93,7 +94,7 @@ namespace eval lcc {
                   -state readonly
             pack $itemsE -expand yes -fill x
             install progress using ttk::progressbar $frame.progress \
-                  -orient horizontal -mode determinate
+                  -orient horizontal -mode determinate -length 256
             pack $progress -expand yes -fill x
             $self configurelist $args
         }
@@ -169,7 +170,10 @@ namespace eval lcc {
         ## Scrollable Frame
         
         component readallProgressDialog
-        
+        component newTurnout
+        component newBlock
+        component newSensor
+        component newControl
         
         option -cdi -readonly yes
         option -layoutdb -default {};# -configuremethod _traceopt
@@ -296,6 +300,14 @@ namespace eval lcc {
             install readallProgressDialog using \
                   lcc::ReadallProgress $win.readallProgressDialog \
                   -parent $win
+            install newTurnout using \
+                  lcc::NewTurnoutDialog $win.newTurnout -parent $win
+            install newBlock using \
+                  lcc::NewBlockDialog $win.newBlock -parent $win
+            install newSensor using \
+                  lcc::NewSensorDialog $win.newSensor -parent $win
+            install newControl using \
+                  lcc::NewControlDialog $win.newControl -parent $win
             $self putdebug "*** $type create $self: _readall names: [array names _readall]"
             if {!$options(-displayonly)} {
                 foreach s [array names _readall] {
@@ -341,6 +353,8 @@ namespace eval lcc {
         ## String number, used to insure unique widget names.
         variable _eventidnumber 0
         ## Eventid number, used to insure unique widget names.
+        variable _mkbuttons no
+        ## Flag for Make Sensor / Make Turnout etc. buttons
         method _processXMLnode {n frame space address_var} {
             ## @brief Process one node in the XML tree.
             # Process a single node in the XML tree.  Will recurse to process
@@ -555,10 +569,34 @@ namespace eval lcc {
                             set _intnumber 0
                             set _stringnumber 0
                             set _eventidnumber 0
+                            set _mkbuttons no
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
                                 if {[lsearch {name description repname} $tag] >= 0} {continue}
                                 $self _processXMLnode $c $replframe $space address
+                            }
+                            if {$_stringnumber == 1 &&
+                                $_eventidnumber == 2 &&
+                                !$_mkbuttons} {
+                                set f [ttk::frame $replframe.makeframe]
+                                pack $f -expand yes -fill x
+                                pack [ttk::button $f.mkturn \
+                                      -text [_m "Label|Make Turnout"] \
+                                      -command [mymethod mkNewTurnout $replframe]] \
+                                      -side right
+                                pack [ttk::button $f.mkblock \
+                                      -text [_m "Label|Make Block"] \
+                                      -command [mymethod mkNewBlock $replframe]] \
+                                      -side right
+                                pack [ttk::button $f.mksense \
+                                      -text [_m "Label|Make Sensor"] \
+                                      -command [mymethod mkNewSensor $replframe]] \
+                                      -side right
+                                pack [ttk::button $f.mkcontrol \
+                                      -text [_m "Label|Make Control"] \
+                                      -command [mymethod mkNewControl $replframe]] \
+                                      -side right
+                                set _mkbuttons yes
                             }
                             set _groupnumber $savedgn
                             ## Print/Export this replication?
@@ -573,10 +611,34 @@ namespace eval lcc {
                     } else {
                         set savedgn $_groupnumber
                         set _groupnumber 0
+                        set _mkbuttons no
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
                             $self _processXMLnode $c $groupframe $space address
+                        }
+                        if {$_stringnumber == 1 &&
+                            $_eventidnumber == 2 &&
+                            !$_mkbuttons} {
+                            set f [ttk::frame $groupframe.makeframe]
+                            pack $f -expand yes -fill x
+                            pack [ttk::button $f.mkturn \
+                                  -text [_m "Label|Make Turnout"] \
+                                  -command [mymethod mkNewTurnout $groupframe]] \
+                                  -side right
+                            pack [ttk::button $f.mkblock \
+                                  -text [_m "Label|Make Block"] \
+                                  -command [mymethod mkNewBlock $groupframe]] \
+                                  -side right
+                            pack [ttk::button $f.mksense \
+                                  -text [_m "Label|Make Sensor"] \
+                                  -command [mymethod mkNewSensor $groupframe]] \
+                                  -side right
+                            pack [ttk::button $f.mkcontrol \
+                                  -text [_m "Label|Make Control"] \
+                                  -command [mymethod mkNewControl $groupframe]] \
+                                 -side right
+                            set _mkbuttons yes
                         }
                         set _groupnumber $savedgn
                     }
@@ -979,6 +1041,63 @@ namespace eval lcc {
             if {$rooty < 0} {set rooty 0}
             wm geometry $win.em +$rootx+$rooty
             return -code break
+        }
+        method mkNewTurnout {fr} {
+            set layoutcontroldb [$self cget -layoutdb]
+            #puts stderr "*** $self mkNewTurnout: layoutcontroldb is $layoutcontroldb"
+            if {$layoutcontroldb eq {}} {return}
+            set l [$layoutcontroldb getElementsByTagName layout]
+            set new [$newTurnout draw -db $layoutcontroldb]
+            if {$new eq {}} {return}
+            set ee1 $fr.eventid1.value
+            set ee2 $fr.eventid2.value
+            set which [tk_dialog $win.which "Motor or Points?" "Motor or Points?" questhead {} Motor Points]
+            switch $which {
+                0 {
+                    set tag [$new getElementsByTagName motor -depth 1]
+                }
+                1 {
+                    set tag [$new getElementsByTagName points -depth 1]
+                }
+            }
+            [$tag getElementsByTagName normal -depth 1] setdata [$ee1 get]
+            [$tag getElementsByTagName reverse -depth 1] setdata [$ee2 get]
+        }
+        method mkNewBlock {fr} {
+            set layoutcontroldb [$self cget -layoutdb]
+            #puts stderr "*** $self mkNewBlock: layoutcontroldb is $layoutcontroldb"
+            if {$layoutcontroldb eq {}} {return}
+            set l [$layoutcontroldb getElementsByTagName layout]
+            set new [$newBlock draw -db $layoutcontroldb]
+            if {$new eq {}} {return}
+            set ee1 $fr.eventid1.value
+            set ee2 $fr.eventid2.value
+            [$new getElementsByTagName clear -depth 1] setdata [$ee1 get]
+            [$new getElementsByTagName occupied -depth 1] setdata [$ee2 get]
+        }
+        method mkNewSensor {fr} {
+            set layoutcontroldb [$self cget -layoutdb]
+            #puts stderr "*** $self mkNewSensor: layoutcontroldb is $layoutcontroldb"
+            if {$layoutcontroldb eq {}} {return}
+            set l [$layoutcontroldb getElementsByTagName layout]
+            set new [$newSensor draw -db $layoutcontroldb]
+            if {$new eq {}} {return}
+            set ee1 $fr.eventid1.value
+            set ee2 $fr.eventid2.value
+            [$new getElementsByTagName off -depth 1] setdata [$ee1 get]
+            [$new getElementsByTagName on -depth 1] setdata [$ee2 get]
+        }
+        method mkNewControl {fr} {
+            set layoutcontroldb [$self cget -layoutdb]
+            #puts stderr "*** $self mkNewControl: layoutcontroldb is $layoutcontroldb"
+            if {$layoutcontroldb eq {}} {return}
+            set l [$layoutcontroldb getElementsByTagName layout]
+            set new [$newControl draw -db $layoutcontroldb]
+            if {$new eq {}} {return}
+            set ee1 $fr.eventid1.value
+            set ee2 $fr.eventid2.value
+            [$new getElementsByTagName off -depth 1] setdata [$ee1 get]
+            [$new getElementsByTagName on -depth 1] setdata [$ee2 get]
         }
         typevariable printexportfiletypes {
             {{PDF (printable) Files} {.pdf}     }

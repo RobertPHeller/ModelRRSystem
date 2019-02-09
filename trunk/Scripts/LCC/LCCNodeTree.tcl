@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Sep 19 09:18:09 2016
-#  Last Modified : <190204.1249>
+#  Last Modified : <190209.1338>
 #
 #  Description	
 #
@@ -73,7 +73,7 @@ snit::widgetadaptor ReadCDIProgress {
               -state readonly
         pack $bytesE -expand yes -fill x
         install progress using ttk::progressbar $frame.progress \
-              -orient horizontal -mode determinate
+              -orient horizontal -mode determinate -length 256
         pack $progress -expand yes -fill x
         $self configurelist $args
     }
