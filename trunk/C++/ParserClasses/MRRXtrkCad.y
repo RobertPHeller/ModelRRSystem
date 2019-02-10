@@ -386,7 +386,7 @@ structbodyelt : D FLOAT FLOAT EOL
 	      | B INTEGER INTEGER FLOAT FLOAT FLOAT INTEGER FLOAT FLOAT INTEGER INTEGER EOL
 	      | Q INTEGER INTEGER FLOAT FLOAT FLOAT INTEGER FLOAT FLOAT INTEGER EOL
 	      | G INTEGER INTEGER FLOAT FLOAT FLOAT FLOAT INTEGER EOL
-	      | Y INTEGER INTEGER FLOAT INTEGER EOL fblock
+	      | Y INTEGER INTEGER FLOAT INTEGER INTEGER EOL fblock
 	      | Z INTEGER FLOAT FLOAT FLOAT INTEGER FLOAT STRING EOL
 	      | H INTEGER INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT EOL SUBSEGS EOL bzlsegments SUBSEND EOL
 	      ;
@@ -638,7 +638,7 @@ int MRRXtrkCad::lookup_word(const char *word) const
 		{"C", C},
 		{"CAR", CAR},
 		{"CONTROL", CONTROL},
-		{"CORNU", CONTROL},
+		{"CORNU", CORNU},
 		{"CURRENT", CURRENT},
 		{"CURVE", CURVE },
 		{"D", D},
@@ -815,7 +815,7 @@ int MRRXtrkCad::yylex()
 		*p = '\0';
 		yylval.ival = atoi(word);
 		yylloc.last_column = lp - line_buffer;
-		//cerr << "*** yylex: return(FLOAT)" <<endl;
+		//cerr << "*** yylex: return(INTEGER)" <<endl;
 		return(INTEGER);
 	} else if (isalpha(*lp))
 	{
