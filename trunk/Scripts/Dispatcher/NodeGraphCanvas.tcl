@@ -147,10 +147,13 @@ namespace eval NodeGraphCanvas {
       foreach tn [$node TrackList] {
 	#puts stderr "*** $self create block: tn = $tn"
 	set tracknode [[$node info type] FindNode $tn]
-	if {![$tracknode AmIACompressedNode]} {
-	  set tracknode [$tracknode ParentNode]
-	  set tn [$tracknode MyNID]
-	}
+	#puts stderr "*** $self create block: tracknode is $tracknode"
+        #puts stderr "*** $self create block: \[\$tracknode AmIACompressedNode\] = [$tracknode AmIACompressedNode]"
+        #if {[$tracknode AmIACompressedNode] && [$tracknode ParentNode] ne {}} {
+	#  set tracknode [$tracknode ParentNode]
+        #  puts stderr "*** $self create block: tracknode is $tracknode (ParentNode)"
+	#  set tn [$tracknode MyNID]
+	#}
 	#puts stderr "*** $self create block: tn = $tn, tracknode = $tracknode"
 	if {[llength [$hull find withtag T$tn]] > 0} {
 	  set TrkNID $tn
