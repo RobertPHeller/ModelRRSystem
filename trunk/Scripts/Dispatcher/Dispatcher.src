@@ -615,7 +615,7 @@ proc Dispatcher::LoadLayout {{filename {}}} {
   SetBusy $Main on
   set errorP [catch {
     TrackGraph::TrackGraph ClearGraph
-    $Main menu entryconfigure view [_m "Menu|View|Layout Controls"] \
+    $Main menu entryconfigure view [_m "Menu|View|Layout Controls (from XtrkCAD)"] \
           -state disabled
     TrackGraph::TrackGraph LoadLayout "$filename"
     foreach edge [TrackGraph::TrackGraph PrimMinimumSpanningTree] {
@@ -661,7 +661,7 @@ proc Dispatcher::LoadLayout {{filename {}}} {
       }
     }
     if {[TrackGraph::TrackGraph HasControls]} {
-        $Main menu entryconfigure view [_m "Menu|View|Layout Controls"] \
+        $Main menu entryconfigure view [_m "Menu|View|Layout Controls (from XtrkCAD)"] \
               -state normal
     }} errorMessage]
   SetBusy $Main off
