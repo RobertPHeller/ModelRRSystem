@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <190209.1417>
+#  Last Modified : <190227.1928>
 #
 #  Description	
 #
@@ -612,6 +612,9 @@ namespace eval lcc {
                         set savedgn $_groupnumber
                         set _groupnumber 0
                         set _mkbuttons no
+                        $self putdebug "*** _processXMLnode: frame = $frame"
+                        $n setAttribute gframe [string range $groupframe [expr {[string length $frame]+1}] end]
+                        $self putdebug "*** _processXMLnode: attrs of $n are [$n cget -attributes]"
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
@@ -674,6 +677,7 @@ namespace eval lcc {
                         set intframe [ttk::frame \
                                       $frame.int$_intnumber]
                     }
+                    $n setAttribute vframe int$_intnumber
                     pack $intframe -fill x;# -expand yes
                     set descr [$n getElementsByTagName description -depth 1]
                     if {[llength $descr] == 1} {
@@ -762,6 +766,7 @@ namespace eval lcc {
                         set stringframe [ttk::frame \
                                          $frame.string$_stringnumber]
                     }
+                    $n setAttribute vframe string$_stringnumber
                     pack $stringframe -fill x;# -expand yes
                     set descr [$n getElementsByTagName description -depth 1]
                     if {[llength $descr] == 1} {
@@ -825,6 +830,7 @@ namespace eval lcc {
                         set eventidframe [ttk::frame \
                                           $frame.eventid$_eventidnumber]
                     }
+                    $n setAttribute vframe eventid$_eventidnumber
                     pack $eventidframe -fill x;# -expand yes
                     set descr [$n getElementsByTagName description -depth 1]
                     if {[llength $descr] == 1} {
@@ -1181,9 +1187,6 @@ namespace eval lcc {
             upvar $curpageVar curpage
             #puts stderr "*** _printexport_pdf_frame $n \{$indent\} $pdfobj $frame $curyVar \{$pageheader\}"
             set gn 0
-            set in 0
-            set sn 0
-            set evn 0
             switch [$n cget -tag] {
                 segment {
                     if {$cury < 24} {
@@ -1210,22 +1213,22 @@ namespace eval lcc {
                                     set groupnotebook $frame.groups
                                 }
                                 incr gn
-                                set cframe $groupnotebook.group$gn
+                                set cframe $frame.[$c attribute gframe]
+                                if {![winfo exists $cframe]} {
+                                    set cframe $groupnotebook.group$gn
+                                }
                                 _printexport_pdf_frame $c "${indent}  " $pdfobj $cframe cury curpage $pageheader
                             }
                             int {
-                                incr in
-                                set cframe $frame.int$in
+                                set cframe $frame.[$c attribute vframe]
                                 _printexport_pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
                             }
                             string {
-                                incr sn
-                                set cframe $frame.string$sn
+                                set cframe $frame.[$c attribute vframe]
                                 _printexport_pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
                             }
                             eventid {
-                                incr evn
-                                set cframe $frame.eventid$evn
+                                set cframe $frame.[$c attribute vframe]
                                 _printexport_pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
                             }
                         }
@@ -1259,7 +1262,7 @@ namespace eval lcc {
                             _printexport_pdf_frame $n "${indent}  " $pdfobj $tabframe cury curpage $pageheader
                         }
                     } else {
-                        #puts stderr "*** _printexport_txt_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
+                        #$self putdebug "*** _printexport_pdf_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
@@ -1267,22 +1270,22 @@ namespace eval lcc {
                             switch $tag {
                                 group {
                                     incr gn
-                                    set cframe $frame.group$gn
+                                    set cframe $frame.[$c attribute gframe]
+                                    if {![winfo exists $cframe]} {
+                                        set cframe $frame.group$gn
+                                    }
                                     _printexport_pdf_frame $c "${indent}  " $pdfobj $cframe cury curpage $pageheader
                                 }
                                 int {
-                                    incr in
-                                    set cframe $frame.int$in
+                                    set cframe $frame.[$c attribute vframe]
                                     _printexport_pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
                                 }
                                 string {
-                                    incr sn
-                                    set cframe $frame.string$sn
+                                    set cframe $frame.[$c attribute vframe]
                                     _printexport_pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
                                 }
                                 eventid {
-                                    incr evn
-                                    set cframe $frame.eventid$evn
+                                    set cframe $frame.[$c attribute vframe]
                                     _printexport_pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
                                 }
                             }
@@ -1374,11 +1377,8 @@ namespace eval lcc {
             # @param frame The GUI frame for the node in the CDI.
             # @return An XML tree of the contents of the GUI frame.
             
-            #puts stderr "*** _printexport_txt_frame $n \{$indent\} $outfp $frame"
+            $self putdebug "*** _printexport_xml_frame $n \{$indent\} $outfp $frame"
             set gn 0
-            set in 0
-            set sn 0
-            set evn 0
             switch [$n cget -tag] {
                 segment {
                     set resultnode [SimpleDOMElement %AUTO% -tag segment \
@@ -1399,22 +1399,22 @@ namespace eval lcc {
                                     set groupnotebook $frame.groups
                                 }
                                 incr gn
-                                set cframe $groupnotebook.group$gn
+                                set cframe $frame.[$c attribute gframe]
+                                if {![winfo exists $cframe]} {
+                                    set cframe $groupnotebook.group$gn
+                                }
                                 $resultnode addchild [_printexport_xml_frame $c $cframe]
                             }
                             int {
-                                incr in
-                                set cframe $frame.int$in
+                                set cframe $frame.[$c attribute vframe]
                                 $resultnode addchild [_printexport_xml_vframe $c $cframe]
                             }
                             string {
-                                incr sn
-                                set cframe $frame.string$sn
+                                set cframe $frame.[$c attribute vframe]
                                 $resultnode addchild [_printexport_xml_vframe $c $cframe]
                             }
                             eventid {
-                                incr evn
-                                set cframe $frame.eventid$evn
+                                set cframe $frame.string$sn
                                 $resultnode addchild [_printexport_xml_vframe $c $cframe]
                             }
                         }
@@ -1450,22 +1450,22 @@ namespace eval lcc {
                             switch $tag {
                                 group {
                                     incr gn
-                                    set cframe $frame.group$gn
+                                    set cframe $frame.[$c attribute gframe]
+                                    if {![winfo exists $cframe]} {
+                                        set cframe $frame.group$gn
+                                    }
                                     $resultnode addchild [_printexport_xml_frame $c $cframe]
                                 }
                                 int {
-                                    incr in
-                                    set cframe $frame.int$in
+                                    set cframe $frame.[$c attribute vframe]
                                     $resultnode addchild [_printexport_xml_vframe $c $cframe]
                                 }
                                 string {
-                                    incr sn
-                                    set cframe $frame.string$sn
+                                    set cframe $frame.[$c attribute vframe]
                                     $resultnode addchild [_printexport_xml_vframe $c $cframe]
                                 }
                                 eventid {
-                                    incr evn
-                                    set cframe $frame.eventid$evn
+                                    set cframe $frame.[$c attribute vframe]
                                     $resultnode addchild [_printexport_xml_vframe $c $cframe]
                                 }
                             }
@@ -1538,9 +1538,6 @@ namespace eval lcc {
             # @param frame The GUI frame to extract values from.
             
             set gn 0
-            set in 0
-            set sn 0
-            set evn 0
             switch [$n cget -tag] {
                 segment {
                     set space [$n attribute space]
@@ -1558,23 +1555,23 @@ namespace eval lcc {
                                     set groupnotebook $frame.groups
                                 }
                                 incr gn
-                                set cframe $groupnotebook.group$gn
+                                set cframe $frame.[$c attribute gframe]
+                                if {![winfo exists $cframe]} {
+                                    set cframe $groupnotebook.group$gn
+                                }
                                 _printexport_csv_frame $c $matrix $cframe
                             }
                             int {
-                                incr in
-                                set cframe $frame.int$in
+                                set cframe $frame.[$c attribute vframe]
                                 _printexport_csv_vframe $c $matrix $cframe
                             }
                             string {
-                                incr sn
-                                set cframe $frame.string$sn
+                                set cframe $frame.[$c attribute vframe]
                                 _printexport_csv_vframe $c $matrix $cframe
                             }
                             eventid {
-                                incr evn
-                                set cframe $frame.eventid$evn
-                                _printexport_txt_vframe $c $matrix $cframe
+                                set cframe $frame.[$c attribute vframe]
+                                _printexport_csv_vframe $c $matrix $cframe
                             }
                         }
                     }
@@ -1599,7 +1596,7 @@ namespace eval lcc {
                             }
                         }
                     } else {
-                        #puts stderr "*** _printexport_txt_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
+                        #puts stderr "*** _printexport_csv_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
@@ -1607,22 +1604,22 @@ namespace eval lcc {
                             switch $tag {
                                 group {
                                     incr gn
-                                    set cframe $frame.group$gn
+                                    set cframe $frame.[$c attribute gframe]
+                                    if {![winfo exists $cframe]} {
+                                        set cframe $frame.group$gn
+                                    }
                                     _printexport_csv_frame $c $matrix $cframe
                                 }
                                 int {
-                                    incr in
-                                    set cframe $frame.int$in
+                                    set cframe $frame.[$c attribute vframe]
                                     _printexport_csv_vframe $c $matrix $cframe
                                 }
                                 string {
-                                    incr sn
-                                    set cframe $frame.string$sn
+                                    set cframe $frame.[$c attribute vframe]
                                     _printexport_csv_vframe $c $matrix $cframe
                                 }
                                 eventid {
-                                    incr evn
-                                    set cframe $frame.eventid$evn
+                                    set cframe $frame.[$c attribute vframe]
                                     _printexport_csv_vframe $c $matrix $cframe
                                 }
                             }
@@ -1680,9 +1677,6 @@ namespace eval lcc {
             upvar $rowVar row
             #puts stderr "*** _printexport_csv_frameAcross: row is $row"
             set gn 0
-            set in 0
-            set sn 0
-            set evn 0
             switch [$n cget -tag] {
                 group {
                     if {[winfo class $frame] eq "TLabelframe"} {
@@ -1701,22 +1695,22 @@ namespace eval lcc {
                         switch $tag {
                             group {
                                 incr gn
-                                set cframe $frame.group$gn
+                                set cframe $frame.[$c attribute gframe]
+                                if {![winfo exists $cframe]} {
+                                    set cframe $frame.group$gn
+                                }
                                 _printexport_csv_frameAcross $c row $cframe
                             }
                             int {
-                                incr in
-                                set cframe $frame.int$in
+                                set cframe $frame.[$c attribute vframe]
                                 _printexport_csv_vframeAcross $c row $cframe
                             }
                             string {
-                                incr sn
-                                set cframe $frame.string$sn
+                                set cframe $frame.[$c attribute vframe]
                                 _printexport_csv_vframeAcross $c row $cframe
                             }
                             eventid {
-                                incr evn
-                                set cframe $frame.eventid$evn
+                                set cframe $frame.[$c attribute vframe]
                                 _printexport_csv_vframeAcross $c row $cframe
                             }
                         }
@@ -1759,6 +1753,7 @@ namespace eval lcc {
             #             printed.
             # @param outfile The file to export to.
             
+            $self putdebug "*** $self _printexport_txt $node $frame $name $outfile"
             if {[catch {open $outfile w} outfp]} {
                 tk_messageBox -type ok -icon error \
                       -message [_ "Could not open %s: %s" $outfile $outfp]
@@ -1767,6 +1762,13 @@ namespace eval lcc {
             puts $outfp [_ "Export of %s" $name]
             _printexport_txt_frame $node "" $outfp $frame
             close $outfp
+        }
+        proc widget_children_tails {w} {
+            set result [list]
+            foreach c [winfo children $w] {
+                lappend result [string range $c [expr {[string length $w]+1}] end]
+            }
+            return $result
         }
         proc _printexport_txt_frame {n indent outfp frame} {
             ## Export a segment or group frame to a text file.
@@ -1778,9 +1780,6 @@ namespace eval lcc {
             
             #puts stderr "*** _printexport_txt_frame $n \{$indent\} $outfp $frame"
             set gn 0
-            set in 0
-            set sn 0
-            set evn 0
             switch [$n cget -tag] {
                 segment {
                     set space [$n attribute space]
@@ -1799,22 +1798,22 @@ namespace eval lcc {
                                     set groupnotebook $frame.groups
                                 }
                                 incr gn
-                                set cframe $groupnotebook.group$gn
+                                set cframe $frame.[$c attribute gframe]
+                                if {![winfo exists $cframe]} {
+                                    set cframe $groupnotebook.group$gn
+                                }
                                 _printexport_txt_frame $c "${indent}  " $outfp $cframe
                             }
                             int {
-                                incr in
-                                set cframe $frame.int$in
+                                set cframe $frame.[$c attribute vframe]
                                 _printexport_txt_vframe $c ${indent} $outfp $cframe
                             }
                             string {
-                                incr sn
-                                set cframe $frame.string$sn
+                                set cframe $frame.[$c attribute vframe]
                                 _printexport_txt_vframe $c ${indent} $outfp $cframe
                             }
                             eventid {
-                                incr evn
-                                set cframe $frame.eventid$evn
+                                set cframe $frame.[$c attribute vframe]
                                 _printexport_txt_vframe $c ${indent} $outfp $cframe
                             }
                         }
@@ -1834,30 +1833,34 @@ namespace eval lcc {
                             _printexport_txt_frame $n "${indent}  " $outfp $tabframe
                         }
                     } else {
-                        #puts stderr "*** _printexport_txt_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
+                        #puts stderr "*** _printexport_txt_frame: frame = $frame"
+                        #puts stderr "*** _printexport_txt_frame: children of $frame: [widget_children_tails $frame]"
+                        #puts stderr "*** _printexport_txt_frame: children of $n: [$n children]"
+                        #puts stderr "*** _printexport_txt_frame: attributes of $n: [$n cget -attributes]"
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
-                            
+                            #puts stderr "*** _printexport_txt_frame: tag = $tag, c = $c, attributes of $c are [$c cget -attributes]"
                             switch $tag {
                                 group {
                                     incr gn
-                                    set cframe $frame.group$gn
+                                    set cframe $frame.[$c attribute gframe]
+                                    if {![winfo exists $cframe]} {
+                                        set cframe $frame.group$gn
+                                    }
+                                    #puts stderr "*** _printexport_txt_frame: gn is $gn, gframe attribute of $n is [$n attribute gframe], cframe is $cframe"
                                     _printexport_txt_frame $c "${indent}  " $outfp $cframe
                                 }
                                 int {
-                                    incr in
-                                    set cframe $frame.int$in
+                                    set cframe $frame.[$c attribute vframe]
                                     _printexport_txt_vframe $c ${indent} $outfp $cframe
                                 }
                                 string {
-                                    incr sn
-                                    set cframe $frame.string$sn
+                                    set cframe $frame.[$c attribute vframe]
                                     _printexport_txt_vframe $c ${indent} $outfp $cframe
                                 }
                                 eventid {
-                                    incr evn
-                                    set cframe $frame.eventid$evn
+                                    set cframe $frame.[$c attribute vframe]
                                     _printexport_txt_vframe $c ${indent} $outfp $cframe
                                 }
                             }
