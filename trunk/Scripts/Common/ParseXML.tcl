@@ -129,6 +129,18 @@ snit::type SimpleDOMElement {
     }
     return {}
   }
+  method setAttribute {attrname {value {}}} {
+      ## Method to set a selected attribute's value.
+      # @param attrname The name of the attribute.
+      # @param value The value to set. Default is the empty string.
+      set ai [lsearch -exact $options(-attributes) $attrname]
+      if {$ai < 0} {
+          lappend options(-attributes) $attrname "$value"
+      } else {
+          incr ai
+          lset options(-attributes) $ai "$value"
+      }
+  }
   method getElementsByTagName {thetag args} {
     ## Method to return all of the elements under this element with the 
     # specified tag name.
