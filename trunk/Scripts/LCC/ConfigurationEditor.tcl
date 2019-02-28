@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <190227.1928>
+#  Last Modified : <190227.2123>
 #
 #  Description	
 #
@@ -340,6 +340,13 @@ namespace eval lcc {
             $editContextMenu bind ROText
             $editContextMenu bind Spinbox
         }
+        typevariable _stack [list]
+        proc push {x} {set _stack [linsert $_stack 0 $x]}
+        proc pop {} {
+            set top [lindex $_stack 0]
+            set _stack [lrange $_stack 1 end]
+            return $top
+        }
         variable _readall -array {}
         ## Holds all of the Read buttons for each segment.  This allows for
         # Reading all of the variables in a segment.
@@ -435,8 +442,11 @@ namespace eval lcc {
                     #$n display stderr {        }
                     incr _segmentnumber
                     set _groupnumber 0
+                    push $_intnumber
                     set _intnumber 0
+                    push $_stringnumber
                     set _stringnumber 0
+                    push $_eventidnumber
                     set _eventidnumber 0
                     set space [$n attribute space]
                     set origin [$n attribute origin]
@@ -493,12 +503,17 @@ namespace eval lcc {
                                          -command [mymethod _printexport $n $segmentframe [format "Segment: 0x%02x" $space]]]
                         pack $printexport -fill x -anchor center
                     }
-                    
+                    set _eventidnumber [pop]
+                    set _stringnumber  [pop]
+                    set _intnumber     [pop]
                 }
                 group {
                     incr _groupnumber
+                    push $_intnumber
                     set _intnumber 0
+                    push $_stringnumber
                     set _stringnumber 0
+                    push $_eventidnumber
                     set _eventidnumber 0
                     set offset [$n attribute offset]
                     if {$offset eq {}} {set offset 0}
@@ -566,8 +581,11 @@ namespace eval lcc {
                                   -text [format $repnamefmt $i] -sticky news
                             set savedgn $_groupnumber
                             set _groupnumber 0
+                            push $_intnumber
                             set _intnumber 0
+                            push $_stringnumber
                             set _stringnumber 0
+                            push $_eventidnumber
                             set _eventidnumber 0
                             set _mkbuttons no
                             foreach c [$n children] {
@@ -607,14 +625,17 @@ namespace eval lcc {
                                                  -command [mymethod _printexport $n $replframe [format $repnamefmt $i]]]
                                 pack $printexport -fill x -anchor center
                             }
+                            set _eventidnumber [pop]
+                            set _stringnumber  [pop]
+                            set _intnumber     [pop]
                         }
                     } else {
                         set savedgn $_groupnumber
                         set _groupnumber 0
                         set _mkbuttons no
-                        $self putdebug "*** _processXMLnode: frame = $frame"
+                        $self putdebug "*** _processXMLnode (group branch, non replicated): groupframe = $groupframe"
                         $n setAttribute gframe [string range $groupframe [expr {[string length $frame]+1}] end]
-                        $self putdebug "*** _processXMLnode: attrs of $n are [$n cget -attributes]"
+                        $self putdebug "*** _processXMLnode (group branch, non replicated): attrs of $n are [$n cget -attributes]"
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
@@ -653,6 +674,9 @@ namespace eval lcc {
                                          -command [mymethod _printexport $n $groupframe [_ "Group %s" $name]]]
                         pack $printexport -fill x -anchor center
                     }
+                    set _eventidnumber [pop]
+                    set _stringnumber  [pop]
+                    set _intnumber     [pop]
                 }
                 int {
                     incr _intnumber
@@ -669,6 +693,8 @@ namespace eval lcc {
                     } else {
                         set name {}
                     }
+                    $self putdebug "*** _processXMLnode (int branch): frame is $frame, _intnumber is $_intnumber"
+                    $self putdebug "*** _processXMLnode (int branch): name is '$name'"
                     if {$name ne {}} {
                         set intframe [ttk::labelframe \
                                       $frame.int$_intnumber \
@@ -758,6 +784,8 @@ namespace eval lcc {
                     } else {
                         set name {}
                     }
+                    $self putdebug "*** _processXMLnode (string branch): frame is $frame, _stringnumber is $_stringnumber"
+                    $self putdebug "*** _processXMLnode (string branch): name is '$name'"
                     if {$name ne {}} {
                         set stringframe [ttk::labelframe \
                                          $frame.string$_stringnumber \
