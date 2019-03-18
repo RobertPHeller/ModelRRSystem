@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <190131.1508>
+#  Last Modified : <190317.1842>
 #
 #  Description	
 #
@@ -55,11 +55,12 @@ EXTRA_DIST = lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		GenerateEventID.tcl OpenLCB_Common.tcl OpenLCB_CMRI.tcl \
 		OpenLCB_QuadSignal.tcl ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl \
 		OpenLCB_PiPCA9685.tcl LayoutControlDB.tcl \
-		LayoutControlDBDialogs.tcl
+		LayoutControlDBDialogs.tcl Router.tcl
 
 bin_SCRIPTS = OpenLCB${EXEEXT} OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
 	OpenLCBGCTcpHub${EXEEXT} OpenLCB_TrackCircuits${EXEEXT} \
-	OpenLCB_Acela${EXEEXT} OpenLCB_Logic${EXEEXT} OpenLCB_CMRI${EXEEXT}
+	OpenLCB_Acela${EXEEXT} OpenLCB_Logic${EXEEXT} OpenLCB_CMRI${EXEEXT} \
+	Router${EXEEXT}
 if HAVE_WIRINGPI
 bin_SCRIPTS += OpenLCB_PiGPIO${EXEEXT} OpenLCB_PiMCP23008${EXEEXT} \
 		OpenLCB_PiMCP23017${EXEEXT} OpenLCB_PiSPIMax7221${EXEEXT} \
@@ -106,8 +107,8 @@ CLEANFILES = pkgIndex.tcl OpenLCB${EXEEXT} OpenLCB.pot \
 			  OpenLCB_PiMCP23017${EXEEXT} \
 			  OpenLCB_PiSPIMax7221${EXEEXT} \
 			  OpenLCB_PiMCP23017_signal${EXEEXT} \
-			  OpenLCB_QuadSignal${EXEEXT}
-			  OpenLCB_PiPCA9685${EXEEXT}
+			  OpenLCB_QuadSignal${EXEEXT} \
+			  OpenLCB_PiPCA9685${EXEEXT} Router${EXEEXT}
 
 pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		ConfigDialogs.tcl LCCNodeTree.tcl GenerateEventID.tcl \
@@ -151,7 +152,7 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
                 OpenLCB_TrackCircuits.tcl OpenLCB_Acela.tcl OpenLCB_Logic.tcl \
                 OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
                 OpenLCB_PiSPIMax7221.tcl OpenLCB_PiPCA9685.tcl PCA9685.tcl \
-                ADAFruitDC_AND_STEPPER.tcl \
+                ADAFruitDC_AND_STEPPER.tcl Router.tcl \
 		$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m \
@@ -164,7 +165,7 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
 		         ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl \
 		         OpenLCB_PiPCA9685.tcl \
 		         OpenLCB_TrackCircuits.tcl OpenLCB_Acela.tcl \
-		         OpenLCB_Logic.tcl LCCNodeTree.tcl) \
+		         OpenLCB_Logic.tcl LCCNodeTree.tcl) Router.tcl \
 		Scripts/Common/snitStdMenuBar.tcl|\
 	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
 	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
@@ -266,6 +267,34 @@ OpenLCBTcpHub${EXEEXT}: OpenLCBTcpHub.tcl $(OpenLCBTcpHubSCRIPTS) \
 		Messages $(top_builddir)/po/OpenLCB/*.msg
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCBTcpHub${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf OpenLCBTcpHub.vfs
+
+RouterSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
+			$(top_srcdir)/Scripts/LCC/lcc.tcl \
+			$(top_builddir)/Scripts/Common/Version.tcl
+			
+Router${EXEEXT}: Router.tcl $(RouterSCRIPTS) \
+	$(top_builddir)/po/OpenLCB/msgfiles
+	-rm -f  Router.kit
+	-rm -rf  Router.vfs
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/Router.tcl
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap Router.kit
+	-rm -f  Router.kit
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit Router \
+		lib $(SNITLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit Router \
+		lib $(TCLLOGLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Router \
+		lib/Common $(RouterSCRIPTS)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit Router \
+		Common
+if HAVE_CAN
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Router \
+		lib/TclSocketCAN $(SOCKETCAN_FILES)
+endif
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Router \
+		Messages $(top_builddir)/po/OpenLCB/*.msg
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap Router${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
+	-rm -rf Router.vfs
 
 OpenLCBGCTcpHubSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 			$(top_srcdir)/Scripts/LCC/lcc.tcl \
@@ -1058,11 +1087,12 @@ man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
 	man1/OpenLCB_PiSPIMax7221.1 man1/OpenLCB_PiMCP23017_signal.1 \
 	man1/OpenLCB_QuadSignal.1 \
 	man1/OpenLCB_CMRI.1 \
-	man1/OpenLCB_TrackCircuits.1 man1/OpenLCB_Logic.1: Doxyfile \
+	man1/OpenLCB_TrackCircuits.1 man1/OpenLCB_Logic.1 man1/Router.1: Doxyfile \
 	OpenLCB.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl OpenLCBGCTcpHub.tcl \
 	OpenLCB_PiGPIO.tcl OpenLCB_TrackCircuits.tcl OpenLCB_Logic.tcl \
 	OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
-	OpenLCB_PiMCP23017_signal.tcl OpenLCB_CMRI.tcl OpenLCB_QuadSignal.tcl
+	OpenLCB_PiMCP23017_signal.tcl OpenLCB_CMRI.tcl OpenLCB_QuadSignal.tcl \
+	Router.tcl
 	-rm -rf man1
 	$(DOXYGEN) Doxyfile
 	
