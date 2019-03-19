@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <180407.1051>
+#  Last Modified : <190319.1007>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -3506,6 +3506,7 @@ namespace eval lcc {
                     lappend openlcbmessage [expr {$b & 0x0FF}]
                 }
                 set openlcbMessage [$self _unpackBinaryMessage $openlcbmessage]
+                #puts stderr "*** $self _messageReader: openlcbMessage is [$openlcbMessage toString]"
                 if {![$self cget -promisciousmode]} {
                     set dest [$openlcbMessage cget -destnid]
                     if {$dest ne "" && $dest ne [$self cget -nid]} {

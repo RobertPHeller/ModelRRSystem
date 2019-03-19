@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <190204.1251>
+#  Last Modified : <190319.0929>
 #
 #  Description	
 #
@@ -434,6 +434,20 @@ snit::type OpenLCB {
             $eventlog open
         }
     }
+    proc matchNIDinBody {message nid} {
+        set data [$message cget -data]
+        if {$data eq {}} {
+            return true
+        }
+        set nidlist [list]
+        foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $nid] 1 end] {
+            lappend nidlist [scan $oct %02x]
+        }
+        foreach d $data n $nidlist {
+            if {$d != $n} {return false}
+        }
+        return true
+    }
     typemethod _messageHandler {message} {
         #* Message handler -- handle incoming messages.
         #* Certain messages are processed:
@@ -445,7 +459,12 @@ snit::type OpenLCB {
         
         putdebug [format {*** $type _messageHandler: mti is 0x%04X} [$message cget -mti]]
         switch [format {0x%04X} [$message cget -mti]] {
-            0x0490 -
+            0x0490 {
+                #* Verify Node ID (global)
+                if {[matchNIDinBody $message $mynid]} {
+                    $transport SendMyNodeVerifcation
+                }
+            }
             0x0488 {
                 #* Verify Node ID
                 $transport SendMyNodeVerifcation
