@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <170511.1257>
+#  Last Modified : <190322.0739>
 #
 #  Description	
 #
@@ -50,9 +50,9 @@
 #
 # @section OpenLCBTcpHubDESCRIPTION DESCRIPTION
 #
-# This program is a server daemon that implements a hub for OpenLCB over 
-# Tcp/Ip that accepts connections from OpenLCB over Tcp/Ip nodes and forwards
-# OpenLCB messages between clients.
+# This program is a server daemon that implements a hub for Native OpenLCB 
+# over Tcp/Ip that accepts connections from OpenLCB over Tcp/Ip nodes and 
+# forwards OpenLCB messages between clients.
 #
 # @section OpenLCBTcpHubPARAMETERS PARAMETERS
 #
@@ -75,14 +75,17 @@
 # Robert Heller \<heller\@deepsoft.com\>
 #
 
+# Normalize argv0 for error reporting, etc.
 set argv0 [file join  [file dirname [info nameofexecutable]] OpenLCBTcpHub]
 
-#package require Sigterm
-package require snit
-package require gettext
-package require log                                                             
-package require LCC
+# Load dependent packaes
+#package require Sigterm;# Sigterm is not used (normally for signal catching)
+package require snit;# SNIT -- OO Framework
+package require gettext;# Localization
+package require log;# Logging package
+package require LCC;# OpenLCB/LCC library
 
+# Load localization data
 set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirname \
 							[info script]]]] Messages]]
 snit::type OpenLCBTcpHub {
@@ -116,42 +119,64 @@ snit::type OpenLCBTcpHub {
         # Creates the listener and set up the logging.
         #
         
-        global argv
-        global argc
-        global argv0
+        # Command line argument variables:
+        global argv;# List of argument words
+        global argc;# Count of argument words
+        global argv0;# How we were invoked
         
+        # Assume debug logging is off
         set debugnotvis 1
+        # Search for -debug in command line
         set debugIdx [lsearch -exact $argv -debug]
+        # If -debug found, turn on visibility of debug messages and remove 
+        # -debug from command line.
         if {$debugIdx >= 0} {
             set debugnotvis 0
             set argv [lreplace $argv $debugIdx $debugIdx]
         }
+        # Fetch host to bind to
         set host [from argv -host localhost]
+        # And port to bind to
         set port [from argv -port $defaultport]
+        # Compute default log file name
         set deflogfilename [format {%s.log} [file tail $argv0]]
+        # Fetch log file name.
         set logfilename [from argv -log $deflogfilename]
+        # Ensure log file name ends in .log
         if {[file extension $logfilename] ne ".log"} {append logfilename ".log"}
+        # Deamonize ourselves: disconnect from controlling terminal and/or
+        # parent process's I/O channels
         close stdin
         close stdout
         close stderr
+        # Compute what null device is.
         set null /dev/null
         if {$::tcl_platform(platform) eq "windows"} {
             set null nul
         }
+        # Open dummy channels for stdin and stdout
         open $null r
         open $null w
+        # And logfile to stderr (all random error reporting will land in the 
+        # log file).
         set logchan [open $logfilename w]
+        # No buffering for the log file
         fconfigure $logchan  -buffering none
         
+        # Set up logging: pass info and notice on, conditionally pass debug.
         ::log::lvChannelForall $logchan
         ::log::lvSuppress info 0
         ::log::lvSuppress notice 0
         ::log::lvSuppress debug $debugnotvis
+        # Method to actually write to the log file
         ::log::lvCmdForall [mytypemethod LogPuts]
         
+        # Initial startup message
         ::log::logMsg [_ "%s starting, listening on %s:%d" $type $host $port]
+        # Start listening for connections
         set _listenerChannel [socket -server [mytypemethod _accept] \
                               -myaddr $host $port]
+        # Meanwhile, connect to remote hub daemons (if any).
         foreach op {-remote -remote0 -remote1 -remote2 -remote3 -remote4 -remote5 -remote6 -remote7 -remote8 -remote9} {
             set remote [from argv $op]
             if {$remote eq ""} {continue}
