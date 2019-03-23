@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Mar 17 16:32:29 2019
-#  Last Modified : <190323.1223>
+#  Last Modified : <190323.1230>
 #
 #  Description	
 #
@@ -609,6 +609,7 @@ snit::type OpenLCBGCCAN {
         ::log::log debug "*** $type sendOpenLCBMessage: message is [$message toString]"
         if {[$message cget -destnid] eq [$mycanalias cget -nid]} {
             #??? Message for me?
+            ::log::log info "Message address to the router, dropped."
             return
         }
         if {([$message cget -mti] & 0x0008) != 0} {
@@ -964,6 +965,7 @@ snit::type OpenLCBGCCAN {
                                 $parent SendTo [$m cget -destnid] $m C
                             } else {
                                 #??? Someone sent me a OpenLCB message...
+                                ::log::log info "Message address to the router, dropped."
                             }
                         } else {
                             $parent Broadcast $m C
@@ -1002,6 +1004,7 @@ snit::type OpenLCBGCCAN {
                             $parent SendTo [$m cget -destnid] $m C
                         } else {
                             #??? someone sent me a datagram.
+                            ::log::log info "Message address to the router, dropped."
                         }
                     } else {
                         ::log::log warning "Orphan message: [$m toString]"
