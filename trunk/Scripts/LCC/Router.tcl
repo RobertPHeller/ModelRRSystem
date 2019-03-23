@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Mar 17 16:32:29 2019
-#  Last Modified : <190323.1028>
+#  Last Modified : <190323.1112>
 #
 #  Description	
 #
@@ -47,7 +47,7 @@
 #
 # Router [-bhost localhost] [-bport 12000]
 #        [-cmode Tcpip|Socket|USB] [-chost localhost] [-cport 12021]
-#        [-csockname can0] [-cdevice /dev/ttyACM0]
+#        [-csockname can0] [-cdevice /dev/ttyACM0] [-cnid 05:01:01:01:22:00]
 #        [-log Router.log] [-debug]
 #
 # @section RouterDESCRIPTION DESCRIPTION
@@ -72,6 +72,8 @@
 # @arg -cport The tcp port to connect with (only when -cmode is Tcpip).
 # @arg -csockname The CAN socket name (only when -cmode is Socket).
 # @arg -cdevice The tty device to connect to (only when -cmode is USB).
+# @arg -cnid The OpenLCB Node ID to use for the GridConnect/CAN side (allows 
+# for sending AME messages).
 # @arg -log The file to use for logging.
 # @arg -debug Enable debugging messages.
 # @par
@@ -327,6 +329,8 @@ snit::type OpenLCBGCCAN {
     #** MTI Header object
     typecomponent canheader
     #** CAN Header object
+    typecomponent mycanalias
+    ## My CanAlias component.
     typecomponent parent
     #** Parent (Router) class object
     typevariable nidMap -array {}
@@ -345,6 +349,8 @@ snit::type OpenLCBGCCAN {
     #** @brief Default Serial port.
     typevariable defaultCANMode USB
     #** Default CAN/GC mode
+    typevariable defaultNID "05:01:01:01:22:00"
+    #** Default NID
     typevariable channel {}
     #** Channel
     typevariable _timeoutFlag 0
@@ -359,6 +365,18 @@ snit::type OpenLCBGCCAN {
     ## General message buffers (for multi frame messages) 
     variable simplenodeflags -array {}
     ## Simple node info flags
+    
+    delegate typemethod getMyAlias to mycanalias
+    
+    typemethod _reserveMyAlias {} {
+        ## Reserve my alias.
+        #
+        # @return A boolean value indicating a successfully reserved alias
+        # (true) or failure (false).
+        
+        return [$type reserveAlias $mycanalias]
+    }
+    
     
     typemethod Open {argvname p} {
         #** Open the channel.
@@ -431,7 +449,11 @@ snit::type OpenLCBGCCAN {
         set mtidetail [lcc::MTIDetail          %AUTO%]
         set mtiheader [lcc::MTIHeader          %AUTO%]
         set canheader [lcc::CANHeader          %AUTO%]
+        set mycanalias [lcc::CanAlias %AUTO% -nid [from argv -cnid $defaultNID]]
         fileevent $channel    readable [mytypemethod _readByte]
+        while {![$type _reserveMyAlias]} {
+        }
+        $type populateAliasMap
         return $type
     }
     typemethod getAliasOfNID {nid} {
@@ -497,7 +519,7 @@ snit::type OpenLCBGCCAN {
     typemethod populateAliasMap {} {
         #** Send an AME
         $canheader configure -openlcbframe no \
-              -variablefield 0x0702 -srcid 0;#[$type getMyAlias]
+              -variablefield 0x0702 -srcid [$type getMyAlias]
         set _timeoutFlag 0
         after 5000 [mytypemethod _timedout]
         $type _sendmessage [lcc::CanMessage %AUTO% \
