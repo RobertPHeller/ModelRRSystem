@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Mar 17 16:32:29 2019
-#  Last Modified : <190317.2227>
+#  Last Modified : <190323.1028>
 #
 #  Description	
 #
@@ -53,7 +53,7 @@
 # @section RouterDESCRIPTION DESCRIPTION
 #
 # This program is a server daemon that implements a router between an 
-# OpenLCB/CAN segment and a binary OpenLCB over Tcp/Ip network.
+# OpenLCB/CAN segment and a native OpenLCB over Tcp/Ip network.
 #
 # @section RouterPARAMETERS PARAMETERS
 #
@@ -91,35 +91,67 @@ package require LCC
 set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirname [info script]]]] Messages]]
 
 snit::type OpenLCBTcp {
+    #** Static class to handle the native OpenLCB channel.
+    #
+    # Handles incoming native OpenLCB messages, converts them to generic 
+    # OpenLCB message objects and then calls the parent class's methods:
+    # 1) UpdateRoute to record the source channel for source NIDs
+    # 2) Broadcast to send any global (unaddressed) messages along
+    # 3) SendTo to send any addressed messages along.
+    #
+    
     # Set up for an ensemble command.
     pragma -hastypeinfo    no
     pragma -hastypedestroy no
     pragma -hasinstances   no
     
     typecomponent mtidetail
+    #** Object to hold the MTI and allow for accessing its bits.
     typecomponent parent
+    #** Parent (Router) class object
     typevariable defaultPort 12000
-    #** @brief Default Tcp/Ip port number.
+    #** Default Tcp/Ip port number.
     typevariable defaultHost localhost
-    #** @brief Default host.
+    #**  Default host.
     typevariable channel {}
+    #** Open channel
     
     typemethod Open {argvname p} {
+        #** Open the channel.
+        #
+        # The command line options are fetched and used to open a client 
+        # connection to the specificed hub daemon.
+        #
+        # @param argvname The name of the variable containing the command line
+        # words.
+        # @param p The name of the parent class object.
+        # @returns The name of this class object.
+        
+        # Derefence the name of the variable containing the command line words.
         upvar $argvname argv
         
+        # Fetch command line options.
         set bhost [from argv -bhost $defaultHost]
         set bport [from argv -bport $defaultPort]
+        # Open the socket
         if {[catch {socket $bhost $bport} channel]} {
-            set theerror $ channel
+            # Failure: report error and die.
+            set theerror $channel
             catch {unset  channel}
             ::log::logError [_ "Failed to open %s:%d because %s." $bhost $bport $theerror]
             exit 99
         }
+        # Stash the parent object
         set parent $p
+        # Log it.
         ::log::logMsg [_ "%s Binary listening on %s:%s" $type $bhost $bport]
+        # Configure the channel
         fconfigure $channel -buffering none -translation {binary binary}
+        # Instansiate a mtidetail object to later use
         set mtidetail [lcc::MTIDetail %AUTO%]
+        # Start listening...
         fileevent $channel readable [mytypemethod _messageReader]
+        # Return our type (class) object.
         return $type
     }    
     typemethod SendMessage {message} {
@@ -127,6 +159,7 @@ snit::type OpenLCBTcp {
         # @param message The  message to send.
         
         lcc::OpenLCBMessage validate $message
+        ::log::log debug "$type SendMessage [$message toString]"
         set preamble 0x8000;# Common OpenLCB bit.
         set messageData [$type _makeBinaryMessage $message]
         set totallength [expr {[llength $messageData] + (48/8) + (48/8)}]
@@ -135,7 +168,7 @@ snit::type OpenLCBTcp {
                      [expr {($totallength & 0xFF00) >> 8}] \
                      [expr {$totallength & 0xFF}]]
         set sourcenid [list]
-        ::log::log debug "$type SendMessage: \[\$message cget -sourcenid\] is [$message cget -sourcenid]"
+        #::log::log debug "$type SendMessage: \[\$message cget -sourcenid\] is [$message cget -sourcenid]"
         foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] [$message cget -sourcenid]] 1 end] {
             lappend sourcenid [scan $oct %02x]
         }
@@ -147,7 +180,7 @@ snit::type OpenLCBTcp {
                      [expr {($seqnum &       wide(0x0FF0000)) >> 16}] \
                      [expr {($seqnum &         wide(0x0FF00)) >>  8}] \
                      [expr {($seqnum &           wide(0x0FF))      }]]
-        ::log::log debug "$type SendMessage: preamble = $preamble, tlbytes = $tlbytes, sourcenid = $sourcenid, sqbytes = $sqbytes, messageData = \{$messageData\}"
+        #::log::log debug "$type SendMessage: preamble = $preamble, tlbytes = $tlbytes, sourcenid = $sourcenid, sqbytes = $sqbytes, messageData = \{$messageData\}"
         set messageBlock [binary format {Sc3c6c6c*} $preamble $tlbytes $sourcenid $sqbytes $messageData]
         puts -nonewline $channel $messageBlock
         flush $channel
@@ -155,6 +188,7 @@ snit::type OpenLCBTcp {
     typemethod _messageReader {} {
         #** Message reader handler.
         
+        ::log::log debug "$type _messageReader entered"
         set buffer [read $channel 2];# Preamble
         if {[eof $channel] || [string length $buffer] < 2} {
             exit 1
@@ -166,7 +200,7 @@ snit::type OpenLCBTcp {
         }
         set preamble [expr {$preamble & 0x0FFFF}]
         if {($preamble & 0x8000) == 0} {
-            # Link control message ...
+            # Link control message -- these are currently ignored.
         } else {
             set buffer [read $channel 3];# total length (24 bits)
             binary scan $buffer c3 tlist
@@ -190,6 +224,7 @@ snit::type OpenLCBTcp {
             foreach b $openlcbmessage_s {
                 lappend openlcbmessage [expr {$b & 0x0FF}]
             }
+            # Convert to a generic message object.
             set openlcbMessage [$type _unpackBinaryMessage $openlcbmessage]
             set dest [$openlcbMessage cget -destnid]
             set source [$openlcbMessage cget -sourcenid]
@@ -214,6 +249,8 @@ snit::type OpenLCBTcp {
         set sourcenid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange $messagebuffer 2 7]]
         set result [lcc::OpenLCBMessage %AUTO%  -sourcenid $sourcenid \
                     -mti $MTI]
+        # Extract special data elements: destination and eventId, since they 
+        # are stored in the OpenLCBMessage separately.
         set dataoff 8
         if {[$mtidetail cget -addressp]} {
             set destend [expr {$dataoff + 5}]
@@ -227,6 +264,7 @@ snit::type OpenLCBTcp {
             $result configure -eventid $eventid
             set dataoff [expr {$eventend + 1}]
         }
+        # Other random data.
         $result configure -data [lrange $messagebuffer $dataoff end]
         return $result
     }
@@ -265,17 +303,32 @@ snit::type OpenLCBTcp {
 }
 
 snit::type OpenLCBGCCAN {
+    #** Static class to handle the GridConnect (CAN) OpenLCB channel.
+    #
+    # Handles incoming GridConnect (CAN) messages, converts them to generic
+    # OpenLCB message objects and then calls the parent class's methods:
+    # 1) UpdateRoute to record the source channel for source NIDs 
+    # 2) Broadcast to send any global (unaddressed) messages along
+    # 3) SendTo to send any addressed messages along. 
+    #
+    
     # Set up for an ensemble command.
     pragma -hastypeinfo    no
     pragma -hastypedestroy no
     pragma -hasinstances   no
     
     typecomponent gcmessage
+    #** Parsed GridConnect message
     typecomponent gcreply
+    #** Parsed GridConnect Reply message
     typecomponent mtidetail
+    #** MTI detail object
     typecomponent mtiheader
+    #** MTI Header object
     typecomponent canheader
+    #** CAN Header object
     typecomponent parent
+    #** Parent (Router) class object
     typevariable nidMap -array {}
     #** The NID => Alias map for the CAN segment.  The array is indexed by
     # NIDs and the values are the current aliases.
@@ -291,7 +344,9 @@ snit::type OpenLCBGCCAN {
     typevariable defaultSerialPort /dev/ttyACM0
     #** @brief Default Serial port.
     typevariable defaultCANMode USB
+    #** Default CAN/GC mode
     typevariable channel {}
+    #** Channel
     typevariable _timeoutFlag 0
     #** Timeout flag.
     typevariable messageBuffer ""
@@ -306,6 +361,17 @@ snit::type OpenLCBGCCAN {
     ## Simple node info flags
     
     typemethod Open {argvname p} {
+        #** Open the channel.
+        #
+        # The command line options are fetched and used to open a client 
+        # connection to the specificed hub daemon.
+        #
+        # @param argvname The name of the variable containing the command line
+        # words.
+        # @param p The name of the parent class object.
+        # @returns The name of this class object.
+        
+        # Derefence the name of the variable containing the command line words.
         upvar $argvname argv
         
         set cmode [from argv -cmode $defaultCANMode]
@@ -412,16 +478,16 @@ snit::type OpenLCBGCCAN {
         # @param alias A 12-bit CAN Alias.
         #
         
-        ::log::log debug "$type updateAliasMap $nid $alias"
+        #::log::log debug "$type updateAliasMap $nid $alias"
         foreach a [array names nidMap] {
             if {$nidMap($a) eq $nid} {
-                ::log::log debug "$type updateAliasMap: unsetting nidMap($a) (= $nidMap($a))"
+                #::log::log debug "$type updateAliasMap: unsetting nidMap($a) (= $nidMap($a))"
                 unset nidMap($a)
             }
         }
         foreach n [array names aliasMap] {
             if {$aliasMap($n) == $alias} {
-                ::log::log debug "$type updateAliasMap: unsetting aliasMap($n) (= $aliasMap($n))"
+                #::log::log debug "$type updateAliasMap: unsetting aliasMap($n) (= $aliasMap($n))"
                 unset aliasMap($n)
             }
         }
@@ -447,12 +513,12 @@ snit::type OpenLCBGCCAN {
         # @return A boolean value indicating a successfully reserved alias
         # (true) or failure (false).
         
-        ::log::log debug "$type reserveAlias: nid is [$canalias cget -nid]"
+        #::log::log debug "$type reserveAlias: nid is [$canalias cget -nid]"
         lcc::CanAlias validate $canalias
         set nidlist [$canalias getMyNIDList]
         # Generate a tentative alias.
         set alias [$canalias getNextAlias]
-        ::log::log debug [format "*** $type reserveAlias: alias = 0x%03X" $alias]
+        #::log::log debug [format "*** $type reserveAlias: alias = 0x%03X" $alias]
         
         # Send out Check ID frames.
         # CID1
@@ -482,7 +548,7 @@ snit::type OpenLCBGCCAN {
         set _timeoutFlag 0
         set timoutID [after 500 [mytypemethod _timedout]]
         vwait [mytypevar _timeoutFlag]
-        ::log::log debug [format "*** $type reserveAlias: _timeoutFlag is $_timeoutFlag"]
+        #::log::log debug [format "*** $type reserveAlias: _timeoutFlag is $_timeoutFlag"]
         if {$_timeoutFlag < 0} {
             # Received an error report.  Cancel the timeout and return
             # false.
@@ -508,10 +574,10 @@ snit::type OpenLCBGCCAN {
     typemethod _timedout {} {
         #** @privatesection Timeout method.  Called on timeout.
         
-        ::log::log debug "*** $type _timedout"
-        ::log::log debug "*** $type _timedout: (before) _timeoutFlag = $_timeoutFlag"
+        #::log::log debug "*** $type _timedout"
+        #::log::log debug "*** $type _timedout: (before) _timeoutFlag = $_timeoutFlag"
         incr _timeoutFlag
-        ::log::log debug "*** $type _timedout: (after)  _timeoutFlag = $_timeoutFlag"
+        #::log::log debug "*** $type _timedout: (after)  _timeoutFlag = $_timeoutFlag"
     }
     typemethod SendMessage {message} {
         ## Send a message on the OpenLCB bus.
@@ -719,7 +785,7 @@ snit::type OpenLCBGCCAN {
     }
     
     typemethod _readByte {} {
-        ::log::log debug "*** $type _readByte entered."
+        #::log::log debug "*** $type _readByte entered."
         set ch [read $channel 1]
         if {$ch eq ""} {
             # Error reading -- probably EOF / disconnect.
@@ -748,9 +814,9 @@ snit::type OpenLCBGCCAN {
         #
         # @param srcid The source alias of the message.
         
-        ::log::log debug "*** $type _flags0 $srcid [$r toString] $doff"
+        #::log::log debug "*** $type _flags0 $srcid [$r toString] $doff"
         set mti [$mtiheader cget -mti]
-        ::log::log debug [format {*** %s _flags0: mti = 0x%04X} $type $mti]
+        #::log::log debug [format {*** %s _flags0: mti = 0x%04X} $type $mti]
         if {[$mtiheader cget -mti] == 0x0A08} {
             if {[info exists simplenodeflags($srcid,v1)]} {
                 eval [list lappend messagebuffers($srcid,$mti)] [lrange [$r getData] $doff end]
@@ -764,18 +830,18 @@ snit::type OpenLCBGCCAN {
                     set simplenodeflags($srcid,v1) 4
                 }  
             }
-            ::log::log debug "*** $type _flags0: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
+            #::log::log debug "*** $type _flags0: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
             set i 1
             for {set j 0} \
                   {$j < $simplenodeflags($srcid,v1)} \
                   {incr j} {
                 set k [lsearch -start $i -exact $messagebuffers($srcid,$mti) 0]
-                ::log::log debug "*** $type _flags0: i = $i, j = $j, k = $k"
+                #::log::log debug "*** $type _flags0: i = $i, j = $j, k = $k"
                 if {$k < 0} {return no}
                 set i [expr {$k + 1}]
             }
-            ::log::log debug "*** $type _flags0: length of messagebuffers($srcid,$mti) is [llength $messagebuffers($srcid,$mti)]"
-            ::log::log debug "*** $type _flags0: i = $i"
+            #::log::log debug "*** $type _flags0: length of messagebuffers($srcid,$mti) is [llength $messagebuffers($srcid,$mti)]"
+            #::log::log debug "*** $type _flags0: i = $i"
             if {$i >= [llength $messagebuffers($srcid,$mti)]} {
                 return no
             }
@@ -803,13 +869,13 @@ snit::type OpenLCBGCCAN {
         $gcreply configure -message $message
         set r [$gcreply createReply]
         $canheader setHeader [$r getHeader]
-        ::log::log debug "*** $type _messageReader: canheader : [$canheader configure]"
-        ::log::log debug "*** $type _messageReader: r = [$r toString]"
+        #::log::log debug "*** $type _messageReader: canheader : [$canheader configure]"
+        #::log::log debug "*** $type _messageReader: r = [$r toString]"
         if {[$canheader cget -openlcbframe]} {
             $mtiheader setHeader [$canheader getHeader]
             $mtidetail setHeader [$canheader getHeader]
-            ::log::log debug "*** $type _messageReader: mtiheader : [$mtiheader configure]"
-            ::log::log debug "*** $type _messageReader: mtidetail : [$mtidetail configure]"
+            #::log::log debug "*** $type _messageReader: mtiheader : [$mtiheader configure]"
+            #::log::log debug "*** $type _messageReader: mtidetail : [$mtidetail configure]"
             set srcid [$canheader cget -srcid]
             set flagbits 0
             set destid 0
@@ -823,10 +889,10 @@ snit::type OpenLCBGCCAN {
                 }
                 set datacomplete no
                 if {$flagbits == 0x00} {
-                    ::log::log debug "*** $type _messageReader: doff = $doff"
+                    #::log::log debug "*** $type _messageReader: doff = $doff"
                     set datacomplete [$type _flags0 $srcid $r $doff]
-                    ::log::log debug "*** $type _messageReader: $r getData is [$r getData]"
-                    ::log::log debug "*** $type _messageReader: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
+                    #::log::log debug "*** $type _messageReader: $r getData is [$r getData]"
+                    #::log::log debug "*** $type _messageReader: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
                 } elseif {$flagbits == 0x01} {
                     set messagebuffers($srcid,$mti) [lrange [$r getData] 2 end]
                 } elseif {$flagbits == 0x03} {
@@ -865,12 +931,16 @@ snit::type OpenLCBGCCAN {
                         $m configure -eventid $eid
                         $m configure -data [lrange $messagebuffers($srcid,$mti) $doff end]
                     }
-                    if {[$m cget -destnid] ne {}} {
-                        $parent SendTo [$m cget -destnid] $m C
-                    } else {
-                        $parent Broadcast $m C
-                    }
                     catch {unset messagebuffers($srcid,$mti)}
+                    if {[$m cget -sourcenid] ne {}} {
+                        if {[$m cget -destnid] ne {}} {
+                            $parent SendTo [$m cget -destnid] $m C
+                        } else {
+                            $parent Broadcast $m C
+                        }
+                    } else {
+                        ::log::log warning "Orphan message: [$m toString]"
+                    }
                 }
             } elseif {[$mtidetail cget -streamordatagram]} {
                 set destid [$mtidetail cget -destid]
@@ -897,20 +967,24 @@ snit::type OpenLCBGCCAN {
                            -destnid   [$type getNIDofAlias $destid] \
                            -data      $datagrambuffers($srcid)]
                     unset datagrambuffers($srcid)
-                    $parent SendTo [$m cget -destnid] $m C
+                    if {[$m cget -sourcenid] ne {}} {
+                        $parent SendTo [$m cget -destnid] $m C
+                    } else {
+                        ::log::log warning "Orphan message: [$m toString]"
+                    }
                 }
             }
         } else {
             # Not a OpenLCB message.
             # Check for an Error Information Report
             set vf [$canheader cget -variablefield]
-            ::log::log debug "[format {*** %s _messageReader: vf = 0x%04X} $type $vf]"
+            #::log::log debug "[format {*** %s _messageReader: vf = 0x%04X} $type $vf]"
             if {$vf == 0x0701} {
                 # AMD frame
-                ::log::log debug "*** $type _messageReader: received AMD frame"
+                #::log::log debug "*** $type _messageReader: received AMD frame"
                 set srcalias [$canheader cget -srcid]
                 set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
-                ::log::log debug "[format {*** %s _messageReader: srcalias = 0x%03X, srcnid = %s} $type $srcalias $srcnid]"
+                #::log::log debug "[format {*** %s _messageReader: srcalias = 0x%03X, srcnid = %s} $type $srcalias $srcnid]"
                 $type updateAliasMap $srcnid $srcalias
             } elseif {$vf == 0x0702} {
                 ## not application to the router.
@@ -959,7 +1033,9 @@ snit::type Router {
     #** @brief Logfile channel.
     
     typecomponent _openLCBTcpip
+    #** The Native OpenLCB handler
     typecomponent _openLCBGCCan
+    #** The GridConnect (CAN) handler
     
     
     typeconstructor {
@@ -968,41 +1044,49 @@ snit::type Router {
         # Set up the logging and open channels and start listening.
         #
         
-        
+        # The command line...
         global argv
         global argc
         global argv0
         
+        # debug logging...
         set debugnotvis 1
         set debugIdx [lsearch -exact $argv -debug]
         if {$debugIdx >= 0} {
             set debugnotvis 0
             set argv [lreplace $argv $debugIdx $debugIdx]
         }
+        # Set up the log file
         set deflogfilename [format {%s.log} [file tail $argv0]]
         set logfilename [from argv -log $deflogfilename]
         if {[file extension $logfilename] ne ".log"} {append logfilename ".log"}
+        # Daemonize ourselves: detach from controlling tty and/or the parent 
+        # process's I/O channels
         close stdin
         close stdout
         close stderr
+        # Bind stdin and stdout to the null device
         set null /dev/null
         if {$::tcl_platform(platform) eq "windows"} {
             set null nul
         }
         open $null r
         open $null w
+        # And stderr to the log file
         set logchan [open $logfilename w]
         fconfigure $logchan  -buffering none
         
+        # Set up logging
         ::log::lvChannelForall $logchan
         ::log::lvSuppress info 0
         ::log::lvSuppress notice 0
         ::log::lvSuppress debug $debugnotvis
         ::log::lvCmdForall [mytypemethod LogPuts]
         
+        # Startup message
         ::log::logMsg [_ "%s starting..." $type]
         
-        
+        # Open helper objects.
         set _openLCBTcpip [OpenLCBTcp   Open argv $type]
         set _openLCBGCCan [OpenLCBGCCAN Open argv $type]
         #$_openLCBGCCan populateAliasMap
