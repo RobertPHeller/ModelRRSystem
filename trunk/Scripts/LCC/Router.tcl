@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Mar 17 16:32:29 2019
-#  Last Modified : <190323.1112>
+#  Last Modified : <190323.1230>
 #
 #  Description	
 #
@@ -607,6 +607,11 @@ snit::type OpenLCBGCCAN {
         
         lcc::OpenLCBMessage validate $message
         ::log::log debug "*** $type sendOpenLCBMessage: message is [$message toString]"
+        if {[$message cget -destnid] eq [$mycanalias cget -nid]} {
+            #??? Message for me?
+            ::log::log info "Message address to the router, dropped."
+            return
+        }
         if {([$message cget -mti] & 0x0008) != 0} {
             set destnid [$message cget -destnid]
             set destalias [$type getAliasOfNID $destnid]
@@ -956,7 +961,12 @@ snit::type OpenLCBGCCAN {
                     catch {unset messagebuffers($srcid,$mti)}
                     if {[$m cget -sourcenid] ne {}} {
                         if {[$m cget -destnid] ne {}} {
-                            $parent SendTo [$m cget -destnid] $m C
+                            if {[$m cget -destnid] ne [$mycanalias cget -nid]} {
+                                $parent SendTo [$m cget -destnid] $m C
+                            } else {
+                                #??? Someone sent me a OpenLCB message...
+                                ::log::log info "Message address to the router, dropped."
+                            }
                         } else {
                             $parent Broadcast $m C
                         }
@@ -990,7 +1000,12 @@ snit::type OpenLCBGCCAN {
                            -data      $datagrambuffers($srcid)]
                     unset datagrambuffers($srcid)
                     if {[$m cget -sourcenid] ne {}} {
-                        $parent SendTo [$m cget -destnid] $m C
+                        if {[$m cget -destnid] ne [$mycanalias cget -nid]} {
+                            $parent SendTo [$m cget -destnid] $m C
+                        } else {
+                            #??? someone sent me a datagram.
+                            ::log::log info "Message address to the router, dropped."
+                        }
                     } else {
                         ::log::log warning "Orphan message: [$m toString]"
                     }
@@ -1009,18 +1024,15 @@ snit::type OpenLCBGCCAN {
                 #::log::log debug "[format {*** %s _messageReader: srcalias = 0x%03X, srcnid = %s} $type $srcalias $srcnid]"
                 $type updateAliasMap $srcnid $srcalias
             } elseif {$vf == 0x0702} {
-                ## not application to the router.
-                if {0} {
-                    set nidlist [$mycanalias getMyNIDList]
-                    # AME frame
-                    if {[listeq [lrange [$r getData] 0 5] {0 0 0 0 0 0}] || [listeq [lrange [$r getData] 0 5] $nidlist]} {
-                        $canheader configure -openlcbframe no \
-                              -variablefield 0x0701 -srcid [$type getMyAlias]
-                        $type _sendmessage [lcc::CanMessage %AUTO% \
-                                            -header [$canheader getHeader] \
-                                            -extended yes \
-                                            -data $nidlist -length 6]
-                    }
+                set nidlist [$mycanalias getMyNIDList]
+                # AME frame
+                if {[listeq [lrange [$r getData] 0 5] {0 0 0 0 0 0}] || [listeq [lrange [$r getData] 0 5] $nidlist]} {
+                    $canheader configure -openlcbframe no \
+                          -variablefield 0x0701 -srcid [$type getMyAlias]
+                    $type _sendmessage [lcc::CanMessage %AUTO% \
+                                        -header [$canheader getHeader] \
+                                        -extended yes \
+                                        -data $nidlist -length 6]
                 }
             } elseif {$vf >= 0x0710 || $vf <= 0x0713} {
                 # Was an Error Information Report -- flag it.
@@ -1178,4 +1190,5 @@ snit::type Router {
 }
 
 vwait forever
+
 
