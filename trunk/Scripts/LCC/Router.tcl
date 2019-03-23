@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Mar 17 16:32:29 2019
-#  Last Modified : <190322.0830>
+#  Last Modified : <190323.1028>
 #
 #  Description	
 #
@@ -136,7 +136,7 @@ snit::type OpenLCBTcp {
         # Open the socket
         if {[catch {socket $bhost $bport} channel]} {
             # Failure: report error and die.
-            set theerror $ channel
+            set theerror $channel
             catch {unset  channel}
             ::log::logError [_ "Failed to open %s:%d because %s." $bhost $bport $theerror]
             exit 99
@@ -931,12 +931,16 @@ snit::type OpenLCBGCCAN {
                         $m configure -eventid $eid
                         $m configure -data [lrange $messagebuffers($srcid,$mti) $doff end]
                     }
-                    if {[$m cget -destnid] ne {}} {
-                        $parent SendTo [$m cget -destnid] $m C
-                    } else {
-                        $parent Broadcast $m C
-                    }
                     catch {unset messagebuffers($srcid,$mti)}
+                    if {[$m cget -sourcenid] ne {}} {
+                        if {[$m cget -destnid] ne {}} {
+                            $parent SendTo [$m cget -destnid] $m C
+                        } else {
+                            $parent Broadcast $m C
+                        }
+                    } else {
+                        ::log::log warning "Orphan message: [$m toString]"
+                    }
                 }
             } elseif {[$mtidetail cget -streamordatagram]} {
                 set destid [$mtidetail cget -destid]
@@ -963,7 +967,11 @@ snit::type OpenLCBGCCAN {
                            -destnid   [$type getNIDofAlias $destid] \
                            -data      $datagrambuffers($srcid)]
                     unset datagrambuffers($srcid)
-                    $parent SendTo [$m cget -destnid] $m C
+                    if {[$m cget -sourcenid] ne {}} {
+                        $parent SendTo [$m cget -destnid] $m C
+                    } else {
+                        ::log::log warning "Orphan message: [$m toString]"
+                    }
                 }
             }
         } else {
