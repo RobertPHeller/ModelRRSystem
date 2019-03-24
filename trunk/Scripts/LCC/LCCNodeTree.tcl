@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Sep 19 09:18:09 2016
-#  Last Modified : <190209.1338>
+#  Last Modified : <190324.1413>
 #
 #  Description	
 #
@@ -210,6 +210,14 @@ snit::widgetadaptor LCCNodeTree {
         update idle
         $transport SendVerifyNodeID
         install readCDIProgress using ReadCDIProgress $win.readCDIProgress -parent $win
+    }
+    method Refresh {} {
+        $hull delete [$hull children {}]
+        set mynid [$transport cget -nid]
+        $hull insert {} end -id $mynid -text $mynid -open no
+        $self _insertSimpleNodeInfo $mynid [$transport ReturnMySimpleNodeInfo]
+        $self _insertSupportedProtocols $mynid [$transport ReturnMySupportedProtocols]
+        $transport SendVerifyNodeID
     }
     method messageHandler {message} {
         ## Message handler -- handle incoming messages.

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <190319.0929>
+#  Last Modified : <190324.1443>
 #
 #  Description	
 #
@@ -408,7 +408,10 @@ snit::type OpenLCB {
                       -layoutdb $layoutcontroldb]
         # Bind scrollbars.
         $mainWindow scrollwindow setwidget $nodetree
-        
+        ## Refresh button => $nodetree Refresh
+        $mainWindow toolbar add topbuttons
+        $mainWindow toolbar addbutton topbuttons refresh -text [_m "Label|Refresh"] -command [list $nodetree Refresh]
+        $mainWindow toolbar show topbuttons
         putdebug "*** $type typeconstructor: transport = $transport"
         # Get our Node ID.
         set mynid [$transport cget -nid]
