@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <190322.0739>
+#  Last Modified : <190324.1140>
 #
 #  Description	
 #
@@ -238,7 +238,7 @@ snit::type OpenLCBTcpHub {
 
         ::log::log debug "*** $type SendTo $destination $message $args"
         set except [from args -except {}]
-        foreach n $_routeTable($destination) {
+        foreach n $_routeTable([string toupper $destination]) {
             if {[lsearch -exact $except $n] < 0} {
                 ::log::log debug "*** $type SendTo: sending to $n"
                 $n sendMessage $message
@@ -252,10 +252,10 @@ snit::type OpenLCBTcpHub {
         # @param routeobj The connection instance to route messages to for the
         # specificed destination.
         
-        if {[catch {set _routeTable($destination)} routes]} {
-            lappend _routeTable($destination) $routeobj
+        if {[catch {set _routeTable([string toupper $destination])} routes]} {
+            lappend _routeTable([string toupper $destination]) $routeobj
         } elseif {[lsearch -exact $routes $routeobj] < 0} {
-            lappend _routeTable($destination) $routeobj
+            lappend _routeTable([string toupper $destination]) $routeobj
         }
         ::log::log debug "*** $type UpdateRoute: _routeTable contains:"
         foreach dest [array names _routeTable] {
@@ -304,10 +304,10 @@ snit::type OpenLCBTcpHub {
         }
         ::log::log debug "*** $self destroy: _allNodes = $_allNodes"
         foreach dest [array names _routeTable] {
-            set nindix [lsearch -exact $_routeTable($dest) $self]
-            set _routeTable($dest) [lreplace $_routeTable($dest) $nindix $nindix]
-            if {[llength $_routeTable($dest)] == 0} {
-                unset _routeTable($dest)
+            set nindix [lsearch -exact $_routeTable([string toupper $dest]) $self]
+            set _routeTable([string toupper $dest]) [lreplace $_routeTable([string toupper $dest]) $nindix $nindix]
+            if {[llength $_routeTable([string toupper $dest])] == 0} {
+                unset _routeTable([string toupper $dest])
             }
         }
         ::log::log debug "*** $self destroy: _routeTable contains:"
@@ -340,8 +340,12 @@ snit::type OpenLCBTcpHub {
                      [expr {($seqnum &         wide(0x0FF00)) >>  8}] \
                      [expr {($seqnum &           wide(0x0FF))      }]]
         set messageBlock [binary format {Sc3c6c6c*} $preamble $tlbytes $sourcenid $sqbytes $messageData]
-        puts -nonewline $channel $messageBlock
-        flush $channel
+        if {[catch {puts -nonewline $channel $messageBlock
+             flush $channel} error]} {
+                ::log::logError [_ "%s Message write error: %s" $self $error]
+                $self destroy
+        }
+            
     }
     method _messageReader {} {
         #** Message reader handler.

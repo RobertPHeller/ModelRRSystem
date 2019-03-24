@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <190319.1007>
+#  Last Modified : <190324.1059>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -1719,8 +1719,8 @@ namespace eval lcc {
             # @param nid A full NID of the form hh:hh:hh:hh:hh:hh
             # @return The node's alias or the empty string if not known.
             lcc::nid validate $nid
-            if {[info exists aliasMap($nid)]} {
-                return $aliasMap($nid)
+            if {[info exists aliasMap([string toupper $nid])]} {
+                return $aliasMap([string toupper $nid])
             } else {
                 return {}
             }
@@ -2047,7 +2047,7 @@ namespace eval lcc {
                         set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
                         #puts stderr "[format {*** %s _messageReader: srcalias = 0x%03X, srcnid = %s} $self $srcalias $srcnid]"
                         set nidMap($srcalias) $srcnid
-                        set aliasMap($srcnid) $srcalias
+                        set aliasMap([string toupper $srcnid]) $srcalias
                     } elseif {$vf == 0x0702} {
                         # AME frame
                         if {[listeq [lrange [$r getData] 0 5] {0 0 0 0 0 0}] || [listeq [lrange [$r getData] 0 5] $nidlist]} {
@@ -2128,7 +2128,7 @@ namespace eval lcc {
                                 -header [$canheader getHeader] -extended yes \
                                 -data $nidlist -length 6]
             set nidMap($myalias) [$self cget -nid]
-            set aliasMap([$self cget -nid]) $myalias
+            set aliasMap([string toupper [$self cget -nid]]) $myalias
             return true
         }
         method _timedout {} {
@@ -2516,8 +2516,8 @@ namespace eval lcc {
             # @param nid A full NID of the form hh:hh:hh:hh:hh:hh
             # @return The node's alias or the empty string if not known.
             lcc::nid validate $nid
-            if {[info exists aliasMap($nid)]} {
-                return $aliasMap($nid)
+            if {[info exists aliasMap([string toupper $nid])]} {
+                return $aliasMap([string toupper $nid])
             } else {
                 return {}
             }
@@ -2560,12 +2560,12 @@ namespace eval lcc {
                 }
             }
             foreach n [array names aliasMap] {
-                if {$aliasMap($n) == $alias} {
-                    unset aliasMap($n)
+                if {$aliasMap([string toupper $n]) == $alias} {
+                    unset aliasMap([string toupper $n])
                 }
             }
             set nidMap($alias) $nid
-            set aliasMap($nid) $alias
+            set aliasMap([string toupper $nid]) $alias
         }
         method populateAliasMap {} {
             ## Send an AME
