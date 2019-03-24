@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Mar 17 16:32:29 2019
-#  Last Modified : <190323.1230>
+#  Last Modified : <190324.1133>
 #
 #  Description	
 #
@@ -47,8 +47,9 @@
 #
 # Router [-bhost localhost] [-bport 12000]
 #        [-cmode Tcpip|Socket|USB] [-chost localhost] [-cport 12021]
-#        [-csockname can0] [-cdevice /dev/ttyACM0] [-cnid 05:01:01:01:22:00]
+#        [-csockname can0] [-cdevice /dev/ttyACM0] [-nid 05:01:01:01:22:00]
 #        [-log Router.log] [-debug]
+#        [-nodename ""] [-nodedescription ""]
 #
 # @section RouterDESCRIPTION DESCRIPTION
 #
@@ -72,10 +73,11 @@
 # @arg -cport The tcp port to connect with (only when -cmode is Tcpip).
 # @arg -csockname The CAN socket name (only when -cmode is Socket).
 # @arg -cdevice The tty device to connect to (only when -cmode is USB).
-# @arg -cnid The OpenLCB Node ID to use for the GridConnect/CAN side (allows 
-# for sending AME messages).
+# @arg -nid The OpenLCB Node ID for the router.
 # @arg -log The file to use for logging.
 # @arg -debug Enable debugging messages.
+# @arg -nodename The name of this router node.
+# @arg -nodedescription The description of this router node.
 # @par
 #
 # @section RouterAUTHOR AUTHOR
@@ -184,8 +186,11 @@ snit::type OpenLCBTcp {
                      [expr {($seqnum &           wide(0x0FF))      }]]
         #::log::log debug "$type SendMessage: preamble = $preamble, tlbytes = $tlbytes, sourcenid = $sourcenid, sqbytes = $sqbytes, messageData = \{$messageData\}"
         set messageBlock [binary format {Sc3c6c6c*} $preamble $tlbytes $sourcenid $sqbytes $messageData]
-        puts -nonewline $channel $messageBlock
-        flush $channel
+        if {[catch {puts -nonewline $channel $messageBlock
+             flush $channel} error]} {
+                ::log::logError [_ "%s: write error to hub: %s" $type $error]
+                exit 99
+        }
     }
     typemethod _messageReader {} {
         #** Message reader handler.
@@ -349,8 +354,6 @@ snit::type OpenLCBGCCAN {
     #** @brief Default Serial port.
     typevariable defaultCANMode USB
     #** Default CAN/GC mode
-    typevariable defaultNID "05:01:01:01:22:00"
-    #** Default NID
     typevariable channel {}
     #** Channel
     typevariable _timeoutFlag 0
@@ -449,7 +452,7 @@ snit::type OpenLCBGCCAN {
         set mtidetail [lcc::MTIDetail          %AUTO%]
         set mtiheader [lcc::MTIHeader          %AUTO%]
         set canheader [lcc::CANHeader          %AUTO%]
-        set mycanalias [lcc::CanAlias %AUTO% -nid [from argv -cnid $defaultNID]]
+        set mycanalias [lcc::CanAlias %AUTO% -nid [$parent MyNID]]
         fileevent $channel    readable [mytypemethod _readByte]
         while {![$type _reserveMyAlias]} {
         }
@@ -462,8 +465,8 @@ snit::type OpenLCBGCCAN {
         # @param nid A full NID of the form hh:hh:hh:hh:hh:hh
         # @return The node's alias or the empty string if not known.
         lcc::nid validate $nid
-        if {[info exists aliasMap($nid)]} {
-            return $aliasMap($nid)
+        if {[info exists aliasMap([string toupper $nid])]} {
+            return $aliasMap([string toupper $nid])
         } else {
             return {}
         }
@@ -508,13 +511,13 @@ snit::type OpenLCBGCCAN {
             }
         }
         foreach n [array names aliasMap] {
-            if {$aliasMap($n) == $alias} {
+            if {$aliasMap([string toupper $n]) == $alias} {
                 #::log::log debug "$type updateAliasMap: unsetting aliasMap($n) (= $aliasMap($n))"
-                unset aliasMap($n)
+                unset aliasMap([string toupper $n])
             }
         }
         set nidMap($alias) $nid
-        set aliasMap($nid) $alias
+        set aliasMap([string toupper $nid]) $alias
     }
     typemethod populateAliasMap {} {
         #** Send an AME
@@ -606,24 +609,30 @@ snit::type OpenLCBGCCAN {
         # @param message An OpenLCBMessage.
         
         lcc::OpenLCBMessage validate $message
-        ::log::log debug "*** $type sendOpenLCBMessage: message is [$message toString]"
+        ::log::log debug "*** $type SendMessage: message is [$message toString]"
         if {[$message cget -destnid] eq [$mycanalias cget -nid]} {
             #??? Message for me?
             ::log::log info "Message address to the router, dropped."
             return
         }
+        ::log::log debug "*** $type SendMessage: past test for router addressed messages, about to check for missing dest alias."
         if {([$message cget -mti] & 0x0008) != 0} {
             set destnid [$message cget -destnid]
             set destalias [$type getAliasOfNID $destnid]
+            ::log::log debug "*** $type SendMessage: destnid is $destnid, destalias is $destalias"
             if {$destalias eq {}} {
                 ::log::logError [_ "Message cannot be routed to %s -- alias not available!" $destnid]
+                return
             }
         }
+        ::log::log debug "*** $type SendMessage: past test for missing destalias.  About to get datalen."
         set datalen [llength [$message cget -data]]
+        ::log::log debug "*** $type SendMessage: datalen is $datalen."
         if {([$message cget -mti] & 0x0008) != 0} {
             ## Address present
             incr datalen 2
         }
+        
         if {([$message cget -mti] & 0x0004) != 0} {
             ## Event present
             incr datalen 8
@@ -650,7 +659,8 @@ snit::type OpenLCBGCCAN {
                                 -length $datalen]
                 set dindex 0
                 if {([$message cget -mti] & 0x0008) != 0} {
-                    set destalias [$type getAliasOfNID [$message cget -destnid]]
+                    ::log::log debug "$type SendMessage: destalias is $destalias ($destnid)"
+                    #set destalias [$type getAliasOfNID [$message cget -destnid]]
                     $canmessage setElement $dindex [expr {($destalias & 0x0F00) >> 8}]
                     incr dindex
                     $canmessage setElement $dindex [expr {$destalias & 0x0FF}]
@@ -901,9 +911,12 @@ snit::type OpenLCBGCCAN {
         if {[$canheader cget -openlcbframe]} {
             $mtiheader setHeader [$canheader getHeader]
             $mtidetail setHeader [$canheader getHeader]
-            #::log::log debug "*** $type _messageReader: mtiheader : [$mtiheader configure]"
-            #::log::log debug "*** $type _messageReader: mtidetail : [$mtidetail configure]"
+            ::log::log debug "*** $type _messageReader: mtiheader : [$mtiheader configure]"
+            ::log::log debug "*** $type _messageReader: mtidetail : [$mtidetail configure]"
             set srcid [$canheader cget -srcid]
+            if {[$type getNIDofAlias $srcid] ne ""} {
+                $parent UpdateRoute [$type getNIDofAlias $srcid] C
+            }
             set flagbits 0
             set destid 0
             set doff 0
@@ -916,10 +929,10 @@ snit::type OpenLCBGCCAN {
                 }
                 set datacomplete no
                 if {$flagbits == 0x00} {
-                    #::log::log debug "*** $type _messageReader: doff = $doff"
+                    ::log::log debug "*** $type _messageReader: doff = $doff"
                     set datacomplete [$type _flags0 $srcid $r $doff]
-                    #::log::log debug "*** $type _messageReader: $r getData is [$r getData]"
-                    #::log::log debug "*** $type _messageReader: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
+                    ::log::log debug "*** $type _messageReader: $r getData is [$r getData]"
+                    ::log::log debug "*** $type _messageReader: messagebuffers($srcid,$mti) contains $messagebuffers($srcid,$mti)"
                 } elseif {$flagbits == 0x01} {
                     set messagebuffers($srcid,$mti) [lrange [$r getData] 2 end]
                 } elseif {$flagbits == 0x03} {
@@ -929,13 +942,16 @@ snit::type OpenLCBGCCAN {
                     set datacomplete yes
                 }
                 if {$datacomplete} {
+                    ::log::log debug "*** $type _messageReader: datacomplete: srcid is $srcid, $type getNIDofAlias $srcid is [$type getNIDofAlias $srcid]"
                     if {[$type getNIDofAlias $srcid] eq "" && 
                         ([$mtiheader cget -mti] == 0x0100 ||
                          [$mtiheader cget -mti] == 0x0101 || 
                          [$mtiheader cget -mti] == 0x0170 ||
                          [$mtiheader cget -mti] == 0x0171)} {
-                        # InitComplete message.  Capture the NID.
+                        # InitComplete and VerifyNodeID messages.  Capture the NID.
                         set srcnid [eval [list format {%02X:%02X:%02X:%02X:%02X:%02X}] [lrange [$r getData] 0 5]]
+                        ::log::log debug "*** $type _messageReader: InitComplete and VerifyNodeID messages."
+                        ::log::log debug "*** $type _messageReader: srcnid is $srcnid"
                         $type updateAliasMap $srcnid $srcid
                         $parent UpdateRoute $srcnid C
                     }
@@ -961,12 +977,7 @@ snit::type OpenLCBGCCAN {
                     catch {unset messagebuffers($srcid,$mti)}
                     if {[$m cget -sourcenid] ne {}} {
                         if {[$m cget -destnid] ne {}} {
-                            if {[$m cget -destnid] ne [$mycanalias cget -nid]} {
-                                $parent SendTo [$m cget -destnid] $m C
-                            } else {
-                                #??? Someone sent me a OpenLCB message...
-                                ::log::log info "Message address to the router, dropped."
-                            }
+                            $parent SendTo [$m cget -destnid] $m C
                         } else {
                             $parent Broadcast $m C
                         }
@@ -1000,12 +1011,7 @@ snit::type OpenLCBGCCAN {
                            -data      $datagrambuffers($srcid)]
                     unset datagrambuffers($srcid)
                     if {[$m cget -sourcenid] ne {}} {
-                        if {[$m cget -destnid] ne [$mycanalias cget -nid]} {
-                            $parent SendTo [$m cget -destnid] $m C
-                        } else {
-                            #??? someone sent me a datagram.
-                            ::log::log info "Message address to the router, dropped."
-                        }
+                        $parent SendTo [$m cget -destnid] $m C
                     } else {
                         ::log::log warning "Orphan message: [$m toString]"
                     }
@@ -1043,6 +1049,12 @@ snit::type OpenLCBGCCAN {
             }
         }
     }
+    proc listeq {l1 l2} {
+        foreach a $l1 b $l2 {
+            if {$a != $b} {return false}
+        }
+        return true
+    }
 }
 
 
@@ -1059,6 +1071,46 @@ snit::type Router {
     pragma -hastypedestroy no
     pragma -hasinstances   no
     
+    
+    typevariable defaultNID "05:01:01:01:22:00"
+    #** Default NID
+    typevariable _nid
+    #** My NID
+    typemethod MyNID {} {
+        #** Return my NID
+        # @returns My NID
+        
+        return $_nid
+    }
+    typevariable protocolsupport [list 0x80 0x10 0x00]
+    #** Protocol support: Simple Protocol subset and SimpleNodeInfo.
+    typevariable simplenodeinfo {}
+    #** Simple node info payload.
+    typevariable softwaremodel {Router}
+    typevariable softwareversion {0.0}
+    typevariable manufactorname {Deepwoods Software}
+    typevariable manufactorversion {}
+    typevariable nodename {}
+    typevariable nodedescription {}
+    typemethod _generatesimplenodeinfo {} {
+        set simplenodeinfo [list 4]
+        foreach s [list $manufactorname \
+                   $softwaremodel \
+                   $manufactorversion \
+                   $softwareversion] {
+            foreach ch [split $s {}] {
+                lappend simplenodeinfo [scan $ch {%c}]
+            }
+            lappend simplenodeinfo 0
+        }
+        lappend simplenodeinfo 2
+        foreach s [list $nodename $nodedescription] {
+            foreach ch [split $s {}] {
+                lappend simplenodeinfo [scan $ch {%c}]
+            }
+            lappend simplenodeinfo 0
+        }
+    }
     typevariable _routeTable -array {}
     #** The routing table.  This is an array, indexed by NIDs, containing
     # the source segment/network type.  This is used to determine where to
@@ -1114,16 +1166,27 @@ snit::type Router {
         ::log::lvChannelForall $logchan
         ::log::lvSuppress info 0
         ::log::lvSuppress notice 0
+        ::log::lvSuppress warning 0
         ::log::lvSuppress debug $debugnotvis
         ::log::lvCmdForall [mytypemethod LogPuts]
         
-        # Startup message
-        ::log::logMsg [_ "%s starting..." $type]
+        set _nid [from argv -nid $defaultNID]
+        set nodename [from argv -nodename]
+        set nodedescription [from argv -nodedescription]
+        set manufactorversion $MRRSystem::VERSION
+        $type _generatesimplenodeinfo
         
+        # Startup message
+        ::log::logMsg [_ "%s starting (%s: %s)..." $type $_nid $nodename]
+        
+        # Set typecomponents (prevent race condition)
+        set _openLCBTcpip OpenLCBTcp
+        set _openLCBGCCan OpenLCBGCCAN
+
         # Open helper objects.
-        set _openLCBTcpip [OpenLCBTcp   Open argv $type]
-        set _openLCBGCCan [OpenLCBGCCAN Open argv $type]
-        #$_openLCBGCCan populateAliasMap
+        $_openLCBTcpip   Open argv $type
+        $_openLCBGCCan   Open argv $type
+        $type SendInitComplete
     }
     typemethod LogPuts {level message} {
         #** Log output function.
@@ -1140,15 +1203,20 @@ snit::type Router {
         # @param fromflag Either B (message is from the binary channel) or C
         # (message is from the CAN channel)
         
-        ::log::log debug "*** $type Broadcast $message $fromflag"
-        
-        switch $fromflag {
-            B {
-                $_openLCBGCCan SendMessage $message
+        ::log::log debug "*** $type Broadcast [$message toString] $fromflag"
+        if {[string tolower [$message cget -sourcenid]] eq [string tolower $_nid]} {
+            $_openLCBGCCan SendMessage $message
+            $_openLCBTcpip SendMessage $message
+        } else {
+            switch $fromflag {
+                B {
+                    $_openLCBGCCan SendMessage $message
+                }
+                C {
+                    $_openLCBTcpip SendMessage $message
+                }
             }
-            C {
-                $_openLCBTcpip SendMessage $message
-            }
+            $type MessageHandler $message
         }
     }
     typemethod SendTo {destination message fromflag} {
@@ -1159,9 +1227,15 @@ snit::type Router {
         # @param fromflag Either B (message is from the binary channel) or C
         # (message is from the CAN channel)
         
-        ::log::log debug "*** $type SendTo $destination $message $fromflag"
-        if {[info exists _routeTable($destination)]} {
-            set route $_routeTable($destination)
+        ::log::log debug "*** $type SendTo '$destination' [$message toString] $fromflag"
+        if {[string tolower $destination] eq [string tolower $_nid]} {
+            $type MessageHandler $message
+            return
+        }
+        ::log::log debug "*** $type SendTo: info exists _routeTable([string toupper $destination]) is [info exists _routeTable([string toupper $destination])]"
+        if {[info exists _routeTable([string toupper $destination])]} {
+            ::log::log debug "*** $type SendTo: _routeTable([string toupper $destination]) is $_routeTable([string toupper $destination])"
+            set route $_routeTable([string toupper $destination])
             if {$route ne $fromflag} {
                 switch $route {
                     B {
@@ -1173,9 +1247,10 @@ snit::type Router {
                 }
             }
         } else {
+            ::log::log warning [_ "Non routable NID: %s!" $destination]
             # Hmmm.  Destination is not in the routing table.  Treat it like a
             # broadcast and hope for the best... (Really should not be happening).
-            $type Broadcast $message $fromflag
+            #$type Broadcast $message $fromflag
         }
     }
     typemethod UpdateRoute {destination fromflag} {
@@ -1185,8 +1260,95 @@ snit::type Router {
         # @param fromflag Either B (from the binary channel) or C (from the 
         # CAN channel)
         
-        set _routeTable($destination) $fromflag
+        ::log::log debug "*** $type UpdateRoute $destination $fromflag"
+        set _routeTable([string toupper $destination]) $fromflag
     }
+    proc matchNIDinBody {message nid} {
+        set data [$message cget -data]
+        if {$data eq {}} {
+            return true
+        }
+        set nidlist [list]
+        foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $nid] 1 end] {
+            lappend nidlist [scan $oct %02x]
+        }
+        foreach d $data n $nidlist {
+            if {$d != $n} {return false}
+        }
+        return true
+    }
+    typemethod MessageHandler {message} {
+        ::log::log debug "$type MessageHandler [$message toString]"
+        switch [format {0x%04X} [$message cget -mti]] {
+            0x0490 {
+                #* Verify Node ID (global)
+                if {[matchNIDinBody $message $_nid]} {
+                    $type SendMyNodeVerifcation
+                }
+            }
+            0x0488 {
+                #* Verify Node ID
+                $type SendMyNodeVerifcation
+            }
+            0x0828 {
+                #* Protocol Support Inquiry
+                $type SendMySupportedProtocols [$message cget -sourcenid]
+            }
+            0x0DE8 {
+                #* Simple Node Information Request
+                $type SendMySimpleNodeInfo [$message cget -sourcenid]
+            }
+            default {
+            }
+        }
+    }
+    typemethod SendInitComplete {} {
+        #** Send an initialization complete message.
+        
+        set message [lcc::OpenLCBMessage %AUTO%  -sourcenid $_nid \
+                     -mti 0x0100 -data [nidlist $_nid]]
+        $type Broadcast $message {}
+    }
+    typemethod SendMySupportedProtocols {nid} {
+        #** Send my supported protocols message.
+        # @param nid The Node ID to send the message to.
+        
+        lcc::nid validate $nid
+        set message [lcc::OpenLCBMessage %AUTO%  -sourcenid $_nid \
+                     -mti 0x0668 -destnid $nid \
+                     -data $protocolsupport]
+        $type SendTo $nid $message {}
+    }
+    typemethod SendMySimpleNodeInfo {nid} {
+        #** Send my simple node info message.
+        # @param nid The Node ID to send the message to.
+        
+        lcc::nid validate $nid
+        set message [lcc::OpenLCBMessage %AUTO%  -sourcenid $_nid \
+                     -mti 0x0A08 -destnid $nid \
+                     -data $simplenodeinfo]
+        $type SendTo $nid $message {}
+    }
+    typemethod SendMyNodeVerifcation {} {
+        #** Send my node verification message
+        
+        set message [lcc::OpenLCBMessage %AUTO%  -sourcenid $_nid \
+                     -mti 0x0170 \
+                     -data [nidlist $_nid]]
+        $type Broadcast $message {}
+    }
+    proc nidlist {nid} {
+        #** Break a Node ID string into a list of bytes.
+        # @param nid The Node ID to split up.
+        
+        set nidlist [list]
+        foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] \
+                             $nid] 1 end] {
+            lappend nidlist [scan $oct %02x]
+        }
+        return $nidlist
+    }
+        
 }
 
 vwait forever
