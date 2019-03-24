@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Mar 17 16:32:29 2019
-#  Last Modified : <190324.1133>
+#  Last Modified : <190324.1433>
 #
 #  Description	
 #
@@ -1184,8 +1184,8 @@ snit::type Router {
         set _openLCBGCCan OpenLCBGCCAN
 
         # Open helper objects.
-        $_openLCBTcpip   Open argv $type
         $_openLCBGCCan   Open argv $type
+        $_openLCBTcpip   Open argv $type
         $type SendInitComplete
     }
     typemethod LogPuts {level message} {
