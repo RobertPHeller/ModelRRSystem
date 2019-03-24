@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <190322.0739>
+#  Last Modified : <190324.0903>
 #
 #  Description	
 #
@@ -340,8 +340,12 @@ snit::type OpenLCBTcpHub {
                      [expr {($seqnum &         wide(0x0FF00)) >>  8}] \
                      [expr {($seqnum &           wide(0x0FF))      }]]
         set messageBlock [binary format {Sc3c6c6c*} $preamble $tlbytes $sourcenid $sqbytes $messageData]
-        puts -nonewline $channel $messageBlock
-        flush $channel
+        if {[catch {puts -nonewline $channel $messageBlock
+             flush $channel} error]} {
+                ::log::logError [_ "%s Message write error: %s" $self $error]
+                $self destroy
+        }
+            
     }
     method _messageReader {} {
         #** Message reader handler.
