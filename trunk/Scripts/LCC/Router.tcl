@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Mar 17 16:32:29 2019
-#  Last Modified : <190324.1433>
+#  Last Modified : <190417.1058>
 #
 #  Description	
 #
@@ -344,6 +344,10 @@ snit::type OpenLCBGCCAN {
     typevariable aliasMap -array {}
     #** The Alias => NID map for the CAN segment.  The array is indexed by
     # aliases and the values are the NIDs the aliases represent.
+    typevariable pendingAliasFlags -array {}
+    #** Pending Alias flags
+    typevariable pendingMessageQueues -array {}
+    #** Pending Message Queues
     typevariable defaultTcpPort 12021
     #** @brief Default GridConnect over Tcp/Ip port number. 
     typevariable defaultTcpHost localhost
@@ -358,6 +362,7 @@ snit::type OpenLCBGCCAN {
     #** Channel
     typevariable _timeoutFlag 0
     #** Timeout flag.
+    typevariable _timeoutID {}
     typevariable messageBuffer ""
     #** Message buffer
     typevariable readState "waitforstart"
@@ -503,6 +508,7 @@ snit::type OpenLCBGCCAN {
         # @param alias A 12-bit CAN Alias.
         #
         
+        set nid [string toupper $nid]
         #::log::log debug "$type updateAliasMap $nid $alias"
         foreach a [array names nidMap] {
             if {$nidMap($a) eq $nid} {
@@ -511,9 +517,9 @@ snit::type OpenLCBGCCAN {
             }
         }
         foreach n [array names aliasMap] {
-            if {$aliasMap([string toupper $n]) == $alias} {
+            if {$aliasMap($n) == $alias} {
                 #::log::log debug "$type updateAliasMap: unsetting aliasMap($n) (= $aliasMap($n))"
-                unset aliasMap([string toupper $n])
+                unset aliasMap($n)
             }
         }
         set nidMap($alias) $nid
@@ -529,6 +535,46 @@ snit::type OpenLCBGCCAN {
                             -header [$canheader getHeader] -extended yes]
         vwait [mytypevar _timeoutFlag]
     }
+    typemethod _queueMessagePendingAlias {sourcenid message} {
+        set sourcenid [string toupper $sourcenid]
+        lappend pendingMessageQueues($sourcenid) $message
+    }
+    typemethod _flushMessagePendingAlias {sourcenid} {
+        set sourcenid [string toupper $sourcenid]
+        set messages $pendingMessageQueues($sourcenid)
+        set pendingMessageQueues($sourcenid) {}
+        foreach message $messages {
+            $type SendMessage $message
+        }
+    }
+    typemethod CheckSourceAlias {sourcenid} {
+        set sourcenid [string toupper $sourcenid]
+        ::log::log debug "$type CheckSourceAlias $sourcenid"
+        ::log::log debug "$type CheckSourceAlias: \[info exists pendingAliasFlags($sourcenid)\] is [info exists pendingAliasFlags($sourcenid)]"
+        if {[info exists pendingAliasFlags($sourcenid)]} {
+            if {$pendingAliasFlags($sourcenid) > 0} {
+                return Pending
+            }
+        }
+        set sourcealias [$type getAliasOfNID $sourcenid]
+        ::log::log debug "$type CheckSourceAlias: sourcealias is $sourcealias"
+        if {$sourcealias eq {}} {
+            set pendingMessageQueues($sourcenid) [list]
+            incr  pendingAliasFlags($sourcenid)
+            ::log::log debug "$type CheckSourceAlias: (start) pendingAliasFlags($sourcenid) is $pendingAliasFlags($sourcenid)"
+            set tempcanalias [lcc::CanAlias %AUTO% -nid $sourcenid]
+            while {![$type reserveAlias $tempcanalias]} {
+                ::log::log debug "$type CheckSourceAlias: (in while loop) tempcanalias is [format 0x%03x [$tempcanalias getMyAlias]]"
+
+            }
+            ::log::log debug "$type CheckSourceAlias: (out of while loop) tempcanalias is [format 0x%03x [$tempcanalias getMyAlias]]"
+            #set sourcealias [$tempcanalias getMyAlias]
+            #$type updateAliasMap $sourcenid $sourcealias
+            incr pendingAliasFlags($sourcenid) -1
+            ::log::log debug "$type CheckSourceAlias: (end) pendingAliasFlags($sourcenid) is $pendingAliasFlags($sourcenid)"
+            $type _flushMessagePendingAlias $sourcenid
+        }
+    }            
     typemethod reserveAlias {canalias} {
         ## @publicsection @brief Reserve an alias.
         # Sends out CID messages and eventually RID and AMD messages, if
@@ -538,12 +584,12 @@ snit::type OpenLCBGCCAN {
         # @return A boolean value indicating a successfully reserved alias
         # (true) or failure (false).
         
-        #::log::log debug "$type reserveAlias: nid is [$canalias cget -nid]"
+        ::log::log debug "$type reserveAlias: nid is [$canalias cget -nid]"
         lcc::CanAlias validate $canalias
         set nidlist [$canalias getMyNIDList]
         # Generate a tentative alias.
         set alias [$canalias getNextAlias]
-        #::log::log debug [format "*** $type reserveAlias: alias = 0x%03X" $alias]
+        ::log::log debug [format "*** $type reserveAlias: alias = 0x%03X" $alias]
         
         # Send out Check ID frames.
         # CID1
@@ -571,15 +617,17 @@ snit::type OpenLCBGCCAN {
         $type _sendmessage [lcc::CanMessage %AUTO% \
                             -header [$canheader getHeader] -extended yes]
         set _timeoutFlag 0
-        set timoutID [after 500 [mytypemethod _timedout]]
+        set _timeoutID [after 500 [mytypemethod _timedout]]
         vwait [mytypevar _timeoutFlag]
-        #::log::log debug [format "*** $type reserveAlias: _timeoutFlag is $_timeoutFlag"]
+        ::log::log debug [format "*** $type reserveAlias: _timeoutFlag is $_timeoutFlag"]
         if {$_timeoutFlag < 0} {
             # Received an error report.  Cancel the timeout and return
             # false.
-            catch [after cancel $timoutID]
+            catch [after cancel $_timeoutID]
+            set _timeoutID {}
             return false
         }
+        set _timeoutID {}
         # No errors after 500ms timeout.  We can reserve our alias.
         # RID
         $canheader configure -openlcbframe no \
@@ -599,17 +647,32 @@ snit::type OpenLCBGCCAN {
     typemethod _timedout {} {
         #** @privatesection Timeout method.  Called on timeout.
         
-        #::log::log debug "*** $type _timedout"
-        #::log::log debug "*** $type _timedout: (before) _timeoutFlag = $_timeoutFlag"
+        ::log::log debug "*** $type _timedout"
+        ::log::log debug "*** $type _timedout: (before) _timeoutFlag = $_timeoutFlag"
         incr _timeoutFlag
-        #::log::log debug "*** $type _timedout: (after)  _timeoutFlag = $_timeoutFlag"
+        ::log::log debug "*** $type _timedout: (after)  _timeoutFlag = $_timeoutFlag"
     }
+    
     typemethod SendMessage {message} {
         ## Send a message on the OpenLCB bus.
         # @param message An OpenLCBMessage.
         
         lcc::OpenLCBMessage validate $message
         ::log::log debug "*** $type SendMessage: message is [$message toString]"
+        set sourcenid [$message cget -sourcenid]
+        if {[$type CheckSourceAlias $sourcenid] eq "Pending"} {
+            $type _queueMessagePendingAlias $sourcenid $message
+            return
+        }
+            
+
+
+
+        set sourcealias [$type getAliasOfNID $sourcenid]
+        if {$sourcealias eq {}} {
+            ::log::logError [_ "Error: source alias of %s not set!  This should not be happening!" $sourcenid]
+            exit 1
+        }
         if {[$message cget -destnid] eq [$mycanalias cget -nid]} {
             #??? Message for me?
             ::log::log info "Message address to the router, dropped."
@@ -636,15 +699,6 @@ snit::type OpenLCBGCCAN {
         if {([$message cget -mti] & 0x0004) != 0} {
             ## Event present
             incr datalen 8
-        }
-        set sourcenid [$message cget -sourcenid]
-        set sourcealias [$type getAliasOfNID $sourcenid]
-        if {$sourcealias eq {}} {
-            set tempcanalias [lcc::CanAlias %AUTO% -nid $sourcenid]
-            while {![$type reserveAlias $tempcanalias]} {
-            }
-            set sourcealias [$tempcanalias getMyAlias]
-            $type updateAliasMap $sourcenid $sourcealias
         }
         set mtiheader [lcc::MTIHeader %AUTO% -srcid $sourcealias -mti [expr {[$message cget -mti] & 0x0FFF}] -frametype 1]
         if {([$message cget -mti] & 0x1000) != 0} {
@@ -733,13 +787,6 @@ snit::type OpenLCBGCCAN {
         set databuffer [$message cget -data]
         set sourcenid [$message cget -sourcenid]
         set sourcealias [$type getAliasOfNID $sourcenid]
-        if {$sourcealias eq {}} {
-            set tempcanalias [lcc::CanAlias %AUTO% -nid $sourcenid]
-            while {![$type reserveAlias $tempcanalias]} {
-            }
-            set sourcealias [$tempcanalias getMyAlias]
-            $type updateAliasMap $sourcenid $sourcealias
-        }
         $mtidetail configure -streamordatagram yes -destid $destalias \
               -srcid $sourcealias
         set remain [llength $databuffer]
@@ -778,10 +825,12 @@ snit::type OpenLCBGCCAN {
         # @param canmessage The (binary) CANMessage to send.
         
         $gcmessage configure -canmessage $canmessage
+        ::log::log debug "$type _sendmessage: gcmessage is [$gcmessage toString]"
         if {[catch {puts -nonewline $channel [$gcmessage toString];flush $channel} err]} {
             ::log::logError [_ "Caught error on %s: %s" $channel $err]
             exit 1
         }
+        ::log::log debug "$type _sendmessage: message sent."
     }
     proc getBits {top bottom bytelist} {
         #** @brief Get the selected bitfield.
