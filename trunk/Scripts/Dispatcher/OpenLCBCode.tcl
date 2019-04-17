@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <170719.1538>
+#  Last Modified : <190331.1429>
 #
 #  Description	
 #
@@ -534,6 +534,10 @@ snit::type OpenLCB_Dispatcher {
             set nodetree [LCCNodeTree [$nodetreemain scrollwindow getframe].nodetree \
                           -transport $transport]
             $nodetreemain scrollwindow setwidget $nodetree
+            $nodetreemain toolbar add topbuttons
+            $nodetreemain toolbar addbutton topbuttons refresh -text [_m "Label|Refresh"] -command [list $nodetree Refresh]
+            $nodetreemain toolbar show topbuttons
+            
         }
         $nodetreemain showit
     }
