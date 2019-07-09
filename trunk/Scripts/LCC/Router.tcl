@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Mar 17 16:32:29 2019
-#  Last Modified : <190417.1058>
+#  Last Modified : <190708.2211>
 #
 #  Description	
 #
@@ -47,7 +47,7 @@
 #
 # Router [-bhost localhost] [-bport 12000]
 #        [-cmode Tcpip|Socket|USB] [-chost localhost] [-cport 12021]
-#        [-csockname can0] [-cdevice /dev/ttyACM0] [-nid 05:01:01:01:22:00]
+#        [-csocket can0] [-cdevice /dev/ttyACM0] [-nid 05:01:01:01:22:00]
 #        [-log Router.log] [-debug]
 #        [-nodename ""] [-nodedescription ""]
 #
@@ -71,7 +71,7 @@
 # @arg -chost The GridConnect over Tcp/Ip host to connect to (only when -cmode 
 # is Tcpip).
 # @arg -cport The tcp port to connect with (only when -cmode is Tcpip).
-# @arg -csockname The CAN socket name (only when -cmode is Socket).
+# @arg -csocket The CAN socket name (only when -cmode is Socket).
 # @arg -cdevice The tty device to connect to (only when -cmode is USB).
 # @arg -nid The OpenLCB Node ID for the router.
 # @arg -log The file to use for logging.
@@ -401,7 +401,7 @@ snit::type OpenLCBGCCAN {
         upvar $argvname argv
         
         set cmode [from argv -cmode $defaultCANMode]
-        ::log::log debug "*** $type typeconstructor: cmode = $cmode"
+        ::log::log debug "*** $type Open: cmode = $cmode"
         switch [string toupper [string index $cmode 0]] {
             U {
                 set cdevice [from argv -cdevice $defaultSerialPort]
@@ -425,7 +425,7 @@ snit::type OpenLCBGCCAN {
                 ::log::logMsg [_ "%s CAN listening on %s" $type $cdevice]
             }
             S {
-                set csocket [from args -csocket $defaultSocketName]
+                set csocket [from argv -csocket $defaultSocketName]
                 if {[catch {SocketCAN $csocket} channel]} {
                     set theerror $channel
                     catch {unset channel}
