@@ -1,3 +1,53 @@
+Tue Jan  7 12:33:08 2020 2.1.44
+
+    Add async (event driven) step code to ADAFruitDC_AND_STEPPER.tcl
+    Minor update of build infrastructure: remove duplicate variable def in Scripts/LCC/Makefile.am and restore toplevel build control files.
+    Add CrossingInterchange LCC Example
+    Bug in Dispatcher build: TclSocketCAN gets packed into the wrong place in the StarKit.
+    Add signal helper code and update signal XMLs.
+    Further refinements: removed the need for a MCP23017 for the Occupency detectors (there are enough GPIOs on the Pi).
+    Add Schematics for hats
+    Add wiring diagrams for SMCSenseHAT and QuadSignal HATs.
+    Add bitmap and PDF of layout.
+    Start work on LCC Example documentation.
+    Create Event Report for panel
+    Start on logic virtual node.
+    Add LCC Example code
+    Minor updates to LCC Example code
+    Working on LCC Example documentation.
+    Fix configure.in to work with MacOSX properly (/usr/bin/trus vs /bin/true for missing programs)
+    Build update: properly handle no having bison++ and not try to build Dispatcher is bison++ is not available.
+    Search for macOS provided Tcl
+      macOS provides Tcl 8.5, but not in a Linux expected location, so include the path to the macOS provided Tcl 8.5.
+    Error handling with config memory writes tweaking (OpenMRN weirdness).
+    Updates to OpenLCB_Common.tcl: support separated Config code and non-notebooked config and add sample config generator.
+    Add portable (sysfs) GPIO support
+    Layout Control DB updates
+    Updated LCC / Dispatcher logic (Layout Control DB features)
+    Updates to OpenLCB, LCCNodeList: progress dialogs, layout control DB features properly integrated.
+    Add Make buttons for CDI editor.
+    Update XtrakCAD parser.
+    Minor fixes to Dispatcher code relating to xtrkcad files. (Still to fix: Layout Controls menu index issue.)
+    Fix view menu indexing issue (Layout Controls)
+    Add setAttribute method to ParseXML
+    Fix bugs in ConfigurationEditor export code (nasty!).
+    Add OpenLCB Router.
+    Fix minor bug in OpenLCB.tcl: responding to GlobalVerifyNodeID with a payload containing a different NID.
+    Add comments to OpenLCBTcpHub.tcl and Router.tcl.
+    Fix bugs in Router.tcl: extra space in OpenLCBTcp, handle "orphaned" messages (missing alias => NID mappings) -- dropped for now.
+    Added -cnid option to Router.tcl, Router now has a NID and uses an AME message to populate its alias map on startup.
+    Catch messages addressed to the Router (CAN/GC side). Presently, nothing is done with them.
+    Add logging code to log messages addressed to the router.
+    Catch write errors (lost connections, etc.) in OpenLCBTcpHub.tcl
+    Normalize case for route and alias  for all CAN/GC alias maps and route tables for Hubs and Router (just in case).  Finish out full node implementation for Router.
+    Fix the startup order (GC/CAN has to be first) of the routes in Router.
+    Add Refresh method to LCCNodeTree and Refresh button to OpenLCB.
+    Add Refresh button to CTC Panel Node Lists
+    Handle proper message syncronization with alias reservation.
+    Minor bugfixes in Router.tcl (SocketCAN).
+    Update protocol strings
+    Handle missing CRLF at the end of CDIs
+
 Tue May  1 15:09:22 2018 2.1.43
 
     Update GC transports -- remove the *need* for newlines
