@@ -1,0 +1,753 @@
+dnl * 
+dnl * ------------------------------------------------------------------
+dnl * configure.in - Configure script
+dnl * Created by Robert Heller on Sat Aug  5 05:52:33 2006
+dnl * ------------------------------------------------------------------
+dnl * Modification History: $Log$
+dnl * Modification History: Revision 1.44  2007/11/30 14:13:13  heller
+dnl * Modification History: 11-30-2007 Lockdown
+dnl * Modification History:
+dnl * Modification History: Revision 1.43  2007/11/30 13:56:35  heller
+dnl * Modification History: Novemeber 30, 2007 lockdown.
+dnl * Modification History:
+dnl * Modification History: Revision 1.42  2007/11/03 20:26:54  heller
+dnl * Modification History: Release 2.1.11
+dnl * Modification History:
+dnl * Modification History: Revision 1.41  2007/10/22 17:17:26  heller
+dnl * Modification History: 10222007
+dnl * Modification History:
+dnl * Modification History: Revision 1.40  2007/09/30 15:49:28  heller
+dnl * Modification History: Rev 2.1.10 Lockdown
+dnl * Modification History:
+dnl * Modification History: Revision 1.39  2007/09/03 14:39:28  heller
+dnl * Modification History: Rev 2.1.9 Lockdown
+dnl * Modification History:
+dnl * Modification History: Revision 1.38  2007/05/06 12:49:38  heller
+dnl * Modification History: Lock down  for 2.1.8 release candidate 1
+dnl * Modification History:
+dnl * Modification History: Revision 1.37  2007/04/19 17:23:20  heller
+dnl * Modification History: April 19 Lock Down
+dnl * Modification History:
+dnl * Modification History: Revision 1.36  2007/02/21 20:48:37  heller
+dnl * Modification History: SWIG Hackery
+dnl * Modification History:
+dnl * Modification History: Revision 1.35  2007/02/21 20:08:55  heller
+dnl * Modification History: SWIG Hackery
+dnl * Modification History:
+dnl * Modification History: Revision 1.31  2007/02/01 20:38:25  heller
+dnl * Modification History: Lock down for Release 2.1.7
+dnl * Modification History:
+dnl * Modification History: Revision 1.29  2007/01/08 23:19:21  heller
+dnl * Modification History: Win32 build
+dnl * Modification History:
+dnl * Modification History: Revision 1.27  2007/01/08 20:11:32  heller
+dnl * Modification History: Cross Compile Hacks
+dnl * Modification History:
+dnl * Modification History: Revision 1.26  2007/01/08 19:05:53  heller
+dnl * Modification History: Jan 8, 2007 Lockdown
+dnl * Modification History:
+dnl * Modification History: Revision 1.1  2002/07/28 14:03:50  heller
+dnl * Modification History: Add it copyright notice headers
+dnl * Modification History:
+dnl * ------------------------------------------------------------------
+dnl * Contents:
+dnl * ------------------------------------------------------------------
+dnl *  
+dnl *     Model RR System, Version 2
+dnl *     Copyright (C) 1994,1995,2002-2012  Robert Heller D/B/A Deepwoods Software
+dnl * 			51 Locke Hill Road
+dnl * 			Wendell, MA 01379-9728
+dnl * 
+dnl *     This program is free software; you can redistribute it and/or modify
+dnl *     it under the terms of the GNU General Public License as published by
+dnl *     the Free Software Foundation; either version 2 of the License, or
+dnl *     (at your option) any later version.
+dnl * 
+dnl *     This program is distributed in the hope that it will be useful,
+dnl *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+dnl *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+dnl *     GNU General Public License for more details.
+dnl * 
+dnl *     You should have received a copy of the GNU General Public License
+dnl *     along with this program; if not, write to the Free Software
+dnl *     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+dnl * 
+dnl *  
+dnl * 
+
+AC_INIT(MRRSystem,2.1.44, [support@deepsoft.com], MRRSystem)
+AC_CANONICAL_BUILD
+AC_CANONICAL_HOST
+AC_SUBST(build)
+AC_CANONICAL_TARGET
+AC_SUBST(target)
+AC_CONFIG_SRCDIR(C++/ParserClasses/mrr.i)
+AM_INIT_AUTOMAKE([-Wno-portability tar-ustar])
+MRR_VERSION=[`echo $VERSION|sed 's/[a-z][a-z0-9]*$//g'|sed 's/\.[0-9][0-9]*$//g'`]
+AC_DEFINE_UNQUOTED([MRR_VERSION],$MRR_VERSION,[MRR Version])
+MRR_MAJOR_VERSION=[`echo $MRR_VERSION|sed 's/[a-z][a-z0-9]*$//g'|sed 's/[a-z][a-z0-9]*$//g'|sed 's/\.[0-9][0-9]*$//g'`]
+AC_DEFINE_UNQUOTED([MRR_MAJOR_VERSION],$MRR_MAJOR_VERSION,[MRR Major])
+MRR_MINOR_VERSION=[`echo $MRR_VERSION|sed 's/^[0-9][0-9]*\.//g'`]
+AC_DEFINE_UNQUOTED([MRR_MINOR_VERSION],$MRR_MINOR_VERSION,[MRR Minor])
+MRR_PATCH_LEVEL=[`echo $VERSION|sed 's/[a-z][a-z0-9]*$//g'`]
+AC_DEFINE_UNQUOTED([MRR_PATCH_LEVEL],"$MRR_PATCH_LEVEL",[MRR Patch Level])
+MRR_PATCH_LEVELLIB="$MRR_PATCH_LEVEL"
+AC_DEFINE_UNQUOTED([MRR_PATCH_LEVELLIB],"$MRR_PATCH_LEVELLIB",[MRR Patch Level for libraries])
+AC_SUBST(MRR_PATCH_LEVELLIB)
+AC_SUBST(MRR_PATCH_LEVEL)
+AC_SUBST(MRR_VERSION)
+AC_SUBST(MRR_MAJOR_VERSION)
+AC_SUBST(MRR_MINOR_VERSION)
+
+
+dnl Force cross_compiling, even if it *looks* like we can run cross-built 
+dnl binaries (get around wine's cleverness).
+if test ${cross_compiling} = "maybe"; then
+  if test ${target_os} != ${build_os}; then
+    cross_compiling=yes
+  fi
+fi  
+
+
+AC_CONFIG_MACRO_DIR([m4])
+AC_DEFINE([CMRI_VERSION],["1.0.0"],[CMRI Version])
+CMRI_VERSIONLIB=1.0.0
+AC_SUBST(CMRI_VERSIONLIB)
+AC_DEFINE([XPRESSNET_VERSION],["1.0.1"],[XPressNet Version])
+XPRESSNET_VERSIONLIB=1.0.1
+AC_SUBST(XPRESSNET_VERSIONLIB)
+AC_DEFINE([FCFCLASSES_VERSION],["1.0.4"],[FCF Classes Version])
+FCFCLASSES_VERSIONLIB=1.0.4
+AC_SUBST(FCFCLASSES_VERSIONLIB)
+AC_DEFINE([TTCLASSES_VERSION],["1.0.2"],[TT Classes Version])
+TTCLASSES_VERSIONLIB=1.0.2
+AC_SUBST(TTCLASSES_VERSIONLIB)
+AC_DEFINE([MRD_VERSION],["1.0.2"],[MRD Version])
+MRD_VERSIONLIB=1.0.2
+AC_SUBST(MRD_VERSIONLIB)
+AC_DEFINE([AZATRAX_VERSION],["1.0.0"],[AZATRAX Version])
+AZATRAX_VERSIONLIB=1.0.0
+AC_SUBST(AZATRAX_VERSIONLIB)
+AC_DEFINE([RAILDRIVERIO_VERSION],["1.0.0"],[Raildriver IO Version])
+RAILDRIVERIO_VERSIONLIB=1.0.0
+AC_SUBST(RAILDRIVERIO_VERSIONLIB)
+TCLSOCKETCAN_VERSIONLIB=1.0.0
+AC_SUBST(TCLSOCKETCAN_VERSIONLIB)
+
+RELEASEDATE=[`echo '$Date$'|sed 's/^\$Date:[[:space:]]*[^(]*.\(.*\))[[:space:]]\$$/\1/g'`]
+AC_SUBST(RELEASEDATE)
+
+if test "x${prefix}" = "xNONE"; then
+    prefix=/usr/local
+fi
+if test "x${exec_prefix}" = "xNONE"; then
+    exec_prefix="${prefix}"
+fi
+
+BUILD_DIR=`pwd`
+TOP_DIR=${BUILD_DIR}
+
+AC_SUBST(TOP_DIR)
+AC_SUBST(BUILD_DIR)
+
+srcdir=`dirname $0`
+cd $srcdir
+SRC_DIR=`pwd`
+cd $BUILD_DIR
+
+AC_SUBST(SRC_DIR)
+
+AC_SUBST(target)
+
+dnl Checks for programs.
+
+AC_GNU_SOURCE
+AC_PROG_CPP
+AC_PROG_CXX
+AC_PROG_CC
+AC_PROG_LEX
+AX_WIRINGPI
+AM_CONDITIONAL(HAVE_WIRINGPI, test ${HAVE_WIRINGPI} = "1")
+AC_CHECK_HEADERS([sys/socket.h linux/can.h],[AC_SUBST(HAVE_CAN,1)],[AC_SUBST(HAVE_CAN,0)],
+[[#ifdef HAVE_SYS_SOCKET_H
+# include <sys/socket.h>
+#endif
+]])
+AM_CONDITIONAL(HAVE_CAN, test ${HAVE_CAN} = "1")
+
+dnl if test ${cross_compiling} = "no"; then
+dnl   AM_DISABLE_STATIC
+dnl fi
+AC_LIBTOOL_DLOPEN
+if test ${cross_compiling} = "yes"; then
+  lt_cv_deplibs_check_method='pass_all'
+fi
+AM_PROG_LIBTOOL
+AX_PKG_DOXYGEN(1.6.0, [], [ AC_MSG_ERROR([DOXYGEN 1.6.0 is required to build.]) ])
+AM_GNU_GETTEXT
+case $target_os in
+  macos | darwin*)
+    dnl Fix broken AM_GNU_GETTEXT macro under Macos
+    AC_SUBST(INTLLIBS,[""])
+    ;;
+  *)
+    ;;
+esac
+AC_PATH_PROG(MSGEN,msgen)
+AC_CHECK_HEADERS(libintl.h locale.h)
+AX_PKG_SWIG(1.3)
+AX_SWIG_ENABLE_CXX
+AC_PATH_PROG(BISONXX,bison++,/bin/true)
+
+
+AM_CONDITIONAL(DONT_HAVE_BISONXX,test $BISONXX = /bin/true)
+
+if test $BISONXX = /bin/true; then
+  AC_MSG_WARN([You don't have bison++ installed, not going to build XtrkCAD parser])
+fi
+
+dnl Checks for libraries.
+
+PKG_PROG_PKG_CONFIG()
+if test ${cross_compiling} = "yes"; then
+  xcprefix1="`$CC -v 2>&1 | grep prefix`"
+  dnl AC_MSG_NOTICE([*** xcprefix1 is ${xcprefix1}])
+  xcprefix2="`echo ${xcprefix1}|sed 's/^.*--prefix=//g'`"
+  dnl AC_MSG_NOTICE([*** xcprefix2 is ${xcprefix2}])
+  xcprefix="`echo ${xcprefix2}|sed 's/[[[:space:]]].*$//g'`"
+  dnl AC_MSG_NOTICE([*** xcprefix is ${xcprefix}])
+  export PKG_CONFIG_PATH="${xcprefix}/lib/pkgconfig:${xcprefix}/share/pkgconfig"
+  dnl AC_MSG_NOTICE([PKG_CONFIG_PATH is $PKG_CONFIG_PATH])
+  m4_pattern_allow(PKG_CONFIG_LIBDIR)
+  export PKG_CONFIG_LIBDIR="${xcprefix}/lib/pkgconfig:${xcprefix}/share/pkgconfig"
+  dnl AC_MSG_NOTICE([PKG_CONFIG_LIBDIR is $PKG_CONFIG_PATH])
+fi
+
+PKG_CHECK_EXISTS(libusb-1.0,[have_libusb1="yes"],[have_libusb1="no"])
+if test ${have_libusb1} = "yes"; then
+  AC_DEFINE(HAVE_LIBUSB1,1, [Indicates if we have Libusb1 or not.])
+  PKG_CHECK_MODULES([LIBUSB],libusb-1.0)
+  AC_SUBST(HAVE_LIBUSB1)
+  libusbVer=`$PKG_CONFIG --modversion libusb-1.0`
+  AC_MSG_RESULT([libusb Version is $libusbVer])
+else
+  AC_MSG_ERROR([You don't have libusb-1.0 installed!])
+fi
+
+PKG_CHECK_EXISTS([cairo-pdf pangocairo],[have_pangocairo="yes"],[have_pangocairo="no"])
+if test ${have_pangocairo} = "yes"; then
+  AC_DEFINE(HAVE_PANGOCAIRO,1,[Indicates if we have PANGO and CAIRO])
+  PKG_CHECK_MODULES([CAIRO_PDF],[cairo-pdf])
+  PKG_CHECK_MODULES([PANGO_CAIRO],[pangocairo])
+  AC_SUBST(HAVE_PANGOCAIRO)
+  AC_MSG_RESULT([Have PANGOCAIRO and CAIRO_PDF])
+else
+  AC_MSG_WARN([You don't have PANGOCAIRO and CAIRO_PDF installed!])
+fi
+
+AM_CONDITIONAL(HAVE_PANGOCAIRO, test ${have_pangocairo} = "yes")
+
+case $target_os in
+  macos | darwin*)
+    AC_SUBST(HIDAPI_CFLAGS,[''])
+    AC_SUBST(HIDAPI_C,[mac/hid.c])
+    AC_SUBST(HIDAPI_LIBS,["-framework IOKit -framework CoreFoundation"])
+    ;;
+  linux-gnu*)
+    PKG_CHECK_MODULES([LIBUDEV],libudev)
+    AC_SUBST(HIDAPI_CFLAGS,$LIBUDEV_CFLAGS)
+    AC_SUBST(HIDAPI_C,[linux/hid.c])
+    AC_SUBST(HIDAPI_LIBS,$LIBUDEV_LIBS)
+    ;;
+  mingw32* | winnt | windows* | cygwin)
+    AC_SUBST(HIDAPI_CFLAGS,[''])
+    AC_SUBST(HIDAPI_C,[windows/hid.c])
+    AC_SUBST(HIDAPI_LIBS,["-lsetupapi"])
+    ;;
+  *) 
+    AC_MSG_ERROR([Unsupported Operating System: $target_os])
+    ;;
+esac
+
+
+AM_CONDITIONAL(TARGET_IS_LINUX, test ${target_os} = "linux-gnu")
+
+AM_CONDITIONAL(CROSSCOMPILING,test ${cross_compiling} = "yes")
+if test ${cross_compiling} = "yes"; then
+  LIB_MRR_PATCH_LEVELLIB=`echo $MRR_PATCH_LEVELLIB|sed 's/\./-/g'`
+  CMRI_LIB_VERSIONLIB=`echo $CMRI_VERSIONLIB|sed 's/\./-/g'`
+  XPRESSNET_LIB_VERSIONLIB=`echo $XPRESSNET_VERSIONLIB|sed 's/\./-/g'`
+  FCFCLASSES_LIB_VERSIONLIB=`echo $FCFCLASSES_VERSIONLIB|sed 's/\./-/g'`
+  TTCLASSES_LIB_VERSIONLIB=`echo $TTCLASSES_VERSIONLIB|sed 's/\./-/g'`
+else
+  LIB_MRR_PATCH_LEVELLIB=$MRR_PATCH_LEVELLIB
+  CMRI_LIB_VERSIONLIB=$CMRI_VERSIONLIB
+  XPRESSNET_LIB_VERSIONLIB=$XPRESSNET_VERSIONLIB
+  FCFCLASSES_LIB_VERSIONLIB=$FCFCLASSES_VERSIONLIB
+  TTCLASSES_LIB_VERSIONLIB=$TTCLASSES_VERSIONLIB
+fi
+AC_SUBST(LIB_MRR_PATCH_LEVELLIB)
+AC_SUBST(CMRI_LIB_VERSIONLIB)
+AC_SUBST(XPRESSNET_LIB_VERSIONLIB)
+AC_SUBST(FCFCLASSES_LIB_VERSIONLIB)
+AC_SUBST(TTCLASSES_LIB_VERSIONLIB)
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(fcntl.h limits.h malloc.h strings.h sys/ioctl.h sys/time.h syslog.h unistd.h sys/select.h)
+
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+AC_HEADER_TIME
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(int)
+AX_CXX_BOOL
+AC_MSG_CHECKING([stdc++])
+AC_LANG_SAVE
+AC_LANG_CPLUSPLUS
+savedLibs=$LIBS
+LIBS=-lstdc++
+AC_TRY_LINK([
+#include <iostream.h>
+],[
+	cout << endl;
+],[STDCXXLIBS="-lstdc++"
+  AC_MSG_RESULT(yes)],[STDCXXLIBS=""
+  AC_MSG_RESULT(no)])
+AC_SUBST(STDCXXLIBS)
+LIBS=$savedLibs
+AC_LANG_RESTORE
+
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+
+dnl Checks for library functions.
+AC_FUNC_ALLOCA
+AC_TYPE_SIGNAL
+if test ${cross_compiling} = "no"; then
+  AC_CHECK_LIB(m,cos)
+fi
+AC_CHECK_FUNCS(gethostname gettimeofday regcomp select socket)
+AC_CHECK_FUNCS(strerror strstr cos sin socketpair)
+AC_REPLACE_FUNCS(mkstemp localtime_r asctime_r)
+
+AX_BOOST_BASE
+
+AC_MSG_CHECKING(tcl build dir)
+dnl AC_MSG_NOTICE([cross_compiling = ${cross_compiling}])
+if test ${cross_compiling} = "yes"; then
+  dnl AC_MSG_NOTICE([cross_compiling -- finding cross tcl: CC is $CC])
+  gccbin=`which $CC`
+  gccbindir=`dirname $gccbin`
+  crossdir=`dirname $gccbindir`
+  crossexec_prefix=$crossdir/${target_cpu}-${target_os}
+  TCL_LIB_DIR=$crossexec_prefix/lib
+else
+  dirs="${BUILD_DIR}/../tcl8.3a*/unix \
+	${BUILD_DIR}/../tcl8.3b*/unix \
+	${BUILD_DIR}/../tcl8.4.*/unix \
+	${BUILD_DIR}/../tcl8.5.*/unix \
+	/usr/share /usr/lib64 /usr/lib \
+	/System/Library/Frameworks/Tcl.framework/Versions/8.5"
+  for i in $dirs ; do
+    if test -d "$i" -a -f "$i/tclConfig.sh"; then
+	TCL_LIB_DIR=`cd $i; pwd`
+    fi
+  done
+fi
+dnl AC_MSG_NOTICE([TCL_LIB_DIR initialized as $TCL_LIB_DIR])
+AC_ARG_WITH(tcl, [  --with-tcl=DIR          use Tcl binaries from DIR], TCL_LIB_DIR=$withval,)
+if test -d $TCL_LIB_DIR; then
+    AC_MSG_RESULT([using tcl library in $TCL_LIB_DIR])
+else
+    AC_MSG_ERROR(Tcl directory $TCL_LIB_DIR doesn't exist)
+fi
+
+cd ${TCL_LIB_DIR}/..
+TCL_TOP_DIR=`pwd`
+cd ${BUILD_DIR}
+
+#--------------------------------------------------------------------
+
+file=$TCL_LIB_DIR/tclConfig.sh
+. $file
+SHLIB_CFLAGS=`echo "$TCL_SHLIB_CFLAGS" |sed -e "s|PIC|pic|" -e "s|+Z|+z|"`
+SHLIB_LD=`echo $TCL_SHLIB_LD|sed "s/-Wl,-soname,libtcl.so.0//g"`
+SHLIB_SUFFIX=$TCL_SHLIB_SUFFIX
+DL_LIBS=$TCL_DL_LIBS
+LD_FLAGS=$TCL_LD_FLAGS
+
+TCL_BASE=`echo ${TCL_LIB_SPEC} |sed -e "s|^.*-l||"`
+TCL_STUB_BASE=`echo ${TCL_STUB_LIB_SPEC} |sed -e "s|^.*-l||"`
+
+AC_SUBST(TCL_LIB_DIR)
+if test -f ${TCL_LIB_DIR}/tclsh${TCL_VERSION}; then
+    TCL_BIN_DIR=${TCL_LIB_DIR}
+elif test -f ${TCL_EXEC_PREFIX}/bin/tclsh${TCL_VERSION}; then
+    TCL_BIN_DIR=${TCL_EXEC_PREFIX}/bin
+elif test -f ${TCL_EXEC_PREFIX}/tclsh; then
+    TCL_BIN_DIR=${TCL_EXEC_PREFIX}
+elif test -f ${TCL_EXEC_PREFIX}/bin/tclsh; then
+    TCL_BIN_DIR=${TCL_EXEC_PREFIX}/bin
+else
+    TCL_BIN_DIR=$exec_prefix/bin
+fi
+AC_SUBST(TCL_BIN_DIR)
+if test -f ${TCL_BIN_DIR}/tclsh${TCL_VERSION}; then
+    TCLSH=${TCL_BIN_DIR}/tclsh${TCL_VERSION}
+else
+    TCLSH=${TCL_BIN_DIR}/tclsh
+fi
+AC_SUBST(TCLSH)
+if test -f ${TCL_BIN_DIR}/wish${TCL_VERSION}; then
+    WISH=${TCL_BIN_DIR}/wish${TCL_VERSION}
+else
+    WISH=${TCL_BIN_DIR}/wish
+fi
+AC_SUBST(WISH)
+if test -d ${TCL_TOP_DIR}/generic -a -f ${TCL_TOP_DIR}/generic/tcl.h; then
+    TCL_INC_DIR=${TCL_TOP_DIR}/generic
+elif test -d ${TCL_TOP_DIR}/include -a -f ${TCL_TOP_DIR}/include/tcl.h; then
+    TCL_INC_DIR=${TCL_TOP_DIR}/include
+elif test -d ${TCL_TOP_DIR}/include -a -f ${TCL_TOP_DIR}/include/tcl.h; then
+    TCL_INC_DIR=${TCL_TOP_DIR}/include
+elif test -d ${TCL_EXEC_PREFIX}/include -a -f ${TCL_EXEC_PREFIX}/include/tcl.h; then
+    TCL_INC_DIR=${TCL_EXEC_PREFIX}/include
+elif test -d ${TCL_EXEC_PREFIX}/include -a -f ${TCL_EXEC_PREFIX}/include/tcl.h; then
+    TCL_INC_DIR=${TCL_EXEC_PREFIX}/include
+elif test x"${TCL_INCLUDE_SPEC}" != x ; then
+    d=`echo "${TCL_INCLUDE_SPEC}" | sed -e 's/^-I//'`
+    TCL_INC_DIR=$d
+else
+    TCL_INC_DIR=$prefix/include
+fi
+AC_SUBST(TCL_INC_DIR)
+if test -d ${TCL_TOP_DIR}/lib/tcl${TCL_VERSION} -a -f ${TCL_TOP_DIR}/lib/tcl${TCL_VERSION}/init.tcl; then
+    TCL_LIBRARY=${TCL_TOP_DIR}/lib/tcl${TCL_VERSION}
+elif test -d ${TCL_TOP_DIR}/lib/tcl${TCL_VERSION} -a -f ${TCL_TOP_DIR}/lib/tcl${TCL_VERSION}/init.tcl; then
+    TCL_LIBRARY=${TCL_TOP_DIR}/lib/tcl${TCL_VERSION}
+elif test -d ${TCL_TOP_DIR}/library -a -f ${TCL_TOP_DIR}/library/init.tcl; then
+    TCL_LIBRARY=${TCL_TOP_DIR}/library
+elif test -d ${TCL_PREFIX}/lib/tcl${TCL_VERSION} -a -f ${TCL_PREFIX}/lib/tcl${TCL_VERSION}/init.tcl; then
+    TCL_LIBRARY=${TCL_PREFIX}/lib/tcl${TCL_VERSION}
+elif test -d ${TCL_PREFIX}/lib/tcl${TCL_VERSION} -a -f ${TCL_PREFIX}/lib/tcl${TCL_VERSION}/init.tcl; then
+    TCL_LIBRARY=${TCL_PREFIX}/lib/tcl${TCL_VERSION}
+else
+    TCL_LIBRARY=$prefix/lib/tcl${TCL_VERSION}
+fi
+AC_SUBST(TCL_LIBRARY)
+
+TCL_LIB_SPEC="-L${TCL_LIB_DIR} -l${TCL_BASE}"
+TCL_STUB_LIB_SPEC="-L${TCL_LIB_DIR} -l${TCL_STUB_BASE}"
+eval "TCL_UNSHARED_LIB_FILE=lib${TCL_BASE}${TCL_UNSHARED_LIB_SUFFIX}"
+eval "TCL_SHARED_LIB_FILE=lib${TCL_BASE}${TCL_SHARED_LIB_SUFFIX}"
+
+#--------------------------------------------------------------------
+LIB_INSTALL_DIR="${LIB_RUNTIME_DIR}"
+#--------------------------------------------------------------------
+#	The statements below define a collection of symbols related to
+#	building libimg as a shared library instead of a static library.
+#--------------------------------------------------------------------
+
+TCL_SHARED_LIBS=""
+#--------------------------------------------------------------------
+AC_ARG_ENABLE(stubs, [  --disable-stubs         disable stub support for Img],
+    [img_ok=$enableval], [img_ok=yes])
+if test "$img_ok" != "no"; then
+    TCL_DEFS="$TCL_DEFS -DUSE_TCL_STUBS"
+    TCL_SHARED_LIBS="${TCL_STUB_LIB_SPEC}"
+else
+    case "$SHLIB_LD" in
+	*ldAix*)
+	TCL_SHARED_LIBS='${TCL_LIB_SPEC}'
+	;;
+    esac
+fi
+
+case "$SHLIB_LD" in
+    *ldAix*)
+    TCL_SHARED_LIBS="${TCL_SHARED_LIBS}"
+    ;;
+esac
+
+if test ${cross_compiling} = "no"; then
+  HOSTTCLSH=${TCLSH}
+else
+  AC_PATH_PROGS(HOSTTCLSH,[tclsh8.4 tclsh])
+fi
+
+dnl Pure Tcl code libraries
+dnl AX_BWIDGET
+AX_SNIT
+AX_CSV
+AX_STRUCT
+AX_TCLLOG
+AX_URI
+
+AC_PATH_PROGS(UNZIP,unzip)
+
+AC_MSG_CHECKING([Checking target Img and tclkit])
+case $target_os in 
+  macos | darwin*) 
+    AC_SUBST(IMG_ZIP, Img-1.4-Mac-Universalx86.zip)
+    AC_SUBST(TCLKITRUN, tclkit-darwin-univ-aqua)
+    AC_SUBST(KIT_EXTRA_CFLAGS,['-arch i386 -arch x86_64'])
+    AC_SUBST(NEED_APP_BUNDLE,[true])
+    AC_SUBST(BINTRUE,[/usr/bin/true])
+    ;;
+  linux-gnu*)
+    case $target_cpu in
+      x86_64)
+	AC_SUBST(IMG_ZIP, Img-1.4-Linux64.zip)
+	AC_SUBST(TCLKITRUN, tclkit-linux-x86_64)
+	;;
+      i*86)
+	AC_SUBST(IMG_ZIP, Img-1.4-Linux32.zip)
+	AC_SUBST(TCLKITRUN, tclkit-linux-x86)
+	;;
+      arm*)
+        AC_SUBST(IMG_ZIP, Img-1.4-Linuxarmv7l.zip)
+        AC_SUBST(TCLKITRUN, tclkit-linux-armv7l)
+        ;;
+      *)
+	AC_MSG_ERROR([Unsupported Linux arch: $target_cpu])
+	;;
+     esac
+     AC_SUBST(KIT_EXTRA_CFLAGS,[])
+     AC_SUBST(NEED_APP_BUNDLE,[false])
+     AC_SUBST(BINTRUE,[/bin/true])
+     ;;
+
+   mingw32* | winnt | windows* | cygwin)
+     AC_SUBST(IMG_ZIP, Img-1.4-win32.zip)
+     AC_SUBST(TCLKITRUN, tclkit-win32.exe)
+     AC_SUBST(EXEEXT, .exe)
+     AC_SUBST(KIT_EXTRA_CFLAGS,[])
+     AC_SUBST(NEED_APP_BUNDLE,[false])
+     AC_SUBST(BINTRUE,[/bin/true])
+     ;;
+   *) 
+     AC_MSG_ERROR([Unsupported Operating System: $target_os])
+     ;;
+esac
+AC_MSG_RESULT([IMG_ZIP is $IMG_ZIP and TCLKITRUN is $TCLKITRUN])
+AM_CONDITIONAL(MACOSX, test x${NEED_APP_BUNDLE} = xtrue)                        
+
+AC_PATH_PROG(PDFLATEX,pdflatex,$BINTRUE)
+AC_PATH_PROG(LATEX,latex,$BINTRUE)
+AC_PATH_PROG(MAKEINDEX,makeindex,$BINTRUE)
+AC_PATH_PROG(BIBTEX,bibtex,$BINTRUE)
+AC_PATH_PROG(DVIPS,dvips,$BINTRUE)
+AC_PATH_PROG(PS2PDF,ps2pdf,$BINTRUE)
+
+AC_MSG_CHECKING([Checking build tclkit])
+case $build_os in 
+  macos | darwin*) 
+    AC_SUBST(TCLKITBSRC, tclkit-darwin-univ-aqua)
+    AC_SUBST(BEXEEXT, )
+    ;;
+  linux-gnu*)
+    AC_SUBST(BEXEEXT, )
+    case $build_cpu in
+      x86_64)
+	AC_SUBST(TCLKITBSRC, tclkit-linux-x86_64)
+	;;
+      i*86)
+	AC_SUBST(TCLKITBSRC, tclkit-linux-x86)
+	;;
+      arm*)
+        AC_SUBST(TCLKITBSRC, tclkit-linux-armv7l)
+        ;;
+      *)
+	AC_MSG_ERROR([Unsupported Linux arch: $build_cpu])
+	;;
+     esac
+     ;;
+
+   mingw32* | winnt | windows* | cygwin)
+     AC_SUBST(BEXEEXT, .exe)
+     AC_SUBST(TCLKITBSRC, tclkit-win32.exe)
+     ;;
+   *) 
+     AC_MSG_ERROR([Unsupported Operating System: $build_os])
+     ;;
+esac
+AC_MSG_RESULT([TCLKITBSRC is $TCLKITBSRC])
+
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(fcntl.h limits.h malloc.h strings.h sys/ioctl.h sys/time.h syslog.h unistd.h sys/select.h sys/vfs.h sys/param.h sys/mount.h)
+
+
+
+
+AC_PATH_PROG(SED,sed)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+
+dnl Checks for library functions.
+
+AC_DEFINE_UNQUOTED(LOCALEDIR,"${prefix}/share/locale",[Location of the locale data files])
+LOCALEDIR="${prefix}/share/locale"
+AC_SUBST(LOCALEDIR)
+
+dnl Substitutions...
+
+AC_SUBST(CXX)
+AC_SUBST(CXXFLAGS)
+AC_SUBST(SHLIB_CFLAGS)
+AC_SUBST(SHLIB_CXXFLAGS)
+SHLIB_LD=`echo $SHLIB_LD|sed -e "s/${TCL_CC}/${CXX}/g"`
+AC_SUBST(SHLIB_LD)
+SHLIB_LD_LIBS=$TCL_SHLIB_LD_LIBS
+AC_SUBST(SHLIB_LD_LIBS)
+AC_SUBST(SHLIB_SUFFIX)
+AC_SUBST(TCL_DBGX)
+AC_SUBST(TCL_VERSION)
+AC_SUBST(TCL_DEFS)
+AC_SUBST(TCL_LIBS)
+AC_SUBST(TCL_STUB_LIB_SPEC)
+AC_SUBST(TCL_STUB_LIB_PATH)
+AC_SUBST(TCL_SHARED_LIBS)
+AC_SUBST(TCL_SHARED_LIB_FILE)
+AC_SUBST(TCL_UNSHARED_LIB_FILE)
+AC_SUBST(TCL_SHLIB_CFLAGS)
+AC_SUBST(TCL_SHLIB_SUFFIX)
+TCL_SHLIB_LD=`echo $TCL_SHLIB_LD|sed -e "s/${TCL_CC}/${CXX}/g"`
+AC_SUBST(TCL_SHLIB_LD)
+AC_SUBST(TCL_PREFIX)
+AC_SUBST(TCL_EXEC_PREFIX)
+AC_SUBST(TCL_CFLAGS)
+AC_SUBST(TCL_LIB_SPEC)
+AC_SUBST(TCL_INCLUDE_SPEC)
+SYSTEMVERSION="$MRR_PATCH_LEVEL"
+AC_SUBST(SYSTEMVERSION)
+
+AC_CONFIG_HEADER([config.h])
+
+AC_CONFIG_FILES([config_tcl.sed \
+	  Makefile \
+	  BuildScripts/Makefile \
+	  BuildData/Makefile \
+	  C++/Makefile \
+		C++/RailDriver/Makefile \
+		C++/RailDriver/Doxyfile \
+		C++/RailDriver/linux/Makefile \
+		C++/RailDriver/mac/Makefile \
+		C++/RailDriver/windows/Makefile \
+		C++/RailDriver/systemd/Makefile \
+		C++/ParserClasses/Makefile \
+		C++/Azatrax/Makefile \
+		C++/Azatrax/Doxyfile \
+		C++/TTSupport/Makefile \
+		C++/FCFSupport/Makefile \
+		C++/wiringPi/Makefile \
+		C++/TclSocketCAN/Makefile \
+	  Scripts/Makefile \
+		Scripts/Common/Makefile \
+		Scripts/GRSupport/Makefile \
+		Scripts/Dispatcher/Makefile \
+		Scripts/Dispatcher/Doxyfile \
+		Scripts/CameraScripts/Makefile \
+		Scripts/CameraScripts/Doxyfile \
+		Scripts/CalcScripts/Makefile \
+		Scripts/CalcScripts/Doxyfile \
+		Scripts/FreightCarForwarder2/Makefile \
+		Scripts/FreightCarForwarder2/Doxyfile \
+		Scripts/FreightCarForwarder2/NorthAmerican/Makefile \
+		Scripts/TimeTable2/Makefile \
+		Scripts/TimeTable2/Doxyfile \
+		Scripts/ControlSupport/Makefile \
+		Scripts/MainProgram/Makefile \
+		Scripts/GenericThrottle/Makefile \
+		Scripts/GenericThrottle/Doxyfile \
+		Scripts/CMri/Makefile \
+		Scripts/CMri/Doxyfile \
+		Scripts/LCC/Makefile \
+		Scripts/LCC/Doxyfile \
+		Scripts/XPressNet/Makefile \
+		Scripts/XPressNet/Doxyfile \
+		Scripts/NCE/Makefile \
+		Scripts/LocoNet/Makefile \
+		Scripts/RailDriverSupport/Makefile \
+		Scripts/RailDriverSupport/Doxyfile \
+		Scripts/Satellite/Makefile \
+		Scripts/Satellite/Doxyfile \
+		Scripts/CTIAcela/Makefile \
+		Scripts/CMRI_Slave/Makefile \
+		Scripts/CMRI_Slave/Doxyfile \
+                Scripts/LinuxGpio/Makefile \
+	  Doc/Makefile \
+		Doc/Support/Makefile \
+		Doc/User/Makefile \
+                Doc/User/Doxyfile.UserManual \
+                Doc/User/Makefile.UserManual \
+                Doc/User/Doxyfile.TimeTable \
+                Doc/User/Doxyfile.FCF \
+                Doc/User/Doxyfile.Calc \
+                Doc/User/Doxyfile.Camera \
+                Doc/User/Doxyfile.Dispatcher \
+                Doc/User/Doxyfile.AzatraxProg \
+                Doc/User/Doxyfile.GenericThrottle \
+                Doc/User/Doxyfile.MainProgram \
+                Doc/User/Doxyfile.UniversalTest \
+                Doc/User/Doxyfile.OpenLCB \
+                Doc/User/Doxyfile.CMRI_Slave \
+                Doc/User/Doxyfile.XPressNetThrottle \
+		Doc/doxygen/Makefile \
+		Doc/doxygen/Doxyfile \
+		Doc/doxygen/tcldoxyfilter.sh \
+		Doc/ProgrammingGuides/Makefile \
+		Doc/ProgrammingGuides/Doxyfile.SampleCode \
+		Doc/ApplicationNotes/Makefile \
+	  Installer/Makefile \
+	  intl/Makefile \
+	  po/Makefile \
+	  	po/CalcScripts/Makefile \
+	  	po/CameraScripts/Makefile \
+	  	po/Dispatcher/Makefile \
+	  	po/FreightCarForwarder2/Makefile \
+	  	po/TimeTable2/Makefile \
+	  	po/GenericThrottle/Makefile \
+	  	po/UniversalTest/Makefile \
+	  	po/OpenLCB/Makefile \
+	  	po/CMRI_Slave/Makefile \
+	  	po/XPressNetThrottle/Makefile \
+	  	po/AzatraxProg/Makefile \
+	  	po/mrrsystem/Makefile \
+		po/mrrsystem/mrrsystem_header.pot \
+		po/raildriverd/Makefile \
+		po/Satellite/Makefile \
+    		po/xplocotest/Makefile \
+          ExampleDataAndCode/Makefile \
+                ExampleDataAndCode/Blocks/Makefile \
+                ExampleDataAndCode/Blocks/Doxyfile \
+                ExampleDataAndCode/Signals/Makefile \
+                ExampleDataAndCode/Signals/Doxyfile \
+                ExampleDataAndCode/Signals/ArdunioMAX72XX/Makefile \
+                ExampleDataAndCode/Signals/ArdunioMAX72XX/Doxyfile \
+                ExampleDataAndCode/InterlockingPlants/Makefile \
+                ExampleDataAndCode/InterlockingPlants/Doxyfile \
+                ExampleDataAndCode/Yards/Makefile \
+                ExampleDataAndCode/Yards/Doxyfile \
+                ExampleDataAndCode/Sidings/Makefile \
+                ExampleDataAndCode/Sidings/Doxyfile \
+                ExampleDataAndCode/Switches/Makefile \
+                ExampleDataAndCode/Switches/Doxyfile \
+                ExampleDataAndCode/TimeTables/Makefile \
+                ExampleDataAndCode/TimeTables/Doxyfile \
+                ExampleDataAndCode/FreightCarForwarding/Makefile \
+                ExampleDataAndCode/FreightCarForwarding/Doxyfile \
+                ExampleDataAndCode/LCC_Examples/Makefile \
+                ExampleDataAndCode/LCC_Examples/Doxyfile \
+	  MRRSystem.spec \
+	  BuildBinaryDistro.sh \
+	  Doxyfile])
+AC_CONFIG_COMMANDS([default],
+                 [chmod +x BuildBinaryDistro.sh Doc/doxygen/tcldoxyfilter.sh])
+AC_OUTPUT
+
+

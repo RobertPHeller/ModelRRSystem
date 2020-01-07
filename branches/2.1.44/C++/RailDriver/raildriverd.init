@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# Source function library.
+. /etc/init.d/functions
+
+thedaemon=/home/heller/Deepwoods/ModelRRSystem/C++/RailDriver/raildriverd
+
+
+RETVAL=0
+
+start() {
+	echo -n "Starting up raildriver daemon: "
+	/sbin/modprobe -r hid
+	daemon $thedaemon
+	RETVAL=$?
+	echo
+}
+
+stop() {
+	echo -n "Shutting down raildriver daemon: "
+	killproc raildriverd
+	RETVAL=$?
+	echo
+}
+
+# See how we were called.
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  *)
+	echo "Usage: raildriverd.init {start|stop}"
+	exit 1
+esac
+
+exit $RETVAL
+

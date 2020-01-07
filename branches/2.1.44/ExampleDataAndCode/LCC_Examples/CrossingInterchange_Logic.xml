@@ -1,0 +1,159 @@
+<?xml version='1.0'?>
+<OpenLCB_Logic lastevid="05.01.01.01.22.00.00.7A">
+  <logic frame="logic1">
+    <description>S1S Stop</description>
+    <v1oneventid>05.01.01.01.22.00.00.01</v1oneventid>
+    <v1offeventid>05.01.01.01.22.00.00.02</v1offeventid>
+    <v2oneventid>05.01.01.01.22.00.00.01</v2oneventid>
+    <v2offeventid>05.01.01.01.22.00.00.02</v2offeventid>
+    <grouptype>mast</grouptype>
+    <logicfunction>and</logicfunction>
+    <delay>0</delay>
+    <retriggerable>false</retriggerable>
+    <action1delay>false</action1delay>
+    <action1eventid>05.01.01.01.22.00.01.13</action1eventid>
+    <action2delay>false</action2delay>
+    <action3delay>true</action3delay>
+    <action4delay>false</action4delay>
+  </logic>
+  <logic frame="logic2">
+    <description>S1S Aproach Limited</description>
+    <v1oneventid>05.01.01.01.22.00.01.04</v1oneventid>
+    <v1offeventid>05.01.01.01.22.00.01.03</v1offeventid>
+    <v2oneventid>05.01.01.01.22.00.01.04</v2oneventid>
+    <v2offeventid>05.01.01.01.22.00.01.03</v2offeventid>
+    <grouptype>mast</grouptype>
+    <logicfunction>and</logicfunction>
+    <delay>0</delay>
+    <retriggerable>false</retriggerable>
+    <action1delay>false</action1delay>
+    <action1eventid>05.01.01.01.22.00.01.12</action1eventid>
+    <action2delay>false</action2delay>
+    <action3delay>false</action3delay>
+    <action4delay>false</action4delay>
+  </logic>
+  <logic frame="logic3">
+    <description>S1S Approach</description>
+    <v1oneventid>05.01.01.01.22.00.00.09</v1oneventid>
+    <v1offeventid>05.01.01.01.22.00.00.0a</v1offeventid>
+    <v2oneventid>05.01.01.01.22.00.01.03</v2oneventid>
+    <v2offeventid>05.01.01.01.22.00.01.04</v2offeventid>
+    <grouptype>mast</grouptype>
+    <logicfunction>and</logicfunction>
+    <delay>0</delay>
+    <retriggerable>false</retriggerable>
+    <action1delay>false</action1delay>
+    <action1eventid>05.01.01.01.22.00.01.11</action1eventid>
+    <action2delay>false</action2delay>
+    <action3delay>false</action3delay>
+    <action4delay>false</action4delay>
+  </logic>
+  <logic frame="logic4">
+    <description>S1S Clear</description>
+    <grouptype>single</grouptype>
+    <logicfunction>true</logicfunction>
+    <delay>0</delay>
+    <retriggerable>false</retriggerable>
+    <action1delay>false</action1delay>
+    <action1eventid>05.01.01.01.22.00.01.10</action1eventid>
+    <action2delay>false</action2delay>
+    <action3delay>false</action3delay>
+    <action4delay>false</action4delay>
+  </logic>
+  <transport>
+    <constructor>CANGridConnectOverCANSocket</constructor>
+    <options>-nid 05:01:01:01:22:fe -socketname vcan0</options>
+  </transport>
+  <identification>
+    <name>CrossingInterchange Logic Module</name>
+    <description>CrossingInterchange Logic Module</description>
+  </identification>
+  <logic frame="logic5">
+    <description>S1MN Stop</description>
+    <v1oneventid>05.01.01.01.22.00.00.01</v1oneventid>
+    <v1offeventid>05.01.01.01.22.00.00.02</v1offeventid>
+    <v2oneventid>05.01.01.01.22.00.01.04</v2oneventid>
+    <v2offeventid>05.01.01.01.22.00.01.03</v2offeventid>
+    <grouptype>mast</grouptype>
+    <logicfunction>or</logicfunction>
+    <delay>0</delay>
+    <retriggerable>false</retriggerable>
+    <action1delay>false</action1delay>
+    <action1eventid>05.01.01.01.22.00.01.22</action1eventid>
+    <action2delay>false</action2delay>
+    <action3delay>false</action3delay>
+    <action4delay>false</action4delay>
+  </logic>
+  <logic frame="logic6">
+    <description>S1MN Approach</description>
+    <v1oneventid>05.01.01.01.22.00.00.09</v1oneventid>
+    <v1offeventid>05.01.01.01.22.00.00.0a</v1offeventid>
+    <v2oneventid>05.01.01.01.22.00.01.03</v2oneventid>
+    <v2offeventid>05.01.01.01.22.00.01.04</v2offeventid>
+    <grouptype>mast</grouptype>
+    <logicfunction>and</logicfunction>
+    <delay>0</delay>
+    <retriggerable>false</retriggerable>
+    <action1delay>false</action1delay>
+    <action1eventid>05.01.01.01.22.00.01.21</action1eventid>
+    <action2delay>false</action2delay>
+    <action3delay>false</action3delay>
+    <action4delay>false</action4delay>
+  </logic>
+  <logic frame="logic7">
+    <description>S1MN Clear</description>
+    <grouptype>single</grouptype>
+    <logicfunction>true</logicfunction>
+    <delay>0</delay>
+    <retriggerable>false</retriggerable>
+    <action1delay>false</action1delay>
+    <action1eventid>05.01.01.01.22.00.01.20</action1eventid>
+    <action2delay>false</action2delay>
+    <action3delay>false</action3delay>
+    <action4delay>false</action4delay>
+  </logic>
+  <logic frame="logic8">
+    <description>S1IN Stop</description>
+    <v1oneventid>05.01.01.01.22.00.01.03</v1oneventid>
+    <v1offeventid>05.01.01.01.22.00.01.04</v1offeventid>
+    <v2oneventid>05.01.01.01.22.00.00.01</v2oneventid>
+    <v2offeventid>05.01.01.01.22.00.00.02</v2offeventid>
+    <grouptype>mast</grouptype>
+    <logicfunction>or</logicfunction>
+    <delay>0</delay>
+    <retriggerable>false</retriggerable>
+    <action1delay>false</action1delay>
+    <action1eventid>05.01.01.01.22.00.01.32</action1eventid>
+    <action2delay>false</action2delay>
+    <action3delay>false</action3delay>
+    <action4delay>false</action4delay>
+  </logic>
+  <logic frame="logic9">
+    <description>S1IN Approach</description>
+    <v1oneventid>05.01.01.01.22.00.01.04</v1oneventid>
+    <v1offeventid>05.01.01.01.22.00.01.03</v1offeventid>
+    <v2oneventid>05.01.01.01.22.00.00.05</v2oneventid>
+    <v2offeventid>05.01.01.01.22.00.00.06</v2offeventid>
+    <grouptype>mast</grouptype>
+    <logicfunction>and</logicfunction>
+    <delay>0</delay>
+    <retriggerable>false</retriggerable>
+    <action1delay>false</action1delay>
+    <action1eventid>05.01.01.01.22.00.01.31</action1eventid>
+    <action2delay>false</action2delay>
+    <action3delay>false</action3delay>
+    <action4delay>false</action4delay>
+  </logic>
+  <logic frame="logic10">
+    <description>S1IN Clear</description>
+    <grouptype>single</grouptype>
+    <logicfunction>true</logicfunction>
+    <delay>0</delay>
+    <retriggerable>false</retriggerable>
+    <action1delay>false</action1delay>
+    <action1eventid>05.01.01.01.22.00.01.30</action1eventid>
+    <action2delay>false</action2delay>
+    <action3delay>false</action3delay>
+    <action4delay>false</action4delay>
+  </logic>
+</OpenLCB_Logic>
