@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <190324.1059>
+#  Last Modified : <191019.1349>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -4124,10 +4124,10 @@ namespace eval lcc {
             set protocolstrings(Display) [_m "Label|Display"]
             set protocolstrings(SimpleNodeInfo) [_m "Label|Simple Node Information"]
             set protocolstrings(CDI) [_m "Label|CDI"]
-            set protocolstrings(Traction) [_m "Label|Traction"]
-            set protocolstrings(FDI) [_m "Label|FDI"]
-            set protocolstrings(DCC) [_m "Label|DCC"]
-            set protocolstrings(SimpleTrainNode) [_m "Label|Simple Train Node"]
+            set protocolstrings(TractionControl) [_m "Label|Traction Control"]
+            set protocolstrings(TractionFDI) [_m "Label|Traction FDI"]
+            set protocolstrings(TractionProxy) [_m "Label|Traction Proxy"]
+            set protocolstrings(TractionSimpleTrainInfo) [_m "Label|Traction Simple Train Info"]
             set protocolstrings(FunctionConfiguration) [_m "Label|Function Configuration"]
             set protocolstrings(FirmwareUpgradeProtocol) [_m "Label|Firmware Upgrade Protocol"]
             set protocolstrings(FirmwareUpgradeActive) [_m "Label|Firmware Upgrade Active"]
@@ -4180,13 +4180,13 @@ namespace eval lcc {
                                 [expr {[lindex $bits 1] | 0x10}]]}
                 CDI {return [lreplace $bits 1 1 \
                                 [expr {[lindex $bits 1] | 0x08}]]}
-                Traction {return [lreplace $bits 1 1 \
+                TractionControl {return [lreplace $bits 1 1 \
                                 [expr {[lindex $bits 1] | 0x04}]]}
-                FDI {return [lreplace $bits 1 1 \
+                TractionFDI {return [lreplace $bits 1 1 \
                                 [expr {[lindex $bits 1] | 0x02}]]}
-                DCC {return [lreplace $bits 1 1 \
+                TractionProxy {return [lreplace $bits 1 1 \
                                 [expr {[lindex $bits 1] | 0x01}]]}
-                SimpleTrainNode {return [lreplace $bits 2 2 \
+                TractionSimpleTrainInfo {return [lreplace $bits 2 2 \
                                          [expr {[lindex $bits 2] | 0x80}]]}
                 FunctionConfiguration {return [lreplace $bits 2 2 \
                                                [expr {[lindex $bits 2] | 0x40}]]}
@@ -4245,17 +4245,17 @@ namespace eval lcc {
                 lappend protocols CDI
             }
             if {([lindex $report 1] & 0x04) != 0} {
-                lappend protocols Traction
+                lappend protocols TractionControl
             }
             if {([lindex $report 1] & 0x02) != 0} {
-                lappend protocols FDI
+                lappend protocols TractionFDI
             }
             if {([lindex $report 1] & 0x01) != 0} {
-                lappend protocols DCC
+                lappend protocols TractionProxy
             }
             
             if {([lindex $report 2] & 0x80) != 0} {
-                lappend protocols SimpleTrainNode
+                lappend protocols TractionSimpleTrainInfo
             }
             if {([lindex $report 2] & 0x40) != 0} {
                 lappend protocols FunctionConfiguration
