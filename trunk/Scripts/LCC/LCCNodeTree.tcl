@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Sep 19 09:18:09 2016
-#  Last Modified : <190324.1413>
+#  Last Modified : <191123.1004>
 #
 #  Description	
 #
@@ -497,6 +497,7 @@ snit::widgetadaptor LCCNodeTree {
                         }
                     } else {
                         # ??? (bad return address)
+                        set EOS_Seen yes
                     }
                 } else {
                     # error...
@@ -508,6 +509,7 @@ snit::widgetadaptor LCCNodeTree {
                     #    append message [format %c $b]
                     #}
                     #$logmessages insert end "$message\n"
+                    set EOS_Seen yes
                 }
                 $readCDIProgress Update [expr {($address + $size)-$start}]
             }
