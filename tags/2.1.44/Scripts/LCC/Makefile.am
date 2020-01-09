@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <190317.1842>
+#  Last Modified : <200109.0839>
 #
 #  Description	
 #
@@ -165,7 +165,7 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
 		         ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl \
 		         OpenLCB_PiPCA9685.tcl \
 		         OpenLCB_TrackCircuits.tcl OpenLCB_Acela.tcl \
-		         OpenLCB_Logic.tcl LCCNodeTree.tcl) Router.tcl \
+		         OpenLCB_Logic.tcl LCCNodeTree.tcl Router.tcl) \
 		Scripts/Common/snitStdMenuBar.tcl|\
 	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
 	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
