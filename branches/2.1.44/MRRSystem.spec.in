@@ -141,6 +141,7 @@ fi
 %{_datadir}/@PACKAGE@/CTIAcela
 %{_datadir}/@PACKAGE@/ControlSupport
 %{_datadir}/@PACKAGE@/LCC
+%{_datadir}/@PACKAGE@/LinuxGpio
 %{_mandir}/man1
 %{_mandir}/man8
 %{_desktopdir}

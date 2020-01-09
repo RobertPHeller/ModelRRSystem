@@ -146,6 +146,7 @@ share/@PACKAGE@/Satellite \
 share/@PACKAGE@/CTIAcela \
 share/@PACKAGE@/ControlSupport \
 share/@PACKAGE@/LCC \
+share/@PACKAGE@/LinuxGpio \
 share/applications \
 share/pixmaps \
 share/locale/en/LC_MESSAGES/mrrsystem.mo | tr ' ' '\n' >>/tmp/BINFILES$$.list
