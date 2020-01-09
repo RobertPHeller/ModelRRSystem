@@ -270,7 +270,7 @@ case $target_os in
 esac
 
 
-AM_CONDITIONAL(TARGET_IS_LINUX, test ${target_os} = "linux-gnu")
+AM_CONDITIONAL(TARGET_IS_LINUX, test ${target_os} = "linux-gnu" -o  ${target_os} = "linux-gnueabihf")
 
 AM_CONDITIONAL(CROSSCOMPILING,test ${cross_compiling} = "yes")
 if test ${cross_compiling} = "yes"; then
