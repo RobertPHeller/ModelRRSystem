@@ -1,0 +1,6 @@
+[Unit]
+
+[Service]
+Type=forking
+GuessMainPID=false
+ExecStart=/bin/sh -c "exec /lib/udev/raildriverd-hidraw add %I"

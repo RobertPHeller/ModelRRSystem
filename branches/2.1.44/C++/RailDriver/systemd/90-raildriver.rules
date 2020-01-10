@@ -1,0 +1,5 @@
+# Raildriver 
+SUBSYSTEM!="usb", GOTO="raildriver_rules_end"
+ACTION!="add", GOTO="raildriver_rules_end"
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device",ATTRS{idVendor}=="05f3", ATTRS{idProduct}=="00d2", PROGRAM:="/lib/udev/raildriver-get-hidraw", TAG+="systemd", ENV{SYSTEMD_WANTS}="raildriverd-hidraw@$result.service"
+LABEL="raildriver_rules_end"

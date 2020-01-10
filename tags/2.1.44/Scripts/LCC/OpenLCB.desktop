@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Open LCB Program
+Comment=Open LCB Program
+Exec=OpenLCB
+Icon=OpenLCB.png
+Encoding=UTF-8
+Categories=Application;Model-Railroad-System
+
