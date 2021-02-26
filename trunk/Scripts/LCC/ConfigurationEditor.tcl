@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <190227.2123>
+#  Last Modified : <210217.1113>
 #
 #  Description	
 #
@@ -129,7 +129,129 @@ namespace eval lcc {
         }
     }
         
-    
+    snit::type EventUseTable {
+        pragma -hastypeinfo    no
+        pragma -hastypedestroy no
+        pragma -hasinstances   no
+        
+        typevariable _table -array {}
+        
+        typemethod AddEventUse {eventid widget} {
+            #puts stderr "*** $type AddEventUse $eventid $widget"
+            if {[info exists _table($eventid)]} {
+                foreach _widget $_table($eventid) {
+                    if {$widget eq $_widget} {
+                        return
+                    }
+                }
+            }
+            lappend _table($eventid) $widget
+        }
+        typemethod DeleteEventUse {eventid widget} {
+            #puts stderr "*** $type DeleteEventUse $eventid $widget"
+            if {[info exists _table($eventid)]} {
+                set uses $_table($eventid)
+                set index -1
+                foreach _widget $uses {
+                    incr index
+                    if {$widget eq $_widget} {
+                        set _table($eventid) [lreplace $uses $index $index]
+                        return
+                    }
+                }
+            }
+        }
+        typemethod GetEventUsesRaw {eventid} {
+            #puts stderr "*** $type GetEventUsesRaw $eventid"
+            if {[info exists _table($eventid)]} {
+                return $_table($eventid)
+            } else {
+                return {}
+            }
+        }
+        typemethod GetEventUsesFormatted {eventid} {
+            set result [list]
+            if {[info exists _table($eventid)]} {
+                foreach widget $_table($eventid) {
+                    set eventframe [winfo parent $widget]
+                    set eventLabel [$eventframe.descr cget -text]
+                    #puts stderr "*** $type GetEventUsesFormatted: eventLabel is '$eventLabel'"
+                    set p [winfo parent $eventframe]
+                    set foundName no
+                    set name {}
+                    while {!$foundName && [winfo parent $p] ne {}} {
+                        if {[winfo class $p] eq {TFrame}} {
+                            foreach c [winfo children $p] {
+                                if {[string first string [winfo name $c]] == 0} {
+                                    set name [$c.value get]
+                                    set foundName yes
+                                    break
+                                }
+                            }
+                        }
+                        set p [winfo parent $p]
+                    }
+                    set nodename {}
+                    set nidnibs [regsub {^\.cdi} [winfo toplevel $widget] {}]
+                    set bytes [scan $nidnibs {%2x%2x%2x%2x%2x%2x}]
+                    set nid ""
+                    set colon ""
+                    foreach b $bytes {
+                        append nid "$colon"
+                        append nid [format {%02X} $b]
+                        set colon ":"
+                    }
+                    #puts stderr "*** $type GetEventUsesFormatted: foundName is $foundName, name is '$name'"
+                    set segments [winfo toplevel $widget].main.frame.scroll.editframe.uframe.segments
+                    set nodenameFound no
+                    foreach c [winfo children $segments] {
+                        if {[winfo exists $c.readall]} {
+                            set cmd [$c.readall cget -command]
+                            #puts stderr "*** $type GetEventUsesFormatted: cmd is \{$cmd\}"
+                            if {[lindex $cmd end] == 251} {
+                                if {[winfo exists $c.groups]} {
+                                    foreach c [winfo children $c.groups] {
+                                        #_walkChildren $c
+                                        foreach gc [winfo children $c] {
+                                            #_walkChildren $gc
+                                            if {[winfo class $gc] eq {TLabelframe}} {
+                                                set label [$gc cget -text]
+                                                #puts stderr "*** $type GetEventUsesFormatted: label is {$label}"
+                                                if {[string match -nocase *name $label]} {
+                                                    set nodename [$gc.value get]
+                                                    set nodenameFound yes
+                                                    break
+                                                }
+                                            }
+                                        }
+                                        if {$nodenameFound} {break}
+                                    }
+                                }
+                            }
+                        }
+                        if {$nodenameFound} {break}
+                        
+                    }
+                    lappend result \
+                          [format {%s: %s of %s (%s)} $name $eventLabel  $nodename $nid]
+                }
+            }
+            return $result
+        }
+        proc _walkChildren {w} {
+            puts stderr "*** _walkChildren: children of $w:"
+            foreach c [winfo children $w] {
+                puts stderr "*** _walkChildren: $c is a [winfo class $c]"
+                if {[winfo class $c] eq {TEntry}} {
+                    puts stderr "*** _walkChildren: $c contains [$c get]"
+                }
+                if {[winfo class $c] eq {TLabelframe}} {
+                    puts stderr "*** _walkChildren: $c's label is [$c cget -text]"
+                }
+                #_walkChildren $c
+            }
+        }
+    }   
     snit::widget ConfigurationEditor {
         ## @brief Generate OpenLCB Memory Configuration Window.
         # Create a toplevel to configure a node's Memory using that
@@ -174,6 +296,12 @@ namespace eval lcc {
         component newBlock
         component newSensor
         component newControl
+        
+        typecomponent event_also_used
+        delegate typemethod AddEventUse to event_also_used
+        delegate typemethod DeleteEventUse to event_also_used
+        delegate typemethod GetEventUsesRaw to event_also_used
+        delegate typemethod GetEventUsesFormatted to event_also_used
         
         option -cdi -readonly yes
         option -layoutdb -default {};# -configuremethod _traceopt
@@ -339,6 +467,12 @@ namespace eval lcc {
             $editContextMenu bind Text
             $editContextMenu bind ROText
             $editContextMenu bind Spinbox
+            set event_also_used ::lcc::EventUseTable
+            ttk::style layout TButtonHot [ttk::style layout TButton]
+            foreach {opt value} [ttk::style configure TButton] {
+                ttk::style configure TButtonHot $opt $value
+            }
+            ttk::style configure TButtonHot -background orange
         }
         typevariable _stack [list]
         proc push {x} {set _stack [linsert $_stack 0 $x]}
@@ -896,16 +1030,52 @@ namespace eval lcc {
                     pack $readwrite -expand yes -fill x
                     set rb [$readwrite add ttk::button read -text [_m "Label|Read"] \
                             -command [mymethod $readermethod $widget $space $address $size]]
+                    set usemessage [message $eventidframe.usage \
+                                    -aspect 1500]
+                    pack $usemessage -expand yes -fill x
                     lappend _readall($space) $rb
                     $readwrite add ttk::button write -text [_m "Label|Write"] \
                           -command [mymethod $writermethod $widget $space $address $size]
                     if {$options(-displayonly)} {
                         $readwrite configure -state disabled
                     }
+                    $readwrite add ttk::button showuse -text [_m "Label|Show Uses"] \
+                          -command [mymethod _showeventuse $widget $usemessage]
+                    $readwrite add ttk::button copy -text [_m "Label|Copy"] \
+                          -command [mymethod _copyevent $widget $readwrite.copy]
+                    $readwrite add ttk::button paste  -text [_m "Label|Paste"] \
+                          -command [mymethod _pasteevent $widget $readwrite.paste]
                     incr address $size
                 }
             }
             #update idle
+        }
+        method _showeventuse {widget message} {
+            set m ""
+            foreach u [$type GetEventUsesFormatted [$widget get]] {
+                append m "$u\n"
+            }
+            $message configure -text $m
+        }
+        typevariable _lastCopyButton {}
+        method _copyevent {widget button} {
+            if {$_lastCopyButton ne {}} {
+                $_lastCopyButton configure -style TButton
+                set _lastCopyButton {}
+            }
+            $button configure -style TButtonHot
+            set _lastCopyButton $button
+            $widget selection range 0 end
+        }
+        method _pasteevent {widget button} {
+            if {[catch {selection get} select]} {return}
+            if {$select eq ""} {return}
+            if {[catch {lcc::eventidstring validate $select}]} {return}
+            $button configure -style TButtonHot
+            $type DeleteEventUse [$widget get] $widget
+            $widget delete 0 end
+            $widget insert end $select
+            $type AddEventUse $select $widget
         }
         method _eventContext1 {dismiscmd entry item taglist} {
             uplevel #0 $dismiscmd
@@ -2544,8 +2714,10 @@ namespace eval lcc {
                 }
                 set evid [lcc::EventID %AUTO% -eventidlist $data]
                 set value [$evid cget -eventidstring]
+                $type DeleteEventUse [$widget get] $widget
                 $widget delete 0 end
                 $widget insert end $value
+                $type AddEventUse $value $widget
             } elseif {$status == 0x58} {
                 # Failure
                 set errorcode [expr {([lindex $data 0] << 8) | [lindex $data 1]}]
