@@ -399,7 +399,7 @@ snit::widgetadaptor mainwindow {
           #lappend args -helptext "$helptext" -helptype variable \
           #-helpvar [myvar status]
       }
-      pack [eval [list ttk::button $frame.$bname] $args] -side left
+      pack [eval [list ttk::button $frame.$bname -style Toolbutton] $args] -side left
     }
   }
 
