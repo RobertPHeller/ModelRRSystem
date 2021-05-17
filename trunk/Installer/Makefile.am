@@ -107,7 +107,6 @@ setup${EXEEXT}: setup.tcl $(setupSCRIPTS) $(setupIMAGES) $(setupLIBIMAGES) \
 		lib/Diskfree .libs/libdiskfree$(SHLIB_SUFFIX) pkgIndex.tcl
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit setup \
 		lib/Images $(setupIMAGES) $(setupLIBIMAGES)
-	$(UNZIP) -qq -d setup.vfs/lib $(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit setup lib/Common \
 		$(setupSCRIPTS)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit setup Common

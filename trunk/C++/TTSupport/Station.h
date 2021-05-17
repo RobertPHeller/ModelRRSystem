@@ -501,7 +501,7 @@ int ForEveryOccupied(Tcl_Interp *interp,StorageTrack *storageTrack,Tcl_Obj *vari
 	    } else if (result == TCL_ERROR) {// error
 	      char msg[64 + TCL_INTEGER_SPACE];
 	      sprintf(msg, _("\n    ('ForEveryOccupied' body line %d)"),
-	      		interp->errorLine);
+                        Tcl_GetErrorLine(interp));
 	      Tcl_AddObjErrorInfo(interp, msg, -1);
 	      break;
 	    } else {// Other status values: return, etc.
@@ -753,7 +753,7 @@ int ForEveryStorageTrack(Tcl_Interp *interp,Station *station,Tcl_Obj *variableNa
 	    } else if (result == TCL_ERROR) {
 	      char msg[64 + TCL_INTEGER_SPACE];
 	      sprintf(msg, _("\n    ('ForEveryStorageTrack' body line %d)"),
-	      		interp->errorLine);
+	      		Tcl_GetErrorLine(interp));
 	      Tcl_AddObjErrorInfo(interp, msg, -1);
 	      break;
 	    } else {

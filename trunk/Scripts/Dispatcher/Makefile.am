@@ -225,8 +225,6 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		lib/$(CXXSupport) $(CXXSupportFiles)
 	$(UNZIP) -qq -d Dispatcher.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
-	$(UNZIP) -qq -d Dispatcher.vfs/lib \
 		$(top_srcdir)/BuildData/pdf4tcl05.zip
 	$(UNZIP) -qq -d Dispatcher.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip

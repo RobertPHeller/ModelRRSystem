@@ -121,8 +121,6 @@ Resistor${EXEEXT}: Resistor.tcl $(ResistorSCRIPTS) \
 		lib/Common $(ResistorSCRIPTS)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit Resistor \
 		Common
-	$(UNZIP) -qq -d Resistor.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Resistor \
 		Help $(top_builddir)/Doc/User/Calc/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Resistor \
@@ -169,8 +167,6 @@ LocoPull${EXEEXT}: LocoPull.tcl $(LocoPullSCRIPTS) \
 		lib/Common $(LocoPullSCRIPTS)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit LocoPull \
 		Common
-	$(UNZIP) -qq -d LocoPull.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit LocoPull \
 		Help $(top_builddir)/Doc/User/Calc/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit LocoPull \

@@ -126,8 +126,6 @@ CommonTests${EXEEXT}: CommonTests.tcl $(CommonScripts) DeepwoodsBanner.gif \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/CommonTests.tcl
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap CommonTests.kit
 	-rm -f CommonTests.kit
-	$(UNZIP) -qq -d CommonTests.vfs/lib \
-	    $(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit CommonTests \
 		lib $(SNITLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) CommonTests \

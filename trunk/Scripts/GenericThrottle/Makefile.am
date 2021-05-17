@@ -115,8 +115,6 @@ GenericThrottle$(EXEEXT) : GenericThrottle.src $(GTLibFiles) $(GTCommonFiles) \
 		lib/$(GTCommon) $(GTCommonFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit GenericThrottle \
 		$(GTCommon)
-	$(UNZIP) -qq -d GenericThrottle.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit GenericThrottle \
 		Help $(top_builddir)/Doc/User/GenericThrottle/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit GenericThrottle \

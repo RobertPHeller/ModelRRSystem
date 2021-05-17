@@ -176,8 +176,6 @@ SampleCode${EXEEXT}: SampleCode.tcl $(SampleCodeScripts) $(SampleCodeHelpDep) \
 		lib/SampleCode $(SampleCodePackages)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit SampleCode \
 	        SampleCode
-	$(UNZIP) -qq -d SampleCode.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SampleCode \
 		Help $(SampleCodeHelpFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap SampleCode${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)

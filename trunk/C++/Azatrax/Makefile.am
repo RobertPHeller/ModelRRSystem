@@ -225,8 +225,6 @@ MRDTest${EXEEXT}: MRDTest.src libazatrax.la $(MRDTestSCRIPTS) \
 		Common
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit MRDTest \
 		lib/Azatrax .libs/libazatrax$(SHLIB_SUFFIX) pkgIndex.tcl
-	$(UNZIP) -qq -d MRDTest.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit MRDTest \
 		Help $(top_builddir)/Doc/User/AzatraxProg/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit MRDTest \
@@ -277,8 +275,6 @@ SL2Test${EXEEXT}: SL2Test.src libazatrax.la $(SL2TestSCRIPTS) \
 		Common
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SL2Test \
 		lib/Azatrax .libs/libazatrax$(SHLIB_SUFFIX) pkgIndex.tcl
-	$(UNZIP) -qq -d SL2Test.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SL2Test \
 		Help $(top_builddir)/Doc/User/AzatraxProg/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SL2Test \
@@ -329,8 +325,6 @@ SR4Test${EXEEXT}: SR4Test.src libazatrax.la $(SR4TestSCRIPTS) \
 		Common
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SR4Test \
 		lib/Azatrax .libs/libazatrax$(SHLIB_SUFFIX) pkgIndex.tcl
-	$(UNZIP) -qq -d SR4Test.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SR4Test \
 		Help $(top_builddir)/Doc/User/AzatraxProg/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit SR4Test \
@@ -381,8 +375,6 @@ MRDSensorLoop${EXEEXT}: MRDSensorLoop.src libazatrax.la $(MRDSensorLoopSCRIPTS) 
 		Common
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit MRDSensorLoop \
 		lib/Azatrax .libs/libazatrax$(SHLIB_SUFFIX) pkgIndex.tcl
-	$(UNZIP) -qq -d MRDSensorLoop.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit MRDSensorLoop \
 		Help $(top_builddir)/Doc/User/AzatraxProg/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit MRDSensorLoop \
@@ -437,8 +429,6 @@ AzatraxDeviceMap${EXEEXT}: AzatraxDeviceMap.src libazatrax.la $(AzatraxDeviceMap
 		Common
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit AzatraxDeviceMap \
 		lib/Azatrax .libs/libazatrax$(SHLIB_SUFFIX) pkgIndex.tcl
-	$(UNZIP) -qq -d AzatraxDeviceMap.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit AzatraxDeviceMap \
 		Help $(top_builddir)/Doc/User/AzatraxProg/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit AzatraxDeviceMap \

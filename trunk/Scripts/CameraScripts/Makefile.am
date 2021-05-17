@@ -110,8 +110,6 @@ AnyDistance${EXEEXT} : AnyDistance.src $(CameraSCRIPTS) \
 		lib/Common $(CameraSCRIPTS)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit AnyDistance \
 		Common
-	$(UNZIP) -qq -d AnyDistance.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit AnyDistance \
 		Help $(top_builddir)/Doc/User/Camera/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit AnyDistance \
@@ -158,8 +156,6 @@ Closest${EXEEXT} : Closest.src $(CameraSCRIPTS) \
 		lib/Common $(CameraSCRIPTS)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit Closest \
 		Common
-	$(UNZIP) -qq -d Closest.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Closest \
 		Help $(top_builddir)/Doc/User/Camera/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Closest \

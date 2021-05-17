@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue May 16 11:38:07 2017
-#  Last Modified : <170516.1232>
+#  Last Modified : <210517.1207>
 #
 #  Description	
 #
@@ -110,8 +110,6 @@ CMRI_Slave${EXEEXT}: CMRI_Slave.tcl $(CMRI_SlaveSCRIPTS) \
 		lib $(URILIB)
 	$(UNZIP) -qq -d CMRI_Slave.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
-	$(UNZIP) -qq -d CMRI_Slave.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit CMRI_Slave \
 		lib/Common $(CMRI_SlaveSCRIPTS)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit CMRI_Slave \

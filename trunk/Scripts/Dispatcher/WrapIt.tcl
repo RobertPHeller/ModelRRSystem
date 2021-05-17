@@ -33,8 +33,6 @@
 #*  
 #* 
 
-package require Mk4tcl
-
 namespace eval WrapIt {
   variable TclKit {}
   variable HasTested no
@@ -155,18 +153,89 @@ namespace eval WrapIt {
     [file join $Lib Common questhead.xbm] \
     [file join $Lib Common gray50.xbm] \
   ]
-#  puts stderr "*** WrapIt::CopyCommonLibFiles = $CopyCommonLibFiles"
+  #  puts stderr "*** WrapIt::CopyCommonLibFiles = $CopyCommonLibFiles"
+  proc mkFileStart {filename} {
+      set end [file size $filename]
+      if {$end < 27} {
+          fail "file too small, cannot be a datafile"
+      }
+      
+      set fd [open $filename]
+      fconfigure $fd -translation binary
+      seek $fd -16 end
+      binary scan [read $fd 16] IIII a b c d
+      close $fd
+      
+      #puts [format %x-%d-%x-%d $a $b $c $d]
+      
+      if {($c >> 24) != -128} {
+          error "this is not a Metakit datafile"
+      }
+      
+      # avoid negative sign / overflow issues
+      if {[format %x [expr {$a & 0xffffffff}]] eq "80000000"} {
+          set start [expr {$end - 16 - $b}]
+      } else {
+          # if the file is in commit-progress state, we need to do more
+          error "this code needs to be finished..."
+      }
+      
+      return $start
+  }
+
   proc WrapIt {filename writeprogfun {needcmri no} {needazatrax no} {needctiacela no} {needopenlcb no} {additionalPackages {}}} {
     variable TclKit
     variable PackageBaseDir
     set compress 1
     set ropts -readonly
+    #puts stderr "*** WrapIt: TclKit is $TclKit"
     file copy $TclKit $filename
     if {![catch { package require Mk4tcl }]} {
         vfs::mk4::Mount $filename $filename
     } elseif {![catch { package require vlerq }]} {
         package require vfs::m2m 1.8
+        set outsize [file size $filename]
+        #puts stderr "*** Wrapit: outsize = $outsize"
+        if {![catch { mkFileStart $filename } mkpos]} {
+            #puts stderr "*** Wrapit: mkpos = $mkpos"
+            set fd [open $filename]
+            fconfigure $fd -translation binary
+            set outhead [read $fd $mkpos]
+            set origvfs [read $fd]
+            close $fd
+            set fd [open $filename w]
+            fconfigure $fd -translation binary
+            puts -nonewline $fd $outhead
+            close $fd
+        }
+        
         vfs::m2m::Mount $filename $filename
+        
+        if {[info exists origvfs]} {
+            set fd [open $filename.tmp w]
+            fconfigure $fd -translation binary
+            puts -nonewline $fd $origvfs
+            close $fd
+            
+            package require vfs::mkcl
+            vfs::mkcl::Mount $filename.tmp $filename.tmp
+            array set opts {
+                -prune      0
+                -verbose    0
+                -show       0
+                -ignore     ""
+                -mtime      0
+                -compress   0
+                -auto       0
+                -noerror    1
+                -text       0
+            }
+            sync::rsync opts $filename.tmp $filename
+            
+            vfs::unmount $filename.tmp
+            file delete $filename.tmp
+        }
+            
     } else {
         tk_messageBox \
               -type ok -icon error \
@@ -254,6 +323,248 @@ namespace eval WrapIt {
     close $fp
     vfs::unmount $filename
   }
+}
+
+namespace eval sync {
+    # Synchronize two directory trees, VFS-aware
+    #
+    # Copyright (c) 1999 Matt Newman, Jean-Claude Wippler and Equi4 Software.
+    
+    #
+    # Recursively sync two directory structures
+    #
+    proc rsync {arr src dest} {
+        #tclLog "rsync $src $dest"
+        upvar 1 $arr opts
+        
+        if {$opts(-auto)} {
+            # Auto-mounter
+            vfs::auto $src -readonly
+            vfs::auto $dest
+        }
+        
+        if {![file exists $src]} {
+            return -code error "source \"$src\" does not exist"
+        }
+        if {[file isfile $src]} {
+            #tclLog "copying file $src to $dest"
+            return [rcopy opts $src $dest]
+        }
+        if {![file isdirectory $dest]} {
+            #tclLog "copying non-file $src to $dest"
+            return [rcopy opts $src $dest]
+        }
+        set contents {}
+        eval lappend contents [glob -nocomplain -dir $src *]
+        eval lappend contents [glob -nocomplain -dir $src .*]
+        
+        set count 0		;# How many changes were needed
+        foreach file $contents {
+            #tclLog "Examining $file"
+            set tail [file tail $file]
+            if {$tail == "." || $tail == ".."} {
+                continue
+            }
+            set target [file join $dest $tail]
+            
+            set seen($tail) 1
+            
+            if {[info exists opts(ignore,$file)] || \
+                      [info exists opts(ignore,$tail)]} {
+                if {$opts(-verbose)} {
+                    tclLog "skipping $file (ignored)"
+                }
+                continue
+            }
+            if {[file isdirectory $file]} {
+                incr count [rsync opts $file $target]
+                continue
+            }
+            if {[file exists $target]} {
+                #tclLog "target $target exists"
+                # Verify
+                file stat $file sb
+                file stat $target nsb
+                #tclLog "$file size=$sb(size)/$nsb(size), mtime=$sb(mtime)/$nsb(mtime)"
+                if {$sb(size) == $nsb(size)} {
+                    # Copying across filesystems can yield a slight variance
+                    # in mtime's (typ 1 sec)
+                    if { ($sb(mtime) - $nsb(mtime)) < $opts(-mtime) } {
+                        # Good
+                        continue
+                    }
+                }
+                #tclLog "size=$sb(size)/$nsb(size), mtime=$sb(mtime)/$nsb(mtime)"
+            }
+            incr count [rcopy opts $file $target]
+        }
+        #
+        # Handle stray files
+        #
+        if {$opts(-prune) == 0} {
+            return $count
+        }
+        set contents {}
+        eval lappend contents [glob -nocomplain -dir $dest *]
+        eval lappend contents [glob -nocomplain -dir $dest .*]
+        foreach file $contents {
+            set tail [file tail $file]
+            if {$tail == "." || $tail == ".."} {
+                continue
+            }
+            if {[info exists seen($tail)]} {
+                continue
+            }
+            rdelete opts $file
+            incr count
+        }
+        return $count
+    }
+    proc _rsync {arr args} {
+        upvar 1 $arr opts
+        #tclLog "_rsync $args ([array get opts])"
+        
+        if {$opts(-show)} {
+            # Just show me, don't do it.
+            tclLog $args
+            return
+        }
+        if {$opts(-verbose)} {
+            tclLog $args
+        }
+        if {[catch {eval $args} err]} {
+            if {$opts(-noerror)} {
+                tclLog "Warning: $err"
+            } else {
+                return -code error -errorinfo ${::errorInfo} $err 
+            }
+        }
+    }
+    
+    # This procedure is better than just 'file copy' on Windows,
+    # MacOS, where the source files probably have native eol's,
+    # but the destination should have Tcl/unix native '\n' eols.
+    # We therefore need to handle text vs non-text files differently.
+    proc file_copy {src dest {textmode 0}} {
+        set mtime [file mtime $src]
+        if {!$textmode} {
+            file copy $src $dest
+        } else {
+            switch -- [file extension $src] {
+                ".tcl" -
+                ".txt" -
+                ".msg" -
+                ".test" -
+                ".itk" {
+                }
+                default {
+                    if {[file tail $src] != "tclIndex"} {
+                        # Other files are copied as binary
+                        #return [file copy $src $dest]
+                        file copy $src $dest
+                        file mtime $dest $mtime
+                        return
+                    }
+                }
+            }
+            # These are all text files; make sure we get
+            # the translation right.  Automatic eol 
+            # translation should work fine.
+            set fin [open $src r]
+            set fout [open $dest w]
+            fcopy $fin $fout
+            close $fin
+            close $fout
+        }
+        file mtime $dest $mtime
+    }
+    
+    proc rcopy {arr path dest} {
+        #tclLog "rcopy: $arr $path $dest"
+        upvar 1 $arr opts
+        # Recursive "file copy"
+        
+        set tail [file tail $dest]
+        if {[info exists opts(ignore,$path)] || \
+                  [info exists opts(ignore,$tail)]} {
+            if {$opts(-verbose)} {
+                tclLog "skipping $path (ignored)"
+            }
+            return 0
+        }
+        variable rsync_globs
+        foreach expr $rsync_globs {
+            if {[string match $expr $path]} {
+                if {$opts(-verbose)} {
+                    tclLog "skipping $path (matched $expr) (ignored)"
+                }
+                return 0
+            }
+        }
+        if {![file isdirectory $path]} {
+            if {[file exists $dest]} {
+                _rsync opts file delete $dest
+            }
+            _rsync opts file_copy $path $dest $opts(-text)
+            return 1
+        }
+        set count 0
+        if {![file exists $dest]} {
+            _rsync opts file mkdir $dest
+            set count 1
+        }
+        set contents {}
+        eval lappend contents [glob -nocomplain -dir $path *]
+        eval lappend contents [glob -nocomplain -dir $path .*]
+        #tclLog "copying entire directory $path, containing $contents"
+        foreach file $contents {
+            set tail [file tail $file]
+            if {$tail == "." || $tail == ".."} {
+                continue
+            }
+            set target [file join $dest $tail]
+            incr count [rcopy opts $file $target]
+        }
+        return $count
+    }
+    proc rdelete {arr path} {
+        upvar 1 $arr opts 
+        # Recursive "file delete"
+        if {![file isdirectory $path]} {
+            _rsync opts file delete $path
+            return
+        }
+        set contents {}
+        eval lappend contents [glob -nocomplain -dir $path *]
+        eval lappend contents [glob -nocomplain -dir $path .*]
+        foreach file $contents {
+            set tail [file tail $file]
+            if {$tail == "." || $tail == ".."} {
+                continue
+            }
+            rdelete opts $file
+        }
+        _rsync opts file delete $path
+    }
+    proc rignore {arr args} {
+        upvar 1 $arr opts 
+        
+        foreach file $args {
+            set opts(ignore,$file) 1
+        }
+    }
+    proc rpreserve {arr args} {
+        upvar 1 $arr opts 
+        
+        foreach file $args {
+            catch {unset opts(ignore,$file)}
+        }
+    }
+    proc rignore_globs {args} {
+        variable rsync_globs
+        set rsync_globs $args
+    }
+    rignore_globs {}
 }
 
 package provide WrapIt 1.0

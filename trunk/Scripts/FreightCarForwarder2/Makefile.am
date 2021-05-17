@@ -194,8 +194,6 @@ FCFMain${EXEEXT} : FCFMain.src $(FCFLibFiles) $(FCFCommonFiles) \
 		$(FCFCommon)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit FCFMain \
 		lib/$(CXXSupport) $(CXXSupportFiles)
-	$(UNZIP) -qq -d FCFMain.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit FCFMain \
 		Help $(top_builddir)/Doc/User/FCF/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit FCFMain \
@@ -247,8 +245,6 @@ FCFCreate$(EXEEXT) : FCFCreate.src $(FCFCreLibFiles) $(FCFCommonFiles) \
 		lib/$(FCFCommon) $(FCFCommonFiles)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit FCFCreate \
 		$(FCFCommon)
-	$(UNZIP) -qq -d FCFCreate.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit FCFCreate \
 		Help $(top_builddir)/Doc/User/FCF/*
 	list='$(SUBDIRS)'; for subdir in $$list; do \

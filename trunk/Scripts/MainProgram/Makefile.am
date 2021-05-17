@@ -106,8 +106,6 @@ ModelRRSystem$(EXEEXT) : ModelRRSystem.src $(ModelRRSystemLibFiles) $(CommonLibF
 		$(CommonLib)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit ModelRRSystem \
 		lib/$(CXXSupport) $(CXXSupportFiles)
-	$(UNZIP) -qq -d ModelRRSystem.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit ModelRRSystem \
 		Help $(top_builddir)/Doc/User/MainProgram/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap ModelRRSystem${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)

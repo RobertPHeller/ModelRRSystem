@@ -543,11 +543,11 @@ int ForEveryStop (Tcl_Interp *interp,Train *train,Tcl_Obj *variableName,Tcl_Obj 
 	    } else if (result == TCL_ERROR) {
 #ifdef DEBUG
 	      cerr << "*** ForEveryStop(): TCL_ERROR: " << Tcl_GetString(Tcl_GetObjResult(interp)) << endl;
-	      cerr << "*** ForEveryStop(): TCL_ERROR: at " << interp->errorLine << endl;
+	      cerr << "*** ForEveryStop(): TCL_ERROR: at " << Tcl_GetErrorLine(interp) << endl;
 #endif
 	      char msg[64 + TCL_INTEGER_SPACE];
 	      sprintf(msg, _("\n    ('ForEveryStop' body line %d)"),
-	      		interp->errorLine);
+	      		Tcl_GetErrorLine(interp));
 	      Tcl_AddObjErrorInfo(interp, msg, -1);
 	      break;
 	    } else {

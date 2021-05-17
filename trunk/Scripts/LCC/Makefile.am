@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <200109.0839>
+#  Last Modified : <210517.1208>
 #
 #  Description	
 #
@@ -199,8 +199,6 @@ if HAVE_CAN
 		lib/TclSocketCAN $(SOCKETCAN_FILES)
 endif
 	$(UNZIP) -qq -d OpenLCB.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
-	$(UNZIP) -qq -d OpenLCB.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
 	$(UNZIP) -qq -d OpenLCB.vfs/lib \
 		$(top_srcdir)/BuildData/pdf4tcl05.zip
@@ -371,8 +369,6 @@ OpenLCB_MRD2${EXEEXT}: OpenLCB_MRD2.tcl $(OpenLCB_MRD2SCRIPTS) \
 		lib/Common $(OpenLCB_MRD2SCRIPTS)
 	$(UNZIP) -qq -d OpenLCB_MRD2.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
-	$(UNZIP) -qq -d OpenLCB_MRD2.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_MRD2 \
 		Common
 if HAVE_CAN
@@ -435,8 +431,6 @@ OpenLCB_PiGPIO${EXEEXT}: OpenLCB_PiGPIO.tcl $(OpenLCB_PiGPIOSCRIPTS) \
 		lib/Common $(OpenLCB_PiGPIOSCRIPTS)
 	$(UNZIP) -qq -d OpenLCB_PiGPIO.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
-	$(UNZIP) -qq -d OpenLCB_PiGPIO.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_PiGPIO \
 		Common
 if HAVE_CAN
@@ -494,8 +488,6 @@ OpenLCB_PiMCP23008${EXEEXT}: OpenLCB_PiMCP23008.tcl $(OpenLCB_PiMCP23008SCRIPTS)
 		lib/Common $(OpenLCB_PiMCP23008SCRIPTS)
 	$(UNZIP) -qq -d OpenLCB_PiMCP23008.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
-	$(UNZIP) -qq -d OpenLCB_PiMCP23008.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_PiMCP23008 \
 		Common
 if HAVE_CAN
@@ -553,8 +545,6 @@ OpenLCB_PiMCP23017${EXEEXT}: OpenLCB_PiMCP23017.tcl $(OpenLCB_PiMCP23017SCRIPTS)
 		lib/Common $(OpenLCB_PiMCP23017SCRIPTS)
 	$(UNZIP) -qq -d OpenLCB_PiMCP23017.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
-	$(UNZIP) -qq -d OpenLCB_PiMCP23017.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_PiMCP23017 \
 		Common
 if HAVE_CAN
@@ -612,8 +602,6 @@ OpenLCB_PiSPIMax7221${EXEEXT}: OpenLCB_PiSPIMax7221.tcl $(OpenLCB_PiSPIMax7221SC
 		lib/Common $(OpenLCB_PiSPIMax7221SCRIPTS)
 	$(UNZIP) -qq -d OpenLCB_PiSPIMax7221.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
-	$(UNZIP) -qq -d OpenLCB_PiSPIMax7221.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_PiSPIMax7221 \
 		Common
 if HAVE_CAN
@@ -671,8 +659,6 @@ OpenLCB_PiMCP23017_signal${EXEEXT}: OpenLCB_PiMCP23017_signal.tcl $(OpenLCB_PiMC
 		lib/Common $(OpenLCB_PiMCP23017_signalSCRIPTS)
 	$(UNZIP) -qq -d OpenLCB_PiMCP23017_signal.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
-	$(UNZIP) -qq -d OpenLCB_PiMCP23017_signal.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_PiMCP23017_signal \
 		Common
 if HAVE_CAN
@@ -730,8 +716,6 @@ OpenLCB_QuadSignal${EXEEXT}: OpenLCB_QuadSignal.tcl $(OpenLCB_QuadSignalSCRIPTS)
 		lib/Common $(OpenLCB_QuadSignalSCRIPTS)
 	$(UNZIP) -qq -d OpenLCB_QuadSignal.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
-	$(UNZIP) -qq -d OpenLCB_QuadSignal.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_QuadSignal \
 		Common
 if HAVE_CAN
@@ -790,8 +774,6 @@ OpenLCB_PiPCA9685${EXEEXT}: OpenLCB_PiPCA9685.tcl $(OpenLCB_PiPCA9685SCRIPTS) \
 		lib/Common $(OpenLCB_PiPCA9685SCRIPTS)
 	$(UNZIP) -qq -d OpenLCB_PiPCA9685.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
-	$(UNZIP) -qq -d OpenLCB_PiPCA9685.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_PiPCA9685 \
 		Common
 if HAVE_CAN
@@ -850,8 +832,6 @@ OpenLCB_TrackCircuits${EXEEXT}: OpenLCB_TrackCircuits.tcl \
 		lib/Common $(OpenLCB_TrackCircuitsSCRIPTS)
 	$(UNZIP) -qq -d OpenLCB_TrackCircuits.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
-	$(UNZIP) -qq -d OpenLCB_TrackCircuits.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_TrackCircuits \
 		Common
 if HAVE_CAN
@@ -908,8 +888,6 @@ OpenLCB_Logic${EXEEXT}: OpenLCB_Logic.tcl \
 		lib/Common $(OpenLCB_LogicSCRIPTS)
 	$(UNZIP) -qq -d OpenLCB_Logic.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
-	$(UNZIP) -qq -d OpenLCB_Logic.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_Logic \
 		Common
 if HAVE_CAN
@@ -968,8 +946,6 @@ OpenLCB_Acela${EXEEXT}: OpenLCB_Acela.tcl $(OpenLCB_AcelaSCRIPTS) \
 		lib/Common $(OpenLCB_AcelaSCRIPTS)
 	$(UNZIP) -qq -d OpenLCB_Acela.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
-	$(UNZIP) -qq -d OpenLCB_Acela.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_Acela \
 		Common
 if HAVE_CAN
@@ -1031,8 +1007,6 @@ OpenLCB_CMRI${EXEEXT}: OpenLCB_CMRI.tcl \
 		lib/Common $(OpenLCB_CMRISCRIPTS)
 	$(UNZIP) -qq -d OpenLCB_CMRI.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
-	$(UNZIP) -qq -d OpenLCB_CMRI.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB_CMRI \
 		Common
 if HAVE_CAN

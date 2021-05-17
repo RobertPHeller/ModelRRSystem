@@ -157,7 +157,7 @@ static int ForEveryStation(Tcl_Interp *interp,TimeTableSystem *timetable,Tcl_Obj
 	    } else if (result == TCL_ERROR) {
 	      char msg[64 + TCL_INTEGER_SPACE];
 	      sprintf(msg, "\n    (\"ForEveryStation\" body line %d)",
-	      		interp->errorLine);
+	      		Tcl_GetErrorLine(interp));
 	      Tcl_AddObjErrorInfo(interp, msg, -1);
 	      break;
 	    } else {
@@ -218,7 +218,7 @@ static int ForEveryCab(Tcl_Interp *interp,TimeTableSystem *timetable,Tcl_Obj *va
 	    } else if (result == TCL_ERROR) {
 	      char msg[64 + TCL_INTEGER_SPACE];
 	      sprintf(msg, "\n    (\"ForEveryCab\" body line %d)",
-	      		interp->errorLine);
+	      		Tcl_GetErrorLine(interp));
 	      Tcl_AddObjErrorInfo(interp, msg, -1);
 	      break;
 	    } else {
@@ -274,11 +274,11 @@ static int ForEveryTrain(Tcl_Interp *interp,TimeTableSystem *timetable,Tcl_Obj *
 	    } else if (result == TCL_ERROR) {
 #ifdef DEBUG
 	      cerr << "*** ForEveryTrain(): TCL_ERROR: " << Tcl_GetString(Tcl_GetObjResult(interp)) << endl;
-	      cerr << "*** ForEveryTrain(): TCL_ERROR: at " << interp->errorLine << endl;
+	      cerr << "*** ForEveryTrain(): TCL_ERROR: at " << Tcl_GetErrorLine(interp) << endl;
 #endif
 	      char msg[64 + TCL_INTEGER_SPACE];
 	      sprintf(msg, "\n    (\"ForEveryTrain\" body line %d)",
-	      		interp->errorLine);
+	      		Tcl_GetErrorLine(interp));
 	      Tcl_AddObjErrorInfo(interp, msg, -1);
 	      break;
 	    } else {
@@ -321,7 +321,7 @@ static int ForEveryNote(Tcl_Interp *interp,TimeTableSystem *timetable,Tcl_Obj *v
 	    } else if (result == TCL_ERROR) {
 	      char msg[64 + TCL_INTEGER_SPACE];
 	      sprintf(msg, "\n    (\"ForEveryNote\" body line %d)",
-	      		interp->errorLine);
+	      		Tcl_GetErrorLine(interp));
 	      Tcl_AddObjErrorInfo(interp, msg, -1);
 	      break;
 	    } else {
@@ -368,7 +368,7 @@ static int ForEveryPrintOption(Tcl_Interp *interp,TimeTableSystem *timetable,
 	    } else if (result == TCL_ERROR) {
 	      char msg[64 + TCL_INTEGER_SPACE];
 	      sprintf(msg, "\n    (\"ForEveryPrintOption\" body line %d)",
-	      		interp->errorLine);
+	      		Tcl_GetErrorLine(interp));
 	      Tcl_AddObjErrorInfo(interp, msg, -1);
 	      break;
 	    } else {

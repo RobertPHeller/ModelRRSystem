@@ -80,8 +80,6 @@ XPressNetThrottle${EXEEXT}: XPressNetThrottle.src \
 		lib/Common $(XPressNetThrottleSCRIPTS)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit XPressNetThrottle \
 		Common
-	$(UNZIP) -qq -d XPressNetThrottle.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit XPressNetThrottle \
 		Help $(top_builddir)/Doc/User/XPressNetThrottle/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit XPressNetThrottle \

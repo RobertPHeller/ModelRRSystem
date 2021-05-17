@@ -876,7 +876,7 @@ public:
 		float  matrix[3][3];
 		/**  Fuzz factor.
 		  */
-		const static float FUZZ = .00001;
+		constexpr static float FUZZ = .00001;
 	public:
 		/**  Matrix multiplication.
 		  */

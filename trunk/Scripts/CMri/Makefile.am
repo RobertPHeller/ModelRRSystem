@@ -103,8 +103,6 @@ UniversalTest${EXEEXT}: UniversalTest.src $(UniversalTestSCRIPTS) \
 		lib/Common $(UniversalTestSCRIPTS)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit UniversalTest \
 		Common
-	$(UNZIP) -qq -d UniversalTest.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit UniversalTest \
 		Help $(top_builddir)/Doc/User/UniversalTest/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit UniversalTest \

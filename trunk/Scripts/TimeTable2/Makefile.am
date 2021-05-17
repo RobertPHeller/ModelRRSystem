@@ -201,8 +201,6 @@ TimeTable$(EXEEXT) : TimeTable.src $(TTLibFiles) $(TTCommonFiles) \
 		$(TTCommon)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit TimeTable \
 		lib/$(CXXSupport) $(CXXSupportFiles)
-	$(UNZIP) -qq -d TimeTable.vfs/lib \
-		$(top_srcdir)/BuildData/$(IMG_ZIP)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit TimeTable \
 		Help $(top_builddir)/Doc/User/TimeTable/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit TimeTable \
