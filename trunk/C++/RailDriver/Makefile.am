@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Dec 16 14:39:16 2015
-#  Last Modified : <170808.0930>
+#  Last Modified : <210518.1554>
 #
 #  Description	
 #
@@ -242,3 +242,27 @@ install-data-hook:
 RaildriverIO.h: RaildriverIO.h.in $(top_builddir)/config.status
 	sed -e 's|=RAILDRIVERIO_VERSIONLIB=|@RAILDRIVERIO_VERSIONLIB@|g' \
 	< $(srcdir)/RaildriverIO.h.in > ./RaildriverIO.h
+
+
+
+noinst_DATA = BUNDLE.DAT
+
+BUNDLE.DAT: $(bin_SCRIPTS) $(man_MANS) $(pkgdata_DATA)
+	-rm -f BUNDLE.DAT
+	touch BUNDLE.DAT
+	for b in $(pkgdata_SCRIPTS); do \
+	  echo "share/$(PACKAGE)/RailDriver/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(pkgdatadir_systemd_SCRIPTS); do \
+	  echo "share/$(PACKAGE)/RailDriver/systemd/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(sbin_SCRIPTS); do \
+	  echo "sbin/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(bin_SCRIPTS); do \
+	  echo "bin/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(man_MANS); do \
+	    echo "share/man/$$b" >> BUNDLE.DAT; \
+	done
+	

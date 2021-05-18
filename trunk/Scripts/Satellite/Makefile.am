@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jun 11 11:28:01 2015
-#  Last Modified : <150801.0826>
+#  Last Modified : <210518.1538>
 #
 #  Description	
 #
@@ -173,3 +173,17 @@ $(top_builddir)/Scripts/ControlSupport/pkgIndex.tcl : $(top_srcdir)/Scripts/Cont
 
 
 FORCE:
+
+BUNDLE.DAT: $(sbin_SCRIPTS) $(man_MANS) $(pkgdata_DATA)
+	-rm -f BUNDLE.DAT
+	touch BUNDLE.DAT
+	for b in $(sbin_SCRIPTS); do \
+	  echo "sbin/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(pkgdata_DATA; do \
+	  echo "share/$(PACKAGE)/Satellite/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(man_MANS); do \
+	    echo "share/man/$$b" >> BUNDLE.DAT; \
+	done
+

@@ -185,3 +185,27 @@ if MACOSX
 	-rm -rf GenericThrottle.app
 endif
 
+noinst_DATA = BUNDLE.DAT
+
+BUNDLE.DAT: $(bin_SCRIPTS) $(man_MANS) $(pkgdata_DATA)
+	-rm -f BUNDLE.DAT
+	touch BUNDLE.DAT
+	for b in $(bin_SCRIPTS); do \
+	  echo "bin/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(pkgdata_DATA); do \
+	  echo "share/$(PACKAGE)/$$b >> BUNDLE.DAT; \
+	done
+	for b in $(pkgcode_DATA); do \
+	  echo "share/$(PACKAGE)/GenericThrottle/$$b >> BUNDLE.DAT; \
+	done
+	for b in $(desktop_DATA); do \
+	   echo "share/applications/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(pixmap_DATA); do \
+	    echo "share/pixmaps/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(man_MANS); do \
+	    echo "share/man/$$b" >> BUNDLE.DAT; \
+	done
+

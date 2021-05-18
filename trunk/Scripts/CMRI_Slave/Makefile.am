@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue May 16 11:38:07 2017
-#  Last Modified : <210517.1207>
+#  Last Modified : <210518.1540>
 #
 #  Description	
 #
@@ -151,4 +151,20 @@ clean-local:
 	-rm -rf man1
 
 
+
+
+noinst_DATA = BUNDLE.DAT
+
+BUNDLE.DAT: $(bin_SCRIPTS) $(man_MANS) $(pkgdata_DATA)
+	-rm -f BUNDLE.DAT
+	touch BUNDLE.DAT
+	for b in $(bin_SCRIPTS); do \
+	  echo "bin/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(pkgdata_DATA); do \
+	  echo "share/$(PACKAGE)/CMRI_Slave/$$b >> BUNDLE.DAT; \
+	done
+	for b in $(man_MANS); do \
+	    echo "share/man/$$b" >> BUNDLE.DAT; \
+	done
 

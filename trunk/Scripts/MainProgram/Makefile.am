@@ -170,3 +170,22 @@ $(top_builddir)/C++/ParserClasses/pkgIndex.tcl : \
 
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
+
+noinst_DATA = BUNDLE.DAT
+
+BUNDLE.DAT: $(bin_SCRIPTS) $(man_MANS)
+	-rm -f BUNDLE.DAT
+	touch BUNDLE.DAT
+	for b in $(bin_SCRIPTS); do \
+	  echo "bin/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(desktop_DATA); do \
+	   echo "share/applications/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(pixmap_DATA); do \
+	    echo "share/pixmaps/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(man_MANS); do \
+	    echo "share/man/$$b" >> BUNDLE.DAT; \
+	done
+
