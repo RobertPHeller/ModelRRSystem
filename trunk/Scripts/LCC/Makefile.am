@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <210517.1208>
+#  Last Modified : <210518.1037>
 #
 #  Description	
 #
@@ -1094,3 +1094,24 @@ $(top_builddir)/Scripts/CTIAcela/pkgIndex.tcl : \
 $(top_builddir)/C++/TclSocketCAN/libtclsocketcan.la : \
 	$(top_srcdir)/C++/TclSocketCAN/*.i $(top_srcdir)/C++/TclSocketCAN/*.c
 	$(MAKE) -C $(top_builddir)/C++/TclSocketCAN
+
+noinst_DATA = BUNDLE.DAT
+
+BUNDLE.DAT: $(bin_SCRIPTS) $(man_MANS)
+	-rm -f BUNDLE.DAT
+	touch BUNDLE.DAT
+	for b in $(bin_SCRIPTS); do \
+	   echo "bin/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(pkgdata_DATA); do \
+	   echo "share/$(PACKAGE)/LCC/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(desktop_DATA); do \
+	   echo "share/applications/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(pixmap_DATA); do \
+	    echo "share/pixmaps/$$b" >> BUNDLE.DAT; \
+	done
+	for b in $(man_MANS); do \
+	    echo "share/man/$$b" >> BUNDLE.DAT; \
+	done

@@ -526,6 +526,7 @@ case $target_os in
      AC_MSG_ERROR([Unsupported Operating System: $target_os])
      ;;
 esac
+
 AC_MSG_RESULT([TCLKITRUN is $TCLKITRUN])
 AM_CONDITIONAL(MACOSX, test x${NEED_APP_BUNDLE} = xtrue)                        
 
@@ -537,24 +538,42 @@ AC_PATH_PROG(DVIPS,dvips,$BINTRUE)
 AC_PATH_PROG(PS2PDF,ps2pdf,$BINTRUE)
 
 AC_MSG_CHECKING([Checking build tclkit])
-AC_SUBST(BEXEEXT, )
-case $build_cpu in
-  x86_64)
-    AC_SUBST(TCLKITBSRC, [tclkit-8.6.11-x86_64-Img1.4.7])
+case $build_os in
+  macos | darwin*)
+    AC_MSG_ERROR([Unsupported build OS: MacOSX -- see the READMEs for info on how to build on MacOSX])
+    dnl AC_SUBST(BEXEEXT, )
+    dnl AC_SUBST(TCLKITBSRC, )
     ;;
-  i*86)
-    AC_SUBST(TCLKITBSRC, [tclkit-8.6.11-i386-Img1.4.7])
+  linux-gnu*)
+    AC_SUBST(BEXEEXT, )
+    case $build_cpu in
+      x86_64)
+        AC_SUBST(TCLKITBSRC, [tclkit-8.6.11-x86_64-Img1.4.7])
+        ;;
+      i*86)
+        AC_SUBST(TCLKITBSRC, [tclkit-8.6.11-i386-Img1.4.7])
+        ;;
+      arm*)
+        AC_SUBST(TCLKITBSRC, [tclkit-8.6.11-armv7l-Img1.4.8])
+        ;;
+      aarch64)
+        AC_SUBST(TCLKITBSRC, [tclkit-8.6.10-aarch64-Img1.4.9])
+        ;;
+      *)
+        AC_MSG_ERROR([Unsupported Linux arch: $build_cpu])
+        ;;
+    esac
     ;;
-  arm*)
-    AC_SUBST(TCLKITBSRC, [tclkit-8.6.11-armv7l-Img1.4.8])
-    ;;
-  aarch64)
-    AC_SUBST(TCLKITBSRC, [tclkit-8.6.10-aarch64-Img1.4.9])
+  mingw* | winnt | windows* | cygwin)
+    AC_MSG_ERROR([Unsupported build OS: MS-Windows.  See the READMEs for info about building on MS-Windows])
+    dnl AC_SUBST(BEXEEXT, [.exe])
+    dnl AC_SUBST(TCLKITBSRC, )
     ;;
   *)
-    AC_MSG_ERROR([Unsupported Linux arch: $build_cpu])
+    AC_MSG_ERROR([Unsupported Operating System: $build_os])
     ;;
 esac
+      
 AC_MSG_RESULT([TCLKITBSRC is $TCLKITBSRC])
 
 

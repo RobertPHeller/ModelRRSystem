@@ -40,6 +40,7 @@
 # $2 = DESTDIR (default /tmp/MRR@VERSION@)
 # $3 = archive directory (default ..)
 # $4 = archive target name (default is target)
+# $5 = build small bin and lib bundles (default no)
 #
 if [ x$1 = x ]; then
   archiveropts=" czfT "
@@ -92,12 +93,30 @@ else
   archive_target=$4
 fi
 
+bundledir=`dirname $0`
+here=`pwd`
+cd $bundledir
+bundledir=`pwd`
+cd $here
+buildbundles=0
+
+if [ x$5 = x ]; then
+  buildbundles=0
+elif [ x$4 = xyes ]; then
+  buildbundles=1
+else
+  buildbundles=0
+fi
+
 echo "archiver is $archiver"
 echo "DESTDIR is $DESTDIR"
 echo "target is @target@"
 echo "archive_dir is $archive_dir"
 echo "Package is @PACKAGE@, Version is @VERSION@"
 echo "Archive basename is $archive_dir/@PACKAGE@-@VERSION@-$archive_target"
+if [ $buildbundles ]; then
+  echo "Building small bin and lib bundles"
+fi
 
 BIN=$archive_dir/@PACKAGE@-@VERSION@-${archive_target}BinOnly${archiverext}
 DEV=$archive_dir/@PACKAGE@-@VERSION@-${archive_target}BinDevel${archiverext}
@@ -189,6 +208,15 @@ case $archiver in
   tar)
 	(cd ${DESTDIR}/usr/local&&$archiver $archiveropts $BIN /tmp/BINFILES$$.list)
 	echo "Wrote $BIN"
+        if [ $buildbundles ]; then
+          for bundle in `find $bundledir -name 'BUNDLE.DAT'`; do
+            bdir=`dirname $bundle`
+            bname=`basename $bdir`
+            BUNDLEARCHIVE=$archive_dir/@PACKAGE@-@VERSION@-${archive_target}BinBundle${bname}${archiverext}
+            (cd ${DESTDIR}/usr/local&&$archiver $archiveropts $BUNDLEARCHIVE $bundle)
+            echo "Wrote $BUNDLEARCHIVE"
+          done
+        fi
 	(cd ${DESTDIR}/usr/local&&$archiver $archiveropts $DOC /tmp/DOCFILES$$.list)
 	echo "Wrote $DOC"
 	(cd ${DESTDIR}/usr/local&&$archiver $archiveropts $DEV /tmp/DEVFILES$$.list)
@@ -200,6 +228,15 @@ case $archiver in
         rm -f $BIN
 	(cd ${DESTDIR}/usr/local&&${archiver} ${archiveropts} $BIN < /tmp/BINFILES$$.list)
 	echo "Wrote $BIN"
+        if [ $buildbundles ]; then
+          for bundle in `find $bundledir -name 'BUNDLE.DAT'`; do
+            bdir=`dirname $bundle`
+            bname=`basename $bdir`
+            BUNDLEARCHIVE=$archive_dir/@PACKAGE@-@VERSION@-${archive_target}BinBundle${bname}${archiverext}
+            (cd ${DESTDIR}/usr/local&&${archiver} ${archiveropts} $BUNDLEARCHIVE < $bundle)
+            echo "Wrote $BUNDLEARCHIVE"
+          done
+        fi
 	rm -f $DOC
 	(cd ${DESTDIR}/usr/local&&${archiver} ${archiveropts} $DOC < /tmp/DOCFILES$$.list)
 	echo "Wrote $DOC"

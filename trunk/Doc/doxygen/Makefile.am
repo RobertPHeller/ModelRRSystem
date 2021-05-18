@@ -129,6 +129,7 @@ html/index.html latex/refman.tex man/man3 : Doxyfile $(C_INTERNALS_H) \
 	-rm -rf html latex man
 	-chmod +x tcldoxyfilter.sh
 	$(DOXYGEN)
+	-mv man/man3mrr man/man3
 	-rm -f man/man3/*.h.3mrr man/man3/*.tcl.3mrr man/man3/*.i.3mrr
 	
 
@@ -141,7 +142,7 @@ clean-local:
 	-rm -f doxygen.log  internals.pdf
 
 
-install-data-hook: html/index.html man/man3mrr
+install-data-hook: html/index.html man/man3
 	$(INSTALL) -d $(DESTDIR)$(pkgdatadir)/InternalsHTML
 	for p in html/*; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
@@ -150,7 +151,7 @@ install-data-hook: html/index.html man/man3mrr
 	  $(INSTALL_DATA) "$$d$$p" "$(DESTDIR)$(pkgdatadir)/InternalsHTML/$$f"; \
 	done
 	test -z "$(man3dir)" || $(mkdir_p) "$(DESTDIR)$(man3dir)"
-	@list=man/man3mrr/* ; \
+	@list=man/man3/* ; \
 	for i in $$list; do \
 	  file=$$i; \
 	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
@@ -172,7 +173,7 @@ uninstall-hook:
 	  echo " rm -f '$(DESTDIR)$(pkgdatadir)/InternalsHTML/$$f'"; \
 	  rm -f "$(DESTDIR)$(pkgdatadir)/InternalsHTML/$$f"; \
 	done
-	@list=man/man3mrr/* ; \
+	@list=man/man3/* ; \
 	for i in $$list; do \
 	  file=$$i; fi; \
 	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
