@@ -743,7 +743,6 @@ AC_CONFIG_FILES([config_tcl.sed \
                 ExampleDataAndCode/FreightCarForwarding/Doxyfile \
                 ExampleDataAndCode/LCC_Examples/Makefile \
                 ExampleDataAndCode/LCC_Examples/Doxyfile \
-	  MRRSystem.spec \
 	  BuildBinaryDistro.sh \
 	  Doxyfile])
 AC_CONFIG_COMMANDS([default],

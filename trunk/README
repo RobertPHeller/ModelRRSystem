@@ -22,37 +22,32 @@ programs:
 	4) A program for computing resistor values, also completely in
 	   Tcl/Tk.
 
-	5) A program to create computerized CTC dispather and/or
-	   'tower' control panels that exist on a computer screen. Code
-	   for supporting a CMR/I interface can be generated, allowing
-	   the creation of programs that can interface to your trackwork
-	   using CMR/I interface boards using the CMR/I C++ class
-	   library.  This program can read in XTrkCAD layout files as an
-	   aid in creating the dispather control panels This program is
-	   itself cross-platform, although panel programs using the
-	   CMR/I interface will be Linux only (until someone ports the
-	   C++ C/MRI class).
+	5) A program to create computerized CTC dispather and/or 'tower'
+        control panels that exist on a computer screen. Code for supporting a
+        CMR/I interface can be generated, allowing the creation of programs
+        that can interface to your trackwork using CMR/I interface boards
+        using the CMR/I Tcl library, the Aztrax USB library, or use the
+        LCC/OpenLCB library. This program can read in XTrkCAD layout files as
+        an aid in creating the dispather control panels,
+        
+        6) A collection of Tcl programs to interface with a LCC network that 
+        interface with various other control interfaces.
 
 These programs are documented in the User Manual and all include their
 own on-line documentation.
 
 There are some other bits and pieces:
 
-	There is a C++ module with a Tcl interface for talking to C/MRI
-nodes via a serial port (RS232).  This is working and includes a version
-of the Universal Test Program in Tcl/Tk.  Right now, this is Linux only.
-Porting to other UNIXes, MS-Windows, or MacOS would be somewhat
-non-trivial, since the low-level serial port code is not cross-platform
-(this is in the nature of this sort of code).
+	There is a Tcl interface for talking to C/MRI nodes via a serial port
+        (RS232). This is working and includes a version of the Universal Test
+        Program in Tcl/Tk. 
 
-	There is a C++ class library with a Tcl interface for talking
-to Lenz XpressNet nodes via a serial port (RS232). This code has not
-been tested yet, since I have not yet gotten by Lenz XpressNet system
-up and running (I don't yet have all of the parts needed to do this). 
-Right now, this is Linux only. Porting to other UNIXes, MS-Windows, or
-MacOS would be somewhat non-trivial, since the low-level serial port
-code is not cross-platform (this is in the nature of this sort of
-code).
+	There is a Tcl interface for talking to Lenz XpressNet nodes via a
+        serial port (RS232). This code has not been tested yet, since I have
+        not yet gotten by Lenz XpressNet system up and running (I don't yet
+        have all of the parts needed to do this).
+        
+        There is a Tcl library for interfacing with a LCC network. 
 
 	There is also a collection of Tcl/Tk script modules that provide
 various support for different things.  
@@ -64,17 +59,155 @@ guide) and Internals Manuals (detailed API reference).
 
 The directory structure is pretty straight forward:
 
-All of the C++ code lives under C++ (each C++ library includes its own
-SWIG interface module), all of the Tcl code lives under Scripts, all of
-the on-line help is under Help and all of the 'printed' documentation
-is under Doc.  Under the C++ directory are directories for the C/MRI
-module/library, the XPressNet module/library, the XTrakCad parser
-module/library, and the C++ support module/library for the freight car
-forwarder and time table programs.  Under the Scripts directory are
-directories for each of the main programs, as well as directories for
-the various support packages.  Under Help are the on-line help files.
-Under the Doc directory are directories for the User and Internals
-manuals, and the Programming Guide, plus a support directory.  There is
-a BuildTools directory containing various propgrams needed in the build
-process. 
+All of the C++ code lives under C++ (each C++ library includes its own SWIG
+interface module), all of the Tcl code lives under Scripts, all of the on-line
+help is under Help and all of the 'printed' documentation is under Doc. Under
+the C++ directory are directories for the C/MRI module/library, the XPressNet
+module/library, the XTrakCad parser module/library, and the C++ support
+module/library for the freight car forwarder and time table programs. Under
+the Scripts directory are directories for each of the main programs, as well
+as directories for the various support packages. Under Help are the on-line
+help files. Under the Doc directory are directories for the User and Internals
+manuals, and the Programming Guide, plus a support directory. There are
+BuildScripts and BuildData directories containing various propgrams and data
+needed in the build process. 
 
+====================
+Building from source
+====================
+
+Building from source is straightforward.  This package uses the GNU Autotools: 
+autoconf, automake, libtool, aclocal, and make.  First, you should run the 
+bootstrap script and then the configure script:
+
+./bootstrap
+mkdir Build
+cd Build
+../configure
+
+Then you should be able to build and (optionally) install the package:
+
+make
+sudo make install
+
+Building under Linux for CPU types x86_64/amd64 (64-bit), ix86 (32-bit), 
+armv7l (32-bit ARM), and aarch64 (64-bit ARM), should work out-of-the-box, so 
+long as you have these build pre-requisites installed:
+
+gcc, g++, binutils, make, automake, autoconf, libtool, autotools-dev, 
+libboost1.65-dev, libc6-dev, libstdc++-dev, libudev-dev, libusb-1.0-0-dev, 
+tcl8.6-dev, tcllib, swig, bison++, zip, unzip, gettext, and doxyden-latex.
+
+----------------------------------------
+Other operating systems and/or CPU types
+----------------------------------------
+
+Building for/under other operating systems, such as MS-Windows or MacOSX, is a
+little more complicated. Right now, the configure script will crash with an
+error (unsupport operating system or CPU type). In order to build under other
+operating systems or CPU types, you need to get or build a Tclkit for the O/S
+and/or CPU type. Note: it is possible to crossbuild for MS-Windows under Linux
+using Mingw's cross-build tools, but you need a MS-Windows tclkit, tcl8.6
+development files (includes, tclConfig.sh, and libtcl86stub library),
+MS-Windows dev tools for libusb 1.0 and boost, along with tcllib, swig, and
+bison++ for the build host. Building nativly under MS-Windows using
+Microsoft's C and C++ compilers is going to require re-creating the whole
+build infrastrue from scratch, and you of course you need the build
+pre-requisites (you may have to build some of these from source). Building
+under MacOSX should be not much different from building under Linux, once you
+have the Tclkit needed for MacOSX and the rest of the build pre-requisites.
+
+The bigest hurdle needed for building is creating the tclkit.  A tclkit is 
+just a special executable with a statically built version of the Tcl 
+interpreter which includes a VFS (Virtual File System) containing Tcl's 
+support libraries, along with the shared library for Tk and Tk's support 
+libraries.  Additionally, the Tclkit needed for the Model Railroad System need 
+to also include the Img library as well.  A base tclkit can be built with the 
+kbskit package.  Under Linux/UNIX (including MacOSX) this is done like this:
+
+git clone https://github.com/auriocus/kbskit.git
+
+and then run
+
+cd kbskit
+MAKEFLAGS=-j4 ./kbs.tcl -r install kbskit8.6
+
+I am not sure if this can cross build a kit for MS-Windows -- I think it 
+should, but you need to make sure it picks up the cross compiler.
+
+Once the base kit is built, you need to add in the Img library.  This is done 
+like this:
+
+create a directory named something like 'tclkit-8.6.x-platform-Img1.4.x.vfs'. 
+Replace the x's with the proper version numbers, and 'platform' with the 
+platform name (eg win32, win64, macosx, linux-ppc, etc.).  Then create a 
+subdirectory named 'lib' under this directory.  Then create a subdirectory 
+named 'Img1.4.x' under the 'lib' subdirectory and copy the Img files under that 
+directory.  It should look something like this:
+
+tclkit-8.6.11-x86_64-Img1.4.7.vfs/
+  lib/
+    Img1.4.7/
+       libjpegtcl9.2.so
+       libpngtcl1.6.28.so
+       libtifftcl3.9.7.so
+       libtkimg1.4.7.so
+       libtkimgbmp1.4.7.so
+       libtkimgdted1.4.7.so
+       libtkimggif1.4.7.so
+       libtkimgico1.4.7.so
+       libtkimgjpeg1.4.7.so
+       libtkimgpcx1.4.7.so
+       libtkimgpixmap1.4.7.so
+       libtkimgpng1.4.7.so
+       libtkimgppm1.4.7.so
+       libtkimgps1.4.7.so
+       libtkimgraw1.4.7.so
+       libtkimgsgi1.4.7.so
+       libtkimgsun1.4.7.so
+       libtkimgtga1.4.7.so
+       libtkimgtiff1.4.7.so
+       libtkimgwindow1.4.7.so
+       libtkimgxbm1.4.7.so
+       libtkimgxpm1.4.7.so
+       libzlibtcl1.2.11.so
+       pkgIndex.tcl
+       
+
+Now bundle it up with sdx.kit:
+
+# get a native kit to run on the host
+cp .../kbsvq8.6-dyn tclkit
+# get a target kit for the target
+cp .../kbsvq8.6-dyn tclkit-runtime
+# assemeble the kit
+./tclkit .../sdx.kit wrap tclkit-8.6.11-x86_64-Img1.4.7.bin -runtime tclkit-runtime
+# remove the extension (Linix/UNIX only)
+mv tclkit-8.6.11-x86_64-Img1.4.7.bin tclkit-8.6.11-x86_64-Img1.4.7
+
+Note: .../kbsvq8.6-dyn is the kit built by the kbskit package and will be
+under kbskit/build<whatever>/bin. Note further: if you are cross building you 
+will also need a *native* tclkit (there are *native* tclkits for linux included 
+in the BuildData subdirectory of the Model Railroad System).
+
+Once you have the target tclkit, you can copy it to the BuildData subdirectory
+of the Model Railroad System and then edit the Makefile.am there and
+configure.in file in the root directory and look for these lines:
+
+AC_MSG_CHECKING([Checking target tclkit])
+case $target_os in 
+
+Then in the case statement you need to change things, either remove the error,
+and uncomment some lines and edit as needed or add a new case, using the
+existing code as a guide. You might also need to look for these lines:
+
+AC_MSG_CHECKING([Checking build tclkit])                                       
+case $build_os in                                                              
+ 
+And make similar edits, if your build enviroment was also unsupported.
+
+It should be possible to now build the system, assuming you have all the 
+necessary build requirements installed. Note to cross build you need to
+pass the --host and --with-tcl options to the configure script to specify the
+cross build target and cross-built tcl library. MacOSX might also need the 
+--with-tcl option, depending on where the tcl 8.6 files are installed.
