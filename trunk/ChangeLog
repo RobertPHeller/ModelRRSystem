@@ -1,3 +1,15 @@
+Fri May 21 10:09:26 2021 2.2.0
+
+   Updated the README. Removed outdated Readme and build infrastructure files.
+   Add bin bundles, minor build infrastructure updates.
+   Update for Tcl 8.6, remove MS-Windows and MacOSX build infrasturure from 
+      configure.in.
+   Change styling of toolbar buttons.
+   Add use, copy, and paste buttons to events.
+   Minor build problem fixed.
+   Fix Minor Build Infrastructure problem.
+   Add LinuxGpio build infrastructure.
+
 Tue Jan  7 12:33:08 2020 2.1.44
 
     Add async (event driven) step code to ADAFruitDC_AND_STEPPER.tcl

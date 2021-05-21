@@ -1,3 +1,477 @@
+Fri May 21 10:09:26 2021 2.2.0
+
+   Updated the README. Removed outdated Readme and build infrastructure files.
+   Add bin bundles, minor build infrastructure updates.
+   Update for Tcl 8.6, remove MS-Windows and MacOSX build infrasturure from 
+      configure.in.
+   Change styling of toolbar buttons.
+   Add use, copy, and paste buttons to events.
+   Minor build problem fixed.
+   Fix Minor Build Infrastructure problem.
+   Add LinuxGpio build infrastructure.
+
+Tue Jan  7 12:33:08 2020 2.1.44
+
+    Add async (event driven) step code to ADAFruitDC_AND_STEPPER.tcl
+    Minor update of build infrastructure: remove duplicate variable def in Scripts/LCC/Makefile.am and restore toplevel build control files.
+    Add CrossingInterchange LCC Example
+    Bug in Dispatcher build: TclSocketCAN gets packed into the wrong place in the StarKit.
+    Add signal helper code and update signal XMLs.
+    Further refinements: removed the need for a MCP23017 for the Occupency detectors (there are enough GPIOs on the Pi).
+    Add Schematics for hats
+    Add wiring diagrams for SMCSenseHAT and QuadSignal HATs.
+    Add bitmap and PDF of layout.
+    Start work on LCC Example documentation.
+    Create Event Report for panel
+    Start on logic virtual node.
+    Add LCC Example code
+    Minor updates to LCC Example code
+    Working on LCC Example documentation.
+    Fix configure.in to work with MacOSX properly (/usr/bin/trus vs /bin/true for missing programs)
+    Build update: properly handle no having bison++ and not try to build Dispatcher is bison++ is not available.
+    Search for macOS provided Tcl
+      macOS provides Tcl 8.5, but not in a Linux expected location, so include the path to the macOS provided Tcl 8.5.
+    Error handling with config memory writes tweaking (OpenMRN weirdness).
+    Updates to OpenLCB_Common.tcl: support separated Config code and non-notebooked config and add sample config generator.
+    Add portable (sysfs) GPIO support
+    Layout Control DB updates
+    Updated LCC / Dispatcher logic (Layout Control DB features)
+    Updates to OpenLCB, LCCNodeList: progress dialogs, layout control DB features properly integrated.
+    Add Make buttons for CDI editor.
+    Update XtrakCAD parser.
+    Minor fixes to Dispatcher code relating to xtrkcad files. (Still to fix: Layout Controls menu index issue.)
+    Fix view menu indexing issue (Layout Controls)
+    Add setAttribute method to ParseXML
+    Fix bugs in ConfigurationEditor export code (nasty!).
+    Add OpenLCB Router.
+    Fix minor bug in OpenLCB.tcl: responding to GlobalVerifyNodeID with a payload containing a different NID.
+    Add comments to OpenLCBTcpHub.tcl and Router.tcl.
+    Fix bugs in Router.tcl: extra space in OpenLCBTcp, handle "orphaned" messages (missing alias => NID mappings) -- dropped for now.
+    Added -cnid option to Router.tcl, Router now has a NID and uses an AME message to populate its alias map on startup.
+    Catch messages addressed to the Router (CAN/GC side). Presently, nothing is done with them.
+    Add logging code to log messages addressed to the router.
+    Catch write errors (lost connections, etc.) in OpenLCBTcpHub.tcl
+    Normalize case for route and alias  for all CAN/GC alias maps and route tables for Hubs and Router (just in case).  Finish out full node implementation for Router.
+    Fix the startup order (GC/CAN has to be first) of the routes in Router.
+    Add Refresh method to LCCNodeTree and Refresh button to OpenLCB.
+    Add Refresh button to CTC Panel Node Lists
+    Handle proper message syncronization with alias reservation.
+    Minor bugfixes in Router.tcl (SocketCAN).
+    Update protocol strings
+    Handle missing CRLF at the end of CDIs
+
+Tue May  1 15:09:22 2018 2.1.43
+
+    Update GC transports -- remove the *need* for newlines
+    Update parser for XTrakCAD 5.1.0
+    Add comment about mainWindow setstatus/setprogress
+    Minor bugfix in snitCabWidgets.tcl: proper binding for locoList combobox.
+    Updates to OpenLCB and LCCNodeTree.tcl: handle mulitple clicks on CDI 
+      (protect non-reentrant code)
+    Update documentation for OpenLCB virtual nodes.
+    Handle special case of a group in a group (psuedo CDI for virtual nodes)
+    Add OpenLCB_QuadSignal
+
+Wed Nov  8 09:54:03 2017 2.1.42 release candidate 1
+
+    Move use a common configuration logic for OpenLCB_ daemon nodes using an 
+      internal XML tree and implementing something like a CDI.
+    Add OpenLCB_CMRI daemon.
+    Add Pango/Cairo PDF printer for FCFSupport.
+    Improve printing in FCFSupport to better support letter paper, by using 
+      Bold instead of double width printing, since wide carriage printers are
+      get few and far between.
+    Assorted minor bug fixes.
+
+Sat Jul 29 11:06:10 2017 2.1.41 release candidate 1
+
+    Add TclSocketCAN code
+    Add CAN Socket I/O to LCC Scripts
+    Add CAN Socket I/O to Dispatcher
+    Add -can options to OpenLCBGCTcpHub, fix copy paste bugs in LCC Makefile.am
+    Fix Looping Issue in LCCNodeTree.tcl (I am fine, how are you? loop ) .
+    Update API Docs.
+    Add lowlevel support for the MCP23008 and MCP23017. 
+    Deal with broken wiring pi include files.
+    Add in OpenLCB_PiMCP23008 and OpenLCB_PiMCP23017 Daemons.
+    Made OpenLCBMessage more robust: allow missing sourcenid.
+    Made OpenLCBGCTcpHub more robust: check for missing destinations and broken pipes.
+    Add -log option to all of the OpenLCB daemons.
+    Remove reference to unused GPIOCMD
+    Add OpenLCB_PiSPIMax7221 (untested)
+    Add typemaps to sanely handle wiringPiSPIDataRW's data arg from Tcl.
+    Added CMRI_Slave.  Not tested!
+    Small typo in nce.tcl
+    Add OpenLCB_PiMCP23017_signal.
+    Fix silly bug in CTCPanelWindow: -heads cannot have a default of 0 -- changed to 1.
+    Fix silly bug in CTCPanelWindow: misspelled method: _deleteaspect => _deleteAspect.
+    Add Event Report (when -openlcbmode true) to CTCPanelWindow.tcl
+    Constrain the overall node description and name to what is in the <identification> tag.
+    Add debug code to LCCNodeTree.tcl
+    Add code to make sure manually entered events are processed by the local node: add -localeventhandler opt to eventDialogs, and add _typemethod _localeventhandler to OpenLCBCode.tcl (Dispatcher).
+    Fix "then" logic in OpenLCB_Logic (pass the trigering event through logic eval).
+    Separate out a separate Save menu item for all of the OpenLCB_<mumble> configurator programs.
+    Change -softwaremodel option in OpenLCB_PiMCP23017_signal to correctly reflect the softwaremodel.
+    Add code to handle initial state.
+    Further refinements of OpenLCB_Logic.
+    Event Report problems fixed: handle Lamp events correctly, proper event sorting, proper localization string in page heading.
+    Upgrade Linuxarmv7l version of Img from 1.3 to 1.4.
+    Remove extrainious double quote mark in Doxyfiles.
+    Add missing po subdir.
+    Add missing CLEANFILES element.
+    Cleanup file lists (remove dups.) in BuildBinaryDistro.sh.
+    Fix assorted Doxygen warnings.
+    Fix minor compiler warnings.
+    Add hid.c to BUILT_SOURCES (Raildriver).
+    Add systemd / udev code for RailDriver hotplug.
+
+Thr Apr 13 12:01:59 2017
+
+  2.1.40 Released:
+    Dispatcher documentation updates.
+       Updates to reference docs, added LCC tutorial.
+    OpenLCB_Logic and OpenLCB_TrackCircuits documentation updates.
+    OpenLCB Daemon user documentation updates.
+    Update Introduction to reference the OpenLCB chapters and to clean up 
+       some of the text.
+    Documentation updates (ConfigurationEditor.tcl).
+    Add -state option to edit cascades in CTCPanelWindow.tcl.
+    Add in Edit Context menus in Dispatcher (CTCPanelWindow.tcl) and LCC 
+        Configuration Editors to allow copy/paste between using pointer menu 
+        interactions.
+    Add View Controls dialog.
+    Added support for Signal, Sensor, and Control XtrackCAD elements.
+    Fix small binding bug in Dialog (snitdialog.tcl).
+    Add and complete Emit logic in both the C++ and Tcl code (ParserClasses).
+    Fix FindNode Dialog bug (leftovers from BWidget).
+    Fix weirdness with bad edge counts: prevent duplicate edges in the 
+        compressed graph (TrackGraph.cc) and handle terminal compresssed nodes 
+        (TrackGraph.tcl).
+    Small bug in displaySwitchMotorInfo::initializetopframe fixed.
+    Handle LCC event IDs from XtrackCad.
+    Handle "Orphan" track nodes (track with no connections to other track).
+    Add CSV export functions for ConfigurationEditor.tcl.
+    Add PDF and XML export functions for ConfigurationEditor.tcl.
+    Implement Print/Export: text version.
+    Add missing tab and tabs methods in snitScrollNotebook.tcl.
+    Add OpenLCB Logic to Info context menu function in CTCPanelWindow.tcl.
+    Complete frame removal after frame forget (CTCPanelWindow.tcl, 
+        OpenLCB_*.tcl).
+    Wrap grid forget with a catch in snitScrollNotebook.tcl.
+    Add in -name and -discription options to ConnectToOpenLCB call 
+        (CTCPanelWindow.tcl).
+    Add VerifyNodeID to populate NID Alias maps (OpenLCBCode.tcl, 
+        OpenLCB_*.tcl).
+    OpenLCB_Logic updates (attempting to match Tower-LCC logic block 
+        functionality).
+    Assorted bugfixes in OpenLCB_Logic (Mast and Ladder logic).
+    Assorted bugfixes to OpenLCB_Logic.tcl.
+    Fixed numerious bugs in OpenLCB_Logic.tcl.
+    Minor bulleting prooffing of CDI protocol handling.
+    Add LCCNodeTree.tcl to library files installed for LCC/OpenLCB package.
+    Clean up menu on Node Tree window.
+    Separate out Node Tree Widget.
+    Add OpenLCB functionallity to OpenLCB CTC Panels.
+    CanMessage constructor bug: not handling the case of neither -data or 
+        -length properly -- fixed!
+    Build fixes: Fix broken AM_GNU_GETTEXT macro under MacOSX; make sure build 
+        scripts are executable.  Quoting snafu in autoconf script.
+    Remove extrainious semicolon in C++/ParserClasses/SocketPair.h.
+
+Sun Sep 11 17:49:50 2016
+
+  2.1.39 Released:
+  
+  Lots of OpenLCB deamon programs added:
+    Hubs: OpenLCBTcpHub and OpenLCBGCTcpHub.
+    Foreign hardware: OpenLCB_Acela, OpenLCB_MRD2, and OpenLCB_PiGPIO.
+    Logic elements: OpenLCB_Logic and OpenLCB_TrackCircuits.
+  Minor fixes and improvements to OpenLCB.
+  Bugfixes to CTIAcela.tcl.
+  Documentation updates.
+  MS-Windows installer fix (don't need system DLLs anymore).
+
+Mon Aug  1 13:43:28 2016
+
+  2.1.38 Released:
+  
+  Minor makefile fix for Rail Driver (move computed source file no the nodist
+  list).
+  Update for new Win32 build infrastructure (mxe.cc).
+
+
+Sun Jul 24 14:17:07 2016
+
+  2.1.37 Released:
+  
+  Update Rail Driver code to use HIDAPI, thus making it work across all 
+  platforms.
+  Add OpenLCB code.
+  Minor bugfixes.
+
+
+Mon Aug 24 08:44:22 2015
+
+  2.1.36 Released:
+
+  Add build infrastructure for Raspbian (Raspberry Pi)
+  Update doxyfiles for > 1.7.4
+  Minor fixes to Dispatcher print dialog (BWidget => Snit/tile updates)
+  Add Example Code
+  Added support for CTI Electronics Acela
+  Added support for wiringPi library (Raspberry Pi)
+  Dispatcher GUI Improvements
+  Updates to SatelliteDaemon to support serial port access (needed for Cmri, 
+    Ardunio, CTI, and DCC access).
+  Added CmriSupport to the SatelliteDaemon
+  Updates to SatelliteDaemon: self extension, both as new StarPak and to the 
+    running Daemon.
+  Build infrastructure updates
+  Fix build break issues: Hyperlink prob with internal docs, missing cleanup 
+    in the User manual
+  Added support for MacOSX
+  
+Sun Jun 14 13:58:45 2015
+
+  2.1.35 Released:
+  
+   Add Satellite processing code: 
+     Daemon (remote server) & master (local client).
+   Add external module support to Dispatcher
+   Updated to Img 1.4
+   Minor fixes to BuildBinaryDistro.sh.in
+   Minor fixes to MRRSystem.spec.in
+   Separate out SWIG for C and C++
+   Add SysBinaryArchive for MS-Windows Setup code (G++ DLL install)
+   Convert diskfree in installer to plain C (avoid reference to extra 
+     libraries)
+   SVN Keyword hackery for documentation.
+   Fix missing include file references when Bison++ or LibUSB1 is unavailable.
+   Fix small error in raildriverd.
+   Minor fix in AzatraxDeviceMap.
+   Wrap SafeInit functions in C++ wrap with extern "C" ...
+   Fix save file bug in System_LoadCars.cc.
+   Update Win32 build tool chain.
+
+Tue Nov  4 11:50:23 2014
+
+  2.1.34 Release Candidate:
+
+    Fix camera script print dialog
+    Update configure script to warn when bison++ is not found. 
+    Change missing libusb 1.0 message to a warning.
+    Minor bugfix in XPressNetThrottle.src.
+    Minor update to the GenericThrottle Makefile.
+    Minor bugfix in snitCabWidgets.tcl.
+    Fix bugs in Azatrax (Tcl) code.
+    Updated Makefiles for new manual build.
+    Rewrite user manual using Doxygen instead of straight LaTeX (vastly 
+       improves generated HTML for internal help).
+
+Thr Mar 27 13:14:33 2014
+
+  2.1.33 Release Candidate:
+  
+    Updated the tclkits to 8.5.8.
+    Convert all GUI code to use themed (tile) widgets and removed all 
+        references to BWidget widgets.  Wrote replacement snit/ttk widgets
+        as drop in (more or less) replacements for some BWidget widgets.
+    Fixed some bugs in the C++ code (SWIG interface problems).
+
+Mon Apr  1 09:30:36 2013
+
+  2.1.32 Released:
+
+    SR4 updates and bug fixes.
+
+    Update raildriver UDEV helper script.
+
+    Update Raildriver code.
+
+    Add "Add Additional Packages" edit sub-menu.
+
+    Update GetAllSerialPorts in UniversalTest (CMR/I).
+
+    Include Ubuntu flavored udev rule files.
+
+    Update Application Node 2s code.
+
+    Minor updates to Dispatcher (export as images weirdness).
+
+    Remove C++ version of the CMR/I code.
+
+    Remove C++ version of XPressnet code.
+
+    Remove MRD directory.
+
+    Build update: gettextize.
+
+    Update Build infrastructure to build under CentOS/RHEL 6.4 and 
+    Ubuntu 12.04.1 LTS.
+
+Sat Aug  4 09:08:21 2012
+
+  2.1.31 Released:
+
+	Fixed several unmatched bracket and brace issues (including the
+	one in Bug#9).
+
+	Changed the MRD module to the Azatrax module: added support for other
+	upcoming Azatrax devices and allow for future Azatrax devices.
+
+	Fixed minor bugs in the XPressNet (Tcl) code.
+
+	Added a Tcl client module for the Raildriver Daemon.
+
+Mon May 14 16:17:33 2012
+
+  2.1.30 Released:
+
+	Removed an errant assert from the FCF Support code.
+
+	Updated documentation:
+	    Wrote a simple mode Dispatcher tutorial.
+	    Added private and protected sections to BWidget and SNIT classes.
+		(Neither BWidget nor SNIT actually have private or protected
+		 members, but there are members that should be consided 
+		 private or protected.)
+	    Added package and library version numbers to all API documentation.
+	    Various other minor documentation fixes.
+
+	Removed old code directories (Time Table V1 and Freight Car Forwarder 
+	V1).
+
+	Wrote pure Tcl (cross-platform) versions of the C/MRI and XPressNet
+	libraries and started on a pure Tcl (cross-platform) library for NCE's
+	cab bus.  (A pure Tcl (cross-platform) library for LocoNet is in the
+	works.) The C++ coded versions of the C/MRI and XPressNet libraries
+	will be phased out and will be deleted from the source tree in another
+	couple of release cycles.  The whole system will be 100% all-platform,
+	with all code compiling and running on all platforms.
+
+	Wrote a pure Tcl (cross-platform) version of the Raildriver Daemon
+	and created a cross-platform Tcl loadable module for the low-level 
+	Raildriver IO class.  This daemon exists for MS-Windows now, but is
+	not yet set up to auto run on hotplugging a Raildriver on MS-Windows.
+
+	Cleaned up parts of the build code and did some general house-cleaning.
+
+Sun Apr  1 13:09:54 2012
+
+  2.1.29.3 Released:
+
+	Fixed Version number problem which seems to have broken many of the
+	Tcl programs. Changed intermediate version numbering to NOT use 
+	letters.
+
+	Did some testing and fixed some bugs with the XPressNet Code. Started
+	on a virtual throttle program.  The virtual XPressNet throttle is 
+	very much in early testing stages.  The XPressNet C++ Class library
+	however has been much more throughly tested.
+
+	Added a 'simple mode' to the Dispatcher program.  This allows creating
+	simple CTC panels that just throw turnouts using the MRD-2U devices 
+	from Azatrax to control NCE's Switch-Its.  This mode uses canned 
+	scriptlets and requires no coding on the part of the user.  As Azatrax 
+	developes additional USB control devices, this code will be updated.
+
+Wed Jan 11 12:41:07 2012
+
+  2.1.29b Released:
+
+	Fixed conditional compilation bug in the MRD library.
+
+Tue Jan  3 17:22:38 2012
+
+  2.1.29a Released:
+
+	Updated Vendor ID for the MRD library.
+
+Sun Dec 11 09:33:35 2011
+
+  2.1.29 Released:
+
+	Added support for Azatrax MRD2-S and MRD2-U.  The MRD support 
+	library cross-builds for Win32 under MinGW32.
+
+	Converted the RailDriver code to use the libusb-1.0 API.
+
+	Fixed some minor bugs here and there.
+
+Tue May 17 10:25:55 2011
+
+  2.1.28 Released:
+
+	Fixed a problem with ReadStations, that caused a Segmentation Fault 
+	when generating reports.  ReadStations was allowing the use of 1 as
+	a station index, even though station index 1 is reserved for the
+	Workbench station (which has one industry, the Repair Yard).  
+	ReadStations has now been fixed to disallow a station index 1 and
+	the Station accessor for the Industry object now has an assert() to
+	cause a more useful error message in the future.  See Bug #2 at
+	http://bugzilla.deepsoft.com/ for details.
+
+	Internationalized the code.  All of the C++ and Tcl code how has all
+	messages and labels (buttons, menus, etc.) internationalized.  
+	Currently the only language defined is American English, but 
+	translators are welcome to go through the POT files (available
+	as part of the development packages) and produce translations.
+
+	Updated the RPM spec file to include a vendor definition.
+
+
+Sat Jan 29 13:16:55 2011
+
+  2.1.27 Released:
+
+	Fixed an error in the CMR/I code generated by Dispatcher.
+		(Missing argument error).
+
+	Added a Wrap As menu item to Dispatcher.  This allows the Dispatcher
+	to create StarPack versions of the CTC Panel programs it generates.
+	These StarPack versions are self-contained, standalone native 
+	executable programs that can be run on the target system without having
+	to install any additional code.
+
+	Fixed a build error relating to the API documentation for the Tcl
+	package libraries.
+
+	Updated the section 1 man pages and created a master man page for 
+	section 1.
+
+Tue Nov  9 13:19:20 2010
+
+  2.1.26 Released:
+
+	Fixed a pile of SWIG warnings:  Warning 124 (language in
+typemap depreciated) and Warning 509 (Overloading [with default
+values]).
+
+	Cleaned up C++ code to remove various compiler warnings:
+comparison of signed and unsigned, missing value returns in non-void
+functions, might be unitialized variables, unused variables, and
+unhandled cases in switch statements. 
+
+	Minor fixes to the installer.
+
+	Fixed the RPM spec file to not strip executables.  Stripping the
+executables trashes the starpacks.
+
+	Fixed a few minor packaging problems (missing files).
+
+	This is mostly a minor maintanence release.
+
+
+Sun Jun 27 17:48:46 2010
+
+  2.1.25 Released:
+
+	Fixed a pile of SWIG<==>C++ namespace errors in several of the
+C++ Tcl/Extention libraries, along with a few other misc. bugs.
+
+	Fixed the installer to properly handle 64 and 32 bit Linux
+archives. 
+
 Tue May  4 11:37:21 2010
 
   2.1.24 Released:
