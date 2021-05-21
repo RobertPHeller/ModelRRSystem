@@ -114,7 +114,7 @@ echo "target is @target@"
 echo "archive_dir is $archive_dir"
 echo "Package is @PACKAGE@, Version is @VERSION@"
 echo "Archive basename is $archive_dir/@PACKAGE@-@VERSION@-$archive_target"
-if [ $buildbundles ]; then
+if [ $buildbundles -eq 1 ]; then
   echo "Building small bin and lib bundles"
 fi
 
@@ -208,7 +208,7 @@ case $archiver in
   tar)
 	(cd ${DESTDIR}/usr/local&&$archiver $archiveropts $BIN /tmp/BINFILES$$.list)
 	echo "Wrote $BIN"
-        if [ $buildbundles ]; then
+        if [ $buildbundles -eq 1 ]; then
           for bundle in `find $bundledir -name 'BUNDLE.DAT'`; do
             bdir=`dirname $bundle`
             bname=`basename $bdir`
@@ -228,7 +228,7 @@ case $archiver in
         rm -f $BIN
 	(cd ${DESTDIR}/usr/local&&${archiver} ${archiveropts} $BIN < /tmp/BINFILES$$.list)
 	echo "Wrote $BIN"
-        if [ $buildbundles ]; then
+        if [ $buildbundles -eq 1 ]; then
           for bundle in `find $bundledir -name 'BUNDLE.DAT'`; do
             bdir=`dirname $bundle`
             bname=`basename $bdir`

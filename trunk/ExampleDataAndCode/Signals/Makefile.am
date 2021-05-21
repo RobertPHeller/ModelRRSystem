@@ -23,6 +23,8 @@ pkgIndex.tcl : $(CODEFILES)
 html/index.html latex/refman.pdf : Doxyfile main.h $(CODEFILES) \
 	$(top_builddir)/Doc/doxygen/tcldoxyfilter.sh navbar.html
 	-rm -rf latex/ html/
+	-rm -f header0.html navheader.html
+	touch navheader.html
 	$(DOXYGEN) -w html header0.html /dev/null doxygen.css  Doxyfile
 	rm doxygen.css
 	cat header0.html $(srcdir)/navbar.html > navheader.html

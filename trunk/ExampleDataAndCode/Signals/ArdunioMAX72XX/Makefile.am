@@ -88,11 +88,13 @@ pkgdata_DATA =  latex/refman.pdf pkgIndex.tcl
 
 html/index.html latex/refman.pdf : Doxyfile $(DOCFILES) $(CODEFILES) $(FIGURES)\
 	$(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
+	-rm -rf latex/ html/
+	-rm -f header0.html navheader.html
+	touch navheader.html
 	$(DOXYGEN) -w html header0.html /dev/null doxygen.css  Doxyfile
 	rm doxygen.css
 	cat header0.html $(srcdir)/navbar.html > navheader.html
 	rm header0.html
-	-rm -rf latex/ html/
 	-chmod +x $(top_builddir)/Doc/doxygen/tcldoxyfilter.sh
 	$(DOXYGEN) Doxyfile
 	for p in $(FIGURES) $(CODEFILES) $(OTHERFILES); do \

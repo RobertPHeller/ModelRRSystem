@@ -81,7 +81,7 @@ BUNDLE.DAT: $(bin_SCRIPTS) $(man_MANS) $(pkgdata_DATA)
 	  echo "bin/$$b" >> BUNDLE.DAT; \
 	done
 	for b in $(pkgdata_DATA); do \
-	  echo "share/$(PACKAGE)/RailDriverSupport/$$b >> BUNDLE.DAT; \
+	  echo "share/$(PACKAGE)/RailDriverSupport/$$b" >> BUNDLE.DAT; \
 	done
 	for b in $(desktop_DATA); do \
 	   echo "share/applications/$$b" >> BUNDLE.DAT; \
