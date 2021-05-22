@@ -465,6 +465,7 @@ proc FindArchivesAndComputeSizes_UNIX {} {
       x86_64 {set bits 64}
       i?86   {set bits 32}
       armv7l {set bits Armv7l32}
+      aarch64 {set bits Arm64}
     }
     set plat Linux$bits
   } else {;## Change for other multi-arch UNIX platforms (Darwin -- MacOSX)
