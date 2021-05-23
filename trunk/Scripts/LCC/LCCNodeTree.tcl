@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Sep 19 09:18:09 2016
-#  Last Modified : <191123.1004>
+#  Last Modified : <210523.0848>
 #
 #  Description	
 #
@@ -159,9 +159,9 @@ snit::widgetadaptor LCCNodeTree {
         return [expr {($scdpiw > 100) || ($scdpih > 100)}]
     }
     delegate option * to hull except {-columns -displaycolumns -padding -show}
-    delegate method * to hull except {bbox cget children column configure 
-        delete detach exists heading insert move next parent prev set state 
-        tag}
+    delegate method * to hull except {bbox cget column configure 
+        delete detach exists heading insert move next parent prev set 
+        state tag}
     
     
     typevariable _debug no
