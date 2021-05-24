@@ -241,10 +241,9 @@ int tcl_socketpair(Tcl_Interp *interp)
 	}
 	Tcl_ResetResult(interp);
 	for (i = 0; i < 2; i++) {
-		chans[i] = Tcl_MakeTcpClientChannel((ClientData) fds[i]);
+		chans[i] = Tcl_MakeTcpClientChannel((ClientData) (fds[i]));
 		Tcl_RegisterChannel(interp,chans[i]);
-		sprintf(name,"sock%d",fds[i]);
-		Tcl_AppendElement(interp,name);
+		Tcl_AppendElement(interp,Tcl_GetChannelName(chans[i]));
 	}
 	return TCL_OK;
 		

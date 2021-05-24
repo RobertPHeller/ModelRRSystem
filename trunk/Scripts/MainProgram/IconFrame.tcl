@@ -102,12 +102,12 @@ namespace eval ModelRRSystem {
       switch -exact -- "$flags" {
 	MrrTcl {
 	  set LogSockets [tcl_socketpair]
-#	  puts stderr "*** $self runprogram: LogSockets = $LogSockets"
+	  # puts stderr "*** $self runprogram: LogSockets = $LogSockets"
 	  set CtrlSockets [tcl_socketpair]
-#	  puts stderr "*** $self runprogram: CtrlSockets = $CtrlSockets"
+	  # puts stderr "*** $self runprogram: CtrlSockets = $CtrlSockets"
 	  set logFp   [lindex $LogSockets 0]
 	  set ctrlFp  [lindex $CtrlSockets 0]
-#	  puts stderr "*** $self runprogram: logFp = $logFp, ctrlFp = $ctrlFp"
+	  # puts stderr "*** $self runprogram: logFp = $logFp, ctrlFp = $ctrlFp"
 	  fconfigure $logFp -buffering line
 	  fconfigure $ctrlFp -buffering line
 	  set winlab  [$self addcontainer $logFp $execPath]
