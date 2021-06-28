@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jan 31 15:01:56 2019
-#  Last Modified : <190202.1208>
+#  Last Modified : <210628.0805>
 #
 #  Description	
 #
@@ -48,25 +48,115 @@ package require LayoutControlDB
 package require Dialog
 package require ScrollTabNotebook
 package require LabelFrames
+package require ButtonBox
 
 namespace eval lcc {
+    snit::macro _layoutControlCopyPaste {} {
+        method _copyevent {e varname} {
+            $e selection range 0 end
+        }
+        method _pasteevent {e varname} {
+            if {[catch {selection get} select]} {return}
+            if {$select eq ""} {return}
+            if {[catch {lcc::eventidstring validate $select}]} {return}
+            upvar #0 "$varname" var
+            set var $select
+        }
+    }
     snit::widgetadaptor NewTurnoutDialog {
+        _layoutControlCopyPaste
         delegate option -parent to hull
         option -db
         
         component nameLE;#                  Name of object
+        component normalEventLF;#           -normalmotorevent
+        variable  normal_
+        component reverseEventLF;#          -reversemotorevent
+        variable  reverse_
+        component normalPointsEventLF;#     -normalpointsevent
+        variable  normalPoints_
+        component reversePointsEventLF;#    -reversepointsevent
+        variable  reversePoints_
         constructor {args} {
             installhull using Dialog -bitmap questhead -default add \
                   -cancel cancel -modal local -transient yes \
                   -side bottom -title [_ "New Turnout"] \
                   -parent [from args -parent]
-            $hull add add    -text Add    -command [mymethod _Add]
-            $hull add cancel -text Cancel -command [mymethod _Cancel]
+            $hull add add    -text [_m "Label|Add"]    -command [mymethod _Add]
+            $hull add cancel -text [_m "Label|Cancel"] -command [mymethod _Cancel]
             wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
             set frame [$hull getframe]
             install nameLE using LabelEntry $frame.nameLE \
                   -label [_m "Label|Name:"] -text {}
             pack $nameLE -fill x
+            install normalEventLF using LabelFrame \
+                  $frame.normalEventLF -text [_m "Label|Normal Motor Event:"]
+            pack $frame.normalEventLF -fill x
+            pack [ttk::entry [set e [$frame.normalEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar normal_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.normalEventLF getframe].copy \
+                  -text {Copy} \
+                  -command [mymethod _copyevent $e [myvar normal_]]] \
+                  -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.normalEventLF getframe].paste \
+                  -text {Paste} \
+                  -command [mymethod _pasteevent $e [myvar normal_]]] \
+                  -side left \
+                  -expand yes -fill x
+            install reverseEventLF using LabelFrame \
+                  $frame.reverseEventLF -text [_m "Label|Reverse Motor Event:"]
+            pack $frame.reverseEventLF -fill x
+            pack [ttk::entry [set e [$frame.reverseEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar reverse_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.reverseEventLF getframe].copy \
+                  -text {Copy} \
+                  -command [mymethod _copyevent $e [myvar reverse_]]] \
+                  -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.reverseEventLF getframe].paste \
+                  -text {Paste} \
+                  -command [mymethod _pasteevent $e [myvar reverse_]]] \
+                  -side left \
+                  -expand yes -fill x
+            install normalPointsEventLF using LabelFrame \
+                  $frame.normalPointsEventLF -text [_m "Label|Normal Points Event:"]
+            pack $frame.normalPointsEventLF -fill x
+            pack [ttk::entry [set e [$frame.normalPointsEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar normalPoints_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.normalPointsEventLF getframe].copy \
+                  -text {Copy} \
+                  -command [mymethod _copyevent $e [myvar normalPoints_]]] \
+                  -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.normalPointsEventLF getframe].paste \
+                  -text {Paste} \
+                  -command [mymethod _pasteevent $e [myvar normalPoints_]]] \
+                  -side left \
+                  -expand yes -fill x
+            install reversePointsEventLF using LabelFrame \
+                  $frame.reversePointsEventLF -text [_m "Label|Reverse Points Event:"]
+            pack $frame.reversePointsEventLF -fill x
+            pack [ttk::entry [set e [$frame.reversePointsEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar reversePoints_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.reversePointsEventLF getframe].copy \
+                  -text {Copy} \
+                  -command [mymethod _copyevent $e [myvar reversePoints_]]] \
+                  -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.reversePointsEventLF getframe].paste \
+                  -text {Paste} \
+                  -command [mymethod _pasteevent $e [myvar reversePoints_]]] \
+                  -side left \
+                  -expand yes -fill x
             $self configurelist $args
         }
         method draw {args} {
@@ -76,13 +166,126 @@ namespace eval lcc {
         }
         method _Add {} {
             set name "[$nameLE cget -text]"
-            set result [[$self cget -db] newTurnout $name]
+            set result [[$self cget -db] newTurnout $name \
+                        -normalmotorevent $normal_ \
+                        -reversemotorevent $reverse_ \
+                        -normalpointsevent $normalPoints_ \
+                        -reversepointsevent $reversePoints_]
             $hull withdraw
             return [$hull enddialog $result]
         }
         method _Cancel {} {
             $hull withdraw
             return [$hull enddialog {}]
+        }
+    }
+    snit::widget NewTurnoutWidget {
+                _layoutControlCopyPaste
+        delegate option -parent to hull
+        option -db
+        
+        component nameLE;#                  Name of object
+        component normalEventLF;#           -normalmotorevent
+        variable  normal_
+        component reverseEventLF;#          -reversemotorevent
+        variable  reverse_
+        component normalPointsEventLF;#     -normalpointsevent
+        variable  normalPoints_
+        component reversePointsEventLF;#    -reversepointsevent
+        variable  reversePoints_
+        constructor {args} {
+            set frame $win
+            install nameLE using LabelEntry $frame.nameLE \
+                  -label [_m "Label|Name:"] -text {}
+            pack $nameLE -fill x
+            install normalEventLF using LabelFrame \
+                  $frame.normalEventLF -text [_m "Label|Normal Motor Event:"]
+            pack $frame.normalEventLF -fill x
+            pack [ttk::entry [set e [$frame.normalEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar normal_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.normalEventLF getframe].copy \
+                  -text {Copy} \
+                  -command [mymethod _copyevent $e [myvar normal_]]] \
+                  -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.normalEventLF getframe].paste \
+                  -text {Paste} \
+                  -command [mymethod _pasteevent $e [myvar normal_]]] \
+                  -side left \
+                  -expand yes -fill x
+            install reverseEventLF using LabelFrame \
+                  $frame.reverseEventLF -text [_m "Label|Reverse Motor Event:"]
+            pack $frame.reverseEventLF -fill x
+            pack [ttk::entry [set e [$frame.reverseEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar reverse_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.reverseEventLF getframe].copy \
+                  -text {Copy} \
+                  -command [mymethod _copyevent $e [myvar reverse_]]] \
+                  -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.reverseEventLF getframe].paste \
+                  -text {Paste} \
+                  -command [mymethod _pasteevent $e [myvar reverse_]]] \
+                  -side left \
+                  -expand yes -fill x
+            install normalPointsEventLF using LabelFrame \
+                  $frame.normalPointsEventLF -text [_m "Label|Normal Points Event:"]
+            pack $frame.normalPointsEventLF -fill x
+            pack [ttk::entry [set e [$frame.normalPointsEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar normalPoints_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.normalPointsEventLF getframe].copy \
+                  -text {Copy} \
+                  -command [mymethod _copyevent $e [myvar normalPoints_]]] \
+                  -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.normalPointsEventLF getframe].paste \
+                  -text {Paste} \
+                  -command [mymethod _pasteevent $e [myvar normalPoints_]]] \
+                  -side left \
+                  -expand yes -fill x
+            install reversePointsEventLF using LabelFrame \
+                  $frame.reversePointsEventLF -text [_m "Label|Reverse Points Event:"]
+            pack $frame.reversePointsEventLF -fill x
+            pack [ttk::entry [set e [$frame.reversePointsEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar reversePoints_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.reversePointsEventLF getframe].copy \
+                  -text {Copy} \
+                  -command [mymethod _copyevent $e [myvar reversePoints_]]] \
+                  -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.reversePointsEventLF getframe].paste \
+                  -text {Paste} \
+                  -command [mymethod _pasteevent $e [myvar reversePoints_]]] \
+                  -side left \
+                  -expand yes -fill x
+            set buttons [ButtonBox $frame.buttons -orient horizontal]
+            pack $buttons -fill x
+            $buttons add ttk::button add    -text [_m "Label|Add"]    -command [mymethod _Add]
+            $buttons add ttk::button clear -text [_m "Label|Clear"] -command [mymethod _Clear]
+            $self configurelist $args
+        }
+        method _Add {} {
+            set name "[$nameLE cget -text]"
+            set result [[$self cget -db] newTurnout $name \
+                        -normalmotorevent $normal_ \
+                        -reversemotorevent $reverse_ \
+                        -normalpointsevent $normalPoints_ \
+                        -reversepointsevent $reversePoints_]
+        }
+        method _Clear {} {
+            $nameLE delete 0 end
+            set normal_ {00.00.00.00.00.00.00.00}
+            set reverse_ {00.00.00.00.00.00.00.00}
+            set normalPoints_ {00.00.00.00.00.00.00.00}
+            set reversePoints_ {00.00.00.00.00.00.00.00}
         }
     }
     snit::widgetadaptor NewBlockDialog {
