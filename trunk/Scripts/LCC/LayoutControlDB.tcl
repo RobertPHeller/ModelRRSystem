@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Jan 30 10:06:50 2019
-#  Last Modified : <190202.1010>
+#  Last Modified : <210628.1610>
 #
 #  Description	
 #
@@ -82,6 +82,7 @@ namespace eval lcc {
                 error "$type olddb: could not open $filename: $fp"
             }
             puts $fp {<?xml version='1.0'?>}
+            
             $db displayTree $fp
             set isdirty no
             close $fp
@@ -92,8 +93,13 @@ namespace eval lcc {
         }
         method newTurnout {{name CP1} args} {
             set layout [$self getElementsByTagName layout]
+            #puts stderr "*** $self newTurnout: layout is $layout"
+            #puts stderr "*** $self newTurnout: layout has [llength [$layout children]] children"
+            set oldturnout [$self getTurnout $name]
+            if {$oldturnout ne ""} {return $oldturnout}
             set newturnout [[$layout info type] create %%AUTO%% -tag turnout]
             $layout addchild $newturnout
+            #puts stderr "*** $self newTurnout: layout now has [llength [$layout children]] children"
             set nametag [[$layout info type] create %%AUTO%% -tag name]
             $newturnout addchild $nametag
             $nametag setdata $name
@@ -116,8 +122,11 @@ namespace eval lcc {
             set isdirty yes
             return $newturnout
         }
+        
         method newBlock {{name BK1} args} {
             set layout [$self getElementsByTagName layout]
+            set oldblock [$self getBlock $name]
+            if {$oldblock ne ""} {return $oldblock}
             set newblock [[$layout info type] create %%AUTO%% -tag block]
             $layout addchild $newblock
             set nametag [[$layout info type] create %%AUTO%% -tag name]
@@ -134,6 +143,8 @@ namespace eval lcc {
         }
         method newSignal {{name SIG1}} {
             set layout [$self getElementsByTagName layout]
+            set oldsignal [$self getSignal $name]
+            if {$oldsignal ne ""} {return $oldsignal}
             set newsignal [[$layout info type] create %%AUTO%% -tag signal]
             $layout addchild $newsignal
             set nametag [[$layout info type] create %%AUTO%% -tag name]
@@ -170,6 +181,8 @@ namespace eval lcc {
         }
         method newSensor {{name SENSE1} args} {
             set layout [$self getElementsByTagName layout]
+            set oldsensor [$self getSensor $name]
+            if {$oldsensor ne ""} {return $oldsensor}
             set newsensor [[$layout info type] create %%AUTO%% -tag sensor]
             $layout addchild $newsensor
             set nametag [[$layout info type] create %%AUTO%% -tag name]
@@ -185,6 +198,8 @@ namespace eval lcc {
         }
         method newControl {{name CONTROL1} args} {
             set layout [$self getElementsByTagName layout]
+            set oldcontrol [$self getControl $name]
+            if {$oldcontrol ne ""} {return $oldcontrol}
             set newcontrol [[$layout info type] create %%AUTO%% -tag control]
             $layout addchild $newcontrol
             set nametag [[$layout info type] create %%AUTO%% -tag name]

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <190324.1443>
+#  Last Modified : <210628.1339>
 #
 #  Description	
 #
@@ -149,12 +149,12 @@ snit::type OpenLCB {
         
     typemethod _buildDialogs {} {
         putdebug "*** $type _buildDialogs"
-        set newTurnoutDialog [::lcc::NewTurnoutDialog .main.newTurnoutDialog -parent .main]
+        set newTurnoutDialog [::lcc::NewTurnoutDialog .main.newTurnoutDialog -parent .main -modal none]
         putdebug "*** $type _buildDialogs: newTurnoutDialog is $newTurnoutDialog"
-        set newBlockDialog   [::lcc::NewBlockDialog   .main.newBlockDialog -parent .main]
-        set newSignalDialog  [::lcc::NewSignalDialog  .main.newSignalDialog -parent .main]
-        set newSensorDialog  [::lcc::NewSensorDialog  .main.newSensorDialog -parent .main]
-        set newControlDialog [::lcc::NewControlDialog .main.newControlDialog -parent .main]
+        set newBlockDialog   [::lcc::NewBlockDialog   .main.newBlockDialog -parent .main -modal none]
+        set newSignalDialog  [::lcc::NewSignalDialog  .main.newSignalDialog -parent .main -modal none]
+        set newSensorDialog  [::lcc::NewSensorDialog  .main.newSensorDialog -parent .main -modal none]
+        set newControlDialog [::lcc::NewControlDialog .main.newControlDialog -parent .main -modal none]
         
     }
     typemethod _newTurnout {} {
@@ -395,6 +395,9 @@ snit::type OpenLCB {
         $mainWindow menu add view command \
               -label [_m "Menu|View|Display CDI from XML file"] \
               -command [mytypemethod _ViewCDI]
+        #$mainWindow menu add view command \
+        #     -label [_m "Menu|View|Display Layout Control DB"] \
+        #     -command [mytypemethod _ViewLayoutControlDB]
         # Hook in help files.
         HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
         

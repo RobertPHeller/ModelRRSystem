@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <210217.1113>
+#  Last Modified : <210628.1607>
 #
 #  Description	
 #
@@ -320,8 +320,6 @@ namespace eval lcc {
         delegate option -width to editframe
         delegate option -areawidth to editframe
         
-        variable layoutcontroldb
-        ## Layout control DB object
         variable cdi
         ## CDI XML Object.
         variable _ioComplete
@@ -420,22 +418,21 @@ namespace eval lcc {
             set address 0
             [$main getmenu edit] configure -postcommand [mymethod edit_checksel]
             $self putdebug "*** $type create $self: configured -postcommand to edit menu"
-            set layoutcontroldb [::lcc::LayoutControlDB newdb]
             $self putdebug "*** $type create $self: initialized Layout Control DB"
             $self _processXMLnode $cdi [$editframe getframe] -1 address
             $self putdebug "*** $type create $self: processed CDI"
-            # $self _processXMLnode $cdi [$main getframe] -1 address
+            $self _layoutControlsCreation $f
             install readallProgressDialog using \
                   lcc::ReadallProgress $win.readallProgressDialog \
                   -parent $win
             install newTurnout using \
-                  lcc::NewTurnoutDialog $win.newTurnout -parent $win
+                  lcc::NewTurnoutDialog $win.newTurnout -parent $win -nameonly yes
             install newBlock using \
-                  lcc::NewBlockDialog $win.newBlock -parent $win
+                  lcc::NewBlockDialog $win.newBlock -parent $win -nameonly yes
             install newSensor using \
-                  lcc::NewSensorDialog $win.newSensor -parent $win
+                  lcc::NewSensorDialog $win.newSensor -parent $win -nameonly yes
             install newControl using \
-                  lcc::NewControlDialog $win.newControl -parent $win
+                  lcc::NewControlDialog $win.newControl -parent $win -nameonly yes
             $self putdebug "*** $type create $self: _readall names: [array names _readall]"
             if {!$options(-displayonly)} {
                 foreach s [array names _readall] {
@@ -445,7 +442,26 @@ namespace eval lcc {
             }
             
         }
+        component layoutcontrolsLF
+        component   layoutcontrolsNB
+        component     addturnoutW
+        component     addblockW
+        component     addsignalW
+        component     addsensorW
+        component     addcontrolW
         
+        method _layoutControlsCreation {frame} {
+            install layoutcontrolsLF using ttk::labelframe \
+                  $frame.layoutcontrolsLF -labelanchor nw \
+                  -text [_m "Label|Layout Controls"]
+            pack $layoutcontrolsLF -fill x
+            install layoutcontrolsNB using ScrollTabNotebook \
+                  $layoutcontrolsLF.layoutcontrolsNB 
+            pack $layoutcontrolsNB -fill both -expand yes
+            install addturnoutW using ::lcc::NewTurnoutWidget \
+                  $layoutcontrolsNB.addturnoutW -db [$self cget -layoutdb]
+            $layoutcontrolsNB add $addturnoutW -text [_m "Label|Turnout"] -sticky news
+        }
         method edit_checksel {} {
             if {[catch {selection get}]} {
                 $main setmenustate edit:havesel disabled

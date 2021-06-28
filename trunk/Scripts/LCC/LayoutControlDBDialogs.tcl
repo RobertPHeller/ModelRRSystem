@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jan 31 15:01:56 2019
-#  Last Modified : <210628.0805>
+#  Last Modified : <210628.1610>
 #
 #  Description	
 #
@@ -66,20 +66,22 @@ namespace eval lcc {
     snit::widgetadaptor NewTurnoutDialog {
         _layoutControlCopyPaste
         delegate option -parent to hull
+        delegate option -modal  to hull
         option -db
+        option -nameonly -readonly yes -default no -type snit::boolean
         
         component nameLE;#                  Name of object
         component normalEventLF;#           -normalmotorevent
-        variable  normal_
+        variable  normal_ {00.00.00.00.00.00.00.00}
         component reverseEventLF;#          -reversemotorevent
-        variable  reverse_
+        variable  reverse_ {00.00.00.00.00.00.00.00}
         component normalPointsEventLF;#     -normalpointsevent
-        variable  normalPoints_
+        variable  normalPoints_ {00.00.00.00.00.00.00.00}
         component reversePointsEventLF;#    -reversepointsevent
-        variable  reversePoints_
+        variable  reversePoints_ {00.00.00.00.00.00.00.00}
         constructor {args} {
             installhull using Dialog -bitmap questhead -default add \
-                  -cancel cancel -modal local -transient yes \
+                  -cancel cancel -transient yes \
                   -side bottom -title [_ "New Turnout"] \
                   -parent [from args -parent]
             $hull add add    -text [_m "Label|Add"]    -command [mymethod _Add]
@@ -89,6 +91,8 @@ namespace eval lcc {
             install nameLE using LabelEntry $frame.nameLE \
                   -label [_m "Label|Name:"] -text {}
             pack $nameLE -fill x
+            $self configurelist $args
+            if {[$self cget -nameonly]} {return}
             install normalEventLF using LabelFrame \
                   $frame.normalEventLF -text [_m "Label|Normal Motor Event:"]
             pack $frame.normalEventLF -fill x
@@ -157,7 +161,6 @@ namespace eval lcc {
                   -command [mymethod _pasteevent $e [myvar reversePoints_]]] \
                   -side left \
                   -expand yes -fill x
-            $self configurelist $args
         }
         method draw {args} {
             $self configurelist $args
@@ -166,11 +169,15 @@ namespace eval lcc {
         }
         method _Add {} {
             set name "[$nameLE cget -text]"
-            set result [[$self cget -db] newTurnout $name \
-                        -normalmotorevent $normal_ \
-                        -reversemotorevent $reverse_ \
-                        -normalpointsevent $normalPoints_ \
-                        -reversepointsevent $reversePoints_]
+            if {[$self cget -nameonly]} {
+                set result [[$self cget -db] newTurnout $name]
+            } else {
+                set result [[$self cget -db] newTurnout $name \
+                            -normalmotorevent $normal_ \
+                            -reversemotorevent $reverse_ \
+                            -normalpointsevent $normalPoints_ \
+                            -reversepointsevent $reversePoints_]
+            }
             $hull withdraw
             return [$hull enddialog $result]
         }
@@ -181,18 +188,17 @@ namespace eval lcc {
     }
     snit::widget NewTurnoutWidget {
                 _layoutControlCopyPaste
-        delegate option -parent to hull
         option -db
         
         component nameLE;#                  Name of object
         component normalEventLF;#           -normalmotorevent
-        variable  normal_
+        variable  normal_ {00.00.00.00.00.00.00.00}
         component reverseEventLF;#          -reversemotorevent
-        variable  reverse_
+        variable  reverse_ {00.00.00.00.00.00.00.00}
         component normalPointsEventLF;#     -normalpointsevent
-        variable  normalPoints_
+        variable  normalPoints_ {00.00.00.00.00.00.00.00}
         component reversePointsEventLF;#    -reversepointsevent
-        variable  reversePoints_
+        variable  reversePoints_ {00.00.00.00.00.00.00.00}
         constructor {args} {
             set frame $win
             install nameLE using LabelEntry $frame.nameLE \
@@ -274,11 +280,27 @@ namespace eval lcc {
         }
         method _Add {} {
             set name "[$nameLE cget -text]"
-            set result [[$self cget -db] newTurnout $name \
-                        -normalmotorevent $normal_ \
-                        -reversemotorevent $reverse_ \
-                        -normalpointsevent $normalPoints_ \
-                        -reversepointsevent $reversePoints_]
+            #puts stderr "$self _Add: name is '$name'"
+            set result [[$self cget -db] newTurnout $name]
+            #puts stderr "$self _Add: result is '$result'"
+            if {$normal_ ne {00.00.00.00.00.00.00.00}} {
+                set tag [$result getElementsByTagName motor -depth 1]
+                #puts stderr "$self _Add: tag (motor) is '$tag'"
+                [$tag getElementsByTagName normal -depth 1] setdata $normal_
+            }
+            if {$reverse_ ne {00.00.00.00.00.00.00.00}} {
+                set tag [$result getElementsByTagName motor -depth 1]
+                #puts stderr "$self _Add: tag (motor) is '$tag'"
+                [$tag getElementsByTagName reverse -depth 1] setdata $reverse_
+            }
+            if {$normalPoints_ ne {00.00.00.00.00.00.00.00}} {
+                set tag [$result getElementsByTagName points -depth 1]
+                [$tag getElementsByTagName normal -depth 1] setdata $normalPoints_
+            }
+            if {$reversePoints_ ne {00.00.00.00.00.00.00.00}} {
+                set tag [$result getElementsByTagName points -depth 1]
+                [$tag getElementsByTagName reverse -depth 1] setdata $reversePoints_
+            }
         }
         method _Clear {} {
             $nameLE delete 0 end
@@ -290,11 +312,13 @@ namespace eval lcc {
     }
     snit::widgetadaptor NewBlockDialog {
         delegate option -parent to hull
+        delegate option -modal  to hull
         option -db
+        option -nameonly -readonly yes -default no -type snit::boolean
         component nameLE;#                  Name of object
         constructor {args} {
             installhull using Dialog -bitmap questhead -default add \
-                  -cancel cancel -modal local -transient yes \
+                  -cancel cancel -transient yes \
                   -side bottom -title [_ "New Block"] \
                   -parent [from args -parent]
             $hull add add    -text Add    -command [mymethod _Add]
@@ -324,7 +348,9 @@ namespace eval lcc {
     }
     snit::widgetadaptor NewSignalDialog {
         delegate option -parent to hull
+        delegate option -modal  to hull
         option -db
+        option -nameonly -readonly yes -default no -type snit::boolean
         component nameLE;#                  Name of object
         component aspectlistLF
         component   aspectlistSTabNB
@@ -333,7 +359,7 @@ namespace eval lcc {
         
         constructor {args} {
             installhull using Dialog -bitmap questhead -default add \
-                  -cancel cancel -modal local -transient yes \
+                  -cancel cancel -transient yes \
                   -side bottom -title [_ "New Signal"] \
                   -parent [from args -parent]
             $hull add add    -text Add    -command [mymethod _Add]
@@ -414,11 +440,13 @@ namespace eval lcc {
     }
     snit::widgetadaptor NewSensorDialog {
         delegate option -parent to hull
+        delegate option -modal  to hull
         option -db
+        option -nameonly -readonly yes -default no -type snit::boolean
         component nameLE;#                  Name of object
         constructor {args} {
             installhull using Dialog -bitmap questhead -default add \
-                  -cancel cancel -modal local -transient yes \
+                  -cancel cancel -transient yes \
                   -side bottom -title [_ "New Sensor"] \
                   -parent [from args -parent]
             $hull add add    -text Add    -command [mymethod _Add]
@@ -448,11 +476,13 @@ namespace eval lcc {
     }
     snit::widgetadaptor NewControlDialog {
         delegate option -parent to hull
+        delegate option -modal  to hull
         option -db
+        option -nameonly -readonly yes -default no -type snit::boolean
         component nameLE;#                  Name of object
         constructor {args} {
             installhull using Dialog -bitmap questhead -default add \
-                  -cancel cancel -modal local -transient yes \
+                  -cancel cancel -transient yes \
                   -side bottom -title [_ "New Control"] \
                   -parent [from args -parent]
             $hull add add    -text Add    -command [mymethod _Add]
