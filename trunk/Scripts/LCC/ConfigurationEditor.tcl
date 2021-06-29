@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <210628.2032>
+#  Last Modified : <210629.0730>
 #
 #  Description	
 #
@@ -464,6 +464,12 @@ namespace eval lcc {
             install addblockW using ::lcc::NewBlockWidget \
                   $layoutcontrolsNB.addblockW -db [$self cget -layoutdb]
             $layoutcontrolsNB add $addblockW -text [_m "Label|Block"] -sticky news
+            install addsensorW using ::lcc::NewSensorWidget \
+                  $layoutcontrolsNB.addsensorW -db [$self cget -layoutdb]
+            $layoutcontrolsNB add $addsensorW -text [_m "Label|Sensor"] -sticky news
+            install addcontrolW using ::lcc::NewControlWidget \
+                  $layoutcontrolsNB.addcontrolW -db [$self cget -layoutdb]
+            $layoutcontrolsNB add $addcontrolW -text [_m "Label|Control"] -sticky news
         }
         method edit_checksel {} {
             if {[catch {selection get}]} {

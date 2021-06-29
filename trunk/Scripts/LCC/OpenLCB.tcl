@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <210628.1339>
+#  Last Modified : <210629.0831>
 #
 #  Description	
 #
@@ -106,8 +106,10 @@ package require ConfigDialogs
 package require LCCNodeTree
 package require LayoutControlDB
 package require Dialog
-package require ScrollTabNotebook                                      
+package require ScrollTabNotebook
 package require LayoutControlDBDialogs
+package require LayoutControlDB
+package require LayoutControlDBTable
 
 global HelpDir
 set HelpDir [file join [file dirname [file dirname [file dirname \
@@ -146,6 +148,8 @@ snit::type OpenLCB {
     typecomponent newSignalDialog
     typecomponent newSensorDialog
     typecomponent newControlDialog
+    typecomponent layoutControlView
+    typecomponent layoutControlTable
         
     typemethod _buildDialogs {} {
         putdebug "*** $type _buildDialogs"
@@ -181,6 +185,10 @@ snit::type OpenLCB {
                   } -parent . -title "XML File to open"]
         if {"$filename" ne {}} {
             set layoutcontroldb [::lcc::LayoutControlDB olddb $filename]
+            if {$layoutControlView ne {}} {
+                $layoutControlTable configure -db $layoutcontroldb
+                $layoutControlTable Refresh
+            }
             $nodetree configure -layoutdb $layoutcontroldb
             foreach cdiform [array names CDIs_FormTLs] {
                 set tl $CDIs_FormTLs($cdiform)
@@ -255,7 +263,7 @@ snit::type OpenLCB {
         
         # Process the command line options.
         # Does the user want a list of available transport constructors?
-        
+        set layoutControlView {}
         set listconstructorsP [lsearch $::argv -listconstructors]
         if {$listconstructorsP >= 0} {
             wm withdraw .
@@ -395,9 +403,9 @@ snit::type OpenLCB {
         $mainWindow menu add view command \
               -label [_m "Menu|View|Display CDI from XML file"] \
               -command [mytypemethod _ViewCDI]
-        #$mainWindow menu add view command \
-        #     -label [_m "Menu|View|Display Layout Control DB"] \
-        #     -command [mytypemethod _ViewLayoutControlDB]
+        $mainWindow menu add view command \
+             -label [_m "Menu|View|Display Layout Control DB"] \
+             -command [mytypemethod _ViewLayoutControlDB]
         # Hook in help files.
         HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
         
@@ -775,6 +783,34 @@ snit::type OpenLCB {
                -cdi $CDIs_xml($cdifile) \
                -displayonly true \
                -debugprint [myproc putdebug]]
+    }
+    typemethod _ViewLayoutControlDB {} {
+        if {$layoutControlView eq {}} {
+            set layoutControlView [toplevel .layoutControlView]
+            wm withdraw  .layoutControlView
+            wm transient .layoutControlView .
+            wm title     .layoutControlView [_ "Layout Control Database"]
+            wm protocol  .layoutControlView WM_DELETE_WINDOW \
+                  [list wm withdraw  .layoutControlView]
+            set scrollw [ScrolledWindow .layoutControlView.scrollw]
+            pack $scrollw -expand yes -fill both
+            set layoutControlTable [::lcc::LayoutControlDBTable \
+                                    [$scrollw getframe].layoutControlTable]
+            $scrollw setwidget $layoutControlTable
+            set buttons [ButtonBox .layoutControlView.buttons \
+                         -orient horizontal]
+            pack $buttons -fill x
+            $buttons add ttk::button refresh \
+                  -text [_m "Label|Refresh"] \
+                  -command [list $layoutControlTable Refresh]
+            $buttons add ttk::button close \
+                  -text [_m "Label|Close Window"] \
+                  -command [list wm withdraw  .layoutControlView]
+            
+        }
+        $layoutControlTable configure -db $layoutcontroldb
+        $layoutControlTable Refresh
+        wm deiconify $layoutControlView
     }
     typemethod _MemoryConfig {x y} {
         #* Configure the memory for the node at x,y

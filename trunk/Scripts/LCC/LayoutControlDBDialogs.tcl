@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jan 31 15:01:56 2019
-#  Last Modified : <210628.2020>
+#  Last Modified : <210629.0728>
 #
 #  Description	
 #
@@ -301,6 +301,7 @@ namespace eval lcc {
         }
     }
     snit::widgetadaptor NewBlockDialog {
+        _layoutControlCopyPaste
         delegate option -parent to hull
         delegate option -modal  to hull
         option -db
@@ -445,6 +446,298 @@ namespace eval lcc {
         }
     }
             
+    snit::widgetadaptor NewSensorDialog {
+        _layoutControlCopyPaste
+        delegate option -parent to hull
+        delegate option -modal  to hull
+        option -db
+        option -nameonly -readonly yes -default no -type snit::boolean
+        component nameLE;#                  Name of object
+        component onEventLF;#               -onevent
+        variable  on_ {00.00.00.00.00.00.00.00}
+        component offEventLF;#              -offevent
+        variable  off_ {00.00.00.00.00.00.00.00}
+        constructor {args} {
+            installhull using Dialog -bitmap questhead -default add \
+                  -cancel cancel -transient yes \
+                  -side bottom -title [_ "New Sensor"] \
+                  -parent [from args -parent]
+            $hull add add    -text Add    -command [mymethod _Add]
+            $hull add cancel -text Cancel -command [mymethod _Cancel]
+            wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
+            set frame [$hull getframe]
+            install nameLE using LabelEntry $frame.nameLE \
+                  -label [_m "Label|Name:"] -text {}
+            pack $nameLE -fill x
+            $self configurelist $args
+            if {[$self cget -nameonly]} {return}
+            install onEventLF using LabelFrame \
+                  $frame.onEventLF -text [_m "Label|On Event:"]
+            pack $onEventLF -fill x
+            pack [ttk::entry [set e [$frame.onEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar on_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.onEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar on_]]] \
+                  -side left
+            pack [ttk::button [$frame.onEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar on_]]] \
+                  -side left
+            install offEventLF using LabelFrame \
+                  $frame.offEventLF -text [_m "Label|Off Event:"]
+            pack $offEventLF -fill x
+            pack [ttk::entry [set e [$frame.offEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar off_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.offEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar off_]]] \
+                  -side left
+            pack [ttk::button [$frame.offEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar off_]]] \
+                  -side left
+        }
+        method draw {args} {
+            $self configurelist $args
+            set options(-parent) [$self cget -parent]
+            return [$hull draw]
+        }
+        method _Add {} {
+            set name "[$nameLE cget -text]"
+            if {[$self cget -nameonly]} {
+                set result [[$self cget -db] newSensor $name]
+            } else {
+                set result [[$self cget -db] newSensor $name \
+                            -onevent $on_ \
+                            -offevent $off_]
+            }
+            $hull withdraw
+            return [$hull enddialog $result]
+        }
+        method _Cancel {} {
+            $hull withdraw
+            return [$hull enddialog {}]
+        }
+    }
+    snit::widget NewSensorWidget {
+        _layoutControlCopyPaste
+        option -db
+        component nameLE;#                  Name of object
+        component onEventLF;#               -onevent
+        variable  on_ {00.00.00.00.00.00.00.00}
+        component offEventLF;#              -offevent
+        variable  off_ {00.00.00.00.00.00.00.00}
+        constructor {args} {
+            set frame $win
+            install nameLE using LabelEntry $frame.nameLE \
+                  -label [_m "Label|Name:"] -text {}
+            pack $nameLE -fill x
+            $self configurelist $args
+            install onEventLF using LabelFrame \
+                  $frame.onEventLF -text [_m "Label|On Event:"]
+            pack $onEventLF -fill x
+            pack [ttk::entry [set e [$frame.onEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar on_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.onEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar on_]]] \
+                  -side left
+            pack [ttk::button [$frame.onEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar on_]]] \
+                  -side left
+            install offEventLF using LabelFrame \
+                  $frame.offEventLF -text [_m "Label|Off Event:"]
+            pack $offEventLF -fill x
+            pack [ttk::entry [set e [$frame.offEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar off_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.offEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar off_]]] \
+                  -side left
+            pack [ttk::button [$frame.offEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar off_]]] \
+                  -side left
+            set buttons [ButtonBox $frame.buttons -orient horizontal]
+            pack $buttons -fill x
+            $buttons add ttk::button add    -text [_m "Label|Add"]    -command [mymethod _Add]
+            $buttons add ttk::button clear -text [_m "Label|Clear"] -command [mymethod _Clear]
+            $self configurelist $args
+        }
+        method _Add {} {
+            set name "[$nameLE cget -text]"
+            #puts stderr "$self _Add: name is '$name'"
+            set result [[$self cget -db] newSensor $name]
+            #puts stderr "$self _Add: result is '$result'"
+            if {$on_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName on -depth 1] setdata $on_
+            }
+            if {$off_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName off -depth 1] setdata $off_
+            }
+        }
+        method _Clear {} {
+            $nameLE delete 0 end
+            set on_ {00.00.00.00.00.00.00.00}
+            set off_ {00.00.00.00.00.00.00.00}
+        }
+    }
+    snit::widgetadaptor NewControlDialog {
+        _layoutControlCopyPaste
+        delegate option -parent to hull
+        delegate option -modal  to hull
+        option -db
+        option -nameonly -readonly yes -default no -type snit::boolean
+        component nameLE;#                  Name of object
+        component onEventLF;#               -onevent
+        variable  on_ {00.00.00.00.00.00.00.00}
+        component offEventLF;#              -offevent
+        variable  off_ {00.00.00.00.00.00.00.00}
+        constructor {args} {
+            installhull using Dialog -bitmap questhead -default add \
+                  -cancel cancel -transient yes \
+                  -side bottom -title [_ "New Control"] \
+                  -parent [from args -parent]
+            $hull add add    -text Add    -command [mymethod _Add]
+            $hull add cancel -text Cancel -command [mymethod _Cancel]
+            wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
+            set frame [$hull getframe]
+            install nameLE using LabelEntry $frame.nameLE \
+                  -label [_m "Label|Name:"] -text {}
+            pack $nameLE -fill x
+            $self configurelist $args
+            if {[$self cget -nameonly]} {return}
+            install onEventLF using LabelFrame \
+                  $frame.onEventLF -text [_m "Label|On Event:"]
+            pack $onEventLF -fill x
+            pack [ttk::entry [set e [$frame.onEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar on_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.onEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar on_]]] \
+                  -side left
+            pack [ttk::button [$frame.onEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar on_]]] \
+                  -side left
+            install offEventLF using LabelFrame \
+                  $frame.offEventLF -text [_m "Label|Off Event:"]
+            pack $offEventLF -fill x
+            pack [ttk::entry [set e [$frame.offEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar off_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.offEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar off_]]] \
+                  -side left
+            pack [ttk::button [$frame.offEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar off_]]] \
+                  -side left
+        }
+        method draw {args} {
+            $self configurelist $args
+            set options(-parent) [$self cget -parent]
+            return [$hull draw]
+        }
+        method _Add {} {
+            set name "[$nameLE cget -text]"
+            if {[$self cget -nameonly]} {
+                set result [[$self cget -db] newControl $name]
+            } else {
+                set result [[$self cget -db] newControl $name \
+                            -onevent $on_ \
+                            -offevent $off_]
+            }
+            $hull withdraw
+            return [$hull enddialog $result]
+        }
+        method _Cancel {} {
+            $hull withdraw
+            return [$hull enddialog {}]
+        }
+    }
+    snit::widget NewControlWidget {
+        _layoutControlCopyPaste
+        option -db
+        component nameLE;#                  Name of object
+        component onEventLF;#               -onevent
+        variable  on_ {00.00.00.00.00.00.00.00}
+        component offEventLF;#              -offevent
+        variable  off_ {00.00.00.00.00.00.00.00}
+        constructor {args} {
+            set frame $win
+            install nameLE using LabelEntry $frame.nameLE \
+                  -label [_m "Label|Name:"] -text {}
+            pack $nameLE -fill x
+            $self configurelist $args
+            install onEventLF using LabelFrame \
+                  $frame.onEventLF -text [_m "Label|On Event:"]
+            pack $onEventLF -fill x
+            pack [ttk::entry [set e [$frame.onEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar on_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.onEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar on_]]] \
+                  -side left
+            pack [ttk::button [$frame.onEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar on_]]] \
+                  -side left
+            install offEventLF using LabelFrame \
+                  $frame.offEventLF -text [_m "Label|Off Event:"]
+            pack $offEventLF -fill x
+            pack [ttk::entry [set e [$frame.offEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar off_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.offEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar off_]]] \
+                  -side left
+            pack [ttk::button [$frame.offEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar off_]]] \
+                  -side left
+            set buttons [ButtonBox $frame.buttons -orient horizontal]
+            pack $buttons -fill x
+            $buttons add ttk::button add    -text [_m "Label|Add"]    -command [mymethod _Add]
+            $buttons add ttk::button clear -text [_m "Label|Clear"] -command [mymethod _Clear]
+            $self configurelist $args
+        }
+        method _Add {} {
+            set name "[$nameLE cget -text]"
+            #puts stderr "$self _Add: name is '$name'"
+            set result [[$self cget -db] newControl $name]
+            #puts stderr "$self _Add: result is '$result'"
+            if {$on_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName on -depth 1] setdata $on_
+            }
+            if {$off_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName off -depth 1] setdata $off_
+            }
+        }
+        method _Clear {} {
+            $nameLE delete 0 end
+            set on_ {00.00.00.00.00.00.00.00}
+            set off_ {00.00.00.00.00.00.00.00}
+        }
+    }
     snit::widgetadaptor NewSignalDialog {
         delegate option -parent to hull
         delegate option -modal  to hull
@@ -529,78 +822,6 @@ namespace eval lcc {
                       -aspect [$aspectlist($index,aspl) get] \
                       -look   [$aspectlist($index,asplook) get]
             }
-            $hull withdraw
-            return [$hull enddialog $result]
-        }
-        method _Cancel {} {
-            $hull withdraw
-            return [$hull enddialog {}]
-        }
-    }
-    snit::widgetadaptor NewSensorDialog {
-        delegate option -parent to hull
-        delegate option -modal  to hull
-        option -db
-        option -nameonly -readonly yes -default no -type snit::boolean
-        component nameLE;#                  Name of object
-        constructor {args} {
-            installhull using Dialog -bitmap questhead -default add \
-                  -cancel cancel -transient yes \
-                  -side bottom -title [_ "New Sensor"] \
-                  -parent [from args -parent]
-            $hull add add    -text Add    -command [mymethod _Add]
-            $hull add cancel -text Cancel -command [mymethod _Cancel]
-            wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
-            set frame [$hull getframe]
-            install nameLE using LabelEntry $frame.nameLE \
-                  -label [_m "Label|Name:"] -text {}
-            pack $nameLE -fill x
-            $self configurelist $args
-        }
-        method draw {args} {
-            $self configurelist $args
-            set options(-parent) [$self cget -parent]
-            return [$hull draw]
-        }
-        method _Add {} {
-            set name "[$nameLE cget -text]"
-            set result [[$self cget -db] newSensor $name]
-            $hull withdraw
-            return [$hull enddialog $result]
-        }
-        method _Cancel {} {
-            $hull withdraw
-            return [$hull enddialog {}]
-        }
-    }
-    snit::widgetadaptor NewControlDialog {
-        delegate option -parent to hull
-        delegate option -modal  to hull
-        option -db
-        option -nameonly -readonly yes -default no -type snit::boolean
-        component nameLE;#                  Name of object
-        constructor {args} {
-            installhull using Dialog -bitmap questhead -default add \
-                  -cancel cancel -transient yes \
-                  -side bottom -title [_ "New Control"] \
-                  -parent [from args -parent]
-            $hull add add    -text Add    -command [mymethod _Add]
-            $hull add cancel -text Cancel -command [mymethod _Cancel]
-            wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
-            set frame [$hull getframe]
-            install nameLE using LabelEntry $frame.nameLE \
-                  -label [_m "Label|Name:"] -text {}
-            pack $nameLE -fill x
-            $self configurelist $args
-        }
-        method draw {args} {
-            $self configurelist $args
-            set options(-parent) [$self cget -parent]
-            return [$hull draw]
-        }
-        method _Add {} {
-            set name "[$nameLE cget -text]"
-            set result [[$self cget -db] newControl $name]
             $hull withdraw
             return [$hull enddialog $result]
         }
