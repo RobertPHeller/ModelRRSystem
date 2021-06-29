@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jan 31 15:01:56 2019
-#  Last Modified : <210628.1610>
+#  Last Modified : <210628.2020>
 #
 #  Description	
 #
@@ -101,15 +101,13 @@ namespace eval lcc {
                   -textvariable [myvar normal_]] -side left \
                   -expand yes -fill x
             pack [ttk::button [$frame.normalEventLF getframe].copy \
-                  -text {Copy} \
+                  -text [_m "Label|Copy"] \
                   -command [mymethod _copyevent $e [myvar normal_]]] \
-                  -side left \
-                  -expand yes -fill x
+                  -side left
             pack [ttk::button [$frame.normalEventLF getframe].paste \
-                  -text {Paste} \
+                  -text [_m "Label|Paste"] \
                   -command [mymethod _pasteevent $e [myvar normal_]]] \
-                  -side left \
-                  -expand yes -fill x
+                  -side left
             install reverseEventLF using LabelFrame \
                   $frame.reverseEventLF -text [_m "Label|Reverse Motor Event:"]
             pack $frame.reverseEventLF -fill x
@@ -118,12 +116,12 @@ namespace eval lcc {
                   -textvariable [myvar reverse_]] -side left \
                   -expand yes -fill x
             pack [ttk::button [$frame.reverseEventLF getframe].copy \
-                  -text {Copy} \
+                  -text [_m "Label|Copy"] \
                   -command [mymethod _copyevent $e [myvar reverse_]]] \
                   -side left \
                   -expand yes -fill x
             pack [ttk::button [$frame.reverseEventLF getframe].paste \
-                  -text {Paste} \
+                  -text [_m "Label|Paste"] \
                   -command [mymethod _pasteevent $e [myvar reverse_]]] \
                   -side left \
                   -expand yes -fill x
@@ -135,12 +133,12 @@ namespace eval lcc {
                   -textvariable [myvar normalPoints_]] -side left \
                   -expand yes -fill x
             pack [ttk::button [$frame.normalPointsEventLF getframe].copy \
-                  -text {Copy} \
+                  -text [_m "Label|Copy"] \
                   -command [mymethod _copyevent $e [myvar normalPoints_]]] \
                   -side left \
                   -expand yes -fill x
             pack [ttk::button [$frame.normalPointsEventLF getframe].paste \
-                  -text {Paste} \
+                  -text [_m "Label|Paste"] \
                   -command [mymethod _pasteevent $e [myvar normalPoints_]]] \
                   -side left \
                   -expand yes -fill x
@@ -152,12 +150,12 @@ namespace eval lcc {
                   -textvariable [myvar reversePoints_]] -side left \
                   -expand yes -fill x
             pack [ttk::button [$frame.reversePointsEventLF getframe].copy \
-                  -text {Copy} \
+                  -text [_m "Label|Copy"] \
                   -command [mymethod _copyevent $e [myvar reversePoints_]]] \
                   -side left \
                   -expand yes -fill x
             pack [ttk::button [$frame.reversePointsEventLF getframe].paste \
-                  -text {Paste} \
+                  -text [_m "Label|Paste"] \
                   -command [mymethod _pasteevent $e [myvar reversePoints_]]] \
                   -side left \
                   -expand yes -fill x
@@ -187,7 +185,7 @@ namespace eval lcc {
         }
     }
     snit::widget NewTurnoutWidget {
-                _layoutControlCopyPaste
+        _layoutControlCopyPaste
         option -db
         
         component nameLE;#                  Name of object
@@ -212,15 +210,13 @@ namespace eval lcc {
                   -textvariable [myvar normal_]] -side left \
                   -expand yes -fill x
             pack [ttk::button [$frame.normalEventLF getframe].copy \
-                  -text {Copy} \
+                  -text [_m "Label|Copy"] \
                   -command [mymethod _copyevent $e [myvar normal_]]] \
-                  -side left \
-                  -expand yes -fill x
+                  -side left
             pack [ttk::button [$frame.normalEventLF getframe].paste \
-                  -text {Paste} \
+                  -text [_m "Label|Paste"] \
                   -command [mymethod _pasteevent $e [myvar normal_]]] \
-                  -side left \
-                  -expand yes -fill x
+                  -side left
             install reverseEventLF using LabelFrame \
                   $frame.reverseEventLF -text [_m "Label|Reverse Motor Event:"]
             pack $frame.reverseEventLF -fill x
@@ -229,15 +225,13 @@ namespace eval lcc {
                   -textvariable [myvar reverse_]] -side left \
                   -expand yes -fill x
             pack [ttk::button [$frame.reverseEventLF getframe].copy \
-                  -text {Copy} \
+                  -text [_m "Label|Copy"] \
                   -command [mymethod _copyevent $e [myvar reverse_]]] \
-                  -side left \
-                  -expand yes -fill x
+                  -side left
             pack [ttk::button [$frame.reverseEventLF getframe].paste \
-                  -text {Paste} \
+                  -text [_m "Label|Paste"] \
                   -command [mymethod _pasteevent $e [myvar reverse_]]] \
-                  -side left \
-                  -expand yes -fill x
+                  -side left
             install normalPointsEventLF using LabelFrame \
                   $frame.normalPointsEventLF -text [_m "Label|Normal Points Event:"]
             pack $frame.normalPointsEventLF -fill x
@@ -246,15 +240,13 @@ namespace eval lcc {
                   -textvariable [myvar normalPoints_]] -side left \
                   -expand yes -fill x
             pack [ttk::button [$frame.normalPointsEventLF getframe].copy \
-                  -text {Copy} \
+                  -text [_m "Label|Copy"] \
                   -command [mymethod _copyevent $e [myvar normalPoints_]]] \
-                  -side left \
-                  -expand yes -fill x
+                  -side left
             pack [ttk::button [$frame.normalPointsEventLF getframe].paste \
-                  -text {Paste} \
+                  -text [_m "Label|Paste"] \
                   -command [mymethod _pasteevent $e [myvar normalPoints_]]] \
-                  -side left \
-                  -expand yes -fill x
+                  -side left
             install reversePointsEventLF using LabelFrame \
                   $frame.reversePointsEventLF -text [_m "Label|Reverse Points Event:"]
             pack $frame.reversePointsEventLF -fill x
@@ -263,15 +255,13 @@ namespace eval lcc {
                   -textvariable [myvar reversePoints_]] -side left \
                   -expand yes -fill x
             pack [ttk::button [$frame.reversePointsEventLF getframe].copy \
-                  -text {Copy} \
+                  -text [_m "Label|Copy"] \
                   -command [mymethod _copyevent $e [myvar reversePoints_]]] \
-                  -side left \
-                  -expand yes -fill x
+                  -side left
             pack [ttk::button [$frame.reversePointsEventLF getframe].paste \
-                  -text {Paste} \
+                  -text [_m "Label|Paste"] \
                   -command [mymethod _pasteevent $e [myvar reversePoints_]]] \
-                  -side left \
-                  -expand yes -fill x
+                  -side left
             set buttons [ButtonBox $frame.buttons -orient horizontal]
             pack $buttons -fill x
             $buttons add ttk::button add    -text [_m "Label|Add"]    -command [mymethod _Add]
@@ -316,19 +306,54 @@ namespace eval lcc {
         option -db
         option -nameonly -readonly yes -default no -type snit::boolean
         component nameLE;#                  Name of object
+        component occupiedEventLF;#         -occupiedevent
+        variable  occupied_ {00.00.00.00.00.00.00.00}
+        component clearEventLF;#            -clearevent
+        variable  clear_ {00.00.00.00.00.00.00.00}
         constructor {args} {
             installhull using Dialog -bitmap questhead -default add \
                   -cancel cancel -transient yes \
                   -side bottom -title [_ "New Block"] \
                   -parent [from args -parent]
-            $hull add add    -text Add    -command [mymethod _Add]
-            $hull add cancel -text Cancel -command [mymethod _Cancel]
+            $hull add add    -text [_m "Label|Add"]    -command [mymethod _Add]
+            $hull add cancel -text [_m "Label|Cancel"] -command [mymethod _Cancel]
             wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
             set frame [$hull getframe]
             install nameLE using LabelEntry $frame.nameLE \
                   -label [_m "Label|Name:"] -text {}
             pack $nameLE -fill x
             $self configurelist $args
+            if {[$self cget -nameonly]} {return}
+            install occupiedEventLF using LabelFrame \
+                  $frame.occupiedEventLF -text [_m "Label|Occupied Event:"]
+            pack $occupiedEventLF -fill x
+            pack [ttk::entry [set e [$frame.occupiedEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar occupied_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.occupiedEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar occupied_]]] \
+                  -side left
+            pack [ttk::button [$frame.occupiedEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar occupied_]]] \
+                  -side left
+                    install clearEventLF using LabelFrame \
+                  $frame.clearEventLF -text [_m "Label|Clear Event:"]
+            pack $clearEventLF -fill x
+            pack [ttk::entry [set e [$frame.clearEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar clear_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.clearEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar clear_]]] \
+                  -side left
+            pack [ttk::button [$frame.clearEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar clear_]]] \
+                  -side left
         }
         method draw {args} {
             $self configurelist $args
@@ -337,7 +362,13 @@ namespace eval lcc {
         }
         method _Add {} {
             set name "[$nameLE cget -text]"
-            set result [[$self cget -db] newBlock $name]
+            if {[$self cget -nameonly]} {
+                set result [[$self cget -db] newBlock $name]
+            } else {
+                set result [[$self cget -db] newBlock $name \
+                            -occupiedevent $occupied_ \
+                            -clearevent    $clear_]
+            }
             $hull withdraw
             return [$hull enddialog $result]
         }
@@ -346,6 +377,74 @@ namespace eval lcc {
             return [$hull enddialog {}]
         }
     }
+    snit::widget NewBlockWidget {
+        _layoutControlCopyPaste
+        option -db
+        component nameLE;#                  Name of object
+        component occupiedEventLF;#         -occupiedevent
+        variable  occupied_ {00.00.00.00.00.00.00.00}
+        component clearEventLF;#            -clearevent
+        variable  clear_ {00.00.00.00.00.00.00.00}
+        constructor {args} {
+            set frame $win
+            install nameLE using LabelEntry $frame.nameLE \
+                  -label [_m "Label|Name:"] -text {}
+            pack $nameLE -fill x
+            install occupiedEventLF using LabelFrame \
+                  $frame.occupiedEventLF -text [_m "Label|Occupied Event:"]
+            pack $occupiedEventLF -fill x
+            pack [ttk::entry [set e [$frame.occupiedEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar occupied_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.occupiedEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar occupied_]]] \
+                  -side left
+            pack [ttk::button [$frame.occupiedEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar occupied_]]] \
+                  -side left
+                    install clearEventLF using LabelFrame \
+                  $frame.clearEventLF -text [_m "Label|Clear Event:"]
+            pack $clearEventLF -fill x
+            pack [ttk::entry [set e [$frame.clearEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar clear_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.clearEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar clear_]]] \
+                  -side left
+            pack [ttk::button [$frame.clearEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar clear_]]] \
+                  -side left
+            set buttons [ButtonBox $frame.buttons -orient horizontal]
+            pack $buttons -fill x
+            $buttons add ttk::button add    -text [_m "Label|Add"]    -command [mymethod _Add]
+            $buttons add ttk::button clear -text [_m "Label|Clear"] -command [mymethod _Clear]
+            $self configurelist $args
+        }
+        method _Add {} {
+            set name "[$nameLE cget -text]"
+            #puts stderr "$self _Add: name is '$name'"
+            set result [[$self cget -db] newBlock $name]
+            #puts stderr "$self _Add: result is '$result'"
+            if {$occupied_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName occupied -depth 1] setdata $occupied_
+            }
+            if {$clear_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName clear -depth 1] setdata $clear_
+            }
+        }
+        method _Clear {} {
+            $nameLE delete 0 end
+            set occupied_ {00.00.00.00.00.00.00.00}
+            set clear_ {00.00.00.00.00.00.00.00}
+        }
+    }
+            
     snit::widgetadaptor NewSignalDialog {
         delegate option -parent to hull
         delegate option -modal  to hull

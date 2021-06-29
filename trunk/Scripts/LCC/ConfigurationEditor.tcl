@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <210628.1607>
+#  Last Modified : <210628.2032>
 #
 #  Description	
 #
@@ -461,6 +461,9 @@ namespace eval lcc {
             install addturnoutW using ::lcc::NewTurnoutWidget \
                   $layoutcontrolsNB.addturnoutW -db [$self cget -layoutdb]
             $layoutcontrolsNB add $addturnoutW -text [_m "Label|Turnout"] -sticky news
+            install addblockW using ::lcc::NewBlockWidget \
+                  $layoutcontrolsNB.addblockW -db [$self cget -layoutdb]
+            $layoutcontrolsNB add $addblockW -text [_m "Label|Block"] -sticky news
         }
         method edit_checksel {} {
             if {[catch {selection get}]} {
