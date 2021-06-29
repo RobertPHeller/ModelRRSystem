@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Jan 30 10:06:50 2019
-#  Last Modified : <210628.1610>
+#  Last Modified : <210629.1442>
 #
 #  Description	
 #
@@ -227,7 +227,7 @@ namespace eval lcc {
         method getBlock {name} {
             set l [$self getElementsByTagName layout]
             foreach b [$l getElementsByTagName block] {
-                set nt [$t getElementsByTagName name]
+                set nt [$b getElementsByTagName name]
                 if {[$nt data] eq $name} {
                     return $b
                 }
@@ -237,7 +237,7 @@ namespace eval lcc {
         method getSignal {name} {
             set l [$self getElementsByTagName layout]
             foreach s [$l getElementsByTagName signal] {
-                set nt [$t getElementsByTagName name -depth 1]
+                set nt [$s getElementsByTagName name -depth 1]
                 if {[$nt data] eq $name} {
                     return $s
                 }
@@ -247,7 +247,7 @@ namespace eval lcc {
         method getSensor {name} {
             set l [$self getElementsByTagName layout]
             foreach s [$l getElementsByTagName sensor] {
-                set nt [$t getElementsByTagName name -depth 1]
+                set nt [$s getElementsByTagName name -depth 1]
                 if {[$nt data] eq $name} {
                     return $s
                 }
@@ -257,7 +257,7 @@ namespace eval lcc {
         method getControl {name} {
             set l [$self getElementsByTagName layout]
             foreach c [$l getElementsByTagName control] {
-                set nt [$t getElementsByTagName name -depth 1]
+                set nt [$c getElementsByTagName name -depth 1]
                 if {[$nt data] eq $name} {
                     return $c
                 }

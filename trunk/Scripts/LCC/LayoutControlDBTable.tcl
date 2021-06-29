@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jun 29 07:39:30 2021
-#  Last Modified : <210629.0839>
+#  Last Modified : <210629.1437>
 #
 #  Description	
 #
@@ -51,16 +51,33 @@ package require LayoutControlDB
 
 namespace eval lcc {
     snit::widgetadaptor LayoutControlDBTable {
-        component newTurnoutDialog
+        option -db -default {}
+        option -itemeditor -default {}
         delegate option * to hull except {-class -style -columns 
             -displaycolumns -show}
-        delegate method * to hull
+        delegate method * to hull except {bbox cget configure delete 
+            detach exists index insert instate move next parent 
+            prev set state tag}
         constructor {args} {
-            installhull using ttk::treeview -columns {}
+            installhull using ttk::treeview -columns {} \
+                  -selectmode browse
+            $hull tag bind block <ButtonRelease> [mymethod _editItem block %x %y]
+            $hull tag bind turnout <ButtonRelease> [mymethod _editItem turnout %x %y]
+            $hull tag bind signal <ButtonRelease> [mymethod _editItem signal %x %y]
+            $hull tag bind sensor <ButtonRelease> [mymethod _editItem sensor %x %y]
+            $hull tag bind control <ButtonRelease> [mymethod _editItem control %x %y]
             $self configurelist $args
             $self Refresh
         }
-        option -db -default {}
+        method _editItem {what x y} {
+            set item [$hull identify item $x $y]
+            if {$item ne {}} {
+                set name [$hull item $item -text]
+                if {[$self cget -itemeditor] ne {}} {
+                    uplevel #0 "[$self cget -itemeditor] $what $name -db [$self cget -db]"
+                }
+            }
+        }
         method Refresh {} {
             $hull delete [$hull children {}]
             if {$options(-db) ne {}} {
@@ -78,7 +95,7 @@ namespace eval lcc {
                 block {
                     $hull insert {} end -id $i \
                           -image [IconImage image Block] \
-                          -text $name  -open false
+                          -text $name  -open false -tags block
                     set occ [$i getElementsByTagName occupied -depth 1]
                     set clr [$i getElementsByTagName clear -depth 1]
                     $hull insert $i end \
@@ -91,7 +108,7 @@ namespace eval lcc {
                 turnout {
                     $hull insert {} end -id $i \
                           -image [IconImage image SwitchMotor] \
-                          -text $name -open false
+                          -text $name -open false -tags turnout
                     set motor  [$i getElementsByTagName motor -depth 1]
                     set motor_norm [$motor getElementsByTagName normal -depth 1]
                     set motor_rev  [$motor getElementsByTagName reverse -depth 1]
@@ -114,7 +131,7 @@ namespace eval lcc {
                 signal {
                     $hull insert {} end -id $i \
                           -image [IconImage image Signal] \
-                          -text $name -open false
+                          -text $name -open false -tags signal
                     foreach a [$i getElementsByTagName aspect] {
                         $hull insert $i end \
                               -id "$i:$a" \
@@ -127,7 +144,7 @@ namespace eval lcc {
                 sensor {
                     $hull insert {} end -id $i \
                           -image [IconImage image Sensor] \
-                          -text $name 
+                          -text $name -open false -tags sensor
                     set on [$i getElementsByTagName on -depth 1]
                     set off [$i getElementsByTagName off -depth 1]
                     $hull insert $i end \
@@ -140,7 +157,7 @@ namespace eval lcc {
                 control {
                     $hull insert {} end -id $i \
                           -image [IconImage image Control] \
-                          -text $name 
+                          -text $name -open false -tags control
                     set on [$i getElementsByTagName on -depth 1]
                     set off [$i getElementsByTagName off -depth 1]
                     $hull insert $i end \

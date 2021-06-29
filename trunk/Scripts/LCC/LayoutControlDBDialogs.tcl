@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jan 31 15:01:56 2019
-#  Last Modified : <210629.0728>
+#  Last Modified : <210629.1448>
 #
 #  Description	
 #
@@ -167,14 +167,26 @@ namespace eval lcc {
         }
         method _Add {} {
             set name "[$nameLE cget -text]"
-            if {[$self cget -nameonly]} {
-                set result [[$self cget -db] newTurnout $name]
-            } else {
-                set result [[$self cget -db] newTurnout $name \
-                            -normalmotorevent $normal_ \
-                            -reversemotorevent $reverse_ \
-                            -normalpointsevent $normalPoints_ \
-                            -reversepointsevent $reversePoints_]
+            if {$name eq ""} {return}
+            set result [[$self cget -db] newTurnout $name]
+            if {[$self cget -nameonly]} {return}
+            if {$normal_ ne {00.00.00.00.00.00.00.00}} {
+                set tag [$result getElementsByTagName motor -depth 1]
+                #puts stderr "$self _Add: tag (motor) is '$tag'"
+                [$tag getElementsByTagName normal -depth 1] setdata $normal_
+            }
+            if {$reverse_ ne {00.00.00.00.00.00.00.00}} {
+                set tag [$result getElementsByTagName motor -depth 1]
+                #puts stderr "$self _Add: tag (motor) is '$tag'"
+                [$tag getElementsByTagName reverse -depth 1] setdata $reverse_
+            }
+            if {$normalPoints_ ne {00.00.00.00.00.00.00.00}} {
+                set tag [$result getElementsByTagName points -depth 1]
+                [$tag getElementsByTagName normal -depth 1] setdata $normalPoints_
+            }
+            if {$reversePoints_ ne {00.00.00.00.00.00.00.00}} {
+                set tag [$result getElementsByTagName points -depth 1]
+                [$tag getElementsByTagName reverse -depth 1] setdata $reversePoints_
             }
             $hull withdraw
             return [$hull enddialog $result]
@@ -187,6 +199,7 @@ namespace eval lcc {
     snit::widget NewTurnoutWidget {
         _layoutControlCopyPaste
         option -db
+        option -edit -type snit::boolean -readonly yes -default false
         
         component nameLE;#                  Name of object
         component normalEventLF;#           -normalmotorevent
@@ -197,6 +210,7 @@ namespace eval lcc {
         variable  normalPoints_ {00.00.00.00.00.00.00.00}
         component reversePointsEventLF;#    -reversepointsevent
         variable  reversePoints_ {00.00.00.00.00.00.00.00}
+        component buttons
         constructor {args} {
             set frame $win
             install nameLE using LabelEntry $frame.nameLE \
@@ -262,14 +276,34 @@ namespace eval lcc {
                   -text [_m "Label|Paste"] \
                   -command [mymethod _pasteevent $e [myvar reversePoints_]]] \
                   -side left
-            set buttons [ButtonBox $frame.buttons -orient horizontal]
+            install buttons using ButtonBox $frame.buttons -orient horizontal
             pack $buttons -fill x
             $buttons add ttk::button add    -text [_m "Label|Add"]    -command [mymethod _Add]
             $buttons add ttk::button clear -text [_m "Label|Clear"] -command [mymethod _Clear]
             $self configurelist $args
+            if {[$self cget -edit]} {
+                $nameLE configure -editable false
+                $buttons itemconfigure add -text [_m "Label|Update"] \
+                      -state disabled
+            }
+        }
+        method Load {name args} {
+            $self configurelist $args
+            if {![$self cget -edit]} {return}
+            set result [[$self cget -db] getTurnout $name]
+            if {$result eq {}} {return}
+            $nameLE configure -text $name
+            set tag [$result getElementsByTagName motor -depth 1]
+            set normal_ [[$tag getElementsByTagName normal -depth 1] data]
+            set reverse_ [[$tag getElementsByTagName reverse -depth 1] data]
+            set tag [$result getElementsByTagName points -depth 1]
+            set normalPoints_ [[$tag getElementsByTagName normal -depth 1] data]
+            set reversePoints_ [[$tag getElementsByTagName reverse -depth 1] data]
+            $buttons itemconfigure add -state normal
         }
         method _Add {} {
             set name "[$nameLE cget -text]"
+            if {$name eq ""} {return}
             #puts stderr "$self _Add: name is '$name'"
             set result [[$self cget -db] newTurnout $name]
             #puts stderr "$self _Add: result is '$result'"
@@ -363,12 +397,14 @@ namespace eval lcc {
         }
         method _Add {} {
             set name "[$nameLE cget -text]"
-            if {[$self cget -nameonly]} {
-                set result [[$self cget -db] newBlock $name]
-            } else {
-                set result [[$self cget -db] newBlock $name \
-                            -occupiedevent $occupied_ \
-                            -clearevent    $clear_]
+            if {$name eq ""} {return}
+            set result [[$self cget -db] newBlock $name]
+            if {[$self cget -nameonly]} {return}
+            if {$occupied_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName occupied -depth 1] setdata $occupied_
+            }
+            if {$clear_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName clear -depth 1] setdata $clear_
             }
             $hull withdraw
             return [$hull enddialog $result]
@@ -381,11 +417,14 @@ namespace eval lcc {
     snit::widget NewBlockWidget {
         _layoutControlCopyPaste
         option -db
+        option -edit -type snit::boolean -readonly yes -default false
+        
         component nameLE;#                  Name of object
         component occupiedEventLF;#         -occupiedevent
         variable  occupied_ {00.00.00.00.00.00.00.00}
         component clearEventLF;#            -clearevent
         variable  clear_ {00.00.00.00.00.00.00.00}
+        component buttons
         constructor {args} {
             set frame $win
             install nameLE using LabelEntry $frame.nameLE \
@@ -421,14 +460,30 @@ namespace eval lcc {
                   -text [_m "Label|Paste"] \
                   -command [mymethod _pasteevent $e [myvar clear_]]] \
                   -side left
-            set buttons [ButtonBox $frame.buttons -orient horizontal]
+            install buttons using ButtonBox $frame.buttons -orient horizontal
             pack $buttons -fill x
             $buttons add ttk::button add    -text [_m "Label|Add"]    -command [mymethod _Add]
             $buttons add ttk::button clear -text [_m "Label|Clear"] -command [mymethod _Clear]
             $self configurelist $args
+            if {[$self cget -edit]} {
+                $nameLE configure -editable false
+                $buttons itemconfigure add -text [_m "Label|Update"] \
+                      -state disabled
+            }
+        }
+        method Load {name args} {
+            $self configurelist $args
+            if {![$self cget -edit]} {return}
+            set result [[$self cget -db] getBlock $name]
+            if {$result eq {}} {return}
+            $nameLE configure -text $name
+            set occupied_ [[$result getElementsByTagName occupied -depth 1] data]
+            set clear_ [[$result getElementsByTagName clear -depth 1] data]
+            $buttons itemconfigure add -state normal
         }
         method _Add {} {
             set name "[$nameLE cget -text]"
+            if {$name eq ""} {return}
             #puts stderr "$self _Add: name is '$name'"
             set result [[$self cget -db] newBlock $name]
             #puts stderr "$self _Add: result is '$result'"
@@ -509,12 +564,14 @@ namespace eval lcc {
         }
         method _Add {} {
             set name "[$nameLE cget -text]"
-            if {[$self cget -nameonly]} {
-                set result [[$self cget -db] newSensor $name]
-            } else {
-                set result [[$self cget -db] newSensor $name \
-                            -onevent $on_ \
-                            -offevent $off_]
+            if {$name eq ""} {return}
+            set result [[$self cget -db] newSensor $name]
+            if {[$self cget -nameonly]} {return}
+            if {$on_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName on -depth 1] setdata $on_
+            }
+            if {$off_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName off -depth 1] setdata $off_
             }
             $hull withdraw
             return [$hull enddialog $result]
@@ -527,11 +584,14 @@ namespace eval lcc {
     snit::widget NewSensorWidget {
         _layoutControlCopyPaste
         option -db
+        option -edit -type snit::boolean -readonly yes -default false
+
         component nameLE;#                  Name of object
         component onEventLF;#               -onevent
         variable  on_ {00.00.00.00.00.00.00.00}
         component offEventLF;#              -offevent
         variable  off_ {00.00.00.00.00.00.00.00}
+        component buttons
         constructor {args} {
             set frame $win
             install nameLE using LabelEntry $frame.nameLE \
@@ -568,14 +628,30 @@ namespace eval lcc {
                   -text [_m "Label|Paste"] \
                   -command [mymethod _pasteevent $e [myvar off_]]] \
                   -side left
-            set buttons [ButtonBox $frame.buttons -orient horizontal]
+            install buttons using ButtonBox $frame.buttons -orient horizontal
             pack $buttons -fill x
             $buttons add ttk::button add    -text [_m "Label|Add"]    -command [mymethod _Add]
             $buttons add ttk::button clear -text [_m "Label|Clear"] -command [mymethod _Clear]
             $self configurelist $args
+            if {[$self cget -edit]} {
+                $nameLE configure -editable false
+                $buttons itemconfigure add -text [_m "Label|Update"] \
+                      -state disabled
+            }
+        }
+        method Load {name args} {
+            $self configurelist $args
+            if {![$self cget -edit]} {return}
+            set result [[$self cget -db] getSensor $name]
+            if {$result eq {}} {return}
+            $nameLE configure -text $name
+            set on_ [[$result getElementsByTagName on -depth 1] data]
+            set off_ [[$result getElementsByTagName off -depth 1] data]
+            $buttons itemconfigure add -state normal
         }
         method _Add {} {
             set name "[$nameLE cget -text]"
+            if {$name eq ""} {return}
             #puts stderr "$self _Add: name is '$name'"
             set result [[$self cget -db] newSensor $name]
             #puts stderr "$self _Add: result is '$result'"
@@ -655,12 +731,14 @@ namespace eval lcc {
         }
         method _Add {} {
             set name "[$nameLE cget -text]"
-            if {[$self cget -nameonly]} {
-                set result [[$self cget -db] newControl $name]
-            } else {
-                set result [[$self cget -db] newControl $name \
-                            -onevent $on_ \
-                            -offevent $off_]
+            if {$name eq ""} {return}
+            set result [[$self cget -db] newControl $name]
+            if {[$self cget -nameonly]} {return}
+            if {$on_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName on -depth 1] setdata $on_
+            }
+            if {$off_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName off -depth 1] setdata $off_
             }
             $hull withdraw
             return [$hull enddialog $result]
@@ -673,11 +751,14 @@ namespace eval lcc {
     snit::widget NewControlWidget {
         _layoutControlCopyPaste
         option -db
+        option -edit -type snit::boolean -readonly yes -default false
+        
         component nameLE;#                  Name of object
         component onEventLF;#               -onevent
         variable  on_ {00.00.00.00.00.00.00.00}
         component offEventLF;#              -offevent
         variable  off_ {00.00.00.00.00.00.00.00}
+        component buttons
         constructor {args} {
             set frame $win
             install nameLE using LabelEntry $frame.nameLE \
@@ -714,14 +795,30 @@ namespace eval lcc {
                   -text [_m "Label|Paste"] \
                   -command [mymethod _pasteevent $e [myvar off_]]] \
                   -side left
-            set buttons [ButtonBox $frame.buttons -orient horizontal]
+            install buttons using ButtonBox $frame.buttons -orient horizontal
             pack $buttons -fill x
             $buttons add ttk::button add    -text [_m "Label|Add"]    -command [mymethod _Add]
             $buttons add ttk::button clear -text [_m "Label|Clear"] -command [mymethod _Clear]
             $self configurelist $args
+            if {[$self cget -edit]} {
+                $nameLE configure -editable false
+                $buttons itemconfigure add -text [_m "Label|Update"] \
+                      -state disabled
+            }
+        }
+        method Load {name args} {
+            $self configurelist $args
+            if {![$self cget -edit]} {return}
+            set result [[$self cget -db] getControl $name]
+            if {$result eq {}} {return}
+            $nameLE configure -text $name
+            set on_ [[$result getElementsByTagName on -depth 1] data]
+            set off_ [[$result getElementsByTagName off -depth 1] data]
+            $buttons itemconfigure add -state normal
         }
         method _Add {} {
             set name "[$nameLE cget -text]"
+            if {$name eq ""} {return}
             #puts stderr "$self _Add: name is '$name'"
             set result [[$self cget -db] newControl $name]
             #puts stderr "$self _Add: result is '$result'"
@@ -813,6 +910,7 @@ namespace eval lcc {
         }
         method _Add {} {
             set name "[$nameLE cget -text]"
+            if {$name eq ""} {return}
             set result [[$self cget -db] newSignal $name]
             foreach a [lsort [array names aspectlist -glob *,frame]] {
                 #puts stderr "*** $self _Add: a is '$a'"

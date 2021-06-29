@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <210629.0831>
+#  Last Modified : <210629.1509>
 #
 #  Description	
 #
@@ -150,7 +150,13 @@ snit::type OpenLCB {
     typecomponent newControlDialog
     typecomponent layoutControlView
     typecomponent layoutControlTable
-        
+    typecomponent layoutControlsLF
+    typecomponent   layoutcontrolsNB
+    typecomponent     editturnoutW
+    typecomponent     editblockW
+    typecomponent     editsensorW
+    typecomponent     editcontrolW
+    typecomponent     editsignalW
     typemethod _buildDialogs {} {
         putdebug "*** $type _buildDialogs"
         set newTurnoutDialog [::lcc::NewTurnoutDialog .main.newTurnoutDialog -parent .main -modal none]
@@ -784,6 +790,27 @@ snit::type OpenLCB {
                -displayonly true \
                -debugprint [myproc putdebug]]
     }
+    typemethod _editLayoutControlItem {what name args} {
+        #puts stderr "*** _editLayoutControlItem $what $name $args"
+        switch $what {
+            block {
+                $editblockW Load $name -db $layoutcontroldb
+                $layoutcontrolsNB select $editblockW
+            }
+            turnout {
+                $editturnoutW Load $name -db $layoutcontroldb
+                $layoutcontrolsNB select $editturnoutW
+            }
+            sensor {
+                $editsensorW Load $name -db $layoutcontroldb
+                $layoutcontrolsNB select $editsensorW
+            }
+            control {
+                $editcontrolW Load $name -db $layoutcontroldb
+                $layoutcontrolsNB select $editcontrolW
+            }
+        }
+    }
     typemethod _ViewLayoutControlDB {} {
         if {$layoutControlView eq {}} {
             set layoutControlView [toplevel .layoutControlView]
@@ -795,8 +822,36 @@ snit::type OpenLCB {
             set scrollw [ScrolledWindow .layoutControlView.scrollw]
             pack $scrollw -expand yes -fill both
             set layoutControlTable [::lcc::LayoutControlDBTable \
-                                    [$scrollw getframe].layoutControlTable]
+                                    [$scrollw getframe].layoutControlTable \
+                                    -itemeditor [mytypemethod _editLayoutControlItem]]
             $scrollw setwidget $layoutControlTable
+            set layoutControlsLF [ttk::labelframe \
+                                  .layoutControlView.layoutControlsLF \
+                                  -text [_m "Label|Layout Controls"]]
+            pack $layoutControlsLF -fill x
+            set layoutcontrolsNB [ScrollTabNotebook \
+                                  $layoutControlsLF.layoutcontrolsNB]
+            pack $layoutcontrolsNB -fill both -expand yes
+            set editturnoutW [::lcc::NewTurnoutWidget \
+                              $layoutcontrolsNB.editturnoutW \
+                              -edit true]
+            $layoutcontrolsNB add $editturnoutW -text [_m "Label|Turnout"]
+            set editblockW [::lcc::NewBlockWidget \
+                              $layoutcontrolsNB.editblockW \
+                              -edit true]
+            $layoutcontrolsNB add $editblockW -text [_m "Label|Block"]
+            set editsensorW [::lcc::NewSensorWidget \
+                              $layoutcontrolsNB.editsensorW \
+                              -edit true]
+            $layoutcontrolsNB add $editsensorW -text [_m "Label|Sensor"]
+            set editcontrolW [::lcc::NewControlWidget \
+                              $layoutcontrolsNB.editcontrolW \
+                              -edit true]
+            $layoutcontrolsNB add $editcontrolW -text [_m "Label|Control"]
+            #set editturnoutW [::lcc::NewTurnoutWidget \
+            #                  $layoutcontrolsNB.editturnoutW \
+            #                  -edit true]
+            #$layoutcontrolsNB add $editturnoutW -text [_m "Label|Turnout"]
             set buttons [ButtonBox .layoutControlView.buttons \
                          -orient horizontal]
             pack $buttons -fill x
