@@ -2676,6 +2676,7 @@ namespace eval CTCPanelWindow {
     option -db -default {}
     
     component nameLE;#			Name of object
+    component layoutControlLCB;#        Layout Control Object ComboBox
     component objectTypeTF;#		Object Type Frame
     variable objectType SWPlate;#	Current Object Type
     # Controls:
@@ -2877,11 +2878,22 @@ namespace eval CTCPanelWindow {
                       "Label|Right Indicator On EventID:" \
                       "Label|Right Indicator Off EventID:" \
                       "Label|Lamp On EventID:" \
-                      "Label|Lamp Off EventID:" ]
+                      "Label|Lamp Off EventID:" \
+                      "Label|Layout Control:" ]
       install nameLE using LabelEntry $frame.nameLE -label [_m "Label|Name:"] \
 						    -labelwidth $lwidth \
 						    -text {}
       pack $nameLE -fill x
+      set options(-openlcbmode) [from args -openlcbmode no]
+      if {[$self cget -openlcbmode]} {
+          install layoutControlLCB using LabelComboBox \
+                $frame.layoutControlLCB -label [_m "Label|Layout Control:"] \
+                                        -labelwidth $lwidth \
+                                        -editable no \
+                -postcommand [mymethod _selectControlElements]
+          bind $layoutControlLCB.combobox <<ComboboxSelected>> [mymethod _copyeventsfromlayoutctldb]
+      }
+
       install objectTypeTF using ttk::labelframe $frame.objectTypeTF \
             -text [_m "Label|Object Type"] \
             -labelanchor nw
@@ -3235,6 +3247,41 @@ namespace eval CTCPanelWindow {
       install newSensorDialog  using ::lcc::NewSensorDialog  $win.newSensorDialog -parent $win
       install newControlDialog using ::lcc::NewControlDialog $win.newControlDialog -parent $win
       
+    }
+    method _selectControlElements {} {
+        set db [$self cget -db]
+        if {$db eq {}} {return}
+        
+        switch $objectType {
+            SWPlate {
+                
+            }            
+            SIGPlate {
+            }
+            CodeButton -
+            Toggle -
+            PushButton -
+            Lamp -
+            Switch {
+            }
+            StraightBlock -
+            EndBumper -
+            CurvedBlock -
+            HiddenBlock -
+            StubYard -
+            ThroughYard {
+            ScissorCrossover -
+            Crossover -
+            Crossing -
+            SingleSlip -
+            DoubleSlip -
+            ThreeWaySW {
+            }
+            Signal {
+            }
+        }
+    }
+    method _copyeventsfromlayoutctldb {} {
     }
     method _eventContext {entry rootx rooty taglist} {
         #puts stderr "*** $self _eventContext $entry $taglist"
