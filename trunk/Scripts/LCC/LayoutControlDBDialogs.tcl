@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jan 31 15:01:56 2019
-#  Last Modified : <210629.1448>
+#  Last Modified : <210630.0911>
 #
 #  Description	
 #
@@ -196,6 +196,157 @@ namespace eval lcc {
             return [$hull enddialog {}]
         }
     }
+    snit::widgetadaptor EditTurnoutDialog {
+        _layoutControlCopyPaste
+        delegate option -parent to hull
+        option -db
+        
+        component nameLE;#                  Name of object
+        component normalEventLF;#           -normalmotorevent
+        variable  normal_ {00.00.00.00.00.00.00.00}
+        component reverseEventLF;#          -reversemotorevent
+        variable  reverse_ {00.00.00.00.00.00.00.00}
+        component normalPointsEventLF;#     -normalpointsevent
+        variable  normalPoints_ {00.00.00.00.00.00.00.00}
+        component reversePointsEventLF;#    -reversepointsevent
+        variable  reversePoints_ {00.00.00.00.00.00.00.00}
+        constructor {args} {
+            installhull using Dialog -bitmap questhead -default add \
+                  -cancel cancel -transient yes -modal local\
+                  -side bottom -title [_ "New Turnout"] \
+                  -parent [from args -parent]
+            $hull add update    -text [_m "Label|Update"]    -command [mymethod _Update]
+            $hull add cancel -text [_m "Label|Cancel"] -command [mymethod _Cancel]
+            wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
+            set frame [$hull getframe]
+            install nameLE using LabelEntry $frame.nameLE \
+                  -label [_m "Label|Name:"] -text {} -editable no
+            pack $nameLE -fill x
+            $self configurelist $args
+            install normalEventLF using LabelFrame \
+                  $frame.normalEventLF -text [_m "Label|Normal Motor Event:"]
+            pack $frame.normalEventLF -fill x
+            pack [ttk::entry [set e [$frame.normalEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar normal_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.normalEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar normal_]]] \
+                  -side left
+            pack [ttk::button [$frame.normalEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar normal_]]] \
+                  -side left
+            install reverseEventLF using LabelFrame \
+                  $frame.reverseEventLF -text [_m "Label|Reverse Motor Event:"]
+            pack $frame.reverseEventLF -fill x
+            pack [ttk::entry [set e [$frame.reverseEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar reverse_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.reverseEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar reverse_]]] \
+                  -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.reverseEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar reverse_]]] \
+                  -side left \
+                  -expand yes -fill x
+            install normalPointsEventLF using LabelFrame \
+                  $frame.normalPointsEventLF -text [_m "Label|Normal Points Event:"]
+            pack $frame.normalPointsEventLF -fill x
+            pack [ttk::entry [set e [$frame.normalPointsEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar normalPoints_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.normalPointsEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar normalPoints_]]] \
+                  -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.normalPointsEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar normalPoints_]]] \
+                  -side left \
+                  -expand yes -fill x
+            install reversePointsEventLF using LabelFrame \
+                  $frame.reversePointsEventLF -text [_m "Label|Reverse Points Event:"]
+            pack $frame.reversePointsEventLF -fill x
+            pack [ttk::entry [set e [$frame.reversePointsEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar reversePoints_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.reversePointsEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar reversePoints_]]] \
+                  -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.reversePointsEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar reversePoints_]]] \
+                  -side left \
+                  -expand yes -fill x
+        }
+        method draw {name args} {
+            $self configurelist $args
+            set result [[$self cget -db] getTurnout $name]
+            if {$result eq {}} {return}
+            $nameLE configure -text $name
+            set tag [$result getElementsByTagName motor -depth 1]
+            set normal_ [[$tag getElementsByTagName normal -depth 1] data]
+            if {$normal_ eq ""} {
+                set normal_ {00.00.00.00.00.00.00.00}
+            }
+            set reverse_ [[$tag getElementsByTagName reverse -depth 1] data]
+            if {$reverse_ eq ""} {
+                set reverse_ {00.00.00.00.00.00.00.00}
+            }
+            set tag [$result getElementsByTagName points -depth 1]
+            set normalPoints_ [[$tag getElementsByTagName normal -depth 1] data]
+            if {$normalPoints_ eq ""} {
+                set normalPoints_ {00.00.00.00.00.00.00.00}
+            }
+            set reversePoints_ [[$tag getElementsByTagName reverse -depth 1] data]
+            if {$reversePoints_ eq ""} {
+                set reversePoints_ {00.00.00.00.00.00.00.00}
+            }
+            set options(-parent) [$self cget -parent]
+            return [$hull draw]
+        }
+        method _Update {} {
+            set name "[$nameLE cget -text]"
+            if {$name eq ""} {return}
+            set result [[$self cget -db] getTurnout $name]
+            if {$result eq {}} {return}
+            if {$normal_ ne {00.00.00.00.00.00.00.00}} {
+                set tag [$result getElementsByTagName motor -depth 1]
+                #puts stderr "$self _Add: tag (motor) is '$tag'"
+                [$tag getElementsByTagName normal -depth 1] setdata $normal_
+            }
+            if {$reverse_ ne {00.00.00.00.00.00.00.00}} {
+                set tag [$result getElementsByTagName motor -depth 1]
+                #puts stderr "$self _Add: tag (motor) is '$tag'"
+                [$tag getElementsByTagName reverse -depth 1] setdata $reverse_
+            }
+            if {$normalPoints_ ne {00.00.00.00.00.00.00.00}} {
+                set tag [$result getElementsByTagName points -depth 1]
+                [$tag getElementsByTagName normal -depth 1] setdata $normalPoints_
+            }
+            if {$reversePoints_ ne {00.00.00.00.00.00.00.00}} {
+                set tag [$result getElementsByTagName points -depth 1]
+                [$tag getElementsByTagName reverse -depth 1] setdata $reversePoints_
+            }
+            $hull withdraw
+            return [$hull enddialog $result]
+        }
+        method _Cancel {} {
+            $hull withdraw
+            return [$hull enddialog {}]
+        }
+    }
     snit::widget NewTurnoutWidget {
         _layoutControlCopyPaste
         option -db
@@ -295,10 +446,22 @@ namespace eval lcc {
             $nameLE configure -text $name
             set tag [$result getElementsByTagName motor -depth 1]
             set normal_ [[$tag getElementsByTagName normal -depth 1] data]
+            if {$normal_ eq ""} {
+                set normal_ {00.00.00.00.00.00.00.00}
+            }
             set reverse_ [[$tag getElementsByTagName reverse -depth 1] data]
+            if {$reverse_ eq ""} {
+                set reverse_ {00.00.00.00.00.00.00.00}
+            }
             set tag [$result getElementsByTagName points -depth 1]
             set normalPoints_ [[$tag getElementsByTagName normal -depth 1] data]
+            if {$normalPoints_ eq ""} {
+                set normalPoints_ {00.00.00.00.00.00.00.00}
+            }
             set reversePoints_ [[$tag getElementsByTagName reverse -depth 1] data]
+            if {$reversePoints_ eq ""} {
+                set reversePoints_ {00.00.00.00.00.00.00.00}
+            }
             $buttons itemconfigure add -state normal
         }
         method _Add {} {
@@ -414,6 +577,92 @@ namespace eval lcc {
             return [$hull enddialog {}]
         }
     }
+    snit::widgetadaptor EditBlockDialog {
+        _layoutControlCopyPaste
+        delegate option -parent to hull
+        option -db
+        component nameLE;#                  Name of object
+        component occupiedEventLF;#         -occupiedevent
+        variable  occupied_ {00.00.00.00.00.00.00.00}
+        component clearEventLF;#            -clearevent
+        variable  clear_ {00.00.00.00.00.00.00.00}
+        constructor {args} {
+            installhull using Dialog -bitmap questhead -default add \
+                  -cancel cancel -modal local -transient yes \
+                  -side bottom -title [_ "New Block"] \
+                  -parent [from args -parent]
+            $hull add update -text [_m "Label|Update"] -command [mymethod _Update]
+            $hull add cancel -text [_m "Label|Cancel"] -command [mymethod _Cancel]
+            wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
+            set frame [$hull getframe]
+            install nameLE using LabelEntry $frame.nameLE \
+                  -label [_m "Label|Name:"] -text {} -editable no
+            pack $nameLE -fill x
+            $self configurelist $args
+            install occupiedEventLF using LabelFrame \
+                  $frame.occupiedEventLF -text [_m "Label|Occupied Event:"]
+            pack $occupiedEventLF -fill x
+            pack [ttk::entry [set e [$frame.occupiedEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar occupied_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.occupiedEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar occupied_]]] \
+                  -side left
+            pack [ttk::button [$frame.occupiedEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar occupied_]]] \
+                  -side left
+                    install clearEventLF using LabelFrame \
+                  $frame.clearEventLF -text [_m "Label|Clear Event:"]
+            pack $clearEventLF -fill x
+            pack [ttk::entry [set e [$frame.clearEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar clear_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.clearEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar clear_]]] \
+                  -side left
+            pack [ttk::button [$frame.clearEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar clear_]]] \
+                  -side left
+        }
+        method draw {name args} {
+            $self configurelist $args
+            set result [[$self cget -db] getBlock $name]
+            if {$result eq {}} {return}
+            $nameLE configure -text $name
+            set occupied_ [[$result getElementsByTagName occupied -depth 1] data]
+            if {$occupied_ eq ""} {
+                set occupied_ {00.00.00.00.00.00.00.00}
+            }
+            set clear_ [[$result getElementsByTagName clear -depth 1] data]
+            if {$clear_ eq ""} {
+                set clear_ {00.00.00.00.00.00.00.00}
+            }
+            return [$hull draw]
+        }
+        method _Update {} {
+            set name "[$nameLE cget -text]"
+            if {$name eq ""} {return}
+            set result [[$self cget -db] getBlock $name]
+            if {$occupied_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName occupied -depth 1] setdata $occupied_
+            }
+            if {$clear_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName clear -depth 1] setdata $clear_
+            }
+            $hull withdraw
+            return [$hull enddialog $result]
+        }
+        method _Cancel {} {
+            $hull withdraw
+            return [$hull enddialog {}]
+        }
+    }
     snit::widget NewBlockWidget {
         _layoutControlCopyPaste
         option -db
@@ -478,7 +727,13 @@ namespace eval lcc {
             if {$result eq {}} {return}
             $nameLE configure -text $name
             set occupied_ [[$result getElementsByTagName occupied -depth 1] data]
+            if {$occupied_ eq ""} {
+                set occupied_ {00.00.00.00.00.00.00.00}
+            }
             set clear_ [[$result getElementsByTagName clear -depth 1] data]
+            if {$clear_ eq ""} {
+                set clear_ {00.00.00.00.00.00.00.00}
+            }
             $buttons itemconfigure add -state normal
         }
         method _Add {} {
@@ -517,8 +772,8 @@ namespace eval lcc {
                   -cancel cancel -transient yes \
                   -side bottom -title [_ "New Sensor"] \
                   -parent [from args -parent]
-            $hull add add    -text Add    -command [mymethod _Add]
-            $hull add cancel -text Cancel -command [mymethod _Cancel]
+            $hull add add    -text [_m "Label|Add"]    -command [mymethod _Add]
+            $hull add cancel -text [_m "Label|Cancel"] -command [mymethod _Cancel]
             wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
             set frame [$hull getframe]
             install nameLE using LabelEntry $frame.nameLE \
@@ -567,6 +822,92 @@ namespace eval lcc {
             if {$name eq ""} {return}
             set result [[$self cget -db] newSensor $name]
             if {[$self cget -nameonly]} {return}
+            if {$on_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName on -depth 1] setdata $on_
+            }
+            if {$off_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName off -depth 1] setdata $off_
+            }
+            $hull withdraw
+            return [$hull enddialog $result]
+        }
+        method _Cancel {} {
+            $hull withdraw
+            return [$hull enddialog {}]
+        }
+    }
+    snit::widgetadaptor EditSensorDialog {
+        _layoutControlCopyPaste
+        delegate option -parent to hull
+        option -db
+        component nameLE;#                  Name of object
+        component onEventLF;#               -onevent
+        variable  on_ {00.00.00.00.00.00.00.00}
+        component offEventLF;#              -offevent
+        variable  off_ {00.00.00.00.00.00.00.00}
+        constructor {args} {
+            installhull using Dialog -bitmap questhead -default add \
+                  -cancel cancel -transient yes -modal local \
+                  -side bottom -title [_ "New Sensor"] \
+                  -parent [from args -parent]
+            $hull add add    -text [_m "Label|Update"] -command [mymethod _Update]
+            $hull add cancel -text [_m "Label|Cancel"] -command [mymethod _Cancel]
+            wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
+            set frame [$hull getframe]
+            install nameLE using LabelEntry $frame.nameLE \
+                  -label [_m "Label|Name:"] -text {}
+            pack $nameLE -fill x
+            $self configurelist $args
+            install onEventLF using LabelFrame \
+                  $frame.onEventLF -text [_m "Label|On Event:"]
+            pack $onEventLF -fill x
+            pack [ttk::entry [set e [$frame.onEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar on_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.onEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar on_]]] \
+                  -side left
+            pack [ttk::button [$frame.onEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar on_]]] \
+                  -side left
+            install offEventLF using LabelFrame \
+                  $frame.offEventLF -text [_m "Label|Off Event:"]
+            pack $offEventLF -fill x
+            pack [ttk::entry [set e [$frame.offEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar off_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.offEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar off_]]] \
+                  -side left
+            pack [ttk::button [$frame.offEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar off_]]] \
+                  -side left
+        }
+        method draw {name args} {
+            $self configurelist $args
+            set result [[$self cget -db] getSensor $name]
+            if {$result eq {}} {return}
+            $nameLE configure -text $name
+            set on_ [[$result getElementsByTagName on -depth 1] data]
+            if {$on_ eq ""} {
+                set on_ {00.00.00.00.00.00.00.00}
+            }
+            set off_ [[$result getElementsByTagName off -depth 1] data]
+            if {$off_ eq ""} {
+                set off_ {00.00.00.00.00.00.00.00}
+            }
+            return [$hull draw]
+        }
+        method _Update {} {
+            set name "[$nameLE cget -text]"
+            if {$name eq ""} {return}
+            set result [[$self cget -db] getSensor $name]
             if {$on_ ne {00.00.00.00.00.00.00.00}} {
                 [$result getElementsByTagName on -depth 1] setdata $on_
             }
@@ -646,7 +987,13 @@ namespace eval lcc {
             if {$result eq {}} {return}
             $nameLE configure -text $name
             set on_ [[$result getElementsByTagName on -depth 1] data]
+            if {$on_ eq ""} {
+                set on_ {00.00.00.00.00.00.00.00}
+            }
             set off_ [[$result getElementsByTagName off -depth 1] data]
+            if {$off_ eq ""} {
+                set off_ {00.00.00.00.00.00.00.00}
+            }
             $buttons itemconfigure add -state normal
         }
         method _Add {} {
@@ -684,8 +1031,8 @@ namespace eval lcc {
                   -cancel cancel -transient yes \
                   -side bottom -title [_ "New Control"] \
                   -parent [from args -parent]
-            $hull add add    -text Add    -command [mymethod _Add]
-            $hull add cancel -text Cancel -command [mymethod _Cancel]
+            $hull add add    -text [_m "Label|Add"]    -command [mymethod _Add]
+            $hull add cancel -text [_m "Label|Cancel"] -command [mymethod _Cancel]
             wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
             set frame [$hull getframe]
             install nameLE using LabelEntry $frame.nameLE \
@@ -734,6 +1081,92 @@ namespace eval lcc {
             if {$name eq ""} {return}
             set result [[$self cget -db] newControl $name]
             if {[$self cget -nameonly]} {return}
+            if {$on_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName on -depth 1] setdata $on_
+            }
+            if {$off_ ne {00.00.00.00.00.00.00.00}} {
+                [$result getElementsByTagName off -depth 1] setdata $off_
+            }
+            $hull withdraw
+            return [$hull enddialog $result]
+        }
+        method _Cancel {} {
+            $hull withdraw
+            return [$hull enddialog {}]
+        }
+    }
+    snit::widgetadaptor EditControlDialog {
+        _layoutControlCopyPaste
+        delegate option -parent to hull
+        option -db
+        component nameLE;#                  Name of object
+        component onEventLF;#               -onevent
+        variable  on_ {00.00.00.00.00.00.00.00}
+        component offEventLF;#              -offevent
+        variable  off_ {00.00.00.00.00.00.00.00}
+        constructor {args} {
+            installhull using Dialog -bitmap questhead -default add \
+                  -cancel cancel -transient yes -modal local \
+                  -side bottom -title [_ "New Control"] \
+                  -parent [from args -parent]
+            $hull add add    -text [_m "Label|Update"] -command [mymethod _Update]
+            $hull add cancel -text [_m "Label|Cancel"] -command [mymethod _Cancel]
+            wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
+            set frame [$hull getframe]
+            install nameLE using LabelEntry $frame.nameLE \
+                  -label [_m "Label|Name:"] -text {}
+            pack $nameLE -fill x
+            $self configurelist $args
+            install onEventLF using LabelFrame \
+                  $frame.onEventLF -text [_m "Label|On Event:"]
+            pack $onEventLF -fill x
+            pack [ttk::entry [set e [$frame.onEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar on_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.onEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar on_]]] \
+                  -side left
+            pack [ttk::button [$frame.onEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar on_]]] \
+                  -side left
+            install offEventLF using LabelFrame \
+                  $frame.offEventLF -text [_m "Label|Off Event:"]
+            pack $offEventLF -fill x
+            pack [ttk::entry [set e [$frame.offEventLF getframe].e] \
+                  -text {00.00.00.00.00.00.00.00} \
+                  -textvariable [myvar off_]] -side left \
+                  -expand yes -fill x
+            pack [ttk::button [$frame.offEventLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copyevent $e [myvar off_]]] \
+                  -side left
+            pack [ttk::button [$frame.offEventLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pasteevent $e [myvar off_]]] \
+                  -side left
+        }
+        method draw {name args} {
+            $self configurelist $args
+            set result [[$self cget -db] getSensor $name]
+            if {$result eq {}} {return}
+            $nameLE configure -text $name
+            set on_ [[$result getElementsByTagName on -depth 1] data]
+            if {$on_ eq ""} {
+                set on_ {00.00.00.00.00.00.00.00}
+            }
+            set off_ [[$result getElementsByTagName off -depth 1] data]
+            if {$off_ eq ""} {
+                set off_ {00.00.00.00.00.00.00.00}
+            }
+            return [$hull draw]
+        }
+        method _Update {} {
+            set name "[$nameLE cget -text]"
+            if {$name eq ""} {return}
+            set result [[$self cget -db] getControl $name]
             if {$on_ ne {00.00.00.00.00.00.00.00}} {
                 [$result getElementsByTagName on -depth 1] setdata $on_
             }
@@ -813,7 +1246,13 @@ namespace eval lcc {
             if {$result eq {}} {return}
             $nameLE configure -text $name
             set on_ [[$result getElementsByTagName on -depth 1] data]
+            if {$on_ eq ""} {
+                set on_ {00.00.00.00.00.00.00.00}
+            }
             set off_ [[$result getElementsByTagName off -depth 1] data]
+            if {$off_ eq ""} {
+                set off_ {00.00.00.00.00.00.00.00}
+            }
             $buttons itemconfigure add -state normal
         }
         method _Add {} {

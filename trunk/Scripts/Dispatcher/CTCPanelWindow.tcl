@@ -1564,7 +1564,7 @@ namespace eval CTCPanelWindow {
     }
     typevariable _layoutcontroldb {}
     typemethod new {args} {
-      puts stderr "[list *** $type new $args]"
+      #puts stderr "[list *** $type new $args]"
       set _simpleMode [from args -simplemode no]
       set _layoutcontroldb [from args -layoutcontroldb {}]  
       $type createnewDialog 
@@ -2673,7 +2673,8 @@ namespace eval CTCPanelWindow {
     option -openlcbmode -default no
     option -heads -default 1
     option -aspectlist -default {}
-
+    option -db -default {}
+    
     component nameLE;#			Name of object
     component objectTypeTF;#		Object Type Frame
     variable objectType SWPlate;#	Current Object Type
@@ -3267,7 +3268,7 @@ namespace eval CTCPanelWindow {
                 grid [button $win.em.new -text [_m {Button|New Turnout}] \
                       -command [mymethod _eventContext1_newTurnout \
                                 [list destroy $win.em] \
-                                $entry [$self cget -parent] \
+                                $entry [$self cget -db] \
                                 [lrange $taglist 1 end]]] -column $gcol \
                       -row $grow -sticky news
             }
@@ -3278,7 +3279,7 @@ namespace eval CTCPanelWindow {
                 grid [button $win.em.new -text [_m {Button|New Block}] \
                       -command [mymethod _eventContext1_newBlock \
                                 [list destroy $win.em] \
-                                $entry [$self cget -parent] \
+                                $entry [$self cget -db] \
                                 [lrange $taglist 1 end]]] -column $gcol \
                       -row $grow -sticky news
             }
@@ -3289,7 +3290,7 @@ namespace eval CTCPanelWindow {
                 grid [button $win.em.new -text [_m {Button|New Signal}] \
                       -command [mymethod _eventContext1_newSignal \
                                 [list destroy $win.em] \
-                                $entry [$self cget -parent] \
+                                $entry [$self cget -db] \
                                 [lrange $taglist 1 end]]] -column $gcol \
                       -row $grow -sticky news
             }
@@ -3300,7 +3301,7 @@ namespace eval CTCPanelWindow {
                 grid [button $win.em.new -text [_m {Button|New Sensor}] \
                       -command [mymethod _eventContext1_newSensor \
                                 [list destroy $win.em] \
-                                $entry [$self cget -parent] \
+                                $entry [$self cget -db] \
                                 [lrange $taglist 1 end]]] -column $gcol \
                       -row $grow -sticky news
             }
@@ -3311,7 +3312,7 @@ namespace eval CTCPanelWindow {
                 grid [button $win.em.new -text [_m {Button|New Control}] \
                       -command [mymethod _eventContext1_newControl \
                                 [list destroy $win.em] \
-                                $entry [$self cget -parent] \
+                                $entry [$self cget -db] \
                                 [lrange $taglist 1 end]]] -column $gcol \
                       -row $grow -sticky news
             }
@@ -3388,7 +3389,7 @@ namespace eval CTCPanelWindow {
         set screenbottom [winfo screenheight $w]
         update idle
         set h [winfo reqheight $w]
-        puts stderr "*** checkrow: gcol=$gcol, grow=$grow, h=$h"
+        #puts stderr "*** checkrow: gcol=$gcol, grow=$grow, h=$h"
         if {($gcol == 0 && ($h + 50) > $screenbottom) || 
             ($gcol > 0 && $grow >= $lastrow)} {
             incr gcol

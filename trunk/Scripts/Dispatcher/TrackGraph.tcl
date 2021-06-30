@@ -48,6 +48,7 @@ package require IconImage
 package require csv
 package require LayoutControlDB
 package require LayoutControlDBDialogs
+package require LayoutControlDBTable
 
 namespace eval TrackGraph {
   snit::type TrackGraph {
@@ -58,6 +59,7 @@ namespace eval TrackGraph {
     
     typeconstructor {
         set layoutname {}
+        set layoutcontroldb [::lcc::LayoutControlDB newdb]
     }
     delegate typemethod SourceFile       to layoutname
     delegate typemethod IsNodeP          to layoutname
@@ -822,12 +824,19 @@ namespace eval TrackGraph {
        component   controllistsw
        component     controltree
        component   buttons
+       delegate option -db to controltree
        
        component newTurnoutDialog
        component newBlockDialog
        component newSignalDialog
        component newSensorDialog
        component newControlDialog
+       
+       component editturnoutDialog
+       component editblockDialog
+       component editsensorDialog
+       component editcontrolDialog
+       component editsignalDialog
        
       option -title -configuremethod _SetTitle;# -default [_ "Layout Control DB"]
       option -style -default LayoutControlDBDialog
@@ -852,7 +861,6 @@ namespace eval TrackGraph {
               catch [list $buttons configure $option "$value"]
            }
        }
-       option -db -default {}
        constructor {args} {
            wm withdraw $win 
            install headerframe using ttk::frame $win.headerframe \
@@ -870,10 +878,10 @@ namespace eval TrackGraph {
            install controllistsw using ScrolledWindow $mainpane.controllistsw \
                  -scrollbar both -auto both
            $mainpane add $controllistsw -weight 5
-           install controltree using ttk::treeview \
+           install controltree using ::lcc::LayoutControlDBTable \
                  [$controllistsw getframe].controltree \
-                 -columns {} \
-                 -selectmode browse
+                 -selectmode browse \
+                 -itemeditor [mymethod _itemedit]
            $controllistsw setwidget $controltree
            install buttons using ButtonBox $mainpane.buttons \
                  -orient vertical
@@ -892,10 +900,13 @@ namespace eval TrackGraph {
                  -command [mymethod close]
            $self configure -title [_ "Layout Control DB"]
            $self configurelist $args
-           bind all <<TreeviewSelect>> [mymethod _selectionUpdated %W]
            wm transient $win .
            wm protocol $win WM_DELETE_WINDOW [mymethod close]
            bind <<ThemeChanged>> $win [mymethod _themeChanged]
+           install editturnoutDialog using ::lcc::EditTurnoutDialog $win.editturnoutDialog -parent $win
+           install editblockDialog   using ::lcc::EditBlockDialog   $win.editblockDialog -parent $win
+           install editsensorDialog  using ::lcc::EditSensorDialog  $win.editsensorDialog -parent $win
+           install editconrolDialog  using ::lcc::EditControlDialog $win.editcontrolDialog -parent $win
            
            install newTurnoutDialog using ::lcc::NewTurnoutDialog $win.newTurnoutDialog -parent $win
            install newBlockDialog   using ::lcc::NewBlockDialog   $win.newBlockDialog -parent $win
@@ -904,123 +915,62 @@ namespace eval TrackGraph {
            install newControlDialog using ::lcc::NewControlDialog $win.newControlDialog -parent $win
            
        }
-       method _selectionUpdated {w} {
-           if {$w ne "$controltree"} {return}
-           #set selected [$controltree selection get]
+       method _itemedit {what name args} {
+           #puts stderr "*** _editLayoutControlItem $what $name $args"
+           switch $what {
+               block {
+                   $editblockDialog draw $name -db [$self cget -db]
+                   $controltree UpdateItem $name
+               }
+               turnout {
+                   $editturnoutDialog draw $name -db  [$self cget -db]
+                   $controltree UpdateItem $name
+               }
+               sensor {
+                   $editsensorDialog draw $name -db [$self cget -db]
+                   $controltree UpdateItem $name
+               }
+               control {
+                   $editcontrolDialog draw $name -db [$self cget -db]
+                   $controltree UpdateItem $name
+               }
+           }
        }
        method draw {args} {
            $self configurelist $args
            wm deiconify $win
            # populate list
-           $controltree delete [$controltree children {}]
-           if {$options(-db) ne {}} {
-               set l [$options(-db) getElementsByTagName layout]
-               foreach i [$l children] {
-                   $self _insertControlElement $i
-               }
-           }
-       }
-       method _insertControlElement {i} {
-           set n [$i getElementsByTagName name -depth 1]
-           set name [$n data]
-           set tag [$i cget -tag]
-           switch $tag {
-               block {
-                   $controltree insert {} end -id $i \
-                         -image [IconImage image Block] \
-                         -text $name  -open false
-                   set occ [$i getElementsByTagName occupied -depth 1]
-                   set clr [$i getElementsByTagName clear -depth 1]
-                   $controltree insert $i end \
-                         -id "$i:occupied" \
-                         -text [_ "Occupied: %s" [$occ data]]
-                   $controltree insert $i end \
-                         -id "$i:clear" \
-                         -text [_ "Clear: %s" [$clr data]]
-               }
-               turnout {
-                   $controltree insert {} end -id $i \
-                         -image [IconImage image SwitchMotor] \
-                         -text $name -open false
-                   set motor  [$i getElementsByTagName motor -depth 1]
-                   set motor_norm [$motor getElementsByTagName normal -depth 1]
-                   set motor_rev  [$motor getElementsByTagName reverse -depth 1]
-                   set points [$i getElementsByTagName points -depth 1]
-                   set points_norm [$points getElementsByTagName normal -depth 1]
-                   set points_rev  [$points getElementsByTagName reverse -depth 1]
-                   $controltree insert $i end \
-                         -id "$i:motor:normal" \
-                         -text [_ "Motor Normal: %s" [$motor_norm data]]
-                   $controltree insert $i end \
-                         -id "$i:motor:reverse" \
-                         -text [_ "Motor Reverse: %s" [$motor_rev data]]
-                   $controltree insert $i end \
-                         -id "$i:points:normal" \
-                         -text [_ "Points Normal: %s" [$points_norm data]]
-                   $controltree insert $i end \
-                         -id "$i:points:reverse" \
-                         -text [_ "Points Reverse: %s" [$points_rev data]]
-               }
-               signal {
-                   $controltree insert {} end -id $i \
-                         -image [IconImage image Signal] \
-                         -text $name -open false
-                   foreach a [$i getElementsByTagName aspect] {
-                       $controltree insert $i end \
-                             -id "$i:$a" \
-                             -text [_ "Aspect %s (%s) %s" \
-                                    [[$a getElementsByTagName name -depth 1] data] \
-                                    [[$a getElementsByTagName look -depth 1] data] \
-                                    [[$a getElementsByTagName event -depth 1] data]]
-                   }                        
-               }
-               sensor {
-                   $controltree insert {} end -id $i \
-                         -image [IconImage image Sensor] \
-                         -text $name 
-                   set on [$i getElementsByTagName on -depth 1]
-                   set off [$i getElementsByTagName off -depth 1]
-                   $controltree insert $i end \
-                         -id "$i:on" \
-                         -text [_ "On: %s" [$on data]]
-                   $controltree insert $i end \
-                         -id "$i:off" \
-                         -text [_ "Off: %s" [$off data]]
-               }
-               control {
-                   $controltree insert {} end -id $i \
-                         -image [IconImage image Control] \
-                         -text $name 
-                   set on [$i getElementsByTagName on -depth 1]
-                   set off [$i getElementsByTagName off -depth 1]
-                   $controltree insert $i end \
-                         -id "$i:on" \
-                         -text [_ "On: %s" [$on data]]
-                   $controltree insert $i end \
-                         -id "$i:off" \
-                         -text [_ "Off: %s" [$off data]]
-               }
-           }
+           $controltree Refresh
        }
        method _newTurnout {} {
-           set new [$newTurnoutDialog draw -db $options(-db)]
-           $self _insertControlElement $new                    
+           set new [$newTurnoutDialog draw -db [$self cget -db]]
+           if {$new ne {}} {
+               $controltree InsertControlElement $new
+           }
        }
        method _newBlock {} {
-           set new [$newBlockDialog draw -db $options(-db)]
-           $self _insertControlElement $new
+           set new [$newBlockDialog draw -db [$self cget -db]]
+           if {$new ne {}} {
+               $controltree InsertControlElement $new
+           }
        }
        method _newSignal {} {
-           set new [$newSignalDialog draw -db $options(-db)]
-           $self _insertControlElement $new
+           set new [$newSignalDialog draw -db [$self cget -db]]
+           if {$new ne {}} {
+               $controltree InsertControlElement $new
+           }
        }
        method _newSensor {} {
-           set new [$newSensorDialog draw -db $options(-db)]
-           $self _insertControlElement $new
+           set new [$newSensorDialog draw -db [$self cget -db]]
+           if {$new ne {}} {
+               $controltree InsertControlElement $new
+           }
        }
        method _newControl {} {
-           set new [$newControlDialog draw -db $options(-db)]
-           $self _insertControlElement $new
+           set new [$newControlDialog draw -db [$self cget -db]]
+           if {$new ne {}} {
+               $controltree InsertControlElement $new
+           }
        }
        method close {} {
            wm withdraw $win

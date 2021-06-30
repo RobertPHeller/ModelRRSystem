@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jun 29 07:39:30 2021
-#  Last Modified : <210629.1437>
+#  Last Modified : <210630.0929>
 #
 #  Description	
 #
@@ -83,11 +83,84 @@ namespace eval lcc {
             if {$options(-db) ne {}} {
                 set l [$options(-db) getElementsByTagName layout]
                 foreach i [$l children] {
-                    $self _insertControlElement $i
+                    $self InsertControlElement $i
                 }
             }
         }
-        method _insertControlElement {i} {
+        method UpdateItem {name} {
+            set l [$options(-db) getElementsByTagName layout]
+            foreach i [$l children] {
+                set n [$i getElementsByTagName name -depth 1]
+                if {$name eq [$n data]} {
+                    $hull delete [$hull children $i]
+                    set tag [$i cget -tag]
+                    switch $tag {
+                        block {
+                            set occ [$i getElementsByTagName occupied -depth 1]
+                            set clr [$i getElementsByTagName clear -depth 1]
+                            $hull insert $i end \
+                                  -id "$i:occupied" \
+                                  -text [_ "Occupied: %s" [$occ data]]
+                            $hull insert $i end \
+                                  -id "$i:clear" \
+                                  -text [_ "Clear: %s" [$clr data]]
+                        }
+                        turnout {
+                            set motor  [$i getElementsByTagName motor -depth 1]
+                            set motor_norm [$motor getElementsByTagName normal -depth 1]
+                            set motor_rev  [$motor getElementsByTagName reverse -depth 1]
+                            set points [$i getElementsByTagName points -depth 1]
+                            set points_norm [$points getElementsByTagName normal -depth 1]
+                            set points_rev  [$points getElementsByTagName reverse -depth 1]
+                            $hull insert $i end \
+                                  -id "$i:motor:normal" \
+                                  -text [_ "Motor Normal: %s" [$motor_norm data]]
+                            $hull insert $i end \
+                                  -id "$i:motor:reverse" \
+                                  -text [_ "Motor Reverse: %s" [$motor_rev data]]
+                            $hull insert $i end \
+                                  -id "$i:points:normal" \
+                                  -text [_ "Points Normal: %s" [$points_norm data]]
+                            $hull insert $i end \
+                                  -id "$i:points:reverse" \
+                                  -text [_ "Points Reverse: %s" [$points_rev data]]
+                        }
+                        signal {
+                            foreach a [$i getElementsByTagName aspect] {
+                                $hull insert $i end \
+                                      -id "$i:$a" \
+                                      -text [_ "Aspect %s (%s) %s" \
+                                             [[$a getElementsByTagName name -depth 1] data] \
+                                             [[$a getElementsByTagName look -depth 1] data] \
+                                             [[$a getElementsByTagName event -depth 1] data]]
+                            }                        
+                        }
+                        sensor {
+                            set on [$i getElementsByTagName on -depth 1]
+                            set off [$i getElementsByTagName off -depth 1]
+                            $hull insert $i end \
+                                  -id "$i:on" \
+                                  -text [_ "On: %s" [$on data]]
+                            $hull insert $i end \
+                                  -id "$i:off" \
+                                  -text [_ "Off: %s" [$off data]]
+                        }
+                        control {
+                            set on [$i getElementsByTagName on -depth 1]
+                            set off [$i getElementsByTagName off -depth 1]
+                            $hull insert $i end \
+                                  -id "$i:on" \
+                                  -text [_ "On: %s" [$on data]]
+                            $hull insert $i end \
+                                  -id "$i:off" \
+                                  -text [_ "Off: %s" [$off data]]
+                        }
+                    }
+                    break
+                }
+            }
+        }
+        method InsertControlElement {i} {
             set n [$i getElementsByTagName name -depth 1]
             set name [$n data]
             set tag [$i cget -tag]

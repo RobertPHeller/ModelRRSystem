@@ -39,9 +39,6 @@ DispatcherScripts = NodeGraphCanvas.tcl PrintDialog.tcl TrackGraph.tcl \
 DispatcherImages  = banner.gif search.gif load.gif largePrinter.gif \
 		    largeImage.gif loaddb.gif savedb.gif
 
-DispatcherControlIcons = Block.xpm SwitchMotor.xpm Signal.xpm Sensor.xpm \
-			 Control.xpm
-
 ExampleScripts = example1.tcl example2.tcl example3.tcl example4.tcl \
 		 example1.iow example2.iow example3.iow example4.iow
 
@@ -92,8 +89,14 @@ CommonLibFiles = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif \
 		 $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
 		 $(top_srcdir)/Scripts/Common/ParseXML.tcl \
 		 $(top_srcdir)/Scripts/LCC/LayoutControlDB.tcl \
+		 $(top_srcdir)/Scripts/LCC/LayoutControlDBTable.tcl \
 		 $(top_srcdir)/Scripts/LCC/LayoutControlDBDialogs.tcl \
-		 $(top_srcdir)/Scripts/LCC/GenerateEventID.tcl
+		 $(top_srcdir)/Scripts/LCC/GenerateEventID.tcl \
+		 $(top_srcdir)/Scripts/LCC/Block.xpm \
+		 $(top_srcdir)/Scripts/LCC/Control.xpm \
+		 $(top_srcdir)/Scripts/LCC/Sensor.xpm \
+		 $(top_srcdir)/Scripts/LCC/Signal.xpm \
+		 $(top_srcdir)/Scripts/LCC/SwitchMotor.xpm
 
 CXXSupport = Mrr
 CXXSupportFiles =  $(top_builddir)/C++/ParserClasses/.libs/libMRRParserClasses$(SHLIB_SUFFIX) \
@@ -159,7 +162,7 @@ CodeLibraryFiles = cmriCode.tcl panelCode.tcl userCodeModules.tcl \
 		OpenLCBCode.tcl
 EXTRA_DIST  = Dispatcher.src $(DispatcherScripts) $(DispatcherImages) \
 		$(CodeLibraryFiles) $(ExampleScripts) \
-		$(DispatcherControlIcons) Dispatcher.png \
+		Dispatcher.png \
 		Dispatcher.desktop Doxyfile.in 
 
 desktopdir = $(datadir)/applications
@@ -190,7 +193,7 @@ Dispatcher.pot: Dispatcher.src $(DispatcherScripts) \
 
 
 Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
-		      $(CodeLibraryFiles) $(DispatcherControlIcons) \
+		      $(CodeLibraryFiles) \
 		      $(top_builddir)/po/Dispatcher/msgfiles \
 		      $(top_builddir)/Doc/User/Dispatcher/index.html \
 		      $(CMriDependFiles)  $(AzatraxDependFiles) \
@@ -218,8 +221,6 @@ Dispatcher$(EXEEXT) : Dispatcher.src $(DispatcherLibFiles) $(CommonLibFiles) \
 		$(DispatcherLib)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
 		lib/$(CommonLib) $(CommonLibFiles)
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) \
-		Dispatcher lib/$(CommonLib) $(DispatcherControlIcons)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit Dispatcher \
 		$(CommonLib)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit Dispatcher \
