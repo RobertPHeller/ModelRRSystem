@@ -2673,7 +2673,6 @@ namespace eval CTCPanelWindow {
     option -openlcbmode -default no
     option -heads -default 1
     option -aspectlist -default {}
-    option -db -default {}
     
     component nameLE;#			Name of object
     component layoutControlLCB;#        Layout Control Object ComboBox
@@ -2840,7 +2839,7 @@ namespace eval CTCPanelWindow {
     }
 
     constructor {args} {
-        #puts stderr "*** $type create $self $args"
+      #puts stderr "*** $type create $self $args"
       installhull using Dialog -bitmap questhead -default add \
 				-cancel cancel -modal local -transient yes \
 				-side bottom -title [_ "Add Panel Object to panel"] \
@@ -2884,16 +2883,11 @@ namespace eval CTCPanelWindow {
 						    -labelwidth $lwidth \
 						    -text {}
       pack $nameLE -fill x
-      set options(-openlcbmode) [from args -openlcbmode no]
-      if {[$self cget -openlcbmode]} {
-          install layoutControlLCB using LabelComboBox \
-                $frame.layoutControlLCB -label [_m "Label|Layout Control:"] \
-                                        -labelwidth $lwidth \
-                                        -editable no \
-                -postcommand [mymethod _selectControlElements]
-          bind $layoutControlLCB.combobox <<ComboboxSelected>> [mymethod _copyeventsfromlayoutctldb]
-      }
-
+      pack [frame $frame.f1] -fill x
+      install layoutControlLCB using LabelComboBox \
+            $frame.f1.layoutControlLCB -label [_m "Label|Layout Control:"] \
+            -labelwidth $lwidth \
+            -editable no
       install objectTypeTF using ttk::labelframe $frame.objectTypeTF \
             -text [_m "Label|Object Type"] \
             -labelanchor nw
@@ -3238,6 +3232,7 @@ namespace eval CTCPanelWindow {
             -label [_m "Label|Lamp Off EventID:"] \
             -labelwidth $lwidth
       $oneventidLE bind <3> "[mymethod _eventContextAny %W %X %Y];break"
+      bind $layoutControlLCB.combobox <<ComboboxSelected>> [mymethod _copyeventsfromlayoutctldb]
       
       $self configurelist $args
       bind $win <<ComboboxSelected>> [mymethod redrawgraphic]
@@ -3249,39 +3244,182 @@ namespace eval CTCPanelWindow {
       
     }
     method _selectControlElements {} {
-        set db [$self cget -db]
-        if {$db eq {}} {return}
-        
+        set l [[$self cget -parent] getElementsByTagName layout]
+        set items [$l children]
         switch $objectType {
-            SWPlate {
-                
+            ScissorCrossover -
+            Crossover -
+            SingleSlip -
+            DoubleSlip -
+            ThreeWaySW -
+            SWPlate -
+            Switch {
+                set values [list {-- select a turnout --}]
+                foreach i $items {
+                    set n [$i getElementsByTagName name -depth 1]
+                    set tag [$i cget -tag]
+                    if {$tag ne "turnout"} {continue}
+                    lappend values [$n data]
+                }
+                $layoutControlLCB configure -values $values
+                $layoutControlLCB set {-- select a turnout --}
+                $layoutControlLCB configure -state normal
             }            
-            SIGPlate {
-            }
             CodeButton -
             Toggle -
-            PushButton -
-            Lamp -
-            Switch {
+            PushButton {
+                set values [list {-- select a control --}]
+                foreach i $items {
+                    set n [$i getElementsByTagName name -depth 1]
+                    set tag [$i cget -tag]
+                    if {$tag ne "control"} {continue}
+                    lappend values [$n data]
+                }
+                $layoutControlLCB configure -values $values
+                $layoutControlLCB set {-- select a control --}
+                $layoutControlLCB configure -state normal
             }
+            Lamp {
+                set values [list {-- select a sensor --}]
+                foreach i $items {
+                    set n [$i getElementsByTagName name -depth 1]
+                    set tag [$i cget -tag]
+                    if {$tag ne "sensor"} {continue}
+                    lappend values [$n data]
+                }
+                $layoutControlLCB configure -values $values
+                $layoutControlLCB set {-- select a sensor --}
+                $layoutControlLCB configure -state normal
+            }
+            Crossing -
             StraightBlock -
             EndBumper -
             CurvedBlock -
             HiddenBlock -
             StubYard -
             ThroughYard {
-            ScissorCrossover -
-            Crossover -
-            Crossing -
-            SingleSlip -
-            DoubleSlip -
-            ThreeWaySW {
+                set values [list {-- select a block --}]
+                foreach i $items {
+                    set n [$i getElementsByTagName name -depth 1]
+                    set tag [$i cget -tag]
+                    if {$tag ne "block"} {continue}
+                    lappend values [$n data]
+                }
+                $layoutControlLCB configure -values $values
+                $layoutControlLCB set {-- select a block --}
+                $layoutControlLCB configure -state normal
             }
             Signal {
+                set values [list {-- select a signal --}]
+                foreach i $items {
+                    set n [$i getElementsByTagName name -depth 1]
+                    set tag [$i cget -tag]
+                    if {$tag ne "signal"} {continue}
+                    lappend values [$n data]
+                }
+                $layoutControlLCB configure -values $values
+                $layoutControlLCB set {-- select a signal --}
+                $layoutControlLCB configure -state normal
+            }
+            default {
+                $layoutControlLCB configure -values {}
+                $layoutControlLCB set {}
+                $layoutControlLCB configure -state disabled
             }
         }
     }
     method _copyeventsfromlayoutctldb {} {
+        puts stderr "*** $self _copyeventsfromlayoutctldb"
+        set name [$layoutControlLCB get]
+        puts stderr "*** $self _copyeventsfromlayoutctldb: name is $name"
+        $nameLE configure -text $name
+        switch $objectType {
+            ScissorCrossover -
+            Crossover -
+            SingleSlip -
+            DoubleSlip -
+            ThreeWaySW -
+            SWPlate -
+            Switch {
+                set i [[$self cget -parent] getTurnout $name]
+                set mtag [$i getElementsByTagName motor -depth 1]
+                set mnorm [[$mtag getElementsByTagName normal -depth 1] data]
+                set mrev  [[$mtag getElementsByTagName reverse -depth 1] data]
+                set ptag [$i getElementsByTagName points -depth 1]
+                set pnorm [[$ptag getElementsByTagName normal -depth 1] data]
+                set prev  [[$ptag getElementsByTagName reverse -depth 1] data]
+                if {$mnorm ne "" && $mnorm ne {00.00.00.00.00.00.00.00}} {
+                    $normaleventidLE configure -text $mnorm
+                }
+                if {$mrev ne "" && $mrev ne {00.00.00.00.00.00.00.00}} {
+                    $reverseeventidLE configure -text $mnorm
+                }
+                if {$pnorm ne "" && $pnorm ne {00.00.00.00.00.00.00.00}} {
+                    $statenormaleventidLE configure -text $pnorm
+                    if {$objectType eq {SWPlate}} {
+                        $normalindonevLE configure -text $pnorm
+                        $reverseindoffevLE configure -text $pnorm
+                    }
+                }
+                if {$prev ne "" && $prev ne {00.00.00.00.00.00.00.00}} {
+                    $statereverseeventidLE configure -text $prev
+                    if {$objectType eq {SWPlate}} {
+                        $reverseindonevLE configure -text $prev
+                        $normalindoffevLE configure -text $prev
+                    }
+                }
+            }
+            CodeButton -
+            PushButton {
+                set i [[$self cget -parent] getControl $name]
+                set on [[$i getElementsByTagName on -depth 1] data]
+                #set off [[$i getElementsByTagName off -depth 1] data]
+                if {$on ne {} && $on ne {00.00.00.00.00.00.00.00}} {
+                    $commandidLE configure -text $on
+                }
+            }
+            Toggle {
+                set i [[$self cget -parent] getControl $name]
+                set on [[$i getElementsByTagName on -depth 1] data]
+                set off [[$i getElementsByTagName off -depth 1] data]
+                if {$on ne {} && $on ne {00.00.00.00.00.00.00.00}} {
+                    $lefteventidLE configure -text $on
+                }
+                if {$off ne {} && $off ne {00.00.00.00.00.00.00.00}} {
+                    $righteventidLE configure -text $on
+                }
+            }
+            Lamp {
+                set i [[$self cget -parent] getSensor $name]
+                set on [[$i getElementsByTagName on -depth 1] data]
+                set off [[$i getElementsByTagName off -depth 1] data]
+                if {$on ne {} && $on ne {00.00.00.00.00.00.00.00}} {
+                    $oneventidLE configure -text $on
+                }
+                if {$off ne {} && $off ne {00.00.00.00.00.00.00.00}} {
+                    $offeventidLE configure -text $off
+                }
+            }
+            Crossing -
+            StraightBlock -
+            EndBumper -
+            CurvedBlock -
+            HiddenBlock -
+            StubYard -
+            ThroughYard {
+                set i [[$self cget -parent] getBlock $name]
+                set occ [[$i getElementsByTagName occupied -depth 1] data]
+                set clr [[$i getElementsByTagName clear -depth 1] data]
+                if {$occ ne "" && $occ ne {00.00.00.00.00.00.00.00}} {
+                    $occupiedeventidLE configure -text $occ
+                }
+                if {$clr ne "" && $clr ne {00.00.00.00.00.00.00.00}} {
+                    $notoccupiedeventidLE configure -text $clr
+                }
+            }
+            Signal {
+            }
+        }
     }
     method _eventContext {entry rootx rooty taglist} {
         #puts stderr "*** $self _eventContext $entry $taglist"
@@ -3763,6 +3901,9 @@ namespace eval CTCPanelWindow {
       wm transient [winfo toplevel $win] [$hull cget -parent]
       $controlPointLCB configure -values [$options(-ctcpanel) cplist]
       $self redrawgraphic
+      if {$options(-openlcbmode)} {
+          catch {pack $layoutControlLCB -fill x -side top}
+      }
       return [$hull draw]
     }
     method checkInitCP {args} {}
@@ -3800,6 +3941,9 @@ namespace eval CTCPanelWindow {
       $self redrawgraphic
     }
     method packOptions {objtype} {
+        if {$options(-openlcbmode)} {
+            $self _selectControlElements
+        }
         foreach slave [pack slaves $optionsFrame] {pack forget $slave}
         foreach opt $objectTypeOptions($objtype) {
             switch -exact $opt {
