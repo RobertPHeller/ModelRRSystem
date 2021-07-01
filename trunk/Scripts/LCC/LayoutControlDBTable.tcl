@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jun 29 07:39:30 2021
-#  Last Modified : <210630.0929>
+#  Last Modified : <210701.1603>
 #
 #  Description	
 #
@@ -61,11 +61,11 @@ namespace eval lcc {
         constructor {args} {
             installhull using ttk::treeview -columns {} \
                   -selectmode browse
-            $hull tag bind block <ButtonRelease> [mymethod _editItem block %x %y]
-            $hull tag bind turnout <ButtonRelease> [mymethod _editItem turnout %x %y]
-            $hull tag bind signal <ButtonRelease> [mymethod _editItem signal %x %y]
-            $hull tag bind sensor <ButtonRelease> [mymethod _editItem sensor %x %y]
-            $hull tag bind control <ButtonRelease> [mymethod _editItem control %x %y]
+            $hull tag bind block <ButtonRelease-3> [mymethod _editItem block %x %y]
+            $hull tag bind turnout <ButtonRelease-3> [mymethod _editItem turnout %x %y]
+            $hull tag bind signal <ButtonRelease-3> [mymethod _editItem signal %x %y]
+            $hull tag bind sensor <ButtonRelease-3> [mymethod _editItem sensor %x %y]
+            $hull tag bind control <ButtonRelease-3> [mymethod _editItem control %x %y]
             $self configurelist $args
             $self Refresh
         }
