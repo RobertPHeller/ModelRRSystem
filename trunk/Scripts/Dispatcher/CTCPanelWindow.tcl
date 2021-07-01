@@ -3418,6 +3418,59 @@ namespace eval CTCPanelWindow {
                 }
             }
             Signal {
+                set i [[$self cget -parent] getSignal $name]
+                set aspects [$i getElementsByTagName aspect -depth 1]
+                set last 0
+                if {[llength $aspects] == 0} {
+                    $headsLCB set 1
+                    return
+                }
+                $headsLCB set [llength [[[lindex $aspects 0]  getElementsByTagName look  -depth 1] data]]
+                foreach a $aspects {
+                    set event [[$a getElementsByTagName event -depth 1] data]
+                    set look  [[$a getElementsByTagName look  -depth 1] data]
+                    set updated no
+                    foreach aspectfr [array names aspectlist *,frame] {
+                        regexp {^([[:digit:]]+),frame$} $aspectfr => aspectcount
+                        if {$aspectcount > $last} {set last $aspectcount}
+                        set fr $aspectlist($aspectfr)
+                        set eventid_ $aspectlistSTabNB.$fr.eventid
+                        set aspl_    $aspectlistSTabNB.$fr.aspl
+                        if {$look eq [$aspl_ get]} {
+                            if {$event ne "" && $event ne {00.00.00.00.00.00.00.00}} {
+                                $eventid_ configure -text $event
+                            }
+                            set updated yes
+                            break
+                        }
+                    }
+                    if {$updated} {continue}
+                    set aspectcount $last
+                    incr aspectcount
+                    set fr aspect$aspectcount
+                    while {[winfo exists $aspectlistSTabNB.$fr]} {
+                        incr aspectcount
+                        set fr aspect$aspectcount
+                    }
+                    set aspectlist($aspectcount,frame) $fr
+                    ttk::frame $aspectlistSTabNB.$fr
+                    $aspectlistSTabNB add $aspectlistSTabNB.$fr -text [_ "Aspect %d" $aspectcount] -sticky news
+                    set eventid_ [LabelEntry $aspectlistSTabNB.$fr.eventid \
+                                  -label [_m "Label|When this event occurs"] \
+                                  -text $event]
+                    pack $eventid_ -fill x
+                    set aspectlist($aspectcount,eventid) "$event"
+                    set aspl_ [LabelEntry $aspectlistSTabNB.$fr.aspl \
+                       -label [_m "Label|the following aspect will be displayed."] \
+                       -text $look]
+                    pack $aspl_ -fill x
+                    set aspectlist($aspectcount,aspl) "$look"
+                    set del [ttk::button $aspectlistSTabNB.$fr.delete \
+                             -text [_m "Label|Delete Aspect"] \
+                             -command [mymethod _deleteAspect $aspectcount]]
+                    pack $del -fill x
+                }
+                $self redrawgraphic
             }
         }
     }
