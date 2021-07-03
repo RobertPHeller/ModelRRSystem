@@ -744,6 +744,7 @@ AC_CONFIG_FILES([config_tcl.sed \
                 ExampleDataAndCode/LCC_Examples/Makefile \
                 ExampleDataAndCode/LCC_Examples/Doxyfile \
                 ExampleDataAndCode/LayoutControlDB/Makefile \
+                ExampleDataAndCode/LayoutControlDB/Doxyfile \
 	  BuildBinaryDistro.sh \
 	  Doxyfile])
 AC_CONFIG_COMMANDS([default],

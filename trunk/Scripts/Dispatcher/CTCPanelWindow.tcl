@@ -3506,7 +3506,7 @@ namespace eval CTCPanelWindow {
                 grid [button $win.em.new -text [_m {Button|New Turnout}] \
                       -command [mymethod _eventContext1_newTurnout \
                                 [list destroy $win.em] \
-                                $entry [$self cget -db] \
+                                $entry [$self cget -parent] \
                                 [lrange $taglist 1 end]]] -column $gcol \
                       -row $grow -sticky news
             }
@@ -3517,7 +3517,7 @@ namespace eval CTCPanelWindow {
                 grid [button $win.em.new -text [_m {Button|New Block}] \
                       -command [mymethod _eventContext1_newBlock \
                                 [list destroy $win.em] \
-                                $entry [$self cget -db] \
+                                $entry [$self cget -parent] \
                                 [lrange $taglist 1 end]]] -column $gcol \
                       -row $grow -sticky news
             }
@@ -3528,7 +3528,7 @@ namespace eval CTCPanelWindow {
                 grid [button $win.em.new -text [_m {Button|New Signal}] \
                       -command [mymethod _eventContext1_newSignal \
                                 [list destroy $win.em] \
-                                $entry [$self cget -db] \
+                                $entry [$self cget -parent] \
                                 [lrange $taglist 1 end]]] -column $gcol \
                       -row $grow -sticky news
             }
@@ -3539,7 +3539,7 @@ namespace eval CTCPanelWindow {
                 grid [button $win.em.new -text [_m {Button|New Sensor}] \
                       -command [mymethod _eventContext1_newSensor \
                                 [list destroy $win.em] \
-                                $entry [$self cget -db] \
+                                $entry [$self cget -parent] \
                                 [lrange $taglist 1 end]]] -column $gcol \
                       -row $grow -sticky news
             }
@@ -3550,7 +3550,7 @@ namespace eval CTCPanelWindow {
                 grid [button $win.em.new -text [_m {Button|New Control}] \
                       -command [mymethod _eventContext1_newControl \
                                 [list destroy $win.em] \
-                                $entry [$self cget -db] \
+                                $entry [$self cget -parent] \
                                 [lrange $taglist 1 end]]] -column $gcol \
                       -row $grow -sticky news
             }
