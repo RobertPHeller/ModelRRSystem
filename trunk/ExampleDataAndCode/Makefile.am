@@ -1,5 +1,5 @@
 SUBDIRS = Blocks Switches Signals InterlockingPlants Yards Sidings TimeTables \
-	  FreightCarForwarding LCC_Examples
+	  FreightCarForwarding LCC_Examples LayoutControlDB
 
 
 EXTRA_DIST = Readme.txt
