@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <210629.0730>
+#  Last Modified : <210708.1507>
 #
 #  Description	
 #
@@ -252,6 +252,152 @@ namespace eval lcc {
             }
         }
     }   
+    snit::widget EventSearch {
+        typevariable AllSearchAbleEvents -array {}
+        typevariable AllEventSearchWidgets [list]
+        proc _search {pattern} {
+            return [array names AllSearchAbleEvents -glob "*$pattern*"]
+        }
+        option -eventwidget -readonly yes -type snit::window
+        component searchEntry
+        variable _searchval {}
+        variable _searchText {}
+        component searchResults
+        component searchResultsList
+        constructor {args} {
+            set b [ttk::button $win.search -text [_m "Label|Search"] \
+                   -command [mymethod _toggleSearchEntry]]
+            pack $b -side left
+            install searchEntry using ttk::entry $win.searchEntry \
+                  -textvariable [myvar _searchval]
+            bind $searchEntry <Key> [mymethod _doSearch]
+            $self configurelist $args
+            $self _recomputeSearchText
+            lappend AllEventSearchWidgets $win
+            install searchResults using toplevel $win.searchResults
+            wm withdraw $searchResults
+            wm overrideredirect $searchResults yes
+            set searchResultsSW [ScrolledWindow \
+                                 $searchResults.scroll \
+                                 -scrollbar vertical -auto vertical]
+            pack $searchResultsSW -expand yes -fill both
+            install searchResultsList using listbox \
+                  [$searchResultsSW getframe].searchResultsList \
+                  -selectmode single
+            $searchResultsSW setwidget $searchResultsList
+            bind $searchResultsList <<ListboxSelect>> [mymethod _listSelected]
+        }
+        method _recomputeSearchText {} {
+            catch {unset AllSearchAbleEvents($_searchText)}
+            set ew $options(-eventwidget)
+            set eventframe [winfo parent $ew]
+            if {[winfo exists $eventframe.descr]} {
+                set _searchText "[$eventframe.descr cget -text]"
+            }
+            if {![catch {$eventframe cget -text} name]} {
+                set _searchText "$name.$_searchText"
+            }
+            set gframe [winfo parent $eventframe]
+            set _searchText [_walkUpTree $gframe $_searchText]
+            set AllSearchAbleEvents($_searchText) $ew
+        }
+        typemethod RecomputeAllSearchTexts {} {
+            foreach sw $AllEventSearchWidgets {
+                $sw _recomputeSearchText
+            }
+        }
+        proc _walkUpTree {gframe searchText} {
+            #puts stderr "*** _walkUpTree $gframe \"$searchText\""
+            if {[regexp {\.replication([[:digit:]]+)$} $gframe => i] > 0} {
+                set replframe $gframe
+                set replnotebook [winfo parent $replframe]
+                set tabname [$replnotebook tab $replframe -text]
+                set searchText "$tabname.$searchText"
+                set groupframe [winfo parent $replnotebook]
+            } else {
+                set groupframe $gframe
+            }
+            set parent [winfo parent $groupframe]
+            while {$gframe ne $parent} {
+                #puts stderr "*** _walkUpTree: gframe is $gframe"
+                foreach f [winfo children $gframe] {
+                    if {[regexp {\.string[[:digit:]]+$} $f] > 0} {
+                        #puts stderr "*** _walkUpTree: f = $f"
+                        catch {
+                            #catch {$f cget -text} name
+                            #puts stderr "*** _walkUpTree: name is $name"
+                            set text [$f.value get]
+                            if {$text ne ""} {set searchText "($text).$searchText"}
+                        } message
+                        #puts stderr "*** _walkUpTree: message is $message"
+                        break
+                    }
+                }
+                set gframe [winfo parent $gframe]
+                    
+            }
+            if {[winfo class $parent] eq "TNotebook"} {
+                set notebook $parent
+                set tabname [$notebook tab $groupframe -text]
+                set searchText "$tabname.$searchText"
+                set parent [winfo parent $notebook]
+            }
+            if {[winfo toplevel $parent] eq $parent} {
+                return $searchText
+            } else {
+                return [_walkUpTree $parent $searchText]
+            }
+        }
+        method _doSearch {} {
+            wm withdraw $searchResults
+            set results [_search $_searchval]
+            #puts stderr "*** $self _doSearch \{$results\}"
+            set w 0
+            $searchResultsList delete 0 end
+            foreach r $results {
+                $searchResultsList insert end $r
+                set wr [string length $r]
+                if {$wr > $w} {set w $wr}
+            }
+            $searchResultsList configure -width $w
+            update idle
+            set width [winfo reqwidth $searchResults]
+            set X [winfo rootx $searchEntry]
+            set Y [expr {[winfo rooty $searchEntry] + [winfo reqheight $searchEntry]}]
+            set maxX [expr {[winfo screenwidth $searchResults] - $width}]
+            if {$X > $maxX} {set X $maxX}
+            set height [winfo reqheight $searchResults]
+            set maxY [expr {[winfo screenheight $searchResults] - $height}]
+            if {$Y > $maxY} {
+                set height [expr {[winfo screenheight $searchResults] - $Y}]
+            }
+            wm geometry  $searchResults [format {=%dx%d+%d+%d} $width $height $X $Y]
+            wm deiconify $searchResults
+            focus $searchEntry
+        }
+        method _listSelected {} {
+            set itemIndex [$searchResultsList curselection]
+            wm withdraw $searchResults
+            if {$itemIndex eq {}} {return}
+            set item [$searchResultsList get $itemIndex]
+            set otherwidget $AllSearchAbleEvents($item)
+            set otherevent [$otherwidget get]
+            set widget $options(-eventwidget)
+            $widget delete 0 end
+            $widget insert end $otherevent
+        }
+        method _toggleSearchEntry {} {
+            if {$searchEntry in [pack slaves $win]} {
+                pack forget $searchEntry
+            } else {
+                pack $searchEntry -side left -fill x
+            }
+        }
+    }
+            
+            
+            
+            
     snit::widget ConfigurationEditor {
         ## @brief Generate OpenLCB Memory Configuration Window.
         # Create a toplevel to configure a node's Memory using that
@@ -438,6 +584,7 @@ namespace eval lcc {
                 foreach s [array names _readall] {
                     $self _readall $s
                 }
+                EventSearch RecomputeAllSearchTexts
                 $self putdebug "*** $type create $self: _readall completed"
             }
             
@@ -1070,6 +1217,8 @@ namespace eval lcc {
                           -command [mymethod _copyevent $widget $readwrite.copy]
                     $readwrite add ttk::button paste  -text [_m "Label|Paste"] \
                           -command [mymethod _pasteevent $widget $readwrite.paste]
+                    $readwrite add ::lcc::EventSearch search \
+                          -eventwidget $widget
                     incr address $size
                 }
             }
