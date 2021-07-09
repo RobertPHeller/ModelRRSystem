@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon May 20 10:03:07 2013
-#  Last Modified : <160223.1555>
+#  Last Modified : <210709.0930>
 #
 #  Description	
 #
@@ -51,6 +51,8 @@ snit::widget ButtonBox {
                                                     
     option -orient -default horizontal \
           -type {snit::enum -values {horizontal vertical}}
+    option -buttonalignment -default center \
+          -type {snit::enum -values {left center right}}
     constructor {args} {
         $hull configure -style $type
         $self configurelist $args
@@ -67,20 +69,36 @@ snit::widget ButtonBox {
     method add {const name args} {
         switch $options(-orient) {
             horizontal {
-                set col [llength [array names buttons]]
-                set row 0
-                set sticky ns
-                grid columnconfigure $win $col -uniform buttoncol -weight 1 -pad 6
+                set side left
+                switch $options(-buttonalignment) {
+                    left {
+                        set anchor w
+                    }
+                    center {
+                        set anchor center
+                    }
+                    right {
+                        set anchor e
+                    }
+                }
             }
             vertical {
-                set row [llength [array names buttons]]
-                set col 0
-                set sticky we
-                grid rowconfigure $win $row -uniform buttoncol -weight 1 -pad 6
+                set side top
+                switch $options(-buttonalignment) {
+                    left {
+                        set anchor n
+                    }
+                    center {
+                        set anchor center
+                    }
+                    right {
+                        set anchor s
+                    }
+                }
             }
         }
         set buttons($name) [eval [list $const $win.$name] $args]
-        grid $buttons($name) -column $col -row $row -sticky $sticky
+        pack $buttons($name) -side $side -anchor $anchor
         #$buttons($name) configure -state $options(-state)
         if {$options(-default) eq $name} {
             $buttons($name) configure -default active

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <210708.1507>
+#  Last Modified : <210709.0940>
 #
 #  Description	
 #
@@ -389,8 +389,9 @@ namespace eval lcc {
         method _toggleSearchEntry {} {
             if {$searchEntry in [pack slaves $win]} {
                 pack forget $searchEntry
+                wm withdraw $searchResults
             } else {
-                pack $searchEntry -side left -fill x
+                pack $searchEntry -side left -expand yes -fill x
             }
         }
     }
@@ -1066,6 +1067,7 @@ namespace eval lcc {
                     }
                     pack $widget -fill x
                     set readwrite [ButtonBox $intframe.readwrite \
+                                   -buttonalignment left \
                                    -orient horizontal]
                     pack $readwrite -expand yes -fill x
                     set rb [$readwrite add ttk::button read -text [_m "Label|Read"] \
@@ -1132,6 +1134,7 @@ namespace eval lcc {
                     }
                     pack $widget -fill x
                     set readwrite [ButtonBox $stringframe.readwrite \
+                                   -buttonalignment left \
                                    -orient horizontal]
                     pack $readwrite -expand yes -fill x
                     set rb [$readwrite add ttk::button read -text [_m "Label|Read"] \
@@ -1198,6 +1201,7 @@ namespace eval lcc {
                     }
                     pack $widget -fill x
                     set readwrite [ButtonBox $eventidframe.readwrite \
+                                   -buttonalignment left \
                                    -orient horizontal]
                     pack $readwrite -expand yes -fill x
                     set rb [$readwrite add ttk::button read -text [_m "Label|Read"] \
