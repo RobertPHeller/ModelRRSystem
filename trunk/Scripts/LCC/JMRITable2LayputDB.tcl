@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Jul 9 14:25:59 2021
-#  Last Modified : <210709.1613>
+#  Last Modified : <210710.0734>
 #
 #  Description	
 #
@@ -39,6 +39,18 @@
 # 
 #
 #*****************************************************************************
+
+## @page JMRITable2LayputDB JMRI Tables to LayoutDB converter
+# @brief Converts a JMRI Table file to a LayoutDB file
+#
+# @section JMRITable2LayputDBSYNOPSIS SYNOPSIS
+# @section JMRITable2LayputDBDESCRIPTION DESCRIPTION
+# @section JMRITable2LayputDBPARAMETERS PARAMETERS
+# @section JMRITable2LayputDBOPTIONS OPTIONS
+# @section JMRITable2LayputDBAUTHOR AUTHOR
+# Robert Heller \<heller\@deepsoft.com\>
+#
+
 
 set argv0 [file join  [file dirname [info nameofexecutable]] JMRITable2LayputDB]
 

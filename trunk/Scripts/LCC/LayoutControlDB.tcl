@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Jan 30 10:06:50 2019
-#  Last Modified : <210629.1442>
+#  Last Modified : <210710.0844>
 #
 #  Description	
 #
@@ -64,7 +64,7 @@ namespace eval lcc {
         }
         typemethod olddb {filename {name %%AUTO%%}} {
             if {[catch {open $filename r} fp]} {
-                error "$type olddb: could not open $filename: $fp"
+                error [_ "LayoutControlDB olddb: could not open %s: %s" $filename$fp]
             }
             set xml [read $fp]
             close $fp
@@ -79,7 +79,7 @@ namespace eval lcc {
                 catch {file rename -force $filename ${filename}.bak}
             }
             if {[catch {open $filename w} fp]} {
-                error "$type olddb: could not open $filename: $fp"
+                error [_ "LayoutControlDB olddb: could not open %s: %s" $filename $fp]
             }
             puts $fp {<?xml version='1.0'?>}
             
