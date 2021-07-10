@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Jul 9 14:25:59 2021
-#  Last Modified : <210710.0734>
+#  Last Modified : <210710.1255>
 #
 #  Description	
 #
@@ -40,19 +40,33 @@
 #
 #*****************************************************************************
 
-## @page JMRITable2LayputDB JMRI Tables to LayoutDB converter
+## @page JMRITable2LayoutDB JMRI Tables to LayoutDB converter
 # @brief Converts a JMRI Table file to a LayoutDB file
 #
-# @section JMRITable2LayputDBSYNOPSIS SYNOPSIS
-# @section JMRITable2LayputDBDESCRIPTION DESCRIPTION
-# @section JMRITable2LayputDBPARAMETERS PARAMETERS
-# @section JMRITable2LayputDBOPTIONS OPTIONS
-# @section JMRITable2LayputDBAUTHOR AUTHOR
+# @section JMRITable2LayoutDBSYNOPSIS SYNOPSIS
+#
+# JMRITable2LayoutDB jmrixml layoutdbxml
+#
+# @section JMRITable2LayoutDBDESCRIPTION DESCRIPTION
+#
+# Convert a JMRI Table XML file to a LayoutControlDB xml file.
+#
+# @section JMRITable2LayoutDBPARAMETERS PARAMETERS
+#
+# @arg jmrixml The JMRI XML file to convert.
+# @arg layoutdbxml The LayoutControlDB xml file to output
+# @par
+#
+# @section JMRITable2LayoutDBOPTIONS OPTIONS
+#
+# None.
+#
+# @section JMRITable2LayoutDBAUTHOR AUTHOR
 # Robert Heller \<heller\@deepsoft.com\>
 #
 
 
-set argv0 [file join  [file dirname [info nameofexecutable]] JMRITable2LayputDB]
+set argv0 [file join  [file dirname [info nameofexecutable]] JMRITable2LayoutDB]
 
 package require snit
 package require LayoutControlDB
@@ -63,7 +77,7 @@ package require LCC
 set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirname \
 							[info script]]]] Messages]]
 
-snit::type JMRITable2LayputDB {
+snit::type JMRITable2LayoutDB {
     typevariable XMLPREFIXPATTERN {^[[:space:]]*<\?xml.*\?>}
     typevariable SENSORPATTERN {^[[:alnum:]]+S([[:xdigit:].]+);([[:xdigit:].]+)$}
     typevariable TURNOUTPATTERN {^[[:alnum:]]+T([[:xdigit:].]+);([[:xdigit:].]+)$}
@@ -92,27 +106,46 @@ snit::type JMRITable2LayputDB {
         set rawxml [regsub -all $XMLPREFIXPATTERN $rawxml {}]
         set _XML [ParseXML %%AUTO%% $rawxml]
         set _layoutConfig [$_XML getElementsByTagName layout-config -depth 1]
+        if {$_layoutConfig eq {}} {
+            puts stderr [_ "Not a JMRI Table XML file: %s" $filename]
+            exit 99
+        }
         set _sensors [$_layoutConfig getElementsByTagName sensors -depth 1]
         set _reporters [$_layoutConfig getElementsByTagName reporters -depth 1]
         set _lights [$_layoutConfig getElementsByTagName lights -depth 1]
         set _turnouts [$_layoutConfig getElementsByTagName turnouts -depth 1]
         set _blocks [$_layoutConfig getElementsByTagName blocks -depth 1]
         set _layoutdb [::lcc::LayoutControlDB newdb]
+        set bcount 0
         foreach block [$_blocks getElementsByTagName block -depth 1] {
             _processBlock $block
+            incr bcount
         }
+        puts [format "%3d Blocks" $bcount]
+        set tcount 0
         foreach turnout [$_turnouts getElementsByTagName turnout -depth 1] {
             _processTurnout $turnout
+            incr tcount
         }
+        puts [format "%3d Turnouts" $tcount]
+        set scount 0
         foreach sensor [$_sensors getElementsByTagName sensor -depth 1] {
             _processSensor $sensor
+            incr scount
         }
+        puts [format "%3d Sensors" $scount]
+        set rcount 0
         foreach reporter [$_reporters getElementsByTagName reporter -depth 1] {
             _processReporter $reporter
+            incr rcount
         }
+        puts [format "%3d Reporters" $rcount]
+        set lcount 0
         foreach light [$_lights getElementsByTagName light -depth 1] {
             _processLight $light
+            incr lcount
         }
+        puts [format "%3d Lights" $lcount]
         $_layoutdb savedb [lindex $::argv 1]
     }
     proc _processBlock {block} {
@@ -194,6 +227,7 @@ snit::type JMRITable2LayputDB {
         } else {
             set newcontrol [$_layoutdb newControl $name]
         }
+        $newcontrol setAttribute type reporter
     }
     proc _processLight {light} {
         set un [$light getElementsByTagName userName -depth 1]
@@ -209,6 +243,7 @@ snit::type JMRITable2LayputDB {
         } else {
             set newcontrol [$_layoutdb newControl $name]
         }
+        $newcontrol setAttribute type light
     }
     proc _getSensor {userName} {
         foreach sensor [$_sensors getElementsByTagName sensor -depth 1] {

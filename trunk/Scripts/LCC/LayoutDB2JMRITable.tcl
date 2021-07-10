@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jul 10 07:13:36 2021
-#  Last Modified : <210710.0953>
+#  Last Modified : <210710.1259>
 #
 #  Description	
 #
@@ -41,18 +41,32 @@
 #*****************************************************************************
 
 
-## @page LayputDB2JMRITable LayoutDB to JMRI Tables converter
+## @page LayoutDB2JMRITable LayoutDB to JMRI Tables converter
 # @brief Converts a LayoutDB file to a JMRI Table file
 #
-# @section LayputDB2JMRITableSYNOPSIS SYNOPSIS
-# @section LayputDB2JMRITableDESCRIPTION DESCRIPTION
-# @section LayputDB2JMRITablePARAMETERS PARAMETERS
-# @section LayputDB2JMRITableOPTIONS OPTIONS
-# @section LayputDB2JMRITableAUTHOR AUTHOR
+# @section LayoutDB2JMRITableSYNOPSIS SYNOPSIS
+#
+# LayoutDB2JMRITable layoutdbxml jmrixml
+#
+# @section LayoutDB2JMRITableDESCRIPTION DESCRIPTION
+#
+# Convert a Layout Control DB XML file to a JMRI Table XML file
+#
+# @section LayoutDB2JMRITablePARAMETERS PARAMETERS
+#
+# @arg layoutdbxml The Layout Control DB XML file to convert
+# @arg jmrixml The JMRI Table XML file to output
+# @par
+#
+# @section LayoutDB2JMRITableOPTIONS OPTIONS
+#
+# None
+#
+# @section LayoutDB2JMRITableAUTHOR AUTHOR
 # Robert Heller \<heller\@deepsoft.com\>
 #
 
-set argv0 [file join  [file dirname [info nameofexecutable]] JMRITable2LayputDB]
+set argv0 [file join  [file dirname [info nameofexecutable]] JMRITable2LayoutDB]
 
 package require snit
 package require LayoutControlDB
@@ -63,7 +77,7 @@ package require LCC
 set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirname \
 							[info script]]]] Messages]]
 
-snit::type LayputDB2JMRITable {
+snit::type LayoutDB2JMRITable {
     typevariable EmptyTableXML {<?xml version="1.0" encoding="UTF-8"?>
         <layout-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://jmri.org/xml/schema/layout-4-19-2.xsd">
         <jmriversion>
@@ -128,9 +142,13 @@ snit::type LayputDB2JMRITable {
         $date setdata [clock format [clock seconds] -format "%+"]
         set fn  [[$op info type] create %%AUTO%% -tag filename]
         $op addchild $fn
-        $fn setdata {LayputDB2JMRITable program}
+        $fn setdata {LayoutDB2JMRITable program}
         set _layoutDB [::lcc::LayoutControlDB olddb [lindex $::argv 0]]
         set layout [$_layoutDB getElementsByTagName layout -depth 1]
+        if {$layout eq {}} {
+            puts stderr [_ "Not a Layout Control DB XML file: %s" [lindex $::argv 0]]
+            exit 99
+        }
         foreach turnout [$layout getElementsByTagName turnout -depth 1] {
             _createJMRIturnout $turnout
         }
@@ -139,6 +157,9 @@ snit::type LayputDB2JMRITable {
         }
         foreach sensor [$layout getElementsByTagName sensor  -depth 1] {
             _createJMRIsensor $sensor
+        }
+        foreach control [$layout getElementsByTagName control -depth 1] {
+            _createJMRIcontrol $control
         }
         set outfile [lindex $::argv 1]
         if {[catch {open $outfile w} fp]} {
@@ -228,5 +249,44 @@ snit::type LayputDB2JMRITable {
         set off  [[$sensor getElementsByTagName off  -depth 1] data]
         _makeJMRISensor $name $on $off
     }
+    proc _createJMRIcontrol {control} {
+        puts stderr "*** _createJMRIcontrol $control"
+        set name [[$control getElementsByTagName name -depth 1] data]
+        set on   [[$control getElementsByTagName on   -depth 1] data]
+        set off  [[$control getElementsByTagName on   -depth 1] data]
+        set t [$control attribute type]
+        if {$t eq {}} {set t reporter}
+        switch $t {
+            light {
+                _makeJMRILight $name $on $off
+            }
+            reporter {
+                _makeJMRIReporter $name $on $off
+            }
+        }
+    }
+    proc _makeJMRILight {name on off} {
+        puts stderr "*** _makeJMRILight $name $on $off"
+        set jmri_light [[$_lights info type] create %AUTO% -tag light]
+        $_lights addchild $jmri_light
+        set sn [[$jmri_light info type] create %AUTO% -tag systemName]
+        $sn setdata [format {ML%s;%s} $on $off]
+        $jmri_light addchild $sn
+        set un [[$jmri_light info type] create %AUTO% -tag userName]
+        $un setdata $name
+        $jmri_light addchild $un
+    }
+    proc _makeJMRIReporter {name on off} {
+        puts stderr "*** _makeJMRIReporter $name $on $off"
+        set jmri_reporter [[$_reporters info type] create %AUTO% -tag reporter]
+        $_reporters addchild $jmri_reporter
+        set sn [[$jmri_reporter info type] create %AUTO% -tag systemName]
+        $sn setdata [format {MR%s;%s} $on $off]
+        $jmri_reporter addchild $sn
+        set un [[$jmri_reporter info type] create %AUTO% -tag userName]
+        $un setdata $name
+        $jmri_reporter addchild $un
+    }
+    
 }
 

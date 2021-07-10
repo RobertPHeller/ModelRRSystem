@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <210710.0719>
+#  Last Modified : <210710.1227>
 #
 #  Description	
 #
@@ -56,13 +56,13 @@ EXTRA_DIST = lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		OpenLCB_QuadSignal.tcl ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl \
 		OpenLCB_PiPCA9685.tcl LayoutControlDB.tcl \
 		LayoutControlDBDialogs.tcl Router.tcl \
-		LayoutControlDBTable.tcl JMRITable2LayputDB.tcl \
-		LayputDB2JMRITable.tcl
+		LayoutControlDBTable.tcl JMRITable2LayoutDB.tcl \
+		LayoutDB2JMRITable.tcl
 
 bin_SCRIPTS = OpenLCB${EXEEXT} OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
 	OpenLCBGCTcpHub${EXEEXT} OpenLCB_TrackCircuits${EXEEXT} \
 	OpenLCB_Acela${EXEEXT} OpenLCB_Logic${EXEEXT} OpenLCB_CMRI${EXEEXT} \
-	Router${EXEEXT} JMRITable2LayputDB${EXEEXT} LayputDB2JMRITable${EXEEXT}
+	Router${EXEEXT} JMRITable2LayoutDB${EXEEXT} LayoutDB2JMRITable${EXEEXT}
 if HAVE_WIRINGPI
 bin_SCRIPTS += OpenLCB_PiGPIO${EXEEXT} OpenLCB_PiMCP23008${EXEEXT} \
 		OpenLCB_PiMCP23017${EXEEXT} OpenLCB_PiSPIMax7221${EXEEXT} \
@@ -82,7 +82,7 @@ pixmap_DATA = OpenLCB.png
 man_MANS = man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
 	man1/OpenLCBGCTcpHub.1 man1/OpenLCB_TrackCircuits.1 \
 	man1/OpenLCB_Acela.1 man1/OpenLCB_Logic.1 \
-	man1/JMRITable2LayputDB.1 man1/LayputDB2JMRITable.1
+	man1/JMRITable2LayoutDB.1 man1/LayoutDB2JMRITable.1
 if HAVE_WIRINGPI
 man_MANS += man1/OpenLCB_PiGPIO.1 man1/OpenLCB_PiMCP23008.1 \
 		man1/OpenLCB_PiMCP23017.1 man1/OpenLCB_PiSPIMax7221.1
@@ -164,8 +164,8 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
                 OpenLCB_PiSPIMax7221.tcl OpenLCB_PiPCA9685.tcl PCA9685.tcl \
                 ADAFruitDC_AND_STEPPER.tcl Router.tcl \
                 LayoutControlDB.tcl LayoutControlDBDialogs.tcl \
-                LayoutControlDBTable.tcl JMRITable2LayputDB.tcl \
-                LayputDB2JMRITable.tcl \
+                LayoutControlDBTable.tcl JMRITable2LayoutDB.tcl \
+                LayoutDB2JMRITable.tcl \
 		$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m \
@@ -179,7 +179,7 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
 		         OpenLCB_PiPCA9685.tcl \
 		         OpenLCB_TrackCircuits.tcl OpenLCB_Acela.tcl \
 		         OpenLCB_Logic.tcl LCCNodeTree.tcl Router.tcl \
-		         JMRITable2LayputDB.tcl LayputDB2JMRITable.tcl) \
+		         JMRITable2LayoutDB.tcl LayoutDB2JMRITable.tcl) \
 		Scripts/Common/snitStdMenuBar.tcl|\
 	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
 	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
@@ -1034,65 +1034,65 @@ endif
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB_CMRI${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf OpenLCB_CMRI.vfs
 
-JMRITable2LayputDBSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
+JMRITable2LayoutDBSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 				$(top_srcdir)/Scripts/LCC/lcc.tcl \
 				$(top_srcdir)/Scripts/LCC/LayoutControlDB.tcl \
 				$(top_builddir)/Scripts/Common/Version.tcl \
 				$(top_srcdir)/Scripts/Common/ParseXML.tcl
 				
 
-JMRITable2LayputDB${EXEEXT} : JMRITable2LayputDB.tcl \
-				$(JMRITable2LayputDBSCRIPTS) \
+JMRITable2LayoutDB${EXEEXT} : JMRITable2LayoutDB.tcl \
+				$(JMRITable2LayoutDBSCRIPTS) \
 				$(top_builddir)/po/OpenLCB/msgfiles
-	-rm -f  JMRITable2LayputDB.kit
-	-rm -rf JMRITable2LayputDB.vfs
-	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/JMRITable2LayputDB.tcl
-	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap JMRITable2LayputDB.kit
-	-rm -f  JMRITable2LayputDB.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit JMRITable2LayputDB \
+	-rm -f  JMRITable2LayoutDB.kit
+	-rm -rf JMRITable2LayoutDB.vfs
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/JMRITable2LayoutDB.tcl
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap JMRITable2LayoutDB.kit
+	-rm -f  JMRITable2LayoutDB.kit
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit JMRITable2LayoutDB \
 		lib $(SNITLIB)
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit JMRITable2LayputDB \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit JMRITable2LayoutDB \
 		lib $(URILIB)
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit JMRITable2LayputDB \
-		lib/Common $(JMRITable2LayputDBSCRIPTS)
-	$(UNZIP) -qq -d JMRITable2LayputDB.vfs/lib \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit JMRITable2LayoutDB \
+		lib/Common $(JMRITable2LayoutDBSCRIPTS)
+	$(UNZIP) -qq -d JMRITable2LayoutDB.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
-	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit JMRITable2LayputDB \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit JMRITable2LayoutDB \
 		Common
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit JMRITable2LayputDB \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit JMRITable2LayoutDB \
 		Messages $(top_builddir)/po/OpenLCB/*.msg
-	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap JMRITable2LayputDB -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
-	-rm -rf JMRITable2LayputDB.vfs
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap JMRITable2LayoutDB -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
+	-rm -rf JMRITable2LayoutDB.vfs
 
-LayputDB2JMRITableSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
+LayoutDB2JMRITableSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 				$(top_srcdir)/Scripts/LCC/lcc.tcl \
 				$(top_srcdir)/Scripts/LCC/LayoutControlDB.tcl \
 				$(top_builddir)/Scripts/Common/Version.tcl \
 				$(top_srcdir)/Scripts/Common/ParseXML.tcl
 				
 
-LayputDB2JMRITable${EXEEXT} : LayputDB2JMRITable.tcl \
-				$(LayputDB2JMRITableSCRIPTS) \
+LayoutDB2JMRITable${EXEEXT} : LayoutDB2JMRITable.tcl \
+				$(LayoutDB2JMRITableSCRIPTS) \
 				$(top_builddir)/po/OpenLCB/msgfiles
-	-rm -f  LayputDB2JMRITable.kit
-	-rm -rf LayputDB2JMRITable.vfs
-	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/LayputDB2JMRITable.tcl
-	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap LayputDB2JMRITable.kit
-	-rm -f  LayputDB2JMRITable.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit LayputDB2JMRITable \
+	-rm -f  LayoutDB2JMRITable.kit
+	-rm -rf LayoutDB2JMRITable.vfs
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/LayoutDB2JMRITable.tcl
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap LayoutDB2JMRITable.kit
+	-rm -f  LayoutDB2JMRITable.kit
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit LayoutDB2JMRITable \
 		lib $(SNITLIB)
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit LayputDB2JMRITable \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit LayoutDB2JMRITable \
 		lib $(URILIB)
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit LayputDB2JMRITable \
-		lib/Common $(LayputDB2JMRITableSCRIPTS)
-	$(UNZIP) -qq -d LayputDB2JMRITable.vfs/lib \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit LayoutDB2JMRITable \
+		lib/Common $(LayoutDB2JMRITableSCRIPTS)
+	$(UNZIP) -qq -d LayoutDB2JMRITable.vfs/lib \
 		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
-	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit LayputDB2JMRITable \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit LayoutDB2JMRITable \
 		Common
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit LayputDB2JMRITable \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit LayoutDB2JMRITable \
 		Messages $(top_builddir)/po/OpenLCB/*.msg
-	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap LayputDB2JMRITable -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
-	-rm -rf LayputDB2JMRITable.vfs
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap LayoutDB2JMRITable -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
+	-rm -rf LayoutDB2JMRITable.vfs
 
 #LayoutControlDB: LayoutControlDB.tcl $(top_srcdir)/Scripts/Common/ParseXML.tcl
 #	-rm -f  LayoutControlDB.kit
@@ -1136,12 +1136,12 @@ man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
 	man1/OpenLCB_QuadSignal.1 \
 	man1/OpenLCB_CMRI.1 \
 	man1/OpenLCB_TrackCircuits.1 man1/OpenLCB_Logic.1 man1/Router.1 \
-	man1/JMRITable2LayputDB.1 man1/LayputDB2JMRITable.1: Doxyfile \
+	man1/JMRITable2LayoutDB.1 man1/LayoutDB2JMRITable.1: Doxyfile \
 	OpenLCB.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl OpenLCBGCTcpHub.tcl \
 	OpenLCB_PiGPIO.tcl OpenLCB_TrackCircuits.tcl OpenLCB_Logic.tcl \
 	OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
 	OpenLCB_PiMCP23017_signal.tcl OpenLCB_CMRI.tcl OpenLCB_QuadSignal.tcl \
-	Router.tcl JMRITable2LayputDB.tcl LayputDB2JMRITable.tcl
+	Router.tcl JMRITable2LayoutDB.tcl LayoutDB2JMRITable.tcl
 	-rm -rf man1
 	$(DOXYGEN) Doxyfile
 	
