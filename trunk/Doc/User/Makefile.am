@@ -325,6 +325,7 @@ $(USERMAN_HTML) $(USERMAN_PDF) : $(USERMAN_HS) $(USERMAN_FIGS) $(BIBLIO) \
 	../../Scripts/LCC/OpenLCBTcpHub.tcl \
 	../../Scripts/LCC/OpenLCB_MRD2.tcl \
 	../../Scripts/LCC/OpenLCBGCTcpHub.tcl \
+	../../Scripts/LCC/Router.tcl \
 	../../Scripts/LCC/OpenLCB_PiGPIO.tcl \
 	../../Scripts/LCC/OpenLCB_PiMCP23008.tcl \
 	../../Scripts/LCC/OpenLCB_PiMCP23017.tcl \
@@ -335,6 +336,8 @@ $(USERMAN_HTML) $(USERMAN_PDF) : $(USERMAN_HS) $(USERMAN_FIGS) $(BIBLIO) \
 	../../Scripts/LCC/OpenLCB_TrackCircuits.tcl \
 	../../Scripts/LCC/OpenLCB_Acela.tcl \
 	../../Scripts/LCC/OpenLCB_CMRI.tcl \
+	../../Scripts/LCC/JMRITable2LayoutDB.tcl \
+	../../Scripts/LCC/LayoutDB2JMRITable.tcl \
 	../doxygen/tcldoxyfilter.sh
 	-rm -rf $(USERMANHBase)/
 	-rm -rf latex

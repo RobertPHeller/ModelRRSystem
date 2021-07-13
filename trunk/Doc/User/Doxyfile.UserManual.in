@@ -629,6 +629,7 @@ INPUT                  = @srcdir@/Preface.h \
                          @top_srcdir@/C++/RailDriver/raildriverd.src \
                          @top_srcdir@/Scripts/LCC/OpenLCBTcpHub.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCBGCTcpHub.tcl \
+                         @top_srcdir@/Scripts/LCC/Router.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_MRD2.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_PiGPIO.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_PiMCP23008.tcl \
@@ -640,6 +641,8 @@ INPUT                  = @srcdir@/Preface.h \
                          @top_srcdir@/Scripts/LCC/OpenLCB_Logic.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_Acela.tcl \
                          @top_srcdir@/Scripts/LCC/OpenLCB_CMRI.tcl \
+                         @top_srcdir@/Scripts/LCC/JMRITable2LayoutDB.tcl \
+                         @top_srcdir@/Scripts/LCC/LayoutDB2JMRITable.tcl \
                          @srcdir@/Help.h \
                          @builddir@/UserManual_Version.h @srcdir@/COPYING.h
 
