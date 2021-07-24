@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <210709.0940>
+#  Last Modified : <210724.0947>
 #
 #  Description	
 #
@@ -607,16 +607,20 @@ namespace eval lcc {
                   $layoutcontrolsLF.layoutcontrolsNB 
             pack $layoutcontrolsNB -fill both -expand yes
             install addturnoutW using ::lcc::NewTurnoutWidget \
-                  $layoutcontrolsNB.addturnoutW -db [$self cget -layoutdb]
+                  $layoutcontrolsNB.addturnoutW \
+                  -db [$self cget -layoutdb] -copypaste yes
             $layoutcontrolsNB add $addturnoutW -text [_m "Label|Turnout"] -sticky news
             install addblockW using ::lcc::NewBlockWidget \
-                  $layoutcontrolsNB.addblockW -db [$self cget -layoutdb]
+                  $layoutcontrolsNB.addblockW \
+                  -db [$self cget -layoutdb] -copypaste yes
             $layoutcontrolsNB add $addblockW -text [_m "Label|Block"] -sticky news
             install addsensorW using ::lcc::NewSensorWidget \
-                  $layoutcontrolsNB.addsensorW -db [$self cget -layoutdb]
+                  $layoutcontrolsNB.addsensorW \
+                  -db [$self cget -layoutdb] -copypaste yes
             $layoutcontrolsNB add $addsensorW -text [_m "Label|Sensor"] -sticky news
             install addcontrolW using ::lcc::NewControlWidget \
-                  $layoutcontrolsNB.addcontrolW -db [$self cget -layoutdb]
+                  $layoutcontrolsNB.addcontrolW \
+                  -db [$self cget -layoutdb] -copypaste yes
             $layoutcontrolsNB add $addcontrolW -text [_m "Label|Control"] -sticky news
         }
         method edit_checksel {} {
@@ -1145,6 +1149,10 @@ namespace eval lcc {
                     if {$options(-displayonly)} {
                         $readwrite configure -state disabled
                     }
+                    $readwrite add ttk::button copy -text [_m "Label|Copy"] \
+                          -command [mymethod _copytext $widget $readwrite.copy]
+                    $readwrite add ttk::button paste  -text [_m "Label|Paste"] \
+                          -command [mymethod _pastetext $widget $readwrite.paste]
                     incr address $size
                 }
                 eventid {
@@ -1245,6 +1253,15 @@ namespace eval lcc {
             set _lastCopyButton $button
             $widget selection range 0 end
         }
+        method _copytext {widget button} {
+            if {$_lastCopyButton ne {}} {
+                $_lastCopyButton configure -style TButton
+                set _lastCopyButton {}
+            }
+            $button configure -style TButtonHot
+            set _lastCopyButton $button
+            $widget selection range 0 end
+        }
         method _pasteevent {widget button} {
             if {[catch {selection get} select]} {return}
             if {$select eq ""} {return}
@@ -1254,6 +1271,13 @@ namespace eval lcc {
             $widget delete 0 end
             $widget insert end $select
             $type AddEventUse $select $widget
+        }
+        method _pastetext {widget button} {
+            if {[catch {selection get} select]} {return}
+            if {$select eq ""} {return}
+            $button configure -style TButtonHot
+            $widget delete 0 end
+            $widget insert end $select
         }
         method _eventContext1 {dismiscmd entry item taglist} {
             uplevel #0 $dismiscmd

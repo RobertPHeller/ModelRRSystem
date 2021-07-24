@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <210629.1509>
+#  Last Modified : <210724.1103>
 #
 #  Description	
 #
@@ -857,13 +857,18 @@ snit::type OpenLCB {
             pack $buttons -fill x
             $buttons add ttk::button refresh \
                   -text [_m "Label|Refresh"] \
-                  -command [list $layoutControlTable Refresh]
+                  -command [mytypemethod _reloadLayoutControlTable]
             $buttons add ttk::button close \
                   -text [_m "Label|Close Window"] \
                   -command [list wm withdraw  .layoutControlView]
             
         }
         $layoutControlTable configure -db $layoutcontroldb
+        $layoutControlTable Refresh
+        wm deiconify $layoutControlView
+    }
+    typemethod _reloadLayoutControlTable {} {
+        wm withdraw  $layoutControlView
         $layoutControlTable Refresh
         wm deiconify $layoutControlView
     }

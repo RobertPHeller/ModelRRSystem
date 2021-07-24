@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jan 31 15:01:56 2019
-#  Last Modified : <210630.0911>
+#  Last Modified : <210724.1026>
 #
 #  Description	
 #
@@ -59,6 +59,18 @@ namespace eval lcc {
             if {[catch {selection get} select]} {return}
             if {$select eq ""} {return}
             if {[catch {lcc::eventidstring validate $select}]} {return}
+            upvar #0 "$varname" var
+            set var $select
+        }
+    }
+    snit::macro _layoutControlCopyPasteText {} {
+        option -copypaste -type snit::boolean -readonly yes -default false
+        method _copytext {e varname} {
+            $e selection range 0 end
+        }
+        method _pastetext {e varname} {
+            if {[catch {selection get} select]} {return}
+            if {$select eq ""} {return}
             upvar #0 "$varname" var
             set var $select
         }
@@ -349,10 +361,11 @@ namespace eval lcc {
     }
     snit::widget NewTurnoutWidget {
         _layoutControlCopyPaste
+        _layoutControlCopyPasteText
         option -db
         option -edit -type snit::boolean -readonly yes -default false
-        
-        component nameLE;#                  Name of object
+        component nameLF;#                  Name of object
+        variable  name_ {}
         component normalEventLF;#           -normalmotorevent
         variable  normal_ {00.00.00.00.00.00.00.00}
         component reverseEventLF;#          -reversemotorevent
@@ -364,9 +377,19 @@ namespace eval lcc {
         component buttons
         constructor {args} {
             set frame $win
-            install nameLE using LabelEntry $frame.nameLE \
-                  -label [_m "Label|Name:"] -text {}
-            pack $nameLE -fill x
+            install nameLF using LabelFrame $frame.nameLF \
+                  -text [_m "Label|Name:"]
+            pack $nameLF -fill x
+            pack [ttk::entry [set e [$frame.nameLF getframe].e] \
+                  -text {} \
+                  -textvariable [myvar name_]] -side left \
+                  -expand yes -fill x
+            ttk::button [$frame.nameLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copytext $e [myvar name_]]
+            ttk::button [$frame.nameLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pastetext $e [myvar name_]]
             install normalEventLF using LabelFrame \
                   $frame.normalEventLF -text [_m "Label|Normal Motor Event:"]
             pack $frame.normalEventLF -fill x
@@ -433,9 +456,13 @@ namespace eval lcc {
             $buttons add ttk::button clear -text [_m "Label|Clear"] -command [mymethod _Clear]
             $self configurelist $args
             if {[$self cget -edit]} {
-                $nameLE configure -editable false
+                [$nameLF getframe].e configure -state readonly
                 $buttons itemconfigure add -text [_m "Label|Update"] \
                       -state disabled
+            }
+            if {[$self cget -copypaste]} {
+                pack [$frame.nameLF getframe].copy -side left
+                pack [$frame.nameLF getframe].paste -side left
             }
         }
         method Load {name args} {
@@ -443,7 +470,7 @@ namespace eval lcc {
             if {![$self cget -edit]} {return}
             set result [[$self cget -db] getTurnout $name]
             if {$result eq {}} {return}
-            $nameLE configure -text $name
+            set name_ $name
             set tag [$result getElementsByTagName motor -depth 1]
             set normal_ [[$tag getElementsByTagName normal -depth 1] data]
             if {$normal_ eq ""} {
@@ -465,7 +492,7 @@ namespace eval lcc {
             $buttons itemconfigure add -state normal
         }
         method _Add {} {
-            set name "[$nameLE cget -text]"
+            set name $name_
             if {$name eq ""} {return}
             #puts stderr "$self _Add: name is '$name'"
             set result [[$self cget -db] newTurnout $name]
@@ -490,7 +517,7 @@ namespace eval lcc {
             }
         }
         method _Clear {} {
-            $nameLE delete 0 end
+            set name_ {}
             set normal_ {00.00.00.00.00.00.00.00}
             set reverse_ {00.00.00.00.00.00.00.00}
             set normalPoints_ {00.00.00.00.00.00.00.00}
@@ -665,10 +692,12 @@ namespace eval lcc {
     }
     snit::widget NewBlockWidget {
         _layoutControlCopyPaste
+        _layoutControlCopyPasteText
         option -db
         option -edit -type snit::boolean -readonly yes -default false
         
-        component nameLE;#                  Name of object
+        component nameLF;#                  Name of object
+        variable  name_ {}
         component occupiedEventLF;#         -occupiedevent
         variable  occupied_ {00.00.00.00.00.00.00.00}
         component clearEventLF;#            -clearevent
@@ -676,9 +705,19 @@ namespace eval lcc {
         component buttons
         constructor {args} {
             set frame $win
-            install nameLE using LabelEntry $frame.nameLE \
-                  -label [_m "Label|Name:"] -text {}
-            pack $nameLE -fill x
+            install nameLF using LabelFrame $frame.nameLF \
+                  -text [_m "Label|Name:"]
+            pack $nameLF -fill x
+            pack [ttk::entry [set e [$frame.nameLF getframe].e] \
+                  -text {} \
+                  -textvariable [myvar name_]] -side left \
+                  -expand yes -fill x
+            ttk::button [$frame.nameLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copytext $e [myvar name_]]
+            ttk::button [$frame.nameLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pastetext $e [myvar name_]]
             install occupiedEventLF using LabelFrame \
                   $frame.occupiedEventLF -text [_m "Label|Occupied Event:"]
             pack $occupiedEventLF -fill x
@@ -715,9 +754,13 @@ namespace eval lcc {
             $buttons add ttk::button clear -text [_m "Label|Clear"] -command [mymethod _Clear]
             $self configurelist $args
             if {[$self cget -edit]} {
-                $nameLE configure -editable false
+                [$nameLF getframe].e configure -state readonly
                 $buttons itemconfigure add -text [_m "Label|Update"] \
                       -state disabled
+            }
+            if {[$self cget -copypaste]} {
+                pack [$frame.nameLF getframe].copy -side left
+                pack [$frame.nameLF getframe].paste -side left
             }
         }
         method Load {name args} {
@@ -725,7 +768,7 @@ namespace eval lcc {
             if {![$self cget -edit]} {return}
             set result [[$self cget -db] getBlock $name]
             if {$result eq {}} {return}
-            $nameLE configure -text $name
+            set name_ $name
             set occupied_ [[$result getElementsByTagName occupied -depth 1] data]
             if {$occupied_ eq ""} {
                 set occupied_ {00.00.00.00.00.00.00.00}
@@ -737,7 +780,7 @@ namespace eval lcc {
             $buttons itemconfigure add -state normal
         }
         method _Add {} {
-            set name "[$nameLE cget -text]"
+            set name $name_
             if {$name eq ""} {return}
             #puts stderr "$self _Add: name is '$name'"
             set result [[$self cget -db] newBlock $name]
@@ -750,12 +793,11 @@ namespace eval lcc {
             }
         }
         method _Clear {} {
-            $nameLE delete 0 end
+            set name_ {}
             set occupied_ {00.00.00.00.00.00.00.00}
             set clear_ {00.00.00.00.00.00.00.00}
         }
     }
-            
     snit::widgetadaptor NewSensorDialog {
         _layoutControlCopyPaste
         delegate option -parent to hull
@@ -924,10 +966,12 @@ namespace eval lcc {
     }
     snit::widget NewSensorWidget {
         _layoutControlCopyPaste
+        _layoutControlCopyPasteText
         option -db
         option -edit -type snit::boolean -readonly yes -default false
 
-        component nameLE;#                  Name of object
+        component nameLF;#                  Name of object
+        variable  name_ {}
         component onEventLF;#               -onevent
         variable  on_ {00.00.00.00.00.00.00.00}
         component offEventLF;#              -offevent
@@ -935,10 +979,19 @@ namespace eval lcc {
         component buttons
         constructor {args} {
             set frame $win
-            install nameLE using LabelEntry $frame.nameLE \
-                  -label [_m "Label|Name:"] -text {}
-            pack $nameLE -fill x
-            $self configurelist $args
+            install nameLF using LabelFrame $frame.nameLF \
+                  -text [_m "Label|Name:"]
+            pack $nameLF -fill x
+            pack [ttk::entry [set e [$frame.nameLF getframe].e] \
+                  -text {} \
+                  -textvariable [myvar name_]] -side left \
+                  -expand yes -fill x
+            ttk::button [$frame.nameLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copytext $e [myvar name_]]
+            ttk::button [$frame.nameLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pastetext $e [myvar name_]]
             install onEventLF using LabelFrame \
                   $frame.onEventLF -text [_m "Label|On Event:"]
             pack $onEventLF -fill x
@@ -975,9 +1028,13 @@ namespace eval lcc {
             $buttons add ttk::button clear -text [_m "Label|Clear"] -command [mymethod _Clear]
             $self configurelist $args
             if {[$self cget -edit]} {
-                $nameLE configure -editable false
+                [$nameLF getframe].e configure -state readonly
                 $buttons itemconfigure add -text [_m "Label|Update"] \
                       -state disabled
+            }
+            if {[$self cget -copypaste]} {
+                pack [$frame.nameLF getframe].copy -side left
+                pack [$frame.nameLF getframe].paste -side left
             }
         }
         method Load {name args} {
@@ -985,7 +1042,7 @@ namespace eval lcc {
             if {![$self cget -edit]} {return}
             set result [[$self cget -db] getSensor $name]
             if {$result eq {}} {return}
-            $nameLE configure -text $name
+            set name_ $name
             set on_ [[$result getElementsByTagName on -depth 1] data]
             if {$on_ eq ""} {
                 set on_ {00.00.00.00.00.00.00.00}
@@ -997,7 +1054,7 @@ namespace eval lcc {
             $buttons itemconfigure add -state normal
         }
         method _Add {} {
-            set name "[$nameLE cget -text]"
+            set name $name_
             if {$name eq ""} {return}
             #puts stderr "$self _Add: name is '$name'"
             set result [[$self cget -db] newSensor $name]
@@ -1010,7 +1067,7 @@ namespace eval lcc {
             }
         }
         method _Clear {} {
-            $nameLE delete 0 end
+            set name_ {}
             set on_ {00.00.00.00.00.00.00.00}
             set off_ {00.00.00.00.00.00.00.00}
         }
@@ -1183,10 +1240,12 @@ namespace eval lcc {
     }
     snit::widget NewControlWidget {
         _layoutControlCopyPaste
+        _layoutControlCopyPasteText
         option -db
         option -edit -type snit::boolean -readonly yes -default false
         
-        component nameLE;#                  Name of object
+        component nameLF;#                  Name of object
+        variable  name_ {}
         component onEventLF;#               -onevent
         variable  on_ {00.00.00.00.00.00.00.00}
         component offEventLF;#              -offevent
@@ -1194,10 +1253,19 @@ namespace eval lcc {
         component buttons
         constructor {args} {
             set frame $win
-            install nameLE using LabelEntry $frame.nameLE \
-                  -label [_m "Label|Name:"] -text {}
-            pack $nameLE -fill x
-            $self configurelist $args
+            install nameLF using LabelFrame $frame.nameLF \
+                  -text [_m "Label|Name:"]
+            pack $nameLF -fill x
+            pack [ttk::entry [set e [$frame.nameLF getframe].e] \
+                  -text {} \
+                  -textvariable [myvar name_]] -side left \
+                  -expand yes -fill x
+            ttk::button [$frame.nameLF getframe].copy \
+                  -text [_m "Label|Copy"] \
+                  -command [mymethod _copytext $e [myvar name_]]
+            ttk::button [$frame.nameLF getframe].paste \
+                  -text [_m "Label|Paste"] \
+                  -command [mymethod _pastetext $e [myvar name_]]
             install onEventLF using LabelFrame \
                   $frame.onEventLF -text [_m "Label|On Event:"]
             pack $onEventLF -fill x
@@ -1234,7 +1302,7 @@ namespace eval lcc {
             $buttons add ttk::button clear -text [_m "Label|Clear"] -command [mymethod _Clear]
             $self configurelist $args
             if {[$self cget -edit]} {
-                $nameLE configure -editable false
+                [$nameLF getframe].e configure -state readonly
                 $buttons itemconfigure add -text [_m "Label|Update"] \
                       -state disabled
             }
@@ -1244,7 +1312,7 @@ namespace eval lcc {
             if {![$self cget -edit]} {return}
             set result [[$self cget -db] getControl $name]
             if {$result eq {}} {return}
-            $nameLE configure -text $name
+            set name_ $name
             set on_ [[$result getElementsByTagName on -depth 1] data]
             if {$on_ eq ""} {
                 set on_ {00.00.00.00.00.00.00.00}
@@ -1256,7 +1324,7 @@ namespace eval lcc {
             $buttons itemconfigure add -state normal
         }
         method _Add {} {
-            set name "[$nameLE cget -text]"
+            set name $name_
             if {$name eq ""} {return}
             #puts stderr "$self _Add: name is '$name'"
             set result [[$self cget -db] newControl $name]
@@ -1269,7 +1337,7 @@ namespace eval lcc {
             }
         }
         method _Clear {} {
-            $nameLE delete 0 end
+            set name_ {}
             set on_ {00.00.00.00.00.00.00.00}
             set off_ {00.00.00.00.00.00.00.00}
         }
