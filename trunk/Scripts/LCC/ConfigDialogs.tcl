@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Mar 3 14:38:10 2016
-#  Last Modified : <180729.1504>
+#  Last Modified : <210728.1131>
 #
 #  Description	
 #
@@ -376,6 +376,7 @@ namespace eval lcc {
             [$self cget -transport] SendDatagram [$self cget -destnid] $data
             vwait [myvar _ioComplete]
             [$self cget -transport] configure -datagramhandler $olddatagramhandler
+            $self putdebug "*** $self _readmemory: _ioComplete is $_ioComplete"
             if {$_ioComplete < 0} {
                 ## datagram rejected message received
                 # code in_datagramrejecterror
@@ -387,6 +388,7 @@ namespace eval lcc {
             set respaddr [expr {$respaddr | ([lindex $datagrambuffer 3] << 16)}]
             set respaddr [expr {$respaddr | ([lindex $datagrambuffer 4] << 8)}]
             set respaddr [expr {$respaddr | [lindex $datagrambuffer 5]}]
+            $self putdebug [format "*** $self _readmemory: respaddr is 0x%08x and _address is 0x%08x" $respaddr $_address]
             if {$respaddr != $_address} {
                 ## wrong address...
             }
@@ -406,6 +408,7 @@ namespace eval lcc {
                     set status [expr {$status & 0xF8}]
                 }
             }
+            $self putdebug [format "*** $self _readmemory: respspace is 0x%02x, _space is 0x%02x, and status is 0x%02x" $respspace $_space $status]
             if {$respspace != $_space} {
                 ## wrong space ...
             }
@@ -873,8 +876,10 @@ namespace eval lcc {
                 return
             }
             set seenNUL false
+            set totalBytes 0
             for {set a $startaddress} {$a <= $endaddress && !$seenNUL} {incr a 64} {
                 set data [$self _readmemory $thespace $a 64 status]
+                $self putdebug "*** $self _dumpAsText: read 64 bytes at $a, status is $status"
                 if {$status == 0x50} {
                     foreach d $data {
                         if {$d == 0} {
@@ -882,10 +887,15 @@ namespace eval lcc {
                             break
                         }
                         puts -nonewline $outfp "[format %c $d]"
+                        incr totalBytes
                     }
+                } else {
+                    puts stderr [_ "Read error @ 0x%08x, retrying" $a]
+                    incr a -64
                 }
             }
             close $outfp
+            puts stderr [_ "Total bytes: %d" $totalBytes]
         }
         method _dumpAsHex {thespace startaddress endaddress} {
             ## @brief Dump a space as hex (typically the configuration memory).
