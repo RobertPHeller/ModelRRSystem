@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sat Jul 31 15:49:14 2021
-//  Last Modified : <210731.1550>
+//  Last Modified : <210731.1659>
 //
 //  Description	
 //
@@ -51,6 +51,8 @@
  * <li><a class="el" href="Version.html">Version</a></li>
  * <li><a class="el" href="Copying.html">Copying</a><ol type="a">
  * <li><a class="el" href="Copying.html#Warranty">Warranty</a></li>
+ * </ol>
+ * </li>
  * </ol></div></div>
  * @endhtmlonly
  */      
