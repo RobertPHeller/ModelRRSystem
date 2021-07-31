@@ -680,6 +680,9 @@ AC_CONFIG_FILES([config_tcl.sed \
 		Scripts/CMRI_Slave/Makefile \
 		Scripts/CMRI_Slave/Doxyfile \
                 Scripts/LinuxGpio/Makefile \
+                Scripts/EquipmentInventory/Makefile \
+                Scripts/EquipmentInventory/Doxyfile \
+                Scripts/FreightCarForwarder3/Makefile \
 	  Doc/Makefile \
 		Doc/Support/Makefile \
 		Doc/User/Makefile \
@@ -697,6 +700,7 @@ AC_CONFIG_FILES([config_tcl.sed \
                 Doc/User/Doxyfile.OpenLCB \
                 Doc/User/Doxyfile.CMRI_Slave \
                 Doc/User/Doxyfile.XPressNetThrottle \
+                Doc/User/Doxyfile.EI \
 		Doc/doxygen/Makefile \
 		Doc/doxygen/Doxyfile \
 		Doc/doxygen/tcldoxyfilter.sh \
@@ -722,6 +726,7 @@ AC_CONFIG_FILES([config_tcl.sed \
 		po/raildriverd/Makefile \
 		po/Satellite/Makefile \
     		po/xplocotest/Makefile \
+    		po/EquipmentInventory/Makefile \
           ExampleDataAndCode/Makefile \
                 ExampleDataAndCode/Blocks/Makefile \
                 ExampleDataAndCode/Blocks/Doxyfile \

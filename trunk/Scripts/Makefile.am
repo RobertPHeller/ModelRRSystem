@@ -61,5 +61,5 @@ SUBDIRS = Common GRSupport $(DISPATCHER) CameraScripts \
 	  CalcScripts FreightCarForwarder2 \
 	  TimeTable2 ControlSupport MainProgram GenericThrottle CMri \
 	  XPressNet NCE LocoNet RailDriverSupport Satellite CTIAcela \
-	  LCC $(CMRISLAVE) $(LINUXGPIO)
+	  LCC $(CMRISLAVE) $(LINUXGPIO) EquipmentInventory FreightCarForwarder3
 

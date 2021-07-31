@@ -173,6 +173,14 @@ USERMAN_FCF_FIGS = FCFMain.png FCFMainButtonMenu.png FCFMainIndicators.png \
 	FCFMainToolbarSmall.png
 DOXYFILES += Doxyfile.$(FCF).in
 
+USERMAN_EI_PART = EITutorial.h EIReference.h
+EI_HS = EI.h EITutorial.h EIReference.h
+EI = EI
+EIHBase = EI
+EI_HTML = $(EIHBase)/index.html
+USERMAN_EI_FIGS = 
+DOXYFILES += Doxyfile.$(EI).in
+
 USERMAN_CALC_PART = ResistorManual.h LocoPullManual.h
 CALC_HS = Calc.h ResistorManual.h LocoPullManual.h
 CALC = Calc
@@ -272,13 +280,14 @@ USERMAN_HS = Preface.h Introduction.h \
 	$(USERMAN_TIMETABLE_PART) $(USERMAN_FCF_PART) $(USERMAN_CALC_PART) \
 	$(USERMAN_CAMERA_PART) $(USERMAN_DISPATCHER_PART) \
 	$(USERMAN_MAINPROGRAM_PART) $(USERMAN_AZATRAX_PROG_PART) \
+	$(USERMAN_EI_PART)
 	Help.h
 USERMAN_FIGS = $(USERMAN_TIMETABLE_FIGS) $(USERMAN_FCF_FIGS) \
 	$(USERMAN_CALC_FIGS) $(USERMAN_CAMERA_FIGS) $(USERMAN_DISPATCHER_FIGS) \
 	$(USERMAN_MAINPROGRAM_FIGS) $(USERMAN_DISPATCHER_DEPS) \
 	$(USERMAN_AZATRAX_PROG_FIGS) $(USERMAN_UNIVERSALTEST_FIGS) \
 	$(USERMAN_XPRESSNETTHROTTLE_FIGS) $(USERMAN_GENERICTHROTTLE_FIGS) \
-	$(USERMAN_OPENLCB_FIGS)
+	$(USERMAN_OPENLCB_FIGS) $(USERMAN_EI_FIGS)
 USERMAN = UserManual
 USERMAN_PDF = $(USERMAN).pdf
 USERMANHBase = UserManual
@@ -482,6 +491,21 @@ $(FCF_HTML) : COPYING.h $(FCF_HS) $(USERMAN_FCF_FIGS) \
 	done
 	-rm -f $(FCFHBase)/pages.html
 
+$(EI)_Version.h : $(top_builddir)/config.status
+	echo '/** @page Version Version'               >$(EI)_Version.h
+	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(EI)_Version.h
+	echo "  */" >>$(EI)_Version.h
+
+$(EI_HTML) : COPYING.h $(EI_HS) $(USERMAN_EI_FIGS) \
+		    $(EI)_Version.h Help.h \
+		    Doxyfile.$(EI)
+	-rm -rf $(EIHBase)/
+	$(DOXYGEN) Doxyfile.$(EI)
+	for p in $(USERMAN_EI_FIGS); do \
+	   if test ! \( -f $(EIHBase)/$$p \); then cp $(srcdir)/$$p $(EIHBase)/; fi; \
+	done
+	-rm -f $(EIHBase)/pages.html
+
 $(CALC)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(CALC)_Version.h
 	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(CALC)_Version.h
@@ -570,4 +594,5 @@ clean-local:
 		$(XPRESSNETTHROTTLEHBase) $(GENERICTHROTTLEHBase) \
 		$(TIMETABLEHBase) $(FCFHBase) $(CALCHBase) \
 		$(CAMERAHBase) $(DISPATCHERHBase) $(MAINPROGRAMHBase) \
-		$(USERMANHBase) $(OPENLCBHBase) $(CMRISLAVEHBase) latex
+		$(USERMANHBase) $(OPENLCBHBase) $(CMRISLAVEHBase) $(EIHBase) \
+		latex
