@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue May 16 11:38:07 2017
-#  Last Modified : <210518.1540>
+#  Last Modified : <210801.1412>
 #
 #  Description	
 #
@@ -162,7 +162,7 @@ BUNDLE.DAT: $(bin_SCRIPTS) $(man_MANS) $(pkgdata_DATA)
 	  echo "bin/$$b" >> BUNDLE.DAT; \
 	done
 	for b in $(pkgdata_DATA); do \
-	  echo "share/$(PACKAGE)/CMRI_Slave/$$b >> BUNDLE.DAT; \
+	  echo "share/$(PACKAGE)/CMRI_Slave/$$b" >> BUNDLE.DAT; \
 	done
 	for b in $(man_MANS); do \
 	    echo "share/man/$$b" >> BUNDLE.DAT; \
