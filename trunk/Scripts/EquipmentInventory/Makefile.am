@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jul 31 14:57:24 2021
-#  Last Modified : <210731.1533>
+#  Last Modified : <210801.1658>
 #
 #  Description	
 #
@@ -43,7 +43,7 @@
 ##############################################################################
 
 
-EquipmentInventoryScripts  = Cartypes.tcl
+EquipmentInventoryScripts  = 
 
 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
@@ -140,3 +140,4 @@ EquipmentInventory${EXEEXT} : EquipmentInventory.tcl \
 			$(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf EquipmentInventory.vfs EquipmentInventory.kit
 	
+
