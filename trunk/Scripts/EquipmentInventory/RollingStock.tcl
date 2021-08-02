@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 1 21:43:47 2021
-#  Last Modified : <210802.1527>
+#  Last Modified : <210802.1600>
 #
 #  Description	
 #
@@ -131,13 +131,6 @@ snit::type RollingStock {
             set AllRollingStock [lreplace $AllRollingStock $index $index]
         }
     }
-    method _joinCSV {} {
-        return [::csv::join [list $reportingMarks_ $number_ $type_ \
-                             $description_ $length_ $clearance_ $weightClass_ \
-                             $emptyWeight_ $loadedWeight_ $imageFile_ $value_ \
-                             $purchaseCost_ $manufacturerName_ \
-                             $manufacturerPartNumber_ $scale_]]
-    }
     method RecordAsList {} {
         return [list $reportingMarks_ $number_ $type_ $description_ $length_ \
                 $clearance_ $weightClass_ $emptyWeight_ $loadedWeight_ \
@@ -197,7 +190,7 @@ snit::type RollingStock {
         }
         puts $fp [::csv::join $Headers]
         foreach item $AllRollingStock {
-            puts $fp [$item _joinCSV]
+            puts $fp [::csv::join [$item RecordAsList]]
         }
         close $fp
     }
