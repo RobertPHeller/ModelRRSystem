@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Aug 2 11:05:53 2021
-#  Last Modified : <210802.1438>
+#  Last Modified : <210802.1714>
 #
 #  Description	
 #
@@ -156,4 +156,188 @@ snit::widgetadaptor RollingStockEditor {
     }
 }
 
+package require Tk
+package require tile
+package require Dialog
+package require LabelFrames
+package require ButtonBox
+
+snit::widgetadaptor RollingStockEntryEditor {
+    component reportingMarksLE
+    variable reportingMarks_ {}
+    component numberLE
+    variable number_ 0
+    component typeLECB
+    variable type_ {}
+    typevariable  types_ [list]
+    component descriptionLE
+    variable description_ {}
+    component lengthLSB
+    variable length_ 1
+    component clearanceLE
+    variable clearance_ {}
+    component weightClassLE
+    variable weightClass_ {}
+    component emptyWeightLSB
+    variable emptyWeight_ 1
+    component loadedWeightLSB
+    variable loadedWeight_ 1
+    component imageFileFE
+    variable imageFile_ {}
+    component valueLSB
+    variable value_ 0.00
+    component purchaseCostLSB
+    variable purchaseCost_ 0.00
+    component manufacturerNameLECB
+    variable manufacturerName_ {}
+    typevariable manufacturerNames_ [list]
+    component manufacturerPartNumberLE
+    variable manufacturerPartNumber_ {}
+    component scaleLCB
+    variable scale_ H0
+    typevariable scales_ [list Z N TT H0 0 1 G]
+    option -record -default {}
+    delegate option -parent to haul
+    delegate option -modal  to hull
+    option -edit -type snit::boolean -default no
+    typevariable gensym_ 0
+    typevariable availableDialogs_ [list]
+    constructor {args} {
+        installhull using Dialog -bitmap questhead -default add \
+              -cancel cancel -transient yes \
+              -side bottom -title [_ "Add or edit rolling stock"] \
+              -parent [from args -parent]
+        $hull add add    -text [_m "Label|Add"]    -command [mymethod _Add]
+        $hull add cancel -text [_m "Label|Cancel"] -command [mymethod _Cancel]
+        wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
+        set frame [$hull getframe]
+        install reportingMarksLE using LabelEntry $win.reportingMarksLE \
+              -textvariable [myvar reportingMarks_]
+        pack $reportingMarksLE -fill x
+        install numberLE using LabelEntry $win.numberLE \
+              -textvariable [myvar number_]
+        pack $numberLE -fill x
+        install typeLECB using LabelComboBox $win.typeLECB \
+              -textvariable [myvar type_] -values $types_
+        pack $typeLECB -fill x
+        install descriptionLE using LabelEntry $win.descriptionLE \
+              -textvariable [myvar description_]
+        pack $descriptionLE -fill x
+        install lengthLSB using LabelSpinBox $win.lengthLSB \
+              -textvariable [myvar length_] -range {1 400 1}
+        pack $lengthLSB -fill x
+        install clearanceLE using LabelEntry $win.clearanceLE \
+              -textvariable [myvar clearance_]
+        pack $clearanceLE -fill x
+        install weightClassLE using LabelEntry $win.weightClassLE \
+              -textvariable [myvar weightClass_]
+        pack $weightClassLE -fill x
+        install emptyWeightLSB using LabelSpinBox $win.emptyWeightLSB \
+              -textvariable [myvar emptyWeight_] -range {1 400 1}
+        pack $emptyWeightLSB -fill x
+        install loadedWeightLSB using LabelSpinBox $win.loadedWeightLSB \
+              -textvariable [myvar loadedWeight_] -range {1 400 1}
+        pack $loadedWeightLSB -fill x
+        install imageFileFE using FileEntry $win.imageFileFE \
+              -textvariable [myvar imageFile_]
+        pack $imageFileFE -fill x
+        install valueLSB using LabelSpinBox $win.valueLSB \
+              -textvariable [myvar value_] -range {.01 300.00 .10}
+        pack $valueLSB -fill x
+        install purchaseCostLSB using LabelSpinBox $win.purchaseCostLSB \
+              -textvariable [myvar purchaseCost_] -range {.01 300.00 .10}
+        pack $purchaseCostLSB -fill x
+        install manufacturerNameLECB using LabelComboBox $win.manufacturerNameLECB \
+              -textvariable [myvar manufacturerName_] \
+              -values $manufacturerNames_
+        pack $manufacturerNameLECB -fill x
+        install manufacturerPartNumberLE using LabelEntry $win.manufacturerPartNumberLE \
+              -textvariable [myvar manufacturerPartNumber_]
+        pack $manufacturerPartNumberLE -fill x
+        install scaleLCB using LabelComboBox $win.scaleLCB \
+              -textvariable [myvar scale_] -editable no \
+              -values $scales_
+        pack $scaleLCB -fill x
+        $self configurelist $args
+        lappend $win availableDialogs_
+    }
+    typemethod DialogFactory {args} {
+        if {[llength $availableDialogs_] == 0} {
+            incr gensym_
+            eval [list $type create .rollingStockEntryEditor${gensym_}] $args
+        }
+        set result [lindex $availableDialogs_ 0]
+        set availableDialogs_ [lrange $availableDialogs_ 1 end]
+        return $result
+    }
+    method draw {args} {
+        $self configurelist $args
+        $typeLECB configure -values $types_
+        $manufacturerNameLECB configure -values $manufacturerNames_
+        if {[$self cget -edit]} {
+            set record [$self cget -record]
+            RollingStock validate $record
+            lassign $record reportingMarks_ number_ type_ description_ \
+                  length_ clearance_ weightClass_ emptyWeight_ loadedWeight_ \
+                  imageFile_ value_ purchaseCost_ manufacturerName_ \
+                  manufacturerPartNumber_ scale_
+            $reportingMarksLE configure -editable no
+            $numberLE configure -editable no
+            $hull itemconfigure add -text [_m "Button|Update"]
+            $hull configure -title [_ "Edit Rolling Stock Item"]
+        } else {
+            $reportingMarksLE configure -editable yes
+            $numberLE configure -editable yes
+            $hull itemconfigure add -text [_m "Button|Add"]
+            $hull configure -title [_ "Add Rolling Stock Item"]
+        }
+        $hull draw
+    }
+    method _add {} {
+        if {[$self cget -edit]} {
+            set result [$self cget -record]
+            $result SetType $type_
+            $result SetDescription $description_
+            $result SetLength $length_
+            $result SetClearence $clearance_
+            $result SetWeightClass $weightClass_ 
+            $result SetEmptyWeight_ $emptyWeight_ 
+            $result SetLoadedWeight $loadedWeight_ 
+            $result SetImageFile_ $imageFile_ 
+            $result SetValue $value_ 
+            $result SetPurchaseCost $purchaseCost_ 
+            $result SetManufacturerName $manufacturerName_ 
+            $result SetManufacturerPartNumber $manufacturerPartNumber_ 
+            $result SetScale $scale_
+        } else {
+            set result [RollingStock create %AUTO% [list $reportingMarks_ \
+                                                    $number_ $type_ \
+                                                    $description_ \
+                                                    $length_ $clearance_ \
+                                                    $weightClass_ \
+                                                    $emptyWeight_ \
+                                                    $loadedWeight_ \
+                                                    $imageFile_ $value_ \
+                                                    $purchaseCost_ \
+                                                    $manufacturerName_ \
+                                                    $manufacturerPartNumber_ \
+                                                    $scale_]]
+        $hull withdraw
+        lappend availableDialogs_ $win
+        if {[lsearch -exact $types_ $type_] < 0} {
+            lappend types_ $type_
+        }
+        if {[lsearch -exact $manufacturerNames_ $manufacturerName_] < 0} {
+            lappend manufacturerNames_ $manufacturerName_
+        }
+        return [$hull enddialog $result]
+    }
+    method _Cancel {} {
+        $hull withdraw
+        lappend availableDialogs_ $win
+        return [$hull enddialog {}]
+    }
+}
+
+        
 package provide RollingStockEditor 1.0
