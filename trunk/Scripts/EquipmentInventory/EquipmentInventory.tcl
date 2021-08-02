@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 1 17:21:35 2021
-#  Last Modified : <210801.1740>
+#  Last Modified : <210802.0843>
 #
 #  Description	
 #
@@ -47,6 +47,7 @@ package require vfs::zip
 package require vfs::mk4
 package require ZipArchive
 package require gettext
+package require RollingStock
 
 set argv0 [file join [file dirname [info nameofexecutable]] [file rootname [file tail [info script]]]]
 package require Version
