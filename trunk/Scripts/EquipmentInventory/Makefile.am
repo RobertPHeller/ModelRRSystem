@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jul 31 14:57:24 2021
-#  Last Modified : <210801.1658>
+#  Last Modified : <210801.1734>
 #
 #  Description	
 #
@@ -43,7 +43,7 @@
 ##############################################################################
 
 
-EquipmentInventoryScripts  = 
+EquipmentInventoryScripts  = ZipArchive.tcl
 
 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
@@ -114,7 +114,7 @@ EquipmentInventoryCommonScripts = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.g
 
 EquipmentInventory${EXEEXT} : EquipmentInventory.tcl \
 		$(EquipmentInventoryScripts) \
-		$(EquipmentInventoryCommonScripts)
+		$(EquipmentInventoryCommonScripts) \
 		$(top_builddir)/Doc/User/EI/index.html \
 		$(top_builddir)/po/EquipmentInventory/msgfiles
 	-rm -rf EquipmentInventory.vfs EquipmentInventory.kit
@@ -126,10 +126,10 @@ EquipmentInventory${EXEEXT} : EquipmentInventory.tcl \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit EquipmentInventory \
 		lib $(CSVLIB)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) \
-		EquipmentInventory lib/Common $(EquipmentInventoryScripts) \
+		EquipmentInventory lib/EILib $(EquipmentInventoryScripts) \
 			$(EquipmentInventoryCommonScripts)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit \
-		EquipmentInventory Common
+		EquipmentInventory EILib
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit \
 		EquipmentInventory Help $(top_builddir)/Doc/User/EI/*
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit \
@@ -140,4 +140,14 @@ EquipmentInventory${EXEEXT} : EquipmentInventory.tcl \
 			$(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf EquipmentInventory.vfs EquipmentInventory.kit
 	
+$(top_builddir)/Doc/User/EI/index.html: FORCE
+	$(MAKE) -C $(top_builddir)/Doc/User EI/index.html
+	
+$(top_builddir)/BuildData/tclkit${BEXEEXT}: FORCE
+	$(MAKE) -C $(top_builddir)/BuildData tclkit${BEXEEXT}
+	
 
+$(top_builddir)/po/EquipmentInventory/msgfiles: FORCE
+	$(MAKE) -C $(top_builddir)/po/EquipmentInventory msgfiles
+	
+FORCE:
