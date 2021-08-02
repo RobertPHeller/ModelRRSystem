@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jul 31 14:57:24 2021
-#  Last Modified : <210801.1734>
+#  Last Modified : <210802.1150>
 #
 #  Description	
 #
@@ -43,7 +43,8 @@
 ##############################################################################
 
 
-EquipmentInventoryScripts  = ZipArchive.tcl
+EquipmentInventoryScripts  = ZipArchive.tcl RollingStock.tcl \
+	RollingStockEditor.tcl
 
 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
@@ -139,7 +140,7 @@ EquipmentInventory${EXEEXT} : EquipmentInventory.tcl \
 		EquipmentInventory${EXEEXT} -runtime \
 			$(top_srcdir)/BuildData/$(TCLKITRUN)
 	-rm -rf EquipmentInventory.vfs EquipmentInventory.kit
-	
+
 $(top_builddir)/Doc/User/EI/index.html: FORCE
 	$(MAKE) -C $(top_builddir)/Doc/User EI/index.html
 	
@@ -151,3 +152,10 @@ $(top_builddir)/po/EquipmentInventory/msgfiles: FORCE
 	$(MAKE) -C $(top_builddir)/po/EquipmentInventory msgfiles
 	
 FORCE:
+
+man1/EquipmentInventory.1: Doxyfile EquipmentInventory.tcl
+	-rm -rf man1
+	$(DOXYGEN)
+	
+clean-local:
+	-rm -rf man1

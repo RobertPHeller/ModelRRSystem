@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 1 17:21:35 2021
-#  Last Modified : <210802.0850>
+#  Last Modified : <210802.1525>
 #
 #  Description	
 #
@@ -47,7 +47,9 @@ package require vfs::zip
 package require vfs::mk4
 package require ZipArchive
 package require gettext
-#package require RollingStock
+package require RollingStock
+package require RollingStockEditor
+package require MainWindow
 
 set argv0 [file join [file dirname [info nameofexecutable]] [file rootname [file tail [info script]]]]
 package require Version
@@ -67,6 +69,51 @@ snit::type EquipmentInventory {
     pragma -hastypeinfo    no
     pragma -hastypedestroy no
     pragma -hasinstances   no
-    
-    
+    typecomponent main
+    typecomponent rollingstock
+    typeconstructor {
+        set main [mainwindow .main]
+        pack $main -expand yes -fill both
+        set rollingstock [RollingStockEditor [$main scrollwindow getframe].rse]
+        $main scrollwindow setwidget $rollingstock
+        $main menu entryconfigure file "New" -command [mytypemethod _new]
+        $main menu entryconfigure file "Open..." -command [mytypemethod _open]
+        $main menu entryconfigure file "Save" -command [mytypemethod _save]
+        $main menu entryconfigure file "Save As..." -command [mytypemethod _saveas]
+        $main menu entryconfigure file "Exit" -command [mytypemethod _exit]
+        $main menu delete file "Close"
+        $main showit
+    }
+    typemethod _new {} {
+        RollingStock DeleteAll
+        $rollingstock Refresh
+    }
+    typevariable filename_ "rollingstock.csv"
+    typemethod _open {} {
+        set filename [tk_getOpenFile -defaultextension .csv \
+                      -filetypes {{{CSV Files} {.csv} TEXT}
+                      {{All Files} *     TEXT}
+                  } -parent . -title "Rolling Stock File to open"]
+        if {"$filename" eq ""} {return}
+        RollingStock ReadFile $filename
+        $rollingstock Refresh
+        set filename_ $filename
+    }
+    typemethod _save {} {
+        $type _saveas $filename_
+    }
+    typemethod _saveas {{filename {}}} {
+        if {"$filename" eq ""} {
+            set filename [tk_getSaveFile -defaultextension .csv \
+                          -filetypes {{{CSV Files} {.csv} TEXT}
+                          {{All Files} *     TEXT}
+                      } -parent . -title "Rolling Stock File to save to"]
+        }
+        if {"$filename" eq ""} {return}
+        RollingStock WriteFile $filename
+        set filename_ $filename
+    }
+    typemethod _exit {} {
+        ::exit
+    }
 }
