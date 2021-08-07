@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Aug 1 17:21:35 2021
-#  Last Modified : <210802.1525>
+#  Last Modified : <210807.1418>
 #
 #  Description	
 #
@@ -82,6 +82,7 @@ snit::type EquipmentInventory {
         $main menu entryconfigure file "Save As..." -command [mytypemethod _saveas]
         $main menu entryconfigure file "Exit" -command [mytypemethod _exit]
         $main menu delete file "Close"
+        $main menu insert edit end command -label "Add" -command "$rollingstock AddNew"
         $main showit
     }
     typemethod _new {} {

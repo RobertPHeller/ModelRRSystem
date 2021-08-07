@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Aug 2 11:05:53 2021
-#  Last Modified : <210802.1714>
+#  Last Modified : <210807.1929>
 #
 #  Description	
 #
@@ -46,6 +46,9 @@ package require gettext
 
 package require Tk
 package require tile
+package require Dialog
+package require LabelFrames
+package require ButtonBox
 
 snit::widgetadaptor RollingStockEditor {
     delegate option * to hull except {-class -style -columns -displaycolumns 
@@ -153,14 +156,19 @@ snit::widgetadaptor RollingStockEditor {
     }
     method itemEdit_ {item} {
         puts stderr "*** $self itemEdit_ \{$item\}"
+        set editor [RollingStockEntryEditor DialogFactory -parent $win]
+        set updated [$editor draw -edit yes -record $item]
+        if {$updated eq {}} {return}
+        $self update $updated
+    }
+    method AddNew {} {
+        set editor [RollingStockEntryEditor DialogFactory -parent $win]
+        set newrec [$editor draw -edit no]
+        if {$newrec eq {}} {return}
+        $self add $newrec
     }
 }
 
-package require Tk
-package require tile
-package require Dialog
-package require LabelFrames
-package require ButtonBox
 
 snit::widgetadaptor RollingStockEntryEditor {
     component reportingMarksLE
@@ -212,61 +220,77 @@ snit::widgetadaptor RollingStockEntryEditor {
         wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
         set frame [$hull getframe]
         install reportingMarksLE using LabelEntry $win.reportingMarksLE \
-              -textvariable [myvar reportingMarks_]
+              -textvariable [myvar reportingMarks_] \
+              -label [_m "Label|Reporting Marks"]
         pack $reportingMarksLE -fill x
         install numberLE using LabelEntry $win.numberLE \
-              -textvariable [myvar number_]
+              -textvariable [myvar number_] -label [_m "Label|Number"]
         pack $numberLE -fill x
         install typeLECB using LabelComboBox $win.typeLECB \
-              -textvariable [myvar type_] -values $types_
+              -textvariable [myvar type_] -values $types_  \
+              -label [_m "Label|Types"]
         pack $typeLECB -fill x
         install descriptionLE using LabelEntry $win.descriptionLE \
-              -textvariable [myvar description_]
+              -textvariable [myvar description_] \
+              -label [_m "Label|desription"]
         pack $descriptionLE -fill x
         install lengthLSB using LabelSpinBox $win.lengthLSB \
-              -textvariable [myvar length_] -range {1 400 1}
+              -textvariable [myvar length_] -range {1 400 1} \
+              -label [_m "Label|Length"]
         pack $lengthLSB -fill x
         install clearanceLE using LabelEntry $win.clearanceLE \
-              -textvariable [myvar clearance_]
+              -textvariable [myvar clearance_] \
+              -label [_m "Label|Clearance Plate"]
         pack $clearanceLE -fill x
         install weightClassLE using LabelEntry $win.weightClassLE \
-              -textvariable [myvar weightClass_]
+              -textvariable [myvar weightClass_] \
+              -label [_m "Label|Weight Class"]
         pack $weightClassLE -fill x
         install emptyWeightLSB using LabelSpinBox $win.emptyWeightLSB \
-              -textvariable [myvar emptyWeight_] -range {1 400 1}
+              -textvariable [myvar emptyWeight_] -range {1 400 1} \
+              -label [_m "Label|Empty weight"]
         pack $emptyWeightLSB -fill x
         install loadedWeightLSB using LabelSpinBox $win.loadedWeightLSB \
-              -textvariable [myvar loadedWeight_] -range {1 400 1}
+              -textvariable [myvar loadedWeight_] -range {1 400 1} \
+              -label [_m "Label|Loaded Weight"]
         pack $loadedWeightLSB -fill x
         install imageFileFE using FileEntry $win.imageFileFE \
-              -textvariable [myvar imageFile_]
+              -textvariable [myvar imageFile_] \
+              -label [_m "Label|Image File"]
         pack $imageFileFE -fill x
         install valueLSB using LabelSpinBox $win.valueLSB \
-              -textvariable [myvar value_] -range {.01 300.00 .10}
+              -textvariable [myvar value_] -range {.01 300.00 .10} \
+              -label [_m "Label|Value"]
         pack $valueLSB -fill x
         install purchaseCostLSB using LabelSpinBox $win.purchaseCostLSB \
-              -textvariable [myvar purchaseCost_] -range {.01 300.00 .10}
+              -textvariable [myvar purchaseCost_] -range {.01 300.00 .10} \
+              -label [_m "Label|Purhase Price"]
         pack $purchaseCostLSB -fill x
         install manufacturerNameLECB using LabelComboBox $win.manufacturerNameLECB \
               -textvariable [myvar manufacturerName_] \
-              -values $manufacturerNames_
+              -values $manufacturerNames_ \
+              -label [_m "Label|Manufacturer"]
         pack $manufacturerNameLECB -fill x
         install manufacturerPartNumberLE using LabelEntry $win.manufacturerPartNumberLE \
-              -textvariable [myvar manufacturerPartNumber_]
+              -textvariable [myvar manufacturerPartNumber_] \
+               -label [_m "Label|Manufacturer Part Number"]
         pack $manufacturerPartNumberLE -fill x
-        install scaleLCB using LabelComboBox $win.scaleLCB \
+        install scaleLCB using LabelComboBox $win.scaleLCRB \
               -textvariable [myvar scale_] -editable no \
-              -values $scales_
+              -values $scales_  -label [_m "Label|Scale"]
         pack $scaleLCB -fill x
         $self configurelist $args
-        lappend $win availableDialogs_
+        lappend availableDialogs_ $win
     }
     typemethod DialogFactory {args} {
+        #puts stderr "*** $type DialogFactory $args"
+        #puts stderr "*** $type DialogFactory: availableDialogs_ = \{$availableDialogs_\}"
         if {[llength $availableDialogs_] == 0} {
             incr gensym_
             eval [list $type create .rollingStockEntryEditor${gensym_}] $args
         }
         set result [lindex $availableDialogs_ 0]
+        #puts stderr "*** $type DialogFactory: result = $result"
         set availableDialogs_ [lrange $availableDialogs_ 1 end]
         return $result
     }
@@ -293,7 +317,7 @@ snit::widgetadaptor RollingStockEntryEditor {
         }
         $hull draw
     }
-    method _add {} {
+    method _Add {} {
         if {[$self cget -edit]} {
             set result [$self cget -record]
             $result SetType $type_
@@ -322,6 +346,7 @@ snit::widgetadaptor RollingStockEntryEditor {
                                                     $manufacturerName_ \
                                                     $manufacturerPartNumber_ \
                                                     $scale_]]
+        }
         $hull withdraw
         lappend availableDialogs_ $win
         if {[lsearch -exact $types_ $type_] < 0} {
