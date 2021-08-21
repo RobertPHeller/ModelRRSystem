@@ -185,7 +185,7 @@ USERMAN_LINUXGPIO_PART = EITutorial.h EIReference.h
 LINUXGPIO_HS = EI.h EITutorial.h EIReference.h
 LINUXGPIO = LinuxGpio
 LINUXGPIOHBase = LinuxGpio
-LINUXGPIO_HTML = $(EIHBase)/index.html
+LINUXGPIO_HTML = $(LINUXGPIOHBase)/index.html
 USERMAN_LINUXGPIO_FIGS = 
 DOXYFILES += Doxyfile.$(LINUXGPIO).in
 
