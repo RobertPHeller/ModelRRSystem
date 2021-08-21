@@ -181,6 +181,14 @@ EI_HTML = $(EIHBase)/index.html
 USERMAN_EI_FIGS = 
 DOXYFILES += Doxyfile.$(EI).in
 
+USERMAN_LINUXGPIO_PART = EITutorial.h EIReference.h
+LINUXGPIO_HS = EI.h EITutorial.h EIReference.h
+LINUXGPIO = LinuxGpio
+LINUXGPIOHBase = LinuxGpio
+LINUXGPIO_HTML = $(EIHBase)/index.html
+USERMAN_LINUXGPIO_FIGS = 
+DOXYFILES += Doxyfile.$(LINUXGPIO).in
+
 USERMAN_CALC_PART = ResistorManual.h LocoPullManual.h
 CALC_HS = Calc.h ResistorManual.h LocoPullManual.h
 CALC = Calc
@@ -280,14 +288,14 @@ USERMAN_HS = Preface.h Introduction.h \
 	$(USERMAN_TIMETABLE_PART) $(USERMAN_FCF_PART) $(USERMAN_CALC_PART) \
 	$(USERMAN_CAMERA_PART) $(USERMAN_DISPATCHER_PART) \
 	$(USERMAN_MAINPROGRAM_PART) $(USERMAN_AZATRAX_PROG_PART) \
-	$(USERMAN_EI_PART)
+	$(USERMAN_EI_PART) $(USERMAN_LINUXGPIO_PART)
 	Help.h
 USERMAN_FIGS = $(USERMAN_TIMETABLE_FIGS) $(USERMAN_FCF_FIGS) \
 	$(USERMAN_CALC_FIGS) $(USERMAN_CAMERA_FIGS) $(USERMAN_DISPATCHER_FIGS) \
 	$(USERMAN_MAINPROGRAM_FIGS) $(USERMAN_DISPATCHER_DEPS) \
 	$(USERMAN_AZATRAX_PROG_FIGS) $(USERMAN_UNIVERSALTEST_FIGS) \
 	$(USERMAN_XPRESSNETTHROTTLE_FIGS) $(USERMAN_GENERICTHROTTLE_FIGS) \
-	$(USERMAN_OPENLCB_FIGS) $(USERMAN_EI_FIGS)
+	$(USERMAN_OPENLCB_FIGS) $(USERMAN_EI_FIGS) $(USERMAN_LINUXGPIO_FIGS)
 USERMAN = UserManual
 USERMAN_PDF = $(USERMAN).pdf
 USERMANHBase = UserManual
@@ -506,6 +514,21 @@ $(EI_HTML) : COPYING.h $(EI_HS) $(USERMAN_EI_FIGS) \
 	done
 	-rm -f $(EIHBase)/pages.html
 
+$(LINUXGPIO)_Version.h : $(top_builddir)/config.status
+	echo '/** @page Version Version'               >$(LINUXGPIO)_Version.h
+	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(LINUXGPIO)_Version.h
+	echo "  */" >>$(LINUXGPIO)_Version.h
+
+$(LINUXGPIO_HTML) : COPYING.h $(LINUXGPIO_HS) $(USERMAN_LINUXGPIO_FIGS) \
+		    $(LINUXGPIO)_Version.h Help.h \
+		    Doxyfile.$(LINUXGPIO)
+	-rm -rf $(LINUXGPIOHBase)/
+	$(DOXYGEN) Doxyfile.$(LINUXGPIO)
+	for p in $(USERMAN_LINUXGPIO_FIGS); do \
+	   if test ! \( -f $(LINUXGPIOHBase)/$$p \); then cp $(srcdir)/$$p $(LINUXGPIOHBase)/; fi; \
+	done
+	-rm -f $(LINUXGPIOHBase)/pages.html
+
 $(CALC)_Version.h : $(top_builddir)/config.status
 	echo '/** @page Version Version'               >$(CALC)_Version.h
 	echo "  * System patch level is $(MRR_PATCH_LEVEL)." >>$(CALC)_Version.h
@@ -594,5 +617,6 @@ clean-local:
 		$(XPRESSNETTHROTTLEHBase) $(GENERICTHROTTLEHBase) \
 		$(TIMETABLEHBase) $(FCFHBase) $(CALCHBase) \
 		$(CAMERAHBase) $(DISPATCHERHBase) $(MAINPROGRAMHBase) \
-		$(USERMANHBase) $(OPENLCBHBase) $(CMRISLAVEHBase) $(EIHBase) \
+		$(USERMANHBase) $(OPENLCBHBase) $(CMRISLAVEHBase) \
+		$(EIHBase) $(LINUXGPIOHBase)
 		latex
