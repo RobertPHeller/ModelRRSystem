@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Oct 13 21:26:48 2018
-#  Last Modified : <210821.1400>
+#  Last Modified : <210821.1445>
 #
 #  Description	
 #
@@ -80,7 +80,35 @@ LinuxGpio.pot: TestGPIOOutput.tcl TestGPIOInput.tcl LinuxGpio.tcl \
 	    -e 's/CHARSET/ascii/g' >LinuxGpio.pot
 
 	                                  
-TestGPIO_IOScripts = LinuxGpio.tcl
+TestGPIO_IOScripts = LinuxGpio.tcl \
+	$(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif \
+	$(top_srcdir)/Scripts/Common/new.gif \
+	$(top_srcdir)/Scripts/Common/open.gif \
+	$(top_srcdir)/Scripts/Common/close.gif \
+	$(top_srcdir)/Scripts/Common/save.gif \
+	$(top_srcdir)/Scripts/Common/print.gif \
+	$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+	$(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
+	$(top_srcdir)/Scripts/Common/splash.tcl \
+	$(top_srcdir)/Scripts/Common/mainwindow.tcl \
+	$(top_srcdir)/Scripts/Common/snitLFs.tcl \
+	$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+	$(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+	$(top_srcdir)/Scripts/Common/snitdialog.tcl \
+	$(top_srcdir)/Scripts/Common/snitlistbox.tcl \
+	$(top_srcdir)/Scripts/Common/snitrotext.tcl \
+	$(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
+	$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+	$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+	$(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+	$(top_srcdir)/Scripts/Common/gettext.tcl \
+	$(top_builddir)/Scripts/Common/Version.tcl \
+	$(top_srcdir)/Scripts/Common/gray50.xbm \
+	$(top_srcdir)/Scripts/Common/info.xbm \
+	$(top_srcdir)/Scripts/Common/questhead.xbm \
+	$(top_srcdir)/Scripts/Common/openfold.png \
+	$(top_srcdir)/Scripts/Common/palette.png \
+	$(top_srcdir)/Scripts/Common/unknown.xpm
 
 TestGPIOOutput${EXEEXT}: TestGPIOOutput.tcl $(TestGPIO_IOScripts) \
 		$(top_builddir)/Doc/User/LinuxGpio/index.html \
@@ -90,7 +118,7 @@ TestGPIOOutput${EXEEXT}: TestGPIOOutput.tcl $(TestGPIO_IOScripts) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap TestGPIOOutput.kit
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit TestGPIOOutput \
 		lib $(SNITLIB)
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit TestGPIOOutput \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) TestGPIOOutput \
 		lib/Common $(TestGPIO_IOScripts)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit TestGPIOOutput \
 		Common
@@ -109,7 +137,7 @@ TestGPIOInput${EXEEXT}: TestGPIOInput.tcl $(TestGPIO_IOScripts) \
 	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap TestGPIOInput.kit
 	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit TestGPIOInput \
 		lib $(SNITLIB)
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit TestGPIOInput \
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) TestGPIOInput \
 		lib/Common $(TestGPIO_IOScripts)
 	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit TestGPIOInput \
 		Common

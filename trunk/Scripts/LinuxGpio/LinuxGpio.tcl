@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Oct 13 21:45:14 2018
-#  Last Modified : <181014.0900>
+#  Last Modified : <210821.1554>
 #
 #  Description	
 #
@@ -262,7 +262,7 @@ namespace eval linuxgpio {
             # @par
             # @author Robert Heller @<heller\@deepsoft.com@>
             #
-            
+            #puts stderr "$type create $self $args"
             install basepin using linuxgpio::LinuxGpio %AUTO% \
                   -pinnumber [from args -pinnumber] \
                   -direction low
