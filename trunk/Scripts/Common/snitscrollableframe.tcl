@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jul 11 10:02:32 2013
-#  Last Modified : <160223.1307>
+#  Last Modified : <210821.1544>
 #
 #  Description	
 #
@@ -130,8 +130,8 @@ snit::widgetadaptor ScrollableFrame {
         set y1  [expr {$y0+[winfo height $widget]}]
         set xb0 [$hull canvasx 0]
         set yb0 [$hull canvasy 0]
-        set xb1 [$hull canvasx [winfo width  $path]]
-        set yb1 [$hull canvasy [winfo height $path]]
+        set xb1 [$hull canvasx [winfo width  $widget]]
+        set yb1 [$hull canvasy [winfo height $widget]]
         set dx  0
         set dy  0
         
