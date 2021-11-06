@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <210724.0947>
+#  Last Modified : <211106.1412>
 #
 #  Description	
 #
@@ -437,6 +437,8 @@ namespace eval lcc {
         ## Scrolled Window.
         component editframe
         ## Scrollable Frame
+        component buttons
+        ## Button box
         
         component readallProgressDialog
         component newTurnout
@@ -568,6 +570,24 @@ namespace eval lcc {
             $self putdebug "*** $type create $self: initialized Layout Control DB"
             $self _processXMLnode $cdi [$editframe getframe] -1 address
             $self putdebug "*** $type create $self: processed CDI"
+            install buttons using ButtonBox $f.buttons \
+                  -buttonalignment left -orient horizontal
+            pack $buttons -fill x
+            $buttons add ttk::button save \
+                  -text [_m "Label|Save Changed"] \
+                  -command [mymethod _saveChanged]
+            $buttons add ttk::button reread \
+                  -text [_m "Label|Reread All"] \
+                  -command [mymethod _rereadAll]
+            $buttons add ttk::button backup \
+                  -text [_m "Label|Backup..."] \
+                  -command [mymethod _backup]
+            $buttons add ttk::button restore \
+                  -text [_m "Label|Restore..."] \
+                  -command [mymethod _restore]
+            $buttons add ttk::button showhideLC \
+                  -text [_m "Label|Hide Layout Controls"] \
+                  -command [mymethod _showhideLC]
             $self _layoutControlsCreation $f
             install readallProgressDialog using \
                   lcc::ReadallProgress $win.readallProgressDialog \
@@ -582,9 +602,9 @@ namespace eval lcc {
                   lcc::NewControlDialog $win.newControl -parent $win -nameonly yes
             $self putdebug "*** $type create $self: _readall names: [array names _readall]"
             if {!$options(-displayonly)} {
-                foreach s [array names _readall] {
-                    $self _readall $s
-                }
+                #foreach s [array names _readall] {
+                #    $self _readall $s
+                #}
                 EventSearch RecomputeAllSearchTexts
                 $self putdebug "*** $type create $self: _readall completed"
             }
@@ -597,7 +617,682 @@ namespace eval lcc {
         component     addsignalW
         component     addsensorW
         component     addcontrolW
-        
+        method _showhideLC {} {
+            if {[catch {pack info $layoutcontrolsLF}]} {
+                pack $layoutcontrolsLF -fill x
+                $buttons itemconfigure showhideLC \
+                      -text [_m "Label|Hide Layout Controls"]
+            } else {
+                pack forget $layoutcontrolsLF
+                $buttons itemconfigure showhideLC \
+                      -text [_m "Label|Show Layout Controls"]
+            }
+        }
+        method _rereadAll {} {
+            if {!$options(-displayonly)} {
+                foreach s [array names _readall] {
+                    $self _readall $s
+                }
+                EventSearch RecomputeAllSearchTexts
+            }
+        }
+        method _traverseSegments {} {
+            foreach seg [winfo children [$editframe getframe].segments] {
+                _traverseSegment $seg
+            }
+        }
+        proc _putValue {w} {
+            set name [$w cget -text]
+            if {[catch {$w.value get} value]} {
+                puts "Group: $name"
+                foreach f [winfo children $w] {
+                    puts [format "%s (%s)" $f [winfo class $f]]
+                    switch [winfo class $f] {
+                        ScrollTabNotebook {
+                            foreach r [$f tabs] {
+                                _traverseReplication $r
+                            }
+                        }
+                        TNotebook {
+                            foreach g [winfo children $f] {
+                                _traverseTGroup $g
+                            }
+                        }
+                        TLabelframe {
+                            _putValue $f
+                        }
+                    }
+                }
+            } else {
+                set widget $w.value
+                switch [winfo class $widget] {
+                    TCombobox {
+                        upvar #0 ${widget}_VM valuemap
+                        set value $valuemap([$widget get])
+                    }
+                    default {
+                        set value [$widget get]
+                    }
+                }
+                puts [format "%s = %s" $name $value]
+            }
+        }
+        proc _traverseSegment {seg} {
+            set segtitle [[winfo parent $seg] tab $seg -text]
+            puts "Segment: $segtitle"
+            foreach c [winfo children $seg] {
+                puts [format "%s (%s)" $c [winfo class $c]]
+                switch [winfo class $c] {
+                    TNotebook {
+                        foreach g [winfo children $c] {
+                            _traverseTGroup $g
+                        }
+                    }
+                    TLabelframe {
+                        _putValue $c
+                    }
+                }
+            }
+        }
+        proc _traverseReplication {replication} {
+            set replTitle [[winfo parent $replication] tab $replication -text]
+            puts "Replication: $replTitle"
+            foreach c [winfo children $replication] {
+                puts [format "%s (%s)" $c [winfo class $c]]
+                switch [winfo class $c] {
+                    ScrollTabNotebook {
+                        foreach r [$c tabs] {
+                            _traverseReplication $r
+                        }
+                    }
+                    TNotebook {
+                        foreach g [winfo children $c] {
+                            _traverseTGroup $g
+                        }
+                    }
+                    TLabelframe {
+                        _putValue $c
+                    }
+                }
+            }
+        }                    
+        proc _traverseTGroup {tgroup} {
+            set grouptitle [[winfo parent $tgroup] tab $tgroup -text]
+            puts "Group: $grouptitle"
+            foreach c [winfo children $tgroup] {
+                puts [format "%s (%s)" $c [winfo class $c]]
+                switch [winfo class $c] {
+                    ScrollTabNotebook {
+                        foreach r [$c tabs] {
+                            _traverseReplication $r
+                        }
+                    }
+                    TNotebook {
+                        foreach g [winfo children $c] {
+                            _traverseTGroup $g
+                        }
+                    }
+                    TLabelframe {
+                        _putValue $c
+                    }
+                }
+            }
+        }
+        method _saveSegments {} {
+            foreach seg [winfo children [$editframe getframe].segments] {
+                _saveSegment $seg
+            }
+        }
+        proc _saveValue {w} {
+            if {[catch {$w.value get} value]} {
+                foreach f [winfo children $w] {
+                    switch [winfo class $f] {
+                        ScrollTabNotebook {
+                            foreach r [$f tabs] {
+                                _saveReplication $r
+                            }
+                        }
+                        TNotebook {
+                            foreach g [winfo children $f] {
+                                _saveTGroup $g
+                            }
+                        }
+                        TLabelframe {
+                            _saveValue $f
+                        }
+                    }
+                }
+            } else {
+                if {[regexp {Mod$} [$w.value cget -style]] > 0} {
+                    $w.readwrite.write invoke
+                }
+            }
+        }
+        proc _saveSegment {seg} {
+            foreach c [winfo children $seg] {
+                switch [winfo class $c] {
+                    ScrollTabNotebook {
+                        foreach r [$c tabs] {
+                            _saveReplication $r
+                        }
+                    }
+                    TNotebook {
+                        foreach g [winfo children $c] {
+                            _saveTGroup $g
+                        }
+                    }
+                    TLabelframe {
+                        _saveValue $c
+                    }
+                }
+            }
+        }
+        proc _saveReplication {replication} {
+            foreach c [winfo children $replication] {
+                switch [winfo class $c] {
+                    ScrollTabNotebook {
+                        foreach r [$c tabs] {
+                            _saveReplication $r
+                        }
+                    }
+                    TNotebook {
+                        foreach g [winfo children $c] {
+                            _saveTGroup $g
+                        }
+                    }
+                    TLabelframe {
+                        _saveValue $c
+                    }
+                }
+            }
+        }
+        proc _saveTGroup {tgroup} {
+            foreach c [winfo children $tgroup] {
+                switch [winfo class $c] {
+                    ScrollTabNotebook {
+                        foreach r [$c tabs] {
+                            _saveReplication $r
+                        }
+                    }
+                    TNotebook {
+                        foreach g [winfo children $c] {
+                            _saveTGroup $g
+                        }
+                    }
+                    TLabelframe {
+                        _saveValue $c
+                    }
+                }
+            }
+        }
+        method _saveChanged {} {
+            $self _saveSegments
+        }
+        method _backupNode {n fp space address_var {prefix {}}} {
+            $self putdebug "*** _backupNode $n $fp $space $address_var $prefix"
+            upvar $address_var address
+            switch [$n cget -tag] {
+                cdi {
+                    foreach seg [$n getElementsByTagName segment -depth 1] {
+                        $self _backupNode $seg $fp $space address $prefix
+                    }
+                }
+                identification -
+                acdi {
+                }
+                segment {
+                    incr _segmentnumber
+                    set space [$n attribute space]
+                    set origin [$n attribute origin]
+                    if {$origin eq {}} {set origin 0}
+                    set address $origin
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name [format "seg%d" $_segmentnumber]
+                    }
+                    set prefix $name
+                    foreach c [$n children] {
+                        set tag [$c cget -tag]
+                        if {[lsearch {name description} $tag] >= 0} {continue}
+                        $self _backupNode $c $fp $space address $prefix
+                    }
+                }
+                group {
+                    set offset [$n attribute offset]
+                    if {$offset eq {}} {set offset 0}
+                    set replication [$n attribute replication] 
+                    if {$replication eq {}} {set replication 1}
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} { 
+                        set name [[lindex $name 0] data]
+                    } else { 
+                        set name {}
+                    }
+                    set repnamefmt [format ".%s(%%d)" $name]
+                    incr address $offset
+                    if {$replication > 1} {
+                        for {set i 0} {$i < $replication} {incr i} {
+                            foreach c [$n children] {
+                                set tag [$c cget -tag]
+                                if {[lsearch {name description repname} $tag] >= 0} {continue}
+                                $self _backupNode $c $fp $space address "${prefix}[format $repnamefmt $i]"
+                            }
+                        }
+                    } else {
+                        foreach c [$n children] {
+                            set tag [$c cget -tag]
+                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            $self _backupNode $c $fp $space address "${prefix}.$name"
+                        }
+                    }
+                }
+                int {
+                    set offset [$n attribute offset]
+                    if {$offset eq {}} {set offset 0}
+                    incr address $offset 
+                    set size [$n attribute size]
+                    if {$size eq {}} {set size 1}
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
+                    set status 0x58
+                    set retries 10
+                    while {$status != 0x50 && $retries > 0} {
+                        set data [$self _readmemory $space $address $size status]
+                        if {$status == 0x50} {
+                            set value 0
+                            foreach b $data {
+                                set value [expr {($value << 8) | $b}]
+                            }
+                            puts $fp [format {%s.%s=%d} $prefix $name $value]
+                            break
+                        } elseif {$status == 0x58} {
+                            # Failure
+                            set errorcode [expr {([lindex $data 0] << 8) | [lindex $data 1]}]
+                            set errormessage {}
+                            foreach c [lrange $data 2 end] {
+                                if {$c == 0} {break}
+                                append errormessage [format %c $c]
+                            }
+                            incr retries -1
+                        }
+                    }
+                    if {$status != 0x50} {
+                        tk_messageBox -icon warning \
+                              -message [_ {OpenLCB read error (%02x): %s} $errorcode $errormessage] \
+                              -type ok
+                    }
+                    incr address $size
+                }
+                string {
+                    set offset [$n attribute offset]
+                    if {$offset eq {}} {set offset 0}
+                    incr address $offset 
+                    set size [$n attribute size]
+                    if {$size eq {}} {set size 1}
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
+                    set resultstring {}
+                    for {set off 0} {$off < $size} {incr off 64} {
+                        set remain [expr {$size - $off}]
+                        if {$remain > 64} {set remain 64}
+                        set a [expr {$address + $off}]
+                        set data [$self _readmemory $space $a $remain status]
+                        if {$status == 0x50} {
+                            # OK
+                            if {[llength $data] > $remain} {
+                                set data [lrange $data 0 [expr {$remain - 1}]]
+                            }
+                            foreach b $data {
+                                if {$b == 0} {break}
+                                append resultstring [format %c $b]
+                            }
+                        } elseif {$status == 0x58} {
+                            # Failure
+                            set errorcode [expr {([lindex $data 0] << 8) | [lindex $data 1]}]
+                            set errormessage {}
+                            foreach c [lrange $data 2 end] {
+                                if {$c == 0} {break}
+                                append errormessage [format %c $c]
+                            }
+                            break
+                        }
+                    }
+                    puts $fp [format {%s.%s=%s} $prefix $name $resultstring]
+                    incr address $size
+                }
+                eventid {
+                    set offset [$n attribute offset]
+                    if {$offset eq {}} {set offset 0}
+                    incr address $offset 
+                    set size 8
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
+                    set status 0x58
+                    set retries 10
+                    while {$status != 0x50 && $retries > 0} {
+                        set data [$self _readmemory $space $address $size status]
+                        if {$status == 0x50} {
+                            set evid [lcc::EventID %AUTO% -eventidlist $data]
+                            set value [$evid cget -eventidstring]
+                            puts $fp [format {%s.%s=%s} $prefix $name $value]
+                            break
+                        } elseif {$status == 0x58} {
+                            # Failure
+                            set errorcode [expr {([lindex $data 0] << 8) | [lindex $data 1]}]
+                            set errormessage {}
+                            foreach c [lrange $data 2 end] {
+                                if {$c == 0} {break}
+                                append errormessage [format %c $c]
+                            }
+                            incr retries -1
+                        }
+                    }
+                    if {$status != 0x50} {
+                        tk_messageBox -icon warning \
+                              -message [_ {OpenLCB read error (%02x): %s} $errorcode $errormessage] \
+                              -type ok
+                    }
+                    incr address $size
+                }
+            }
+        }
+        method _backup {{filename {}}} {
+            set _segmentnumber 0
+            if {$filename eq ""} {
+                set filename [tk_getSaveFile -confirmoverwrite yes \
+                              -defaultextension .txt \
+                              -filetypes { {{Text Files}       {.txt} TEXT} {{All Files}        *             } } \
+                              -initialdir $::env(HOME) \
+                              -initialfile "config.[regsub -all {:} [$self cget -nid] {.}].txt" \
+                              -parent [winfo toplevel $win] \
+                              -title "Save backup to:"]
+            }
+            if {$filename eq ""} {return}
+            if {[catch {open $filename w} fp]} {
+                tk_messageBox -default ok \
+                      -detail $fp \
+                      -icon error \
+                      -message [_ "Could not open %s" $filename] \
+                      -parent [winfo toplevel $win] \
+                      -title "Open file error" \
+                      -type ok
+                return
+            }
+            $self _backupNode \
+                  [lindex [[$self cget -cdi] getElementsByTagName \
+                           cdi -depth 1]] \
+                  $fp -1 address
+            close $fp
+        }
+        method _restoreNode {n fp space address_var {prefix {}}} {
+            $self putdebug "*** _restoreNode $n $fp $space $address_var $prefix"
+            upvar $address_var address
+            switch [$n cget -tag] {
+                cdi {
+                    foreach seg [$n getElementsByTagName segment -depth 1] {
+                        if {[$self _restoreNode $seg $fp $space address $prefix] < 0} {return -1}
+                    }
+                }
+                identification -
+                acdi {
+                }
+                segment {
+                    incr _segmentnumber
+                    set space [$n attribute space]
+                    set origin [$n attribute origin]
+                    if {$origin eq {}} {set origin 0}
+                    set address $origin
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name [format "seg%d" $_segmentnumber]
+                    }
+                    set prefix $name
+                    foreach c [$n children] {
+                        set tag [$c cget -tag]
+                        if {[lsearch {name description} $tag] >= 0} {continue}
+                        if {[$self _restoreNode $c $fp $space address $prefix] < 0} {return -1}
+                    }
+                }
+                group {
+                    set offset [$n attribute offset]
+                    if {$offset eq {}} {set offset 0}
+                    set replication [$n attribute replication] 
+                    if {$replication eq {}} {set replication 1}
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} { 
+                        set name [[lindex $name 0] data]
+                    } else { 
+                        set name {}
+                    }
+                    set repnamefmt [format ".%s(%%d)" $name]
+                    incr address $offset
+                    if {$replication > 1} {
+                        for {set i 0} {$i < $replication} {incr i} {
+                            foreach c [$n children] {
+                                set tag [$c cget -tag]
+                                if {[lsearch {name description repname} $tag] >= 0} {continue}
+                                if {[$self _restoreNode $c $fp $space address "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
+                            }
+                        }
+                    } else {
+                        foreach c [$n children] {
+                            set tag [$c cget -tag]
+                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            if {[$self _restoreNode $c $fp $space address "${prefix}.$name"] < 0} {return -1}
+                        }
+                    }
+                }
+                int {
+                    set offset [$n attribute offset]
+                    if {$offset eq {}} {set offset 0}
+                    incr address $offset 
+                    set size [$n attribute size]
+                    if {$size eq {}} {set size 1}
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
+                    if {[gets $fp line] < 0} {
+                        tk_messageBox -icon error \
+                              -message [_ "Short file!"]
+                        return -1
+                    }
+                    lassign [split $line =] path value
+                    if {$path ne [format {%s.%s} $prefix $name]} {
+                        tk_messageBox -icon error \
+                              -message [_ "Sync error at %s, expected %s.%s" $path $prefix $name]
+                        return -1
+                    }
+                    set data [list]
+                    for {set shift [expr {($size - 1) * 8}]} {$shift >= 0} {incr shift -8} {
+                        lappend data [expr {($value >> $shift) & 0xFF}]
+                    }
+                    set thisaddress $address
+                    incr address $size
+                    #return 0
+                    set retdata [$self _writememory $space $thisaddress $data]
+                    if {[llength $retdata] <= 1} {
+                        if {$retdata eq {} || $retdata == 0} {
+                            ## OK
+                            return 0
+                        } else {
+                            set errorcode $retdata
+                            set errormessage {}
+                        }
+                    } else {
+                        set errorcode [expr {([lindex $retdata 0] << 8) | [lindex $retdata 1]}]
+                        set errormessage {}
+                        foreach c [lrange $data 2 end] {
+                            if {$c == 0} {break}
+                            append errormessage [format %c $c]
+                        }
+                    }
+                    tk_messageBox -type ok -icon error \
+                          -message [_ "There was an error: %d (%s)" \
+                                    $errorcode $errormessage]
+                    return -1
+                }
+                string {
+                    set offset [$n attribute offset]
+                    if {$offset eq {}} {set offset 0}
+                    incr address $offset 
+                    set size [$n attribute size]
+                    if {$size eq {}} {set size 1}
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
+                    if {[gets $fp line] < 0} {
+                        tk_messageBox -icon error \
+                              -message [_ "Short file!"]
+                        return -1
+                    }
+                    lassign [split $line =] path value
+                    if {$path ne [format {%s.%s} $prefix $name]} {
+                        tk_messageBox -icon error \
+                              -message [_ "Sync error at %s, expected %s.%s" $path $prefix $name]
+                        return -1
+                    }
+                    set thisaddress $address
+                    incr address $size
+                    #return 0
+                    set fulldata [list]
+                    foreach c [split $value {}] {
+                        lappend fulldata [scan $c %c]
+                    }
+                    lappend fulldata 0
+                    while {[llength $fulldata] < $size} {
+                        lappend fulldata 0
+                    }
+                    if {[llength $fulldata] > $size} {
+                        set fulldata [lrange $fulldata 0 [expr {$size - 2}]]
+                        lappend fulldata 0
+                    }
+                    for {set off 0} {$off < $size} {incr off 64} {
+                        set remain [expr {$size - $off}]
+                        if {$remain > 64} {set remain 64}
+                        set a [expr {$thisaddress + $off}]
+                        set retdata [$self _writememory $space $a [lrange $fulldata $off [expr {($off + $remain) - 1}]]]
+                        if {[llength $retdata] <= 1} {
+                            if {$retdata eq {} || $retdata == 0} {
+                                ## OK
+                                continue
+                            } else {
+                                set errorcode $retdata
+                                set errormessage {}
+                            }
+                        } else {
+                            set errorcode [expr {([lindex $retdata 0] << 8) | [lindex $retdata 1]}]
+                            set errormessage {}
+                            foreach c [lrange $data 2 end] {
+                                if {$c == 0} {break}
+                                append errormessage [format %c $c]
+                            }
+                        }
+                        tk_messageBox -type ok -icon error \
+                              -message [_ "There was an error: %d (%s)" \
+                                        $errorcode $errormessage]
+                    }
+                }
+                eventid {
+                    set offset [$n attribute offset]
+                    if {$offset eq {}} {set offset 0}
+                    incr address $offset 
+                    set size 8
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
+                    if {[gets $fp line] < 0} {
+                        tk_messageBox -icon error \
+                              -message [_ "Short file!"]
+                        return -1
+                    }
+                    lassign [split $line =] path value
+                    if {$path ne [format {%s.%s} $prefix $name]} {
+                        tk_messageBox -icon error \
+                              -message [_ "Sync error at %s, expected %s.%s" $path $prefix $name]
+                        return -1
+                    }
+                    set evid [lcc::EventID %AUTO% -eventidstring $value]
+                    set data [$evid cget -eventidlist]
+                    set thisaddress $address
+                    incr address $size
+                    #return 0
+                    set retdata [$self _writememory $space $thisaddress $data]
+                    if {[llength $retdata] <= 1} {
+                        if {$retdata eq {} || $retdata == 0} {
+                            ## OK
+                            return 0
+                        } else {
+                            set errorcode $retdata
+                            set errormessage {}
+                        }
+                    } else {
+                        set errorcode [expr {([lindex $retdata 0] << 8) | [lindex $retdata 1]}]
+                        set errormessage {}
+                        foreach c [lrange $data 2 end] {
+                            if {$c == 0} {break}
+                            append errormessage [format %c $c]
+                        }
+                    } 
+                    tk_messageBox -type ok -icon error \
+                          -message [_ "There was an error: %d (%s)" \
+                                    $errorcode $errormessage]
+                    return -1
+                }
+            }
+            return 0
+        }
+        method _restore {{filename {}}} {
+            if {$filename eq ""} {
+                set filename [tk_getOpenFile \
+                              -defaultextension .txt \
+                              -filetypes { {{Text Files}       {.txt} TEXT} {{All Files}        *             } } \
+                              -initialdir $::env(HOME) \
+                              -initialfile "config.[regsub -all {:} [$self cget -nid] {.}].txt" \
+                              -parent [winfo toplevel $win] \
+                              -title "Restore backup from:"]
+            }
+            if {$filename eq ""} {return}
+            if {[catch {open $filename r} fp]} {
+                tk_messageBox -default ok \
+                      -detail $fp \
+                      -icon error \
+                      -message [_ "Could not open %s" $filename] \
+                      -parent [winfo toplevel $win] \
+                      -title "Open file error" \
+                      -type ok
+                return
+            }
+            $self _restoreNode  \
+                  [lindex [[$self cget -cdi] getElementsByTagName \
+                           cdi -depth 1]] \
+                  $fp -1 address
+            close $fp
+        }
         method _layoutControlsCreation {frame} {
             install layoutcontrolsLF using ttk::labelframe \
                   $frame.layoutcontrolsLF -labelanchor nw \
@@ -650,6 +1345,21 @@ namespace eval lcc {
                 ttk::style configure TButtonHot $opt $value
             }
             ttk::style configure TButtonHot -background orange
+            ttk::style layout TEntryMod [ttk::style layout TEntry]
+            foreach {opt value} [ttk::style configure TEntry] {
+                ttk::style configure TEntryMod $opt $value
+            }
+            ttk::style configure TEntryMod -fieldbackground orange
+            ttk::style layout TComboboxMod [ttk::style layout TCombobox]
+            foreach {opt value} [ttk::style configure TCombobox] {
+                ttk::style configure TComboboxMod $opt $value
+            }
+            ttk::style configure TComboboxMod -fieldbackground orange
+            ttk::style layout TSpinboxMod [ttk::style layout TSpinbox]
+            foreach {opt value} [ttk::style configure TSpinbox] {
+                ttk::style configure TSpinboxMod $opt $value
+            }
+            ttk::style configure TSpinboxMod -fieldbackground orange
         }
         typevariable _stack [list]
         proc push {x} {set _stack [linsert $_stack 0 $x]}
@@ -673,6 +1383,11 @@ namespace eval lcc {
         ## Eventid number, used to insure unique widget names.
         variable _mkbuttons no
         ## Flag for Make Sensor / Make Turnout etc. buttons
+        proc _makemod {w} {
+            set curstyle [$w cget -style]
+            if {[regexp {Mod$} $curstyle] > 0} {return}
+            $w configure -style ${curstyle}Mod
+        }
         method _processXMLnode {n frame space address_var} {
             ## @brief Process one node in the XML tree.
             # Process a single node in the XML tree.  Will recurse to process
@@ -698,7 +1413,7 @@ namespace eval lcc {
                         $self _processXMLnode [lindex $id 0] $frame $space address
                     }
                     set segnotebook [ttk::notebook $frame.segments]
-                    pack $segnotebook -fill both -expand yes
+                    pack $segnotebook -fill both
                     foreach seg [$n getElementsByTagName segment -depth 1] {
                         $self _processXMLnode $seg $segnotebook $space address
                     }
@@ -707,7 +1422,7 @@ namespace eval lcc {
                     set idf [ttk::labelframe $frame.identification \
                              -labelanchor nw \
                              -text [_m "Label|Identification"]]
-                    pack $idf -fill x;#-expand yes 
+                    pack $idf -fill x 
                     foreach ic [$n children] {
                         set t [$ic cget -tag]
                         if {[info exists idheaders($t)]} {
@@ -793,7 +1508,7 @@ namespace eval lcc {
                         if {[$c cget -tag] eq "group"} {
                             if {$groupnotebook eq {}} {
                                 set groupnotebook [ttk::notebook $segmentframe.groups]
-                                pack $groupnotebook -expand yes -fill both
+                                pack $groupnotebook -fill both
                             }
                             $self _processXMLnode $c $groupnotebook $space address
                         } else {
@@ -856,7 +1571,7 @@ namespace eval lcc {
                             set groupframe [ttk::frame \
                                             $frame.group$_groupnumber]
                         }
-                        pack $groupframe -fill x;# -expand yes
+                        pack $groupframe -fill x
                     }
                     set descr [$n getElementsByTagName description -depth 1]
                     if {[llength $descr] == 1} {
@@ -875,7 +1590,7 @@ namespace eval lcc {
                     if {$replication > 1} {
                         #set replnotebook [ttk::notebook $groupframe.replnotebook]
                         set replnotebook [ScrollTabNotebook $groupframe.replnotebook]
-                        pack $replnotebook  -expand yes -fill both
+                        pack $replnotebook -fill both
                         for {set i 1} {$i <= $replication} {incr i} {
                             #set replscrollframe [ScrolledWindow \
                             #                     $replnotebook.replication$i \
@@ -1059,13 +1774,18 @@ namespace eval lcc {
                         }
                         if {![info exists default_value]} {set default_value [lindex $values 0]}
                         $self putdebug "*** $self _processXMLnode (int branch): values = $values, default_value = $default_value"
-                        ttk::combobox $widget -values $values -state readonly
+                        ttk::combobox $widget -values $values -state readonly -style TCombobox
+                        bind $widget <<ComboboxSelected>> "+[myproc _makemod $widget]"
                         $widget set $default_value
                         set readermethod _intComboRead
                         set writermethod _intComboWrite
                     } else {
-                        spinbox $widget -from $min -to $max -increment 1
+                        ttk::spinbox $widget -from $min -to $max -increment 1 -style TSpinbox
                         $widget set $default
+                        bind $widget <<Increment>> "+[myproc _makemod $widget]"
+                        bind $widget <<Decrement>> "+[myproc _makemod $widget]"
+                        bind $widget <Key> "+[myproc _makemod $widget]"
+                        bind $widget <<Paste>> "+[myproc _makemod $widget]"
                         set readermethod _intSpinRead
                         set writermethod _intSpinWrite
                     }
@@ -1081,6 +1801,8 @@ namespace eval lcc {
                           -command [mymethod $writermethod $widget $space $address $size $min $max]
                     if {$options(-displayonly)} {
                         $readwrite configure -state disabled
+                    } else {
+                        $rb invoke
                     }
                     incr address $size
                 }
@@ -1127,12 +1849,15 @@ namespace eval lcc {
                             set valuemap($value) $prop
                             lappend values $values
                         }
-                        ttk::combobox $widget -values $values -state readonly
+                        ttk::combobox $widget -values $values -state readonly -style TCombobox
                         $widget set [lindex $values 0]
+                        bind $widget <<ComboboxSelected>> "+[myproc _makemod $widget]"
                         set readermethod _stringComboRead
                         set writermethod _stringComboWrite
                     } else {
-                        ttk::entry $widget 
+                        ttk::entry $widget -style TEntry
+                        bind $widget <Key> "+[myproc _makemod $widget]"
+                        bind $widget <<Paste>> "+[myproc _makemod $widget]"
                         set readermethod _stringEntryRead
                         set writermethod _stringEntryWrite
                     }
@@ -1148,6 +1873,8 @@ namespace eval lcc {
                           -command [mymethod $writermethod $widget $space $address $size]
                     if {$options(-displayonly)} {
                         $readwrite configure -state disabled
+                    } else {
+                        $rb invoke
                     }
                     $readwrite add ttk::button copy -text [_m "Label|Copy"] \
                           -command [mymethod _copytext $widget $readwrite.copy]
@@ -1196,12 +1923,15 @@ namespace eval lcc {
                             set valuemap($value) $prop
                             lappend values $value
                         }
-                        ttk::combobox $widget -values $values -state readonly
+                        ttk::combobox $widget -values $values -state readonly -style TCombobox
+                        bind $widget <<ComboboxSelected>> "+[myproc _makemod $widget]"
                         $widget set [lindex $values 0]
                         set readermethod _eventidComboRead
                         set writermethod _eventidComboWrite
                     } else {
-                        ttk::entry $widget
+                        ttk::entry $widget -style TEntry
+                        bind $widget <Key> "+[myproc _makemod $widget]"
+                        bind $widget <<Paste>> "+[myproc _makemod $widget]"
                         $widget insert end {00.00.00.00.00.00.00.00}
                         set readermethod _eventidEntryRead
                         set writermethod _eventidEntryWrite
@@ -1220,9 +1950,6 @@ namespace eval lcc {
                     lappend _readall($space) $rb
                     $readwrite add ttk::button write -text [_m "Label|Write"] \
                           -command [mymethod $writermethod $widget $space $address $size]
-                    if {$options(-displayonly)} {
-                        $readwrite configure -state disabled
-                    }
                     $readwrite add ttk::button showuse -text [_m "Label|Show Uses"] \
                           -command [mymethod _showeventuse $widget $usemessage]
                     $readwrite add ttk::button copy -text [_m "Label|Copy"] \
@@ -1231,6 +1958,11 @@ namespace eval lcc {
                           -command [mymethod _pasteevent $widget $readwrite.paste]
                     $readwrite add ::lcc::EventSearch search \
                           -eventwidget $widget
+                    if {$options(-displayonly)} {
+                        $readwrite configure -state disabled
+                    } else {
+                        $rb invoke
+                    }
                     incr address $size
                 }
             }
@@ -1271,6 +2003,10 @@ namespace eval lcc {
             $widget delete 0 end
             $widget insert end $select
             $type AddEventUse $select $widget
+            set curstyle [$widget cget -style]
+            if {[regexp {Mod$} $curstyle] < 1} {
+                $widget configure -style ${curstyle}Mod
+            }
         }
         method _pastetext {widget button} {
             if {[catch {selection get} select]} {return}
@@ -1278,6 +2014,10 @@ namespace eval lcc {
             $button configure -style TButtonHot
             $widget delete 0 end
             $widget insert end $select
+            set curstyle [$widget cget -style]
+            if {[regexp {Mod$} $curstyle] < 1} {
+                $widget configure -style ${curstyle}Mod
+            }
         }
         method _eventContext1 {dismiscmd entry item taglist} {
             uplevel #0 $dismiscmd
@@ -2569,6 +3309,7 @@ namespace eval lcc {
             if {[llength $retdata] <= 1} {
                 if {$retdata eq {} || $retdata == 0} {
                     ## OK
+                    $widget configure -style [regsub {Mod$} [$widget cget -style] {}]
                     return
                 } else {
                     set errorcode $retdata
@@ -2639,6 +3380,7 @@ namespace eval lcc {
             if {[llength $retdata] <= 1} {
                 if {$retdata eq {} || $retdata == 0} {
                     ## OK
+                    $widget configure -style [regsub {Mod$} [$widget cget -style] {}]
                     return
                 } else {
                     set errorcode $retdata
@@ -2729,6 +3471,7 @@ namespace eval lcc {
                 if {[llength $retdata] <= 1} {
                     if {$retdata eq {} || $retdata == 0} {
                         ## OK
+                        $widget configure -style [regsub {Mod$} [$widget cget -style] {}]
                         continue
                     } else {
                         set errorcode $retdata
@@ -2813,6 +3556,7 @@ namespace eval lcc {
                 if {[llength $retdata] <= 1} {
                     if {$retdata eq {} || $retdata == 0} {
                         ## OK
+                        $widget configure -style [regsub {Mod$} [$widget cget -style] {}]
                         continue
                     } else {
                         set errorcode $retdata
@@ -2882,6 +3626,7 @@ namespace eval lcc {
             if {[llength $retdata] <= 1} {
                 if {$retdata eq {} || $retdata == 0} {
                     ## OK
+                    $widget configure -style [regsub {Mod$} [$widget cget -style] {}]
                     return
                 } else {
                     set errorcode $retdata
@@ -2945,6 +3690,7 @@ namespace eval lcc {
             if {[llength $retdata] <= 1} {
                 if {$retdata eq {} || $retdata == 0} {
                     ## OK
+                    $widget configure -style [regsub {Mod$} [$widget cget -style] {}]
                     return
                 } else {
                     set errorcode $retdata
@@ -2992,5 +3738,6 @@ namespace eval lcc {
 }
 
 package provide ConfigurationEditor 1.0
+
 
 
