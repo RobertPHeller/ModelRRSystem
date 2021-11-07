@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <191019.1349>
+#  Last Modified : <211106.2355>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -2345,11 +2345,11 @@ namespace eval lcc {
         
         lcc::AbstractMRMessage
         option -mti -default 0 -type lcc::sixteenbits
-        option -sourcenid -type lcc::nid_or_null
-        option -destnid -type lcc::nid_or_null
-        option -eventid -type lcc::EventID_or_null
+        option -sourcenid -type lcc::nid_or_null -default {}
+        option -destnid -type lcc::nid_or_null -default {}
+        option -eventid -type lcc::EventID_or_null -default {}
         option -data -type lcc::bytelist -configuremethod _configuredata \
-              -cgetmethod _cgetdata
+              -cgetmethod _cgetdata -default [list]
         method _configuredata {option value} {
             ## @privatesection Configure method for data.
             #
@@ -2367,6 +2367,19 @@ namespace eval lcc {
             # @return Data vector (a list of bytes).
             
             return $_dataChars
+        }
+        typemethod copy {message} {
+            $type validate $message
+            set newmessage [$type create %AUTO% -mti [$message cget -mti] \
+                            -sourcenid [$message cget -sourcenid] \
+                            -destnid [$message cget -destnid] \
+                            -eventid [$message cget -eventid] \
+                            -data [$message cget -data]]
+            $newmessage setNeededMode [$message getNeededMode]
+            $newmessage setBinary [$message isBinary]
+            $newmessage setTimeout [$message getTimeout]
+            $newmessage setRetries [$message getRetries]
+            return $newmessage
         }
         constructor {args} {
             ## @publicsection Construct a OpenLCB Message oject.
