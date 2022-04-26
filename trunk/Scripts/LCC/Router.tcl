@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Mar 17 16:32:29 2019
-#  Last Modified : <211106.2357>
+#  Last Modified : <211107.0012>
 #
 #  Description	
 #
@@ -830,7 +830,6 @@ snit::type OpenLCBGCCAN {
             ::log::logError [_ "Caught error on %s: %s" $channel $err]
             exit 1
         }
-        $gcmessage destroy
         ::log::log debug "$type _sendmessage: message sent."
     }
     proc getBits {top bottom bytelist} {
