@@ -134,7 +134,7 @@ AC_SUBST(RAILDRIVERIO_VERSIONLIB)
 TCLSOCKETCAN_VERSIONLIB=1.0.0
 AC_SUBST(TCLSOCKETCAN_VERSIONLIB)
 
-RELEASEDATE=[`echo '$Date$'|sed 's/^\$Date:[[:space:]]*[^(]*.\(.*\))[[:space:]]\$$/\1/g'`]
+RELEASEDATE=[`echo '$Date: 2021-08-21 14:24:40 -0400 (Sat, 21 Aug 2021) $'|sed 's/^\$Date:[[:space:]]*[^(]*.\(.*\))[[:space:]]\$$/\1/g'`]
 AC_SUBST(RELEASEDATE)
 
 if test "x${prefix}" = "xNONE"; then
