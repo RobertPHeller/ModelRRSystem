@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon May 20 10:03:07 2013
-#  Last Modified : <210709.0930>
+#  Last Modified : <220426.0947>
 #
 #  Description	
 #
@@ -63,7 +63,7 @@ snit::widget ButtonBox {
     method _configState {option value} {
         set options($option) $value
         foreach b [array names buttons] {
-            $buttons($b) configure -state $value
+            catch {$buttons($b) configure -state $value}
         }
     }
     method add {const name args} {

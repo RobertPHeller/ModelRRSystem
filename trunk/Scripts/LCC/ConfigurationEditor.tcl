@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <211106.1412>
+#  Last Modified : <220426.0946>
 #
 #  Description	
 #
@@ -1868,6 +1868,10 @@ namespace eval lcc {
                     pack $readwrite -expand yes -fill x
                     set rb [$readwrite add ttk::button read -text [_m "Label|Read"] \
                             -command [mymethod $readermethod $widget $space $address $size]]
+                    $readwrite add ttk::button copy -text [_m "Label|Copy"] \
+                          -command [mymethod _copytext $widget $readwrite.copy]
+                    $readwrite add ttk::button paste  -text [_m "Label|Paste"] \
+                          -command [mymethod _pastetext $widget $readwrite.paste]
                     lappend _readall($space) $rb
                     $readwrite add ttk::button write -text [_m "Label|Write"] \
                           -command [mymethod $writermethod $widget $space $address $size]
@@ -1876,10 +1880,6 @@ namespace eval lcc {
                     } else {
                         $rb invoke
                     }
-                    $readwrite add ttk::button copy -text [_m "Label|Copy"] \
-                          -command [mymethod _copytext $widget $readwrite.copy]
-                    $readwrite add ttk::button paste  -text [_m "Label|Paste"] \
-                          -command [mymethod _pastetext $widget $readwrite.paste]
                     incr address $size
                 }
                 eventid {

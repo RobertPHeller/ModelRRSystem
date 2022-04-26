@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Mar 17 16:32:29 2019
-#  Last Modified : <190708.2211>
+#  Last Modified : <211107.0012>
 #
 #  Description	
 #
@@ -243,6 +243,7 @@ snit::type OpenLCBTcp {
                 ::log::log debug "$type _messageReader: Routing to $dest [$openlcbMessage toString]"
                 $parent SendTo $dest $openlcbMessage B
             }
+            $openlcbMessage destroy
         }
     }
     typemethod _unpackBinaryMessage {messagebuffer} {
@@ -545,6 +546,7 @@ snit::type OpenLCBGCCAN {
         set pendingMessageQueues($sourcenid) {}
         foreach message $messages {
             $type SendMessage $message
+            $message destroy
         }
     }
     typemethod CheckSourceAlias {sourcenid} {
@@ -661,13 +663,10 @@ snit::type OpenLCBGCCAN {
         ::log::log debug "*** $type SendMessage: message is [$message toString]"
         set sourcenid [$message cget -sourcenid]
         if {[$type CheckSourceAlias $sourcenid] eq "Pending"} {
-            $type _queueMessagePendingAlias $sourcenid $message
+            $type _queueMessagePendingAlias $sourcenid \
+                  [lcc::OpenLCBMessage copy $message]
             return
         }
-            
-
-
-
         set sourcealias [$type getAliasOfNID $sourcenid]
         if {$sourcealias eq {}} {
             ::log::logError [_ "Error: source alias of %s not set!  This should not be happening!" $sourcenid]
@@ -817,6 +816,7 @@ snit::type OpenLCBGCCAN {
                          -data [lrange $databuffer $dindex end] \
                          -length $remain]
             $type _sendmessage $message
+            $message destroy
         }
     }
     typemethod _sendmessage {canmessage} {
@@ -1033,6 +1033,7 @@ snit::type OpenLCBGCCAN {
                     } else {
                         ::log::log warning "Orphan message: [$m toString]"
                     }
+                    $m destroy
                 }
             } elseif {[$mtidetail cget -streamordatagram]} {
                 set destid [$mtidetail cget -destid]
@@ -1064,6 +1065,7 @@ snit::type OpenLCBGCCAN {
                     } else {
                         ::log::log warning "Orphan message: [$m toString]"
                     }
+                    $m destroy
                 }
             }
         } else {
@@ -1357,6 +1359,7 @@ snit::type Router {
         set message [lcc::OpenLCBMessage %AUTO%  -sourcenid $_nid \
                      -mti 0x0100 -data [nidlist $_nid]]
         $type Broadcast $message {}
+        $message destroy
     }
     typemethod SendMySupportedProtocols {nid} {
         #** Send my supported protocols message.
@@ -1367,6 +1370,7 @@ snit::type Router {
                      -mti 0x0668 -destnid $nid \
                      -data $protocolsupport]
         $type SendTo $nid $message {}
+        $message destroy
     }
     typemethod SendMySimpleNodeInfo {nid} {
         #** Send my simple node info message.
@@ -1377,6 +1381,7 @@ snit::type Router {
                      -mti 0x0A08 -destnid $nid \
                      -data $simplenodeinfo]
         $type SendTo $nid $message {}
+        $message destroy
     }
     typemethod SendMyNodeVerifcation {} {
         #** Send my node verification message
@@ -1385,6 +1390,7 @@ snit::type Router {
                      -mti 0x0170 \
                      -data [nidlist $_nid]]
         $type Broadcast $message {}
+        $message destroy
     }
     proc nidlist {nid} {
         #** Break a Node ID string into a list of bytes.
