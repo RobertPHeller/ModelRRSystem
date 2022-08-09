@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <210724.1103>
+#  Last Modified : <220809.1617>
 #
 #  Description	
 #
@@ -333,20 +333,20 @@ snit::type OpenLCB {
         }
         if {[llength $reqOpts] > [llength $transportOpts]} {
             update idle
-            set transportOpts [eval [list $transportConstructor \
+            set transportOpts [$transportConstructor \
                                      drawOptionsDialog \
-                                     -parent .] \
-                                     $transportOpts]
+                                     -parent . \
+                                     {*}$transportOpts]
         }
         # Open the transport.
-        if {[catch {eval [list lcc::OpenLCBNode %AUTO% \
+        if {[catch {lcc::OpenLCBNode %AUTO% \
                           -transport $transportConstructor\
                           -eventhandler [mytypemethod _eventHandler] \
                           -generalmessagehandler [mytypemethod _messageHandler] \
                           -softwaremodel "OpenLCB GUI" \
                           -softwareversion "1.0" \
                           -additionalprotocols {Datagram EventExchange} \
-                          ] $transportOpts} transport]} {
+                           {*}$transportOpts} transport]} {
             tk_messageBox -type ok -icon error \
                       -message [_ "Failed to open transport because: %s" $transport]
             exit 99
@@ -453,6 +453,19 @@ snit::type OpenLCB {
             $eventlog eventReceived $eventid
             $eventlog open
         }
+        putdebug "*** $type _eventHandler: MTIDetails: [lcc::MTIDetail ObjectCount]"
+        putdebug "*** $type _eventHandler: CanMessages: [lcc::CanMessage ObjectCount]"
+        putdebug "*** $type _eventHandler: GridConnectMessages: [lcc::GridConnectMessage ObjectCount]"
+        putdebug "*** $type _eventHandler: GridConnectReplys: [lcc::GridConnectReply ObjectCount]"
+        putdebug "*** $type _eventHandler: CanAliass: [lcc::CanAlias ObjectCount]"
+        putdebug "*** $type _eventHandler: CanTransports: [lcc::CanTransport ObjectCount]"
+        putdebug "*** $type _eventHandler: OpenLCBMessages: [lcc::OpenLCBMessage ObjectCount]"
+        putdebug "*** $type _eventHandler: CANGridConnects: [lcc::CANGridConnect ObjectCount]"
+        putdebug "*** $type _eventHandler: CANGridConnectOverUSBSerials: [lcc::CANGridConnectOverUSBSerial ObjectCount]"
+        putdebug "*** $type _eventHandler: OpenLCBOverTcps: [lcc::OpenLCBOverTcp ObjectCount]"
+        putdebug "*** $type _eventHandler: CANGridConnectOverTcps: [lcc::CANGridConnectOverTcp ObjectCount]"
+        putdebug "*** $type _eventHandler: CANGridConnectOverCANSockets: [lcc::CANGridConnectOverCANSocket ObjectCount]"
+        putdebug "*** $type _eventHandler: OpenLCBNodes: [lcc::OpenLCBNode ObjectCount]"
     }
     proc matchNIDinBody {message nid} {
         set data [$message cget -data]
@@ -501,6 +514,19 @@ snit::type OpenLCB {
             }
         }
         $nodetree messageHandler $message
+        putdebug "*** $type _messageHandler: MTIDetails: [lcc::MTIDetail ObjectCount]"
+        putdebug "*** $type _messageHandler: CanMessages: [lcc::CanMessage ObjectCount]"
+        putdebug "*** $type _messageHandler: GridConnectMessages: [lcc::GridConnectMessage ObjectCount]"
+        putdebug "*** $type _messageHandler: GridConnectReplys: [lcc::GridConnectReply ObjectCount]"
+        putdebug "*** $type _messageHandler: CanAliass: [lcc::CanAlias ObjectCount]"
+        putdebug "*** $type _messageHandler: CanTransports: [lcc::CanTransport ObjectCount]"
+        putdebug "*** $type _messageHandler: OpenLCBMessages: [lcc::OpenLCBMessage ObjectCount]"
+        putdebug "*** $type _messageHandler: CANGridConnects: [lcc::CANGridConnect ObjectCount]"
+        putdebug "*** $type _messageHandler: CANGridConnectOverUSBSerials: [lcc::CANGridConnectOverUSBSerial ObjectCount]"
+        putdebug "*** $type _messageHandler: OpenLCBOverTcps: [lcc::OpenLCBOverTcp ObjectCount]"
+        putdebug "*** $type _messageHandler: CANGridConnectOverTcps: [lcc::CANGridConnectOverTcp ObjectCount]"
+        putdebug "*** $type _messageHandler: CANGridConnectOverCANSockets: [lcc::CANGridConnectOverCANSocket ObjectCount]"
+        putdebug "*** $type _messageHandler: OpenLCBNodes: [lcc::OpenLCBNode ObjectCount]"
     }
     typemethod _insertSimpleNodeInfo {nid infopayload} {
         #* Insert the SimpleNodeInfo for nid into the tree view.
