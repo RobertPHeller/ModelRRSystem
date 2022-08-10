@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <220426.0946>
+#  Last Modified : <220810.1240>
 #
 #  Description	
 #
@@ -989,6 +989,7 @@ namespace eval lcc {
                             set evid [lcc::EventID %AUTO% -eventidlist $data]
                             set value [$evid cget -eventidstring]
                             puts $fp [format {%s.%s=%s} $prefix $name $value]
+                            $evid destroy
                             break
                         } elseif {$status == 0x58} {
                             # Failure
@@ -1238,6 +1239,7 @@ namespace eval lcc {
                     }
                     set evid [lcc::EventID %AUTO% -eventidstring $value]
                     set data [$evid cget -eventidlist]
+                    $evid destroy
                     set thisaddress $address
                     incr address $size
                     #return 0
@@ -3593,6 +3595,7 @@ namespace eval lcc {
                 }
                 set evid [lcc::EventID %AUTO% -eventidlist $data]
                 set value [$evid cget -eventidstring]
+                $evid destroy
                 foreach v [array names valuemap] {
                     if {$valuemap($v) == $value} {
                         $widget set $v
@@ -3622,6 +3625,7 @@ namespace eval lcc {
             upvar #0 ${widget}_VM valuemap
             set evid [lcc::EventID %AUTO% -eventidstring $valuemap([$widget get])]
             set data [$evid cget -eventidlist]
+            $evid destroy
             set retdata [$self _writememory $space $address $data]
             if {[llength $retdata] <= 1} {
                 if {$retdata eq {} || $retdata == 0} {
@@ -3661,6 +3665,7 @@ namespace eval lcc {
                 }
                 set evid [lcc::EventID %AUTO% -eventidlist $data]
                 set value [$evid cget -eventidstring]
+                $evid destroy
                 $type DeleteEventUse [$widget get] $widget
                 $widget delete 0 end
                 $widget insert end $value
@@ -3686,6 +3691,7 @@ namespace eval lcc {
             
             set evid [lcc::EventID %AUTO% -eventidstring [$widget get]]
             set data [$evid cget -eventidlist]
+            $evid destroy
             set retdata [$self _writememory $space $address $data]
             if {[llength $retdata] <= 1} {
                 if {$retdata eq {} || $retdata == 0} {

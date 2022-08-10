@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <220809.1617>
+#  Last Modified : <220810.1232>
 #
 #  Description	
 #
@@ -466,6 +466,7 @@ snit::type OpenLCB {
         putdebug "*** $type _eventHandler: CANGridConnectOverTcps: [lcc::CANGridConnectOverTcp ObjectCount]"
         putdebug "*** $type _eventHandler: CANGridConnectOverCANSockets: [lcc::CANGridConnectOverCANSocket ObjectCount]"
         putdebug "*** $type _eventHandler: OpenLCBNodes: [lcc::OpenLCBNode ObjectCount]"
+        putdebug "*** $type _eventHandler: EventIDs: [lcc::EventID ObjectCount]"
     }
     proc matchNIDinBody {message nid} {
         set data [$message cget -data]

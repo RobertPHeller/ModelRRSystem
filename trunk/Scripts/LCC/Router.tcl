@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Mar 17 16:32:29 2019
-#  Last Modified : <211107.0012>
+#  Last Modified : <220810.1253>
 #
 #  Description	
 #
@@ -196,6 +196,7 @@ snit::type OpenLCBTcp {
         #** Message reader handler.
         
         ::log::log debug "$type _messageReader entered"
+        
         set buffer [read $channel 2];# Preamble
         if {[eof $channel] || [string length $buffer] < 2} {
             exit 1
@@ -243,8 +244,25 @@ snit::type OpenLCBTcp {
                 ::log::log debug "$type _messageReader: Routing to $dest [$openlcbMessage toString]"
                 $parent SendTo $dest $openlcbMessage B
             }
+            set eventid [$openlcbMessage cget -eventid]
+            catch {$eventid destroy}
             $openlcbMessage destroy
         }
+        ::log::log debug "*** $type _messageReader: MTIDetails: [lcc::MTIDetail ObjectCount]"
+        ::log::log debug "*** $type _messageReader: CanMessages: [lcc::CanMessage ObjectCount]"
+        ::log::log debug "*** $type _messageReader: GridConnectMessages: [lcc::GridConnectMessage ObjectCount]"
+        ::log::log debug "*** $type _messageReader: GridConnectReplys: [lcc::GridConnectReply ObjectCount]"
+        ::log::log debug "*** $type _messageReader: CanAliass: [lcc::CanAlias ObjectCount]"
+        ::log::log debug "*** $type _messageReader: CanTransports: [lcc::CanTransport ObjectCount]"
+        ::log::log debug "*** $type _messageReader: OpenLCBMessages: [lcc::OpenLCBMessage ObjectCount]"
+        ::log::log debug "*** $type _messageReader: CANGridConnects: [lcc::CANGridConnect ObjectCount]"
+        ::log::log debug "*** $type _messageReader: CANGridConnectOverUSBSerials: [lcc::CANGridConnectOverUSBSerial ObjectCount]"
+        ::log::log debug "*** $type _messageReader: OpenLCBOverTcps: [lcc::OpenLCBOverTcp ObjectCount]"
+        ::log::log debug "*** $type _messageReader: CANGridConnectOverTcps: [lcc::CANGridConnectOverTcp ObjectCount]"
+        ::log::log debug "*** $type _messageReader: CANGridConnectOverCANSockets: [lcc::CANGridConnectOverCANSocket ObjectCount]"
+        ::log::log debug "*** $type _messageReader: OpenLCBNodes: [lcc::OpenLCBNode ObjectCount]"
+        ::log::log debug "*** $type _messageReader: EventIDs: [lcc::EventID ObjectCount]"
+        ::log::log debug "*** $type _messageReader: MTIHeaders: [lcc::MTIHeader ObjectCount]"
     }
     typemethod _unpackBinaryMessage {messagebuffer} {
         #** Unpack a binary message.
@@ -532,8 +550,10 @@ snit::type OpenLCBGCCAN {
               -variablefield 0x0702 -srcid [$type getMyAlias]
         set _timeoutFlag 0
         after 5000 [mytypemethod _timedout]
-        $type _sendmessage [lcc::CanMessage %AUTO% \
+        set message [lcc::CanMessage %AUTO% \
                             -header [$canheader getHeader] -extended yes]
+        $type _sendmessage $message
+        $message destroy
         vwait [mytypevar _timeoutFlag]
     }
     typemethod _queueMessagePendingAlias {sourcenid message} {
@@ -575,6 +595,7 @@ snit::type OpenLCBGCCAN {
             incr pendingAliasFlags($sourcenid) -1
             ::log::log debug "$type CheckSourceAlias: (end) pendingAliasFlags($sourcenid) is $pendingAliasFlags($sourcenid)"
             $type _flushMessagePendingAlias $sourcenid
+            $tempcanalias destroy
         }
     }            
     typemethod reserveAlias {canalias} {
@@ -598,26 +619,34 @@ snit::type OpenLCBGCCAN {
         $canheader configure -openlcbframe no \
               -variablefield [expr {(0x7 << 12) | [getBits 47 36 $nidlist]}] \
               -srcid $alias
-        $type _sendmessage [lcc::CanMessage %AUTO% \
+        set message [lcc::CanMessage %AUTO% \
                             -header [$canheader getHeader] -extended yes]
+        $type _sendmessage $message
+        $message destroy
         # CID2
         $canheader configure -openlcbframe no \
               -variablefield [expr {(0x6 << 12) | [getBits 35 24 $nidlist]}] \
               -srcid $alias
-        $type _sendmessage [lcc::CanMessage %AUTO% \
+        set message [lcc::CanMessage %AUTO% \
                             -header [$canheader getHeader] -extended yes]
+        $type _sendmessage $message
+        $message destroy
         # CID3
         $canheader configure -openlcbframe no \
               -variablefield [expr {(0x5 << 12) | [getBits 23 12 $nidlist]}] \
               -srcid $alias
-        $type _sendmessage [lcc::CanMessage %AUTO% \
+        set message [lcc::CanMessage %AUTO% \
                             -header [$canheader getHeader] -extended yes]
+        $type _sendmessage $message
+        $message destroy
         # CID4
         $canheader configure -openlcbframe no \
               -variablefield [expr {(0x4 << 12) | [getBits 11 0 $nidlist]}] \
               -srcid $alias
-        $type _sendmessage [lcc::CanMessage %AUTO% \
+        set message [lcc::CanMessage %AUTO% \
                             -header [$canheader getHeader] -extended yes]
+        $type _sendmessage $message
+        $message destroy
         set _timeoutFlag 0
         set _timeoutID [after 500 [mytypemethod _timedout]]
         vwait [mytypevar _timeoutFlag]
@@ -634,14 +663,18 @@ snit::type OpenLCBGCCAN {
         # RID
         $canheader configure -openlcbframe no \
               -variablefield 0x0700 -srcid $alias
-        $type _sendmessage [lcc::CanMessage %AUTO% \
+        set message [lcc::CanMessage %AUTO% \
                             -header [$canheader getHeader] -extended yes]
+        $type _sendmessage $message
+        $message destroy
         # AMD
         $canheader configure -openlcbframe no \
               -variablefield 0x0701 -srcid $alias
-        $type _sendmessage [lcc::CanMessage %AUTO% \
+        set message [lcc::CanMessage %AUTO% \
                             -header [$canheader getHeader] -extended yes \
                             -data $nidlist -length 6]
+        $type _sendmessage $message
+        $message destroy
         
         $type updateAliasMap [$canalias cget -nid] $alias
         return true
@@ -732,6 +765,7 @@ snit::type OpenLCBGCCAN {
                 }
                 ::log::log debug "*** $type sendMessage: canmessage = [$canmessage toString]"
                 $type _sendmessage $canmessage
+                $canmessage destroy
             } else {
                 ## send as multiple frames.
                 set databuffer [$message cget -data]
@@ -757,6 +791,7 @@ snit::type OpenLCBGCCAN {
                         incr remain -1
                     }
                     $type _sendmessage $canmessage
+                    $canmessage destroy
                     set flags 0x03;# middle frames
                 }
                 set canmessage [lcc::CanMessage %AUTO% \
@@ -773,8 +808,10 @@ snit::type OpenLCBGCCAN {
                     incr remain -1
                 }
                 $type _sendmessage $canmessage
+                $canmessage destroy
             }
         }
+        $mtiheader destroy
     }
     typemethod _sendDatagram {message} {
         ## @privatesection Send a datagram message.
@@ -797,6 +834,7 @@ snit::type OpenLCBGCCAN {
                          -data [lrange $databuffer $dindex end] \
                          -length $remain]
             $type _sendmessage $message
+            $message destroy
         } else {
             $mtidetail configure -datagramcontent first
             while {$remain > 8} {
@@ -807,6 +845,7 @@ snit::type OpenLCBGCCAN {
                              -data [lrange $databuffer $dindex $eblock] \
                              -length 8]
                 $type _sendmessage $message
+                $message destroy
                 incr dindex 8
                 $mtidetail configure -datagramcontent middle
             }
@@ -1033,6 +1072,9 @@ snit::type OpenLCBGCCAN {
                     } else {
                         ::log::log warning "Orphan message: [$m toString]"
                     }
+                    if {[$mtidetail cget -eventp]} {
+                        $eid destroy
+                    }
                     $m destroy
                 }
             } elseif {[$mtidetail cget -streamordatagram]} {
@@ -1086,10 +1128,12 @@ snit::type OpenLCBGCCAN {
                 if {[listeq [lrange [$r getData] 0 5] {0 0 0 0 0 0}] || [listeq [lrange [$r getData] 0 5] $nidlist]} {
                     $canheader configure -openlcbframe no \
                           -variablefield 0x0701 -srcid [$type getMyAlias]
-                    $type _sendmessage [lcc::CanMessage %AUTO% \
+                    set message [lcc::CanMessage %AUTO% \
                                         -header [$canheader getHeader] \
                                         -extended yes \
                                         -data $nidlist -length 6]
+                    $type _sendmessage $message
+                    $message destroy
                 }
             } elseif {$vf >= 0x0710 || $vf <= 0x0713} {
                 # Was an Error Information Report -- flag it.
@@ -1099,6 +1143,22 @@ snit::type OpenLCBGCCAN {
                 #### Node ID Alias Collision handling... NYI
             }
         }
+        $r destroy
+        ::log::log debug "*** $type _messageReader: MTIDetails: [lcc::MTIDetail ObjectCount]"
+        ::log::log debug "*** $type _messageReader: CanMessages: [lcc::CanMessage ObjectCount]"
+        ::log::log debug "*** $type _messageReader: GridConnectMessages: [lcc::GridConnectMessage ObjectCount]"
+        ::log::log debug "*** $type _messageReader: GridConnectReplys: [lcc::GridConnectReply ObjectCount]"
+        ::log::log debug "*** $type _messageReader: CanAliass: [lcc::CanAlias ObjectCount]"
+        ::log::log debug "*** $type _messageReader: CanTransports: [lcc::CanTransport ObjectCount]"
+        ::log::log debug "*** $type _messageReader: OpenLCBMessages: [lcc::OpenLCBMessage ObjectCount]"
+        ::log::log debug "*** $type _messageReader: CANGridConnects: [lcc::CANGridConnect ObjectCount]"
+        ::log::log debug "*** $type _messageReader: CANGridConnectOverUSBSerials: [lcc::CANGridConnectOverUSBSerial ObjectCount]"
+        ::log::log debug "*** $type _messageReader: OpenLCBOverTcps: [lcc::OpenLCBOverTcp ObjectCount]"
+        ::log::log debug "*** $type _messageReader: CANGridConnectOverTcps: [lcc::CANGridConnectOverTcp ObjectCount]"
+        ::log::log debug "*** $type _messageReader: CANGridConnectOverCANSockets: [lcc::CANGridConnectOverCANSocket ObjectCount]"
+        ::log::log debug "*** $type _messageReader: OpenLCBNodes: [lcc::OpenLCBNode ObjectCount]"
+        ::log::log debug "*** $type _messageReader: EventIDs: [lcc::EventID ObjectCount]"
+        ::log::log debug "*** $type _messageReader: MTIHeaders: [lcc::MTIHeader ObjectCount]"
     }
     proc listeq {l1 l2} {
         foreach a $l1 b $l2 {

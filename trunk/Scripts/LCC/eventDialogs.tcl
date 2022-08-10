@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Mar 3 14:36:20 2016
-#  Last Modified : <170717.0955>
+#  Last Modified : <220810.1236>
 #
 #  Description	
 #
@@ -145,7 +145,7 @@ namespace eval lcc {
             if {$localeventhandler ne ""} {
                 uplevel #0 "$localeventhandler $eventid"
             }
-                
+            $eventid destroy
         }
         method _close {} {
             ## Close the window.

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <180404.1605>
+#  Last Modified : <220810.1111>
 #
 #  Description	
 #
@@ -360,6 +360,11 @@ snit::type OpenLCBGCTcpHub {
             ::log::log debug "*** $self destroy:   $dest => $_routeTable($dest)"
         }
         ::log::log debug "*** $self destroy: end of _routeTable"
+        $gcmessage destroy
+        $gcreply   destroy
+        $mtidetail destroy
+        $mtiheader destroy
+        $canheader destroy
     }
     method getAliasOfNID {nid} {
         #** Fetch the alias of a NID
@@ -557,6 +562,7 @@ snit::type OpenLCBGCTcpHub {
             # Not a OpenLCB message -- pass it throgh
             $type Broadcast $message -except $self
         }
+        $r destroy
     }
     
 }

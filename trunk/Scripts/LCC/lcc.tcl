@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <220809.1713>
+#  Last Modified : <220810.1255>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -3660,15 +3660,20 @@ namespace eval lcc {
             $message destroy
         }
         method _read {fp count} {
-            if {[catch {::read $fp count} result]} {
+            if {[catch {::read $fp $count} result]} {
+                $self destroy
+            } elseif {[eof $fp]} {
                 $self destroy
             } else {
                 return $result
             }
         }
         method _messageReader {} {
+            puts stderr "*** $self _messageReader"
             set buffer [$self _read $sock 2];# Preamble
-            binary scan $buffer S preamble
+            puts stderr "*** $self _messageReader: buffer is [string length $buffer] bytes long"
+            set status [binary scan $buffer S preamble]
+            puts stderr "*** $self _messageReader: binary scan returns $status"
             set preamble [expr {$preamble & 0x0FFFF}]
             if {($preamble & 0x8000) == 0} {
                 # Link control message ...
@@ -3706,6 +3711,8 @@ namespace eval lcc {
                 if {$messagehandler ne {}} {
                     uplevel #0 $messagehandler $openlcbMessage
                 }
+                set eventid [$openlcbMessage cget -eventid]
+                catch {$eventid destroy}
                 $openlcbMessage destroy
             }
         }

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jun 25 10:37:16 2016
-#  Last Modified : <190324.1140>
+#  Last Modified : <220810.1224>
 #
 #  Description	
 #
@@ -314,6 +314,20 @@ snit::type OpenLCBTcpHub {
         foreach dest [array names _routeTable] {
             ::log::log debug "*** $self destroy:   $dest => $_routeTable($dest)"
         }
+        $mtidetail destroy
+        ::log::log debug "*** $self destroy: MTIDetails: [lcc::MTIDetail ObjectCount]"
+        ::log::log debug "*** $self destroy: CanMessages: [lcc::CanMessage ObjectCount]"
+        ::log::log debug "*** $self destroy: GridConnectMessages: [lcc::GridConnectMessage ObjectCount]"
+        ::log::log debug "*** $self destroy: GridConnectReplys: [lcc::GridConnectReply ObjectCount]"
+        ::log::log debug "*** $self destroy: CanAliass: [lcc::CanAlias ObjectCount]"
+        ::log::log debug "*** $self destroy: CanTransports: [lcc::CanTransport ObjectCount]"
+        ::log::log debug "*** $self destroy: OpenLCBMessages: [lcc::OpenLCBMessage ObjectCount]"
+        ::log::log debug "*** $self destroy: CANGridConnects: [lcc::CANGridConnect ObjectCount]"
+        ::log::log debug "*** $self destroy: CANGridConnectOverUSBSerials: [lcc::CANGridConnectOverUSBSerial ObjectCount]"
+        ::log::log debug "*** $self destroy: OpenLCBOverTcps: [lcc::OpenLCBOverTcp ObjectCount]"
+        ::log::log debug "*** $self destroy: CANGridConnectOverTcps: [lcc::CANGridConnectOverTcp ObjectCount]"
+        ::log::log debug "*** $self destroy: CANGridConnectOverCANSockets: [lcc::CANGridConnectOverCANSocket ObjectCount]"
+        ::log::log debug "*** $self destroy: OpenLCBNodes: [lcc::OpenLCBNode ObjectCount]"
     }
     method sendMessage {message} {
         #** Send a message.
@@ -396,7 +410,24 @@ snit::type OpenLCBTcpHub {
                 ::log::log debug "$self _messageReader: Routing to $dest [$openlcbMessage toString]"
                 $type SendTo $dest $openlcbMessage -except $self
             }
+            set eventid [$openlcbMessage cget -eventid]
+            catch {$eventid destroy}
+            $openlcbMessage destroy
         }
+        ::log::log debug "*** $self _messageReader: MTIDetails: [lcc::MTIDetail ObjectCount]"
+        ::log::log debug "*** $self _messageReader: CanMessages: [lcc::CanMessage ObjectCount]"
+        ::log::log debug "*** $self _messageReader: GridConnectMessages: [lcc::GridConnectMessage ObjectCount]"
+        ::log::log debug "*** $self _messageReader: GridConnectReplys: [lcc::GridConnectReply ObjectCount]"
+        ::log::log debug "*** $self _messageReader: CanAliass: [lcc::CanAlias ObjectCount]"
+        ::log::log debug "*** $self _messageReader: CanTransports: [lcc::CanTransport ObjectCount]"
+        ::log::log debug "*** $self _messageReader: OpenLCBMessages: [lcc::OpenLCBMessage ObjectCount]"
+        ::log::log debug "*** $self _messageReader: CANGridConnects: [lcc::CANGridConnect ObjectCount]"
+        ::log::log debug "*** $self _messageReader: CANGridConnectOverUSBSerials: [lcc::CANGridConnectOverUSBSerial ObjectCount]"
+        ::log::log debug "*** $self _messageReader: OpenLCBOverTcps: [lcc::OpenLCBOverTcp ObjectCount]"
+        ::log::log debug "*** $self _messageReader: CANGridConnectOverTcps: [lcc::CANGridConnectOverTcp ObjectCount]"
+        ::log::log debug "*** $self _messageReader: CANGridConnectOverCANSockets: [lcc::CANGridConnectOverCANSocket ObjectCount]"
+        ::log::log debug "*** $self _messageReader: OpenLCBNodes: [lcc::OpenLCBNode ObjectCount]"
+        ::log::log debug "*** $self _messageReader: EventIDs: [lcc::EventID ObjectCount]"
     }
     method _unpackBinaryMessage {messagebuffer} {
         #** Unpack a binary message.
