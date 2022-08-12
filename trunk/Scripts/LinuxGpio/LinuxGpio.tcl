@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Oct 13 21:45:14 2018
-#  Last Modified : <210821.1554>
+#  Last Modified : <220812.1432>
 #
 #  Description	
 #
@@ -148,11 +148,11 @@ namespace eval linuxgpio {
                 #puts stderr "*** $type create $self: g is $g"
                 if {$g eq "gpio"} {break}
             }
-            while {true} {
-                set perms [file attributes $dirfile -permissions]
-                #puts stderr "*** $type create $self: perms are $perms"
-                if {$perms eq "00770"} {break}
-            }
+            #while {true} {
+            #    set perms [file attributes $dirfile -permissions]
+            #    puts stderr "*** $type create $self: perms are $perms"
+            #    if {$perms eq "00660"} {break}
+            #}
             set delta [expr {[clock milliseconds] - $start}]
             #puts stderr "*** $type create $self: delta = $delta"
             #puts stderr "*** $type create $self: [glob {/sys/class/gpio/*}]"
