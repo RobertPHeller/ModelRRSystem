@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Oct 13 21:26:48 2018
-#  Last Modified : <210821.1445>
+#  Last Modified : <220812.1440>
 #
 #  Description	
 #
@@ -49,14 +49,7 @@ bin_Scripts = TestGPIOOutput${EXEEXT} TestGPIOInput${EXEEXT}
 CLEANFILES = TestGPIOOutput.kit TestGPIOInput.kit $(bin_Scripts) \
 	LinuxGpio.pot
 EXTRA_DIST = $(LinuxGpioScripts) TestGPIOOutput.tcl TestGPIOInput.tcl \
-	TestGPIOOutput.png TestGPIOOutput.desktop TestGPIOInput.png \
-	 TestGPIOInput.desktop Doxyfile.in
-
-desktopdir = $(datadir)/applications
-desktop_DATA = TestGPIOOutput.desktop TestGPIOInput.desktop
-
-pixmapdir = $(datadir)/pixmaps
-pixmap_DATA =  TestGPIOOutput.png TestGPIOInput.png
+	Doxyfile.in
 
 man_MANS = man1/TestGPIOOutput.1 man1/TestGPIOInput.1
 
