@@ -722,7 +722,6 @@ proc MainWindow {} {
 	pack $sw -expand yes -fill both
 	set ::Copyright::copyrightText [ROText [$sw getframe].copyrightText -wrap char \
 							-height 8 -width 40]
-	pack $::Copyright::copyrightText -expand yes -fill both
 	$sw setwidget $::Copyright::copyrightText
 	pack [ttk::button $page.next -text "Next ==>" \
 				-command {set ::State Readme}] \
@@ -741,7 +740,6 @@ proc MainWindow {} {
 	pack $sw -expand yes -fill both
 	set ::Readme::readmeText [ROText [$sw getframe].readmeText -wrap char \
 							-height 8 -width 40]
-	pack $::Readme::readmeText -expand yes -fill both
 	$sw setwidget $::Readme::readmeText
 	pack [ttk::button $page.next -text "Next ==>" \
 				-command {set ::State InstallArchives}] \
@@ -853,7 +851,6 @@ proc MainWindow {} {
 	pack $sw -expand yes -fill both
 	set Installing::logtext [ROText [$sw getframe].logtext -wrap char \
 							-height 8 -width 40]
-	pack $Installing::logtext -expand yes -fill both
 	$sw setwidget $Installing::logtext
 	pack [ttk::button $page.next -text "Next ==>" \
 				-command {set ::State AdditionalArchives} \
@@ -889,7 +886,6 @@ proc MainWindow {} {
 	set sw  [ScrolledWindow  $pframe.sw -scrollbar vertical -auto vertical]
 	pack $sw -expand yes -fill both
         set scf [ScrollableFrame [$sw getframe].scf -constrainedwidth yes -height 150]
-	pack $scf -expand yes -fill both
 	$sw setwidget $scf	
         set AdditionalArchives::pframe [$scf getframe]
 	pack [ttk::button $page.next -text "Next ==>" -command {if {[CheckFreeSpace2]} {set ::State Installing2}}\
@@ -915,7 +911,6 @@ proc MainWindow {} {
 	pack $sw -expand yes -fill both
 	set Installing2::logtext [ROText [$sw getframe].logtext -wrap char \
 							-height 8 -width 40]
-	pack $Installing2::logtext -expand yes -fill both
 	$sw setwidget $Installing2::logtext
 	pack [ttk::button $page.next -text "Next ==>" -command {set ::State Done}\
 				-state disabled] \
