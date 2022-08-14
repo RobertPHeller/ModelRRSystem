@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Aug 2 11:05:53 2021
-#  Last Modified : <210807.1929>
+#  Last Modified : <220814.1410>
 #
 #  Description	
 #
@@ -104,9 +104,9 @@ snit::widgetadaptor RollingStockEditor {
     }
     method add {record} {
         set pos 0
-        foreach c [$hull children] {
-            if {[$c CompareTo $record] < 0} {
-                set pos [$hull index $c]
+        foreach c [$hull children {}] {
+            if {[$c CompareTo $record] <= 0} {
+                set pos [expr {[$hull index $c]+1}]
             } else {
                 break
             }
@@ -298,13 +298,13 @@ snit::widgetadaptor RollingStockEntryEditor {
         $self configurelist $args
         $typeLECB configure -values $types_
         $manufacturerNameLECB configure -values $manufacturerNames_
-        if {[$self cget -edit]} {
-            set record [$self cget -record]
+        if {[$self cget  -edit]} {
+            set record [$self cget  -record]
             RollingStock validate $record
-            lassign $record reportingMarks_ number_ type_ description_ \
-                  length_ clearance_ weightClass_ emptyWeight_ loadedWeight_ \
-                  imageFile_ value_ purchaseCost_ manufacturerName_ \
-                  manufacturerPartNumber_ scale_
+            lassign [$record RecordAsList] reportingMarks_ number_ type_ \
+                  description_ length_ clearance_ weightClass_ emptyWeight_ \
+                  loadedWeight_ imageFile_ value_ purchaseCost_ \
+                  manufacturerName_ manufacturerPartNumber_ scale_
             $reportingMarksLE configure -editable no
             $numberLE configure -editable no
             $hull itemconfigure add -text [_m "Button|Update"]
