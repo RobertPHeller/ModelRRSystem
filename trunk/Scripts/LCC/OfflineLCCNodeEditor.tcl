@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 24 13:14:30 2023
-#  Last Modified : <230224.1822>
+#  Last Modified : <230224.1841>
 #
 #  Description	
 #
@@ -325,12 +325,18 @@ snit::type OfflineLCCNodeEditor {
               -command {HTMLHelp help "Offline LCC Node Editor Reference"}
         # Hook in help files.
         HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
+        
+        set layoutcontroldb [::lcc::LayoutControlDB newdb]
+        
         set log [ROText [$mainWindow scrollwindow getframe].log \
                  -height 24 -width 80]
         $mainWindow scrollwindow setwidget $log
         foreach f [lrange $::argv 1 end] {
-            lcc::ConfigurationEditor .cdi[_fnametowindow $f] -cdi $CDI -offlineedit yes \
-                  -loadfile $f
+            lcc::ConfigurationEditor \
+                  .cdi[_fnametowindow [file rootname [file tail $f]]] \
+                  -cdi $CDI \
+                  -offlineedit yes \
+                  -loadfile $f -layoutdb $layoutcontroldb
         }
         $mainWindow showit
         update idle
@@ -342,6 +348,19 @@ snit::type OfflineLCCNodeEditor {
         #* Exit method.
 
         exit
+    }
+    typemethod _openbackupfile {} {
+        set filename [tk_getOpenFile -defaultextension .txt \
+                      -filetypes {{{Backup Config Files} {.txt} TEXT}
+                      {{All Files} *     TEXT}
+                  } -parent . -title "Backup Config File to open"]
+        if {"$filename" ne {}} {
+            lcc::ConfigurationEditor \
+                  .cdi[_fnametowindow [file rootname [file tail $filename]]] \
+                  -cdi $CDI \
+                  -offlineedit yes \
+                  -loadfile $filename $layoutcontroldb
+        }
     }
 }
 

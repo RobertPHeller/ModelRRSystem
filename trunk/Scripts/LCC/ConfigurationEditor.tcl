@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <230224.1523>
+#  Last Modified : <230224.1847>
 #
 #  Description	
 #
@@ -578,7 +578,7 @@ namespace eval lcc {
             set address 0
             [$main getmenu edit] configure -postcommand [mymethod edit_checksel]
             if {$options(-offlineedit)} {
-                [$main getmenu edit] insert 0 command -command [mymethod _saveas] -label [_m "Menu|File|Save As..."]
+                [$main getmenu file] insert 0 command -command [mymethod _saveas] -label [_m "Menu|File|Save As..."]
             }
             $self putdebug "*** $type create $self: configured -postcommand to edit menu"
             $self putdebug "*** $type create $self: initialized Layout Control DB"
@@ -602,6 +602,12 @@ namespace eval lcc {
             $buttons add ttk::button showhideLC \
                   -text [_m "Label|Hide Layout Controls"] \
                   -command [mymethod _showhideLC]
+            if {$options(-offlineedit)} {
+                $buttons itemconfigure save -state disabled
+                $buttons itemconfigure reread -state disabled
+                $buttons itemconfigure backup -state disabled
+                $buttons itemconfigure restore -state disabled
+            }
             $self _layoutControlsCreation $f
             install readallProgressDialog using \
                   lcc::ReadallProgress $win.readallProgressDialog \
@@ -629,6 +635,7 @@ namespace eval lcc {
             
         }
         method _loadfile {filename} {
+            wm title $win [_ "CDI Configuration Tool for config file %s" $filename]
         }
         method _saveas {} {
         }
