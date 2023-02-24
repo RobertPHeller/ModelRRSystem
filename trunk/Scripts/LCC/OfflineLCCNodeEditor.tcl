@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 24 13:14:30 2023
-#  Last Modified : <230224.1519>
+#  Last Modified : <230224.1822>
 #
 #  Description	
 #
@@ -96,9 +96,11 @@ package require HTMLHelp 2.0
 package require LabelFrames
 package require ParseXML
 package require ConfigurationEditor
-package require LayoutControlDB
 package require Dialog
 package require ScrollTabNotebook
+package require LayoutControlDBDialogs
+package require LayoutControlDB
+package require LayoutControlDBTable
 
 global HelpDir
 set HelpDir [file join [file dirname [file dirname [file dirname \
@@ -123,6 +125,81 @@ snit::type OfflineLCCNodeEditor {
     typecomponent   log
     typevariable CDI
     
+    typevariable _debug no;# Debug flag
+    
+    typecomponent layoutcontroldb
+    typecomponent newTurnoutDialog
+    typecomponent newBlockDialog
+    typecomponent newSignalDialog
+    typecomponent newSensorDialog
+    typecomponent newControlDialog
+    typecomponent layoutControlView
+    typecomponent layoutControlTable
+    typecomponent layoutControlsLF
+    typecomponent   layoutcontrolsNB
+    typecomponent     editturnoutW
+    typecomponent     editblockW
+    typecomponent     editsensorW
+    typecomponent     editcontrolW
+    typecomponent     editsignalW
+    typemethod _buildDialogs {} {
+        putdebug "*** $type _buildDialogs"
+        set newTurnoutDialog [::lcc::NewTurnoutDialog .main.newTurnoutDialog -parent .main -modal none]
+        putdebug "*** $type _buildDialogs: newTurnoutDialog is $newTurnoutDialog"
+        set newBlockDialog   [::lcc::NewBlockDialog   .main.newBlockDialog -parent .main -modal none]
+        set newSignalDialog  [::lcc::NewSignalDialog  .main.newSignalDialog -parent .main -modal none]
+        set newSensorDialog  [::lcc::NewSensorDialog  .main.newSensorDialog -parent .main -modal none]
+        set newControlDialog [::lcc::NewControlDialog .main.newControlDialog -parent .main -modal none]
+        
+    }
+    typemethod _newTurnout {} {
+        putdebug "*** $type _newTurnout: newTurnoutDialog is $newTurnoutDialog"
+        $newTurnoutDialog draw -db $layoutcontroldb
+    }
+    typemethod _newBlock {} {
+        $newBlockDialog   draw -db $layoutcontroldb
+    }
+    typemethod _newSignal {} {
+        $newSignalDialog  draw -db $layoutcontroldb
+    }
+    typemethod _newSensor {} {
+        $newSensorDialog  draw -db $layoutcontroldb
+    }
+    typemethod _newControl {} {
+        $newControlDialog draw -db $layoutcontroldb
+    }
+        
+    typemethod _loadLCDB {} {
+        set filename [tk_getOpenFile -defaultextension .xml \
+                      -filetypes {{{XML Files} {.xml} TEXT}
+                      {{All Files} *     TEXT}
+                  } -parent . -title "XML File to open"]
+        if {"$filename" ne {}} {
+            set layoutcontroldb [::lcc::LayoutControlDB olddb $filename]
+            if {$layoutControlView ne {}} {
+                $layoutControlTable configure -db $layoutcontroldb
+                $layoutControlTable Refresh
+            }
+            $nodetree configure -layoutdb $layoutcontroldb
+            foreach cdiform [array names CDIs_FormTLs] {
+                set tl $CDIs_FormTLs($cdiform)
+                if {[winfo exists $tl] && ![$tl cget -displayonly]} {
+                    $tl configure -layoutdb $layoutcontroldb
+                }
+            }
+        }
+    }
+        
+    typemethod _saveLCDB {} {
+        set filename [tk_getSaveFile -defaultextension .xml \
+                      -filetypes {{{XML Files} {.xml} TEXT}
+                      {{All Files} *     TEXT}
+                  } -parent . -title "XML File to open"]
+        if {"$filename" ne {}} {
+            $layoutcontroldb savedb "$filename"
+        }
+    }
+
     proc putdebug {message} {
         if {$_debug} {
             puts stderr $message
@@ -138,6 +215,39 @@ snit::type OfflineLCCNodeEditor {
         }
     }
 
+    typemethod usage {} {
+        #* Print a usage message.
+        
+        puts stdout [_ "Usage: %s \[X11 Resource Options\] -- \[Other options\] xmlfile \[backupconfigfile ...\]" $::argv0]
+        puts stdout {}
+        puts stdout [_ "X11 Resource Options:"]
+        puts stdout [_ " -colormap: Colormap for main window"]
+        puts stdout [_ "-display:  Display to use"]
+        puts stdout [_ "-geometry: Initial geometry for window"]
+        puts stdout [_ "-name:     Name to use for application"]
+        puts stdout [_ "-sync:     Use synchronous mode for display server"]
+        puts stdout [_ "-visual:   Visual for main window"]
+        puts stdout [_ "-use:      Id of window in which to embed application"]
+        puts stdout {}
+        puts stdout [_ "Other options:"]
+        puts stdout [_ "-help: Print this help message and exit."]
+        puts stdout [_ "-debug: Enable debug output."]
+        puts stdout {}
+        puts stdout [_ "Parameters:"]
+        puts stdout [_ "xmlfile - CDI XML file"]
+        puts stdout [_ "backupconfigfile - optional backup config file(s)"]
+    }
+    proc hidpiP {w} {
+        set scwidth [winfo screenwidth $w]
+        set scmmwidth [winfo screenmmwidth $w]
+        set scinchwidth [expr {$scmmwidth / 25.4}]
+        set scdpiw [expr {$scwidth / $scinchwidth}]
+        set scheight [winfo screenheight $w]
+        set scmmheight [winfo screenmmheight $w]
+        set scinchheight [expr {$scmmheight / 25.4}]
+        set scdpih [expr {$scheight / $scinchheight}]
+        return [expr {($scdpiw > 100) || ($scdpih > 100)}]
+    }
     typeconstructor {
         #* Type constructor -- create all of the one time computed stuff.
         #* This includes processing the CLI, building the main window and
@@ -146,6 +256,19 @@ snit::type OfflineLCCNodeEditor {
         if {[llength $::argv] < 1} {
             error "CDI XML file missing!"
         }
+        # Does the user want help?  
+        set helpP [lsearch $::argv -help]
+        if {$helpP >= 0} {
+            wm withdraw .
+            $type usage
+            exit
+        }
+        set debugIdx [lsearch $::argv -debug]
+        if {$debugIdx >= 0} {
+            set _debug yes
+            set ::argv [lreplace $::argv $debugIdx $debugIdx]
+        }
+        putdebug "*** $type typeconstructor: ::argv is $::argv"
         set fp [open [lindex $::argv 0] r]
         set CDI [ParseXML %AUTO% [read $fp]]
         close $fp
@@ -155,6 +278,41 @@ snit::type OfflineLCCNodeEditor {
         pack $mainWindow -expand yes -fill both
         $mainWindow menu entryconfigure file "Exit" -command [mytypemethod _carefulExit]
         $mainWindow menu entryconfigure file "Open..." -command [mytypemethod _openbackupfile]
+        $mainWindow menu insert file "Print..." command \
+              -label [_m "Menu|File|Load Layout Control DB"] \
+              -dynamichelp "[_ {Load a Layout Control DB File}]" \
+              -accelerator Ctrl+L \
+              -underline 0 \
+              -command "[mytypemethod _loadLCDB]"
+        bind [winfo toplevel $mainWindow] <Control-Key-L> [mytypemethod _loadLCDB]
+        $mainWindow menu insert file "Print..." command \
+              -label [_m "Menu|File|Save Layout Control DB"] \
+              -dynamichelp "[_ {Save a Layout Control DB File}]" \
+              -accelerator Ctrl+S \
+              -underline 0 \
+              -command "[mytypemethod _saveLCDB]"
+        bind [winfo toplevel $mainWindow] <Control-Key-S> [mytypemethod _saveLCDB]
+        $mainWindow menu add edit separator
+        $mainWindow menu add edit command \
+              -label [_m "Menu|Edit|New Turnout"] \
+              -dynamichelp "[_ {Create new turnout}]" \
+              -command "[mytypemethod _newTurnout]"
+        $mainWindow menu add edit command \
+              -label [_m "Menu|Edit|New Block"] \
+              -dynamichelp "[_ {Create new block}]" \
+              -command "[mytypemethod _newBlock]"
+        $mainWindow menu add edit command \
+              -label [_m "Menu|Edit|New Signal"] \
+              -dynamichelp "[_ {Create new signal}]" \
+              -command "[mytypemethod _newSignal]"
+        $mainWindow menu add edit command \
+              -label [_m "Menu|Edit|New Sensor"] \
+              -dynamichelp "[_ {Create new sensor}]" \
+              -command "[mytypemethod _newSensor]"
+        $mainWindow menu add edit command \
+              -label [_m "Menu|Edit|New Control"] \
+              -dynamichelp "[_ {Create new control}]" \
+              -command "[mytypemethod _newControl]"
         $mainWindow menu entryconfigure help "On Help..." -command {HTMLHelp help Help}
         $mainWindow menu delete help "On Keys..."
         $mainWindow menu delete help "Index..."
