@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <220810.1232>
+#  Last Modified : <220814.1554>
 #
 #  Description	
 #
@@ -491,7 +491,7 @@ snit::type OpenLCB {
         #* Simple Node Information Request -- Send our Simple Node Info.
         #* Other messages are handled by the nodetree.
         
-        putdebug [format {*** $type _messageHandler: mti is 0x%04X} [$message cget -mti]]
+        #putdebug [format {*** $type _messageHandler: mti is 0x%04X} [$message cget -mti]]
         switch [format {0x%04X} [$message cget -mti]] {
             0x0490 {
                 #* Verify Node ID (global)
@@ -509,25 +509,27 @@ snit::type OpenLCB {
             }
             0x0DE8 {
                 #* Simple Node Information Request
+                #putdebug "*** $type _messageHandler: -sourcenid is  [$message cget -sourcenid]"
+                #$message cget -sourcenid
                 $transport SendMySimpleNodeInfo [$message cget -sourcenid]
             }
             default {
             }
         }
         $nodetree messageHandler $message
-        putdebug "*** $type _messageHandler: MTIDetails: [lcc::MTIDetail ObjectCount]"
-        putdebug "*** $type _messageHandler: CanMessages: [lcc::CanMessage ObjectCount]"
-        putdebug "*** $type _messageHandler: GridConnectMessages: [lcc::GridConnectMessage ObjectCount]"
-        putdebug "*** $type _messageHandler: GridConnectReplys: [lcc::GridConnectReply ObjectCount]"
-        putdebug "*** $type _messageHandler: CanAliass: [lcc::CanAlias ObjectCount]"
-        putdebug "*** $type _messageHandler: CanTransports: [lcc::CanTransport ObjectCount]"
-        putdebug "*** $type _messageHandler: OpenLCBMessages: [lcc::OpenLCBMessage ObjectCount]"
-        putdebug "*** $type _messageHandler: CANGridConnects: [lcc::CANGridConnect ObjectCount]"
-        putdebug "*** $type _messageHandler: CANGridConnectOverUSBSerials: [lcc::CANGridConnectOverUSBSerial ObjectCount]"
-        putdebug "*** $type _messageHandler: OpenLCBOverTcps: [lcc::OpenLCBOverTcp ObjectCount]"
-        putdebug "*** $type _messageHandler: CANGridConnectOverTcps: [lcc::CANGridConnectOverTcp ObjectCount]"
-        putdebug "*** $type _messageHandler: CANGridConnectOverCANSockets: [lcc::CANGridConnectOverCANSocket ObjectCount]"
-        putdebug "*** $type _messageHandler: OpenLCBNodes: [lcc::OpenLCBNode ObjectCount]"
+        #putdebug "*** $type _messageHandler: MTIDetails: [lcc::MTIDetail ObjectCount]"
+        #putdebug "*** $type _messageHandler: CanMessages: [lcc::CanMessage ObjectCount]"
+        #putdebug "*** $type _messageHandler: GridConnectMessages: [lcc::GridConnectMessage ObjectCount]"
+        #putdebug "*** $type _messageHandler: GridConnectReplys: [lcc::GridConnectReply ObjectCount]"
+        #putdebug "*** $type _messageHandler: CanAliass: [lcc::CanAlias ObjectCount]"
+        #putdebug "*** $type _messageHandler: CanTransports: [lcc::CanTransport ObjectCount]"
+        #putdebug "*** $type _messageHandler: OpenLCBMessages: [lcc::OpenLCBMessage ObjectCount]"
+        #putdebug "*** $type _messageHandler: CANGridConnects: [lcc::CANGridConnect ObjectCount]"
+        #putdebug "*** $type _messageHandler: CANGridConnectOverUSBSerials: [lcc::CANGridConnectOverUSBSerial ObjectCount]"
+        #putdebug "*** $type _messageHandler: OpenLCBOverTcps: [lcc::OpenLCBOverTcp ObjectCount]"
+        #putdebug "*** $type _messageHandler: CANGridConnectOverTcps: [lcc::CANGridConnectOverTcp ObjectCount]"
+        #putdebug "*** $type _messageHandler: CANGridConnectOverCANSockets: [lcc::CANGridConnectOverCANSocket ObjectCount]"
+        #putdebug "*** $type _messageHandler: OpenLCBNodes: [lcc::OpenLCBNode ObjectCount]"
     }
     typemethod _insertSimpleNodeInfo {nid infopayload} {
         #* Insert the SimpleNodeInfo for nid into the tree view.

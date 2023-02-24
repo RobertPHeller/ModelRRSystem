@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <210710.1227>
+#  Last Modified : <230224.1339>
 #
 #  Description	
 #
@@ -57,12 +57,13 @@ EXTRA_DIST = lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		OpenLCB_PiPCA9685.tcl LayoutControlDB.tcl \
 		LayoutControlDBDialogs.tcl Router.tcl \
 		LayoutControlDBTable.tcl JMRITable2LayoutDB.tcl \
-		LayoutDB2JMRITable.tcl
+		LayoutDB2JMRITable.tcl OfflineLCCNodeEditor.tcl
 
 bin_SCRIPTS = OpenLCB${EXEEXT} OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
 	OpenLCBGCTcpHub${EXEEXT} OpenLCB_TrackCircuits${EXEEXT} \
 	OpenLCB_Acela${EXEEXT} OpenLCB_Logic${EXEEXT} OpenLCB_CMRI${EXEEXT} \
-	Router${EXEEXT} JMRITable2LayoutDB${EXEEXT} LayoutDB2JMRITable${EXEEXT}
+	Router${EXEEXT} JMRITable2LayoutDB${EXEEXT} LayoutDB2JMRITable${EXEEXT} \
+	OfflineLCCNodeEditor${EXEEXT}
 if HAVE_WIRINGPI
 bin_SCRIPTS += OpenLCB_PiGPIO${EXEEXT} OpenLCB_PiMCP23008${EXEEXT} \
 		OpenLCB_PiMCP23017${EXEEXT} OpenLCB_PiSPIMax7221${EXEEXT} \
@@ -82,7 +83,8 @@ pixmap_DATA = OpenLCB.png
 man_MANS = man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
 	man1/OpenLCBGCTcpHub.1 man1/OpenLCB_TrackCircuits.1 \
 	man1/OpenLCB_Acela.1 man1/OpenLCB_Logic.1 \
-	man1/JMRITable2LayoutDB.1 man1/LayoutDB2JMRITable.1
+	man1/JMRITable2LayoutDB.1 man1/LayoutDB2JMRITable.1 \
+	man1/OfflineLCCNodeEditor.1
 if HAVE_WIRINGPI
 man_MANS += man1/OpenLCB_PiGPIO.1 man1/OpenLCB_PiMCP23008.1 \
 		man1/OpenLCB_PiMCP23017.1 man1/OpenLCB_PiSPIMax7221.1
@@ -111,7 +113,8 @@ CLEANFILES = pkgIndex.tcl OpenLCB${EXEEXT} OpenLCB.pot \
 			  OpenLCB_PiSPIMax7221${EXEEXT} \
 			  OpenLCB_PiMCP23017_signal${EXEEXT} \
 			  OpenLCB_QuadSignal${EXEEXT} \
-			  OpenLCB_PiPCA9685${EXEEXT} Router${EXEEXT}
+			  OpenLCB_PiPCA9685${EXEEXT} Router${EXEEXT} \
+			  OfflineLCCNodeEditor{EXEEXT}
 
 pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		ConfigDialogs.tcl LCCNodeTree.tcl GenerateEventID.tcl \
@@ -165,7 +168,7 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
                 ADAFruitDC_AND_STEPPER.tcl Router.tcl \
                 LayoutControlDB.tcl LayoutControlDBDialogs.tcl \
                 LayoutControlDBTable.tcl JMRITable2LayoutDB.tcl \
-                LayoutDB2JMRITable.tcl \
+                LayoutDB2JMRITable.tcl OfflineLCCNodeEditor.tcl \
 		$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m \
@@ -1113,6 +1116,63 @@ LayoutDB2JMRITable${EXEEXT} : LayoutDB2JMRITable.tcl \
 #	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap LayoutControlDB -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
 #	-rm -rf LayoutControlDB.vfs
 
+OfflineLCCNodeEditorSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+			    $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
+                $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+                $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+                $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+		$(top_srcdir)/Scripts/Common/gettext.tcl \
+		$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+		$(top_srcdir)/Scripts/Common/mainwindow.tcl \
+		$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+		$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+		$(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
+                $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+                $(top_srcdir)/Scripts/Common/snitrotext.tcl \
+                $(top_srcdir)/Scripts/Common/ParseXML.tcl \
+                $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
+                $(top_srcdir)/Scripts/LCC/ConfigurationEditor.tcl \
+                $(top_srcdir)/Scripts/LCC/lcc.tcl \
+                $(top_srcdir)/Scripts/LCC/LayoutControlDB.tcl \
+		$(top_srcdir)/Scripts/LCC/LayoutControlDBDialogs.tcl \
+		$(top_srcdir)/Scripts/LCC/LayoutControlDBTable.tcl \
+                $(top_builddir)/Scripts/Common/Version.tcl \
+		$(top_srcdir)/Scripts/Common/questhead.xbm \
+		$(top_srcdir)/Scripts/Common/unknown.xpm
+		
+
+OfflineLCCNodeEditor${EXEEXT} : OfflineLCCNodeEditor.tcl \
+				$(OfflineLCCNodeEditorSCRIPTS) \
+				$(top_builddir)/Doc/User/OpenLCB/index.html \
+				$(top_builddir)/po/OpenLCB/msgfiles
+	-rm -f  OfflineLCCNodeEditor.kit
+	-rm -rf OfflineLCCNodeEditor.vfs
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OfflineLCCNodeEditor.tcl
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap OfflineLCCNodeEditor.kit
+	-rm -f  OfflineLCCNodeEditor.kit
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OfflineLCCNodeEditor \
+		lib $(SNITLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OfflineLCCNodeEditor \
+		lib $(URILIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OfflineLCCNodeEditor \
+		lib $(STRUCTLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OfflineLCCNodeEditor \
+		lib $(CSVLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OfflineLCCNodeEditor \
+		lib/Common $(OfflineLCCNodeEditorSCRIPTS)
+	$(UNZIP) -qq -d OfflineLCCNodeEditor.vfs/lib \
+		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OfflineLCCNodeEditor \
+		Common
+	$(UNZIP) -qq -d OfflineLCCNodeEditor.vfs/lib \
+		$(top_srcdir)/BuildData/pdf4tcl05.zip
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OfflineLCCNodeEditor \
+		Help $(top_builddir)/Doc/User/OpenLCB/*
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OfflineLCCNodeEditor \
+		Messages $(top_builddir)/po/OpenLCB/*.msg
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OfflineLCCNodeEditor -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
+	-rm -rf OfflineLCCNodeEditor.vfs
+
 $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
 
@@ -1141,7 +1201,8 @@ man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
 	OpenLCB_PiGPIO.tcl OpenLCB_TrackCircuits.tcl OpenLCB_Logic.tcl \
 	OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
 	OpenLCB_PiMCP23017_signal.tcl OpenLCB_CMRI.tcl OpenLCB_QuadSignal.tcl \
-	Router.tcl JMRITable2LayoutDB.tcl LayoutDB2JMRITable.tcl
+	Router.tcl JMRITable2LayoutDB.tcl LayoutDB2JMRITable.tcl \
+	OfflineLCCNodeEditor.tcl
 	-rm -rf man1
 	$(DOXYGEN) Doxyfile
 	

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <220810.1240>
+#  Last Modified : <230224.1523>
 #
 #  Description	
 #
@@ -416,6 +416,10 @@ namespace eval lcc {
         # methods and have an @c -datagramhandler option.
         # @arg -displayonly A flag indicating that the CDI is just to be
         # displayed.  The default is false.
+        # @arg -offlineedit A flag indicating that the this is an offline 
+        # editor. The default is false.
+        # @arg -loadfile The backup config filename to load from. Only checked
+        # if -offlineedit is true.  Default is an empty string.
         # @arg -debugprint A function to handle debug output.
         # @arg -class Delegated to the toplevel.
         # @arg -menu  Delegated to the toplevel
@@ -461,6 +465,8 @@ namespace eval lcc {
         option -nid -readonly yes -type lcc::nid -default "05:01:01:01:22:00"
         option -transport -readonly yes -default {}
         option -displayonly -readonly yes -type snit::boolean -default false
+        option -offlineedit -readonly yes -type snit::boolean -default false
+        option -loadfile -readonly yes -default {}
         option -debugprint -readonly yes -default {}
         #option -height -type {snit::pixels -min 100}
         delegate option -height to editframe
@@ -521,6 +527,10 @@ namespace eval lcc {
             # methods and have an @c -datagramhandler option.
             # @arg -displayonly A flag indicating that the CDI is just to be
             # displayed.  The default is false.
+            # @arg -offlineedit A flag indicating that the this is an offline 
+            # editor. The default is false.
+            # @arg -loadfile The backup config filename to load from. Only checked
+            # if -offlineedit is true.  Default is an empty string.
             # @arg -debugprint A function to handle debug output.
             # @arg -class Delegated to the toplevel.
             # @arg -menu  Delegated to the toplevel
@@ -534,7 +544,8 @@ namespace eval lcc {
                 error [_ "The -cdi option is required!"]
             }
             set options(-displayonly) [from args -displayonly]
-            if {!$options(-displayonly)} {
+            set options(-offlineedit) [from args -offlineedit]
+            if {!$options(-displayonly) && !$options(-offlineedit)} {
                 if {[lsearch $args -nid] < 0} {
                     error [_ "The -nid option is required!"]
                 }
@@ -566,6 +577,9 @@ namespace eval lcc {
             wm title $win [_ "CDI Configuration Tool for Node ID %s" [$self cget -nid]]
             set address 0
             [$main getmenu edit] configure -postcommand [mymethod edit_checksel]
+            if {$options(-offlineedit)} {
+                [$main getmenu edit] insert 0 command -command [mymethod _saveas] -label [_m "Menu|File|Save As..."]
+            }
             $self putdebug "*** $type create $self: configured -postcommand to edit menu"
             $self putdebug "*** $type create $self: initialized Layout Control DB"
             $self _processXMLnode $cdi [$editframe getframe] -1 address
@@ -601,14 +615,22 @@ namespace eval lcc {
             install newControl using \
                   lcc::NewControlDialog $win.newControl -parent $win -nameonly yes
             $self putdebug "*** $type create $self: _readall names: [array names _readall]"
-            if {!$options(-displayonly)} {
-                #foreach s [array names _readall] {
-                #    $self _readall $s
-                #}
+            if {!$options(-displayonly) && !$options(-offlineedit)} {
+                foreach s [array names _readall] {
+                    $self _readall $s
+                }
                 EventSearch RecomputeAllSearchTexts
                 $self putdebug "*** $type create $self: _readall completed"
             }
+            if {$options(-offlineedit) && $options(-loadfile) ne ""} {
+                $self _loadfile $options(-loadfile)
+                EventSearch RecomputeAllSearchTexts
+            }
             
+        }
+        method _loadfile {filename} {
+        }
+        method _saveas {} {
         }
         component layoutcontrolsLF
         component   layoutcontrolsNB
@@ -629,7 +651,7 @@ namespace eval lcc {
             }
         }
         method _rereadAll {} {
-            if {!$options(-displayonly)} {
+            if {!$options(-displayonly) && !$options(-offlineedit)} {
                 foreach s [array names _readall] {
                     $self _readall $s
                 }
@@ -1521,11 +1543,11 @@ namespace eval lcc {
                                  -text [_m "Label|Read All"] \
                                  -command [mymethod _readall $space]]
                     pack $readall -fill x -anchor center
-                    if {$options(-displayonly)} {
+                    if {$options(-displayonly) || $options(-offlineedit)} {
                         $readall configure -state disabled
                     }
                     ## Print/Export the entire segment?
-                    if {!$options(-displayonly)} {
+                    if {!$options(-displayonly) && !$options(-offlineedit)} {
                         set printexport [ttk::button $segmentframe.printexport \
                                          -text [_m "Label|Print or Export Segment"] \
                                          -command [mymethod _printexport $n $segmentframe [format "Segment: 0x%02x" $space]]]
@@ -1647,7 +1669,7 @@ namespace eval lcc {
                             set _groupnumber $savedgn
                             ## Print/Export this replication?
                             set text [format [format [_m "Label|Print or Export %s"] $repnamefmt] $i]
-                            if {!$options(-displayonly)} {
+                            if {!$options(-displayonly) && !$options(-offlineedit)} {
                                 set printexport [ttk::button $replframe.printexport \
                                                  -text $text \
                                                  -command [mymethod _printexport $n $replframe [format $repnamefmt $i]]]
@@ -1696,7 +1718,7 @@ namespace eval lcc {
                     }
                     ## Print/Export this group?
                     set text [format [_m "Label|Print or Export Group %s"] $name]
-                    if {!$options(-displayonly)} {
+                    if {!$options(-displayonly) && !$options(-offlineedit)} {
                         set printexport [ttk::button $groupframe.printexport \
                                          -text $text \
                                          -command [mymethod _printexport $n $groupframe [_ "Group %s" $name]]]
@@ -1801,7 +1823,7 @@ namespace eval lcc {
                     lappend _readall($space) $rb
                     $readwrite add ttk::button write -text [_m "Label|Write"] \
                           -command [mymethod $writermethod $widget $space $address $size $min $max]
-                    if {$options(-displayonly)} {
+                    if {$options(-displayonly) || $options(-offlineedit)} {
                         $readwrite configure -state disabled
                     } else {
                         $rb invoke
@@ -1877,7 +1899,7 @@ namespace eval lcc {
                     lappend _readall($space) $rb
                     $readwrite add ttk::button write -text [_m "Label|Write"] \
                           -command [mymethod $writermethod $widget $space $address $size]
-                    if {$options(-displayonly)} {
+                    if {$options(-displayonly) || $options(-offlineedit)} {
                         $readwrite configure -state disabled
                     } else {
                         $rb invoke
@@ -1960,7 +1982,7 @@ namespace eval lcc {
                           -command [mymethod _pasteevent $widget $readwrite.paste]
                     $readwrite add ::lcc::EventSearch search \
                           -eventwidget $widget
-                    if {$options(-displayonly)} {
+                    if {$options(-displayonly) || $options(-offlineedit)} {
                         $readwrite configure -state disabled
                     } else {
                         $rb invoke

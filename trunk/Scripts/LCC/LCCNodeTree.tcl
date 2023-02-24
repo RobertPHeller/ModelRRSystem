@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Sep 19 09:18:09 2016
-#  Last Modified : <210523.0848>
+#  Last Modified : <220814.1549>
 #
 #  Description	
 #
@@ -280,7 +280,7 @@ snit::widgetadaptor LCCNodeTree {
     method _insertSimpleNodeInfo {nid infopayload} {
         ## @privatesection Insert the SimpleNodeInfo for nid into the tree view.
 
-        putdebug "*** $self _insertSimpleNodeInfo $nid $infopayload"
+        #putdebug "*** $self _insertSimpleNodeInfo $nid $infopayload"
         $hull insert $nid end -id ${nid}_simplenodeinfo \
               -text {Simple Node Info} \
               -open no
@@ -297,7 +297,7 @@ snit::widgetadaptor LCCNodeTree {
             set s ""
             while {[lindex $infopayload $i] != 0} {
                 set c [lindex $infopayload $i]
-                putdebug "*** $self _insertSimpleNodeInfo: strings1: i = $i, c = '$c'"
+                #putdebug "*** $self _insertSimpleNodeInfo: strings1: i = $i, c = '$c'"
                 if {$c eq ""} {break}
                 append s [format %c $c]
                 incr i
@@ -321,7 +321,7 @@ snit::widgetadaptor LCCNodeTree {
             set s ""
             while {[lindex $infopayload $i] != 0} {
                 set c [lindex $infopayload $i]
-                putdebug "*** $self _insertSimpleNodeInfo: strings2: i = $i, c = '$c'"
+                #putdebug "*** $self _insertSimpleNodeInfo: strings2: i = $i, c = '$c'"
                 if {$c eq ""} {break}
                 append s [format %c $c]
                 incr i
@@ -337,7 +337,7 @@ snit::widgetadaptor LCCNodeTree {
             }
             incr i
         }
-        putdebug "*** $self _insertSimpleNodeInfo: done"
+        #putdebug "*** $self _insertSimpleNodeInfo: done"
     }
     method _insertSupportedProtocols {nid report} {
         #* Insert Supported Protocols if node into tree view.
