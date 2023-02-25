@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <230225.1526>
+#  Last Modified : <230225.1655>
 #
 #  Description	
 #
@@ -2184,8 +2184,11 @@ namespace eval lcc {
                     lappend _readall($space) $rb
                     $readwrite add ttk::button write -text [_m "Label|Write"] \
                           -command [mymethod $writermethod $widget $space $address $size $min $max]
-                    if {$options(-displayonly) || $options(-offlineedit)} {
+                    if {$options(-displayonly)} {
                         $readwrite configure -state disabled
+                    } elseif {$options(-offlineedit)} {
+                        $readwrite itemconfigure read -state disabled
+                        $readwrite itemconfigure write -state disabled
                     } else {
                         $rb invoke
                     }
@@ -2260,8 +2263,11 @@ namespace eval lcc {
                     lappend _readall($space) $rb
                     $readwrite add ttk::button write -text [_m "Label|Write"] \
                           -command [mymethod $writermethod $widget $space $address $size]
-                    if {$options(-displayonly) || $options(-offlineedit)} {
+                    if {$options(-displayonly)} {
                         $readwrite configure -state disabled
+                    } elseif {$options(-offlineedit)} {
+                        $readwrite itemconfigure read -state disabled
+                        $readwrite itemconfigure write -state disabled
                     } else {
                         $rb invoke
                     }
@@ -2343,8 +2349,11 @@ namespace eval lcc {
                           -command [mymethod _pasteevent $widget $readwrite.paste]
                     $readwrite add ::lcc::EventSearch search \
                           -eventwidget $widget
-                    if {$options(-displayonly) || $options(-offlineedit)} {
+                    if {$options(-displayonly)} {
                         $readwrite configure -state disabled
+                    } elseif {$options(-offlineedit)} {
+                        $readwrite  itemconfigure read -state disabled
+                        $readwrite  itemconfigure write -state disabled
                     } else {
                         $rb invoke
                     }
