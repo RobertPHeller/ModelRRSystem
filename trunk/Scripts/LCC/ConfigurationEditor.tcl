@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <230225.1355>
+#  Last Modified : <230225.1526>
 #
 #  Description	
 #
@@ -754,7 +754,20 @@ namespace eval lcc {
                               -message [_ "Sync error at %s, expected %s.%s" $path $prefix $name]
                         return -1
                     }
-                    $frame.value set $value
+                    #puts stderr "*** $self _loadNode: class of $frame.value is [winfo class $frame.value]"
+                    switch [winfo class $frame.value] {
+                        TCombobox {
+                            upvar #0 $frame.value_VM valuemap
+                            foreach v [array names valuemap] {
+                                if {$valuemap($v) == $value} {
+                                    $frame.value set $v
+                                }
+                            }
+                        }
+                        TSpinbox {
+                            $frame.value set $value
+                        }
+                    }
                     return 1
                 }
                 string {
@@ -798,17 +811,187 @@ namespace eval lcc {
                         return -1
                     }
                     #puts stderr "*** $self _loadNode (eventid): class of $frame.value is [winfo class $frame.value]"
-                    if {[winfo class $frame.value] eq "TEntry"} {
-                        $frame.value delete 0 end
-                        $frame.value insert end $value
-                    } else {
+                    switch [winfo class $frame.value] {
+                        TCombobox {
+                            upvar #0 $frame.value_VM valuemap
+                            foreach v [array names valuemap] {
+                                if {$valuemap($v) == $value} {
+                                    $frame.value set $v
+                                }
+                            }
+                        }
+                        TEntry {
+                            $frame.value delete 0 end
+                            $frame.value insert end $value
+                        }
                     }
                     return 1
                 }
             }
         }
         method _saveas {} {
+            set defaultfilename $options(-loadfile)
+            set filename [tk_getSaveFile -defaultextension .txt \
+                          -filetypes {{{Config Files} {.txt} TEXT}
+                          {{All Files} *     TEXT}
+                      } -parent [winfo toplevel $win] \
+                            -title "Config file to save" \
+                            -initialfile $defaultfilename]
+            if {$filename eq ""} {return}
+            if {[catch {open $filename w} fp]} {
+                tk_messageBox -default ok \
+                      -detail $fp \
+                      -icon error \
+                      -message [_ "Could not open %s" $filename] \
+                      -parent [winfo toplevel $win] \
+                      -title "Open file error" \
+                      -type ok
+                return
+            }
+            set _segmentnumber 0
+            $self _saveNode \
+                  [lindex [$options(-cdi) getElementsByTagName cdi -depth 1] 0] \
+                  [$editframe getframe] $fp 
+            close $fp
+            wm title $win [_ "CDI Configuration Tool for config file %s" $filename]
+            set options(-loadfile) $filename
         }
+        method _saveNode {n frame fp {prefix {}}} {
+            #puts "*** $self _saveNode [$n cget -tag] $frame $fp $prefix"
+            #puts "*** $self _saveNode: children of $frame: [winfo children $frame]"
+            switch [$n cget -tag] {
+                cdi {
+                    foreach seg [$n getElementsByTagName segment -depth 1] \
+                          tab [$frame.segments tabs] {
+                        $self _saveNode $seg $tab $fp
+                    }
+                }
+                identification -
+                acdi {
+                }
+                segment {
+                    incr _segmentnumber
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name [format "seg%d" $_segmentnumber]
+                    }
+                    set prefix $name
+                    set groupnotebook {}
+                    set windex -1
+                    #puts stderr "*** $self _saveNode (segment) [llength [$n children]] tag children, [llength [winfo children $frame]] frame children"
+                    foreach c [$n children] {
+                        set tag [$c cget -tag]
+                        if {[lsearch {name description} $tag] >= 0} {continue}
+                        if {[$c cget -tag] eq "group"} {
+                            if {$groupnotebook eq {}} {
+                                set groupnotebook $frame.groups
+                                set gindex -1
+                            }
+                            incr gindex
+                            if {[$self _saveNode $c [lindex [$groupnotebook tabs] $gindex] $fp $prefix] < 0} {return -1}
+                        } else {
+                            incr windex
+                            if {[$self _saveNode $c [lindex [winfo children $frame] $windex] $fp $prefix] < 0} {return -1}
+                        }
+                    }
+                    return 1
+                }
+                group {
+                    set replication [$n attribute replication]
+                    if {$replication eq {}} {set replication 1}
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
+                    set repnamefmt [format ".%s(%%d)" $name]
+                    if {$replication > 1} {
+                        set frame $frame.replnotebook
+                        #puts stderr "*** $self _saveNode (group/replication) frame = $frame"
+                        #puts stderr "*** $self _saveNode (group/replication) children of $frame are [winfo children $frame]"
+                        #puts stderr "*** $self _saveNode (group/replication) tabs of $frame are [$frame tabs]"
+                        for {set i 0} {$i < $replication} {incr i} {
+                            set gframe [lindex [$frame tabs] $i]
+                            #puts stderr "*** $self _saveNode (group/replication) gframe = $gframe"
+                            #puts stderr "*** $self _saveNode (group/replication) [llength [$n children]] tag children, [llength [winfo children $gframe]] gframe children"
+                            set windex -1
+                            foreach c [$n children] {
+                                set tag [$c cget -tag]
+                                if {[lsearch {name description repname} $tag] >= 0} {continue}
+                                incr windex
+                                if {[$self _saveNode $c [lindex [winfo children $gframe] $windex] $fp "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
+                            }
+                        }
+                    } else {
+                        set gframe $frame
+                        #puts stderr "*** $self _saveNode (group) gframe = $gframe"
+                        #puts stderr "*** $self _saveNode (group) [llength [$n children]] tag children, [llength [winfo children $gframe]] gframe children"
+                        set windex -1
+                        foreach c [$n children] {
+                            set tag [$c cget -tag]
+                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            incr windex
+                            if {[$self _saveNode $c [lindex [winfo children $gframe] $windex] $fp "${prefix}.$name"] < 0} {return -1}
+                        }
+                    }
+                    return 1
+                }
+                int {
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
+                    switch [winfo class $frame.value] {
+                        TCombobox {
+                            upvar #0 $frame.value_VM valuemap
+                            set value $valuemap([$frame.value get])
+                        }
+                        TSpinbox {
+                            set value [$frame.value get]
+                        }
+                    }
+                    puts $fp [format {%s.%s=%d} $prefix $name $value]
+                    return 1
+                }
+                string {
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
+                    set value [$frame.value get]
+                    puts $fp [format {%s.%s=%s} $prefix $name $value]
+                    return 1
+                }
+                eventid {
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
+                    switch [winfo class $frame.value] {
+                        TCombobox {
+                            upvar #0 $frame.value_VM valuemap
+                            set value $valuemap([$frame.value get])
+                            $evid destroy
+                        }
+                        TEntry {
+                            set value [$frame.value get]
+                        }
+                    }
+                    puts $fp [format {%s.%s=%s} $prefix $name $value]
+                    return 1
+                }
+            }
+        }
+            
         component layoutcontrolsLF
         component   layoutcontrolsNB
         component     addturnoutW
