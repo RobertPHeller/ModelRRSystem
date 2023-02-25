@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <230224.1847>
+#  Last Modified : <230225.1355>
 #
 #  Description	
 #
@@ -559,7 +559,7 @@ namespace eval lcc {
             if {[llength $cdis] != 1} {
                 error [_ "There is no CDI container in %s" $options(-cdi)]
             }
-            set cdi [lindex $cdis]
+            set cdi [lindex $cdis 0]
             $self putdebug "*** $type create $self: win = $win, about to wm protocol $win WM_DELETE_WINDOW ..."
             wm protocol $win WM_DELETE_WINDOW [mymethod _close]
             install main using MainFrame $win.main -menu [subst $_menu] \
@@ -635,7 +635,177 @@ namespace eval lcc {
             
         }
         method _loadfile {filename} {
+            if {[catch {open $filename r} fp]} {
+                tk_messageBox -default ok \
+                      -detail $fp \
+                      -icon error \
+                      -message [_ "Could not open %s" $filename] \
+                      -parent [winfo toplevel $win] \
+                      -title "Open file error" \
+                      -type ok
+                return
+            }
             wm title $win [_ "CDI Configuration Tool for config file %s" $filename]
+            set _segmentnumber 0
+            $self _loadNode \
+                  [lindex [$options(-cdi) getElementsByTagName cdi -depth 1] 0] \
+                  [$editframe getframe] $fp 
+            close $fp
+        }
+        method _loadNode {n frame fp {prefix {}}} {
+            
+            #puts "*** $self _loadNode [$n cget -tag] $frame $fp $prefix"
+            #puts "*** $self _loadNode: children of $frame: [winfo children $frame]"
+            switch [$n cget -tag] {
+                cdi {
+                    foreach seg [$n getElementsByTagName segment -depth 1] \
+                          tab [$frame.segments tabs] {
+                        $self _loadNode $seg $tab $fp
+                    }
+                }
+                identification -
+                acdi {
+                }
+                segment {
+                    incr _segmentnumber
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name [format "seg%d" $_segmentnumber]
+                    }
+                    set prefix $name
+                    set groupnotebook {}
+                    set windex -1
+                    #puts stderr "*** $self _loadNode (segment) [llength [$n children]] tag children, [llength [winfo children $frame]] frame children"
+                    foreach c [$n children] {
+                        set tag [$c cget -tag]
+                        if {[lsearch {name description} $tag] >= 0} {continue}
+                        if {[$c cget -tag] eq "group"} {
+                            if {$groupnotebook eq {}} {
+                                set groupnotebook $frame.groups
+                                set gindex -1
+                            }
+                            incr gindex
+                            if {[$self _loadNode $c [lindex [$groupnotebook tabs] $gindex] $fp $prefix] < 0} {return -1}
+                        } else {
+                            incr windex
+                            if {[$self _loadNode $c [lindex [winfo children $frame] $windex] $fp $prefix] < 0} {return -1}
+                        }
+                    }
+                    return 1
+                }
+                group {
+                    set replication [$n attribute replication]
+                    if {$replication eq {}} {set replication 1}
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
+                    set repnamefmt [format ".%s(%%d)" $name]
+                    if {$replication > 1} {
+                        set frame $frame.replnotebook
+                        #puts stderr "*** $self _loadNode (group/replication) frame = $frame"
+                        #puts stderr "*** $self _loadNode (group/replication) children of $frame are [winfo children $frame]"
+                        #puts stderr "*** $self _loadNode (group/replication) tabs of $frame are [$frame tabs]"
+                        for {set i 0} {$i < $replication} {incr i} {
+                            set gframe [lindex [$frame tabs] $i]
+                            #puts stderr "*** $self _loadNode (group/replication) gframe = $gframe"
+                            #puts stderr "*** $self _loadNode (group/replication) [llength [$n children]] tag children, [llength [winfo children $gframe]] gframe children"
+                            set windex -1
+                            foreach c [$n children] {
+                                set tag [$c cget -tag]
+                                if {[lsearch {name description repname} $tag] >= 0} {continue}
+                                incr windex
+                                if {[$self _loadNode $c [lindex [winfo children $gframe] $windex] $fp "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
+                            }
+                        }
+                    } else {
+                        set gframe $frame
+                        #puts stderr "*** $self _loadNode (group) gframe = $gframe"
+                        #puts stderr "*** $self _loadNode (group) [llength [$n children]] tag children, [llength [winfo children $gframe]] gframe children"
+                        set windex -1
+                        foreach c [$n children] {
+                            set tag [$c cget -tag]
+                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            incr windex
+                            if {[$self _loadNode $c [lindex [winfo children $gframe] $windex] $fp "${prefix}.$name"] < 0} {return -1}
+                        }
+                    }
+                    return 1
+                }
+                int {
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
+                    if {[gets $fp line] < 0} {
+                        tk_messageBox -icon error \
+                              -message [_ "Short file!"]
+                        return -1
+                    }
+                    lassign [split $line =] path value
+                    if {$path ne [format {%s.%s} $prefix $name]} {
+                        tk_messageBox -icon error \
+                              -message [_ "Sync error at %s, expected %s.%s" $path $prefix $name]
+                        return -1
+                    }
+                    $frame.value set $value
+                    return 1
+                }
+                string {
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
+                    if {[gets $fp line] < 0} {
+                        tk_messageBox -icon error \
+                              -message [_ "Short file!"]
+                        return -1
+                    }
+                    lassign [split $line =] path value
+                    if {$path ne [format {%s.%s} $prefix $name]} {
+                        tk_messageBox -icon error \
+                              -message [_ "Sync error at %s, expected %s.%s" $path $prefix $name]
+                        return -1
+                    }
+                    $frame.value delete 0 end
+                    $frame.value insert end $value
+                    return 1
+                }
+                eventid {
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
+                    if {[gets $fp line] < 0} {
+                        tk_messageBox -icon error \
+                              -message [_ "Short file!"]
+                        return -1
+                    }
+                    lassign [split $line =] path value
+                    if {$path ne [format {%s.%s} $prefix $name]} {
+                        tk_messageBox -icon error \
+                              -message [_ "Sync error at %s, expected %s.%s" $path $prefix $name]
+                        return -1
+                    }
+                    #puts stderr "*** $self _loadNode (eventid): class of $frame.value is [winfo class $frame.value]"
+                    if {[winfo class $frame.value] eq "TEntry"} {
+                        $frame.value delete 0 end
+                        $frame.value insert end $value
+                    } else {
+                    }
+                    return 1
+                }
+            }
         }
         method _saveas {} {
         }
@@ -1318,6 +1488,7 @@ namespace eval lcc {
                       -type ok
                 return
             }
+            set _segmentnumber 0
             $self _restoreNode  \
                   [lindex [[$self cget -cdi] getElementsByTagName \
                            cdi -depth 1]] \
