@@ -796,7 +796,8 @@ INPUT                  = @srcdir@/OpenLCB.tcl \
                          @srcdir@/OpenLCB_QuadSignal.tcl \
                          @srcdir@/Router.tcl \
                          @srcdir@/JMRITable2LayoutDB.tcl \
-                         @srcdir@/LayoutDB2JMRITable.tcl
+                         @srcdir@/LayoutDB2JMRITable.tcl \
+                         @srcdir@/OfflineLCCNodeEditor.tcl
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses

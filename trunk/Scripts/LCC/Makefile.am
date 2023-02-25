@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <230224.1339>
+#  Last Modified : <230225.1530>
 #
 #  Description	
 #
@@ -1194,7 +1194,7 @@ man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
 	man1/OpenLCB_PiMCP23008.1 man1/OpenLCB_PiMCP23017.1 \
 	man1/OpenLCB_PiSPIMax7221.1 man1/OpenLCB_PiMCP23017_signal.1 \
 	man1/OpenLCB_QuadSignal.1 \
-	man1/OpenLCB_CMRI.1 \
+	man1/OpenLCB_CMRI.1 man1/OfflineLCCNodeEditor.1 \
 	man1/OpenLCB_TrackCircuits.1 man1/OpenLCB_Logic.1 man1/Router.1 \
 	man1/JMRITable2LayoutDB.1 man1/LayoutDB2JMRITable.1: Doxyfile \
 	OpenLCB.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl OpenLCBGCTcpHub.tcl \

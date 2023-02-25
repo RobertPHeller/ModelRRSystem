@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 24 13:14:30 2023
-#  Last Modified : <230224.1841>
+#  Last Modified : <230225.1534>
 #
 #  Description	
 #
@@ -61,7 +61,7 @@
 # xmlfile - the CDI XML file for the type of node. Required, no default.
 # backupconfigfile - [optional] backup config file(s) to edit.
 #
-# @options OfflineLCCNodeEditorOPTIONS OPTIONS
+# @section OfflineLCCNodeEditorOPTIONS OPTIONS
 #
 # @subsection OfflineLCCNodeEditorx11resource X11 Resource Options
 #
@@ -76,7 +76,9 @@
 #
 # @subsection OfflineLCCNodeEditorother Other options
 #
-# none.
+# @arg -help Print a short help message and exit.
+# @arg -debug Turn on debug output.
+# @par
 #
 # @section AUTHOR
 # Robert Heller \<heller\@deepsoft.com\> 
