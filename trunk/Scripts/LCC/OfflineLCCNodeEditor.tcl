@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 24 13:14:30 2023
-#  Last Modified : <230226.1607>
+#  Last Modified : <230226.1658>
 #
 #  Description	
 #
@@ -410,22 +410,22 @@ snit::type OfflineLCCNodeEditor {
                    }
     }
     typemethod _editLayoutControlItem {what name args} {
-        puts stderr "*** _editLayoutControlItem $what $name $args"
+        puts stderr "*** _editLayoutControlItem '$what' '$name' '$args'"
         switch $what {
             block {
-                $editblockW Load $name -db $layoutcontroldb
+                $editblockW Load "$name" -db $layoutcontroldb
                 $layoutcontrolsNB select $editblockW
             }
             turnout {
-                $editturnoutW Load $name -db $layoutcontroldb
+                $editturnoutW Load "$name" -db $layoutcontroldb
                 $layoutcontrolsNB select $editturnoutW
             }
             sensor {
-                $editsensorW Load $name -db $layoutcontroldb
+                $editsensorW Load "$name" -db $layoutcontroldb
                 $layoutcontrolsNB select $editsensorW
             }
             control {
-                $editcontrolW Load $name -db $layoutcontroldb
+                $editcontrolW Load "$name" -db $layoutcontroldb
                 $layoutcontrolsNB select $editcontrolW
             }
         }

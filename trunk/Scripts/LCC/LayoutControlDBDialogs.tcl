@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jan 31 15:01:56 2019
-#  Last Modified : <210724.1026>
+#  Last Modified : <230226.1708>
 #
 #  Description	
 #
@@ -467,8 +467,11 @@ namespace eval lcc {
         }
         method Load {name args} {
             $self configurelist $args
+            #puts stderr "*** $self Load: name = '$name'"
+            #puts stderr "*** $self Load: -edit is [$self cget -edit]"
             if {![$self cget -edit]} {return}
             set result [[$self cget -db] getTurnout $name]
+            #puts stderr "*** $self Load: result is '$result'"
             if {$result eq {}} {return}
             set name_ $name
             set tag [$result getElementsByTagName motor -depth 1]

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jun 29 07:39:30 2021
-#  Last Modified : <210701.1603>
+#  Last Modified : <230226.1707>
 #
 #  Description	
 #
@@ -74,7 +74,10 @@ namespace eval lcc {
             if {$item ne {}} {
                 set name [$hull item $item -text]
                 if {[$self cget -itemeditor] ne {}} {
-                    uplevel #0 "[$self cget -itemeditor] $what $name -db [$self cget -db]"
+                    set cmd [$self cget -itemeditor]
+                    append cmd { }
+                    append cmd [list $what $name -db [$self cget -db]]
+                    uplevel #0 $cmd
                 }
             }
         }
