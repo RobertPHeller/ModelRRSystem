@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 24 13:14:30 2023
-#  Last Modified : <230226.1323>
+#  Last Modified : <230226.1607>
 #
 #  Description	
 #
@@ -103,7 +103,7 @@ package require ScrollTabNotebook
 package require LayoutControlDBDialogs
 package require LayoutControlDB
 package require LayoutControlDBTable
-
+package require ScrollableFrame
 global HelpDir
 set HelpDir [file join [file dirname [file dirname [file dirname \
 							[info script]]]] Help]
@@ -136,7 +136,6 @@ snit::type OfflineLCCNodeEditor {
     typecomponent newSignalDialog
     typecomponent newSensorDialog
     typecomponent newControlDialog
-    typecomponent layoutControlView
     typecomponent layoutControlTable
     typecomponent layoutControlsLF
     typecomponent   layoutcontrolsNB
@@ -179,11 +178,8 @@ snit::type OfflineLCCNodeEditor {
                   } -parent . -title "XML File to open"]
         if {"$filename" ne {}} {
             set layoutcontroldb [::lcc::LayoutControlDB olddb $filename]
-            if {$layoutControlView ne {}} {
-                $layoutControlTable configure -db $layoutcontroldb
-                $layoutControlTable Refresh
-            }
-            $nodetree configure -layoutdb $layoutcontroldb
+            $layoutControlTable configure -db $layoutcontroldb
+            $layoutControlTable Refresh
             foreach tl $CDIs_FormTLs {
                 if {[winfo exists $tl] && ![$tl cget -displayonly]} {
                     $tl configure -layoutdb $layoutcontroldb
@@ -275,7 +271,7 @@ snit::type OfflineLCCNodeEditor {
         set CDI [ParseXML %AUTO% [read $fp]]
         close $fp
         # Build main GUI window. 
-        set mainWindow [mainwindow .main -scrolling yes \
+        set mainWindow [mainwindow .main -scrolling no \
                         -height 480 -width 640]
         pack $mainWindow -expand yes -fill both
         $mainWindow menu entryconfigure file "Exit" -command [mytypemethod _carefulExit]
@@ -325,16 +321,60 @@ snit::type OfflineLCCNodeEditor {
         $mainWindow menu add help command \
               -label [_m "Menu|Help|Reference Manual"] \
               -command {HTMLHelp help "Offline LCC Node Editor Reference"}
-        $mainWindow menu add view command \
-             -label [_m "Menu|View|Display Layout Control DB"] \
-             -command [mytypemethod _ViewLayoutControlDB]
         # Hook in help files.
         HTMLHelp setDefaults "$::HelpDir" "index.html#offlineedit"
         
         set layoutcontroldb [::lcc::LayoutControlDB newdb]
-        set log [ROText [$mainWindow scrollwindow getframe].log \
-                 -height 24 -width 80]
-        $mainWindow scrollwindow setwidget $log
+        set topframe [ScrollableFrame \
+                      [$mainWindow scrollwindow getframe].topframe \
+                      -constrainedwidth yes -constrainedheight yes]
+        $mainWindow scrollwindow setwidget $topframe
+        set scrollw [ScrolledWindow $topframe.scrollw]
+        pack $scrollw -expand yes -fill both
+        set layoutControlTable [::lcc::LayoutControlDBTable \
+                                [$scrollw getframe].layoutControlTable \
+                                -itemeditor [mytypemethod _editLayoutControlItem]]
+        $scrollw setwidget $layoutControlTable
+        set layoutControlsLF [ttk::labelframe \
+                              $topframe.layoutControlsLF \
+                              -text [_m "Label|Layout Controls"]]
+        pack $layoutControlsLF -fill x
+        set layoutcontrolsNB [ScrollTabNotebook \
+                              $layoutControlsLF.layoutcontrolsNB]
+        pack $layoutcontrolsNB -fill both -expand yes
+        set editturnoutW [::lcc::NewTurnoutWidget \
+                          $layoutcontrolsNB.editturnoutW \
+                          -edit true]
+        $layoutcontrolsNB add $editturnoutW -text [_m "Label|Turnout"]
+        set editblockW [::lcc::NewBlockWidget \
+                        $layoutcontrolsNB.editblockW \
+                        -edit true]
+        $layoutcontrolsNB add $editblockW -text [_m "Label|Block"]
+        set editsensorW [::lcc::NewSensorWidget \
+                         $layoutcontrolsNB.editsensorW \
+                         -edit true]
+        $layoutcontrolsNB add $editsensorW -text [_m "Label|Sensor"]
+        set editcontrolW [::lcc::NewControlWidget \
+                          $layoutcontrolsNB.editcontrolW \
+                          -edit true]
+        $layoutcontrolsNB add $editcontrolW -text [_m "Label|Control"]
+        #set editturnoutW [::lcc::NewTurnoutWidget \
+        #                  $layoutcontrolsNB.editturnoutW \
+        #                  -edit true]
+        #$layoutcontrolsNB add $editturnoutW -text [_m "Label|Turnout"]
+        set buttons [ButtonBox $topframe.buttons \
+                     -orient horizontal]
+        pack $buttons -fill x
+        $buttons add ttk::button refresh \
+              -text [_m "Label|Refresh"] \
+              -command [mytypemethod _reloadLayoutControlTable]
+        $buttons add ttk::button close \
+              -text [_m "Label|Close Window"] \
+              -command [list wm withdraw  .layoutControlView]
+        
+        $layoutControlTable configure -db $layoutcontroldb
+        $layoutControlTable Refresh
+        
         foreach f [lrange $::argv 1 end] {
             lappend CDIs_FormTLs \
                   [lcc::ConfigurationEditor \
@@ -370,7 +410,7 @@ snit::type OfflineLCCNodeEditor {
                    }
     }
     typemethod _editLayoutControlItem {what name args} {
-        #puts stderr "*** _editLayoutControlItem $what $name $args"
+        puts stderr "*** _editLayoutControlItem $what $name $args"
         switch $what {
             block {
                 $editblockW Load $name -db $layoutcontroldb
@@ -447,9 +487,7 @@ snit::type OfflineLCCNodeEditor {
         wm deiconify $layoutControlView
     }
     typemethod _reloadLayoutControlTable {} {
-        wm withdraw  $layoutControlView
         $layoutControlTable Refresh
-        wm deiconify $layoutControlView
     }
 }
 
