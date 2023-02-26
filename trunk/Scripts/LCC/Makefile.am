@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <230225.1530>
+#  Last Modified : <230226.1329>
 #
 #  Description	
 #
@@ -1138,7 +1138,12 @@ OfflineLCCNodeEditorSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
 		$(top_srcdir)/Scripts/LCC/LayoutControlDBTable.tcl \
                 $(top_builddir)/Scripts/Common/Version.tcl \
 		$(top_srcdir)/Scripts/Common/questhead.xbm \
-		$(top_srcdir)/Scripts/Common/unknown.xpm
+		$(top_srcdir)/Scripts/Common/unknown.xpm \
+		$(top_srcdir)/Scripts/LCC/Block.xpm \
+		$(top_srcdir)/Scripts/LCC/Control.xpm \
+		$(top_srcdir)/Scripts/LCC/Sensor.xpm \
+		$(top_srcdir)/Scripts/LCC/Signal.xpm \
+		$(top_srcdir)/Scripts/LCC/SwitchMotor.xpm
 		
 
 OfflineLCCNodeEditor${EXEEXT} : OfflineLCCNodeEditor.tcl \

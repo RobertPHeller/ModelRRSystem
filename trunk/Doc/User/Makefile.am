@@ -81,7 +81,8 @@ USERMAN_UNIVERSALTEST_FIGS = UTMain.png UTNewCard.png UTOutputTest.png \
 DOXYFILES += Doxyfile.$(UNIVERSALTEST).in
 
 USERMAN_OPENLCB_PART = OpenLCBReference.h OpenLCBDaemons.h
-OPENLCB_HS = OpenLCB.h OpenLCBReference.h OpenLCBDaemons.h
+OPENLCB_HS = OpenLCB.h OpenLCBReference.h OpenLCBDaemons.h \
+		OfflineLCCNodeEditor.h
 OPENLCB = OpenLCB
 OPENLCBHBase = OpenLCB
 OPENLCB_HTML = $(OPENLCBHBase)/index.html
@@ -355,6 +356,7 @@ $(USERMAN_HTML) $(USERMAN_PDF) : $(USERMAN_HS) $(USERMAN_FIGS) $(BIBLIO) \
 	../../Scripts/LCC/OpenLCB_CMRI.tcl \
 	../../Scripts/LCC/JMRITable2LayoutDB.tcl \
 	../../Scripts/LCC/LayoutDB2JMRITable.tcl \
+	../../Scripts/LCC/OfflineLCCNodeEditor.tcl \
 	../doxygen/tcldoxyfilter.sh
 	-rm -rf $(USERMANHBase)/
 	-rm -rf latex

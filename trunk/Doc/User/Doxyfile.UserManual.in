@@ -615,6 +615,7 @@ INPUT                  = @srcdir@/Preface.h \
                          @srcdir@/UniversalTestReference.h \
                          @srcdir@/OpenLCBReference.h \
                          @srcdir@/OpenLCBDaemons.h \
+                         @srcdir@/OfflineLCCNodeEditor.h \
                          @srcdir@/AzatraxProgReference.h \
                          @srcdir@/XPressNetThrottleReference.h \
                          @srcdir@/GenericThrottleReference.h \
@@ -643,6 +644,7 @@ INPUT                  = @srcdir@/Preface.h \
                          @top_srcdir@/Scripts/LCC/OpenLCB_CMRI.tcl \
                          @top_srcdir@/Scripts/LCC/JMRITable2LayoutDB.tcl \
                          @top_srcdir@/Scripts/LCC/LayoutDB2JMRITable.tcl \
+                         @top_srcdir@/Scripts/LCC/OfflineLCCNodeEditor.tcl \
                          @srcdir@/Help.h \
                          @builddir@/UserManual_Version.h @srcdir@/COPYING.h
 

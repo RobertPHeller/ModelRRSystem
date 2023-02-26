@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Mar 11 14:43:58 2016
-//  Last Modified : <170515.1000>
+//  Last Modified : <230226.1308>
 //
 //  Description	
 //
@@ -78,6 +78,15 @@
  * <li><a class="el" href="openlcbdaemons.html#Acela">EventExchange node for a CTI Acela network</a></li>
  * </ol></li><!-- Virtual Nodes -->
  * </ol></li><!-- OpenLCB Daemons -->
+ * <a class="anchor" id="offlineedit"></a>
+ * <li><a class="el" href="openlcbofflineeditor.html">Offline LCC Node Editor Reference</a><ol type="1">
+ * <li><a class="el" href="openlcbofflineeditor.html#cliparsopts">Command Line Parameter and Options</a><ol type="1">
+ * <li><a class="el" href="openlcbofflineeditor.html#offopts">Command Line Options</a></li>
+ * <li><a class="el" href="openlcbofflineeditor.html#offpars">Command Line Parameters</a></li>
+ * </ol></li><!-- Command Line Parameters and Options -->
+ * <li><a class="el" href="openlcbofflineeditor.html#mainguioffline">Main GUI Elements</a><ol type="1">
+ * </ol></li><!-- Main GUI Elements -->
+ * </ol></li><!-- Offline LCC Node Editor Reference -->
  * <li><a class="el" href="help.html">Help</a></li>
  * <li><a class="el" href="Version.html">Version</a></li>
  * <li><a class="el" href="Copying.html">Copying</a><ol type="a">

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 24 13:14:30 2023
-#  Last Modified : <230225.1534>
+#  Last Modified : <230226.1323>
 #
 #  Description	
 #
@@ -129,6 +129,7 @@ snit::type OfflineLCCNodeEditor {
     
     typevariable _debug no;# Debug flag
     
+    typevariable CDIs_FormTLs [list]
     typecomponent layoutcontroldb
     typecomponent newTurnoutDialog
     typecomponent newBlockDialog
@@ -183,8 +184,7 @@ snit::type OfflineLCCNodeEditor {
                 $layoutControlTable Refresh
             }
             $nodetree configure -layoutdb $layoutcontroldb
-            foreach cdiform [array names CDIs_FormTLs] {
-                set tl $CDIs_FormTLs($cdiform)
+            foreach tl $CDIs_FormTLs {
                 if {[winfo exists $tl] && ![$tl cget -displayonly]} {
                     $tl configure -layoutdb $layoutcontroldb
                 }
@@ -325,21 +325,25 @@ snit::type OfflineLCCNodeEditor {
         $mainWindow menu add help command \
               -label [_m "Menu|Help|Reference Manual"] \
               -command {HTMLHelp help "Offline LCC Node Editor Reference"}
+        $mainWindow menu add view command \
+             -label [_m "Menu|View|Display Layout Control DB"] \
+             -command [mytypemethod _ViewLayoutControlDB]
         # Hook in help files.
-        HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
+        HTMLHelp setDefaults "$::HelpDir" "index.html#offlineedit"
         
         set layoutcontroldb [::lcc::LayoutControlDB newdb]
-        
         set log [ROText [$mainWindow scrollwindow getframe].log \
                  -height 24 -width 80]
         $mainWindow scrollwindow setwidget $log
         foreach f [lrange $::argv 1 end] {
-            lcc::ConfigurationEditor \
-                  .cdi[_fnametowindow [file rootname [file tail $f]]] \
-                  -cdi $CDI \
-                  -offlineedit yes \
-                  -loadfile $f -layoutdb $layoutcontroldb
+            lappend CDIs_FormTLs \
+                  [lcc::ConfigurationEditor \
+                   .cdi[_fnametowindow [file rootname [file tail $f]]] \
+                   -cdi $CDI \
+                   -offlineedit yes \
+                   -loadfile $f -layoutdb $layoutcontroldb]
         }
+        $type _buildDialogs
         $mainWindow showit
         update idle
     }
@@ -357,12 +361,95 @@ snit::type OfflineLCCNodeEditor {
                       {{All Files} *     TEXT}
                   } -parent . -title "Backup Config File to open"]
         if {"$filename" ne {}} {
-            lcc::ConfigurationEditor \
-                  .cdi[_fnametowindow [file rootname [file tail $filename]]] \
-                  -cdi $CDI \
-                  -offlineedit yes \
-                  -loadfile $filename $layoutcontroldb
+            lappend CDIs_FormTLs \
+                  [lcc::ConfigurationEditor \
+                   .cdi[_fnametowindow [file rootname [file tail $filename]]] \
+                   -cdi $CDI \
+                   -offlineedit yes \
+                   -loadfile $filename -layoutdb $layoutcontroldb]
+                   }
+    }
+    typemethod _editLayoutControlItem {what name args} {
+        #puts stderr "*** _editLayoutControlItem $what $name $args"
+        switch $what {
+            block {
+                $editblockW Load $name -db $layoutcontroldb
+                $layoutcontrolsNB select $editblockW
+            }
+            turnout {
+                $editturnoutW Load $name -db $layoutcontroldb
+                $layoutcontrolsNB select $editturnoutW
+            }
+            sensor {
+                $editsensorW Load $name -db $layoutcontroldb
+                $layoutcontrolsNB select $editsensorW
+            }
+            control {
+                $editcontrolW Load $name -db $layoutcontroldb
+                $layoutcontrolsNB select $editcontrolW
+            }
         }
+    }
+    typemethod _ViewLayoutControlDB {} {
+        if {$layoutControlView eq {}} {
+            set layoutControlView [toplevel .layoutControlView]
+            wm withdraw  .layoutControlView
+            wm transient .layoutControlView .
+            wm title     .layoutControlView [_ "Layout Control Database"]
+            wm protocol  .layoutControlView WM_DELETE_WINDOW \
+                  [list wm withdraw  .layoutControlView]
+            set scrollw [ScrolledWindow .layoutControlView.scrollw]
+            pack $scrollw -expand yes -fill both
+            set layoutControlTable [::lcc::LayoutControlDBTable \
+                                    [$scrollw getframe].layoutControlTable \
+                                    -itemeditor [mytypemethod _editLayoutControlItem]]
+            $scrollw setwidget $layoutControlTable
+            set layoutControlsLF [ttk::labelframe \
+                                  .layoutControlView.layoutControlsLF \
+                                  -text [_m "Label|Layout Controls"]]
+            pack $layoutControlsLF -fill x
+            set layoutcontrolsNB [ScrollTabNotebook \
+                                  $layoutControlsLF.layoutcontrolsNB]
+            pack $layoutcontrolsNB -fill both -expand yes
+            set editturnoutW [::lcc::NewTurnoutWidget \
+                              $layoutcontrolsNB.editturnoutW \
+                              -edit true]
+            $layoutcontrolsNB add $editturnoutW -text [_m "Label|Turnout"]
+            set editblockW [::lcc::NewBlockWidget \
+                              $layoutcontrolsNB.editblockW \
+                              -edit true]
+            $layoutcontrolsNB add $editblockW -text [_m "Label|Block"]
+            set editsensorW [::lcc::NewSensorWidget \
+                              $layoutcontrolsNB.editsensorW \
+                              -edit true]
+            $layoutcontrolsNB add $editsensorW -text [_m "Label|Sensor"]
+            set editcontrolW [::lcc::NewControlWidget \
+                              $layoutcontrolsNB.editcontrolW \
+                              -edit true]
+            $layoutcontrolsNB add $editcontrolW -text [_m "Label|Control"]
+            #set editturnoutW [::lcc::NewTurnoutWidget \
+            #                  $layoutcontrolsNB.editturnoutW \
+            #                  -edit true]
+            #$layoutcontrolsNB add $editturnoutW -text [_m "Label|Turnout"]
+            set buttons [ButtonBox .layoutControlView.buttons \
+                         -orient horizontal]
+            pack $buttons -fill x
+            $buttons add ttk::button refresh \
+                  -text [_m "Label|Refresh"] \
+                  -command [mytypemethod _reloadLayoutControlTable]
+            $buttons add ttk::button close \
+                  -text [_m "Label|Close Window"] \
+                  -command [list wm withdraw  .layoutControlView]
+            
+        }
+        $layoutControlTable configure -db $layoutcontroldb
+        $layoutControlTable Refresh
+        wm deiconify $layoutControlView
+    }
+    typemethod _reloadLayoutControlTable {} {
+        wm withdraw  $layoutControlView
+        $layoutControlTable Refresh
+        wm deiconify $layoutControlView
     }
 }
 
