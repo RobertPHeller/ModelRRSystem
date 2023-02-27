@@ -73,6 +73,11 @@ snit::type SimpleDOMElement {
     ## @publicsection The constructor. Just sets the options.
     $self configurelist $args
   }
+  destructor {
+      foreach c $_children {
+          $c destroy
+      }
+  }
   method children {} {
     ## Method to return the elements children.
     # @return The children.
@@ -272,6 +277,9 @@ snit::type ParseXML {
         error "Cannot parse $xml: $errormessage"
     }
     $p free
+  }
+  destructor {
+      $rootnode destroy
   }
   method _elementstart {tag attrlist args} {
     ## @privatesection Callback called at the start of of XML element.
