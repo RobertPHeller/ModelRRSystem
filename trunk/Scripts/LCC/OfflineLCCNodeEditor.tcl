@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 24 13:14:30 2023
-#  Last Modified : <230227.1120>
+#  Last Modified : <230227.1535>
 #
 #  Description	
 #
@@ -58,8 +58,9 @@
 #
 # @section OfflineLCCNodeEditorPARAMETERS PARAMETERS
 #
-# xmlfile - the CDI XML file for the type of node. Required, no default.
-# backupconfigfile - [optional] backup config file(s) to edit.
+# @arg xmlfile - the CDI XML file for the type of node. Required, no default.
+# @arg backupconfigfile - [optional] backup config file(s) to edit.
+# @par
 #
 # @section OfflineLCCNodeEditorOPTIONS OPTIONS
 #
