@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <230225.1655>
+#  Last Modified : <230227.1121>
 #
 #  Description	
 #
@@ -449,6 +449,13 @@ namespace eval lcc {
         component newBlock
         component newSensor
         component newControl
+        component layoutcontrolsLF
+        component   layoutcontrolsNB
+        component     addturnoutW
+        component     addblockW
+        component     addsignalW
+        component     addsensorW
+        component     addcontrolW
         
         typecomponent event_also_used
         delegate typemethod AddEventUse to event_also_used
@@ -457,11 +464,16 @@ namespace eval lcc {
         delegate typemethod GetEventUsesFormatted to event_also_used
         
         option -cdi -readonly yes
-        option -layoutdb -default {};# -configuremethod _traceopt
-        #method _traceopt {o v} {
-        #    puts stderr "*** $self _traceopt $o $v"
-        #    set options($o) $v
-        #}
+        option -layoutdb -default {} -configuremethod _updateLayoutDB
+        method _updateLayoutDB {o v} {
+            if {$addturnoutW ne ""} {$addturnoutW configure -db $v}
+            if {$addblockW ne ""} {$addblockW configure -db $v}
+            if {$addsignalW ne ""} {$addsignalW configure -db $v}
+            if {$addsensorW ne ""} {$addsensorW configure -db $v}
+            if {$addcontrolW ne ""} {$addcontrolW configure -db $v}
+            #puts stderr "*** $self _updateLayoutDB $o $v"
+            set options($o) $v
+        }
         option -nid -readonly yes -type lcc::nid -default "05:01:01:01:22:00"
         option -transport -readonly yes -default {}
         option -displayonly -readonly yes -type snit::boolean -default false
@@ -992,13 +1004,6 @@ namespace eval lcc {
             }
         }
             
-        component layoutcontrolsLF
-        component   layoutcontrolsNB
-        component     addturnoutW
-        component     addblockW
-        component     addsignalW
-        component     addsensorW
-        component     addcontrolW
         method _showhideLC {} {
             if {[catch {pack info $layoutcontrolsLF}]} {
                 pack $layoutcontrolsLF -fill x

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 24 13:14:30 2023
-#  Last Modified : <230226.1658>
+#  Last Modified : <230227.1120>
 #
 #  Description	
 #
@@ -177,6 +177,7 @@ snit::type OfflineLCCNodeEditor {
                       {{All Files} *     TEXT}
                   } -parent . -title "XML File to open"]
         if {"$filename" ne {}} {
+            if {$layoutcontroldb ne ""} {$layoutcontroldb destroy}
             set layoutcontroldb [::lcc::LayoutControlDB olddb $filename]
             $layoutControlTable configure -db $layoutcontroldb
             $layoutControlTable Refresh
@@ -410,7 +411,7 @@ snit::type OfflineLCCNodeEditor {
                    }
     }
     typemethod _editLayoutControlItem {what name args} {
-        puts stderr "*** _editLayoutControlItem '$what' '$name' '$args'"
+        #puts stderr "*** _editLayoutControlItem '$what' '$name' '$args'"
         switch $what {
             block {
                 $editblockW Load "$name" -db $layoutcontroldb

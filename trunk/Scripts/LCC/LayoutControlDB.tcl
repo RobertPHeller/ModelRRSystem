@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Jan 30 10:06:50 2019
-#  Last Modified : <210710.0844>
+#  Last Modified : <230227.1052>
 #
 #  Description	
 #
@@ -56,7 +56,17 @@ namespace eval lcc {
             }
         }
         option -filename -default {layout.xml} -type snit::stringtype
+        option -updatecallback -default {}
         component db -inherit yes 
+        method SetDirty {} {
+            if {$options(-updatecallback) ne ""} {
+                uplevel #0 $options(-updatecallback)
+            }
+            set isdirty yes
+        }
+        method _clearDirty {} {
+            set isdirty no
+        }
         variable isdirty no
         typevariable emptyLayout {<?xml version='1.0'?><layout/>}
         typemethod newdb {{name %%AUTO%%}} {
@@ -72,7 +82,7 @@ namespace eval lcc {
         }
         method save {} {
             $self savedb [$self cget -filename]
-            set isdirty no
+            $self _clearDirty
         }
         method savedb {filename} {
             if {[file exists $filename]} {
@@ -84,12 +94,15 @@ namespace eval lcc {
             puts $fp {<?xml version='1.0'?>}
             
             $db displayTree $fp
-            set isdirty no
+            $self _clearDirty
             close $fp
         }
         constructor {xml args} {
             install db using ParseXML %%AUTO%% $xml
             $self configurelist $args
+        }
+        destructor {
+            $db destroy
         }
         method newTurnout {{name CP1} args} {
             set layout [$self getElementsByTagName layout]
@@ -119,16 +132,19 @@ namespace eval lcc {
             set rev [[$layout info type] create %%AUTO%% -tag reverse]
             $rev setdata [from args -reversepointsevent]
             $pointstag addchild $rev
-            set isdirty yes
+            $self SetDirty
             return $newturnout
         }
         
         method newBlock {{name BK1} args} {
             set layout [$self getElementsByTagName layout]
+            puts stderr "*** $self newBlock: layout is $layout"
+            puts stderr "*** $self newBlock: layout has [llength [$layout children]] children"
             set oldblock [$self getBlock $name]
             if {$oldblock ne ""} {return $oldblock}
             set newblock [[$layout info type] create %%AUTO%% -tag block]
             $layout addchild $newblock
+            puts stderr "*** $self newBlock: layout now has [llength [$layout children]] children"
             set nametag [[$layout info type] create %%AUTO%% -tag name]
             $newblock addchild $nametag
             $nametag setdata $name
@@ -138,7 +154,7 @@ namespace eval lcc {
             set clr [[$layout info type] create %%AUTO%% -tag clear]
             $clr setdata [from args -clearevent]
             $newblock addchild $clr
-            set isdirty yes
+            $self SetDirty
             return $newblock
         }
         method newSignal {{name SIG1}} {
@@ -150,7 +166,7 @@ namespace eval lcc {
             set nametag [[$layout info type] create %%AUTO%% -tag name]
             $newsignal addchild $nametag
             $nametag setdata $name
-            set isdirty yes
+            $self SetDirty
             return $newsignal
         }
         method addAspect {signalname args} {
@@ -164,7 +180,7 @@ namespace eval lcc {
                     break
                 }
             }
-            set isdirty yes
+            $self SetDirty
         }
         proc addaspectHelper {s aspect eventid look} {
             set aspecttag [[$s info type] create %%AUTO%% -tag aspect]
@@ -194,6 +210,7 @@ namespace eval lcc {
             set off [[$layout info type] create %%AUTO%% -tag off]
             $off setdata [from args -offevent]
             $newsensor addchild $off
+            $self SetDirty
             return $newsensor
         }
         method newControl {{name CONTROL1} args} {
@@ -211,6 +228,7 @@ namespace eval lcc {
             set off [[$layout info type] create %%AUTO%% -tag off]
             $off setdata [from args -offevent]
             $newcontrol addchild $off
+            $self SetDirty
             return $newcontrol
         }
         
@@ -264,7 +282,6 @@ namespace eval lcc {
             }
             return {}
         }
-        method SetDirty {} {set isdirty yes}
         method IsDirtyP {} {return $isdirty}
     }
 }

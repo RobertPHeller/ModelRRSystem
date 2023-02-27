@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Jun 29 07:39:30 2021
-#  Last Modified : <230226.1707>
+#  Last Modified : <230227.1119>
 #
 #  Description	
 #
@@ -51,7 +51,13 @@ package require LayoutControlDB
 
 namespace eval lcc {
     snit::widgetadaptor LayoutControlDBTable {
-        option -db -default {}
+        option -db -default {} -configuremethod _updateDB
+        method _updateDB {o v} {
+            set options($o) $v
+            if {$v ne ""} {
+                $v configure -updatecallback [mymethod Refresh]
+            }
+        }
         option -itemeditor -default {}
         delegate option * to hull except {-class -style -columns 
             -displaycolumns -show}
@@ -67,6 +73,7 @@ namespace eval lcc {
             $hull tag bind sensor <ButtonRelease-3> [mymethod _editItem sensor %x %y]
             $hull tag bind control <ButtonRelease-3> [mymethod _editItem control %x %y]
             $self configurelist $args
+            
             $self Refresh
         }
         method _editItem {what x y} {
@@ -164,6 +171,7 @@ namespace eval lcc {
             }
         }
         method InsertControlElement {i} {
+            #puts stderr "*** $self InsertControlElement $i"
             set n [$i getElementsByTagName name -depth 1]
             set name [$n data]
             set tag [$i cget -tag]
@@ -173,7 +181,11 @@ namespace eval lcc {
                           -image [IconImage image Block] \
                           -text $name  -open false -tags block
                     set occ [$i getElementsByTagName occupied -depth 1]
+                    #puts stderr "*** $self InsertControlElement: occ is $occ"
+                    #puts stderr "*** $self InsertControlElement: occ data is [$occ data]"
                     set clr [$i getElementsByTagName clear -depth 1]
+                    #puts stderr "*** $self InsertControlElement: clr is $clr"
+                    #puts stderr "*** $self InsertControlElement: clr data is [$clr data]"
                     $hull insert $i end \
                           -id "$i:occupied" \
                           -text [_ "Occupied: %s" [$occ data]]

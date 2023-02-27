@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu Jan 31 15:01:56 2019
-#  Last Modified : <230226.1708>
+#  Last Modified : <230227.1118>
 #
 #  Description	
 #
@@ -200,6 +200,7 @@ namespace eval lcc {
                 set tag [$result getElementsByTagName points -depth 1]
                 [$tag getElementsByTagName reverse -depth 1] setdata $reversePoints_
             }
+            [$self cget -db] SetDirty
             $hull withdraw
             return [$hull enddialog $result]
         }
@@ -518,6 +519,7 @@ namespace eval lcc {
                 set tag [$result getElementsByTagName points -depth 1]
                 [$tag getElementsByTagName reverse -depth 1] setdata $reversePoints_
             }
+            [$self cget -db] SetDirty
         }
         method _Clear {} {
             set name_ {}
@@ -600,6 +602,7 @@ namespace eval lcc {
                 [$result getElementsByTagName clear -depth 1] setdata $clear_
             }
             $hull withdraw
+            [$self cget -db] SetDirty
             return [$hull enddialog $result]
         }
         method _Cancel {} {
@@ -783,6 +786,7 @@ namespace eval lcc {
             $buttons itemconfigure add -state normal
         }
         method _Add {} {
+            #puts stderr "$self _Add: name_ is $name_"
             set name $name_
             if {$name eq ""} {return}
             #puts stderr "$self _Add: name is '$name'"
@@ -794,6 +798,7 @@ namespace eval lcc {
             if {$clear_ ne {00.00.00.00.00.00.00.00}} {
                 [$result getElementsByTagName clear -depth 1] setdata $clear_
             }
+            [$self cget -db] SetDirty
         }
         method _Clear {} {
             set name_ {}
@@ -874,6 +879,7 @@ namespace eval lcc {
                 [$result getElementsByTagName off -depth 1] setdata $off_
             }
             $hull withdraw
+            [$self cget -db] SetDirty
             return [$hull enddialog $result]
         }
         method _Cancel {} {
@@ -1068,6 +1074,7 @@ namespace eval lcc {
             if {$off_ ne {00.00.00.00.00.00.00.00}} {
                 [$result getElementsByTagName off -depth 1] setdata $off_
             }
+            [$self cget -db] SetDirty
         }
         method _Clear {} {
             set name_ {}
@@ -1148,6 +1155,7 @@ namespace eval lcc {
                 [$result getElementsByTagName off -depth 1] setdata $off_
             }
             $hull withdraw
+            [$self cget -db] SetDirty
             return [$hull enddialog $result]
         }
         method _Cancel {} {
@@ -1338,6 +1346,7 @@ namespace eval lcc {
             if {$off_ ne {00.00.00.00.00.00.00.00}} {
                 [$result getElementsByTagName off -depth 1] setdata $off_
             }
+            [$self cget -db] SetDirty
         }
         method _Clear {} {
             set name_ {}
@@ -1431,6 +1440,7 @@ namespace eval lcc {
                       -look   [$aspectlist($index,asplook) get]
             }
             $hull withdraw
+            [$self cget -db] SetDirty
             return [$hull enddialog $result]
         }
         method _Cancel {} {
