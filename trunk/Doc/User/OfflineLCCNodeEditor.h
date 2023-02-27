@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Feb 26 10:30:10 2023
-//  Last Modified : <230226.1309>
+//  Last Modified : <230227.1327>
 //
 //  Description	
 //
@@ -79,7 +79,10 @@
  * load and save a layout control database, and its @c Edit menu contains
  * items to create layout control elements.  See the @ref openlcb documentation
  * for info on these menu items.  Additionally, the @c Open item on the
- * @c File menu will open a config file to edit.
+ * @c File menu will open additional config files to edit.
+ * 
+ * The main GUI contains the table of Layout Control elements in the currently
+ * loaded layout control database, along with edit boxes for these elements.
  */
 
 #endif // __OFFLINELCCNODEEDITOR_H
