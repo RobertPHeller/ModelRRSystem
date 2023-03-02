@@ -616,6 +616,7 @@ INPUT                  = @srcdir@/Preface.h \
                          @srcdir@/OpenLCBReference.h \
                          @srcdir@/OpenLCBDaemons.h \
                          @srcdir@/OfflineLCCNodeEditor.h \
+                         @srcdir@/LayoutControlDatabase.h \
                          @srcdir@/AzatraxProgReference.h \
                          @srcdir@/XPressNetThrottleReference.h \
                          @srcdir@/GenericThrottleReference.h \

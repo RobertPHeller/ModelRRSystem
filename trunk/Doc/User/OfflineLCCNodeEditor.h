@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Feb 26 10:30:10 2023
-//  Last Modified : <230227.1327>
+//  Last Modified : <230302.1355>
 //
 //  Description	
 //
@@ -74,8 +74,9 @@
  * 
  * @section mainguioffline Main GUI Elements
  * In addition to editing LCC Node backup config files, this program also can
- * manage a layout control database, just like the OpenLCB (see @ref openlcb) 
- * and Dispatcher programs.  Its @c File menu contains items to
+ * manage a @ref LayoutControlDatabase "Layout Control Database", just like 
+ * the OpenLCB (see @ref openlcb) 
+ * and Dispatcher (see @ref dispatcher_Reference "Dispatcher Reference") programs.  Its @c File menu contains items to
  * load and save a layout control database, and its @c Edit menu contains
  * items to create layout control elements.  See the @ref openlcb documentation
  * for info on these menu items.  Additionally, the @c Open item on the

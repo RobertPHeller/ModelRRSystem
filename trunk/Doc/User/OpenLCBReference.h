@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Mar 11 14:47:43 2016
-//  Last Modified : <230226.1026>
+//  Last Modified : <230302.1352>
 //
 //  Description	
 //
@@ -44,7 +44,10 @@
 #define __OPENLCBREFERENCE_H
 /** @page openlcb OpenLCB Program Reference
  * The OpenLCB Program is used for configuring OpenLCB nodes and for testing
- * an OpenLCB network.
+ * an OpenLCB network.  It can also  manage a 
+ * @ref LayoutControlDatabase "Layout Control Database", which can be used by
+ * the @ref openlcbofflineeditor "Offline LCC Node Editor" and Dispatcher
+ * (see @ref DispatcherReference "Dispatcher Reference manual") programs.
  * @addindex OpenLCB
  * @addindex CAN
  * @addindex LCC
@@ -162,6 +165,7 @@
  * program will display the event in a dialog box like this:
  * @image latex OpenLCB_EventReceived.png "Event Received popup dialog box" width=4in
  * @image html OpenLCB_EventReceived.png
+ *
  */
 
 #endif // __OPENLCBREFERENCE_H

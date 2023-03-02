@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Apr 11 13:42:00 2014
-//  Last Modified : <170328.1502>
+//  Last Modified : <230302.1356>
 //
 //  Description	
 //
@@ -49,6 +49,13 @@
  * read in an XTrackCAD layout file and create a compressed graph of the
  * track work and this graph can be used as a guide while creating CTC
  * panels.
+ * 
+ * The Dispatcher program can use a 
+ * @ref LayoutControlDatabase "Layout Control Database" to manage the various
+ * layout control elements.  This database is also used by the OpenLCB 
+ * (see @ref openlcb "OpenLCB Program Reference") and the Offline LCC Node Editor 
+ * (see @ref openlcbofflineeditor "Offline LCC Node Editor Reference") 
+ * programs.
  * 
  * @section dispatcher_Reference_MainGUI Main GUI Screen
  * The main GUI window of the Dispatcher program is shown below. It consists 
