@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <230306.1132>
+#  Last Modified : <230306.1353>
 #
 #  Description	
 #
@@ -441,8 +441,10 @@ namespace eval lcc {
         ## Scrolled Window.
         component editframe
         ## Scrollable Frame
+        variable widgetMap_ -array {}
         component buttons
         ## Button box
+        
         
         component readallProgressDialog
         component newTurnout
@@ -594,7 +596,7 @@ namespace eval lcc {
             }
             $self putdebug "*** $type create $self: configured -postcommand to edit menu"
             $self putdebug "*** $type create $self: initialized Layout Control DB"
-            $self _processXMLnode $cdi [$editframe getframe] -1 address
+            $self _processXMLnode $cdi 0 [$editframe getframe] -1 address
             $self putdebug "*** $type create $self: processed CDI"
             install buttons using ButtonBox $f.buttons \
                   -buttonalignment left -orient horizontal
@@ -664,18 +666,16 @@ namespace eval lcc {
             set _segmentnumber 0
             $self _loadNode \
                   [lindex [$options(-cdi) getElementsByTagName cdi -depth 1] 0] \
-                  [$editframe getframe] $fp 
+                  0 $fp 
             close $fp
         }
-        method _loadNode {n frame fp {prefix {}}} {
+        method _loadNode {n repliIndex fp {prefix {}}} {
             
             #puts "*** $self _loadNode [$n cget -tag] $frame $fp $prefix"
-            #puts "*** $self _loadNode: children of $frame: [winfo children $frame]"
             switch [$n cget -tag] {
                 cdi {
-                    foreach seg [$n getElementsByTagName segment -depth 1] \
-                          tab [$frame.segments tabs] {
-                        $self _loadNode $seg $tab $fp
+                    foreach seg [$n getElementsByTagName segment -depth 1] {
+                        $self _loadNode $seg $repliIndex $fp
                     }
                 }
                 identification -
@@ -690,23 +690,11 @@ namespace eval lcc {
                         set name [format "seg%d" $_segmentnumber]
                     }
                     set prefix $name
-                    set groupnotebook {}
-                    set windex -1
-                    #puts stderr "*** $self _loadNode (segment) [llength [$n children]] tag children, [llength [winfo children $frame]] frame children"
+                    #puts stderr "*** $self _loadNode (segment) [llength [$n children]] tag children"
                     foreach c [$n children] {
                         set tag [$c cget -tag]
                         if {[lsearch {name description} $tag] >= 0} {continue}
-                        if {[$c cget -tag] eq "group"} {
-                            if {$groupnotebook eq {}} {
-                                set groupnotebook $frame.groups
-                                set gindex -1
-                            }
-                            incr gindex
-                            if {[$self _loadNode $c [lindex [$groupnotebook tabs] $gindex] $fp $prefix] < 0} {return -1}
-                        } else {
-                            incr windex
-                            if {[$self _loadNode $c [lindex [winfo children $frame] $windex] $fp $prefix] < 0} {return -1}
-                        }
+                        if {[$self _loadNode $c $repliIndex $fp $prefix] < 0} {return -1}
                     }
                     return 1
                 }
@@ -721,32 +709,16 @@ namespace eval lcc {
                     }
                     set repnamefmt [format ".%s(%%d)" $name]
                     if {$replication > 1} {
-                        set frame $frame.replnotebook
-                        #puts stderr "*** $self _loadNode (group/replication) frame = $frame"
-                        #puts stderr "*** $self _loadNode (group/replication) children of $frame are [winfo children $frame]"
-                        #puts stderr "*** $self _loadNode (group/replication) tabs of $frame are [$frame tabs]"
                         for {set i 0} {$i < $replication} {incr i} {
-                            set gframe [lindex [$frame tabs] $i]
-                            #puts stderr "*** $self _loadNode (group/replication) gframe = $gframe"
-                            #puts stderr "*** $self _loadNode (group/replication) [llength [$n children]] tag children, [llength [winfo children $gframe]] gframe children"
-                            set windex -1
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
-                                if {[lsearch {name description repname} $tag] >= 0} {continue}
-                                incr windex
-                                if {[$self _loadNode $c [lindex [winfo children $gframe] $windex] $fp "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
+                                if {[$self _loadNode $c $i $fp "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
                             }
                         }
                     } else {
-                        set gframe $frame
-                        #puts stderr "*** $self _loadNode (group) gframe = $gframe"
-                        #puts stderr "*** $self _loadNode (group) [llength [$n children]] tag children, [llength [winfo children $gframe]] gframe children"
-                        set windex -1
                         foreach c [$n children] {
                             set tag [$c cget -tag]
-                            if {[lsearch {name description repname} $tag] >= 0} {continue}
-                            incr windex
-                            if {[$self _loadNode $c [lindex [winfo children $gframe] $windex] $fp "${prefix}.$name"] < 0} {return -1}
+                            if {[$self _loadNode $c $repliIndex $fp "${prefix}.$name"] < 0} {return -1}
                         }
                     }
                     return 1
@@ -769,6 +741,7 @@ namespace eval lcc {
                               -message [_ "Sync error at %s, expected %s.%s" $path $prefix $name]
                         return -1
                     }
+                    set frame $widgetMap_($n,$repliIndex)
                     #puts stderr "*** $self _loadNode: class of $frame.value is [winfo class $frame.value]"
                     switch [winfo class $frame.value] {
                         TCombobox {
@@ -803,6 +776,7 @@ namespace eval lcc {
                               -message [_ "Sync error at %s, expected %s.%s" $path $prefix $name]
                         return -1
                     }
+                    set frame $widgetMap_($n,$repliIndex)
                     $frame.value delete 0 end
                     $frame.value insert end $value
                     return 1
@@ -825,6 +799,7 @@ namespace eval lcc {
                               -message [_ "Sync error at %s, expected %s.%s" $path $prefix $name]
                         return -1
                     }
+                    set frame $widgetMap_($n,$repliIndex)
                     #puts stderr "*** $self _loadNode (eventid): class of $frame.value is [winfo class $frame.value]"
                     switch [winfo class $frame.value] {
                         TCombobox {
@@ -866,19 +841,17 @@ namespace eval lcc {
             set _segmentnumber 0
             $self _saveNode \
                   [lindex [$options(-cdi) getElementsByTagName cdi -depth 1] 0] \
-                  [$editframe getframe] $fp 
+                  0 $fp 
             close $fp
             wm title $win [_ "CDI Configuration Tool for config file %s" $filename]
             set options(-loadfile) $filename
         }
-        method _saveNode {n frame fp {prefix {}}} {
-            #puts "*** $self _saveNode [$n cget -tag] $frame $fp $prefix"
-            #puts "*** $self _saveNode: children of $frame: [winfo children $frame]"
+        method _saveNode {n repliIndex fp {prefix {}}} {
+            #puts "*** $self _saveNode [$n cget -tag] $fp $prefix"
             switch [$n cget -tag] {
                 cdi {
-                    foreach seg [$n getElementsByTagName segment -depth 1] \
-                          tab [$frame.segments tabs] {
-                        $self _saveNode $seg $tab $fp
+                    foreach seg [$n getElementsByTagName segment -depth 1] {
+                        $self _saveNode $seg $repliIndex $fp
                     }
                 }
                 identification -
@@ -893,23 +866,11 @@ namespace eval lcc {
                         set name [format "seg%d" $_segmentnumber]
                     }
                     set prefix $name
-                    set groupnotebook {}
-                    set windex -1
-                    #puts stderr "*** $self _saveNode (segment) [llength [$n children]] tag children, [llength [winfo children $frame]] frame children"
+                    #puts stderr "*** $self _saveNode (segment) [llength [$n children]] tag children"
                     foreach c [$n children] {
                         set tag [$c cget -tag]
                         if {[lsearch {name description} $tag] >= 0} {continue}
-                        if {[$c cget -tag] eq "group"} {
-                            if {$groupnotebook eq {}} {
-                                set groupnotebook $frame.groups
-                                set gindex -1
-                            }
-                            incr gindex
-                            if {[$self _saveNode $c [lindex [$groupnotebook tabs] $gindex] $fp $prefix] < 0} {return -1}
-                        } else {
-                            incr windex
-                            if {[$self _saveNode $c [lindex [winfo children $frame] $windex] $fp $prefix] < 0} {return -1}
-                        }
+                        if {[$self _saveNode $c $ repliIndex $fp $prefix] < 0} {return -1}
                     }
                     return 1
                 }
@@ -924,32 +885,18 @@ namespace eval lcc {
                     }
                     set repnamefmt [format ".%s(%%d)" $name]
                     if {$replication > 1} {
-                        set frame $frame.replnotebook
-                        #puts stderr "*** $self _saveNode (group/replication) frame = $frame"
-                        #puts stderr "*** $self _saveNode (group/replication) children of $frame are [winfo children $frame]"
-                        #puts stderr "*** $self _saveNode (group/replication) tabs of $frame are [$frame tabs]"
                         for {set i 0} {$i < $replication} {incr i} {
-                            set gframe [lindex [$frame tabs] $i]
-                            #puts stderr "*** $self _saveNode (group/replication) gframe = $gframe"
-                            #puts stderr "*** $self _saveNode (group/replication) [llength [$n children]] tag children, [llength [winfo children $gframe]] gframe children"
-                            set windex -1
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
                                 if {[lsearch {name description repname} $tag] >= 0} {continue}
-                                incr windex
-                                if {[$self _saveNode $c [lindex [winfo children $gframe] $windex] $fp "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
+                                if {[$self _saveNode $c $i $fp "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
                             }
                         }
                     } else {
-                        set gframe $frame
-                        #puts stderr "*** $self _saveNode (group) gframe = $gframe"
-                        #puts stderr "*** $self _saveNode (group) [llength [$n children]] tag children, [llength [winfo children $gframe]] gframe children"
-                        set windex -1
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
-                            incr windex
-                            if {[$self _saveNode $c [lindex [winfo children $gframe] $windex] $fp "${prefix}.$name"] < 0} {return -1}
+                            if {[$self _saveNode $c $repliIndex $fp "${prefix}.$name"] < 0} {return -1}
                         }
                     }
                     return 1
@@ -961,6 +908,7 @@ namespace eval lcc {
                     } else {
                         set name {}
                     }
+                    set frame $widgetMap_($n,$repliIndex)
                     switch [winfo class $frame.value] {
                         TCombobox {
                             upvar #0 $frame.value_VM valuemap
@@ -980,6 +928,7 @@ namespace eval lcc {
                     } else {
                         set name {}
                     }
+                    set frame $widgetMap_($n,$repliIndex)
                     set value [$frame.value get]
                     puts $fp [format {%s.%s=%s} $prefix $name $value]
                     return 1
@@ -991,6 +940,7 @@ namespace eval lcc {
                     } else {
                         set name {}
                     }
+                    set frame $widgetMap_($n,$repliIndex)
                     switch [winfo class $frame.value] {
                         TCombobox {
                             upvar #0 $frame.value_VM valuemap
@@ -1014,22 +964,27 @@ namespace eval lcc {
             lappend eventidlist 0 0
             set baseeventid [lcc::EventID create %AUTO% -eventidlist $eventidlist]
             set _segmentnumber 0
+            #parray widgetMap_
             $self _initblankNode \
                   [lindex [$options(-cdi) getElementsByTagName cdi -depth 1] 0] \
-                  [$editframe getframe] \
-                  baseeventid
+                  0 baseeventid
         }
-        method _initblankNode {n frame nexteventid_var} {
+        proc _tags {nodes} {
+            set result [list]
+            foreach n $nodes {
+                lappend result [$n cget -tag]
+            }
+            return $result
+        }
+        method _initblankNode {n repliIndex nexteventid_var} {
             
             upvar $nexteventid_var nexteventid
             
-            #puts "*** $self _initblankNode [$n cget -tag] $frame"
-            #puts "*** $self _initblankNode: children of $frame: [winfo children $frame]"
+            #puts stderr "*** $self _initblankNode [$n cget -tag] $repliIndex"
             switch [$n cget -tag] {
                 cdi {
-                    foreach seg [$n getElementsByTagName segment -depth 1] \
-                          tab [$frame.segments tabs] {
-                        $self _initblankNode $seg $tab nexteventid
+                    foreach seg [$n getElementsByTagName segment -depth 1] {
+                        $self _initblankNode $seg $repliIndex nexteventid
                     }
                 }
                 identification -
@@ -1039,21 +994,10 @@ namespace eval lcc {
                     incr _segmentnumber
                     set groupnotebook {}
                     set windex -1
-                    #puts stderr "*** $self _initblankNode (segment) [llength [$n children] frame children"
                     foreach c [$n children] {
                         set tag [$c cget -tag]
                         if {[lsearch {name description} $tag] >= 0} {continue}
-                        if {[$c cget -tag] eq "group"} {
-                            if {$groupnotebook eq {}} {
-                                set groupnotebook $frame.groups
-                                set gindex -1
-                            }
-                            incr gindex
-                            if {[$self _initblankNode $c [lindex [$groupnotebook tabs] $gindex] nexteventid] < 0} {return -1}
-                        } else {
-                            incr windex
-                            if {[$self _initblankNode $c [lindex [winfo children $frame] $windex] nexteventid] < 0} {return -1}
-                        }
+                        if {[$self _initblankNode $c $repliIndex nexteventid] < 0} {return -1}
                     }
                     return 1
                 }
@@ -1061,32 +1005,18 @@ namespace eval lcc {
                     set replication [$n attribute replication]
                     if {$replication eq {}} {set replication 1}
                     if {$replication > 1} {
-                        set frame $frame.replnotebook
-                        #puts stderr "*** $self _initblankNode (group/replication) frame = $frame"
-                        #puts stderr "*** $self _initblankNode (group/replication) children of $frame are [winfo children $frame]"
-                        #puts stderr "*** $self _initblankNode (group/replication) tabs of $frame are [$frame tabs]"
                         for {set i 0} {$i < $replication} {incr i} {
-                            set gframe [lindex [$frame tabs] $i]
-                            #puts stderr "*** $self _initblankNode (group/replication) gframe = $gframe"
-                            #puts stderr "*** $self _initblankNode (group/replication) [llength [$n children]] tag children, [llength [winfo children $gframe]] gframe children"
-                            set windex -1
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
                                 if {[lsearch {name description repname} $tag] >= 0} {continue}
-                                incr windex
-                                if {[$self _initblankNode $c [lindex [winfo children $gframe] $windex] nexteventid] < 0} {return -1}
+                                if {[$self _initblankNode $c $i nexteventid] < 0} {return -1}
                             }
                         }
                     } else {
-                        set gframe $frame
-                        #puts stderr "*** $self _initblankNode (group) gframe = $gframe"
-                        #puts stderr "*** $self _initblankNode (group) [llength [$n children]] tag children, [llength [winfo children $gframe]] gframe children"
-                        set windex -1
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
-                            incr windex
-                            if {[$self _initblankNode $c [lindex [winfo children $gframe] $windex] nexteventid] < 0} {return -1}
+                            if {[$self _initblankNode $c $repliIndex nexteventid] < 0} {return -1}
                         }
                     }
                     return 1
@@ -1098,6 +1028,7 @@ namespace eval lcc {
                     } else {
                         set value 0
                     }
+                    set frame $widgetMap_($n,$repliIndex)
                     #puts stderr "*** $self _initblankNode: class of $frame.value is [winfo class $frame.value]"
                     switch [winfo class $frame.value] {
                         TCombobox {
@@ -1121,6 +1052,7 @@ namespace eval lcc {
                     } else {
                         set value {}
                     }
+                    set frame $widgetMap_($n,$repliIndex)
                     $frame.value delete 0 end
                     $frame.value insert end $value
                     return 1
@@ -1131,6 +1063,7 @@ namespace eval lcc {
                     $nexteventid destroy
                     set nexteventid $neweventid
                     #puts stderr "*** $self _initblankNode (eventid): class of $frame.value is [winfo class $frame.value]"
+                    set frame $widgetMap_($n,$repliIndex)
                     switch [winfo class $frame.value] {
                         TCombobox {
                             upvar #0 $frame.value_VM valuemap
@@ -1926,7 +1859,7 @@ namespace eval lcc {
             if {[regexp {Mod$} $curstyle] > 0} {return}
             $w configure -style ${curstyle}Mod
         }
-        method _processXMLnode {n frame space address_var} {
+        method _processXMLnode {n replIndex frame space address_var} {
             ## @brief Process one node in the XML tree.
             # Process a single node in the XML tree.  Will recurse to process
             # Children nodes.
@@ -1941,19 +1874,19 @@ namespace eval lcc {
             # @param address_var The name of the address variable.
             
             update idle
-            $self putdebug "*** $self _processXMLnode $n $frame $space $address_var"
+            $self putdebug "*** $self _processXMLnode $n $replIndex $frame $space $address_var"
             upvar $address_var address
             $self putdebug "*** $self _processXMLnode: tag is [$n cget -tag] at address [format %08x $address]"
             switch [$n cget -tag] {
                 cdi {
                     set id [$n getElementsByTagName identification -depth 1]
                     if {[llength $id] == 1} {
-                        $self _processXMLnode [lindex $id 0] $frame $space address
+                        $self _processXMLnode [lindex $id 0] $replIndex $frame $space address
                     }
                     set segnotebook [ttk::notebook $frame.segments]
                     pack $segnotebook -fill both
                     foreach seg [$n getElementsByTagName segment -depth 1] {
-                        $self _processXMLnode $seg $segnotebook $space address
+                        $self _processXMLnode $seg $replIndex $segnotebook $space address
                     }
                 }
                 identification {
@@ -2048,9 +1981,9 @@ namespace eval lcc {
                                 set groupnotebook [ttk::notebook $segmentframe.groups]
                                 pack $groupnotebook -fill both
                             }
-                            $self _processXMLnode $c $groupnotebook $space address
+                            $self _processXMLnode $c $replIndex $groupnotebook $space address
                         } else {
-                            $self _processXMLnode $c $segmentframe $space address
+                            $self _processXMLnode $c $replIndex $segmentframe $space address
                         }
                     }
                     set readall [ttk::button $segmentframe.readall \
@@ -2155,7 +2088,7 @@ namespace eval lcc {
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
                                 if {[lsearch {name description repname} $tag] >= 0} {continue}
-                                $self _processXMLnode $c $replframe $space address
+                                $self _processXMLnode $c [expr {$i - 1}] $replframe $space address
                             }
                             if {$_stringnumber == 1 &&
                                 $_eventidnumber == 2 &&
@@ -2203,7 +2136,7 @@ namespace eval lcc {
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
-                            $self _processXMLnode $c $groupframe $space address
+                            $self _processXMLnode $c $replIndex $groupframe $space address
                         }
                         if {$_stringnumber == 1 &&
                             $_eventidnumber == 2 &&
@@ -2269,6 +2202,7 @@ namespace eval lcc {
                     }
                     $n setAttribute vframe int$_intnumber
                     pack $intframe -fill x;# -expand yes
+                    set widgetMap_($n,$replIndex) $intframe
                     set descr [$n getElementsByTagName description -depth 1]
                     if {[llength $descr] == 1} {
                         set description [[lindex $descr 0] data]
@@ -2370,6 +2304,7 @@ namespace eval lcc {
                                          $frame.string$_stringnumber]
                     }
                     $n setAttribute vframe string$_stringnumber
+                    set widgetMap_($n,$replIndex) $stringframe    
                     pack $stringframe -fill x;# -expand yes
                     set descr [$n getElementsByTagName description -depth 1]
                     if {[llength $descr] == 1} {
@@ -2447,6 +2382,7 @@ namespace eval lcc {
                                           $frame.eventid$_eventidnumber]
                     }
                     $n setAttribute vframe eventid$_eventidnumber
+                    set widgetMap_($n,$replIndex) $eventidframe
                     pack $eventidframe -fill x;# -expand yes
                     set descr [$n getElementsByTagName description -depth 1]
                     if {[llength $descr] == 1} {
