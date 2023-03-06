@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <230306.1353>
+#  Last Modified : <230306.1622>
 #
 #  Description	
 #
@@ -671,7 +671,7 @@ namespace eval lcc {
         }
         method _loadNode {n repliIndex fp {prefix {}}} {
             
-            #puts "*** $self _loadNode [$n cget -tag] $frame $fp $prefix"
+            #puts "*** $self _loadNode [$n cget -tag] $repliIndex $fp $prefix"
             switch [$n cget -tag] {
                 cdi {
                     foreach seg [$n getElementsByTagName segment -depth 1] {
@@ -712,12 +712,14 @@ namespace eval lcc {
                         for {set i 0} {$i < $replication} {incr i} {
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
+                                if {[lsearch {name repname description} $tag] >= 0} {continue}
                                 if {[$self _loadNode $c $i $fp "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
                             }
                         }
                     } else {
                         foreach c [$n children] {
                             set tag [$c cget -tag]
+                            if {[lsearch {name repname description} $tag] >= 0} {continue}
                             if {[$self _loadNode $c $repliIndex $fp "${prefix}.$name"] < 0} {return -1}
                         }
                     }
@@ -870,7 +872,7 @@ namespace eval lcc {
                     foreach c [$n children] {
                         set tag [$c cget -tag]
                         if {[lsearch {name description} $tag] >= 0} {continue}
-                        if {[$self _saveNode $c $ repliIndex $fp $prefix] < 0} {return -1}
+                        if {[$self _saveNode $c $repliIndex $fp $prefix] < 0} {return -1}
                     }
                     return 1
                 }

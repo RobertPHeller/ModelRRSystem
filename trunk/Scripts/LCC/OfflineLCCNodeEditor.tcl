@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 24 13:14:30 2023
-#  Last Modified : <230306.1121>
+#  Last Modified : <230306.1537>
 #
 #  Description	
 #
@@ -459,6 +459,7 @@ snit::type OfflineLCCNodeEditor {
                   [lcc::ConfigurationEditor \
                    .cdi[regsub -all {:} $nid {}] \
                    -cdi $CDI -nid $nid \
+                   -layoutdb $layoutcontroldb \
                    -offlineedit yes]
         }
     }
