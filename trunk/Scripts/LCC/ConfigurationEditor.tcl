@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <230227.1121>
+#  Last Modified : <230306.1132>
 #
 #  Description	
 #
@@ -643,6 +643,9 @@ namespace eval lcc {
             if {$options(-offlineedit) && $options(-loadfile) ne ""} {
                 $self _loadfile $options(-loadfile)
                 EventSearch RecomputeAllSearchTexts
+            } elseif {$options(-offlineedit) && $options(-loadfile) eq ""} {
+                $self _initblank
+                EventSearch RecomputeAllSearchTexts
             }
             
         }
@@ -1002,6 +1005,151 @@ namespace eval lcc {
                     return 1
                 }
             }
+        }
+        method _initblank {} {
+            set eventidlist [list]
+            foreach oct [lrange [regexp -inline [::lcc::nid cget -regexp] $options(-nid)] 1 end] {
+                lappend eventidlist [scan $oct %02x]
+            }
+            lappend eventidlist 0 0
+            set baseeventid [lcc::EventID create %AUTO% -eventidlist $eventidlist]
+            set _segmentnumber 0
+            $self _initblankNode \
+                  [lindex [$options(-cdi) getElementsByTagName cdi -depth 1] 0] \
+                  [$editframe getframe] \
+                  baseeventid
+        }
+        method _initblankNode {n frame nexteventid_var} {
+            
+            upvar $nexteventid_var nexteventid
+            
+            #puts "*** $self _initblankNode [$n cget -tag] $frame"
+            #puts "*** $self _initblankNode: children of $frame: [winfo children $frame]"
+            switch [$n cget -tag] {
+                cdi {
+                    foreach seg [$n getElementsByTagName segment -depth 1] \
+                          tab [$frame.segments tabs] {
+                        $self _initblankNode $seg $tab nexteventid
+                    }
+                }
+                identification -
+                acdi {
+                }
+                segment {
+                    incr _segmentnumber
+                    set groupnotebook {}
+                    set windex -1
+                    #puts stderr "*** $self _initblankNode (segment) [llength [$n children] frame children"
+                    foreach c [$n children] {
+                        set tag [$c cget -tag]
+                        if {[lsearch {name description} $tag] >= 0} {continue}
+                        if {[$c cget -tag] eq "group"} {
+                            if {$groupnotebook eq {}} {
+                                set groupnotebook $frame.groups
+                                set gindex -1
+                            }
+                            incr gindex
+                            if {[$self _initblankNode $c [lindex [$groupnotebook tabs] $gindex] nexteventid] < 0} {return -1}
+                        } else {
+                            incr windex
+                            if {[$self _initblankNode $c [lindex [winfo children $frame] $windex] nexteventid] < 0} {return -1}
+                        }
+                    }
+                    return 1
+                }
+                group {
+                    set replication [$n attribute replication]
+                    if {$replication eq {}} {set replication 1}
+                    if {$replication > 1} {
+                        set frame $frame.replnotebook
+                        #puts stderr "*** $self _initblankNode (group/replication) frame = $frame"
+                        #puts stderr "*** $self _initblankNode (group/replication) children of $frame are [winfo children $frame]"
+                        #puts stderr "*** $self _initblankNode (group/replication) tabs of $frame are [$frame tabs]"
+                        for {set i 0} {$i < $replication} {incr i} {
+                            set gframe [lindex [$frame tabs] $i]
+                            #puts stderr "*** $self _initblankNode (group/replication) gframe = $gframe"
+                            #puts stderr "*** $self _initblankNode (group/replication) [llength [$n children]] tag children, [llength [winfo children $gframe]] gframe children"
+                            set windex -1
+                            foreach c [$n children] {
+                                set tag [$c cget -tag]
+                                if {[lsearch {name description repname} $tag] >= 0} {continue}
+                                incr windex
+                                if {[$self _initblankNode $c [lindex [winfo children $gframe] $windex] nexteventid] < 0} {return -1}
+                            }
+                        }
+                    } else {
+                        set gframe $frame
+                        #puts stderr "*** $self _initblankNode (group) gframe = $gframe"
+                        #puts stderr "*** $self _initblankNode (group) [llength [$n children]] tag children, [llength [winfo children $gframe]] gframe children"
+                        set windex -1
+                        foreach c [$n children] {
+                            set tag [$c cget -tag]
+                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            incr windex
+                            if {[$self _initblankNode $c [lindex [winfo children $gframe] $windex] nexteventid] < 0} {return -1}
+                        }
+                    }
+                    return 1
+                }
+                int {
+                    set default [$n getElementsByTagName default -depth 1]
+                    if {[llength $default] == 1} {
+                        set value [[lindex $default 0] data]
+                    } else {
+                        set value 0
+                    }
+                    #puts stderr "*** $self _initblankNode: class of $frame.value is [winfo class $frame.value]"
+                    switch [winfo class $frame.value] {
+                        TCombobox {
+                            upvar #0 $frame.value_VM valuemap
+                            foreach v [array names valuemap] {
+                                if {$valuemap($v) == $value} {
+                                    $frame.value set $v
+                                }
+                            }
+                        }
+                        TSpinbox {
+                            $frame.value set $value
+                        }
+                    }
+                    return 1
+                }
+                string {
+                    set default [$n getElementsByTagName default -depth 1]
+                    if {[llength $default] == 1} {
+                        set value [[lindex $default 0] data]
+                    } else {
+                        set value {}
+                    }
+                    $frame.value delete 0 end
+                    $frame.value insert end $value
+                    return 1
+                }
+                eventid {
+                    set value [$nexteventid cget -eventidstring]
+                    set neweventid [$nexteventid addtoevent 1]
+                    $nexteventid destroy
+                    set nexteventid $neweventid
+                    #puts stderr "*** $self _initblankNode (eventid): class of $frame.value is [winfo class $frame.value]"
+                    switch [winfo class $frame.value] {
+                        TCombobox {
+                            upvar #0 $frame.value_VM valuemap
+                            foreach v [array names valuemap] {
+                                if {$valuemap($v) == $value} {
+                                    $frame.value set $v
+                                }
+                            }
+                        }
+                        TEntry {
+                            $frame.value delete 0 end
+                            $frame.value insert end $value
+                        }
+                    }
+                    return 1
+                }
+            }
+                
+                
         }
             
         method _showhideLC {} {

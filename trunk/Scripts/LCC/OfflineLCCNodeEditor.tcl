@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 24 13:14:30 2023
-#  Last Modified : <230227.1535>
+#  Last Modified : <230306.1121>
 #
 #  Description	
 #
@@ -114,6 +114,44 @@ set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirn
 							[info script]]]] Messages]]
 #puts stderr "*** msgfiles = $msgfiles"
 
+snit::widgetadaptor GetNIDDialog {
+    delegate option -parent to hull
+    delegate option -modal  to hull
+    component NIDLE;#                  NID
+    constructor {args} {
+        installhull using Dialog -bitmap questhead -default ok \
+              -cancel cancel -transient yes \
+              -side bottom -title [_ "NID for new blank configuration"] \
+              -parent [from args -parent]
+        $hull add ok     -text [_m "Label|Ok"]     -command [mymethod _Ok]
+        $hull add cancel -text [_m "Label|Cancel"] -command [mymethod _Cancel]
+        wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
+        set frame [$hull getframe]
+        install NIDLE using LabelEntry $frame.nidLE \
+              -label [_m "Label|NID:"] -text {00:00:00:00:00:00}
+        pack $NIDLE -fill x
+        $self configurelist $args
+    }
+    method draw {args} {
+        $self configurelist $args
+        set options(-parent) [$self cget -parent]
+        return [$hull draw]
+    }
+    method _Ok {} {
+        set nid "[$NIDLE cget -text]"
+        if {[catch {lcc::nid validate $nid} err]} {
+            tk_messageBox -type ok -icon error -message $err
+            return
+        }
+        $hull withdraw
+        return [$hull enddialog $nid]
+    }
+    method _Cancel {} {
+        $hull withdraw
+        return [$hull enddialog {}]
+    }
+}
+    
 snit::type OfflineLCCNodeEditor {
     #*************************************************************************
     # Offline LCC Node Editor Main program -- provide offline node 
@@ -132,6 +170,7 @@ snit::type OfflineLCCNodeEditor {
     
     typevariable CDIs_FormTLs [list]
     typecomponent layoutcontroldb
+    typecomponent getNIDDialog
     typecomponent newTurnoutDialog
     typecomponent newBlockDialog
     typecomponent newSignalDialog
@@ -147,6 +186,7 @@ snit::type OfflineLCCNodeEditor {
     typecomponent     editsignalW
     typemethod _buildDialogs {} {
         putdebug "*** $type _buildDialogs"
+        set getNIDDialog     [GetNIDDialog .getNIDDialog -parent .]
         set newTurnoutDialog [::lcc::NewTurnoutDialog .main.newTurnoutDialog -parent .main -modal none]
         putdebug "*** $type _buildDialogs: newTurnoutDialog is $newTurnoutDialog"
         set newBlockDialog   [::lcc::NewBlockDialog   .main.newBlockDialog -parent .main -modal none]
@@ -277,6 +317,7 @@ snit::type OfflineLCCNodeEditor {
                         -height 480 -width 640]
         pack $mainWindow -expand yes -fill both
         $mainWindow menu entryconfigure file "Exit" -command [mytypemethod _carefulExit]
+        $mainWindow menu entryconfigure file "New" -command [mytypemethod _newblank]
         $mainWindow menu entryconfigure file "Open..." -command [mytypemethod _openbackupfile]
         $mainWindow menu insert file "Print..." command \
               -label [_m "Menu|File|Load Layout Control DB"] \
@@ -409,7 +450,17 @@ snit::type OfflineLCCNodeEditor {
                    -cdi $CDI \
                    -offlineedit yes \
                    -loadfile $filename -layoutdb $layoutcontroldb]
-                   }
+        }
+    }
+    typemethod _newblank {} {
+        set nid [$getNIDDialog draw -parent .]
+        if {$nid ne {}} {
+            lappend CDIs_FormTLs \
+                  [lcc::ConfigurationEditor \
+                   .cdi[regsub -all {:} $nid {}] \
+                   -cdi $CDI -nid $nid \
+                   -offlineedit yes]
+        }
     }
     typemethod _editLayoutControlItem {what name args} {
         #puts stderr "*** _editLayoutControlItem '$what' '$name' '$args'"
