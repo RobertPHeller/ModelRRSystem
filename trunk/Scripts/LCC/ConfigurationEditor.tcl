@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <230306.1622>
+#  Last Modified : <230307.1052>
 #
 #  Description	
 #
@@ -169,12 +169,24 @@ namespace eval lcc {
                 return {}
             }
         }
+        proc tails_ {wlist} {
+            set result [list]
+            foreach w $wlist {
+                lappend result [lindex [split $w {.}] end]
+            }
+            return $result
+        }
         typemethod GetEventUsesFormatted {eventid} {
             set result [list]
             if {[info exists _table($eventid)]} {
                 foreach widget $_table($eventid) {
                     set eventframe [winfo parent $widget]
-                    set eventLabel [$eventframe.descr cget -text]
+                    puts stderr "*** $type GetEventUsesFormatted: eventframe children are [tails_ [winfo children $eventframe]]"
+                    if {[winfo exists $eventframe.descr]} {
+                        set eventLabel [$eventframe.descr cget -text]
+                    } else {
+                        set eventLabel [$eventframe cget -text]
+                    }
                     #puts stderr "*** $type GetEventUsesFormatted: eventLabel is '$eventLabel'"
                     set p [winfo parent $eventframe]
                     set foundName no
@@ -192,15 +204,7 @@ namespace eval lcc {
                         set p [winfo parent $p]
                     }
                     set nodename {}
-                    set nidnibs [regsub {^\.cdi} [winfo toplevel $widget] {}]
-                    set bytes [scan $nidnibs {%2x%2x%2x%2x%2x%2x}]
-                    set nid ""
-                    set colon ""
-                    foreach b $bytes {
-                        append nid "$colon"
-                        append nid [format {%02X} $b]
-                        set colon ":"
-                    }
+                    set nid [[winfo toplevel $widget] cget -nid]
                     #puts stderr "*** $type GetEventUsesFormatted: foundName is $foundName, name is '$name'"
                     set segments [winfo toplevel $widget].main.frame.scroll.editframe.uframe.segments
                     set nodenameFound no
@@ -813,8 +817,10 @@ namespace eval lcc {
                             }
                         }
                         TEntry {
+                            $type DeleteEventUse [$frame.value get] $frame.value
                             $frame.value delete 0 end
                             $frame.value insert end $value
+                            $type AddEventUse $value $frame.value
                         }
                     }
                     return 1
@@ -1076,8 +1082,10 @@ namespace eval lcc {
                             }
                         }
                         TEntry {
+                            $type DeleteEventUse [$frame.value get] $frame.value
                             $frame.value delete 0 end
                             $frame.value insert end $value
+                            $type AddEventUse $value $frame.value
                         }
                     }
                     return 1
