@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <230307.1052>
+#  Last Modified : <230314.1329>
 #
 #  Description	
 #
@@ -600,7 +600,7 @@ namespace eval lcc {
             }
             $self putdebug "*** $type create $self: configured -postcommand to edit menu"
             $self putdebug "*** $type create $self: initialized Layout Control DB"
-            $self _processXMLnode $cdi 0 [$editframe getframe] -1 address
+            $self _processXMLnode $cdi [$editframe getframe] -1 address
             $self putdebug "*** $type create $self: processed CDI"
             install buttons using ButtonBox $f.buttons \
                   -buttonalignment left -orient horizontal
@@ -670,16 +670,16 @@ namespace eval lcc {
             set _segmentnumber 0
             $self _loadNode \
                   [lindex [$options(-cdi) getElementsByTagName cdi -depth 1] 0] \
-                  0 $fp 
+                  $fp 
             close $fp
         }
-        method _loadNode {n repliIndex fp {prefix {}}} {
+        method _loadNode {n fp {prefix {}}} {
             
-            #puts "*** $self _loadNode [$n cget -tag] $repliIndex $fp $prefix"
+            #puts "*** $self _loadNode [$n cget -tag] $fp $prefix"
             switch [$n cget -tag] {
                 cdi {
                     foreach seg [$n getElementsByTagName segment -depth 1] {
-                        $self _loadNode $seg $repliIndex $fp
+                        $self _loadNode $seg $fp $prefix
                     }
                 }
                 identification -
@@ -694,11 +694,11 @@ namespace eval lcc {
                         set name [format "seg%d" $_segmentnumber]
                     }
                     set prefix $name
-                    #puts stderr "*** $self _loadNode (segment) [llength [$n children]] tag children"
+                    #$self putdebug "*** $self _loadNode (segment) [llength [$n children]] tag children"
                     foreach c [$n children] {
                         set tag [$c cget -tag]
                         if {[lsearch {name description} $tag] >= 0} {continue}
-                        if {[$self _loadNode $c $repliIndex $fp $prefix] < 0} {return -1}
+                        if {[$self _loadNode $c $fp $prefix] < 0} {return -1}
                     }
                     return 1
                 }
@@ -717,14 +717,14 @@ namespace eval lcc {
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
                                 if {[lsearch {name repname description} $tag] >= 0} {continue}
-                                if {[$self _loadNode $c $i $fp "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
+                                if {[$self _loadNode $c $fp "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
                             }
                         }
                     } else {
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name repname description} $tag] >= 0} {continue}
-                            if {[$self _loadNode $c $repliIndex $fp "${prefix}.$name"] < 0} {return -1}
+                            if {[$self _loadNode $c $fp "${prefix}.$name"] < 0} {return -1}
                         }
                     }
                     return 1
@@ -747,8 +747,8 @@ namespace eval lcc {
                               -message [_ "Sync error at %s, expected %s.%s" $path $prefix $name]
                         return -1
                     }
-                    set frame $widgetMap_($n,$repliIndex)
-                    #puts stderr "*** $self _loadNode: class of $frame.value is [winfo class $frame.value]"
+                    set frame $widgetMap_([format {%s.%s} $prefix $name])
+                    #$self putdebug "*** $self _loadNode: class of $frame.value is [winfo class $frame.value]"
                     switch [winfo class $frame.value] {
                         TCombobox {
                             upvar #0 $frame.value_VM valuemap
@@ -782,7 +782,7 @@ namespace eval lcc {
                               -message [_ "Sync error at %s, expected %s.%s" $path $prefix $name]
                         return -1
                     }
-                    set frame $widgetMap_($n,$repliIndex)
+                    set frame $widgetMap_([format {%s.%s} $prefix $name])
                     $frame.value delete 0 end
                     $frame.value insert end $value
                     return 1
@@ -799,14 +799,17 @@ namespace eval lcc {
                               -message [_ "Short file!"]
                         return -1
                     }
+                    $self putdebug "*** $self _loadNode (eventid): line is '$line'"
                     lassign [split $line =] path value
                     if {$path ne [format {%s.%s} $prefix $name]} {
                         tk_messageBox -icon error \
                               -message [_ "Sync error at %s, expected %s.%s" $path $prefix $name]
                         return -1
                     }
-                    set frame $widgetMap_($n,$repliIndex)
-                    #puts stderr "*** $self _loadNode (eventid): class of $frame.value is [winfo class $frame.value]"
+                    set frame $widgetMap_([format {%s.%s} $prefix $name])
+                    $self putdebug "*** _loadNode (eventid branch): name = '$name'"
+                    $self putdebug "*** _loadNode (eventid branch): n = $n, frame = $frame"
+                    $self putdebug "*** $self _loadNode (eventid): class of $frame.value is [winfo class $frame.value]"
                     switch [winfo class $frame.value] {
                         TCombobox {
                             upvar #0 $frame.value_VM valuemap
@@ -849,17 +852,17 @@ namespace eval lcc {
             set _segmentnumber 0
             $self _saveNode \
                   [lindex [$options(-cdi) getElementsByTagName cdi -depth 1] 0] \
-                  0 $fp 
+                  $fp 
             close $fp
             wm title $win [_ "CDI Configuration Tool for config file %s" $filename]
             set options(-loadfile) $filename
         }
-        method _saveNode {n repliIndex fp {prefix {}}} {
+        method _saveNode {n fp {prefix {}}} {
             #puts "*** $self _saveNode [$n cget -tag] $fp $prefix"
             switch [$n cget -tag] {
                 cdi {
                     foreach seg [$n getElementsByTagName segment -depth 1] {
-                        $self _saveNode $seg $repliIndex $fp
+                        $self _saveNode $seg $fp
                     }
                 }
                 identification -
@@ -874,11 +877,11 @@ namespace eval lcc {
                         set name [format "seg%d" $_segmentnumber]
                     }
                     set prefix $name
-                    #puts stderr "*** $self _saveNode (segment) [llength [$n children]] tag children"
+                    #$self putdebug "*** $self _saveNode (segment) [llength [$n children]] tag children"
                     foreach c [$n children] {
                         set tag [$c cget -tag]
                         if {[lsearch {name description} $tag] >= 0} {continue}
-                        if {[$self _saveNode $c $repliIndex $fp $prefix] < 0} {return -1}
+                        if {[$self _saveNode $c $fp $prefix] < 0} {return -1}
                     }
                     return 1
                 }
@@ -904,7 +907,7 @@ namespace eval lcc {
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
-                            if {[$self _saveNode $c $repliIndex $fp "${prefix}.$name"] < 0} {return -1}
+                            if {[$self _saveNode $c $fp "${prefix}.$name"] < 0} {return -1}
                         }
                     }
                     return 1
@@ -916,7 +919,7 @@ namespace eval lcc {
                     } else {
                         set name {}
                     }
-                    set frame $widgetMap_($n,$repliIndex)
+                    set frame $widgetMap_([format {%s.%s} $prefix $name])
                     switch [winfo class $frame.value] {
                         TCombobox {
                             upvar #0 $frame.value_VM valuemap
@@ -936,7 +939,7 @@ namespace eval lcc {
                     } else {
                         set name {}
                     }
-                    set frame $widgetMap_($n,$repliIndex)
+                    set frame $widgetMap_([format {%s.%s} $prefix $name])
                     set value [$frame.value get]
                     puts $fp [format {%s.%s=%s} $prefix $name $value]
                     return 1
@@ -948,7 +951,10 @@ namespace eval lcc {
                     } else {
                         set name {}
                     }
-                    set frame $widgetMap_($n,$repliIndex)
+                    set frame $widgetMap_([format {%s.%s} $prefix $name])
+                    $self putdebug "*** $self _saveNode (eventid): path is '$prefix.$name'"
+                    $self putdebug "*** $self _saveNode (eventid): frame is $frame"
+                    $self putdebug "*** $self _saveNode (eventid): class of $frame.value is [winfo class $frame.value]"
                     switch [winfo class $frame.value] {
                         TCombobox {
                             upvar #0 $frame.value_VM valuemap
@@ -975,7 +981,7 @@ namespace eval lcc {
             #parray widgetMap_
             $self _initblankNode \
                   [lindex [$options(-cdi) getElementsByTagName cdi -depth 1] 0] \
-                  0 baseeventid
+                  baseeventid
         }
         proc _tags {nodes} {
             set result [list]
@@ -984,15 +990,15 @@ namespace eval lcc {
             }
             return $result
         }
-        method _initblankNode {n repliIndex nexteventid_var} {
+        method _initblankNode {n nexteventid_var {prefix {}}} {
             
             upvar $nexteventid_var nexteventid
             
-            #puts stderr "*** $self _initblankNode [$n cget -tag] $repliIndex"
+            #$self putdebug "*** $self _initblankNode [$n cget -tag] $prefix"
             switch [$n cget -tag] {
                 cdi {
                     foreach seg [$n getElementsByTagName segment -depth 1] {
-                        $self _initblankNode $seg $repliIndex nexteventid
+                        $self _initblankNode $seg nexteventid $prefix
                     }
                 }
                 identification -
@@ -1000,44 +1006,64 @@ namespace eval lcc {
                 }
                 segment {
                     incr _segmentnumber
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name [format "seg%d" $_segmentnumber]
+                    }
+                    set prefix $name
                     set groupnotebook {}
                     set windex -1
                     foreach c [$n children] {
                         set tag [$c cget -tag]
                         if {[lsearch {name description} $tag] >= 0} {continue}
-                        if {[$self _initblankNode $c $repliIndex nexteventid] < 0} {return -1}
+                        if {[$self _initblankNode $c nexteventid $prefix] < 0} {return -1}
                     }
                     return 1
                 }
                 group {
                     set replication [$n attribute replication]
                     if {$replication eq {}} {set replication 1}
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
+                    set repnamefmt [format ".%s(%%d)" $name]
                     if {$replication > 1} {
                         for {set i 0} {$i < $replication} {incr i} {
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
                                 if {[lsearch {name description repname} $tag] >= 0} {continue}
-                                if {[$self _initblankNode $c $i nexteventid] < 0} {return -1}
+                                if {[$self _initblankNode $c nexteventid "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
                             }
                         }
                     } else {
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
-                            if {[$self _initblankNode $c $repliIndex nexteventid] < 0} {return -1}
+                            if {[$self _initblankNode $c nexteventid "${prefix}.$name"] < 0} {return -1}
                         }
                     }
                     return 1
                 }
                 int {
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
                     set default [$n getElementsByTagName default -depth 1]
                     if {[llength $default] == 1} {
                         set value [[lindex $default 0] data]
                     } else {
                         set value 0
                     }
-                    set frame $widgetMap_($n,$repliIndex)
-                    #puts stderr "*** $self _initblankNode: class of $frame.value is [winfo class $frame.value]"
+                    set frame $widgetMap_([format {%s.%s} $prefix $name])
+                    #$self putdebug "*** $self _initblankNode: class of $frame.value is [winfo class $frame.value]"
                     switch [winfo class $frame.value] {
                         TCombobox {
                             upvar #0 $frame.value_VM valuemap
@@ -1054,24 +1080,38 @@ namespace eval lcc {
                     return 1
                 }
                 string {
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
                     set default [$n getElementsByTagName default -depth 1]
                     if {[llength $default] == 1} {
                         set value [[lindex $default 0] data]
                     } else {
                         set value {}
                     }
-                    set frame $widgetMap_($n,$repliIndex)
+                    set frame $widgetMap_([format {%s.%s} $prefix $name])
                     $frame.value delete 0 end
                     $frame.value insert end $value
                     return 1
                 }
                 eventid {
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
                     set value [$nexteventid cget -eventidstring]
                     set neweventid [$nexteventid addtoevent 1]
                     $nexteventid destroy
                     set nexteventid $neweventid
-                    #puts stderr "*** $self _initblankNode (eventid): class of $frame.value is [winfo class $frame.value]"
-                    set frame $widgetMap_($n,$repliIndex)
+                    #$self putdebug "*** $self _initblankNode (eventid): class of $frame.value is [winfo class $frame.value]"
+                    set frame $widgetMap_([format {%s.%s} $prefix $name])
+                    $self putdebug "*** $self _initblankNode (eventid): frame is $frame"
+                    $self putdebug "*** $self _initblankNode (eventid): class of $frame.value is [winfo class $frame.value]"
                     switch [winfo class $frame.value] {
                         TCombobox {
                             upvar #0 $frame.value_VM valuemap
@@ -1869,7 +1909,7 @@ namespace eval lcc {
             if {[regexp {Mod$} $curstyle] > 0} {return}
             $w configure -style ${curstyle}Mod
         }
-        method _processXMLnode {n replIndex frame space address_var} {
+        method _processXMLnode {n frame space address_var {prefix {}}} {
             ## @brief Process one node in the XML tree.
             # Process a single node in the XML tree.  Will recurse to process
             # Children nodes.
@@ -1884,19 +1924,19 @@ namespace eval lcc {
             # @param address_var The name of the address variable.
             
             update idle
-            $self putdebug "*** $self _processXMLnode $n $replIndex $frame $space $address_var"
+            $self putdebug "*** $self _processXMLnode $n $frame $space $address_var $prefix"
             upvar $address_var address
             $self putdebug "*** $self _processXMLnode: tag is [$n cget -tag] at address [format %08x $address]"
             switch [$n cget -tag] {
                 cdi {
                     set id [$n getElementsByTagName identification -depth 1]
                     if {[llength $id] == 1} {
-                        $self _processXMLnode [lindex $id 0] $replIndex $frame $space address
+                        $self _processXMLnode [lindex $id 0] $frame $space address $prefix
                     }
                     set segnotebook [ttk::notebook $frame.segments]
                     pack $segnotebook -fill both
                     foreach seg [$n getElementsByTagName segment -depth 1] {
-                        $self _processXMLnode $seg $replIndex $segnotebook $space address
+                        $self _processXMLnode $seg $segnotebook $space address $prefix
                     }
                 }
                 identification {
@@ -1966,6 +2006,7 @@ namespace eval lcc {
                     } else {
                         set name {}
                     }
+                    set prefix $name
                     #set segmentscrollframe [ScrolledWindow \
                     #                        $frame.segment$_segmentnumber \
                     #                        -scrollbar both -auto both]
@@ -1991,9 +2032,9 @@ namespace eval lcc {
                                 set groupnotebook [ttk::notebook $segmentframe.groups]
                                 pack $groupnotebook -fill both
                             }
-                            $self _processXMLnode $c $replIndex $groupnotebook $space address
+                            $self _processXMLnode $c $groupnotebook $space address $prefix
                         } else {
-                            $self _processXMLnode $c $replIndex $segmentframe $space address
+                            $self _processXMLnode $c $segmentframe $space address $prefix
                         }
                     }
                     set readall [ttk::button $segmentframe.readall \
@@ -2068,6 +2109,7 @@ namespace eval lcc {
                         set repnamefmt {%d}
                     }
                     incr address $offset
+                    set keyrepnamefmt [format ".%s(%%d)" $name]
                     if {$replication > 1} {
                         #set replnotebook [ttk::notebook $groupframe.replnotebook]
                         set replnotebook [ScrollTabNotebook $groupframe.replnotebook]
@@ -2098,7 +2140,7 @@ namespace eval lcc {
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
                                 if {[lsearch {name description repname} $tag] >= 0} {continue}
-                                $self _processXMLnode $c [expr {$i - 1}] $replframe $space address
+                                $self _processXMLnode $c $replframe $space address "${prefix}[format $keyrepnamefmt [expr {$i-1}]]"
                             }
                             if {$_stringnumber == 1 &&
                                 $_eventidnumber == 2 &&
@@ -2146,7 +2188,7 @@ namespace eval lcc {
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
-                            $self _processXMLnode $c $replIndex $groupframe $space address
+                            $self _processXMLnode $c $groupframe $space address "${prefix}.$name"
                         }
                         if {$_stringnumber == 1 &&
                             $_eventidnumber == 2 &&
@@ -2212,7 +2254,7 @@ namespace eval lcc {
                     }
                     $n setAttribute vframe int$_intnumber
                     pack $intframe -fill x;# -expand yes
-                    set widgetMap_($n,$replIndex) $intframe
+                    set widgetMap_([format {%s.%s} $prefix $name]) $intframe
                     set descr [$n getElementsByTagName description -depth 1]
                     if {[llength $descr] == 1} {
                         set description [[lindex $descr 0] data]
@@ -2314,7 +2356,8 @@ namespace eval lcc {
                                          $frame.string$_stringnumber]
                     }
                     $n setAttribute vframe string$_stringnumber
-                    set widgetMap_($n,$replIndex) $stringframe    
+                    $self putdebug "*** _processXMLnode (string branch) key is '[format {%s.%s} $prefix $name]'"
+                    set widgetMap_([format {%s.%s} $prefix $name]) $stringframe    
                     pack $stringframe -fill x;# -expand yes
                     set descr [$n getElementsByTagName description -depth 1]
                     if {[llength $descr] == 1} {
@@ -2392,7 +2435,9 @@ namespace eval lcc {
                                           $frame.eventid$_eventidnumber]
                     }
                     $n setAttribute vframe eventid$_eventidnumber
-                    set widgetMap_($n,$replIndex) $eventidframe
+                    $self putdebug "*** _processXMLnode (eventid branch): name = '$name'"
+                    $self putdebug "*** _processXMLnode (eventid branch): n = $n, eventidframe = $eventidframe"
+                    set widgetMap_([format {%s.%s} $prefix $name]) $eventidframe
                     pack $eventidframe -fill x;# -expand yes
                     set descr [$n getElementsByTagName description -depth 1]
                     if {[llength $descr] == 1} {
@@ -2532,7 +2577,7 @@ namespace eval lcc {
             set screenbottom [winfo screenheight $w]
             update idle
             set h [winfo reqheight $w]
-            #puts stderr "*** checkrow: gcol=$gcol, grow=$grow, h=$h"
+            #$self putdebug "*** checkrow: gcol=$gcol, grow=$grow, h=$h"
             if {($gcol == 0 && ($h + 50) > $screenbottom) || 
                 ($gcol > 0 && $grow >= $lastrow)} {
                 incr gcol
@@ -2541,12 +2586,12 @@ namespace eval lcc {
             }
         }
         method _eventContext {entry rootx rooty} {
-            #puts stderr "*** $self _eventContext $entry $rootx $rooty"
+            #$self putdebug "*** $self _eventContext $entry $rootx $rooty"
             set layoutcontroldb [$self cget -layoutdb]
-            #puts stderr "*** $self _eventContext: layoutcontroldb is $layoutcontroldb"
+            #$self putdebug "*** $self _eventContext: layoutcontroldb is $layoutcontroldb"
             if {$layoutcontroldb eq {}} {return}
             set l [$layoutcontroldb getElementsByTagName layout]
-            #puts stderr "*** $self _eventContext: l is $l"
+            #$self putdebug "*** $self _eventContext: l is $l"
             set items [$l children]
             toplevel $win.em
             wm overrideredirect $win.em 1
@@ -2683,7 +2728,7 @@ namespace eval lcc {
         }
         method mkNewTurnout {fr} {
             set layoutcontroldb [$self cget -layoutdb]
-            #puts stderr "*** $self mkNewTurnout: layoutcontroldb is $layoutcontroldb"
+            #$self putdebug "*** $self mkNewTurnout: layoutcontroldb is $layoutcontroldb"
             if {$layoutcontroldb eq {}} {return}
             set l [$layoutcontroldb getElementsByTagName layout]
             set new [$newTurnout draw -db $layoutcontroldb]
@@ -2704,7 +2749,7 @@ namespace eval lcc {
         }
         method mkNewBlock {fr} {
             set layoutcontroldb [$self cget -layoutdb]
-            #puts stderr "*** $self mkNewBlock: layoutcontroldb is $layoutcontroldb"
+            #$self putdebug "*** $self mkNewBlock: layoutcontroldb is $layoutcontroldb"
             if {$layoutcontroldb eq {}} {return}
             set l [$layoutcontroldb getElementsByTagName layout]
             set new [$newBlock draw -db $layoutcontroldb]
@@ -2716,7 +2761,7 @@ namespace eval lcc {
         }
         method mkNewSensor {fr} {
             set layoutcontroldb [$self cget -layoutdb]
-            #puts stderr "*** $self mkNewSensor: layoutcontroldb is $layoutcontroldb"
+            #$self putdebug "*** $self mkNewSensor: layoutcontroldb is $layoutcontroldb"
             if {$layoutcontroldb eq {}} {return}
             set l [$layoutcontroldb getElementsByTagName layout]
             set new [$newSensor draw -db $layoutcontroldb]
@@ -2728,7 +2773,7 @@ namespace eval lcc {
         }
         method mkNewControl {fr} {
             set layoutcontroldb [$self cget -layoutdb]
-            #puts stderr "*** $self mkNewControl: layoutcontroldb is $layoutcontroldb"
+            #$self putdebug "*** $self mkNewControl: layoutcontroldb is $layoutcontroldb"
             if {$layoutcontroldb eq {}} {return}
             set l [$layoutcontroldb getElementsByTagName layout]
             set new [$newControl draw -db $layoutcontroldb]
@@ -2818,7 +2863,7 @@ namespace eval lcc {
             
             upvar $curyVar cury
             upvar $curpageVar curpage
-            #puts stderr "*** _printexport_pdf_frame $n \{$indent\} $pdfobj $frame $curyVar \{$pageheader\}"
+            #$self putdebug "*** _printexport_pdf_frame $n \{$indent\} $pdfobj $frame $curyVar \{$pageheader\}"
             set gn 0
             switch [$n cget -tag] {
                 segment {
@@ -2940,8 +2985,8 @@ namespace eval lcc {
             #                page number.
             # @param pageheader The running page header text.
             
-            #puts stderr "*** _printexport_pdf_vframe $n \{$indent\} $pdfobj $frame $curyVar $curpageVar \{$pageheader\}"
-            #puts stderr "*** _printexport_pdf_vframe: frame is a [winfo class $frame]"
+            #$self putdebug "*** _printexport_pdf_vframe $n \{$indent\} $pdfobj $frame $curyVar $curpageVar \{$pageheader\}"
+            #$self putdebug "*** _printexport_pdf_vframe: frame is a [winfo class $frame]"
             upvar $curyVar cury
             upvar $curpageVar curpage
             if {$cury < 24} {
@@ -2972,7 +3017,7 @@ namespace eval lcc {
             # @param pageno The new page's number.
             # @return The fresh current y value.
             
-            # puts stderr "*** _printexport_pdf_newpage $pdfobj \{$pageheader\} $pageno"
+            # $self putdebug "*** _printexport_pdf_newpage $pdfobj \{$pageheader\} $pageno"
             $pdfobj startPage
             set topy [lindex [$pdfobj getDrawableArea] 1]
             $pdfobj setTextPosition 0 $topy
@@ -3229,7 +3274,7 @@ namespace eval lcc {
                             }
                         }
                     } else {
-                        #puts stderr "*** _printexport_csv_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
+                        #$self putdebug "*** _printexport_csv_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}
@@ -3287,7 +3332,7 @@ namespace eval lcc {
             # @param tabs The tabs in the tabbed notebook (the replications).
             # @param matrix The matrix to populate.
             
-            #puts stderr "*** _printexport_csv_framesAcross $n $tabnb $tabs $matrix"
+            #$self putdebug "*** _printexport_csv_framesAcross $n $tabnb $tabs $matrix"
             set row [list]
             set cols [$matrix columns]
             foreach tabframe $tabs {
@@ -3306,9 +3351,9 @@ namespace eval lcc {
             #               to.
             # @param frame The GUI frame.
             
-            #puts stderr "*** _printexport_csv_frameAcross $n $rowVar $frame"
+            #$self putdebug "*** _printexport_csv_frameAcross $n $rowVar $frame"
             upvar $rowVar row
-            #puts stderr "*** _printexport_csv_frameAcross: row is $row"
+            #$self putdebug "*** _printexport_csv_frameAcross: row is $row"
             set gn 0
             switch [$n cget -tag] {
                 group {
@@ -3347,7 +3392,7 @@ namespace eval lcc {
                                 _printexport_csv_vframeAcross $c row $cframe
                             }
                         }
-                        #puts stderr "*** _printexport_csv_frameAcross (after child): row is $row"
+                        #$self putdebug "*** _printexport_csv_frameAcross (after child): row is $row"
                     }
                 }
             }
@@ -3361,9 +3406,9 @@ namespace eval lcc {
             #               to.
             # @param frame The GUI frame.
             
-            #puts stderr "*** _printexport_csv_vframeAcross $n $rowVar $frame"
+            #$self putdebug "*** _printexport_csv_vframeAcross $n $rowVar $frame"
             upvar $rowVar row
-            #puts stderr "*** _printexport_csv_vframeAcross: row is $row"
+            #$self putdebug "*** _printexport_csv_vframeAcross: row is $row"
             if {[winfo class $frame] eq "TLabelframe"} {
                 lappend row [$frame cget -text]
             }
@@ -3372,7 +3417,7 @@ namespace eval lcc {
             } else {
                 lappend row [$frame.value get]
             }
-            #puts stderr "*** _printexport_csv_vframeAcross (after value added): row is $row"
+            #$self putdebug "*** _printexport_csv_vframeAcross (after value added): row is $row"
         }
         
         method _printexport_txt {node frame name outfile} {
@@ -3411,7 +3456,7 @@ namespace eval lcc {
             # @param outfp The output file channel.
             # @param frame The GUI frame.
             
-            #puts stderr "*** _printexport_txt_frame $n \{$indent\} $outfp $frame"
+            #$self putdebug "*** _printexport_txt_frame $n \{$indent\} $outfp $frame"
             set gn 0
             switch [$n cget -tag] {
                 segment {
@@ -3466,10 +3511,10 @@ namespace eval lcc {
                             _printexport_txt_frame $n "${indent}  " $outfp $tabframe
                         }
                     } else {
-                        #puts stderr "*** _printexport_txt_frame: frame = $frame"
-                        #puts stderr "*** _printexport_txt_frame: children of $frame: [widget_children_tails $frame]"
-                        #puts stderr "*** _printexport_txt_frame: children of $n: [$n children]"
-                        #puts stderr "*** _printexport_txt_frame: attributes of $n: [$n cget -attributes]"
+                        #$self putdebug "*** _printexport_txt_frame: frame = $frame"
+                        #$self putdebug "*** _printexport_txt_frame: children of $frame: [widget_children_tails $frame]"
+                        #$self putdebug "*** _printexport_txt_frame: children of $n: [$n children]"
+                        #$self putdebug "*** _printexport_txt_frame: attributes of $n: [$n cget -attributes]"
                         foreach c [$n children] {
                             set tag [$c cget -tag]
                             if {[lsearch {name description repname} $tag] >= 0} {continue}

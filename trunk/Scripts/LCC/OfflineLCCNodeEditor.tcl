@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 24 13:14:30 2023
-#  Last Modified : <230306.1537>
+#  Last Modified : <230314.1224>
 #
 #  Description	
 #
@@ -424,7 +424,8 @@ snit::type OfflineLCCNodeEditor {
                    .cdi[_fnametowindow [file rootname [file tail $f]]] \
                    -cdi $CDI \
                    -offlineedit yes \
-                   -loadfile $f -layoutdb $layoutcontroldb]
+                   -loadfile $f -layoutdb $layoutcontroldb \
+                   -debugprint [myproc putdebug]]\
         }
         $type _buildDialogs
         $mainWindow showit
@@ -449,7 +450,8 @@ snit::type OfflineLCCNodeEditor {
                    .cdi[_fnametowindow [file rootname [file tail $filename]]] \
                    -cdi $CDI \
                    -offlineedit yes \
-                   -loadfile $filename -layoutdb $layoutcontroldb]
+                   -loadfile $filename -layoutdb $layoutcontroldb \
+                   -debugprint [myproc putdebug]]
         }
     }
     typemethod _newblank {} {
@@ -460,7 +462,8 @@ snit::type OfflineLCCNodeEditor {
                    .cdi[regsub -all {:} $nid {}] \
                    -cdi $CDI -nid $nid \
                    -layoutdb $layoutcontroldb \
-                   -offlineedit yes]
+                   -offlineedit yes \
+                   -debugprint [myproc putdebug]]
         }
     }
     typemethod _editLayoutControlItem {what name args} {
