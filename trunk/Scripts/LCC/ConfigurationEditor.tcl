@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <230314.1329>
+#  Last Modified : <230314.1443>
 #
 #  Description	
 #
@@ -900,7 +900,7 @@ namespace eval lcc {
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
                                 if {[lsearch {name description repname} $tag] >= 0} {continue}
-                                if {[$self _saveNode $c $i $fp "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
+                                if {[$self _saveNode $c $fp "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
                             }
                         }
                     } else {
