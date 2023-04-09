@@ -803,11 +803,11 @@ namespace eval TrackGraph {
                    }
                }
                TrackGraph::Sensor {
-                   lassign [split [node SenseScript] :] on off 
+                   lassign [split [$node SenseScript] :] on off 
                    $db newSensor [$node NameOfNode] -onevent $on -offevent $off
                }
                TrackGraph::Control {
-                   lassign [split [node SenseScript] :] on off 
+                   lassign [split [$node SenseScript] :] on off 
                    $db newControl [$node NameOfNode] -onevent $on -offevent $off
                }
            }

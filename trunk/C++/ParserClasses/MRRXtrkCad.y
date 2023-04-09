@@ -175,7 +175,11 @@ extern const double INCHESperMM /* =  25.3807106598*/,
 /* Reserved words. */
 /* Base tokens for reserved words. */
 /* END  */
-%token END 
+/*%token END */
+%token ENDSEGS
+%token ENDSIGNAL
+%token ENDBLOCK
+%token ENDTRACKS
 /* VERSION */
 %token _VERSION
 /* TITLE */
@@ -315,7 +319,7 @@ extern const double INCHESperMM /* =  25.3807106598*/,
 %%
 
 
-layout : layout1 END EOL;
+layout : layout1 ENDTRACKS EOL;
 
 
 layout1 : definition layout1
@@ -369,7 +373,7 @@ layers : LAYERS INTEGER INTEGER INTEGER INTEGER INTEGER INTEGER INTEGER
 
 structure : STRUCTURE INTEGER INTEGER INTEGER INTEGER INTEGER scalename
 		      INTEGER FLOAT FLOAT INTEGER FLOAT STRING EOL adjopt pieropt structbody 
-		      END EOL {delete $13;} ;
+		      ENDSEGS EOL {delete $13;} ;
 
 structbody : 
 	   | structbodyelt structbody 
@@ -414,10 +418,10 @@ fblock1 : FLOAT FLOAT INTEGER EOL;
 	
 
 draw : DRAW INTEGER INTEGER INTEGER INTEGER INTEGER FLOAT FLOAT INTEGER FLOAT
-	    EOL structbody END EOL;
+	    EOL structbody ENDSEGS EOL;
 
 /* BZRLIN<sp>index<sp>layer<sp>0<sp>0<sp>line-width<sp>scale<sp>visible<sp>X1<sp>Y1<sp>X2<sp>Y2<sp>X3<sp>Y3<sp>X4<sp>Y4<sp>0<sp>desc-X<sp>desc-Y */
-bzrlin: BZRLIN INTEGER INTEGER INTEGER INTEGER INTEGER scalename INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT INTEGER FLOAT FLOAT EOL bzrlinbody  END EOL;
+bzrlin: BZRLIN INTEGER INTEGER INTEGER INTEGER INTEGER scalename INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT INTEGER FLOAT FLOAT EOL bzrlinbody  ENDSEGS EOL;
 
 bzrlinbody : 
            | bzrlinbodyelt bzrlinbody
@@ -432,10 +436,10 @@ bzrlinbodyelt : A INTEGER INTEGER FLOAT    FLOAT      FLOAT     FLOAT      INTEG
 	      ;
 
 curve : CURVE INTEGER INTEGER INTEGER INTEGER INTEGER scalename INTEGER FLOAT
-	      FLOAT INTEGER FLOAT INTEGER FLOAT FLOAT EOL trackbody END EOL
+	      FLOAT INTEGER FLOAT INTEGER FLOAT FLOAT EOL trackbody ENDSEGS EOL
 		 {trackGraph->InsertCurveTrack($2,$17,$9,$10,$12);};
              /* index   layer   twidth  color   0.000 scale     vis     X1    Y1    X2    Y2    X3    Y3    X4    Y4    0       desc-X desc-Y */
-bezier : BEZIER INTEGER INTEGER INTEGER INTEGER FLOAT scalename INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT INTEGER FLOAT FLOAT EOL bezierbody END EOL
+bezier : BEZIER INTEGER INTEGER INTEGER INTEGER FLOAT scalename INTEGER FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT INTEGER FLOAT FLOAT EOL bezierbody ENDSEGS EOL
                 {trackGraph->InsertBezierTrack($2,$21,$9,$10,$11,$12,$13,$14,$15,$16);}
                 ;
 
@@ -456,7 +460,7 @@ bezierbodyelt : trackbodyelt {$$ = BezierBodyElt::MakeTrackEnd($1);}
               ;
 
     /* CORNU index   layer   width   0       0       scale     visible pos1x pos1y angle1  radius1 center1x center1y pos2x pos2y angle2 radius2 center2x center2y */
-cornu: CORNU INTEGER INTEGER INTEGER INTEGER INTEGER scalename INTEGER FLOAT FLOAT FLOAT   FLOAT   FLOAT    FLOAT    FLOAT FLOAT FLOAT  FLOAT   FLOAT    FLOAT EOL cornubody END EOL
+cornu: CORNU INTEGER INTEGER INTEGER INTEGER INTEGER scalename INTEGER FLOAT FLOAT FLOAT   FLOAT   FLOAT    FLOAT    FLOAT FLOAT FLOAT  FLOAT   FLOAT    FLOAT EOL cornubody ENDSEGS EOL
              {trackGraph->InsertCornuTrack($2,$22,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20);}
      ;
      
@@ -515,11 +519,11 @@ floatorstring : FLOAT
               | STRING {delete $1;}
               ;
 
-straight : STRAIGHT INTEGER INTEGER INTEGER INTEGER INTEGER scalename INTEGER
-		    EOL trackbody END EOL {trackGraph->InsertStraightTrack($2,$10);};
+straight : STRAIGHT INTEGER INTEGER INTEGER INTEGER INTEGER scalename INTEGER FLOAT FLOAT
+		    EOL trackbody ENDSEGS EOL {trackGraph->InsertStraightTrack($2,$12);};
 
 turnout : TURNOUT INTEGER INTEGER INTEGER INTEGER INTEGER scalename INTEGER
-		  FLOAT FLOAT INTEGER FLOAT STRING {TurnoutBodyElt::InitTSegId();} EOL adjopt pieropt turnoutbody END EOL
+		  FLOAT FLOAT INTEGER FLOAT STRING {TurnoutBodyElt::InitTSegId();} EOL adjopt pieropt turnoutbody ENDSEGS EOL
 		{trackGraph->InsertTurnOut($2, $9, $10, $12, $13, $18);};
 
 adjopt :
@@ -554,7 +558,7 @@ turnoutbodyelt : trackbodyelt {$$ = TurnoutBodyElt::MakeTurnoutEnd($1);}
 	       ;
 
 turntable : TURNTABLE INTEGER INTEGER INTEGER INTEGER INTEGER scalename INTEGER
-		FLOAT FLOAT INTEGER FLOAT integerornull EOL trackbody END EOL
+		FLOAT FLOAT INTEGER FLOAT integerornull EOL trackbody ENDSEGS EOL
 		{trackGraph->InsertTurnTable($2,$9, $10,$12,$15);};
 
 integerornull :
@@ -567,28 +571,29 @@ intlist : {$$ = NULL;}
 
 joint : JOINT INTEGER INTEGER INTEGER INTEGER INTEGER scalename INTEGER
 	FLOAT FLOAT FLOAT FLOAT INTEGER INTEGER INTEGER FLOAT FLOAT INTEGER
-	FLOAT EOL trackbody END EOL {trackGraph->InsertJointTrack($2,$21,$9,$10,$19,$11,$12);};
+	FLOAT EOL trackbody ENDSEGS EOL {trackGraph->InsertJointTrack($2,$21,$9,$10,$19,$11,$12);};
 
 car : CAR INTEGER scalename STRING INTEGER INTEGER FLOAT FLOAT INTEGER
 	  INTEGER FLOAT FLOAT INTEGER FLOAT FLOAT car1 {delete $4;} ;
 
 car1 : INTEGER INTEGER INTEGER 
 	  INTEGER INTEGER INTEGER INTEGER INTEGER INTEGER INTEGER INTEGER 
-	  FLOAT FLOAT FLOAT EOL trackbody END EOL;
+	  FLOAT FLOAT FLOAT EOL trackbody ENDSEGS EOL;
      | INTEGER INTEGER INTEGER INTEGER INTEGER INTEGER INTEGER INTEGER INTEGER
 	EOL
      ;
 
-note : NOTE note1 EOL {scanToEND = true;} MULTILINE EOL {delete $5;};
+note : NOTE INTEGER INTEGER INTEGER INTEGER FLOAT FLOAT INTEGER INTEGER
+        oneortwostrings EOL ;
 
-note1 : MAIN INTEGER INTEGER INTEGER INTEGER INTEGER
-      | INTEGER INTEGER INTEGER INTEGER FLOAT FLOAT INTEGER INTEGER
-      ;
+oneortwostrings : STRING STRING {delete $1; delete $2;}
+                | STRING {delete $1;}
+                ;
 
 text : TEXT INTEGER INTEGER INTEGER INTEGER INTEGER FLOAT FLOAT INTEGER STRING INTEGER EOL
 	{delete $10;};
 
-block : BLOCK INTEGER STRING STRING EOL tracklist END EOL
+block : BLOCK INTEGER STRING STRING EOL tracklist ENDBLOCK EOL
 	/*    index   name   script     tracklist */
 	{trackGraph->InsertBlock($2,$3,$4,$6);} ;
 
@@ -600,7 +605,7 @@ switchmotor : SWITCHMOTOR INTEGER INTEGER STRING STRING STRING STRING EOL
 	     /* index turnout# name  normal reverse pointsense */
 	     {trackGraph->InsertSwitchMotor($2,$3,$4,$5,$6,$7);} ;
 
-signal : SIGNAL INTEGER INTEGER scalename INTEGER FLOAT FLOAT FLOAT INTEGER STRING EOL aspectlist  END EOL
+signal : SIGNAL INTEGER INTEGER scalename INTEGER FLOAT FLOAT FLOAT INTEGER STRING EOL aspectlist  ENDSIGNAL EOL
         /*    index   name X Y A  numheads aspectlist */
         {trackGraph->InsertSignal($2, $10, $6, $7, $8, $9, $12);} ;
 
@@ -644,7 +649,11 @@ int MRRXtrkCad::lookup_word(const char *word) const
 		{"D", D},
 		{"DRAW", DRAW },
 		{"E", E},
-		{"END", END},
+		/*{"END", END},*/
+		{"END$BLOCK", ENDBLOCK},
+		{"END$SEGS", ENDSEGS},
+		{"END$SIGNAL", ENDSIGNAL},
+		{"END$TRACKS", ENDTRACKS},
 		{"F", F},
 		{"G", G},
 		{"H", H},
@@ -817,10 +826,10 @@ int MRRXtrkCad::yylex()
 		yylloc.last_column = lp - line_buffer;
 		//cerr << "*** yylex: return(INTEGER)" <<endl;
 		return(INTEGER);
-	} else if (isalpha(*lp))
+	} else if (isalpha(*lp)/* || *lp == '$'*/)
 	{
 		char *p = word;
-		while (isalpha(*lp))
+		while (isalpha(*lp) || *lp == '$')
 		{
 			char c = *lp++;
 			if (islower(c)) c = toupper(c);
