@@ -289,8 +289,8 @@ Dispatcher.app: Dispatcher${BEXEEXT}
 
 endif
 	
-
 	
+			
 $(top_builddir)/Doc/User/Dispatcher/index.html : FORCE
 	$(MAKE) -C $(top_builddir)/Doc/User Dispatcher/index.html
 

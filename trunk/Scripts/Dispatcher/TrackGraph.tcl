@@ -68,7 +68,9 @@ namespace eval TrackGraph {
     typevariable idTable -array {}
     typevariable backPointers -array {}
     typemethod FindNode {nid} {
-      if {[catch {set idTable($nid)} node]} {
+      #puts stderr "*** $type FindNode $nid"
+      #puts stderr "*** $type FindNode: \[info exists idTable($nid)] is [info exists idTable($nid)]"
+      if {![info exists idTable($nid)]} {
 	if {[$layoutname IsNodeP $nid]} {
 	  set node [$type create %AUTO% $nid]
 	  if {[$node AmIACompressedNode]} {
@@ -81,7 +83,7 @@ namespace eval TrackGraph {
 	  return {}
 	}
       } else {
-	return $node
+	return $idTable($nid)
       }
     }
     constructor {_nid args} {
@@ -204,6 +206,7 @@ namespace eval TrackGraph {
     delegate typemethod LowestNode       to layoutname
     delegate typemethod HighestNode      to layoutname
     delegate typemethod CompressGraph    to layoutname
+    delegate typemethod IsCompressed     to layoutname
     typemethod Heads {} {
       set result {}
       foreach h [$layoutname Heads] {
@@ -214,8 +217,11 @@ namespace eval TrackGraph {
     typemethod Roots {} {
       set result {}
       foreach r [$layoutname Roots] {
+        #puts stderr "*** $type Roots r is $r"
 	lappend result [$type FindNode $r]
+        #puts stderr "*** $type Roots result is \{$result\}"
       }
+      return $result
     }
     delegate typemethod IsCompressedNode to layoutname
     method AmIACompressedNode {} {return [$type IsCompressedNode $nid]}
@@ -330,6 +336,57 @@ namespace eval TrackGraph {
             }
         }
         return false
+    }
+    typemethod WriteGVFile {filename} {
+        if {[catch {open $filename w} fp]} {
+            error [_ "Error opening %s: %s" $filename $fp]
+        } else {
+            puts $fp "graph [regsub -all {[-]} [file tail [file rootname [lindex [$layoutname SourceFile]]]] {}] {"
+            puts $fp "\tlayout=\"neato\""
+            #puts $fp "\tsep=\"10\""
+            set _nodesWritten [list]
+            set _edgesWritten [list]
+            if {[$type IsCompressed]} {
+                #puts stderr "*** $type WriteGVFile: Compressed: [llength [$type Roots]] roots"
+                foreach r [$type Roots] {
+                    #puts stderr "*** $type WriteGVFile: r is [$r MyNID]"
+                    putsNode $fp $r
+                }
+            } else {
+                #puts stderr "*** $type WriteGVFile: Uncompressed: [llength [$type Heads]] heads"
+                foreach h [$type Heads] {
+                    putsNode $fp $h
+                }
+            }
+            puts $fp "}"
+            close $fp
+        }
+    }
+    typevariable _nodesWritten {}
+    typevariable _edgesWritten {}
+    proc putsNode {fp node} {
+        #puts stderr "*** putsNode $fp $node"
+        #puts stderr "*** putsNode: NID is [$node MyNID]"
+        if {[lsearch -exact $_nodesWritten $node] >= 0} {return}
+        lappend _nodesWritten $node
+        set edgeCount [$node NumEdges]
+        #puts stderr "*** putsNode: edgeCount is $edgeCount"
+        if {$edgeCount == 0} {
+            return
+        } else {
+            for {set i 0} {$i < $edgeCount} {incr i} {
+                set n [$node EdgeNode $i]
+                #puts stderr "*** putsNode: \[$node EdgeNode $i] returned '$n'"
+                if {$n eq ""} {continue}
+                if {[lsearch -exact $_edgesWritten "[$n MyNID]--[$node MyNID]"] < 0} {
+                    puts $fp "\t[$node MyNID] -- [$n MyNID]"
+                    lappend _edgesWritten "[$node MyNID]--[$n MyNID]"
+                }
+                if {[lsearch -exact $_nodesWritten $n] < 0} {
+                    putsNode $fp $n
+                }
+            }
+        }
     }
   } 
   snit::widget LayoutControlsDialog {

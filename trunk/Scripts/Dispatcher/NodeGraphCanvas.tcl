@@ -60,7 +60,14 @@ namespace eval NodeGraphCanvas {
     component findDialog;#		FindNode Dialog
     component   nodeIDLSP;#		Node ID
 
-
+    
+    typevariable _DotEXEC {}
+    typeconstructor {
+        set _DotEXEC [auto_execok "neato"]
+    }
+    typemethod HaveGraphviz {} {
+        return [expr {$_DotEXEC ne ""}]
+    }
     constructor {args} {
       installhull using canvas -scrollregion {0 0 0 0}
       install nodeMenu using menu $win.nodeMenu -tearoff no
@@ -80,6 +87,28 @@ namespace eval NodeGraphCanvas {
       pack $nodeIDLSP -fill x
       wm transient [winfo toplevel $findDialog] [winfo toplevel $win]
       $self configurelist $args
+      bind $hull <plus> [mymethod zoomBy 2]
+      bind $hull <minus> [mymethod zoomBy .5]
+    }
+    variable scale 1.0
+    method zoomBy {zoomFactor} {
+        
+        $hull scale all 0 0 $zoomFactor $zoomFactor
+        set scale [expr {$scale * $zoomFactor}]
+        $hull configure -scrollregion [$hull bbox all]
+    }
+    method setZoom {zoomFactor} {
+        
+        if {$scale != 1} {
+            set inv [expr {1.0 / double($scale)}]
+            $hull scale all 0 0 $inv $inv
+        }
+        $hull scale all 0 0 $zoomFactor $zoomFactor
+        set scale $zoomFactor
+        $hull configure -scrollregion [$hull bbox all]
+    }
+    method getZoom {} {
+        return $scale
     }
     method {create track} {XX YY args} {
       set node [from args -node {}]
@@ -400,6 +429,93 @@ namespace eval NodeGraphCanvas {
 	if {[$s EdgeNode $ie] eq $t} {break}
       }
       $hull bind E$s_NID-$t_NID <1> [mymethod EdgeInfo $s $ie]
+    }
+    method DotGraphLayout {gvfile} {
+        if {[catch {open "|$_DotEXEC -Ttk $gvfile" r} dotfp]} {
+            tk_messageBox -type ok -icon error \
+                  -message [_ "Could not start $_DotEXEC!"]
+            return
+        }
+        while {[gets $dotfp line] >= 0} {
+            #puts stderr "*** $self DotGraphLayout: $line"
+            if {[regexp {^[[:space:]]*#[[:space:]]*([[:digit:]]*)$} $line => NID] > 0} {
+                #puts stderr "*** $self DotGraphLayout: NID is $NID"
+                continue
+            } elseif {[regexp {^[[:space:]]*#[[:space:]]*([[:digit:]]*)--([[:digit:]]*)$} $line => s_NID t_NID] > 0} {
+                #puts stderr "*** $self DotGraphLayout: s_NID is $s_NID and t_NID is $t_NID"
+                continue
+            } elseif {[regexp {^[[:space:]]*#} $line] > 0} {
+                continue
+            }
+            set id [eval [regsub -all {\$c} $line {$hull}]]
+            if {[$hull type $id] eq "oval"} {
+                $hull itemconfigure $id -tag T$NID
+            } elseif {[$hull type $id] eq "text"} {
+                $hull itemconfigure $id -tag TLab$NID
+                set node [TrackGraph::TrackGraph FindNode $NID]
+                $hull bind T$NID <1> [mymethod NodeInfo $node]
+                $hull bind TLab$NID <1> [mymethod NodeInfo $node]
+                $hull bind T$NID <3> [mymethod NodeMenu $node %X %Y]
+                $hull bind TLab$NID <3> [mymethod NodeMenu $node %X %Y]
+                if {[$node TypeOfNode] in {TrackGraph::Track TrackGraph::Turnout TrackGraph::Turntable}} {
+                    set coords [$hull coords $id]
+                    $self create track [lindex $coords 0] \
+                          [expr {[lindex $coords 1] - 30.0}] -node $node
+                }
+            } elseif {[$hull type $id] eq "line"} {
+                $hull itemconfigure $id -tag [list E$s_NID-$t_NID edge]
+                set s [TrackGraph::TrackGraph FindNode $s_NID]
+                set t [TrackGraph::TrackGraph FindNode $t_NID]
+                set nedges [$s NumEdges]
+                for {set ie 0} {$ie < $nedges} {incr ie} {
+                    if {[$s EdgeNode $ie] eq $t} {break}
+                }
+                $hull bind E$s_NID-$t_NID <1> [mymethod EdgeInfo $s $ie]
+            }
+        }
+        catch {close $dotfp} message
+        if {[TrackGraph::TrackGraph HasControls]} {
+            foreach node [TrackGraph::TrackGraph Heads] {
+                if {[$node NumEdges] < 1} {
+                    switch [$node TypeOfNode] {
+                        TrackGraph::Block {
+                            foreach tn [$node TrackList] {
+                                set tracknode [[$node info type] FindNode $tn]
+                                if {[llength [$hull find withtag T$tn]] > 0} {
+                                    set coords [$hull coords T$tn]
+                                    $hull create oval [expr {[lindex $coords 0] - 1}] \
+                                          [expr {[lindex $coords 1] - 1}] \
+                                          [expr {[lindex $coords 2] + 1}] \
+                                          [expr {[lindex $coords 3] + 1}] \
+                                          -outline blue -fill {} -tag [list T$tn BLOCK]
+                                    lappend blocknodes($tn) $node
+                                }
+                            }
+                        }
+                        TrackGraph::SwitchMotor {
+                            set tn [$node TurnoutNumber]
+                            set tracknode [[$node info type] FindNode $tn]
+                            if {[llength [$hull find withtag T$tn]] > 0} {
+                                set TrkNID $tn 
+                                set coords [$hull coords T$TrkNID]
+                                $hull create oval [expr {[lindex $coords 0] - 1}] \
+                                      [expr {[lindex $coords 1] - 1}] \
+                                      [expr {[lindex $coords 2] + 1}] \
+                                      [expr {[lindex $coords 3] + 1}] \
+                                      -outline orange -fill {} -tag [list T$TrkNID SWITCHMOTOR]
+                                lappend switchnodes($TrkNID) $node
+                            }
+                        }
+                        default {
+                        }
+                    }
+                }
+            }
+        }                   
+        #puts stderr "*** $self DotGraphLayout: message (close) is '$message'"
+        $hull raise BLOCK
+        $hull raise SWITCHMOTOR
+        $hull configure -scrollregion [$hull bbox all]
     }
     method NodeInfo {node} {
         if {[$node TypeOfNode] eq "TrackGraph::Signal"} {

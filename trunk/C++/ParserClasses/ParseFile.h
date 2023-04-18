@@ -214,6 +214,10 @@ public:
 	/*+ Next Edge node.
 	  */
 	int CompressedEdgeNode (int cnid, int edgenum) const;
+        /** Is the graph compressed?
+          * @returns True if the graph is compressed, False otherwised.
+          */
+        bool IsCompressed() const;
 	/*+ Uncompressed graph heads.
 	  */
 	const IntegerList *Heads();
@@ -564,6 +568,7 @@ public:
 	{
 		return trackGraph->CompressedNodeSegments (cnid);
 	}
+        bool IsCompressed() const {return trackGraph->IsCompressed();}
 	const IntegerList *Heads() {return trackGraph->Heads();}
 	/** Is cid a node in the compressed graph?
 	  */

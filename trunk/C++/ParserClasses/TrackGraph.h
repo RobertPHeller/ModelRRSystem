@@ -863,6 +863,11 @@ private:
         /** Test if an edge already exists.
          */
         bool compressed_edge_exists(CompressedNode cnode1, CompressedNode cnode2) const;
+        /** Find the block this (raw) nodeid is in.
+         * @param node The (raw) Node.
+         * @returns the raw Node of the block node or none, if there is no block.
+         */
+        Node FindBlock(Node node) const;
 public:
 	/**  Two dimensional transform class.
 	  *
@@ -1097,7 +1102,14 @@ public:
 	double CompressedNodePositionX (int cnid) const;
 	/** X Coordinate of a Compressed Node position.
 	  */
-	double CompressedNodePositionY (int cnid) const;
+        double CompressedNodePositionY (int cnid) const;
+        /** Is the graph compressed?
+          * @returns True if the graph is compressed, False otherwised.
+          */
+        bool IsCompressed() const 
+        {
+            return compressedP;
+        }
 	/** Uncompressed graph heads.
 	  */
 	const IntegerList *Heads()

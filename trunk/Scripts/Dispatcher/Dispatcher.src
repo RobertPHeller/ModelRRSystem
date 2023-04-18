@@ -353,6 +353,28 @@ proc Dispatcher::MainWindow {} {
   $Main menu add view command \
         -label [_m "Menu|View|Layout Control DB"] \
         -command "TrackGraph::TrackGraph ViewLayoutControlDB"
+  $Main menu add view command \
+        -label [_m "Menu|View|Zoom In"] \
+        -accelerator {+} \
+        -command "$CanvasWindow zoomBy 2"
+  set zoomMenu [menu [$Main mainframe getmenu view].zoom -tearoff no]
+  $Main menu add view cascade \
+        -label [_m "menu|View|Zoom"] \
+        -menu $zoomMenu
+  $Main menu add view command \
+        -label [_m "Menu|View|Zoom Out"] \
+        -accelerator {-} \
+        -command "$CanvasWindow zoomBy .5"
+  $zoomMenu add command -label {16:1} -command "$CanvasWindow setZoom 16"
+  $zoomMenu add command -label {8:1} -command "$CanvasWindow setZoom 8"
+  $zoomMenu add command -label {4:1} -command "$CanvasWindow setZoom 4"
+  $zoomMenu add command -label {2:1} -command "$CanvasWindow setZoom 2"
+  $zoomMenu add command -label {1:1} -command "$CanvasWindow setZoom 1"
+  $zoomMenu add command -label {1:2} -command "$CanvasWindow setZoom .5"
+  $zoomMenu add command -label {1:4} -command "$CanvasWindow setZoom .25"
+  $zoomMenu add command -label {1:8} -command "$CanvasWindow setZoom .125"
+  $zoomMenu add command -label {1:16} -command "$CanvasWindow setZoom .0625"
+  
   $Main menu delete help [_m "Menu|Help|On Keys..."]
   $Main menu delete help [_m "Menu|Help|Index..."]
   $Main menu add help command \
@@ -618,47 +640,54 @@ proc Dispatcher::LoadLayout {{filename {}}} {
     $Main menu entryconfigure view [_m "Menu|View|Layout Controls (from XtrkCAD)"] \
           -state disabled
     TrackGraph::TrackGraph LoadLayout "$filename"
-    foreach edge [TrackGraph::TrackGraph PrimMinimumSpanningTree] {
-      #puts stderr "*** Dispatcher::LoadLayout: edge = $edge"
-      $CanvasWindow create edge [lindex $edge 0] [lindex $edge 1]
-    }
-    #puts stderr "*** Dispatcher::LoadLayout: TrackGraph::TrackGraph Roots = [TrackGraph::TrackGraph Roots]"
-    #puts stderr "*** Dispatcher::LoadLayout: TrackGraph::TrackGraph Heads = [TrackGraph::TrackGraph Heads]"
-    foreach head [TrackGraph::TrackGraph Heads] {
-        #puts stderr "*** Dispatcher::LoadLayout (orphans): head = $head"
-        #puts stderr "*** Dispatcher::LoadLayout (orphans): \[$head TypeOfNode\] = [$head TypeOfNode]"
-        switch [$head TypeOfNode] {
-            TrackGraph::Track -
-            TrackGraph::Turnout -
-            TrackGraph::Turntable {
-                if {![$CanvasWindow isdrawnp $head]} {
-                    $CanvasWindow create orphannode $head
+    close [file tempfile graphfile "/usr/tmp/GV.gv"]
+    if {[NodeGraphCanvas::NodeGraphCanvas HaveGraphviz]} {
+        TrackGraph::TrackGraph WriteGVFile $graphfile
+        $CanvasWindow DotGraphLayout $graphfile
+        file delete -force $graphfile
+    } else {
+        foreach edge [TrackGraph::TrackGraph PrimMinimumSpanningTree] {
+            #puts stderr "*** Dispatcher::LoadLayout: edge = $edge"
+            $CanvasWindow create edge [lindex $edge 0] [lindex $edge 1]
+        }
+        #puts stderr "*** Dispatcher::LoadLayout: TrackGraph::TrackGraph Roots = [TrackGraph::TrackGraph Roots]"
+        #puts stderr "*** Dispatcher::LoadLayout: TrackGraph::TrackGraph Heads = [TrackGraph::TrackGraph Heads]"
+        foreach head [TrackGraph::TrackGraph Heads] {
+            #puts stderr "*** Dispatcher::LoadLayout (orphans): head = $head"
+            #puts stderr "*** Dispatcher::LoadLayout (orphans): \[$head TypeOfNode\] = [$head TypeOfNode]"
+            switch [$head TypeOfNode] {
+                TrackGraph::Track -
+                TrackGraph::Turnout -
+                TrackGraph::Turntable {
+                    if {![$CanvasWindow isdrawnp $head]} {
+                        $CanvasWindow create orphannode $head
+                    }
                 }
             }
         }
-    }
-    foreach head [TrackGraph::TrackGraph Heads] {
-      #puts stderr "*** Dispatcher::LoadLayout: head = $head"
-      #puts stderr "*** Dispatcher::LoadLayout: \[$head TypeOfNode\] = [$head TypeOfNode]"
-      switch [$head TypeOfNode] {
-	TrackGraph::Block {
-	  $CanvasWindow create block $head
-	}
-	TrackGraph::SwitchMotor {
-	  $CanvasWindow create switchmotor $head
+        foreach head [TrackGraph::TrackGraph Heads] {
+            #puts stderr "*** Dispatcher::LoadLayout: head = $head"
+            #puts stderr "*** Dispatcher::LoadLayout: \[$head TypeOfNode\] = [$head TypeOfNode]"
+            switch [$head TypeOfNode] {
+                TrackGraph::Block {
+                    $CanvasWindow create block $head
+                }
+                TrackGraph::SwitchMotor {
+                    $CanvasWindow create switchmotor $head
+                }
+                TrackGraph::Signal {
+                    $CanvasWindow create signal $head
+                }
+                TrackGraph::Sensor {
+                    $CanvasWindow create sensor $head
+                }
+                TrackGraph::Control {
+                    $CanvasWindow create control $head
+                }
+                default {
+                }
+            }
         }
-        TrackGraph::Signal {
-          $CanvasWindow create signal $head
-        }
-        TrackGraph::Sensor {
-          $CanvasWindow create sensor $head
-        }
-        TrackGraph::Control {
-          $CanvasWindow create control $head
-        }
-	default {
-	}
-      }
     }
     if {[TrackGraph::TrackGraph HasControls]} {
         $Main menu entryconfigure view [_m "Menu|View|Layout Controls (from XtrkCAD)"] \
@@ -693,12 +722,24 @@ proc Dispatcher::EmitLayout {{filename {}}} {
     TrackGraph::TrackGraph Emit $filename
 }
 
-
+proc Dispatcher::WriteGVFile {{filename {}}} {
+    if {[string length "$filename"]  == 0} {
+        set filename [tk_getSaveFile -defaultextension .gv \
+                      -filetypes {
+                      {{Graphviz Files} {.gv} TEXT}
+                      {{All Files}     *      TEXT}
+                  } \
+                        -parent . -title "Graphviz to write graph to"]
+    }
+    if {[string length "$filename"]  == 0} {return}
+    TrackGraph::TrackGraph WriteGVFile $filename
+}
 
 package require CTCPanelWindow
 package require WrapIt
 
 Dispatcher::MainWindow
+
 
 if {$::tcl_platform(os) eq "Darwin"} {
     proc ::tk::mac::OpenDocument {files} {
@@ -966,3 +1007,5 @@ if {$::tcl_platform(os) eq "Darwin"} {
 }
 
         
+
+
