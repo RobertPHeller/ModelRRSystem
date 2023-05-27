@@ -57,6 +57,8 @@
 #*  
 #* 
 
+AUTOMAKE_OPTIONS = subdir-objects
+
 pkgincludedir = $(includedir)/$(PACKAGE)/ParserClasses
 
 BUILT_SOURCES = MRRXtrkCad.tab.cc MRRXtrkCad.tab.h mrr_wrap.cc ParserClassesGroup.h
@@ -66,7 +68,7 @@ pkginclude_HEADERS = TrackGraph.h TrackBody.h ParseFile.h IntegerList.h \
 nodist_pkginclude_HEADERS = MRRXtrkCad.tab.h
 
 lib_LTLIBRARIES = libMRRParserClasses.la
-INCLUDES = -I$(top_builddir) -I. -I$(TCL_INC_DIR)
+AM_CPPFLAGS = -I$(top_builddir) -I. -I$(TCL_INC_DIR)
 nodist_libMRRParserClasses_la_SOURCES = MRRXtrkCad.tab.cc MRRXtrkCad.tab.h \
 		mrr_wrap.cc ../gettext.c
 libMRRParserClasses_la_SOURCES = ParseFile.cc TrackGraph.cc \
@@ -80,7 +82,7 @@ else
 libMRRParserClasses_la_LDFLAGS = -g -version-info 0:0:0 $(TCL_STUB_LIB_SPEC) $(BOOST_LDFLAGS)
 libMRRParserClasses_la_LIBADD = $(INTLLIBS) $(TCL_STUB_LIB_SPEC) $(BOOST_LDFLAGS)
 endif
-libMRRParserClasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) $(BOOST_CPPFLAGS) -Wall $(KIT_EXTRA_CFLAGS)
+libMRRParserClasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(AM_CPPFLAGS) $(BOOST_CPPFLAGS) -Wall $(KIT_EXTRA_CFLAGS)
 
 EXTRA_DIST = MRRXtrkCad.y ParserClassesGroup.h.in mrr.i SocketPair.h
 noinst_SCRIPTS = pkgIndex.tcl
@@ -89,7 +91,7 @@ noinst_DATA = mrr.potlist
 CLEANFILES = $(BUILT_SOURCES) MRRXtrkCad*.output pkgIndex.tcl *~ \
 		mrr.potlist 
 
-SWIG_FLAGS =  -tcl8 $(INCLUDES) \
+SWIG_FLAGS =  -tcl8 $(AM_CPPFLAGS) \
 	$(SWIGVERSIONFLAGS)
 
 
@@ -106,7 +108,7 @@ MRRXtrkCad.tab.cc MRRXtrkCad.tab.h : MRRXtrkCad.y
 	
 mrr_wrap.cc : mrr.i $(pkginclude_HEADERS) SocketPair.h \
 		$(top_builddir)/config.status
-	$(SWIG_CXX) $(SWIG_FLAGS) $(INCLUDES) -o mrr_wrap.cc $(srcdir)/mrr.i
+	$(SWIG_CXX) $(SWIG_FLAGS) $(AM_CPPFLAGS) -o mrr_wrap.cc $(srcdir)/mrr.i
 
 pkgIndex.tcl: libMRRParserClasses.la $(top_builddir)/config.status
 	echo 'package ifneeded  Mrr $(MRR_PATCH_LEVELLIB) [list load [file join $$dir libMRRParserClasses[info sharedlibextension]] Mrr]' > pkgIndex.tcl

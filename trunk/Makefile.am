@@ -47,7 +47,7 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = BuildScripts BuildData Doc C++ Scripts Installer po intl \
+SUBDIRS = BuildScripts BuildData Doc C++ Scripts Installer po \
 		ExampleDataAndCode
 
 EXTRA_DIST = config.rpath bootstrap config_tcl.sed.in Doxyfile.in \

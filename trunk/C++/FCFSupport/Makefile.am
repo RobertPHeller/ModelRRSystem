@@ -75,6 +75,8 @@
 #*  
 #* 
 
+AUTOMAKE_OPTIONS = subdir-objects
+
 pkgincludedir = $(includedir)/$(PACKAGE)/FCFSupport
 
 lib_LTLIBRARIES = libfcfclasses.la
@@ -104,8 +106,8 @@ libfcfclasses_la_LDFLAGS = -no-undefined -g -avoid-version $(TCL_STUB_LIB_SPEC)
 else
 libfcfclasses_la_LDFLAGS = -g -version-info 0:0:0 $(TCL_STUB_LIB_SPEC)
 endif
-INCLUDES = -I$(top_builddir) -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)  
-libfcfclasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) -Wall $(KIT_EXTRA_CFLAGS) $(PANGO_CAIRO_CFLAGS) $(CAIRO_PDF_CFLAGS)
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)  
+libfcfclasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(AM_CPPFLAGS) -Wall $(KIT_EXTRA_CFLAGS) $(PANGO_CAIRO_CFLAGS) $(CAIRO_PDF_CFLAGS)
 libfcfclasses_la_LIBADD   = $(LTLIBOBJS) $(INTLLIBS) $(CAIRO_PDF_LIBS) $(PANGO_CAIRO_LIBS) $(TCL_STUB_LIB_SPEC) 
 
 BUILT_SOURCES = FCFClasses_wrap.cc System.h
@@ -117,14 +119,14 @@ EXTRA_DIST = FCFSupportGroup.h FCFClasses.i System.h.in
 CLEANFILES = $(BUILT_SOURCES) pkgIndex.tcl FCFClasses.potlist
 
 if HAVE_PANGOCAIRO
-SWIG_FLAGS = -tcl8 $(INCLUDES) '-DHAVE_PANGOCAIRO="1"'
+SWIG_FLAGS = -tcl8 $(AM_CPPFLAGS) '-DHAVE_PANGOCAIRO="1"'
 else
-SWIG_FLAGS = -tcl8 $(INCLUDES)
+SWIG_FLAGS = -tcl8 $(AM_CPPFLAGS)
 endif
 
 FCFClasses_wrap.cc : FCFClasses.i $(pkginclude_HEADERS) \
 		$(top_builddir)/config.status
-	$(SWIG_CXX) $(SWIG_FLAGS) $(INCLUDES) -o FCFClasses_wrap.cc \
+	$(SWIG_CXX) $(SWIG_FLAGS) $(AM_CPPFLAGS) -o FCFClasses_wrap.cc \
 		$(srcdir)/FCFClasses.i
 
 FCFClasses.potlist: $(libfcfclasses_la_XGETTEXTFILES)

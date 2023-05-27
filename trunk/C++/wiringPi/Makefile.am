@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Jul 22 10:53:17 2015
-#  Last Modified : <150824.1053>
+#  Last Modified : <230527.1358>
 #
 #  Description	
 #
@@ -46,7 +46,7 @@
 lib_LTLIBRARIES = libtclwiringpi.la
 libtclwiringpi_la_SOURCES =
 nodist_libtclwiringpi_la_SOURCES = tclwiringpi_wrap.c
-INCLUDES = -I$(TCL_INC_DIR)
+AM_CPPFLAGS = -I$(TCL_INC_DIR)
 libtclwiringpi_la_CFLAGS = -DUSE_TCL_STUBS -Wall $(WIRINGPI_CFLAGS) -g
 libtclwiringpi_la_LDFLAGS =   -g -version-info 0:0:0  $(TCL_STUB_LIB_SPEC) $(WIRINGPI_LDFLAGS)
 libtclwiringpi_la_LIBADD = $(TCL_STUB_LIB_SPEC) $(WIRINGPI_LIBS)
@@ -59,7 +59,7 @@ EXTRA_DIST = tclwiringpi.i
 
 pkgdatadir = $(datadir)/$(PACKAGE)/wiringPi
 
-SWIG_FLAGS =  -tcl8 $(INCLUDES) $(WIRINGPI_CFLAGS)
+SWIG_FLAGS =  -tcl8 $(AM_CPPFLAGS) $(WIRINGPI_CFLAGS)
 
 CLEANFILES    = $(BUILT_SOURCES)
 

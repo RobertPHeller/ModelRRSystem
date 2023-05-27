@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Dec 16 14:39:16 2015
-#  Last Modified : <210518.1554>
+#  Last Modified : <230527.1356>
 #
 #  Description	
 #
@@ -42,6 +42,7 @@
 #
 ##############################################################################
 
+AUTOMAKE_OPTIONS = subdir-objects
 
 SUBDIRS = linux mac windows systemd
 
@@ -52,13 +53,13 @@ HIDAPI_OBJECT = $(HIDAPI_SOURCE:.c=.o)
 pkgincludedir = $(includedir)/$(PACKAGE)/RaildriverIO
 pkginclude_HEADERS = RaildriverIO.h $(HIDAPI_HEADER)
 
-INCLUDES = -I$(top_builddir) -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)
 lib_LTLIBRARIES = libraildriverio.la
 libraildriverio_la_SOURCES = RaildriverIO.cc $(pkginclude_HEADERS) \
 	../gettext.h
 libraildriverio_la_XGETTEXTFILES = $(libraildriverio_la_SOURCES)
 nodist_libraildriverio_la_SOURCES = raildriverio_wrap.cc ../gettext.c  hid.c
-libraildriverio_la_CFLAGS =  -DUSE_TCL_STUBS $(INCLUDES) -Wall $(HIDAPI_CFLAGS) $(KIT_EXTRA_CFLAGS)
+libraildriverio_la_CFLAGS =  -DUSE_TCL_STUBS $(AM_CPPFLAGS) -Wall $(HIDAPI_CFLAGS) $(KIT_EXTRA_CFLAGS)
 libraildriverio_la_CXXFLAGS = $(libraildriverio_la_CFLAGS)
 if CROSSCOMPILING
 libraildriverio_la_LDFLAGS = -no-undefined   -g -avoid-version  $(TCL_STUB_LIB_SPEC) $(HIDAPI_LIBS) 
@@ -69,7 +70,7 @@ libraildriverio_la_LIBADD = $(INTLLIBS) $(TCL_STUB_LIB_SPEC)  $(HIDAPI_LIBS)
 xlibdir = $(libdir)/$(PACKAGE)/RailDriverNotInstalled
 xlib_LTLIBRARIES = libsigterm.la
 libsigterm_la_SOURCES = sigterm_wrap.cc
-libsigterm_la_CXXFLAGS =  -DUSE_TCL_STUBS $(INCLUDES) -Wall -g  $(KIT_EXTRA_CFLAGS)
+libsigterm_la_CXXFLAGS =  -DUSE_TCL_STUBS $(AM_CPPFLAGS) -Wall -g  $(KIT_EXTRA_CFLAGS)
 if CROSSCOMPILING
 libsigterm_la_LDFLAGS = -no-undefined -g -avoid-version  $(TCL_STUB_LIB_SPEC)
 else
@@ -80,7 +81,7 @@ libsigterm_la_LIBADD = $(INTLLIBS) $(TCL_STUB_LIB_SPEC)
 hid.c : $(HIDAPI_SOURCE)
 	cp $(srcdir)/$(HIDAPI_SOURCE) hid.c
 
-SWIG_FLAGS =  -tcl8  $(INCLUDES)
+SWIG_FLAGS =  -tcl8  $(AM_CPPFLAGS)
 
 
 TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
@@ -127,10 +128,10 @@ man_MANS = man8/raildriverd.8
 
 raildriverio_wrap.cc : raildriverio.i $(pkginclude_HEADERS) \
 			$(top_builddir)/config.status
-	$(SWIG_CXX) $(SWIG_FLAGS) $(INCLUDES) -o raildriverio_wrap.cc $(srcdir)/raildriverio.i
+	$(SWIG_CXX) $(SWIG_FLAGS) $(AM_CPPFLAGS) -o raildriverio_wrap.cc $(srcdir)/raildriverio.i
 
 sigterm_wrap.cc : sigterm.i
-	$(SWIG_CXX) $(SWIG_FLAGS) $(INCLUDES) -o sigterm_wrap.cc $(srcdir)/sigterm.i
+	$(SWIG_CXX) $(SWIG_FLAGS) $(AM_CPPFLAGS) -o sigterm_wrap.cc $(srcdir)/sigterm.i
 
 noinst_DATA += raildriverio.potlist
 
@@ -245,7 +246,7 @@ RaildriverIO.h: RaildriverIO.h.in $(top_builddir)/config.status
 
 
 
-noinst_DATA = BUNDLE.DAT
+noinst_DATA += BUNDLE.DAT
 
 BUNDLE.DAT: $(bin_SCRIPTS) $(man_MANS) $(pkgdata_DATA)
 	-rm -f BUNDLE.DAT

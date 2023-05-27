@@ -2,7 +2,6 @@ Fri May 21 10:09:26 2021 2.2.0
 
    Updated the README. Removed outdated Readme and build infrastructure files.
    Add bin bundles, minor build infrastructure updates.
-   Update for Doxygen 1.8.13 and workaround for 1.8.17.
    Update for Tcl 8.6, remove MS-Windows and MacOSX build infrasturure from 
       configure.in.
    Change styling of toolbar buttons.

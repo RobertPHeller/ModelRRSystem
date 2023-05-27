@@ -75,7 +75,7 @@ dnl *
 dnl *  
 dnl * 
 
-AC_INIT(MRRSystem,2.2.1, [support@deepsoft.com], MRRSystem)
+AC_INIT([MRRSystem],[2.2.1],[support@deepsoft.com],[MRRSystem])
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_SUBST(build)
@@ -161,11 +161,11 @@ AC_SUBST(target)
 
 dnl Checks for programs.
 
-AC_GNU_SOURCE
+AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CPP
 AC_PROG_CXX
 AC_PROG_CC
-AC_PROG_LEX
+dnl AC_PROG_LEX
 AX_WIRINGPI
 AM_CONDITIONAL(HAVE_WIRINGPI, test ${HAVE_WIRINGPI} = "1")
 AC_CHECK_HEADERS([sys/socket.h linux/can.h],[AC_SUBST(HAVE_CAN,1)],[AC_SUBST(HAVE_CAN,0)],
@@ -176,15 +176,15 @@ AC_CHECK_HEADERS([sys/socket.h linux/can.h],[AC_SUBST(HAVE_CAN,1)],[AC_SUBST(HAV
 AM_CONDITIONAL(HAVE_CAN, test ${HAVE_CAN} = "1")
 
 dnl if test ${cross_compiling} = "no"; then
-dnl   AM_DISABLE_STATIC
+dnl   AC_DISABLE_STATIC([])
 dnl fi
-AC_LIBTOOL_DLOPEN
+
 if test ${cross_compiling} = "yes"; then
   lt_cv_deplibs_check_method='pass_all'
 fi
-AM_PROG_LIBTOOL
+LT_INIT([dlopen])
 AX_PKG_DOXYGEN(1.6.0, [], [ AC_MSG_ERROR([DOXYGEN 1.6.0 is required to build.]) ])
-AM_GNU_GETTEXT
+AM_GNU_GETTEXT([external])
 case $target_os in
   macos | darwin*)
     dnl Fix broken AM_GNU_GETTEXT macro under Macos
@@ -293,27 +293,27 @@ AC_SUBST(FCFCLASSES_LIB_VERSIONLIB)
 AC_SUBST(TTCLASSES_LIB_VERSIONLIB)
 
 dnl Checks for header files.
-AC_HEADER_STDC
+
 AC_CHECK_HEADERS(fcntl.h limits.h malloc.h strings.h sys/ioctl.h sys/time.h syslog.h unistd.h sys/select.h)
 
 AC_C_CONST
 AC_C_INLINE
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
-AC_HEADER_TIME
+
 AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(int)
-AX_CXX_BOOL
+dnl AX_CXX_BOOL
 AC_MSG_CHECKING([stdc++])
 AC_LANG_SAVE
-AC_LANG_CPLUSPLUS
+AC_LANG([C++])
 savedLibs=$LIBS
 LIBS=-lstdc++
-AC_TRY_LINK([
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <iostream.h>
-],[
+]], [[
 	cout << endl;
-],[STDCXXLIBS="-lstdc++"
+]])],[STDCXXLIBS="-lstdc++"
   AC_MSG_RESULT(yes)],[STDCXXLIBS=""
   AC_MSG_RESULT(no)])
 AC_SUBST(STDCXXLIBS)
@@ -325,7 +325,7 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 
 dnl Checks for library functions.
 AC_FUNC_ALLOCA
-AC_TYPE_SIGNAL
+
 if test ${cross_compiling} = "no"; then
   AC_CHECK_LIB(m,cos)
 fi
@@ -487,10 +487,10 @@ AC_PATH_PROGS(UNZIP,unzip)
 AC_MSG_CHECKING([Checking target tclkit])
 case $target_os in 
   macos | darwin*) 
-    AC_MSG_ERROR([Unsupported target OS: MacOSX -- see the READMEs for info on how to build for MacOSX])
-    dnl AC_SUBST(TCLKITRUN, tclkit-darwin-univ-aqua)
-    dnl AC_SUBST(NEED_APP_BUNDLE,[true])
-    dnl AC_SUBST(BINTRUE,[/usr/bin/true])
+    dnl AC_MSG_ERROR([Unsupported target OS: MacOSX -- see the READMEs for info on how to build for MacOSX])
+    AC_SUBST(TCLKITRUN, tclkit-8.6.13-Darwin-Img1.4.14)
+    AC_SUBST(NEED_APP_BUNDLE,[true])
+    AC_SUBST(BINTRUE,[/usr/bin/true])
     ;;
   linux-gnu*)
     case $target_cpu in
@@ -540,9 +540,9 @@ AC_PATH_PROG(PS2PDF,ps2pdf,$BINTRUE)
 AC_MSG_CHECKING([Checking build tclkit])
 case $build_os in
   macos | darwin*)
-    AC_MSG_ERROR([Unsupported build OS: MacOSX -- see the READMEs for info on how to build on MacOSX])
-    dnl AC_SUBST(BEXEEXT, )
-    dnl AC_SUBST(TCLKITBSRC, )
+    dnl AC_MSG_ERROR([Unsupported build OS: MacOSX -- see the READMEs for info on how to build on MacOSX])
+    AC_SUBST(BEXEEXT, )
+    AC_SUBST(TCLKITBSRC, tclkit-8.6.13-Darwin-Img1.4.14)
     ;;
   linux-gnu*)
     AC_SUBST(BEXEEXT, )
@@ -578,7 +578,6 @@ AC_MSG_RESULT([TCLKITBSRC is $TCLKITBSRC])
 
 
 dnl Checks for header files.
-AC_HEADER_STDC
 AC_CHECK_HEADERS(fcntl.h limits.h malloc.h strings.h sys/ioctl.h sys/time.h syslog.h unistd.h sys/select.h sys/vfs.h sys/param.h sys/mount.h)
 
 
@@ -626,7 +625,7 @@ AC_SUBST(TCL_INCLUDE_SPEC)
 SYSTEMVERSION="$MRR_PATCH_LEVEL"
 AC_SUBST(SYSTEMVERSION)
 
-AC_CONFIG_HEADER([config.h])
+AC_CONFIG_HEADERS([config.h])
 
 AC_CONFIG_FILES([config_tcl.sed \
 	  Makefile \

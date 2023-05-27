@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Apr 30 11:46:29 2017
-#  Last Modified : <180407.1124>
+#  Last Modified : <230527.1358>
 #
 #  Description	
 #
@@ -55,8 +55,8 @@ libtclsocketcan_la_LDFLAGS = -no-undefined -g -avoid-version $(TCL_STUB_LIB_SPEC
 else
 libtclsocketcan_la_LDFLAGS = -g -version-info 0:0:0 $(TCL_STUB_LIB_SPEC)
 endif
-INCLUDES = -I$(top_builddir) -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)  
-libtclsocketcan_la_CFLAGS =  -g -DUSE_TCL_STUBS -DTCLSOCKETCAN_VERSIONLIB=\"$(TCLSOCKETCAN_VERSIONLIB)\" $(INCLUDES) -Wall $(KIT_EXTRA_CFLAGS)
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)  
+libtclsocketcan_la_CFLAGS =  -g -DUSE_TCL_STUBS -DTCLSOCKETCAN_VERSIONLIB=\"$(TCLSOCKETCAN_VERSIONLIB)\" $(AM_CPPFLAGS) -Wall $(KIT_EXTRA_CFLAGS)
 libtclsocketcan_la_LIBADD   = $(TCL_STUB_LIB_SPEC)
 
 BUILT_SOURCES = TclSocketCAN_wrap.c
@@ -66,10 +66,10 @@ EXTRA_DIST = TclSocketCAN.i
 
 CLEANFILES = $(BUILT_SOURCES) pkgIndex.tcl TclSocketCAN.potlist
 
-SWIG_FLAGS = -tcl8 $(INCLUDES)
+SWIG_FLAGS = -tcl8 $(AM_CPPFLAGS)
 TclSocketCAN_wrap.c : TclSocketCAN.i $(pkginclude_HEADERS) \
 	$(top_builddir)/config.status
-	$(SWIG) $(SWIG_FLAGS) $(INCLUDES) -o TclSocketCAN_wrap.c \
+	$(SWIG) $(SWIG_FLAGS) $(AM_CPPFLAGS) -o TclSocketCAN_wrap.c \
 		$(srcdir)/TclSocketCAN.i
 
 TclSocketCAN.potlist: $(libtclsocketcan_la_XGETTEXTFILES)

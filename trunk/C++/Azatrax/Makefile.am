@@ -33,6 +33,7 @@
 #*  
 #* 
 
+AUTOMAKE_OPTIONS = subdir-objects
 BUILT_SOURCES = $(TCLKIT) azatrax_wrap.cc Azatrax.h
 
 pkgincludedir = $(includedir)/$(PACKAGE)/Azatrax
@@ -42,7 +43,7 @@ libazatrax_la_SOURCES = Azatrax.cc $(pkginclude_HEADERS) ../gettext.h
 libazatrax_la_XGETTEXTFILES = $(libazatrax_la_SOURCES)
 nodist_libazatrax_la_SOURCES = azatrax_wrap.cc ../gettext.c
 #INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)
-INCLUDES = -I$(top_builddir) -I$(srcdir)/.. -I$(TCL_INC_DIR)
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/.. -I$(TCL_INC_DIR)
 #LTCFLAGS = -O0 -ggdb -g
 libazatrax_la_CXXFLAGS = -DUSE_TCL_STUBS -Wall $(LIBUSB_CFLAGS) -g $(KIT_EXTRA_CFLAGS)
 if CROSSCOMPILING
@@ -52,11 +53,11 @@ libazatrax_la_LDFLAGS =   -g -version-info 0:0:0  $(TCL_STUB_LIB_SPEC) $(LIBUSB_
 endif
 libazatrax_la_LIBADD = $(INTLLIBS) $(TCL_STUB_LIB_SPEC) $(LIBUSB_LIBS)
 #libazatrax_la-azatrax_wrap.lo : azatrax_wrap.cc
-#	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(TCL_DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libazatrax_la_CXXFLAGS) $(CXXFLAGS) -MT libazatrax_la-Azatrax.lo -MD -MP -MF "$(DEPDIR)/libazatrax_la-Azatrax.Tpo" -c -o libazatrax_la-Azatrax.lo `test -f 'Azatrax.cc' || echo '$(srcdir)/'`Azatrax.cc; \
+#	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(TCL_DEFS) $(DEFAULT_INCLUDES) 	$(AM_CPPFLAGS) $(CPPFLAGS) $(libazatrax_la_CXXFLAGS) $(CXXFLAGS) -MT libazatrax_la-Azatrax.lo -MD -MP -MF "$(DEPDIR)/libazatrax_la-Azatrax.Tpo" -c -o libazatrax_la-Azatrax.lo `test -f 'Azatrax.cc' || echo '$(srcdir)/'`Azatrax.cc; \
 #	then mv -f "$(DEPDIR)/libazatrax_la-Azatrax.Tpo" "$(DEPDIR)/libazatrax_la-Azatrax.Plo"; else rm -f "$(DEPDIR)/libazatrax_la-Azatrax.Tpo"; exit 1; fi
 ##	source='Azatrax.cc' object='libazatrax_la-Azatrax.lo' libtool=yes \
 ##	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-##	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(TCL_DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libazatrax_la_CXXFLAGS) $(CXXFLAGS) -c -o libazatrax_la-Azatrax.lo `test -f 'Azatrax.cc' || echo '$(srcdir)/'`Azatrax.cc
+##	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(TCL_DEFS) $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libazatrax_la_CXXFLAGS) $(CXXFLAGS) -c -o libazatrax_la-Azatrax.lo `test -f 'Azatrax.cc' || echo '$(srcdir)/'`Azatrax.cc
 	
 	
 
@@ -176,7 +177,7 @@ EXTRA_DIST = MRDTest.src azatrax.i MRDTest.desktop MRDTest.png Doxyfile.in \
 	SL2Test.src SR4Test.desktop SR4Test.png SR4Test.src Azatrax.h.in
 
 #DEFS = @DEFS@
-SWIG_FLAGS =  -tcl8 $(INCLUDES)
+SWIG_FLAGS =  -tcl8 $(AM_CPPFLAGS)
 CLEANFILES    = $(BUILT_SOURCES) *.kit azatrax_wrap.cc MRDTest${EXEEXT} \
 		pkgIndex.tcl AzatraxProg.pot azatrax.potlist 90-Azatrax.rules \
 		90-Azatrax.rules-Ubuntu \
@@ -184,7 +185,7 @@ CLEANFILES    = $(BUILT_SOURCES) *.kit azatrax_wrap.cc MRDTest${EXEEXT} \
 		AzatraxDeviceMap${EXEEXT}
 
 azatrax_wrap.cc: azatrax.i $(pkginclude_HEADERS) $(top_builddir)/config.status
-	$(SWIG_CXX) $(SWIG_FLAGS) $(INCLUDES) -o azatrax_wrap.cc $(srcdir)/azatrax.i
+	$(SWIG_CXX) $(SWIG_FLAGS) $(AM_CPPFLAGS) -o azatrax_wrap.cc $(srcdir)/azatrax.i
 
 azatrax.potlist: $(libazatrax_la_XGETTEXTFILES)
 	echo $(addprefix $(subdir)/,$(libazatrax_la_XGETTEXTFILES)) |\

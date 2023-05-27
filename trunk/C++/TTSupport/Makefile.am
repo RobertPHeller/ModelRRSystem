@@ -72,17 +72,19 @@
 #*  
 #* 
 
+AUTOMAKE_OPTIONS = subdir-objects
+
 pkgincludedir = $(includedir)/$(PACKAGE)/TTSupport
 
 pkginclude_HEADERS = Common.h TimeTableSystem.h PathName.h Station.h Cab.h \
 	Train.h
 lib_LTLIBRARIES = libttclasses.la
-INCLUDES = -I$(top_builddir) -I. -I$(TCL_INC_DIR)
+AM_CPPFLAGS = -I$(top_builddir) -I. -I$(TCL_INC_DIR)
 nodist_libttclasses_la_SOURCES  = TTClasses_wrap.cc ../gettext.c
 libttclasses_la_SOURCES = TimeTableSystem.cc PathName.cc Station.cc Train.cc \
 		Cab.cc CreateLaTeXTimetable.cc $(pkginclude_HEADERS) ../gettext.h
 libttclasses_la_XGETTEXTFILES = $(libttclasses_la_SOURCES)
-libttclasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(INCLUDES) -Wall $(KIT_EXTRA_CFLAGS)
+libttclasses_la_CXXFLAGS = -DUSE_TCL_STUBS $(AM_CPPFLAGS) -Wall $(KIT_EXTRA_CFLAGS)
 if CROSSCOMPILING
 libttclasses_la_LDFLAGS = -no-undefined -g -avoid-version $(TCL_STUB_LIB_SPEC) 
 else
@@ -94,7 +96,7 @@ noinst_DATA = TTClasses.potlist
 BUILT_SOURCES = TTClasses_wrap.cc TTSupportGroup.h
 EXTRA_DIST = TTSupportGroup.h.in TTClasses.i TimeTableSystemTcl.h
 CLEANFILES = pkgIndex.tcl $(BUILT_SOURCES) TTClasses.potlist
-SWIG_FLAGS =  -tcl8 $(INCLUDES)
+SWIG_FLAGS =  -tcl8 $(AM_CPPFLAGS)
 
 TTClasses_wrap.cc : TTClasses.i $(pkginclude_HEADERS) TimeTableSystemTcl.h \
 		$(top_builddir)/config.status
