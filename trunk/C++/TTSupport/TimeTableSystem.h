@@ -75,17 +75,8 @@
 #include <Train.h>
 #include <list>
 
-#ifdef __GNUC__
-#  if __GNUC__ > 3 // GCC 4
-#    include <tr1/unordered_map>
-#    define USE_UNORDERED_MAP
-#  else // GCC 3.1
-#    define USE_HASH_MAP
-#    include <ext/hash_map>
-#  endif
-#else      // ...  there are other compilers, right?
-#  define USE_HASH_MAP
-#endif
+#include <unordered_map>
+#define USE_UNORDERED_MAP
 
 #endif
 /** @addtogroup TimeTableSystem
@@ -105,31 +96,12 @@ namespace TTSupport {
   */
 typedef vector<double> doubleVector;
 
-#ifdef USE_HASH_MAP
-/** @brief Equality structure.
-  *
-  * Used with the hash map used for Print Options 
-  *
-  * @author Robert Heller \<heller\@deepsoft.com\>
-  *
-  */
-struct eqstr
-{
-	bool operator()(const char* s1, const char* s2) const
-	{
-            return strcmp(s1, s2) == 0;
-	}
-};
-#endif
 /** @brief Option hash map, used for Print options.
   *
   * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
 
-#ifdef USE_HASH_MAP
-typedef __gnu_cxx::hash_map<const char*, string, __gnu_cxx::hash<const char*>, eqstr> OptionHashMap;
-#else
 struct hash {
     std::size_t 
     operator()(const char* s) const
@@ -162,8 +134,7 @@ struct eqstr
             return eq == 0;
 	}
 };
-typedef std::tr1::unordered_map<const char*, std::string, hash, eqstr> OptionHashMap;
-#endif
+typedef std::unordered_map<const char*, std::string, hash, eqstr> OptionHashMap;
 
 /** @brief List of trains.
   *

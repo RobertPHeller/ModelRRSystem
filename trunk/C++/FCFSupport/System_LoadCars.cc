@@ -73,16 +73,7 @@ static char Id[] = "$Id$";
 #include <unistd.h>
 #include "../gettext.h"
 
-#if !HAVE_MKSTEMP
-extern "C" int mkstemp(char *);
-#endif
-       
-#if __GNUC__ >= 3
-#include <ext/stdio_filebuf.h>
-using namespace __gnu_cxx;
-typedef stdio_filebuf<char> char_filebuf;
-#endif
-
+#include <cstdio>
 
 namespace FCFSupport {
 
@@ -350,7 +341,6 @@ bool System::LoadCarFile(char **outmessage)
 //============================================================================
 bool System::SaveCars(char **outmessage)
 {
-	int tempfd;
 	char *tname;
 	string backupfilename, line, trimline;
 	PathName backupfile, tempfile;
@@ -371,26 +361,18 @@ bool System::SaveCars(char **outmessage)
 	tempfile += string("CARSXXXXXX");
 	tname = new char[tempfile.FullPath().size()+1];
 	strcpy(tname,tempfile.FullPath().c_str());
-	tempfd = mkstemp(tname);
-	if (tempfd < 0) {
-	  if (outmessage != NULL) {
-	    err = errno;
-	    sprintf(messageBuffer,_("mkstemp(%1$s) failed: %2$s"),tname,strerror(err));
-	    *outmessage = new char[strlen(messageBuffer)+1];
-	    strcpy(*outmessage,messageBuffer);
-	  }
-	  return false;
-	}
-#if __GNUC__ < 3
-	fstream junkfilestream(tempfd);
-#else
-#if __GNUC_MINOR__ == 0
-	char_filebuf fdfilebuf(tempfd,ios_base::in | ios_base::out,true,BUFSIZ);
-#else
-	char_filebuf fdfilebuf(tempfd,ios_base::in | ios_base::out,BUFSIZ);
-#endif
-	iostream junkfilestream(&fdfilebuf);
-#endif
+        char *newname = std::tmpnam(tname);
+        if (newname == NULL)
+        {
+            if (outmessage != NULL) {
+                err = errno;
+                sprintf(messageBuffer,_("tmpnam(%1$s) failed"),tname);
+                *outmessage = new char[strlen(messageBuffer)+1];
+                strcpy(*outmessage,messageBuffer);
+            }
+            return false;
+        }
+        fstream junkfilestream(newname,ios_base::in | ios_base::out);
 	if (!junkfilestream) {
 	  if (outmessage != NULL) {
 	    strcpy(messageBuffer,_("Could not open junk file stream!"));
@@ -530,11 +512,7 @@ bool System::SaveCars(char **outmessage)
 	while (getline(junkfilestream,line)) {
 	  newcarsstream << line << endl;
 	}
-#if __GNUC__ < 3
 	junkfilestream.close();
-#else
-	fdfilebuf.close();
-#endif
 	newcarsstream.close();
 
 	statsstream.open(statsFile.FullPath().c_str());
