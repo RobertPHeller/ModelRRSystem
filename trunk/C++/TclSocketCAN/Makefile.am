@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Apr 30 11:46:29 2017
-#  Last Modified : <230527.1358>
+#  Last Modified : <230529.1539>
 #
 #  Description	
 #
@@ -59,7 +59,7 @@ AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir) -I$(srcdir)/.. -I$(TCL_INC_DIR)
 libtclsocketcan_la_CFLAGS =  -g -DUSE_TCL_STUBS -DTCLSOCKETCAN_VERSIONLIB=\"$(TCLSOCKETCAN_VERSIONLIB)\" $(AM_CPPFLAGS) -Wall $(KIT_EXTRA_CFLAGS)
 libtclsocketcan_la_LIBADD   = $(TCL_STUB_LIB_SPEC)
 
-BUILT_SOURCES = TclSocketCAN_wrap.c
+#BUILT_SOURCES = TclSocketCAN_wrap.c
 noinst_SCRIPTS = pkgIndex.tcl
 noinst_DATA = TclSocketCAN.potlist
 EXTRA_DIST = TclSocketCAN.i

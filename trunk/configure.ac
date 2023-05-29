@@ -82,7 +82,7 @@ AC_SUBST(build)
 AC_CANONICAL_TARGET
 AC_SUBST(target)
 AC_CONFIG_SRCDIR(C++/ParserClasses/mrr.i)
-AM_INIT_AUTOMAKE([-Wno-portability tar-ustar])
+AM_INIT_AUTOMAKE([-Wno-portability tar-ustar no-dist-built-sources])
 MRR_VERSION=[`echo $VERSION|sed 's/[a-z][a-z0-9]*$//g'|sed 's/\.[0-9][0-9]*$//g'`]
 AC_DEFINE_UNQUOTED([MRR_VERSION],$MRR_VERSION,[MRR Version])
 MRR_MAJOR_VERSION=[`echo $MRR_VERSION|sed 's/[a-z][a-z0-9]*$//g'|sed 's/[a-z][a-z0-9]*$//g'|sed 's/\.[0-9][0-9]*$//g'`]
