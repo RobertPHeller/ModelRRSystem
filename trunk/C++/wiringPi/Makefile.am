@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Jul 22 10:53:17 2015
-#  Last Modified : <230527.1358>
+#  Last Modified : <230529.1404>
 #
 #  Description	
 #
@@ -51,7 +51,7 @@ libtclwiringpi_la_CFLAGS = -DUSE_TCL_STUBS -Wall $(WIRINGPI_CFLAGS) -g
 libtclwiringpi_la_LDFLAGS =   -g -version-info 0:0:0  $(TCL_STUB_LIB_SPEC) $(WIRINGPI_LDFLAGS)
 libtclwiringpi_la_LIBADD = $(TCL_STUB_LIB_SPEC) $(WIRINGPI_LIBS)
 
-BUILT_SOURCES = pkgIndex.tcl
+BUILT_SOURCES = pkgIndex.tcl tclwiringpi_wrap.c
 
 noinst_SCRIPTS = pkgIndex.tcl
 

@@ -1,3 +1,25 @@
+Mon May 29 13:19:34 2023 2.2.1
+
+   Update for new Darwin (MacOSX) build infrastructure and restored MacOSX 
+        build infrasturure to configure.ac
+   Cleanup build infrastructure: 
+        Fix autotools warnings/errors,
+        Renamed configure.in to configure.ac,
+        Renamed INCLUDES to AM_CPPFLAGS in C++/*/Makefile.am
+   Updated LCC code: 
+        Layout Control Database features, 
+        Event search in CDI improvements,
+        LayoutDB <=> JMRITable,
+        Add Copy/Paste buttons to CDI strings,
+        All LCC Memory Leaks pluged,
+        OfflineLCCNodeEditor
+   Complete Linux Gpio test programs
+   Dispatcher fixes: 
+        Add in Graphviz graph layout,
+        fix graph node compression bugs (deal with Block boundries properly),
+        update parser for XTrkCAD V12 files
+   Start on EquipmentInventory and FCF3
+
 Fri May 21 10:09:26 2021 2.2.0
 
    Updated the README. Removed outdated Readme and build infrastructure files.
