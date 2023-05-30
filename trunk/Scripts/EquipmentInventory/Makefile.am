@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jul 31 14:57:24 2021
-#  Last Modified : <210802.1150>
+#  Last Modified : <230530.1007>
 #
 #  Description	
 #
@@ -53,16 +53,16 @@ BUILT_SOURCES = $(TCLKIT)
 
 bin_SCRIPTS = EquipmentInventory$(EXEEXT)
 
-EXTRA_DIST  = EquipmentInventory.tcl $(EquipmentInventoryScripts) \
-		EquipmentInventory.desktop EquipmentInventory.png
+EXTRA_DIST  = EquipmentInventory.tcl $(EquipmentInventoryScripts) 
+#EXTRA_DIST +=	EquipmentInventory.desktop EquipmentInventory.png
 
 
 
 desktopdir = $(datadir)/applications
-desktop_DATA = EquipmentInventory.desktop
+#desktop_DATA = EquipmentInventory.desktop
 
 pixmapdir = $(datadir)/pixmaps
-pixmap_DATA = EquipmentInventory.png
+#pixmap_DATA = EquipmentInventory.png
 
 man_MANS = man1/EquipmentInventory.1
 

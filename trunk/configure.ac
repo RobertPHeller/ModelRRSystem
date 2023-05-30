@@ -82,7 +82,7 @@ AC_SUBST(build)
 AC_CANONICAL_TARGET
 AC_SUBST(target)
 AC_CONFIG_SRCDIR(C++/ParserClasses/mrr.i)
-AM_INIT_AUTOMAKE([-Wno-portability tar-ustar no-dist-built-sources])
+AM_INIT_AUTOMAKE([-Wno-portability tar-ustar])
 MRR_VERSION=[`echo $VERSION|sed 's/[a-z][a-z0-9]*$//g'|sed 's/\.[0-9][0-9]*$//g'`]
 AC_DEFINE_UNQUOTED([MRR_VERSION],$MRR_VERSION,[MRR Version])
 MRR_MAJOR_VERSION=[`echo $MRR_VERSION|sed 's/[a-z][a-z0-9]*$//g'|sed 's/[a-z][a-z0-9]*$//g'|sed 's/\.[0-9][0-9]*$//g'`]
@@ -709,7 +709,6 @@ AC_CONFIG_FILES([config_tcl.sed \
 		Doc/ProgrammingGuides/Doxyfile.SampleCode \
 		Doc/ApplicationNotes/Makefile \
 	  Installer/Makefile \
-	  intl/Makefile \
 	  po/Makefile \
 	  	po/CalcScripts/Makefile \
 	  	po/CameraScripts/Makefile \

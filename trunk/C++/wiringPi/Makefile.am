@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Jul 22 10:53:17 2015
-#  Last Modified : <230529.1529>
+#  Last Modified : <230530.1026>
 #
 #  Description	
 #
@@ -43,7 +43,7 @@
 ##############################################################################
 
 
-AUTOMAKE_OPTIONS = no-dist-built-sources
+#AUTOMAKE_OPTIONS = no-dist-built-sources
 
 lib_LTLIBRARIES = libtclwiringpi.la
 libtclwiringpi_la_SOURCES =

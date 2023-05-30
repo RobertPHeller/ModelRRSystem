@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jul 31 14:57:38 2021
-#  Last Modified : <210801.1700>
+#  Last Modified : <230530.0944>
 #
 #  Description	
 #
@@ -49,35 +49,35 @@ TCLKIT = $(top_builddir)/BuildData/tclkit${BEXEEXT}
 
 BUILT_SOURCES = $(TCLKIT)
 
-bin_SCRIPTS = FCF3Main$(EXEEXT)
+#bin_SCRIPTS = FCF3Main$(EXEEXT)
 
-EXTRA_DIST = FCF3Main.tcl $(FCF3Scripts) FCF3Main.desktop FCF3Main.png
+EXTRA_DIST = $(FCF3Scripts) #FCF3Main.tcl FCF3Main.desktop FCF3Main.png
 
-desktopdir = $(datadir)/applications
-desktop_DATA = FCF3Main.desktop
+#desktopdir = $(datadir)/applications
+#desktop_DATA = FCF3Main.desktop
 
-pixmapdir = $(datadir)/pixmaps
-pixmap_DATA = FCF3Main.png
+#pixmapdir = $(datadir)/pixmaps
+#pixmap_DATA = FCF3Main.png
 
-man_MANS = man1/FCF3Main.1
+#man_MANS = man1/FCF3Main.1
 
-pkgdatadir = $(datadir)/$(PACKAGE)
-pkgdata_DATA = FCF3Main.pot
+#pkgdatadir = $(datadir)/$(PACKAGE)
+#pkgdata_DATA = FCF3Main.pot
 
-CLEANFILES = FCF3Main.kit $(bin_SCRIPTS) FCF3Main.pot
+#CLEANFILES = FCF3Main.kit $(bin_SCRIPTS) FCF3Main.pot
 
-FCF3Main.pot: FCF3Main.tcl $(FCF3MainScripts) \
-			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
-	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
-		-k_m -L Tcl \
-		$(addprefix $(subdir)/,FCF3Main.tcl $(FCF3MainScripts)) \
-		Scripts/Common/snitStdMenuBar.tcl|\
-	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
-	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
-	    -e 's/FIRST AUTHOR <EMAIL@ADDRESS>,/Robert Heller <heller@deepsoft.com>/g' \
-	    -e 's/SOME DESCRIPTIVE TITLE/Messages for Freight Car Forwarder V3/g' \
-	    -e "s/YEAR/`date +%Y`/g" \
-	    -e 's/CHARSET/ascii/g' >FCF3Main.pot
+#FCF3Main.pot: FCF3Main.tcl $(FCF3MainScripts) \
+#			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
+#	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
+#		-k_m -L Tcl \
+#		$(addprefix $(subdir)/,FCF3Main.tcl $(FCF3MainScripts)) \
+#		Scripts/Common/snitStdMenuBar.tcl|\
+#	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
+#	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
+#	    -e 's/FIRST AUTHOR <EMAIL@ADDRESS>,/Robert Heller <heller@deepsoft.com>/g' \
+#	    -e 's/SOME DESCRIPTIVE TITLE/Messages for Freight Car Forwarder V3/g' \
+#	    -e "s/YEAR/`date +%Y`/g" \
+#	    -e 's/CHARSET/ascii/g' >FCF3Main.pot
 	    
 FCF3MainCommonScripts = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif \
 	$(top_srcdir)/Scripts/Common/new.gif \
@@ -108,32 +108,32 @@ FCF3MainCommonScripts = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif \
 	$(top_srcdir)/Scripts/Common/palette.png \
 	$(top_srcdir)/Scripts/Common/unknown.xpm
 
-FCF3Main${EXEEXT} : FCF3Main.tcl \
-		$(FCF3MainScripts) \
-		$(FCF3MainCommonScripts)
-		$(top_builddir)/Doc/User/FCF3/index.html \
-		$(top_builddir)/po/FCF3/msgfiles
-	-rm -rf FCF3Main.vfs FCF3Main.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/FCF3Main.tcl
-	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap FCF3Main.kit
-	-rm -rf FCF3Main.kit
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit FCF3Main \
-		lib $(SNITLIB)
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit FCF3Main \
-		lib $(CSVLIB)
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) \
-		FCF3Main lib/Common $(FCF3MainScripts) \
-			$(FCF3MainCommonScripts)
-	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit \
-		FCF3Main Common
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit \
-		FCF3Main Help $(top_builddir)/Doc/User/FCF3/*
-	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit \
-		FCF3Main Messages \
-		$(top_builddir)/po/FCF3/*.msg
-	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap \
-		FCF3Main${EXEEXT} -runtime \
-			$(top_srcdir)/BuildData/$(TCLKITRUN)
-	-rm -rf FCF3Main.vfs FCF3Main.kit
+#FCF3Main${EXEEXT} : FCF3Main.tcl \
+#		$(FCF3MainScripts) \
+#		$(FCF3MainCommonScripts)
+#		$(top_builddir)/Doc/User/FCF3/index.html \
+#		$(top_builddir)/po/FCF3/msgfiles
+#	-rm -rf FCF3Main.vfs FCF3Main.kit
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/FCF3Main.tcl
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap FCF3Main.kit
+#	-rm -rf FCF3Main.kit
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit FCF3Main \
+#		lib $(SNITLIB)
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit FCF3Main \
+#		lib $(CSVLIB)
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) \
+#		FCF3Main lib/Common $(FCF3MainScripts) \
+#			$(FCF3MainCommonScripts)
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit \
+#		FCF3Main Common
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit \
+#		FCF3Main Help $(top_builddir)/Doc/User/FCF3/*
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit \
+#		FCF3Main Messages \
+#		$(top_builddir)/po/FCF3/*.msg
+#	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap \
+#		FCF3Main${EXEEXT} -runtime \
+#			$(top_srcdir)/BuildData/$(TCLKITRUN)
+#	-rm -rf FCF3Main.vfs FCF3Main.kit
 	
 

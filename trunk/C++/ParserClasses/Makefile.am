@@ -57,7 +57,7 @@
 #*  
 #* 
 
-AUTOMAKE_OPTIONS = subdir-objects
+#AUTOMAKE_OPTIONS = subdir-objects
 
 pkgincludedir = $(includedir)/$(PACKAGE)/ParserClasses
 
