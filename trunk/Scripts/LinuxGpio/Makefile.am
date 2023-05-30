@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Oct 13 21:26:48 2018
-#  Last Modified : <220812.1440>
+#  Last Modified : <230530.1329>
 #
 #  Description	
 #
@@ -51,7 +51,7 @@ CLEANFILES = TestGPIOOutput.kit TestGPIOInput.kit $(bin_Scripts) \
 EXTRA_DIST = $(LinuxGpioScripts) TestGPIOOutput.tcl TestGPIOInput.tcl \
 	Doxyfile.in
 
-man_MANS = man1/TestGPIOOutput.1 man1/TestGPIOInput.1
+#man_MANS = man1/TestGPIOOutput.1 man1/TestGPIOInput.1
 
 pkgdatadir = $(datadir)/$(PACKAGE)/LinuxGpio
 pkgdata_DATA = $(LinuxGpioScripts)

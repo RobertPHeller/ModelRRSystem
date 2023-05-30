@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 21 14:36:59 2021
-#  Last Modified : <210821.1751>
+#  Last Modified : <230530.1325>
 #
 #  Description	
 #
@@ -40,6 +40,19 @@
 #
 #*****************************************************************************
 
+## @defgroup TestGPIOInput TestGPIOInput
+# @brief Test GPIO Inputs
+#
+# @section  SYNOPSIS
+#
+# TestGPIOInput
+#
+# @section DESCRIPTION
+# @section OPTIONS
+# @section PARAMETERS
+# @section FILES
+# @section AUTHOR
+# Robert Heller \<heller\@deepsoft.com\>
 
 package require snit
 package require gettext

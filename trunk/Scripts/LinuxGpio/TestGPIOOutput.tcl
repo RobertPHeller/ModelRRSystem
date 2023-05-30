@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 21 14:25:53 2021
-#  Last Modified : <210821.1605>
+#  Last Modified : <230530.1326>
 #
 #  Description	
 #
@@ -39,6 +39,21 @@
 # 
 #
 #*****************************************************************************
+
+## @defgroup TestGPIOOutput TestGPIOOutput
+# @brief Test GPIO Outputs
+#
+# @section TestGPIOOutputSYNOPSIS SYNOPSIS
+#
+# TestGPIOOutput
+#
+# @section DESCRIPTION
+# @section OPTIONS
+# @section PARAMETERS
+# @section FILES
+# @section AUTHOR
+# Robert Heller \<heller\@deepsoft.com\>
+
 
 
 package require snit

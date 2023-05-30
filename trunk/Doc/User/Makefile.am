@@ -183,8 +183,8 @@ EI_HTML = $(EIHBase)/index.html
 USERMAN_EI_FIGS = 
 DOXYFILES += Doxyfile.$(EI).in
 
-USERMAN_LINUXGPIO_PART = EITutorial.h EIReference.h
-LINUXGPIO_HS = EI.h EITutorial.h EIReference.h
+USERMAN_LINUXGPIO_PART = LinuxGpioTutorial.h LinuxGpioReference.h 
+LINUXGPIO_HS = LinuxGpio.h LinuxGpioTutorial.h LinuxGpioReference.h
 LINUXGPIO = LinuxGpio
 LINUXGPIOHBase = LinuxGpio
 LINUXGPIO_HTML = $(LINUXGPIOHBase)/index.html
@@ -310,7 +310,8 @@ EXTRA_DIST = $(USERMAN_HS) $(USERMAN_FIGS) $(TIMETABLE_HS) $(FCF_HS) \
 	     $(CALC_HS) $(CAMERA_HS) $(DISPATCHER_HS) COPYING.h \
 	     $(UNIVERSALTEST_HS) $(MAINPROGRAM_HS) $(AZATRAX_PROG_HS) \
 	     $(XPRESSNETTHROTTLE_HS) $(GENERICTHROTTLE_HS) footer.tex \
-	     $(OPENLCB_HS) $(DOXYFILES) Makefile.UserManual.in
+	     $(OPENLCB_HS) $(DOXYFILES) $(EI_HS) $(LINUXGPIO_HS) \
+	     Makefile.UserManual.in
 
 pkgdatadir = $(datadir)/$(PACKAGE)/Doc
 

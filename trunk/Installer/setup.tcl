@@ -301,10 +301,10 @@ proc FindArchivesAndComputeSizes_WINDOWS {} {
 	MRRSystem-${::MRRSystem::VERSION}-Win32BinDevel.zip]
   set ::DevelArchiveInstallProc WindowsInstallVFSZIP
   set ::DocsArchive [file join $::CDDir \
-	MRRSystem-${::MRRSystem::VERSION}-Win32BinDoc.zip]
+	MRRSystem-${::MRRSystem::VERSION}-ANYBinDoc.zip]
   set ::DocsArchiveInstallProc WindowsInstallVFSZIP
   set ::ExamplesArchive [file join $::CDDir \
-                         MRRSystem-${::MRRSystem::VERSION}-Win32BinExamples.zip]
+                         MRRSystem-${::MRRSystem::VERSION}-ANYBinExamples.zip]
   set ::ExamplesArchiveInstallProc WindowsInstallVFSZIP
   
   #  puts stderr "*** FindArchivesAndComputeSizes_WINDOWS: ::BinaryArchive = $::BinaryArchive"
@@ -399,12 +399,12 @@ proc FindArchivesAndComputeSizes_MacOSX {} {
     puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::DevelArchive: [file exists $::DevelArchive]"
     set ::DevelArchiveInstallProc WindowsInstallVFSZIP
     set ::DocsArchive [file join $::CDDir \
-                       MRRSystem-$::MRRSystem::VERSION-${plat}BinDoc.zip]
+                       MRRSystem-$::MRRSystem::VERSION-ANYBinDoc.zip]
     puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::DocsArchive = $::DocsArchive"
     puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::DocsArchive: [file exists $::DocsArchive]"
     set ::DocsArchiveInstallProc WindowsInstallVFSZIP
     set ::ExamplesArchive [file join $::CDDir \
-                           MRRSystem-$::MRRSystem::VERSION-${plat}BinExamples.zip]
+                           MRRSystem-$::MRRSystem::VERSION-ANYBinExamples.zip]
     puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::ExamplesArchive = $::ExamplesArchive"
     puts stderr "*** FindArchivesAndComputeSizes_MacOSX: ::ExamplesArchive: [file exists $::ExamplesArchive]"
     set ::ExamplesArchiveInstallProc WindowsInstallVFSZIP
@@ -475,13 +475,13 @@ proc FindArchivesAndComputeSizes_UNIX {} {
 	MRRSystem-$::MRRSystem::VERSION-${plat}BinOnly.tar.bz2]
   set ::BinaryArchiveInstallProc UnixInstallTarxjvf
   set ::DocsArchive [file join $::CDDir \
-	MRRSystem-$::MRRSystem::VERSION-${plat}BinDoc.tar.bz2]
+	MRRSystem-$::MRRSystem::VERSION-ANYBinDoc.tar.bz2]
   set ::DocsArchiveInstallProc UnixInstallTarxjvf
   set ::DevelArchive [file join $::CDDir \
 	MRRSystem-$::MRRSystem::VERSION-${plat}BinDevel.tar.bz2]
   set ::DevelArchiveInstallProc UnixInstallTarxjvf
   set ::ExamplesArchive [file join $::CDDir \
-	MRRSystem-$::MRRSystem::VERSION-${plat}BinExamples.tar.bz2]
+	MRRSystem-$::MRRSystem::VERSION-ANYBinExamples.tar.bz2]
   set ::ExamplesArchiveInstallProc UnixInstallTarxjvf
   puts stderr "*** FindArchivesAndComputeSizes_UNIX: ::BinaryArchive = $::BinaryArchive"
   puts stderr "*** FindArchivesAndComputeSizes_UNIX: ::DocsArchive   = $::DocsArchive"

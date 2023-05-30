@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jul 31 14:57:24 2021
-#  Last Modified : <230530.1007>
+#  Last Modified : <230530.1329>
 #
 #  Description	
 #
@@ -64,7 +64,7 @@ desktopdir = $(datadir)/applications
 pixmapdir = $(datadir)/pixmaps
 #pixmap_DATA = EquipmentInventory.png
 
-man_MANS = man1/EquipmentInventory.1
+#man_MANS = man1/EquipmentInventory.1
 
 pkgdatadir = $(datadir)/$(PACKAGE)
 pkgdata_DATA = EquipmentInventory.pot

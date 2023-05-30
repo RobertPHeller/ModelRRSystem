@@ -120,8 +120,8 @@ fi
 
 BIN=$archive_dir/@PACKAGE@-@VERSION@-${archive_target}BinOnly${archiverext}
 DEV=$archive_dir/@PACKAGE@-@VERSION@-${archive_target}BinDevel${archiverext}
-DOC=$archive_dir/@PACKAGE@-@VERSION@-${archive_target}BinDoc${archiverext}
-EXAM=$archive_dir/@PACKAGE@-@VERSION@-${archive_target}BinExamples${archiverext}
+DOC=$archive_dir/@PACKAGE@-@VERSION@-ANYBinDoc${archiverext}
+EXAM=$archive_dir/@PACKAGE@-@VERSION@-ANYBinExamples${archiverext}
 
 echo "Archive names are:"
 echo "  $BIN"
