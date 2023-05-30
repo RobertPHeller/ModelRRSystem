@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <230226.1329>
+#  Last Modified : <230530.1058>
 #
 #  Description	
 #
@@ -57,7 +57,8 @@ EXTRA_DIST = lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		OpenLCB_PiPCA9685.tcl LayoutControlDB.tcl \
 		LayoutControlDBDialogs.tcl Router.tcl \
 		LayoutControlDBTable.tcl JMRITable2LayoutDB.tcl \
-		LayoutDB2JMRITable.tcl OfflineLCCNodeEditor.tcl
+		LayoutDB2JMRITable.tcl OfflineLCCNodeEditor.tcl \
+		SwitchMotor.xpm Signal.xpm Sensor.xpm Control.xpm Block.xpm
 
 bin_SCRIPTS = OpenLCB${EXEEXT} OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
 	OpenLCBGCTcpHub${EXEEXT} OpenLCB_TrackCircuits${EXEEXT} \

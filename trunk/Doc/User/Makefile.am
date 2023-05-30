@@ -621,5 +621,4 @@ clean-local:
 		$(TIMETABLEHBase) $(FCFHBase) $(CALCHBase) \
 		$(CAMERAHBase) $(DISPATCHERHBase) $(MAINPROGRAMHBase) \
 		$(USERMANHBase) $(OPENLCBHBase) $(CMRISLAVEHBase) \
-		$(EIHBase) $(LINUXGPIOHBase)
-		latex
+		$(EIHBase) $(LINUXGPIOHBase) latex

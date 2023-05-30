@@ -504,7 +504,7 @@ case $target_os in
         AC_SUBST(TCLKITRUN, [tclkit-8.6.11-armv7l-Img1.4.8])
         ;;
       aarch64)
-        AC_SUBST(TCLKITRUN, [tclkit-8.6.10-aarch64-Img1.4.9])
+        AC_SUBST(TCLKITRUN, [tclkit-8.6.10-aarch64-Img1.4.8])
         ;;
       *)
 	AC_MSG_ERROR([Unsupported Linux arch: $target_cpu])
@@ -557,7 +557,7 @@ case $build_os in
         AC_SUBST(TCLKITBSRC, [tclkit-8.6.11-armv7l-Img1.4.8])
         ;;
       aarch64)
-        AC_SUBST(TCLKITBSRC, [tclkit-8.6.10-aarch64-Img1.4.9])
+        AC_SUBST(TCLKITBSRC, [tclkit-8.6.10-aarch64-Img1.4.8])
         ;;
       *)
         AC_MSG_ERROR([Unsupported Linux arch: $build_cpu])
