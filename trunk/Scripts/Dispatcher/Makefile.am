@@ -321,6 +321,13 @@ $(top_builddir)/C++/Azatrax/libazatrax.la : \
 	$(top_srcdir)/C++/Azatrax/*.i
 	$(MAKE) -C $(top_builddir)/C++/Azatrax
 
+if HAVE_CAN
+$(top_builddir)/C++/TclSocketCAN/libtclsocketcan.la : \
+	$(top_srcdir)/C++/TclSocketCAN/*.c \
+	$(top_srcdir)/C++/TclSocketCAN/*.i 
+	$(MAKE) -C $(top_builddir)/C++/TclSocketCAN
+endif
+	
 $(top_builddir)/Scripts/CMri/pkgIndex.tcl : $(top_srcdir)/Scripts/CMri/cmri.tcl
 	$(MAKE) -C $(top_builddir)/Scripts/CMri pkgIndex.tcl
 

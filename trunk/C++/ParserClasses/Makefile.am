@@ -61,7 +61,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 
 pkgincludedir = $(includedir)/$(PACKAGE)/ParserClasses
 
-#BUILT_SOURCES = MRRXtrkCad.tab.cc MRRXtrkCad.tab.h mrr_wrap.cc ParserClassesGroup.h
+BUILT_SOURCES = MRRXtrkCad.tab.cc MRRXtrkCad.tab.h mrr_wrap.cc ParserClassesGroup.h
 
 pkginclude_HEADERS = TrackGraph.h TrackBody.h ParseFile.h IntegerList.h \
 			StringPairList.h TurnoutBody.h BezierBody.h CornuBody.h
