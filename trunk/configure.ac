@@ -134,7 +134,7 @@ AC_SUBST(RAILDRIVERIO_VERSIONLIB)
 TCLSOCKETCAN_VERSIONLIB=1.0.0
 AC_SUBST(TCLSOCKETCAN_VERSIONLIB)
 
-RELEASEDATE=[`echo '$Date$'|sed 's/^\$Date:[[:space:]]*[^(]*.\(.*\))[[:space:]]\$$/\1/g'`]
+RELEASEDATE=[`echo '$Date: 2021-08-21 14:24:40 -0400 (Sat, 21 Aug 2021) $'|sed 's/^\$Date:[[:space:]]*[^(]*.\(.*\))[[:space:]]\$$/\1/g'`]
 AC_SUBST(RELEASEDATE)
 
 if test "x${prefix}" = "xNONE"; then
@@ -345,8 +345,16 @@ if test ${cross_compiling} = "yes"; then
   crossexec_prefix=$crossdir/${target_cpu}-${target_os}
   TCL_LIB_DIR=$crossexec_prefix/lib
 else
+<<<<<<< HEAD
   dirs="${BUILD_DIR}/../tcl8.6.*/unix \
 	/usr/share /usr/lib64 /usr/lib"
+=======
+  dirs="${BUILD_DIR}/../tcl8.3a*/unix \
+	${BUILD_DIR}/../tcl8.3b*/unix \
+	${BUILD_DIR}/../tcl8.4.*/unix \
+	${BUILD_DIR}/../tcl8.5.*/unix \
+	/usr/share /usr/lib64 /usr/lib \
+	/System/Library/Frameworks/Tcl.framework/Versions/8.5"
   for i in $dirs ; do
     if test -d "$i" -a -f "$i/tclConfig.sh"; then
 	TCL_LIB_DIR=`cd $i; pwd`
