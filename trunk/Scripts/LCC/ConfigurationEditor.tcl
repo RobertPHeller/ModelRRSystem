@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <230314.1443>
+#  Last Modified : <241119.1704>
 #
 #  Description	
 #
@@ -1881,6 +1881,27 @@ namespace eval lcc {
                 ttk::style configure TSpinboxMod $opt $value
             }
             ttk::style configure TSpinboxMod -fieldbackground orange
+            ttk::style layout TFrameMod [ttk::style layout TFrame]
+            foreach {opt value} [ttk::style configure TFrame] {
+                ttk::style configure TFrameMod $opt $value
+            }
+            ttk::style configure TFrameMod -background orange
+            ttk::style layout TCheckbuttonMod [ttk::style layout TCheckbutton]
+            foreach {opt value} [ttk::style configure TCheckbutton] {
+                ttk::style configure TCheckbuttonMod $opt $value
+            }
+            ttk::style configure TCheckbuttonMod -background orange
+            ttk::style map TCheckbuttonMod  -indicatorcolor \
+                  [ttk::style map TCheckbutton -indicatorcolor]
+            ttk::style map TCheckbuttonMod  -indicatorrelief \
+                  [ttk::style map TCheckbutton -indicatorrelief]
+                  
+            ttk::style layout Horizontal.TScaleMod [ttk::style layout Horizontal.TScale]
+            foreach {opt value} [ttk::style configure TScale] {
+                ttk::style configure TScaleMod $opt $value
+            }
+            ttk::style configure TScaleMod -background orange
+            
         }
         typevariable _stack [list]
         proc push {x} {set _stack [linsert $_stack 0 $x]}
@@ -1904,10 +1925,70 @@ namespace eval lcc {
         ## Eventid number, used to insure unique widget names.
         variable _mkbuttons no
         ## Flag for Make Sensor / Make Turnout etc. buttons
-        proc _makemod {w} {
+        proc _makemod {w args} {
             set curstyle [$w cget -style]
             if {[regexp {Mod$} $curstyle] > 0} {return}
             $w configure -style ${curstyle}Mod
+        }
+        proc _makemod_rb {w rb args} {
+            set curstyle [$w cget -style]
+            if {[regexp {Mod$} $curstyle] > 0} {return}
+            $w configure -style ${curstyle}Mod
+            set var [$rb cget -variable]
+            set val [$rb cget -value]
+            set $var $val
+        }
+        proc _makemod_cb {w} {
+            set var [$w cget -variable]
+            upvar #0 $var v
+            puts stderr "*** _makemod_cb: $var is $v"
+            set curstyle [$w cget -style]
+            puts stderr "*** _makemod_cb: curstyle = $curstyle"
+            if {[regexp {Mod$} $curstyle] > 0} {return}
+            $w configure -style ${curstyle}Mod
+            return $v
+        }
+        proc checkformaphints {hints pc rb_var cb_var} {
+            upvar $rb_var rb
+            set rb no
+            upvar $cb_var cb
+            set cb no
+            if {[llength $hints] == 1} {
+                set hints [lindex $hints 0]
+                set rbtag [$hints getElementsByTagName radiobutton -depth 1]
+                if {[llength $rbtag] == 1} {set rb yes}
+                set cbtag [$hints getElementsByTagName checkbox -depth 1]
+                if {[llength $cbtag] == 1 && $pc == 2} {set cb yes}
+                if {$rb || $cb} {
+                    return true
+                } else {
+                    return false
+                }
+            } else {
+                return false
+            }
+        }
+        proc checkforsliderhints {hints tickSpace_var immediate_var} {
+            upvar $tickSpace_var tickSpace
+            set tickSpace 0
+            upvar $immediate_var immediate
+            set immediate no
+            if {[llength $hints] == 1} {
+                set hints [lindex $hints 0]
+                set slider [$hints getElementsByTagName slider -depth 1]
+                if {[llength $slider] == 1} {
+                    set slider [lindex $slider 0]
+                    set tickSpace_ [$slider attribute tickSpace]
+                    if {$tickSpace_ ne {}} {set tickSpace $tickSpace_}
+                    set immediate_ [$slider attribute immediate]
+                    if {$immediate_ ne {}} {set immediate $immediate_}
+                    return true
+                } else {
+                    return false
+                }
+            } else {
+                return false
+            }
         }
         method _processXMLnode {n frame space address_var {prefix {}}} {
             ## @brief Process one node in the XML tree.
@@ -2282,27 +2363,80 @@ namespace eval lcc {
                     }
                     set widget $intframe.value
                     set map [$n getElementsByTagName map -depth 1]
+                    set hints [$n getElementsByTagName hints -depth 1]
                     $self putdebug "*** $self _processXMLnode (int branch): map = $map (length is [llength $map])"
                     if {[llength $map] == 1} {
                         set map [lindex $map 0]
-                        upvar #0 ${widget}_VM valuemap
-                        set values [list]
-                        foreach rel [$map getElementsByTagName relation -depth 1] {
-                            set prop [[lindex [$rel getElementsByTagName property -depth 1] 0] data]
-                            set value [[lindex [$rel getElementsByTagName value -depth 1] 0] data]
-                            set valuemap($value) $prop
-                            if {$prop == $default} {
-                                set default_value $value
+                        set propcount [llength [$map getElementsByTagName relation -depth 1]]
+                        if {[checkformaphints $hints $propcount rb cb]} {
+                            # <radiobutton> and <checkbox> 
+                            if {$rb} {
+                                # <radiobutton>: ttk::radiobutton 
+                                ttk::frame $widget -style TFrame
+                                upvar #0 ${widget}_value rbvalue
+                                set rbindx 0
+                                foreach rel [$map getElementsByTagName relation -depth 1] {
+                                    set prop [[lindex [$rel getElementsByTagName property -depth 1] 0] data]
+                                    set value [[lindex [$rel getElementsByTagName value -depth 1] 0] data]
+                                    incr rbindx
+                                    pack [ttk::radiobutton $widget.rb$rbindx \
+                                          -text $value \
+                                          -variable ${widget}_value \
+                                          -command [myproc _makemod_rb $widget $widget.rb$rbindx] \
+                                          -value $prop] -side left
+                                    set rbvalue $default
+                                }
+                                set readermethod _intRBRead
+                                set writermethod _intRBWrite
+                            } elseif {$cb} {
+                                # <checkbox>: ttk::checkbutton
+                                lassign [$map getElementsByTagName relation -depth 1] offrel onrel
+                                set poff [[lindex [$offrel getElementsByTagName property -depth 1] 0] data]
+                                set voff [[lindex [$offrel getElementsByTagName value -depth 1] 0] data]
+                                set pon [[lindex [$onrel getElementsByTagName property -depth 1] 0] data]
+                                set von [[lindex [$onrel getElementsByTagName value -depth 1] 0] data]
+                                upvar #0 ${widget}_value cbvalue
+                                upvar #0 ${widget}_text  cbtext
+                                set cbtext $von
+                                set cbvalue $poff
+                                ttk::checkbutton $widget \
+                                      -textvariable ${widget}_text \
+                                      -variable ${widget}_value \
+                                      -command [myproc _makemod_cb $widget] \
+                                      -offvalue $poff -onvalue $pon \
+                                      -style TCheckbutton
+                                set readermethod _intCBRead
+                                set writermethod _intCBWrite
                             }
-                            lappend values $value
+                        } else {
+                            upvar #0 ${widget}_VM valuemap
+                            set values [list]
+                            foreach rel [$map getElementsByTagName relation -depth 1] {
+                                set prop [[lindex [$rel getElementsByTagName property -depth 1] 0] data]
+                                set value [[lindex [$rel getElementsByTagName value -depth 1] 0] data]
+                                set valuemap($value) $prop
+                                if {$prop == $default} {
+                                    set default_value $value
+                                }
+                                lappend values $value
+                            }
+                            if {![info exists default_value]} {set default_value [lindex $values 0]}
+                            $self putdebug "*** $self _processXMLnode (int branch): values = $values, default_value = $default_value"
+                            ttk::combobox $widget -values $values -state readonly -style TCombobox
+                            bind $widget <<ComboboxSelected>> "+[myproc _makemod $widget]"
+                            $widget set $default_value
+                            set readermethod _intComboRead
+                            set writermethod _intComboWrite
                         }
-                        if {![info exists default_value]} {set default_value [lindex $values 0]}
-                        $self putdebug "*** $self _processXMLnode (int branch): values = $values, default_value = $default_value"
-                        ttk::combobox $widget -values $values -state readonly -style TCombobox
-                        bind $widget <<ComboboxSelected>> "+[myproc _makemod $widget]"
-                        $widget set $default_value
-                        set readermethod _intComboRead
-                        set writermethod _intComboWrite
+                    } elseif {[checkforsliderhints $hints tickSpace immediate]} {
+                        # <slider>: ttk::scale widget
+                        ttk::scale $widget -from $min -to $max \
+                              -orient horizontal -value $default \
+                              -variable ${widget}_value \
+                              -command [myproc _makemod $widget] \
+                              -style TScale
+                        set readermethod _intScaleRead
+                        set writermethod _intScaleWrite
                     } else {
                         ttk::spinbox $widget -from $min -to $max -increment 1 -style TSpinbox
                         $widget set $default
