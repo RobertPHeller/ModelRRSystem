@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <241119.1704>
+#  Last Modified : <241120.1018>
 #
 #  Description	
 #
@@ -716,14 +716,14 @@ namespace eval lcc {
                         for {set i 0} {$i < $replication} {incr i} {
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
-                                if {[lsearch {name repname description} $tag] >= 0} {continue}
+                                if {[lsearch {name repname description hints} $tag] >= 0} {continue}
                                 if {[$self _loadNode $c $fp "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
                             }
                         }
                     } else {
                         foreach c [$n children] {
                             set tag [$c cget -tag]
-                            if {[lsearch {name repname description} $tag] >= 0} {continue}
+                            if {[lsearch {name repname description hints} $tag] >= 0} {continue}
                             if {[$self _loadNode $c $fp "${prefix}.$name"] < 0} {return -1}
                         }
                     }
@@ -828,6 +828,10 @@ namespace eval lcc {
                     }
                     return 1
                 }
+                action {
+                }
+                blob {
+                }
             }
         }
         method _saveas {} {
@@ -899,14 +903,14 @@ namespace eval lcc {
                         for {set i 0} {$i < $replication} {incr i} {
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
-                                if {[lsearch {name description repname} $tag] >= 0} {continue}
+                                if {[lsearch {name description repname hints} $tag] >= 0} {continue}
                                 if {[$self _saveNode $c $fp "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
                             }
                         }
                     } else {
                         foreach c [$n children] {
                             set tag [$c cget -tag]
-                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            if {[lsearch {name description repname hints} $tag] >= 0} {continue}
                             if {[$self _saveNode $c $fp "${prefix}.$name"] < 0} {return -1}
                         }
                     }
@@ -967,6 +971,10 @@ namespace eval lcc {
                     }
                     puts $fp [format {%s.%s=%s} $prefix $name $value]
                     return 1
+                }
+                action {
+                }
+                blob {
                 }
             }
         }
@@ -1036,14 +1044,14 @@ namespace eval lcc {
                         for {set i 0} {$i < $replication} {incr i} {
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
-                                if {[lsearch {name description repname} $tag] >= 0} {continue}
+                                if {[lsearch {name description repname hints} $tag] >= 0} {continue}
                                 if {[$self _initblankNode $c nexteventid "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
                             }
                         }
                     } else {
                         foreach c [$n children] {
                             set tag [$c cget -tag]
-                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            if {[lsearch {name description repname hints} $tag] >= 0} {continue}
                             if {[$self _initblankNode $c nexteventid "${prefix}.$name"] < 0} {return -1}
                         }
                     }
@@ -1129,6 +1137,10 @@ namespace eval lcc {
                         }
                     }
                     return 1
+                }
+                action {
+                }
+                blob {
                 }
             }
                 
@@ -1394,14 +1406,14 @@ namespace eval lcc {
                         for {set i 0} {$i < $replication} {incr i} {
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
-                                if {[lsearch {name description repname} $tag] >= 0} {continue}
+                                if {[lsearch {name description repname hints} $tag] >= 0} {continue}
                                 $self _backupNode $c $fp $space address "${prefix}[format $repnamefmt $i]"
                             }
                         }
                     } else {
                         foreach c [$n children] {
                             set tag [$c cget -tag]
-                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            if {[lsearch {name description repname hints} $tag] >= 0} {continue}
                             $self _backupNode $c $fp $space address "${prefix}.$name"
                         }
                     }
@@ -1527,6 +1539,23 @@ namespace eval lcc {
                     }
                     incr address $size
                 }
+                action {
+                    set offset [$n attribute offset]
+                    if {$offset eq {}} {set offset 0}
+                    incr address $offset
+                    set size [$n attribute size]
+                    if {$size eq {}} {set size 1}
+                    incr address $size
+                }
+                blob {
+                    set offset [$n attribute offset]
+                    if {$offset eq {}} {set offset 0}
+                    incr address $offset
+                    set size [$n attribute size]
+                    if {$size eq {}} {set size 1}
+                    incr address $size
+                }
+                
             }
         }
         method _backup {{filename {}}} {
@@ -1605,14 +1634,14 @@ namespace eval lcc {
                         for {set i 0} {$i < $replication} {incr i} {
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
-                                if {[lsearch {name description repname} $tag] >= 0} {continue}
+                                if {[lsearch {name description repname hints} $tag] >= 0} {continue}
                                 if {[$self _restoreNode $c $fp $space address "${prefix}[format $repnamefmt $i]"] < 0} {return -1}
                             }
                         }
                     } else {
                         foreach c [$n children] {
                             set tag [$c cget -tag]
-                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            if {[lsearch {name description repname hints} $tag] >= 0} {continue}
                             if {[$self _restoreNode $c $fp $space address "${prefix}.$name"] < 0} {return -1}
                         }
                     }
@@ -1782,6 +1811,22 @@ namespace eval lcc {
                           -message [_ "There was an error: %d (%s)" \
                                     $errorcode $errormessage]
                     return -1
+                }
+                action {
+                    set offset [$n attribute offset]
+                    if {$offset eq {}} {set offset 0}
+                    incr address $offset
+                    set size [$n attribute size]
+                    if {$size eq {}} {set size 1}
+                    incr address $size
+                }
+                blob {
+                    set offset [$n attribute offset]
+                    if {$offset eq {}} {set offset 0}
+                    incr address $offset
+                    set size [$n attribute size]
+                    if {$size eq {}} {set size 1}
+                    incr address $size
                 }
             }
             return 0
@@ -2220,7 +2265,7 @@ namespace eval lcc {
                             set _mkbuttons no
                             foreach c [$n children] {
                                 set tag [$c cget -tag]
-                                if {[lsearch {name description repname} $tag] >= 0} {continue}
+                                if {[lsearch {name description repname hints} $tag] >= 0} {continue}
                                 $self _processXMLnode $c $replframe $space address "${prefix}[format $keyrepnamefmt [expr {$i-1}]]"
                             }
                             if {$_stringnumber == 1 &&
@@ -2268,7 +2313,7 @@ namespace eval lcc {
                         $self putdebug "*** _processXMLnode (group branch, non replicated): attrs of $n are [$n cget -attributes]"
                         foreach c [$n children] {
                             set tag [$c cget -tag]
-                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            if {[lsearch {name description repname hints} $tag] >= 0} {continue}
                             $self _processXMLnode $c $groupframe $space address "${prefix}.$name"
                         }
                         if {$_stringnumber == 1 &&
@@ -2635,6 +2680,22 @@ namespace eval lcc {
                     } else {
                         $rb invoke
                     }
+                    incr address $size
+                }
+                action {
+                    set offset [$n attribute offset]
+                    if {$offset eq {}} {set offset 0}
+                    incr address $offset
+                    set size [$n attribute size]
+                    if {$size eq {}} {set size 1}
+                    incr address $size
+                }
+                blob {
+                    set offset [$n attribute offset]
+                    if {$offset eq {}} {set offset 0}
+                    incr address $offset
+                    set size [$n attribute size]
+                    if {$size eq {}} {set size 1}
                     incr address $size
                 }
             }
@@ -3043,6 +3104,11 @@ namespace eval lcc {
                                 set cframe $frame.[$c attribute vframe]
                                 _printexport_pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
                             }
+                            action {
+                            }
+                            blob {
+                            }
+                            
                         }
                     }
                 }
@@ -3077,7 +3143,7 @@ namespace eval lcc {
                         #$self putdebug "*** _printexport_pdf_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
                         foreach c [$n children] {
                             set tag [$c cget -tag]
-                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            if {[lsearch {name description repname hints} $tag] >= 0} {continue}
                             
                             switch $tag {
                                 group {
@@ -3099,6 +3165,10 @@ namespace eval lcc {
                                 eventid {
                                     set cframe $frame.[$c attribute vframe]
                                     _printexport_pdf_vframe $c ${indent} $pdfobj $cframe cury curpage $pageheader
+                                }
+                                action {
+                                }
+                                blob {
                                 }
                             }
                         }
@@ -3229,6 +3299,10 @@ namespace eval lcc {
                                 set cframe $frame.string$sn
                                 $resultnode addchild [_printexport_xml_vframe $c $cframe]
                             }
+                            action {
+                            }
+                            blob {
+                            }
                         }
                     }
                     return $resultnode
@@ -3258,7 +3332,7 @@ namespace eval lcc {
                     } else {
                         foreach c [$n children] {
                             set tag [$c cget -tag]
-                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            if {[lsearch {name description repname hints} $tag] >= 0} {continue}
                             switch $tag {
                                 group {
                                     incr gn
@@ -3279,6 +3353,10 @@ namespace eval lcc {
                                 eventid {
                                     set cframe $frame.[$c attribute vframe]
                                     $resultnode addchild [_printexport_xml_vframe $c $cframe]
+                                }
+                                action {
+                                }
+                                blob {
                                 }
                             }
                         }
@@ -3385,6 +3463,11 @@ namespace eval lcc {
                                 set cframe $frame.[$c attribute vframe]
                                 _printexport_csv_vframe $c $matrix $cframe
                             }
+                            action {
+                            }
+                            blob {
+                            }
+                            
                         }
                     }
                 }
@@ -3411,7 +3494,7 @@ namespace eval lcc {
                         #$self putdebug "*** _printexport_csv_frame: frame = $frame, \[winfo children $frame\] = [winfo children $frame]"
                         foreach c [$n children] {
                             set tag [$c cget -tag]
-                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            if {[lsearch {name description repname hints} $tag] >= 0} {continue}
                             
                             switch $tag {
                                 group {
@@ -3433,6 +3516,10 @@ namespace eval lcc {
                                 eventid {
                                     set cframe $frame.[$c attribute vframe]
                                     _printexport_csv_vframe $c $matrix $cframe
+                                }
+                                action {
+                                }
+                                blob {
                                 }
                             }
                         }
@@ -3503,7 +3590,7 @@ namespace eval lcc {
                     }
                     foreach c [$n children] {
                         set tag [$c cget -tag]
-                        if {[lsearch {name description repname} $tag] >= 0} {continue}
+                        if {[lsearch {name description repname hints} $tag] >= 0} {continue}
                         switch $tag {
                             group {
                                 incr gn
@@ -3524,6 +3611,10 @@ namespace eval lcc {
                             eventid {
                                 set cframe $frame.[$c attribute vframe]
                                 _printexport_csv_vframeAcross $c row $cframe
+                            }
+                            action {
+                            }
+                            blob {
                             }
                         }
                         #$self putdebug "*** _printexport_csv_frameAcross (after child): row is $row"
@@ -3628,6 +3719,10 @@ namespace eval lcc {
                                 set cframe $frame.[$c attribute vframe]
                                 _printexport_txt_vframe $c ${indent} $outfp $cframe
                             }
+                            action {
+                            }
+                            blob {
+                            }
                         }
                     }
                 }
@@ -3651,7 +3746,7 @@ namespace eval lcc {
                         #$self putdebug "*** _printexport_txt_frame: attributes of $n: [$n cget -attributes]"
                         foreach c [$n children] {
                             set tag [$c cget -tag]
-                            if {[lsearch {name description repname} $tag] >= 0} {continue}
+                            if {[lsearch {name description repname hints} $tag] >= 0} {continue}
                             #puts stderr "*** _printexport_txt_frame: tag = $tag, c = $c, attributes of $c are [$c cget -attributes]"
                             switch $tag {
                                 group {
@@ -3675,10 +3770,15 @@ namespace eval lcc {
                                     set cframe $frame.[$c attribute vframe]
                                     _printexport_txt_vframe $c ${indent} $outfp $cframe
                                 }
+                                action {
+                                }
+                                blob {
+                                }
                             }
                         }
                     }
                 }
+                
             }
         }
         proc _printexport_txt_vframe {n indent outfp frame} {
@@ -3998,6 +4098,24 @@ namespace eval lcc {
             tk_messageBox -type ok -icon error \
                   -message [_ "There was an error: %d (%s)" \
                             $errorcode $errormessage]
+        }
+        method _intRBRead {widget space address size} {
+            ## Read an integer value and stash it in a Radiobutton group
+        }
+        method _intRBWrite {widget space address size min max} {
+            ## Write an integer value maped from a Radiobutton group.
+        }
+        method _intCBRead {widget space address size} {
+            ## Read an integer value and stash it in a Checkbutton widget.
+        }
+        method _intCBWrite {widget space address size min max} {
+            ## Write an integer value maped from a Checkbutton widget
+        }
+        method _intScaleRead {widget space address size} {
+            ## Read an integer value and stash it in a Scale widget.
+        }
+        method _intScaleWrite {widget space address size min max} {
+            ## Write an integer value maped from a Scale widget
         }
         method _intSpinRead {widget space address size} {
             ## Read an integer value and stash it in a SpinBox widget.
