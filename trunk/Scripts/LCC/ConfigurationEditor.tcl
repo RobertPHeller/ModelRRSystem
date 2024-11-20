@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <241120.1018>
+#  Last Modified : <241120.1253>
 #
 #  Description	
 #
@@ -2477,7 +2477,6 @@ namespace eval lcc {
                         # <slider>: ttk::scale widget
                         ttk::scale $widget -from $min -to $max \
                               -orient horizontal -value $default \
-                              -variable ${widget}_value \
                               -command [myproc _makemod $widget] \
                               -style TScale
                         set readermethod _intScaleRead
@@ -4101,21 +4100,200 @@ namespace eval lcc {
         }
         method _intRBRead {widget space address size} {
             ## Read an integer value and stash it in a Radiobutton group
+            #
+            # @param widget A ttk::frame widget containing ttk::radiobuttons.
+            # @param space The space to read from.
+            # @param address The address of the integer.
+            # @param size The size of the integer.
+            
+            upvar #0 ${widget}_value rbvalue
+            set data [$self _readmemory $space $address $size status]
+            if {$status == 0x50} {
+                # OK 
+                set value 0
+                foreach b $data {
+                    set value [expr {($value << 8) | $b}]
+                }
+                set rbvalue $value
+            } elseif {$status == 0x58} {
+                # Failure
+                set errorcode [expr {([lindex $data 0] << 8) | [lindex $data 1]}]
+                set errormessage {}
+                foreach c [lrange $data 2 end] {
+                    if {$c == 0} {break}
+                    append errormessage [format %c $c]
+                }
+            }
         }
         method _intRBWrite {widget space address size min max} {
             ## Write an integer value maped from a Radiobutton group.
+            #
+            # @param widget A ttk::combobox widget to get the value from.  
+            #        This is also used to map to the value map.
+            # @param space The space to read from.
+            # @param address The address of the integer.
+            # @param size The size of the integer.
+            # @param min The minimum allowed value of the integer.
+            # @param max The maximum allowed value of the integer.
+            
+            upvar #0 ${widget}_value rbvalue
+            set value rbvalue
+            set data [list]
+            for {set shift [expr {($size - 1) * 8}]} {$shift >= 0} {incr shift -8} {
+                lappend data [expr {($value >> $shift) & 0xFF}]
+            }
+            set retdata [$self _writememory $space $address $data]
+            if {[llength $retdata] <= 1} {
+                if {$retdata eq {} || $retdata == 0} {
+                    ## OK
+                    $widget configure -style [regsub {Mod$} [$widget cget -style] {}]
+                    return
+                } else {
+                    set errorcode $retdata
+                    set errormessage {}
+                }
+            } else {
+                set errorcode [expr {([lindex $retdata 0] << 8) | [lindex $retdata 1]}]
+                set errormessage {}
+                foreach c [lrange $data 2 end] {
+                    if {$c == 0} {break}
+                    append errormessage [format %c $c]
+                }
+            }
+            tk_messageBox -type ok -icon error \
+                  -message [_ "There was an error: %d (%s)" \
+                            $errorcode $errormessage]
         }
         method _intCBRead {widget space address size} {
             ## Read an integer value and stash it in a Checkbutton widget.
+            #
+            # @param widget A ttk::checkbutton widget.
+            # @param space The space to read from.
+            # @param address The address of the integer.
+            # @param size The size of the integer.
+            
+            set var [$widget cget -variable]
+            upvar #0 $var v
+            set data [$self _readmemory $space $address $size status]
+            if {$status == 0x50} {
+                # OK 
+                set value 0
+                foreach b $data {
+                    set value [expr {($value << 8) | $b}]
+                }
+                set v $value
+            } elseif {$status == 0x58} {
+                # Failure
+                set errorcode [expr {([lindex $data 0] << 8) | [lindex $data 1]}]
+                set errormessage {}
+                foreach c [lrange $data 2 end] {
+                    if {$c == 0} {break}
+                    append errormessage [format %c $c]
+                }
+            }
         }
         method _intCBWrite {widget space address size min max} {
             ## Write an integer value maped from a Checkbutton widget
+            #
+            # @param widget A ttk::combobox widget to get the value from.  
+            #        This is also used to map to the value map.
+            # @param space The space to read from.
+            # @param address The address of the integer.
+            # @param size The size of the integer.
+            # @param min The minimum allowed value of the integer.
+            # @param max The maximum allowed value of the integer.
+            
+            set var [$widget cget -variable]
+            upvar #0 $var value
+            set data [list]
+            for {set shift [expr {($size - 1) * 8}]} {$shift >= 0} {incr shift -8} {
+                lappend data [expr {($value >> $shift) & 0xFF}]
+            }
+            set retdata [$self _writememory $space $address $data]
+            if {[llength $retdata] <= 1} {
+                if {$retdata eq {} || $retdata == 0} {
+                    ## OK
+                    $widget configure -style [regsub {Mod$} [$widget cget -style] {}]
+                    return
+                } else {
+                    set errorcode $retdata
+                    set errormessage {}
+                }
+            } else {
+                set errorcode [expr {([lindex $retdata 0] << 8) | [lindex $retdata 1]}]
+                set errormessage {}
+                foreach c [lrange $data 2 end] {
+                    if {$c == 0} {break}
+                    append errormessage [format %c $c]
+                }
+            }
+            tk_messageBox -type ok -icon error \
+                  -message [_ "There was an error: %d (%s)" \
+                            $errorcode $errormessage]
         }
         method _intScaleRead {widget space address size} {
             ## Read an integer value and stash it in a Scale widget.
+            #
+            # @param widget A ttk::scale widget.
+            # @param space The space to read from.
+            # @param address The address of the integer.
+            # @param size The size of the integer.
+            
+            set data [$self _readmemory $space $address $size status]
+            if {$status == 0x50} {
+                # OK 
+                set value 0
+                foreach b $data {
+                    set value [expr {($value << 8) | $b}]
+                }
+                $widget configure -value $value
+            } elseif {$status == 0x58} {
+                # Failure
+                set errorcode [expr {([lindex $data 0] << 8) | [lindex $data 1]}]
+                set errormessage {}
+                foreach c [lrange $data 2 end] {
+                    if {$c == 0} {break}
+                    append errormessage [format %c $c]
+                }
+            }
         }
         method _intScaleWrite {widget space address size min max} {
             ## Write an integer value maped from a Scale widget
+            #
+            # @param widget A ttk::combobox widget to get the value from.  
+            #        This is also used to map to the value map.
+            # @param space The space to read from.
+            # @param address The address of the integer.
+            # @param size The size of the integer.
+            # @param min The minimum allowed value of the integer.
+            # @param max The maximum allowed value of the integer.
+            
+            set value [$widget cget -value]
+            set data [list]
+            for {set shift [expr {($size - 1) * 8}]} {$shift >= 0} {incr shift -8} {
+                lappend data [expr {($value >> $shift) & 0xFF}]
+            }
+            set retdata [$self _writememory $space $address $data]
+            if {[llength $retdata] <= 1} {
+                if {$retdata eq {} || $retdata == 0} {
+                    ## OK
+                    $widget configure -style [regsub {Mod$} [$widget cget -style] {}]
+                    return
+                } else {
+                    set errorcode $retdata
+                    set errormessage {}
+                }
+            } else {
+                set errorcode [expr {([lindex $retdata 0] << 8) | [lindex $retdata 1]}]
+                set errormessage {}
+                foreach c [lrange $data 2 end] {
+                    if {$c == 0} {break}
+                    append errormessage [format %c $c]
+                }
+            }
+            tk_messageBox -type ok -icon error \
+                  -message [_ "There was an error: %d (%s)" \
+                            $errorcode $errormessage]
         }
         method _intSpinRead {widget space address size} {
             ## Read an integer value and stash it in a SpinBox widget.
