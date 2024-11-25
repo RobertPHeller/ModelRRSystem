@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <241120.1253>
+#  Last Modified : <241125.1234>
 #
 #  Description	
 #
@@ -2236,6 +2236,14 @@ namespace eval lcc {
                     }
                     incr address $offset
                     set keyrepnamefmt [format ".%s(%%d)" $name]
+                    set hints [$n getElementsByTagName hints -depth 1]
+                    push $options(-displayonly)
+                    if {[llength $hints] == 1} {
+                        set hints [lindex $hints 0]
+                        if {[llength [$hints getElementsByTagName readonly -depth 1]] > 0} {
+                            set options(-displayonly) yes
+                        }
+                    }
                     if {$replication > 1} {
                         #set replnotebook [ttk::notebook $groupframe.replnotebook]
                         set replnotebook [ScrollTabNotebook $groupframe.replnotebook]
@@ -2349,6 +2357,7 @@ namespace eval lcc {
                                          -command [mymethod _printexport $n $groupframe [_ "Group %s" $name]]]
                         pack $printexport -fill x -anchor center
                     }
+                    set options(-displayonly) [pop]
                     set _eventidnumber [pop]
                     set _stringnumber  [pop]
                     set _intnumber     [pop]
