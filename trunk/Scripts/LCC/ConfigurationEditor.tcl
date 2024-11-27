@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <241125.1234>
+#  Last Modified : <241127.0929>
 #
 #  Description	
 #
@@ -2691,11 +2691,67 @@ namespace eval lcc {
                     incr address $size
                 }
                 action {
+                    incr _intnumber
                     set offset [$n attribute offset]
                     if {$offset eq {}} {set offset 0}
                     incr address $offset
                     set size [$n attribute size]
                     if {$size eq {}} {set size 1}
+                    set name [$n getElementsByTagName name -depth 1]
+                    if {[llength $name] == 1} {
+                        set name [[lindex $name 0] data]
+                    } else {
+                        set name {}
+                    }
+                    $self putdebug "*** _processXMLnode (action branch): frame is $frame, _intnumber is $_intnumber"
+                    $self putdebug "*** _processXMLnode (action branch): name is '$name'"
+                    if {$name ne {}} {
+                        set intframe [ttk::labelframe \
+                                      $frame.int$_intnumber \
+                                      -labelanchor nw -text $name]
+                    } else {
+                        set intframe [ttk::frame \
+                                      $frame.int$_intnumber]
+                    }
+                    $n setAttribute vframe int$_intnumber
+                    pack $intframe -fill x;# -expand yes
+                    set widgetMap_([format {%s.%s} $prefix $name]) $intframe
+                    set descr [$n getElementsByTagName description -depth 1]
+                    if {[llength $descr] == 1} {
+                        set description [[lindex $descr 0] data]
+                        set lab [ttk::label $intframe.descr \
+                                 -text $description]
+                        pack $lab -fill x
+                    }
+                    set widget $intframe.value
+                    set btext [$n getElementsByTagName buttonText -depth 1]
+                    if {[llength $btext] == 1} {
+                        set buttonText [[lindex $btext 0] data]
+                    } else {
+                        tk_messageBox -icon warning -message "Button Text missing for Action item!" -type ok
+                        set buttonText "No Button Text"
+                    }
+                    set dtext [$n getElementsByTagName dialogText -depth 1]
+                    if {[llength $dtext] == 1} {
+                        set dialogText [[lindex $dtext 0] data]
+                    } else {
+                        set dialogText ""
+                    }
+                    set vwrite [$n getElementsByTagName value -depth 1]
+                    if {[llength $vwrite ] == 1} {
+                        set valWrite [[lindex $vwrite 0] data]
+                    } else {
+                        tk_messageBox -icon warning -message "Button value missing, assuming 0!" -type ok
+                        set valWrite 0
+                    }
+                    ttk::button $widget \
+                          -command [mymethod _actionWrite $widget $space \
+                                    $address $size $valWrite $dialogText] \
+                          -text $buttonText
+                    pack $widget -fill x
+                    if {$options(-displayonly) || $options(-offlineedit)} {
+                        $widget configure -state disabled
+                    }
                     incr address $size
                 }
                 blob {
@@ -4374,6 +4430,45 @@ namespace eval lcc {
             tk_messageBox -type ok -icon error \
                   -message [_ "There was an error: %d (%s)" \
                             $errorcode $errormessage]
+        }
+        method _actionWrite {widget space address size value dislogText} {
+            ## Write an integer value from an Action button.
+            #
+            # @param widget A ttk::button widget
+            # @param space The space to write to.
+            # @param address The address of the integer.
+            # @param size The size of the integer.
+            # @param value The value to write
+            # @param dislogText The dialog text to display after writing
+            
+            set data [list]
+            for {set shift [expr {($size - 1) * 8}]} {$shift >= 0} {incr shift -8} {
+                lappend data [expr {($value >> $shift) & 0xFF}]
+            }
+            set retdata [$self _writememory $space $address $data]
+            if {[llength $retdata] <= 1} {
+                if {$retdata eq {} || $retdata == 0} {
+                    ## OK
+                    $widget configure -style [regsub {Mod$} [$widget cget -style] {}]
+                    return
+                } else {
+                    set errorcode $retdata
+                    set errormessage {}
+                }
+            } else {
+                set errorcode [expr {([lindex $retdata 0] << 8) | [lindex $retdata 1]}]
+                set errormessage {}
+                foreach c [lrange $data 2 end] {
+                    if {$c == 0} {break}
+                    append errormessage [format %c $c]
+                }
+            }
+            tk_messageBox -type ok -icon error \
+                  -message [_ "There was an error: %d (%s)" \
+                            $errorcode $errormessage]
+            if {$dialogText ne ""} {
+                tk_messageBox -icon info -message $dialogText -type ok
+            }
         }
         method _stringComboRead {widget space address size} {
             ## Read a string value and map it to a ComboBox widget.
