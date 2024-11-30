@@ -7,8 +7,8 @@
 #  Date          : $Date$
 #  Author        : $Author$
 #  Created By    : Robert Heller
-#  Created       : Mon Sep 19 09:18:09 2016
-#  Last Modified : <241129.1357>
+#  Created       : Fri Nov 29 10:48:40 2024
+#  Last Modified : <241130.1429>
 #
 #  Description	
 #
@@ -17,8 +17,8 @@
 #  History
 #	
 #*****************************************************************************
-#
-#    Copyright (C) 2016  Robert Heller D/B/A Deepwoods Software
+## @copyright
+#    Copyright (C) 2024  Robert Heller D/B/A Deepwoods Software
 #			51 Locke Hill Road
 #			Wendell, MA 01379-9728
 #
@@ -35,7 +35,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-#
+# @file LCCNodeTable.tcl
+# @author Robert Heller
+# @date Fri Nov 29 10:48:40 2024
 # 
 #
 #*****************************************************************************
@@ -50,9 +52,224 @@ package require ConfigurationEditor
 package require ConfigDialogs
 package require ReadCDIProgress
 
-snit::widgetadaptor LCCNodeTree {
-    ## @brief LCC Node Tree Widget
-    # This is the LCC Node Tree Widget, which lists the nodes on the 
+snit::widget NodeDisplayPopup {
+    hulltype toplevel
+    widgetclass NodeDisplayPopup
+    
+    component name
+    component description
+    component nodeID
+    component manufact
+    component model
+    component hvers
+    component svers
+    component dismisbutton
+    
+    option -nid -default {00:00:00:00:00:00} -type lcc::nid \
+          -configuremethod _SetNID
+    option -manufacturer -default {} -configuremethod _SetManufact
+    option -model -default {} -configuremethod _SetModel
+    option -hardware -default {} -configuremethod _SetHardware
+    option -software -default {} -configuremethod _SetSoftware
+    option -name -default {} -configuremethod _SetName
+    option -description -default {} -configuremethod _SetDescription
+    
+    option -style -default NodeDisplayPopup
+    option -parent -default .
+    method _SetNID {option value} {
+        $nodeID configure -text "$value"
+        wm title $win "LCC Node: $value"
+        set options($option) "$value"
+    }
+    method _SetManufact {option value} {
+        $manufact configure -text "$value"
+        set options($option) "$value"
+    }
+    method _SetModel {option value} {
+        $model configure -text "$value"
+        set options($option) "$value"
+    }
+    method _SetHardware {option value} {
+        $hvers configure -text "$value"
+        set options($option) "$value"
+    }
+    method _SetSoftware {option value} {
+        $svers configure -text "$value"
+        set options($option) "$value"
+    }
+    method _SetName {option value} {
+        $name configure -text "$value"
+        set options($option) "$value"
+    }
+    method _SetDescription {option value} {
+        $description configure -text "$value"
+        set options($option) "$value"
+    }
+    
+    method _themeChanged {} {
+        foreach option {-activebackground -activeforeground -anchor -background 
+            -borderwidth -cursor -disabledforeground -foreground 
+            -highlightbackground -highlightcolor -highlightthickness 
+            -padx -pady -takefocus} {
+            set value [ttk::style lookup $options(-style) $option]
+            catch [list $win configure $option "$value"]    
+            catch [list $dismisbutton configure $option "$value"]
+            catch [list $name configure $option "$value"]
+            catch [list $description configure $option "$value"]
+            catch [list $nodeID configure $option "$value"]
+            catch [list $manufact configure $option "$value"]
+            catch [list $model configure $option "$value"]
+            catch [list $hvers configure $option "$value"]
+            catch [list $svers configure $option "$value"]
+        }
+    }
+    constructor {args} {
+        wm withdraw $win
+        set lframe [ttk::labelframe $win.nameframe -labelanchor nw \
+                    -text [_m "Label|Name:"]]
+        pack $lframe -expand yes -fill x
+        install name using ttk::label $lframe.name
+        pack $name
+        set lframe [ttk::labelframe $win.descriptionframe -labelanchor nw \
+                    -text [_m "Label|Description:"]]
+        pack $lframe -expand yes -fill x
+        install description using ttk::label $lframe.description
+        pack $description
+        set lframe [ttk::labelframe $win.nodeIDframe -labelanchor nw \
+                    -text [_m "Label|Node ID:"]]
+        pack $lframe -expand yes -fill x
+        install nodeID using ttk::label $lframe.nodeID
+        pack $nodeID
+        set lframe [ttk::labelframe $win.manufactframe -labelanchor nw \
+                    -text [_m "Label|Manufacturer:"]]
+        pack $lframe -expand yes -fill x
+        install manufact using ttk::label $lframe.manufact
+        pack $manufact
+        set lframe [ttk::labelframe $win.modelframe -labelanchor nw \
+                    -text [_m "Label|Model:"]]
+        pack $lframe -expand yes -fill x
+        install model using ttk::label $lframe.model
+        pack $model
+        set lframe [ttk::labelframe $win.hversframe -labelanchor nw \
+                    -text [_m "Label|Hardware:"]]
+        pack $lframe -expand yes -fill x
+        install hvers using ttk::label $lframe.hvers
+        pack $hvers
+        set lframe [ttk::labelframe $win.sversframe -labelanchor nw \
+                    -text [_m "Label|Software:"]]
+        pack $lframe -expand yes -fill x
+        install svers using ttk::label $lframe.svers
+        pack $svers
+        install dismisbutton using ttk::button $win.dismisbutton \
+              -default active \
+              -text [_m "Button|Dismis"] \
+              -command [mymethod _Dismis]
+        pack $dismisbutton -fill x
+        $self configurelist $args
+        wm transient $win [$self cget -parent]
+        $type push availlist $self
+        bind <Return> $win [list $dismisbutton invoke]
+        bind <Esc> $win [list $dismisbutton invoke]
+        wm protocol $win WM_DELETE_WINDOW [list $dismisbutton invoke]
+        bind <<ThemeChanged>> $win [mymethod _themeChanged]
+        $self _themeChanged
+    }
+    
+    method _Dismis {} {
+        wm withdraw $win
+        $type remove inuselist $self
+        $type push   availlist $self
+    }
+    method draw {args} {
+        $self configurelist $args
+        update idle
+        set x [expr {[winfo screenwidth $win]/2 - ([winfo reqwidth $win])/2 \
+               - [winfo vrootx $win]}]
+        set y [expr {[winfo screenheight $win]/2 - [winfo reqheight $win]/2 \
+               - [winfo vrooty $win]}]
+        if {$x < 0} {set x 0}
+        if {$y < 0} {set y 0}
+        wm geom $win =450x350+$x+$y
+        wm transient $win [$self cget -parent]
+        wm deiconify $win
+        $type push inuselist $self
+    }
+
+    typemethod draw {args} {
+        if {[$type length availlist] == 0} {
+            $type create .[string tolower [lindex [split $type :] end]]%AUTO%
+        }
+        set object [$type pop availlist]
+        #    puts stderr "*** ${type}::typemethod draw: object = $object"
+        $object draw {*}$args
+        return $object
+    }
+
+    destructor {
+        $type remove availlist $self
+        $type remove inuselist $self
+    }
+
+    typevariable availlist {}
+    typevariable inuselist {}
+
+    typemethod _CheckList {list} {
+        if {[lsearch -exact {availlist inuselist} $list] < 0} {
+            error "No such list: $list"
+        }
+    }
+
+    typemethod push {list object} {
+        $type _CheckList $list
+        if {![$type member $list $object]} {
+            lappend $list $object
+        }
+    }
+
+    typemethod pop {list} {
+        $type _CheckList $list
+        if {[$type length $list] > 0} {
+            #      puts stderr "*** ${type}::typemethod pop: list = $list ([set [set list]])"
+            set object [lindex [set [set list]] 0]
+            #      puts stderr "*** ${type}::typemethod pop: object = $object"
+            set $list  [lrange [set [set list]] 1 end]
+            #      puts stderr "*** ${type}::typemethod pop: list = $list ([set [set list]])"
+        } else {
+            set object {}
+        }
+        return $object
+    }
+    
+    typemethod member {list object} {
+        $type _CheckList $list 
+        if {[lsearch -exact [set [set list]] $object] < 0} {
+            return 0
+        } else {
+            return 1
+        }
+    }
+    
+    typemethod length {list} {
+        $type _CheckList $list 
+        return [llength [set [set list]]]
+    }
+    
+    typemethod remove {list object} {
+        $type _CheckList $list 
+        set index [lsearch -exact [set [set list]] $object]
+        if {$index < 0} {
+            # nothing
+        } elseif {$index == 0} {
+            set $list [lrange [set [set list]] 1 end]
+        } else {
+            set $list [lreplace [set [set list]] $index $index]
+        }
+    }
+}
+
+snit::widgetadaptor LCCNodeTable {
+    ## @brief LCC Node Table Widget
+    # This is the LCC Node Table Widget, which lists the nodes on the 
     # OpenLCB network.
     #
     # Options: 
@@ -61,8 +278,10 @@ snit::widgetadaptor LCCNodeTree {
     #
     # @par
     
-    typevariable nodetree_cols {nodeid}
+    typevariable nodetable_cols {nodeid manufact model hvers svers configure name description};# Columns
     ## @privatesection Columns.
+    typevariable nodetable_dispcols {name nodeid manufact model svers configure};# displayed columns
+    ## Displayed columns.
     component  transport
     ## Transport component.
     option -transport -readonly yes -default {} -configuremethod _settransport
@@ -102,7 +321,7 @@ snit::widgetadaptor LCCNodeTree {
     }
     delegate option * to hull except {-columns -displaycolumns -padding -show}
     delegate method * to hull except {bbox cget column configure 
-        delete detach exists heading insert move next parent prev set 
+        delete detach exists insert move next parent prev set 
         state tag}
     
     
@@ -126,10 +345,12 @@ snit::widgetadaptor LCCNodeTree {
     component readCDIProgress
     
     constructor {args} {
-        ## @publicsection Construct a LCC Node Tree
+        ## @publicsection Construct a LCC Node Table
         
         putdebug "*** $type create $self $args"
-        installhull using ttk::treeview -columns $nodetree_cols -selectmode browse -show tree
+        installhull using ttk::treeview -columns $nodetable_cols \
+              -displaycolumns $nodetable_dispcols -selectmode browse \
+              -show headings
         putdebug "*** $type create $self: hull = $hull"
         $self configurelist $args
         putdebug "*** $type create $self: transport = $transport"
@@ -141,22 +362,46 @@ snit::widgetadaptor LCCNodeTree {
             set ls [font metrics $f -displayof $win -linespace]
             ttk::style configure $style -rowheight [expr {$ls * 2}]
         }
+        $hull heading name -text [_m "Label|Name"]
+        $hull heading nodeid -text [_m "Label|Node Id"]
+        $hull heading manufact -text [_m "Label|Manufacturer"]
+        $hull heading model -text [_m "Label|Model"]
+        $hull heading svers -text [_m "Label|Software"]
+        $hull heading configure -text [_m "Label|Configure"]
         set mynid [$transport cget -nid]
-        $hull insert {} end -id $mynid -text $mynid -open no
+        $hull insert {} end -id $mynid -values [list $mynid] \
+              -tags [list itemselect]
         $self _insertSimpleNodeInfo $mynid [$transport ReturnMySimpleNodeInfo]
         $self _insertSupportedProtocols $mynid [$transport ReturnMySupportedProtocols]
         $hull tag bind protocol_CDI <ButtonPress-1> [mymethod _ReadCDI %x %y]
         $hull tag bind protocol_CDI <ButtonPress-2> {}
-        $hull tag bind protocol_MemoryConfig <ButtonPress-1> [mymethod _MemoryConfig %x %y]
-        $hull tag bind protocol_MemoryConfig <ButtonPress-2> {}
+        $hull tag bind itemselect <ButtonPress-3>  [mymethod _itemselect %x %y %X %Y]
         update idle
         $transport SendVerifyNodeID
         install readCDIProgress using ReadCDIProgress $win.readCDIProgress -parent $win
     }
+    typemethod DisplayNode {nodeid manufact model hvers svers {configure {}} {name {}} {description {}}} {
+        NodeDisplayPopup draw \
+              -nid $nodeid \
+              -manufacturer $manufact \
+              -model $model \
+              -hardware $hvers \
+              -software $svers \
+              -name $name \
+              -description $description
+    }
+    method _itemselect {x y rootX rootY} {
+        #* Id node at x,y
+        
+        putdebug [format "*** $self _itemselect %d %d %d %d" $x $y $rootX $rootY]
+        set id [$hull identify row $x $y]
+        putdebug "*** $self _itemselect: id = $id"
+        LCCNodeTable DisplayNode {*}[$hull item $id -values]
+    }
     method Refresh {} {
         $hull delete [$hull children {}]
         set mynid [$transport cget -nid]
-        $hull insert {} end -id $mynid -text $mynid -open no
+        $hull insert  {} end -id $mynid -values [$mynid]
         $self _insertSimpleNodeInfo $mynid [$transport ReturnMySimpleNodeInfo]
         $self _insertSupportedProtocols $mynid [$transport ReturnMySupportedProtocols]
         $transport SendVerifyNodeID
@@ -191,7 +436,8 @@ snit::widgetadaptor LCCNodeTree {
                     # I'm fine, how are you?
                     # (Nice to meet you, my name is...)
                     $transport SendMyNodeVerifcation
-                    $hull insert {} end -id $nid -text $nid -open no
+                    $hull insert {} end -id $nid -values [list $nid] \
+                          -tags [list itemselect]
                     $transport SendSimpleNodeInfoRequest $nid
                 }
             }
@@ -222,19 +468,11 @@ snit::widgetadaptor LCCNodeTree {
     method _insertSimpleNodeInfo {nid infopayload} {
         ## @privatesection Insert the SimpleNodeInfo for nid into the tree view.
 
-        #putdebug "*** $self _insertSimpleNodeInfo $nid $infopayload"
-        $hull insert $nid end -id ${nid}_simplenodeinfo \
-              -text {Simple Node Info} \
-              -open no
+        putdebug "*** $self _insertSimpleNodeInfo $nid $infopayload"
         set strings1 [lindex $infopayload 0]
         if {$strings1 == 1} {set strings1 4}
         set i 1
-        set names1 {manufact model hvers svers}
-        set formats1 [list \
-                      [_ "Manfacturer: %s"] \
-                      [_ "Model: %s"] \
-                      [_ "Hardware Version: %s"] \
-                      [_ "Software Version: %s"]]
+        set names1 {1 2 3 4}
         for {set istring 0} {$istring < $strings1} {incr istring} {
             set s ""
             while {[lindex $infopayload $i] != 0} {
@@ -245,10 +483,11 @@ snit::widgetadaptor LCCNodeTree {
                 incr i
             }
             if {$s ne ""} {
-                $hull insert ${nid}_simplenodeinfo end \
-                      -id ${nid}_simplenodeinfo_[lindex $names1 $istring] \
-                      -text [_ [lindex $formats1 $istring] $s] \
-                      -open no
+                set values [$hull item $nid -values]
+                set indx [lindex $names1 $istring]
+                while {[llength $values] <= $indx} {lappend values {}}
+                set values [lreplace $values $indx $indx $s]
+                $hull item $nid -values $values
             }
             incr i
         }
@@ -257,8 +496,7 @@ snit::widgetadaptor LCCNodeTree {
         if {$strings2 == 1} {set strings2 2}
         # If version 1, then 2 strings (???), other wise version == number of strings
         incr i
-        set names2 {name descr}
-        set formats2 [list [_ "Name: %s"] [_ "Description: %s"]]
+        set names2 {6 7}
         for {set istring 0} {$istring < $strings2} {incr istring} {
             set s ""
             while {[lindex $infopayload $i] != 0} {
@@ -269,13 +507,11 @@ snit::widgetadaptor LCCNodeTree {
                 incr i
             }
             if {$s ne ""} {
-                $hull insert ${nid}_simplenodeinfo end \
-                      -id ${nid}_simplenodeinfo_[lindex $names2 $istring] \
-                      -text [_ [lindex $formats2 $istring] $s] \
-                      -open no
-                if {[lindex $names2 $istring] eq "name"} {
-                    $hull item ${nid} -text [format "%s (%s)" $nid $s]
-                }
+                set values [$hull item $nid -values]
+                set indx [lindex $names2 $istring]
+                while {[llength $values] <= $indx} {lappend values {}}
+                set values [lreplace $values $indx $indx $s]
+                $hull item $nid -values $values
             }
             incr i
         }
@@ -288,20 +524,15 @@ snit::widgetadaptor LCCNodeTree {
         if {[llength $report] > 3} {set report [lrange $report 0 2]}
         set protocols [lcc::OpenLCBProtocols GetProtocolNames $report]
         putdebug "*** $self _insertSupportedProtocols $nid $report"
-        
         putdebug "*** $self _insertSupportedProtocols: protocols are $protocols"
-        if {[llength $protocols] > 0} {
-            $hull insert $nid end -id ${nid}_protocols \
-                 -text {Protocols Supported} \
-                 -open no
-            foreach p $protocols {
-                putdebug [list *** $self _insertSupportedProtocols: p = $p]
-                $hull insert ${nid}_protocols end \
-                      -id ${nid}_protocols_$p \
-                      -text [lcc::OpenLCBProtocols ProtocolLabelString $p] \
-                      -open no \
-                      -tag protocol_$p
-            }
+        if {[lsearch -exact $protocols [_m "Label|CDI"]] >= 0} {
+            set values [$hull item $nid -values]
+            set indx 5
+            set s [_m "Label|Configure"]
+            while {[llength $values] <= $indx} {lappend values {}}
+            set values [lreplace $values $indx $indx $s]
+            $hull item $nid -values $values
+            $hull item $nid -tag [concat protocol_CDI [$hull item $nid -tag]]
         }
     }
     variable _datagramdata;# Datagram data buffer. 
@@ -572,4 +803,7 @@ snit::widgetadaptor LCCNodeTree {
     
 }
 
-package provide LCCNodeTree 1.0
+
+
+
+package provide LCCNodeTable 1.0

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <230530.1058>
+#  Last Modified : <241129.1357>
 #
 #  Description	
 #
@@ -54,8 +54,9 @@ EXTRA_DIST = lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		OpenLCB_PiSPIMax7221.tcl OpenLCB_PiMCP23017_signal.tcl \
 		GenerateEventID.tcl OpenLCB_Common.tcl OpenLCB_CMRI.tcl \
 		OpenLCB_QuadSignal.tcl ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl \
-		OpenLCB_PiPCA9685.tcl LayoutControlDB.tcl \
-		LayoutControlDBDialogs.tcl Router.tcl \
+		OpenLCB_PiPCA9685.tcl LayoutControlDB.tcl LCCNodeTable.tcl \
+		ReadCDIProgress.tcl \
+		LayoutControlDBDialogs.tcl Router.tcl OpenLCB2.png \
 		LayoutControlDBTable.tcl JMRITable2LayoutDB.tcl \
 		LayoutDB2JMRITable.tcl OfflineLCCNodeEditor.tcl \
 		SwitchMotor.xpm Signal.xpm Sensor.xpm Control.xpm Block.xpm
@@ -64,7 +65,7 @@ bin_SCRIPTS = OpenLCB${EXEEXT} OpenLCBTcpHub${EXEEXT} OpenLCB_MRD2${EXEEXT} \
 	OpenLCBGCTcpHub${EXEEXT} OpenLCB_TrackCircuits${EXEEXT} \
 	OpenLCB_Acela${EXEEXT} OpenLCB_Logic${EXEEXT} OpenLCB_CMRI${EXEEXT} \
 	Router${EXEEXT} JMRITable2LayoutDB${EXEEXT} LayoutDB2JMRITable${EXEEXT} \
-	OfflineLCCNodeEditor${EXEEXT}
+	OfflineLCCNodeEditor${EXEEXT} OpenLCB2${EXEEXT}
 if HAVE_WIRINGPI
 bin_SCRIPTS += OpenLCB_PiGPIO${EXEEXT} OpenLCB_PiMCP23008${EXEEXT} \
 		OpenLCB_PiMCP23017${EXEEXT} OpenLCB_PiSPIMax7221${EXEEXT} \
@@ -74,18 +75,19 @@ endif
 
 pkgdatadir = $(datadir)/$(PACKAGE)/LCC
 pkgdata_DATA = lcc.tcl pkgIndex.tcl ConfigDialogs.tcl eventDialogs.tcl \
-		ConfigurationEditor.tcl OpenLCB.pot LCCNodeTree.tcl
+		ConfigurationEditor.tcl OpenLCB.pot LCCNodeTree.tcl \
+		LCCNodeTable.tcl ReadCDIProgress.tcl
 desktopdir = $(datadir)/applications
 desktop_DATA = OpenLCB.desktop
 
 pixmapdir = $(datadir)/pixmaps
-pixmap_DATA = OpenLCB.png
+pixmap_DATA = OpenLCB.png OpenLCB2.png
 
 man_MANS = man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
 	man1/OpenLCBGCTcpHub.1 man1/OpenLCB_TrackCircuits.1 \
 	man1/OpenLCB_Acela.1 man1/OpenLCB_Logic.1 \
 	man1/JMRITable2LayoutDB.1 man1/LayoutDB2JMRITable.1 \
-	man1/OfflineLCCNodeEditor.1
+	man1/OfflineLCCNodeEditor.1  man1/OpenLCB2.1
 if HAVE_WIRINGPI
 man_MANS += man1/OpenLCB_PiGPIO.1 man1/OpenLCB_PiMCP23008.1 \
 		man1/OpenLCB_PiMCP23017.1 man1/OpenLCB_PiSPIMax7221.1
@@ -115,13 +117,13 @@ CLEANFILES = pkgIndex.tcl OpenLCB${EXEEXT} OpenLCB.pot \
 			  OpenLCB_PiMCP23017_signal${EXEEXT} \
 			  OpenLCB_QuadSignal${EXEEXT} \
 			  OpenLCB_PiPCA9685${EXEEXT} Router${EXEEXT} \
-			  OfflineLCCNodeEditor{EXEEXT}
+			  OfflineLCCNodeEditor{EXEEXT} OpenLCB2${EXEEXT}
 
 pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		ConfigDialogs.tcl LCCNodeTree.tcl GenerateEventID.tcl \
 		OpenLCB_Common.tcl ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl \
 		LayoutControlDB.tcl LayoutControlDBDialogs.tcl \
-		LayoutControlDBTable.tcl
+		LayoutControlDBTable.tcl LCCNodeTable.tcl ReadCDIProgress.tcl 
 	for f in $(notdir $^) ; do \
 	   if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi;\
 	done
@@ -147,6 +149,7 @@ OpenLCBSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
                 $(top_srcdir)/Scripts/LCC/eventDialogs.tcl \
                 $(top_srcdir)/Scripts/LCC/ConfigDialogs.tcl \
                 $(top_srcdir)/Scripts/LCC/LCCNodeTree.tcl \
+                $(top_srcdir)/Scripts/LCC/ReadCDIProgress.tcl \
                 $(top_srcdir)/Scripts/LCC/LayoutControlDB.tcl \
 		$(top_srcdir)/Scripts/LCC/LayoutControlDBDialogs.tcl \
 		$(top_srcdir)/Scripts/LCC/LayoutControlDBTable.tcl \
@@ -166,10 +169,11 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
                 OpenLCB_TrackCircuits.tcl OpenLCB_Acela.tcl OpenLCB_Logic.tcl \
                 OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
                 OpenLCB_PiSPIMax7221.tcl OpenLCB_PiPCA9685.tcl PCA9685.tcl \
-                ADAFruitDC_AND_STEPPER.tcl Router.tcl \
+                ADAFruitDC_AND_STEPPER.tcl Router.tcl LCCNodeTable.tcl \
                 LayoutControlDB.tcl LayoutControlDBDialogs.tcl \
+                ReadCDIProgress.tcl \
                 LayoutControlDBTable.tcl JMRITable2LayoutDB.tcl \
-                LayoutDB2JMRITable.tcl OfflineLCCNodeEditor.tcl \
+                LayoutDB2JMRITable.tcl OfflineLCCNodeEditor.tcl OpenLCB2.tcl \
 		$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m \
@@ -178,9 +182,9 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
 		         eventDialogs.tcl ConfigurationEditor.tcl \
 		         OpenLCBGCTcpHub.tcl OpenLCB_PiGPIO.tcl \
 		         OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
-		         OpenLCB_PiSPIMax7221.tcl \
+		         OpenLCB_PiSPIMax7221.tcl ReadCDIProgress.tcl \
 		         ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl \
-		         OpenLCB_PiPCA9685.tcl \
+		         OpenLCB_PiPCA9685.tcl LCCNodeTable.tcl \
 		         OpenLCB_TrackCircuits.tcl OpenLCB_Acela.tcl \
 		         OpenLCB_Logic.tcl LCCNodeTree.tcl Router.tcl \
 		         JMRITable2LayoutDB.tcl LayoutDB2JMRITable.tcl) \
@@ -252,13 +256,107 @@ if MACOSX
 		OpenLCB.plist
 	-rm -f OpenLCB.plist OpenLCB.icns
 
-install-exec-local: OpenLCB.app
-	$(INSTALL) -d $(DESTDIR)$(bindir)
-	$(top_srcdir)/BuildScripts/macappInstall.sh OpenLCB.app $(DESTDIR)$(bindir)
-
 OpenLCB.app: OpenLCB${EXEEXT}
 
 endif
+
+OpenLCB2SCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
+                $(top_srcdir)/Scripts/Common/snitHTMLHelp.tcl \
+                $(top_srcdir)/Scripts/Common/snitdialog.tcl \
+                $(top_srcdir)/Scripts/Common/snitbuttonbox.tcl \
+                $(top_srcdir)/Scripts/Common/IconsAndImages.tcl \
+		$(top_srcdir)/Scripts/Common/gettext.tcl \
+		$(top_srcdir)/Scripts/Common/snitmainframe.tcl \
+		$(top_srcdir)/Scripts/Common/mainwindow.tcl \
+		$(top_srcdir)/Scripts/Common/DynamicHelp.tcl \
+		$(top_srcdir)/Scripts/Common/snitscrollw.tcl \
+		$(top_srcdir)/Scripts/Common/snitscrollableframe.tcl \
+                $(top_srcdir)/Scripts/Common/snitLFs.tcl \
+                $(top_srcdir)/Scripts/Common/snitrotext.tcl \
+                $(top_srcdir)/Scripts/Common/ParseXML.tcl \
+                $(top_srcdir)/Scripts/Common/snitScrollNotebook.tcl \
+                $(top_srcdir)/Scripts/LCC/ConfigurationEditor.tcl \
+                $(top_srcdir)/Scripts/LCC/lcc.tcl \
+                $(top_srcdir)/Scripts/LCC/eventDialogs.tcl \
+                $(top_srcdir)/Scripts/LCC/ConfigDialogs.tcl \
+                $(top_srcdir)/Scripts/LCC/LCCNodeTable.tcl \
+                $(top_srcdir)/Scripts/LCC/LayoutControlDB.tcl \
+		$(top_srcdir)/Scripts/LCC/LayoutControlDBDialogs.tcl \
+		$(top_srcdir)/Scripts/LCC/LayoutControlDBTable.tcl \
+		$(top_srcdir)/Scripts/LCC/ReadCDIProgress.tcl \
+		$(top_builddir)/Scripts/Common/Version.tcl \
+		$(top_srcdir)/Scripts/Common/questhead.xbm \
+		$(top_srcdir)/Scripts/Common/unknown.xpm \
+		$(top_srcdir)/Scripts/LCC/Block.xpm \
+		$(top_srcdir)/Scripts/LCC/Control.xpm \
+		$(top_srcdir)/Scripts/LCC/Sensor.xpm \
+		$(top_srcdir)/Scripts/LCC/Signal.xpm \
+		$(top_srcdir)/Scripts/LCC/SwitchMotor.xpm
+
+OpenLCB2${EXEEXT}: OpenLCB2.tcl $(OpenLCB2SCRIPTS) \
+	$(top_builddir)/Doc/User/OpenLCB/index.html \
+	$(top_builddir)/po/OpenLCB/msgfiles $(SOCKETCAN_DEPS)
+	-rm -f  OpenLCB2.kit
+	-rm -rf  OpenLCB2.vfs
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/OpenLCB2.tcl
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap OpenLCB2.kit
+	-rm -f  OpenLCB2.kit
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB2 \
+		lib $(SNITLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB2 \
+		lib $(URILIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB2 \
+		lib $(STRUCTLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit OpenLCB2 \
+		lib $(CSVLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB2 \
+		lib/Common $(OpenLCB2SCRIPTS)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit OpenLCB2 \
+		Common
+if HAVE_CAN
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB2 \
+		lib/TclSocketCAN $(SOCKETCAN_FILES)
+endif
+	$(UNZIP) -qq -d OpenLCB2.vfs/lib \
+		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
+	$(UNZIP) -qq -d OpenLCB2.vfs/lib \
+		$(top_srcdir)/BuildData/pdf4tcl05.zip
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB2 \
+		Help $(top_builddir)/Doc/User/OpenLCB/*
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit OpenLCB2 \
+		Messages $(top_builddir)/po/OpenLCB/*.msg
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap OpenLCB2${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
+	-rm -rf OpenLCB2.vfs
+if MACOSX
+# create application for Mac OSX                                               $
+	-rm -rf OpenLCB2.app
+	mkdir -p OpenLCB2.app/Contents/MacOS/
+	cp OpenLCB2$(EXEEXT) OpenLCB2.app/Contents/MacOS/
+	mkdir -p OpenLCB2.app/Contents/Resources/
+	-rm -rf OpenLCB2.iconset
+	mkdir OpenLCB2.iconset
+	sips -z 16 16     $(srcdir)/OpenLCB2.png --out OpenLCB2.iconset/icon_16x16.png
+	sips -z 32 32     $(srcdir)/OpenLCB2.png --out OpenLCB2.iconset/icon_16x16@2x.png
+	sips -z 32 32     $(srcdir)/OpenLCB2.png --out OpenLCB2.iconset/icon_32x32.png
+	sips -z 64 64     $(srcdir)/OpenLCB2.png --out OpenLCB2.iconset/icon_32x32@2x.png
+	sips -z 128 128   $(srcdir)/OpenLCB2.png --out OpenLCB2.iconset/icon_128x128.png
+	sips -z 256 256   $(srcdir)/OpenLCB2.png --out OpenLCB2.iconset/icon_128x128@2x.png
+	sips -z 256 256   $(srcdir)/OpenLCB2.png --out OpenLCB2.iconset/icon_256x256.png
+	sips -z 512 512   $(srcdir)/OpenLCB2.png --out OpenLCB2.iconset/icon_256x256@2x.png
+	sips -z 512 512   $(srcdir)/OpenLCB2.png --out OpenLCB2.iconset/icon_512x512.png
+	sips -z 1024 1024 $(srcdir)/OpenLCB2.png --out OpenLCB2.iconset/icon_512x512@2x.png
+	iconutil -c icns OpenLCB2.iconset
+	-rm -rf OpenLCB2.iconset
+	cp OpenLCB2.icns OpenLCB2.app/Contents/Resources/
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MacOSXPlist.kit OpenLCB2 1.0 "1994,1995,2002-2005  Robert Heller D/B/A Deepwoods Software"
+	plutil -convert binary1 -o OpenLCB2.app/Contents/Info.plist \
+		OpenLCB2.plist
+	-rm -f OpenLCB2.plist OpenLCB2.icns
+
+OpenLCB2.app: OpenLCB2${EXEEXT}
+
+endif
+
 
 OpenLCBTcpHubSCRIPTS =  $(top_srcdir)/Scripts/Common/gettext.tcl \
 			$(top_srcdir)/Scripts/LCC/lcc.tcl \
@@ -1199,7 +1297,7 @@ man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
 	man1/OpenLCBGCTcpHub.1 man1/OpenLCB_PiGPIO.1 \
 	man1/OpenLCB_PiMCP23008.1 man1/OpenLCB_PiMCP23017.1 \
 	man1/OpenLCB_PiSPIMax7221.1 man1/OpenLCB_PiMCP23017_signal.1 \
-	man1/OpenLCB_QuadSignal.1 \
+	man1/OpenLCB_QuadSignal.1 man1/OpenLCB2.1 \
 	man1/OpenLCB_CMRI.1 man1/OfflineLCCNodeEditor.1 \
 	man1/OpenLCB_TrackCircuits.1 man1/OpenLCB_Logic.1 man1/Router.1 \
 	man1/JMRITable2LayoutDB.1 man1/LayoutDB2JMRITable.1: Doxyfile \
@@ -1208,7 +1306,7 @@ man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
 	OpenLCB_PiMCP23008.tcl OpenLCB_PiMCP23017.tcl \
 	OpenLCB_PiMCP23017_signal.tcl OpenLCB_CMRI.tcl OpenLCB_QuadSignal.tcl \
 	Router.tcl JMRITable2LayoutDB.tcl LayoutDB2JMRITable.tcl \
-	OfflineLCCNodeEditor.tcl
+	OfflineLCCNodeEditor.tcl OpenLCB2.tcl
 	-rm -rf man1
 	$(DOXYGEN) Doxyfile
 	
@@ -1216,7 +1314,12 @@ man1/OpenLCB.1 man1/OpenLCBTcpHub.1 man1/OpenLCB_MRD2.1 \
 clean-local:
 	-rm -rf man1 
 if MACOSX
-	-rm -rf OpenLCB.app
+	-rm -rf *.app
+
+install-exec-local: OpenLCB.app OpenLCB2.app
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh OpenLCB.app $(DESTDIR)$(bindir)
+	$(top_srcdir)/BuildScripts/macappInstall.sh OpenLCB2.app $(DESTDIR)$(bindir)
 endif
 
 $(top_builddir)/C++/Azatrax/libazatrax.la : \
