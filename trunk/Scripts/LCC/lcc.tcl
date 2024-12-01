@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <220810.1255>
+#  Last Modified : <241201.1252>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -4538,6 +4538,7 @@ namespace eval lcc {
         ## @privatesection The logical transport layer component.
         delegate method getAllNIDs to transport
         delegate option -nid to transport
+        delegate option -promisciousmode to transport
         #variable _iocomplete 0
         #variable _timeout 0
         option -transport -readonly yes
