@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <220814.1554>
+#  Last Modified : <241201.1541>
 #
 #  Description	
 #
@@ -453,20 +453,20 @@ snit::type OpenLCB {
             $eventlog eventReceived $eventid
             $eventlog open
         }
-        putdebug "*** $type _eventHandler: MTIDetails: [lcc::MTIDetail ObjectCount]"
-        putdebug "*** $type _eventHandler: CanMessages: [lcc::CanMessage ObjectCount]"
-        putdebug "*** $type _eventHandler: GridConnectMessages: [lcc::GridConnectMessage ObjectCount]"
-        putdebug "*** $type _eventHandler: GridConnectReplys: [lcc::GridConnectReply ObjectCount]"
-        putdebug "*** $type _eventHandler: CanAliass: [lcc::CanAlias ObjectCount]"
-        putdebug "*** $type _eventHandler: CanTransports: [lcc::CanTransport ObjectCount]"
-        putdebug "*** $type _eventHandler: OpenLCBMessages: [lcc::OpenLCBMessage ObjectCount]"
-        putdebug "*** $type _eventHandler: CANGridConnects: [lcc::CANGridConnect ObjectCount]"
-        putdebug "*** $type _eventHandler: CANGridConnectOverUSBSerials: [lcc::CANGridConnectOverUSBSerial ObjectCount]"
-        putdebug "*** $type _eventHandler: OpenLCBOverTcps: [lcc::OpenLCBOverTcp ObjectCount]"
-        putdebug "*** $type _eventHandler: CANGridConnectOverTcps: [lcc::CANGridConnectOverTcp ObjectCount]"
-        putdebug "*** $type _eventHandler: CANGridConnectOverCANSockets: [lcc::CANGridConnectOverCANSocket ObjectCount]"
-        putdebug "*** $type _eventHandler: OpenLCBNodes: [lcc::OpenLCBNode ObjectCount]"
-        putdebug "*** $type _eventHandler: EventIDs: [lcc::EventID ObjectCount]"
+        #putdebug "*** $type _eventHandler: MTIDetails: [lcc::MTIDetail ObjectCount]"
+        #putdebug "*** $type _eventHandler: CanMessages: [lcc::CanMessage ObjectCount]"
+        #putdebug "*** $type _eventHandler: GridConnectMessages: [lcc::GridConnectMessage ObjectCount]"
+        #putdebug "*** $type _eventHandler: GridConnectReplys: [lcc::GridConnectReply ObjectCount]"
+        #putdebug "*** $type _eventHandler: CanAliass: [lcc::CanAlias ObjectCount]"
+        #putdebug "*** $type _eventHandler: CanTransports: [lcc::CanTransport ObjectCount]"
+        #putdebug "*** $type _eventHandler: OpenLCBMessages: [lcc::OpenLCBMessage ObjectCount]"
+        #putdebug "*** $type _eventHandler: CANGridConnects: [lcc::CANGridConnect ObjectCount]"
+        #putdebug "*** $type _eventHandler: CANGridConnectOverUSBSerials: [lcc::CANGridConnectOverUSBSerial ObjectCount]"
+        #putdebug "*** $type _eventHandler: OpenLCBOverTcps: [lcc::OpenLCBOverTcp ObjectCount]"
+        #putdebug "*** $type _eventHandler: CANGridConnectOverTcps: [lcc::CANGridConnectOverTcp ObjectCount]"
+        #putdebug "*** $type _eventHandler: CANGridConnectOverCANSockets: [lcc::CANGridConnectOverCANSocket ObjectCount]"
+        #putdebug "*** $type _eventHandler: OpenLCBNodes: [lcc::OpenLCBNode ObjectCount]"
+        #putdebug "*** $type _eventHandler: EventIDs: [lcc::EventID ObjectCount]"
     }
     proc matchNIDinBody {message nid} {
         set data [$message cget -data]

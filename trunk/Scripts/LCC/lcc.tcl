@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <241201.1252>
+#  Last Modified : <241201.1540>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -2568,6 +2568,8 @@ namespace eval lcc {
         # header at a CAN Header level.
         variable messagehandler {}
         ## Message handler.
+        variable sentMessageHandler {}
+        ## Sent Message handler.
         variable datagrambuffers -array {}
         ## Datagram buffers.
         variable messagebuffers -array {}
@@ -2723,14 +2725,28 @@ namespace eval lcc {
             set messagehandler $handler
             return $oldhandler
         }
+        method setSentMessageHandler {handler} {
+            ## Set the sent message handler.  Generally called from the upper 
+            # level class to gain access to outgoing messages asyncronously.
+            #
+            # @param handler The new handler procedure.
+            # @return The old handler or the empty string if there was no old
+            # handler.
+            set oldhandler $sentMessageHandler
+            set sentMessageHandler $handler
+            return $oldhandler
+        }
         method sendMessage {args} {
             ## Send a message on the OpenLCB bus.
             # @param ... Message options.  See OpenLCBMessage for possible 
             # options.
             
-            set message [eval [list lcc::OpenLCBMessage %AUTO% \
-                               -sourcenid [$self cget -nid]] $args]
+            set message [lcc::OpenLCBMessage %AUTO% \
+                         -sourcenid [$self cget -nid]] {*}$args]
             $self sendOpenLCBMessage $message
+            if {$sentMessageHandler ne {}} {
+                uplevel #0 $sentMessageHandler $message
+            }
             $message destroy
         }
         method sendOpenLCBMessage {message} {
@@ -3559,6 +3575,8 @@ namespace eval lcc {
         # header at a MTI detail level.
         variable messagehandler {}
         ## Message handler.
+        variable sentMessageHandler {}
+        ## Sent Message handler.
         variable datagrambuffers -array {}
         ## Datagram buffers.
         variable messagebuffers -array {}
@@ -3627,13 +3645,25 @@ namespace eval lcc {
             set messagehandler $handler
             return $oldhandler
         }
+        method setSentMessageHandler {handler} {
+            ## Set the sent message handler.  Generally called from the upper 
+            # level class to gain access to outgoing messages asyncronously.
+            #
+            # @param handler The new handler procedure.
+            # @return The old handler or the empty string if there was no old
+            # handler.
+            set oldhandler $sentMessageHandler
+            set sentMessageHandler $handler
+            return $oldhandler
+        }
         method sendMessage {args} {
             ## Send a message on the OpenLCB bus.
             # @param ... Message options.  See OpenLCBMessage for possible 
             # options.
             
-            set message [eval [list lcc::OpenLCBMessage %AUTO% \
-                               -sourcenid [$self cget -nid]] $args]
+            set message [lcc::OpenLCBMessage %AUTO% \
+                         -sourcenid [$self cget -nid]] {*}$args]
+            
             #puts stderr "*** $self sendMessage: message is [$message toString]"
             set preamble 0x8000;# Common OpenLCB bit.
             set messageData [$self _makeBinaryMessage $message]
@@ -3657,6 +3687,9 @@ namespace eval lcc {
             set messageBlock [binary format {Sc3c6c6c*} $preamble $tlbytes $sourcenid $sqbytes $messageData]
             puts -nonewline $sock $messageBlock
             flush $sock
+            if {$sentMessageHandler ne {}} {
+                uplevel #0 $sentMessageHandler $message
+            }
             $message destroy
         }
         method _read {fp count} {
@@ -4531,6 +4564,15 @@ namespace eval lcc {
         # The message is an lcc::OpenLCBMessage object.  The procedure should 
         # reference the -mti option of the message object to determine what 
         # sort message it is.
+        # @arg -logmessagehandler This is a script prefix that is run for
+        # all messages, received and sent.  Presumes -promisciousmode.
+        # This is a command with the procedure signature of
+        # @code
+        # proc logmessagehandler {message} {...}
+        # @endcode 
+        # The message is an lcc::OpenLCBMessage object.  The procedure should 
+        # reference the -mti option of the message object to determine what 
+        # sort message it is.
         # @par
         # Additional options are passed to the transport layer constructor.
         
@@ -4545,6 +4587,12 @@ namespace eval lcc {
         option -eventhandler -default {}
         option -datagramhandler -default {}
         option -generalmessagehandler -default {}
+        option -logmessagehandler -default {} \
+              -configuremethod _setLogMessageHandler
+        method _setLogMessageHandler {option value} {
+            set options($option) $value
+            $transport setSentMessageHandler $value
+        }
         typevariable _transportConstructors -array {}
         ## Array of transport constructors
         variable protocolsupport [list 0x80 0x10 0x00]
@@ -4616,6 +4664,9 @@ namespace eval lcc {
             # @param ... Options:
             # @arg -transport The transport layer constuctor. This option is
             # required.
+            # @arg -promisciousmode Promiscious mode flag.  If true all messages
+            # are handled, whether they are addressed to this node or not.
+            # This option is processed by the transport component.
             # @arg -eventhandler This is a script prefix that is run for event 
             # processing messages.
             # This is a command with the procedure signature of
@@ -4643,6 +4694,15 @@ namespace eval lcc {
             # The message is an lcc::OpenLCBMessage object.  The procedure should 
             # reference the -mti option of the message object to determine what 
             # sort message it is.
+            # @arg -logmessagehandler This is a script prefix that is run for
+            # all messages, received and sent.  Presumes -promisciousmode.
+            # This is a command with the procedure signature of
+            # @code
+            # proc logmessagehandler {message} {...}
+            # @endcode 
+            # The message is an lcc::OpenLCBMessage object.  The procedure should 
+            # reference the -mti option of the message object to determine what 
+            # sort message it is.
             # @par
             # Additional options are passed to the transport layer constructor.
             
@@ -4664,6 +4724,7 @@ namespace eval lcc {
             foreach p $additionalProtocols {
                 $self AddProtocolSupport $p
             }
+            set options(-logmessagehandler) [from args -logmessagehandler]
             #puts stderr "*** $type create $self: options(-transport) is $options(-transport)"
             set transport [$options(-transport) %AUTO% {*}$args]
             #puts stderr "*** $type create $self: transport is $transport"
@@ -4673,6 +4734,7 @@ namespace eval lcc {
             #puts stderr "*** $type create $self: populateAliasMap done"
             $transport setMessageHandler [mymethod _messageHandler]
             #puts stderr "*** $type create $self: setMessageHandler done"
+            $transport setSentMessageHandler $options(-logmessagehandler)
             incr _count
         }
         destructor {
@@ -4889,6 +4951,12 @@ namespace eval lcc {
             ## Generic message handler.
             # @param message The received OpenLCB message.
             
+            set logmessagehandler [$self cget -logmessagehandler]
+            if {$logmessagehandler ne {}} {
+                uplevel #0 $logmessagehandler $message
+            }
+            set destnid [$message cget -destnid]
+            if {$destnid ne {} && $destnid ne [$self cget -nid]} {return}
             #puts stderr "*** $self _messageHandler [$message toString]"
             switch [format {0x%04X} [$message cget -mti]] {
                 0x04A4 {
