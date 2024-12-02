@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Nov 29 10:48:40 2024
-#  Last Modified : <241130.1429>
+#  Last Modified : <241202.1037>
 #
 #  Description	
 #
@@ -51,6 +51,7 @@ package require LCC
 package require ConfigurationEditor
 package require ConfigDialogs
 package require ReadCDIProgress
+package require ScrollWindow
 
 snit::widget NodeDisplayPopup {
     hulltype toplevel
@@ -63,6 +64,7 @@ snit::widget NodeDisplayPopup {
     component model
     component hvers
     component svers
+    component protocols
     component dismisbutton
     
     option -nid -default {00:00:00:00:00:00} -type lcc::nid \
@@ -71,6 +73,7 @@ snit::widget NodeDisplayPopup {
     option -model -default {} -configuremethod _SetModel
     option -hardware -default {} -configuremethod _SetHardware
     option -software -default {} -configuremethod _SetSoftware
+    option -protocols -default [list] -configuremethod _SetProtocols
     option -name -default {} -configuremethod _SetName
     option -description -default {} -configuremethod _SetDescription
     
@@ -97,6 +100,13 @@ snit::widget NodeDisplayPopup {
         $svers configure -text "$value"
         set options($option) "$value"
     }
+    method _SetProtocols {option value} {
+        $protocols delete [$protocols children {}]
+        foreach p $value {
+            $protocols insert {} end -values [list $p]
+        }
+        set options($option) "$value"
+    }
     method _SetName {option value} {
         $name configure -text "$value"
         set options($option) "$value"
@@ -121,6 +131,7 @@ snit::widget NodeDisplayPopup {
             catch [list $model configure $option "$value"]
             catch [list $hvers configure $option "$value"]
             catch [list $svers configure $option "$value"]
+            catch [list $protocols configure $option "$value"]
         }
     }
     constructor {args} {
@@ -129,37 +140,47 @@ snit::widget NodeDisplayPopup {
                     -text [_m "Label|Name:"]]
         pack $lframe -expand yes -fill x
         install name using ttk::label $lframe.name
-        pack $name
+        pack $name -fill x
         set lframe [ttk::labelframe $win.descriptionframe -labelanchor nw \
                     -text [_m "Label|Description:"]]
         pack $lframe -expand yes -fill x
         install description using ttk::label $lframe.description
-        pack $description
+        pack $description -fill x
         set lframe [ttk::labelframe $win.nodeIDframe -labelanchor nw \
                     -text [_m "Label|Node ID:"]]
         pack $lframe -expand yes -fill x
         install nodeID using ttk::label $lframe.nodeID
-        pack $nodeID
+        pack $nodeID -fill x
         set lframe [ttk::labelframe $win.manufactframe -labelanchor nw \
                     -text [_m "Label|Manufacturer:"]]
         pack $lframe -expand yes -fill x
         install manufact using ttk::label $lframe.manufact
-        pack $manufact
+        pack $manufact -fill x
         set lframe [ttk::labelframe $win.modelframe -labelanchor nw \
                     -text [_m "Label|Model:"]]
         pack $lframe -expand yes -fill x
         install model using ttk::label $lframe.model
-        pack $model
+        pack $model -fill x
         set lframe [ttk::labelframe $win.hversframe -labelanchor nw \
                     -text [_m "Label|Hardware:"]]
         pack $lframe -expand yes -fill x
         install hvers using ttk::label $lframe.hvers
-        pack $hvers
+        pack $hvers -fill x
         set lframe [ttk::labelframe $win.sversframe -labelanchor nw \
                     -text [_m "Label|Software:"]]
         pack $lframe -expand yes -fill x
         install svers using ttk::label $lframe.svers
-        pack $svers
+        pack $svers -fill x
+        set lframe [ttk::labelframe $win.protocolsframe -labelanchor nw \
+                    -text [_m "Label|Supported Protocols:"]]
+        pack $lframe -expand yes -fill x
+        set scrollw [ScrolledWindow $lframe.scrollw -scrollbar vertical \
+                     -auto vertical]
+        pack $scrollw -expand yes  -fill x
+        install protocols using ttk::treeview [$scrollw getframe].protocols \
+                           -columns {protocol} -displaycolumns {protocol} \
+                           -show {}
+        $scrollw setwidget $protocols
         install dismisbutton using ttk::button $win.dismisbutton \
               -default active \
               -text [_m "Button|Dismis"] \
@@ -189,7 +210,7 @@ snit::widget NodeDisplayPopup {
                - [winfo vrooty $win]}]
         if {$x < 0} {set x 0}
         if {$y < 0} {set y 0}
-        wm geom $win =450x350+$x+$y
+        wm geom $win =450x500+$x+$y
         wm transient $win [$self cget -parent]
         wm deiconify $win
         $type push inuselist $self
@@ -278,7 +299,7 @@ snit::widgetadaptor LCCNodeTable {
     #
     # @par
     
-    typevariable nodetable_cols {nodeid manufact model hvers svers configure name description};# Columns
+    typevariable nodetable_cols {nodeid manufact model hvers svers protocols configure name description};# Columns
     ## @privatesection Columns.
     typevariable nodetable_dispcols {name nodeid manufact model svers configure};# displayed columns
     ## Displayed columns.
@@ -380,13 +401,14 @@ snit::widgetadaptor LCCNodeTable {
         $transport SendVerifyNodeID
         install readCDIProgress using ReadCDIProgress $win.readCDIProgress -parent $win
     }
-    typemethod DisplayNode {nodeid manufact model hvers svers {configure {}} {name {}} {description {}}} {
+    typemethod DisplayNode {nodeid manufact model hvers svers protocols {configure {}} {name {}} {description {}}} {
         NodeDisplayPopup draw \
               -nid $nodeid \
               -manufacturer $manufact \
               -model $model \
               -hardware $hvers \
               -software $svers \
+              -protocols $protocols \
               -name $name \
               -description $description
     }
@@ -496,7 +518,7 @@ snit::widgetadaptor LCCNodeTable {
         if {$strings2 == 1} {set strings2 2}
         # If version 1, then 2 strings (???), other wise version == number of strings
         incr i
-        set names2 {6 7}
+        set names2 {7 8}
         for {set istring 0} {$istring < $strings2} {incr istring} {
             set s ""
             while {[lindex $infopayload $i] != 0} {
@@ -523,11 +545,16 @@ snit::widgetadaptor LCCNodeTable {
         if {[llength $report] < 3} {lappend report 0 0 0}
         if {[llength $report] > 3} {set report [lrange $report 0 2]}
         set protocols [lcc::OpenLCBProtocols GetProtocolNames $report]
+        set values [$hull item $nid -values]
+        set indx 5
+        while {[llength $values] <= $indx} {lappend values {}}
+        set values [lreplace $values $indx $indx $protocols]
+        $hull item $nid -values $values
         putdebug "*** $self _insertSupportedProtocols $nid $report"
         putdebug "*** $self _insertSupportedProtocols: protocols are $protocols"
         if {[lsearch -exact $protocols [_m "Label|CDI"]] >= 0} {
             set values [$hull item $nid -values]
-            set indx 5
+            set indx 6
             set s [_m "Label|Configure"]
             while {[llength $values] <= $indx} {lappend values {}}
             set values [lreplace $values $indx $indx $s]

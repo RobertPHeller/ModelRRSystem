@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <241201.1540>
+#  Last Modified : <241202.1031>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -2742,7 +2742,7 @@ namespace eval lcc {
             # options.
             
             set message [lcc::OpenLCBMessage %AUTO% \
-                         -sourcenid [$self cget -nid]] {*}$args]
+                         -sourcenid [$self cget -nid] {*}$args]
             $self sendOpenLCBMessage $message
             if {$sentMessageHandler ne {}} {
                 uplevel #0 $sentMessageHandler $message
@@ -3662,7 +3662,7 @@ namespace eval lcc {
             # options.
             
             set message [lcc::OpenLCBMessage %AUTO% \
-                         -sourcenid [$self cget -nid]] {*}$args]
+                         -sourcenid [$self cget -nid] {*}$args]
             
             #puts stderr "*** $self sendMessage: message is [$message toString]"
             set preamble 0x8000;# Common OpenLCB bit.
@@ -4735,6 +4735,7 @@ namespace eval lcc {
             $transport setMessageHandler [mymethod _messageHandler]
             #puts stderr "*** $type create $self: setMessageHandler done"
             $transport setSentMessageHandler $options(-logmessagehandler)
+            #puts stderr "*** $type create $self: setSentMessageHandler done"
             incr _count
         }
         destructor {

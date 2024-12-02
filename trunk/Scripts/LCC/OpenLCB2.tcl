@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Nov 29 10:23:41 2024
-#  Last Modified : <241201.1457>
+#  Last Modified : <241202.0946>
 #
 #  Description	
 #
@@ -139,7 +139,6 @@ snit::type OpenLCB2 {
     typecomponent transport; # Transport layer
     typecomponent eventlog;  # Event log toplevel
     
-    typevariable nodetable_cols {name nodeid manufacturer model software configure};# Columns
     typevariable mynid {};   # My Node ID
     
     typevariable _debug no;# Debug flag
