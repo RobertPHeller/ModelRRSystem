@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <241201.1541>
+#  Last Modified : <241202.1557>
 #
 #  Description	
 #
@@ -440,6 +440,9 @@ snit::type OpenLCB {
         putdebug "*** $type typeconstructor: done."
     }
     
+    typemethod _logMessageHandler {message} {
+        putdebug "*** $type _logMessageHandler [$message toString]"
+    }
     typemethod _eventHandler {command eventid {validity {}}} {
         #* Event handler -- when a PCER message is received, pop up an
         #* event received pop up.
