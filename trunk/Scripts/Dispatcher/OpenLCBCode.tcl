@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <190331.1429>
+#  Last Modified : <241206.1836>
 #
 #  Description	
 #
@@ -44,6 +44,7 @@
 package require snit
 package require LCC
 package require LCCNodeTree
+package require LCCTrafficMonitor
 package require EventDialogs
 package require CTCPanel 2.0
 
@@ -505,8 +506,15 @@ snit::type OpenLCB_Dispatcher {
         MainWindow main menu add openlcb command \
               -label [_m {Menu|OpenLCB|Open Node Tree}] \
               -command [mytypemethod _OpenNodeTree]
+        MainWindow main menu add openlcb command \
+              -label [_m {Menu|OpenLCB|Open LCC Traffic Monitor}] \
+              -command [mytypemethod _OpenTrafficMonitor]
     }
     
+    typemethod _OpenTrafficMonitor {} {
+        LCCTrafficMonitor Open .trafficMonitor -transport $transport
+    }
+        
     typemethod _OpenEventlog {} {
         if {![winfo exists $eventlog]} {
             set eventlog [lcc::EventLog .eventlog%AUTO% \

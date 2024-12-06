@@ -150,9 +150,11 @@ OpenLCBSupportFiles = $(top_srcdir)/Scripts/LCC/ConfigDialogs.tcl \
 		      $(top_srcdir)/Scripts/LCC/eventDialogs.tcl \
 		      $(top_srcdir)/Scripts/LCC/lcc.tcl \
 		      $(top_srcdir)/Scripts/LCC/LCCNodeTree.tcl \
+		      $(top_srcdir)/Scripts/LCC/LCCTrafficMonitor.tcl \
 		      $(top_srcdir)/Scripts/LCC/LayoutControlDB.tcl \
 		      $(top_srcdir)/Scripts/LCC/LayoutControlDBDialogs.tcl \
 		      $(top_srcdir)/Scripts/LCC/GenerateEventID.tcl \
+		      $(top_srcdir)/Scripts/LCC/ReadCDIProgress.tcl \
 		      $(top_builddir)/Scripts/LCC/pkgIndex.tcl
 OpenLCBDependFiles  = $(OpenLCBSupportFiles)
 
