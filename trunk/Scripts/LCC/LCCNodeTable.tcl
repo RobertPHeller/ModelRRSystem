@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Nov 29 10:48:40 2024
-#  Last Modified : <241202.1037>
+#  Last Modified : <241206.1521>
 #
 #  Description	
 #
@@ -423,7 +423,7 @@ snit::widgetadaptor LCCNodeTable {
     method Refresh {} {
         $hull delete [$hull children {}]
         set mynid [$transport cget -nid]
-        $hull insert  {} end -id $mynid -values [$mynid]
+        $hull insert  {} end -id $mynid -values [list $mynid]
         $self _insertSimpleNodeInfo $mynid [$transport ReturnMySimpleNodeInfo]
         $self _insertSupportedProtocols $mynid [$transport ReturnMySupportedProtocols]
         $transport SendVerifyNodeID
