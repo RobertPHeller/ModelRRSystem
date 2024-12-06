@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <241129.1357>
+#  Last Modified : <241206.1129>
 #
 #  Description	
 #
@@ -55,7 +55,7 @@ EXTRA_DIST = lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		GenerateEventID.tcl OpenLCB_Common.tcl OpenLCB_CMRI.tcl \
 		OpenLCB_QuadSignal.tcl ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl \
 		OpenLCB_PiPCA9685.tcl LayoutControlDB.tcl LCCNodeTable.tcl \
-		ReadCDIProgress.tcl \
+		ReadCDIProgress.tcl LCCTrafficMonitor.tcl \
 		LayoutControlDBDialogs.tcl Router.tcl OpenLCB2.png \
 		LayoutControlDBTable.tcl JMRITable2LayoutDB.tcl \
 		LayoutDB2JMRITable.tcl OfflineLCCNodeEditor.tcl \
@@ -123,7 +123,8 @@ pkgIndex.tcl : lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		ConfigDialogs.tcl LCCNodeTree.tcl GenerateEventID.tcl \
 		OpenLCB_Common.tcl ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl \
 		LayoutControlDB.tcl LayoutControlDBDialogs.tcl \
-		LayoutControlDBTable.tcl LCCNodeTable.tcl ReadCDIProgress.tcl 
+		LayoutControlDBTable.tcl LCCNodeTable.tcl ReadCDIProgress.tcl \
+		LCCTrafficMonitor.tcl
 	for f in $(notdir $^) ; do \
 	   if test -f "./$$f"; then continue; else ln -s $(srcdir)/$$f ./; fi;\
 	done
@@ -149,6 +150,7 @@ OpenLCBSCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
                 $(top_srcdir)/Scripts/LCC/eventDialogs.tcl \
                 $(top_srcdir)/Scripts/LCC/ConfigDialogs.tcl \
                 $(top_srcdir)/Scripts/LCC/LCCNodeTree.tcl \
+                $(top_srcdir)/Scripts/LCC/LCCTrafficMonitor.tcl \
                 $(top_srcdir)/Scripts/LCC/ReadCDIProgress.tcl \
                 $(top_srcdir)/Scripts/LCC/LayoutControlDB.tcl \
 		$(top_srcdir)/Scripts/LCC/LayoutControlDBDialogs.tcl \
@@ -171,7 +173,7 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
                 OpenLCB_PiSPIMax7221.tcl OpenLCB_PiPCA9685.tcl PCA9685.tcl \
                 ADAFruitDC_AND_STEPPER.tcl Router.tcl LCCNodeTable.tcl \
                 LayoutControlDB.tcl LayoutControlDBDialogs.tcl \
-                ReadCDIProgress.tcl \
+                ReadCDIProgress.tcl LCCTrafficMonitor.tcl \
                 LayoutControlDBTable.tcl JMRITable2LayoutDB.tcl \
                 LayoutDB2JMRITable.tcl OfflineLCCNodeEditor.tcl OpenLCB2.tcl \
 		$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
@@ -185,6 +187,7 @@ OpenLCB.pot: OpenLCB.tcl lcc.tcl OpenLCBTcpHub.tcl OpenLCB_MRD2.tcl \
 		         OpenLCB_PiSPIMax7221.tcl ReadCDIProgress.tcl \
 		         ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl \
 		         OpenLCB_PiPCA9685.tcl LCCNodeTable.tcl \
+		         LCCTrafficMonitor.tcl \
 		         OpenLCB_TrackCircuits.tcl OpenLCB_Acela.tcl \
 		         OpenLCB_Logic.tcl LCCNodeTree.tcl Router.tcl \
 		         JMRITable2LayoutDB.tcl LayoutDB2JMRITable.tcl) \
@@ -280,6 +283,7 @@ OpenLCB2SCRIPTS = $(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl \
                 $(top_srcdir)/Scripts/LCC/eventDialogs.tcl \
                 $(top_srcdir)/Scripts/LCC/ConfigDialogs.tcl \
                 $(top_srcdir)/Scripts/LCC/LCCNodeTable.tcl \
+                $(top_srcdir)/Scripts/LCC/LCCTrafficMonitor.tcl \
                 $(top_srcdir)/Scripts/LCC/LayoutControlDB.tcl \
 		$(top_srcdir)/Scripts/LCC/LayoutControlDBDialogs.tcl \
 		$(top_srcdir)/Scripts/LCC/LayoutControlDBTable.tcl \

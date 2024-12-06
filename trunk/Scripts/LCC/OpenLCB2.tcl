@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Nov 29 10:23:41 2024
-#  Last Modified : <241202.0946>
+#  Last Modified : <241206.1519>
 #
 #  Description	
 #
@@ -106,6 +106,7 @@ package require ConfigurationEditor
 package require EventDialogs
 package require ConfigDialogs
 package require LCCNodeTable
+package require LCCTrafficMonitor
 package require LayoutControlDB
 package require Dialog
 package require ScrollTabNotebook
@@ -413,6 +414,10 @@ snit::type OpenLCB2 {
         $mainWindow menu add view command \
              -label [_m "Menu|View|Display Layout Control DB"] \
              -command [mytypemethod _ViewLayoutControlDB]
+        $mainWindow menu add view command \
+              -label [_m "Menu|View|LCC Traffic Monitor"] \
+              -command [list LCCTrafficMonitor Open .trafficMonitor \
+                        -transport $transport -debugprint [myproc putdebug]]
         # Hook in help files.
         HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
         

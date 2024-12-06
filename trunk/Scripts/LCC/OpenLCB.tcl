@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Mar 1 10:44:58 2016
-#  Last Modified : <241202.1557>
+#  Last Modified : <241206.1450>
 #
 #  Description	
 #
@@ -104,6 +104,7 @@ package require ConfigurationEditor
 package require EventDialogs
 package require ConfigDialogs
 package require LCCNodeTree
+package require LCCTrafficMonitor
 package require LayoutControlDB
 package require Dialog
 package require ScrollTabNotebook
@@ -351,6 +352,7 @@ snit::type OpenLCB {
                       -message [_ "Failed to open transport because: %s" $transport]
             exit 99
         }
+        putdebug "*** $type typeconstructor: transport is $transport"
         # Build main GUI window.
         set mainWindow [mainwindow .main -scrolling yes \
                         -height 480 -width 640]
@@ -411,7 +413,11 @@ snit::type OpenLCB {
               -command [mytypemethod _ViewCDI]
         $mainWindow menu add view command \
              -label [_m "Menu|View|Display Layout Control DB"] \
-             -command [mytypemethod _ViewLayoutControlDB]
+              -command [mytypemethod _ViewLayoutControlDB]
+        $mainWindow menu add view command \
+              -label [_m "Menu|View|LCC Traffic Monitor"] \
+              -command [list LCCTrafficMonitor Open .trafficMonitor \
+                        -transport $transport -debugprint [myproc putdebug]]
         # Hook in help files.
         HTMLHelp setDefaults "$::HelpDir" "index.html#toc"
         
@@ -440,9 +446,6 @@ snit::type OpenLCB {
         putdebug "*** $type typeconstructor: done."
     }
     
-    typemethod _logMessageHandler {message} {
-        putdebug "*** $type _logMessageHandler [$message toString]"
-    }
     typemethod _eventHandler {command eventid {validity {}}} {
         #* Event handler -- when a PCER message is received, pop up an
         #* event received pop up.
