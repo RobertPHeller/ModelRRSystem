@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <241206.1836>
+#  Last Modified : <241207.0935>
 #
 #  Description	
 #
@@ -153,7 +153,7 @@ snit::type CTC_EventAspectList {
                         error [_ "Not an CTC_EventAspectList: %s (badevent: %s)" $object $e]
                     }
                 }
-                if {[catch { validate $al}]} {
+                if {[catch {CTC_AspectList validate $al}]} {
                     error [_ "Not an CTC_EventAspectList: %s (bad AspectArgumentList: %s)" $object $al]
                 }
             }
@@ -731,7 +731,7 @@ snit::type OpenLCB_Dispatcher {
     option -description -readonly yes -default {}
     
     constructor {args} {
-        #** Construct a Acela I/O instance
+        #** Construct a LCC Node element instance
         #
         # @param ... Options:
         # @arg -eleclasstype The I/O class.  Readonly, no default.
@@ -743,8 +743,8 @@ snit::type OpenLCB_Dispatcher {
         set options(-description) [from args -description]
         #puts stderr "*** $type create $self: options(-description) is '$options(-description)'"
         set classconstructor Dispatcher_$options(-eleclasstype)
-        set elehandler [eval [list $classconstructor %AUTO% -openlcb $self] \
-                        $args]
+        install elehandler using $classconstructor %AUTO% -openlcb $self \
+              {*}$args
         lappend elelist $self
         if {[$self consumerP]} {
             lappend consumers $self
