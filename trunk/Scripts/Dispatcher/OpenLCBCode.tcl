@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <241207.0935>
+#  Last Modified : <241207.1538>
 #
 #  Description	
 #
@@ -566,7 +566,7 @@ snit::type OpenLCB_Dispatcher {
         }
         set name [from args -name]
         set description [from args -description]
-        if {[catch {eval [list lcc::OpenLCBNode %AUTO% \
+        if {[catch {lcc::OpenLCBNode %AUTO% \
                           -transport $transportConstructor \
                           -eventhandler [mytypemethod _eventHandler] \
                           -generalmessagehandler [mytypemethod _messageHandler] \
@@ -575,8 +575,7 @@ snit::type OpenLCB_Dispatcher {
                           -nodename $name \
                           -nodedescription $description \
                           -additionalprotocols {EventExchange} \
-                          ] \
-                          $args} transport]} {
+                          {*}$args} transport]} {
             error [_ "Could not open OpenLCBNode: %s" $transport]
             exit 95
         }
