@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed Jan 30 10:06:50 2019
-#  Last Modified : <230227.1052>
+#  Last Modified : <250103.1554>
 #
 #  Description	
 #
@@ -232,9 +232,12 @@ namespace eval lcc {
             return $newcontrol
         }
         
-        method getTurnout {name} {
+        method getAllTurnouts {} {
             set l [$self getElementsByTagName layout]
-            foreach t [$l getElementsByTagName turnout] {
+            return [$l getElementsByTagName turnout]
+        }
+        method getTurnout {name} {
+            foreach t [$self getAllTurnouts] {
                 set nt [$t getElementsByTagName name -depth 1]
                 if {[$nt data] eq $name} {
                     return $t
@@ -242,9 +245,12 @@ namespace eval lcc {
             }
             return {}
         }
-        method getBlock {name} {
+        method getAllBlocks {} {
             set l [$self getElementsByTagName layout]
-            foreach b [$l getElementsByTagName block] {
+            return [$l getElementsByTagName block]
+        }
+        method getBlock {name} {
+            foreach b [$self getAllBlocks] {
                 set nt [$b getElementsByTagName name]
                 if {[$nt data] eq $name} {
                     return $b
@@ -252,19 +258,25 @@ namespace eval lcc {
             }
             return {}
         }
-        method getSignal {name} {
+        method getAllSignals {} {
             set l [$self getElementsByTagName layout]
-            foreach s [$l getElementsByTagName signal] {
+            return [$l getElementsByTagName signal] 
+        }
+        method getSignal {name} {
+            foreach s [$self getAllSignals] {
                 set nt [$s getElementsByTagName name -depth 1]
                 if {[$nt data] eq $name} {
                     return $s
                 }
             }
             return {}
+        }
+        method getAllSensors {} {
+            set l [$self getElementsByTagName layout]
+            return [$l getElementsByTagName sensor]
         }
         method getSensor {name} {
-            set l [$self getElementsByTagName layout]
-            foreach s [$l getElementsByTagName sensor] {
+            foreach s [$self getAllSensors] {
                 set nt [$s getElementsByTagName name -depth 1]
                 if {[$nt data] eq $name} {
                     return $s
@@ -272,9 +284,12 @@ namespace eval lcc {
             }
             return {}
         }
-        method getControl {name} {
+        method getAllControls {} {
             set l [$self getElementsByTagName layout]
-            foreach c [$l getElementsByTagName control] {
+            return [$l getElementsByTagName control]
+        }
+        method getControl {name} {
+            foreach c [$self getAllControls] {
                 set nt [$c getElementsByTagName name -depth 1]
                 if {[$nt data] eq $name} {
                     return $c
@@ -297,4 +312,4 @@ namespace eval lcc {
 #$test addaspect SIG1 -aspect stop -look red
 #$test savedb test.xml
 
-package provide LayoutControlDB 1.0
+package provide LayoutControlDB 2.0

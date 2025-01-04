@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <241206.1129>
+#  Last Modified : <250103.1609>
 #
 #  Description	
 #
@@ -74,9 +74,13 @@ bin_SCRIPTS += OpenLCB_PiGPIO${EXEEXT} OpenLCB_PiMCP23008${EXEEXT} \
 endif
 
 pkgdatadir = $(datadir)/$(PACKAGE)/LCC
-pkgdata_DATA = lcc.tcl pkgIndex.tcl ConfigDialogs.tcl eventDialogs.tcl \
-		ConfigurationEditor.tcl OpenLCB.pot LCCNodeTree.tcl \
-		LCCNodeTable.tcl ReadCDIProgress.tcl
+pkgdata_DATA = pkgIndex.tcl lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
+		ConfigDialogs.tcl LCCNodeTree.tcl GenerateEventID.tcl \
+		OpenLCB_Common.tcl ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl \
+		LayoutControlDB.tcl LayoutControlDBDialogs.tcl \
+		LayoutControlDBTable.tcl LCCNodeTable.tcl ReadCDIProgress.tcl \
+		LCCTrafficMonitor.tcl
+
 desktopdir = $(datadir)/applications
 desktop_DATA = OpenLCB.desktop
 
