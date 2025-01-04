@@ -79,7 +79,7 @@ CommonScripts = CTCPanel.tcl ReadConfiguration.tcl \
 		ParseXML.tcl
 
 pkgdatadir = $(datadir)/$(PACKAGE)/Common
-pkgdata_DATA = $(CommonScripts) pkgIndex.tcl \
+pkgdata_DATA = $(CommonScripts) Version.tcl pkgIndex.tcl \
 	DeepwoodsBanner.gif new.gif open.gif save.gif print.gif close.gif
 pkgdocdir = $(datadir)/$(PACKAGE)/Doc
 pkgdoc_DATA = Finn.pdf
