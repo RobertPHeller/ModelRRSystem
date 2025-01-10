@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Feb 22 09:45:31 2016
-#  Last Modified : <241127.0929>
+#  Last Modified : <250110.1407>
 #
 #  Description	
 #
@@ -412,7 +412,7 @@ namespace eval lcc {
         # a X11 Pixmap allocation error).
         #
         # @param Options:
-        # @arg -cdi The parsed CDI xml. Required and there is no default.
+        # @arg -cdi The unparsed CDI xml. Required and there is no default.
         # @arg -nid The Node ID of the node to be configured.  Required 
         #             and there is no default.
         # @arg -transport The transport object.  Needs to implement 
@@ -528,7 +528,10 @@ namespace eval lcc {
                 uplevel #0 [list $debugout "$message"]
             }
         }
-        
+        variable parsedCDI {}
+        destructor {
+            $parsedCDI destroy
+        }
         constructor {args} {
             ## @publicsection @brief Constructor: create the configuration editor.
             # Construct a memory configuration window to edit the configuration
@@ -537,7 +540,7 @@ namespace eval lcc {
             #
             # @param name Widget path.
             # @param ... Options:
-            # @arg -cdi The parsed CDI xml. Required and there is no default.
+            # @arg -cdi The unparsed CDI xml. Required and there is no default.
             # @arg -nid The Node ID of the node to be configured.  Required 
             #             and there is no default.
             # @arg -transport The transport object.  Needs to implement 
@@ -572,10 +575,14 @@ namespace eval lcc {
                 }
             }
             set options(-cdi) [from args -cdi]
-            ParseXML validate $options(-cdi)
-            set cdis [$options(-cdi) getElementsByTagName cdi -depth 1]
+            if {[catch {ParseXML %AUTO% $options(-cdi)} parsedCDI]} {
+                tk_messageBox -type ok -icon error \
+                      -message [_ "Could not parse the CDI (1) because %s" $parsedCDI]
+                return
+            }
+            set cdis [$parsedCDI getElementsByTagName cdi -depth 1]
             if {[llength $cdis] != 1} {
-                error [_ "There is no CDI container in %s" $options(-cdi)]
+                error [_ "There is no CDI container in %s" $parsedCDI]
             }
             set cdi [lindex $cdis 0]
             $self putdebug "*** $type create $self: win = $win, about to wm protocol $win WM_DELETE_WINDOW ..."
@@ -617,6 +624,9 @@ namespace eval lcc {
             $buttons add ttk::button restore \
                   -text [_m "Label|Restore..."] \
                   -command [mymethod _restore]
+            $buttons add ttk::button reboot \
+                  -text [_m "Label|Reboot and close"] \
+                  -command [mymethod _rebootAndClose]
             $buttons add ttk::button showhideLC \
                   -text [_m "Label|Hide Layout Controls"] \
                   -command [mymethod _showhideLC]
@@ -625,6 +635,7 @@ namespace eval lcc {
                 $buttons itemconfigure reread -state disabled
                 $buttons itemconfigure backup -state disabled
                 $buttons itemconfigure restore -state disabled
+                $buttons itemconfigure reboot -state disabled
             }
             $self _layoutControlsCreation $f
             install readallProgressDialog using \
@@ -669,7 +680,7 @@ namespace eval lcc {
             wm title $win [_ "CDI Configuration Tool for config file %s" $filename]
             set _segmentnumber 0
             $self _loadNode \
-                  [lindex [$options(-cdi) getElementsByTagName cdi -depth 1] 0] \
+                  [lindex [$parsedCDI getElementsByTagName cdi -depth 1] 0] \
                   $fp 
             close $fp
         }
@@ -855,7 +866,7 @@ namespace eval lcc {
             }
             set _segmentnumber 0
             $self _saveNode \
-                  [lindex [$options(-cdi) getElementsByTagName cdi -depth 1] 0] \
+                  [lindex [$parsedCDI getElementsByTagName cdi -depth 1] 0] \
                   $fp 
             close $fp
             wm title $win [_ "CDI Configuration Tool for config file %s" $filename]
@@ -988,7 +999,7 @@ namespace eval lcc {
             set _segmentnumber 0
             #parray widgetMap_
             $self _initblankNode \
-                  [lindex [$options(-cdi) getElementsByTagName cdi -depth 1] 0] \
+                  [lindex [$parsedCDI getElementsByTagName cdi -depth 1] 0] \
                   baseeventid
         }
         proc _tags {nodes} {
@@ -1858,6 +1869,14 @@ namespace eval lcc {
                            cdi -depth 1]] \
                   $fp -1 address
             close $fp
+        }
+        method _rebootAndClose {} {
+            if {[tk_messageBox -default no -icon question \
+                 -message [_m "Are you sure?"] -parent $win \
+                 -title [_m "Confirm reboot"] -type yesno]} {
+                [$self cget -transport] SendDatagram [$self cget -nid] [list 0x20 0xA9]
+                $self _close
+             }
         }
         method _layoutControlsCreation {frame} {
             install layoutcontrolsLF using ttk::labelframe \
@@ -3866,8 +3885,8 @@ namespace eval lcc {
         }
         method _close {} {
             ## @brief Close the window. 
-            # The window is withdrawn.
-            wm withdraw $win
+            # The window is destroyed
+            destroy $win
         }
         variable olddatagramhandler {}
         ## Variable holding the old Datagram handler.

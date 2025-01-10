@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Nov 29 10:48:40 2024
-#  Last Modified : <241206.1521>
+#  Last Modified : <250110.1309>
 #
 #  Description	
 #
@@ -319,7 +319,7 @@ snit::widgetadaptor LCCNodeTable {
     method _passthroughLayoutDB {o v} {
         set options($o) $v
         foreach nid [array names CDIs_FormTLs] {
-            $CDIs_FormTLs($nid) configure -layoutdb $v
+            catch {$CDIs_FormTLs($nid) configure -layoutdb $v}
         }
     }
     variable mynid {}
@@ -590,10 +590,8 @@ snit::widgetadaptor LCCNodeTable {
             }
         }
     }
-    #* CDI text for nodes (indexed by Node IDs).
-    variable CDIs_text -array {}
-    #* CDI parsed XML trees (indexed by Node IDs).
-    variable CDIs_xml  -array {}
+    #* CDI text for nodes 
+    variable CDIs_text
     #* CDI Forms (indexed by Node IDs).
     variable CDIs_FormTLs -array {}
     #* Button lock
@@ -608,130 +606,116 @@ snit::widgetadaptor LCCNodeTable {
         putdebug "*** $self _ReadCDI: id = $id"
         set nid [regsub {_protocols_CDI} $id {}]
         putdebug "*** $self _ReadCDI: nid = $nid"
-        putdebug "*** $self _ReadCDI: \[info exists CDIs_text($nid)\] => [info exists CDIs_text($nid)]"
-        if {![info exists CDIs_text($nid)] ||
-            $CDIs_text($nid) eq "" || ![info exists CDIs_xml($nid)] ||
-            $CDIs_xml($nid) eq {} || ![info exists CDIs_FormTLs($nid)] ||
-            $CDIs_FormTLs($nid) eq {}} {
-            if {[info exists CDIs_FormTLs($nid)] && 
-                [winfo exists $CDIs_FormTLs($nid)]} {
-                catch {destory $CDIs_FormTLs($nid)}
-            }
-            putdebug "*** $self _ReadCDI: Going to read CDI for $nid"
+        putdebug "*** $self _ReadCDI: \[info exists CDIs_FormTLs($nid)\] = [info exists CDIs_FormTLs($nid)]"
+        if {[info exists CDIs_FormTLs($nid)] && 
+            [winfo exists $CDIs_FormTLs($nid)]} {
+            catch {destroy $CDIs_FormTLs($nid)} message
+            putdebug "*** $self _ReadCDI: message is $message"
+        }
+        putdebug "*** $self _ReadCDI: Going to read CDI for $nid"
+        $transport configure -datagramhandler [mymethod _datagramHandler]
+        set data [list 0x20 0x84 0x0FF]
+        set _iocomplete 0
+        set _currentnid $nid
+        $transport SendDatagram $nid $data
+        vwait [myvar _iocomplete]
+        $transport configure -datagramhandler {}
+        catch {unset _currentnid}
+        hexdump [format "*** %s _ReadCDI: datagram received (Get Address Space Information): " $self] $_datagramdata
+        set present [expr {[lindex $_datagramdata 1] == 0x87}]
+        putdebug "*** $self _ReadCDI: present is $present"
+        if {!$present} {
+            putdebug "*** $self _ReadCDI: CDI not present?"
+            tk_messageBox -icon warning \
+                  -message [_ "CDI is not present for %s!" $nid] \
+                  -type ok
+            return
+        }
+        putdebug "*** $self _ReadCDI: CDI present..."
+        set lowest 0x00000000
+        set highest [expr {[lindex $_datagramdata 3] << 24}]
+        set highest [expr {$highest | ([lindex $_datagramdata 4] << 16)}]
+        set highest [expr {$highest | ([lindex $_datagramdata 5] << 8)}]
+        set highest [expr {$highest | [lindex $_datagramdata 6]}]
+        set flags [lindex $_datagramdata 7]
+        if {($flags & 0x02) != 0} {
+            set lowest [expr {[lindex $_datagramdata 8] << 24}]
+            set lowest [expr {$lowest | ([lindex $_datagramdata 9] << 16)}]
+            set lowest [expr {$lowest | ([lindex $_datagramdata 10] << 8)}]
+            set lowest [expr {$lowest | [lindex $_datagramdata 11]}]
+        }
+        putdebug [format {*** %s _ReadCDI: lowest = %08X} $self $lowest]
+        putdebug [format {*** %s _ReadCDI: highest = %08X} $self $highest]
+        set start $lowest
+        #set end   [expr {$highest + 64}]
+        set end $highest
+        set CDIs_text {}
+        set EOS_Seen no
+        $readCDIProgress withdraw
+        $readCDIProgress draw -parent $win -totalbytes [expr {$end - $start}]
+        for {set address $start} {!$EOS_Seen} {incr address $size} {
+            # Always read 64 bytes, even if this means reading past the 
+            # "end".
+            set size 64
+            set data [list 0x20 0x43 \
+                      [expr {($address & 0xFF000000) >> 24}] \
+                      [expr {($address & 0xFF0000) >> 16}] \
+                      [expr {($address & 0xFF00) >> 8}] \
+                      [expr {$address & 0xFF}] \
+                      $size]
             $transport configure -datagramhandler [mymethod _datagramHandler]
-            set data [list 0x20 0x84 0x0FF]
             set _iocomplete 0
             set _currentnid $nid
             $transport SendDatagram $nid $data
             vwait [myvar _iocomplete]
             $transport configure -datagramhandler {}
             catch {unset _currentnid}
-            hexdump [format "*** %s _ReadCDI: datagram received (Get Address Space Information): " $self] $_datagramdata
-            set present [expr {[lindex $_datagramdata 1] == 0x87}]
-            putdebug "*** $self _ReadCDI: present is $present"
-            if {!$present} {
-                putdebug "*** $self _ReadCDI: CDI not present?"
-                tk_messageBox -icon warning \
-                      -message [_ "CDI is not present for %s!" $nid] \
-                      -type ok
-                return
-            }
-            putdebug "*** $self _ReadCDI: CDI present..."
-            set lowest 0x00000000
-            set highest [expr {[lindex $_datagramdata 3] << 24}]
-            set highest [expr {$highest | ([lindex $_datagramdata 4] << 16)}]
-            set highest [expr {$highest | ([lindex $_datagramdata 5] << 8)}]
-            set highest [expr {$highest | [lindex $_datagramdata 6]}]
-            set flags [lindex $_datagramdata 7]
-            if {($flags & 0x02) != 0} {
-                set lowest [expr {[lindex $_datagramdata 8] << 24}]
-                set lowest [expr {$lowest | ([lindex $_datagramdata 9] << 16)}]
-                set lowest [expr {$lowest | ([lindex $_datagramdata 10] << 8)}]
-                set lowest [expr {$lowest | [lindex $_datagramdata 11]}]
-            }
-            putdebug [format {*** %s _ReadCDI: lowest = %08X} $self $lowest]
-            putdebug [format {*** %s _ReadCDI: highest = %08X} $self $highest]
-            set start $lowest
-            #set end   [expr {$highest + 64}]
-            set end $highest
-            set CDIs_text($nid) {}
-            set EOS_Seen no
-            $readCDIProgress withdraw
-            $readCDIProgress draw -parent $win -totalbytes [expr {$end - $start}]
-            for {set address $start} {!$EOS_Seen} {incr address $size} {
-                # Always read 64 bytes, even if this means reading past the 
-                # "end".
-                set size 64
-                set data [list 0x20 0x43 \
-                          [expr {($address & 0xFF000000) >> 24}] \
-                          [expr {($address & 0xFF0000) >> 16}] \
-                          [expr {($address & 0xFF00) >> 8}] \
-                          [expr {$address & 0xFF}] \
-                          $size]
-                $transport configure -datagramhandler [mymethod _datagramHandler]
-                set _iocomplete 0
-                set _currentnid $nid
-                $transport SendDatagram $nid $data
-                vwait [myvar _iocomplete]
-                $transport configure -datagramhandler {}
-                catch {unset _currentnid}
-                putdebug [format {*** %s _ReadCDI: address = %08X} $self $address]
-                hexdump [format "*** %s _ReadCDI: datagram received: " $self] $_datagramdata
-                set status [lindex $_datagramdata 1]
-                if {$status == 0x53} {
-                    set respaddress [expr {[lindex $_datagramdata 2] << 24}]
-                    set respaddress [expr {$respaddress | ([lindex $_datagramdata 3] << 16)}]
-                    set respaddress [expr {$respaddress | ([lindex $_datagramdata 4] << 8)}]
-                    set respaddress [expr {$respaddress | [lindex $_datagramdata 5]}]
-                    if {$respaddress == $address} {
-                        set bytes [lrange $_datagramdata 6 end]
-                        set count 0
-                        foreach b $bytes {
-                            if {$b == 0} {
-                                set EOS_Seen yes
-                                break
-                            }
-                            append CDIs_text($nid) [format {%c} $b]
-                            incr count
-                            if {$count >= $size} {break}
+            putdebug [format {*** %s _ReadCDI: address = %08X} $self $address]
+            hexdump [format "*** %s _ReadCDI: datagram received: " $self] $_datagramdata
+            set status [lindex $_datagramdata 1]
+            if {$status == 0x53} {
+                set respaddress [expr {[lindex $_datagramdata 2] << 24}]
+                set respaddress [expr {$respaddress | ([lindex $_datagramdata 3] << 16)}]
+                set respaddress [expr {$respaddress | ([lindex $_datagramdata 4] << 8)}]
+                set respaddress [expr {$respaddress | [lindex $_datagramdata 5]}]
+                if {$respaddress == $address} {
+                    set bytes [lrange $_datagramdata 6 end]
+                    set count 0
+                    foreach b $bytes {
+                        if {$b == 0} {
+                            set EOS_Seen yes
+                            break
                         }
-                    } else {
-                        # ??? (bad return address)
-                        set EOS_Seen yes
+                        append CDIs_text [format {%c} $b]
+                        incr count
+                        if {$count >= $size} {break}
                     }
                 } else {
-                    # error...
-                    set error [expr {[lindex $_datagramdata 2] << 8}]
-                    set error [expr {$error | [lindex $_datagramdata 3]}]
-                    #$logmessages insert end "[format {Read Reply error %04X} $error]"
-                    #set message { }
-                    #foreach b [lrange $_datagramdata 4 end] {
-                    #    append message [format %c $b]
-                    #}
-                    #$logmessages insert end "$message\n"
+                    # ??? (bad return address)
                     set EOS_Seen yes
                 }
-                $readCDIProgress Update [expr {($address + $size)-$start}]
+            } else {
+                # error...
+                set error [expr {[lindex $_datagramdata 2] << 8}]
+                set error [expr {$error | [lindex $_datagramdata 3]}]
+                #$logmessages insert end "[format {Read Reply error %04X} $error]"
+                #set message { }
+                #foreach b [lrange $_datagramdata 4 end] {
+                #    append message [format %c $b]
+                #}
+                #$logmessages insert end "$message\n"
+                set EOS_Seen yes
             }
-            $readCDIProgress Done
-            putdebug [format {*** %s _ReadCDI: Last address block was at: = %08X} $self $address]
-            if {[catch {ParseXML %AUTO% $CDIs_text($nid)} parsedCDI]} {
-                tk_messageBox -type ok -icon error \
-                      -message [_ "Could not parse the CDI (1) because %s" $parsedCDI]
-                return
-            }
-            set CDIs_xml($nid) $parsedCDI
-            putdebug "*** $self _ReadCDI: CDI XML parsed for $nid: $CDIs_xml($nid)"
-            set CDIs_FormTLs($nid) \
-                  [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
-                   -cdi $CDIs_xml($nid) -nid $nid -transport $transport \
-                   -debugprint [myproc putdebug] \
-                   -layoutdb [$self cget -layoutdb]]
-            putdebug "*** $self _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
-        } else {
-            putdebug "*** $self _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
-            wm deiconify $CDIs_FormTLs($nid)
+            $readCDIProgress Update [expr {($address + $size)-$start}]
         }
+        $readCDIProgress Done
+        putdebug [format {*** %s _ReadCDI: Last address block was at: = %08X} $self $address]
+        set CDIs_FormTLs($nid) \
+              [lcc::ConfigurationEditor .cdi[regsub -all {:} $nid {}] \
+               -cdi $CDIs_text -nid $nid -transport $transport \
+               -debugprint [myproc putdebug] \
+               -layoutdb [$self cget -layoutdb]]
+        putdebug "*** $self _ReadCDI: CDI Form Toplevel: $CDIs_FormTLs($nid)"
         set buttonLock no
     }
     method _ViewCDI {} {
@@ -749,14 +733,8 @@ snit::widgetadaptor LCCNodeTable {
                   -message [_ "Could not open %s because %s" $cdifile $infp]
             return
         }
-        set CDIs_text($cdifile) [read $infp]
+        set CDIs_text [read $infp]
         close $infp
-        if {[catch {ParseXML %AUTO% $CDIs_text($cdifile)} parsedCDI]} {
-            tk_messageBox -type ok -icon error \
-                  -message [_ "Could not parse the CDI (3) because %s" $parsedCDI]
-            return
-        }
-        set CDIs_xml($cdifile) $parsedCDI
         if {[info exists CDIs_FormTLs($cdifile)] && 
             [winfo exists $CDIs_FormTLs($cdifile)]} {
             destroy $CDIs_FormTLs($cdifile)
@@ -764,7 +742,7 @@ snit::widgetadaptor LCCNodeTable {
         set CDIs_FormTLs($cdifile) \
               [lcc::ConfigurationEditor \
                .cdi[regsub -all {.} [file tail $cdifile] {}]%AUTO% \
-               -cdi $CDIs_xml($cdifile) \
+               -cdi $CDIs_text \
                -displayonly true \
                -debugprint [myproc putdebug]]
     }
