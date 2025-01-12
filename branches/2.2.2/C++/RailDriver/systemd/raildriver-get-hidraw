@@ -1,0 +1,8 @@
+#!/bin/bash
+devpath=/sys$DEVPATH
+/usr/bin/logger -i -t  $0 "devpath is $devpath"
+hidraw1=`echo $devpath/*/*/hidraw/*`
+/usr/bin/logger -i -t  $0 "hidraw1 is $hidraw1"
+hidraw=`basename $hidraw1`
+/usr/bin/logger -i -t  $0 "hidraw is $hidraw"
+echo "$hidraw"

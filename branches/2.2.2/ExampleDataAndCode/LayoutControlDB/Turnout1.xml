@@ -1,0 +1,19 @@
+<?xml version='1.0'?>
+<layout>
+  <turnout>
+    <name>Turnout Motor 1</name>
+    <motor>
+      <normal>02.01.57.00.01.A2.00.00</normal>
+      <reverse>02.01.57.00.01.A2.00.01</reverse>
+    </motor>
+    <points>
+      <normal>02.01.57.00.01.A2.00.12</normal>
+      <reverse>02.01.57.00.01.A2.00.13</reverse>
+    </points>
+  </turnout>
+  <block>
+    <name>os turnout1</name>
+    <occupied>02.01.57.00.01.A2.00.66</occupied>
+    <clear>02.01.57.00.01.A2.00.67</clear>
+  </block>
+</layout>
