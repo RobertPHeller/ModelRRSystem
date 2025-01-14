@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 13:41:10 2016
-#  Last Modified : <250103.1609>
+#  Last Modified : <250114.1308>
 #
 #  Description	
 #
@@ -56,7 +56,7 @@ EXTRA_DIST = lcc.tcl ConfigurationEditor.tcl eventDialogs.tcl \
 		OpenLCB_QuadSignal.tcl ADAFruitDC_AND_STEPPER.tcl PCA9685.tcl \
 		OpenLCB_PiPCA9685.tcl LayoutControlDB.tcl LCCNodeTable.tcl \
 		ReadCDIProgress.tcl LCCTrafficMonitor.tcl \
-		LayoutControlDBDialogs.tcl Router.tcl OpenLCB2.png \
+		LayoutControlDBDialogs.tcl Router.tcl OpenLCB2.png OpenLCB2.tcl \
 		LayoutControlDBTable.tcl JMRITable2LayoutDB.tcl \
 		LayoutDB2JMRITable.tcl OfflineLCCNodeEditor.tcl \
 		SwitchMotor.xpm Signal.xpm Sensor.xpm Control.xpm Block.xpm
