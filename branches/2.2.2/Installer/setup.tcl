@@ -462,10 +462,10 @@ proc FindArchivesAndComputeSizes_UNIX {} {
       # Assume 32-bit (i386/i486/i586/i686) and 64-bit (x86_64) Intel/AMD machines
       # Add in armv7l (Raspberry Pi)
     switch -glob $::tcl_platform(machine) {
-      x86_64 {set bits 64}
-      i?86   {set bits 32}
-      armv7l {set bits Armv7l32}
-      aarch64 {set bits Arm64}
+      x86_64 {set bits amd64}
+      i?86   {set bits i386}
+      armv7l {set bits armhf}
+      aarch64 {set bits arm64}
     }
     set plat Linux$bits
   } else {;## Change for other multi-arch UNIX platforms (Darwin -- MacOSX)
