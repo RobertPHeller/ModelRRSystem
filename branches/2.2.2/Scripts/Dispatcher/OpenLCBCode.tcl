@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <241207.1538>
+#  Last Modified : <250213.2112>
 #
 #  Description	
 #
@@ -408,7 +408,7 @@ snit::type Dispatcher_SignalPlate {
         MainWindow ctcpanel itemconfigure "$options(-name)" \
               -leftcommand [mymethod sendevent -lefteventid] \
               -centercommand [mymethod sendevent -centereventid] \
-              -reversecommand [mymethod sendevent -righteventid]
+              -rightcommand [mymethod sendevent -righteventid]
     }
     method sendevent {eopt} {
         set ev [$self cget $eopt]
