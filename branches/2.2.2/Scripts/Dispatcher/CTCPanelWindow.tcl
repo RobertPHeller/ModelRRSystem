@@ -2779,7 +2779,7 @@ namespace eval CTCPanelWindow {
                 puts -nonewline $fp "$userLccModules($moduleName)"
                 close $fp
             }
-            set edit [CTCPanelWindow::WaitExternalProgramASync editor%AUTO% 
+            set edit [CTCPanelWindow::WaitExternalProgramASync editor%AUTO% \
                       -commandline [list "[::Dispatcher::Configuration getoption externalEditor]" "$tempName"]]
             $edit wait
             $edit destroy
