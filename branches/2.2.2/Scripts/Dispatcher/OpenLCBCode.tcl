@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <250213.2112>
+#  Last Modified : <250214.2118>
 #
 #  Description	
 #
@@ -462,9 +462,26 @@ snit::type Dispatcher_SignalPlate {
     }
 }
 
+snit::type Dispatcher_UserCodeModule {
+    option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
+    option -name    -default {}
+    option -usermoduleconstructor -readonly yes
+    component usermodule -inherit yes
+    constructor {args} {
+        set options(-openlcb) [from args -openlcb]
+        set options(-name) [from args -name]
+        set options(-usermoduleconstructor) [from args -usermoduleconstructor]
+        install usermodule using $options(-usermoduleconstructor) %AUTO% \
+              -openlcb $options(-openlcb) \
+              -name $options(-name) \
+              {*}$args
+    }
+}
+
+
 snit::enum ElementClasses -values {Block Switch Signal CodeButton Lamp 
     ToggleSwitch SwitchPlate SignalPlate 
-    PushButton}
+    PushButton UserCodeModule}
 
 snit::type OpenLCB_Dispatcher {
     ## OpenLCB Interface code for Dispatcher panels

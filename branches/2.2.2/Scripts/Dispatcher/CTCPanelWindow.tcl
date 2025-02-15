@@ -195,6 +195,39 @@ namespace eval CTCPanelWindow {
         set openlcbnodes($name) $opts
     }
     variable userCode {}
+    variable userLccModules -array {}
+    method addUserLccModule {name body} {
+        set userLccModules($name) $body
+    }
+    method GetUserLccModuleNames {} {return [array names userLccModules]}
+    method InitializeUserLccModule {name} {
+        set userLccModules($name) [list snit::type $name $userLccModuleTemplateBody]
+    }
+    typevariable userLccModuleTemplateBody {
+        option -openlcb -type ::OpenLCB_Dispatcher -readonly yes
+        option -name    -default {}
+        constructor {args} {
+            $self configurelist $args
+        }
+        method sendevent {eopt} {
+            set ev [$self cget $eopt]
+            if {$ev ne ""} {
+                [$self cget -openlcb] sendMyEvent $ev
+            }
+        }
+        method consumerP {} {return no}
+        method producerP {} {return no}
+        method consumedEvents {} {
+            set events [list]
+            return $events
+        }
+        method producedEvents {} {
+            set events [list]
+            return $events
+        }
+        method consumeEvent {event} {
+        }
+    }
     variable IsDirty yes
 
     method isdirtyp {} {return $IsDirty}
@@ -249,13 +282,17 @@ namespace eval CTCPanelWindow {
                     {command "[_m {Menu|Edit|Signals|Signal Plate type}]" {edit:modules:signalplate edit:simplemode} {} {} -command "[mymethod AddModule SignalPlates]" -state $editstate}
                     {command "[_m {Menu|Edit|Signals|Control Point type}]" {edit:modules:controlpoint edit:simplemode} {} {} -command "[mymethod AddModule ControlPoints]" -state $editstate}
                     {command "[_m {Menu|Edit|Signals|Radio Group Type}]" {edit:modules:radiogroup edit:simplemode} {} {} -command "[mymethod AddModule Groups]" -state $editstate}
+                    
             }}
             {cascade "[_m {Menu|Edit|Additional Packages}]" {edit:additionalpackages edit:simplemode} edit:additionalpackages 0 -state $editstate {
                     {command "[_m {Menu|Edit|Additional Packages|XPressNet}]" {edit:additionalpackages edit:simplemode} {} {} -command "[mymethod AddAdditionalPackage XPressNet]" -state $editstate}
                     {command "[_m {Menu|Edit|Additional Packages|NCE}]" {edit:additionalpackages edit:simplemode} {} {} -command "[mymethod AddAdditionalPackage NCE]" -state $editstate}
                     {command "[_m {Menu|Edit|Additional Packages|Raildriver Client}]" {edit:additionalpackages edit:simplemode} {} {} -command "[mymethod AddAdditionalPackage RailDriverSupport]" -state $editstate}
             }}
-            {command "[_m {Menu|Edit|Add External User Module}]" {edit:externalUserModules edit:simplemode} {} {} -command "[mymethod AddExternalUserModule]" -state $editstate}
+        {command "[_m {Menu|Edit|Add External User Module}]" {edit:externalUserModules edit:simplemode} {} {} -command "[mymethod AddExternalUserModule]" -state $editstate}
+        {separator}
+        {command "[_m {Menu|Edit|Add or Edit User LCC Module}]" {edit:userlccmodule}  {} {} -command "[mymethod AddUserLCCModule]" -state $editlccstate}
+
     }}
     typevariable _extramenus {
         "[_m {Menu|&Panel}]" panel panel 0 {
@@ -287,6 +324,7 @@ namespace eval CTCPanelWindow {
 	set wrapasstate disabled
       }
       set editstate normal
+      set editlccstate disabled
       set options(-simplemode) [from args -simplemode]
       if {$options(-simplemode)} {
 	$self AddModule SimpleMode
@@ -296,8 +334,9 @@ namespace eval CTCPanelWindow {
       set options(-openlcbmode) [from args -openlcbmode]
       if {$options(-openlcbmode)} {
           set editstate disabled
+          set editlccstate normal
       }
-      
+      #puts stderr "*** CTCPanelWindow::create: editlccstate is $editlccstate"
       set mainmenu [StdMenuBar MakeMenu -file [subst $_filemenu] -edit [subst $_editmenu] ]
       #puts stderr "*** CTCPanelWindow::create: mainmenu = $mainmenu (length is [llength $mainmenu])"
       set extramenus [subst $_extramenus]
@@ -801,7 +840,7 @@ namespace eval CTCPanelWindow {
                                    OpenLCBCode.tcl] r]
           fcopy $openlcbCodeFp $fp 
           puts $fp "OpenLCB_Dispatcher PopulateOpenLCBMenu"
-          puts $fp "OpenLCB_Dispatcher ConnectToOpenLCB -transport $options(-openlcbtransport) $options(-openlcbtransportopts) -name \{$options(-name)\} -description \{$options(-filename)\}"
+          puts $fp "OpenLCB_Dispatcher ConnectToOpenLCB -transport $options(-openlcbtransport) $options(-openlcbtransportopts) -name \{$options(-name)\} -description \{[file tail $options(-filename)]\}"
           puts $fp "# OpenLCB_Dispatcher Nodes"
           foreach openlcbele [array names openlcbnodes] {
               set nodeopts $openlcbnodes($openlcbele)
@@ -834,6 +873,16 @@ namespace eval CTCPanelWindow {
               }
               puts $fp {}             
           }
+          puts $fp {# User LCC Modules Begin}
+          foreach module [array names userLccModules] {
+              puts $fp "# User LCC Module: $module"
+              puts $fp $userLccModules($module)
+              puts $fp "# OpenLCB_Dispatcher $module -eleclasstype UserCodeModule -usermoduleconstructor $module" 
+              puts $fp "OpenLCB_Dispatcher create %AUTO% -name $module \\"
+              puts $fp "\t-eleclasstype UserCodeModule \\"
+              puts $fp "\t-usermoduleconstructor $module"
+          } 
+          puts $fp {# User LCC Modules End}
           puts $fp "OpenLCB_Dispatcher SendMyEvents"
       } else {
           puts $fp {}
@@ -1170,17 +1219,18 @@ namespace eval CTCPanelWindow {
       }
       set mode {}
       while {$mode ne "EOF"} {
-	while {[gets $fp line] >= 0} {
-	  if {[regexp {^# CMRIBoards$} "$line"] > 0} {set mode CMRIBoards;break}
-	  if {[regexp {^# Azatrax Nodes$} "$line"] > 0} {set mode AZATRAXNodes;break}
-          if {[regexp {^# OpenLCB_Dispatcher Nodes$} "$line"] > 0} {set mode OpenLCB_DispatcherNodes;break}
-	  if {[regexp {^# Add User code after this line$} "$line"] > 0} {
-	    set mode UserCode
-	    break;
-	  }
-	  set mode EOF
-	}
+        while {[gets $fp line] >= 0} {
+            if {[regexp {^# CMRIBoards$} "$line"] > 0} {set mode CMRIBoards;break}
+            if {[regexp {^# Azatrax Nodes$} "$line"] > 0} {set mode AZATRAXNodes;break}
+            if {[regexp {^# OpenLCB_Dispatcher Nodes$} "$line"] > 0} {set mode OpenLCB_DispatcherNodes;break}
+            if {[regexp {^# Add User code after this line$} "$line"] > 0} {
+                set mode UserCode
+                break;
+            }
+            set mode EOF
+        }
         #puts stderr "*** $type open: mode is $mode"
+        #puts stderr "*** $type open: before switch: line is $line"
 	set board_comment ""
 	switch $mode {
 	  CMRIBoards {
@@ -1189,6 +1239,7 @@ namespace eval CTCPanelWindow {
 	      #puts stderr "*** $type open: read CMRIBoards loop: line = '$line'"
 	      if {[regexp {^# Azatrax Nodes$} "$line"] > 0} {set mode AZATRAXNodes;break}
               if {[regexp {^# OpenLCB_Dispatcher Nodes$} "$line"] > 0} {set mode OpenLCB_DispatcherNodes;break}
+              if {[regexp {^# User LCC Modules Begin$} "$line"] > 0} {set mode UserLCCModules;break}
               if {[regexp {^# Add User code after this line$} "$line"] > 0} {set mode UserCode;break}
 	      if {[regexp {^# (.*)$} "$line" => board_comment] > 0} {continue}
 	      append buffer "$line"
@@ -1212,6 +1263,7 @@ namespace eval CTCPanelWindow {
 	    while {[gets $fp line] >= 0} {
               if {[regexp {^# CMRIBoards} "$line"] > 0} {set mode CMRIBoards;break}
               if {[regexp {^# OpenLCB_Dispatcher Nodes$} "$line"] > 0} {set mode OpenLCB_DispatcherNodes;break}
+              if {[regexp {^# User LCC Modules Begin$} "$line"] > 0} {set mode UserLCCModules;break}
               if {[regexp {^# Add User code after this line$} "$line"] > 0} {set mode UserCode;break}
 	      if {[regexp {^# (.*)$} "$line" => board_comment] > 0} {continue}
 	      append buffer "$line"
@@ -1238,6 +1290,7 @@ namespace eval CTCPanelWindow {
                   #puts stderr "*** $type open (OpenLCB_DispatcherNodes branch): line = $line"
                   if {[regexp {^# CMRIBoards} "$line"] > 0} {set mode CMRIBoards;break}
                   if {[regexp {^# Azatrax Nodes$} "$line"] > 0} {set mode AZATRAXNodes;break}
+                  if {[regexp {^# User LCC Modules Begin$} "$line"] > 0} {set mode UserLCCModules;break}
                   if {[regexp {^# OpenLCB_Dispatcher ([^[:space:]]+)[[:space:]](.*)$} "$line" => openlcbele nodeopts] > 0} {
                       #puts stderr "*** $type open (OpenLCB_DispatcherNodes branch) matched: openlcbele = $openlcbele, nodeopts = $nodeopts"
                       $newWindow setOpenLCBNode $openlcbele $nodeopts
@@ -1251,8 +1304,47 @@ namespace eval CTCPanelWindow {
                       append buffer "\n"
                   }
               }
+              #puts stderr "*** $type open (OpenLCB_DispatcherNodes branch): after while loop: mode is $mode"
               set code {}
+              if {$mode eq "UserLCCModules"} {
+                  set buffer {}
+                  while {[gets $fp line] >= 0} {
+                      if {[regexp {^# User LCC Modules Begin$} "$line"] > 0} {set mode UserLCCModules;break}
+                      if {[regexp {^# User LCC Module: (.*)$} "$line" => module] > 0} {
+                          #puts stderr "*** $type open (UserLCCModules branch): module is $module"
+                          set buffer {}
+                          while {[gets $fp line] >= 0} {
+                              append buffer "$line"
+                              if {[info complete "$buffer"] &&
+                                  ![string equal "\\" "[string index $buffer end]"]} {
+                                  $newWindow addUserLccModule $module $buffer
+                                  set buffer {}
+                                  break
+                              } else {
+                                  append buffer "\n"
+                              }
+                          }
+                          if {[gets $fp line] >= 0} {
+                              if {[regexp {^# OpenLCB_Dispatcher ([^[:space:]]+)[[:space:]](.*)$} "$line" => openlcbele nodeopts] > 0} {
+                                  #puts stderr "*** $type open (UserLCCModules branch) matched: openlcbele = $openlcbele, nodeopts = $nodeopts"
+                              }
+                              set buffer {}
+                              while {[gets $fp line] >= 0} {
+                                  append buffer "$line"
+                                  if {[info complete "$buffer"] &&
+                                      ![string equal "\\" "[string index $buffer end]"]} {
+                                      set buffer {}
+                                      break
+                                  } else {
+                                      append buffer "\n"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
               set mode EOF
+              #puts stderr "*** $type open (OpenLCB_DispatcherNodes branch): mode is $mode"
           }
           EOF {break}
 	  UserCode -
@@ -1265,7 +1357,8 @@ namespace eval CTCPanelWindow {
 	    }
 	    set mode EOF
 	  }
-	}
+        }
+        #puts stderr "*** $type open: after switch: mode is $mode"
       }
       close $fp
       $newWindow setUserCode "$code"
@@ -1790,6 +1883,7 @@ namespace eval CTCPanelWindow {
     component selectAZATRAXNodeDialog
     component editUserCodeDialog
     component addExternalUserModuleDialog
+    component selectUserLccModuleDialog
     
     method buildDialogs {} {
 
@@ -1802,6 +1896,7 @@ namespace eval CTCPanelWindow {
         install selectAZATRAXNodeDialog using CTCPanelWindow::SelectAZATRAXNodeDialog $win.selectAZATRAXNodeDialog -parent $win
         install editUserCodeDialog  using CTCPanelWindow::EditUserCodeDialog $win.editUserCodeDialog -parent $win
         install addExternalUserModuleDialog using CTCPanelWindow::AddExternalUserModuleDialog $win.addExternalUserModuleDialog -parent $win
+        install selectUserLccModuleDialog using CTCPanelWindow::SelectUserLccModuleDialog $win.selectUserLccModuleDialog -parent $win
     }
 
     method addblocktopanel {node args} {
@@ -2654,9 +2749,56 @@ namespace eval CTCPanelWindow {
 	}
       }
     }
-  
-                
-    
+    method AddUserLCCModule {args} {
+        set moduleName [$selectUserLccModuleDialog draw]
+        if {$moduleName eq ""} return
+        if {[::Dispatcher::Configuration getoption useExternalEditor]} {
+            global tcl_platform
+            global env
+            switch $tcl_platform(platform) {
+                unix {
+                    set tmpdir /tmp
+                    catch {set tmpdir $::env(TMPDIR)}
+                } macintosh {
+                    set tmpdir /tmp
+                    catch {set tmpdir $::env(TMPDIR)}
+                    set tmpdir $::env(TRASH_FOLDER)  ;# a better place?
+                } default {
+                    set tmpdir [pwd]
+                    catch {set tmpdir $::env(TMP)}
+                    catch {set tmpdir $::env(TEMP)}
+                }
+            }
+            set tempName [file join $tmpdir Code[pid].tcl]
+            if {[catch {open "$tempName" w} fp]} {
+                tk_messageBox -type ok -icon error  \
+                      -parent $win \
+                      -message [_ "Could not create tempfile: %s" $fp]
+                return
+            } else {
+                puts -nonewline $fp "$userLccModules($moduleName)"
+                close $fp
+            }
+            set edit [CTCPanelWindow::WaitExternalProgramASync editor%AUTO% 
+                      -commandline [list "[::Dispatcher::Configuration getoption externalEditor]" "$tempName"]]
+            $edit wait
+            $edit destroy
+            if {![catch {open "$tempName" r} fp]} {
+                set userLccModules($moduleName) "[read $fp]"
+                close $fp
+                $self setdirty
+            }
+        } else {
+            set result [$editUserCodeDialog draw "$userLccModules($moduleName)" {*}$args]
+            switch -- $result {
+                cancel {}
+                update {
+                    set userLccModules($moduleName) "[$editUserCodeDialog getcode]"
+                    $self setdirty
+                }
+            }
+        }
+    }
   }
   snit::widgetadaptor AddPanelObjectDialog {
     delegate option -parent to hull
@@ -5760,6 +5902,64 @@ namespace eval CTCPanelWindow {
           return [$hull enddialog [list $packageName [$moduleDirFE cget -text]]]
       }
   }
+  snit::widgetadaptor SelectUserLccModuleDialog {
+      delegate option -parent to hull
+      component moduleNameList
+      variable moduleNames [list]
+      variable moduleName {}
+      constructor {args} {
+          installhull using Dialog -bitmap questhead -default add \
+                -cancel cancel -modal local -transient yes \
+                -side bottom \
+                -title [_ "Select a User LCC Module to add or edit"] \
+                -parent [from args -parent]
+          $hull add add    -text [_m "Button|New"]    -command [mymethod _Add]
+          $hull add select -text [_m "Button|Edit"]   -command [mymethod _Select]
+          $hull add cancel -text [_m "Button|Cancel"] -command [mymethod _Cancel]
+          wm protocol [winfo toplevel $win] WM_DELETE_WINDOW [mymethod _Cancel]
+          $hull add help -text [_m "Button|Help"] -command {HTMLHelp help {Add External User Module}}
+          set frame [$hull getframe]
+          set listsw [ScrolledWindow $frame.listsw -scrollbar vertical -auto vertical]
+          pack $listsw -expand yes -fill both
+          install moduleNameList using listbox [$listsw getframe].listbox \
+                -listvariable [myvar moduleNames] \
+                -selectmode single
+          $listsw setwidget $moduleNameList
+          pack [LabelEntry $frame.moduleNameLE \
+                -label [_m "Label|Module Name:"] \
+                -textvariable [myvar moduleName]] -expand yes -fill x
+          $self configurelist $args
+      }
+      method draw {args} {
+          $self configurelist $args
+          set parent [$hull cget -parent]
+          wm transient [winfo toplevel $win] $parent
+          set moduleNames [lsort -dictionary [$parent GetUserLccModuleNames]]
+          return [$hull draw]
+      }
+      method _Cancel {} {
+          $hull withdraw
+          return [$hull enddialog {}]
+      }
+      method _Add {} {
+          set parent [$hull cget -parent]
+          if {$moduleName in [$parent GetUserLccModuleNames]} {
+              if {![tk_messageBox -type yesno -icon question \
+                   -message [_ "Replace existing module %s?" $moduleName]]} {
+                  return
+              }
+          }
+          $parent InitializeUserLccModule $moduleName
+          $hull withdraw
+          return [$hull enddialog $moduleName]
+      }
+      method _Select {} {
+          set selected [$moduleNameList get anchor]
+          if {$selected eq ""} {return}
+          $hull withdraw
+          return [$hull enddialog $selected]
+      }
+  }
   snit::type WaitExternalProgramASync {
     option -commandline -readonly yes
     variable pipe
@@ -6536,6 +6736,7 @@ namespace eval CTCPanelWindow {
 }
 
 
-package provide CTCPanelWindow 1.0
+package provide CTCPanelWindow 1.1
+puts stderr "CTCPanelWindow 1.1 loaded"
 
 

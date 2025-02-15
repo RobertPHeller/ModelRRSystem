@@ -735,7 +735,7 @@ proc Dispatcher::WriteGVFile {{filename {}}} {
     TrackGraph::TrackGraph WriteGVFile $filename
 }
 
-package require CTCPanelWindow
+package require CTCPanelWindow 1.1
 package require WrapIt
 
 Dispatcher::MainWindow
