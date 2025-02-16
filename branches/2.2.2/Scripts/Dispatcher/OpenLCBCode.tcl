@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Aug 20 09:20:52 2016
-#  Last Modified : <250214.2118>
+#  Last Modified : <250215.2138>
 #
 #  Description	
 #
@@ -495,6 +495,24 @@ snit::type OpenLCB_Dispatcher {
     
     typecomponent transport; #        Transport layer
     typevariable  elelist {};#        List of elements
+    typemethod GetElementByName {name} {
+        foreach e $elelist {
+            if {[$e cget -name] eq $name} {
+                return $e
+            }
+        }
+        return {}
+    }
+    typemethod GetElementByType {eleclasstype} {
+        ElementClasses validate $eleclasstype
+        set result [list]
+        foreach e $elelist {
+            if {[$e cget -eleclasstype] eq $eleclasstype} {
+                lappend result $e
+            }
+        }
+        return $result
+    }
     typevariable  consumers {};#      Element instances that consume events
     typevariable  eventsconsumed {};# Events consumed.
     typevariable  producers {};#      Element instances that produce events
