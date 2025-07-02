@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Tue Feb 2 12:06:52 2016
-#  Last Modified : <241202.1031>
+#  Last Modified : <250114.1710>
 #
 #  Description	
 #  *** NOTE: Deepwoods Software assigned Node ID range is 05 01 01 01 22 *
@@ -4540,39 +4540,27 @@ namespace eval lcc {
         # @arg -transport The transport layer constuctor.
         # @arg -eventhandler This is a script prefix that is run for event 
         # processing messages.
-        # This is a command with the procedure signature of
-        # @code
-        # proc eventhandler {command eventid {{validity {}}}} {...}
-        # @endcode
-        # The command is one of consumerrangeidentified, consumeridentified, 
-        # producerrangeidentified, produceridentified, learnevents, report, 
-        # identifyconsumer, identifyproducer, or identifyevents.
+        # This is a script prefix that will have two or three values added:
+        # a command: one of consumerrangeidentified, consumeridentified,
+        # producerrangeidentified, produceridentified, learnevents, report,
+        # identifyconsumer, identifyproducer, or identifyevents. An eventid.
+        # And optionally the validity of the event (if the command was one
+        # of consumerrangeidentified, consumeridentified,
+        # producerrangeidentified, or produceridentified.
         # @arg -datagramhandler This is a script prefix that is run for
         # datagram messages.
-        # This is a command with the procedure signature of
-        # @code
-        # proc datagramehandler {command sourcenid args} {...}
-        # @endcode
-        # The command argument is one of datagramreceivedok, datagramrejected, 
-        # or datagramcontent
+        # This is a script prefix that will have two or more values added:
+        # a command datagramreceivedok, datagramrejected, or datagramcontent.
+        # followed by the sourcenid and any additional args needed.
         # @arg -generalmessagehandler This is a script prefix that is run for
         # general messages.
-        # This is a command with the procedure signature of
-        # @code
-        # proc generalmessagehandler {message} {...}
-        # @endcode
-        # The message is an lcc::OpenLCBMessage object.  The procedure should 
-        # reference the -mti option of the message object to determine what 
-        # sort message it is.
+        # This is a script prefix that will have a lcc::OpenLCBMessage object
+        # added. The procedure should reference the -mti option of the message
+        # object to determine what sort out what sort of message it is.
         # @arg -logmessagehandler This is a script prefix that is run for
         # all messages, received and sent.  Presumes -promisciousmode.
-        # This is a command with the procedure signature of
-        # @code
-        # proc logmessagehandler {message} {...}
-        # @endcode 
-        # The message is an lcc::OpenLCBMessage object.  The procedure should 
-        # reference the -mti option of the message object to determine what 
-        # sort message it is.
+        # This is a script prefix that will have a lcc::OpenLCBMessage object
+        # added. The procedure should log the message.
         # @par
         # Additional options are passed to the transport layer constructor.
         
@@ -4669,40 +4657,27 @@ namespace eval lcc {
             # This option is processed by the transport component.
             # @arg -eventhandler This is a script prefix that is run for event 
             # processing messages.
-            # This is a command with the procedure signature of
-            # @code
-            # proc eventhandler {command eventid {{validity {}}}} {...}
-            # @endcode
-            # The command is one of consumerrangeidentified, 
-            # consumeridentified, producerrangeidentified, produceridentified, 
-            # learnevents, report, identifyconsumer, identifyproducer, or 
-            # identifyevents.
+            # This is a script prefix that will have two or three values added:
+            # a command: one of consumerrangeidentified, consumeridentified,
+            # producerrangeidentified, produceridentified, learnevents, report,
+            # identifyconsumer, identifyproducer, or identifyevents. An eventid.
+            # And optionally the validity of the event (if the command was one
+            # of consumerrangeidentified, consumeridentified,
+            # producerrangeidentified, or produceridentified.
             # @arg -datagramehandler This is a script prefix that is run for
             # datagram messages.
-            # This is a command with the procedure signature of
-            # @code
-            # proc datagramehandler {command sourcenid data} {...}
-            # @endcode
-            # The command argument is one of datagramreceivedok, datagramrejected, 
-            # or datagramcontent
+            # This is a script prefix that will have two or more values added:
+            # a command datagramreceivedok, datagramrejected, or datagramcontent.
+            # followed by the sourcenid and any additional args needed.
             # @arg -generalmessagehandler This is a script prefix that is run for
             # general messages.
-            # This is a command with the procedure signature of
-            # @code
-            # proc generalmessagehandler {message} {...}
-            # @endcode
-            # The message is an lcc::OpenLCBMessage object.  The procedure should 
-            # reference the -mti option of the message object to determine what 
-            # sort message it is.
+            # This is a script prefix that will have a lcc::OpenLCBMessage object
+            # added. The procedure should reference the -mti option of the message
+            # object to determine what sort out what sort of message it is.
             # @arg -logmessagehandler This is a script prefix that is run for
             # all messages, received and sent.  Presumes -promisciousmode.
-            # This is a command with the procedure signature of
-            # @code
-            # proc logmessagehandler {message} {...}
-            # @endcode 
-            # The message is an lcc::OpenLCBMessage object.  The procedure should 
-            # reference the -mti option of the message object to determine what 
-            # sort message it is.
+            # This is a script prefix that will have a lcc::OpenLCBMessage object
+            # added. The procedure should log the message.
             # @par
             # Additional options are passed to the transport layer constructor.
             

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Dec 6 10:51:17 2024
-#  Last Modified : <241206.1512>
+#  Last Modified : <250213.2111>
 #
 #  Description	
 #
@@ -243,7 +243,7 @@ snit::widget LCCTrafficMonitor {
         }
         $logwindow insert end " [MTI_Name [$message cget -mti]]"
         if {([$message cget -mti] & 0x04) != 0} {
-            $logwindow insert end [format { Eventid: %s} [$message cget -eventid]]
+            $logwindow insert end [format { Eventid: %s} [[$message cget -eventid] cget -eventidstring]]
         }
         foreach db [$message cget -data] {
             $logwindow insert end [format { %02x} $db]
