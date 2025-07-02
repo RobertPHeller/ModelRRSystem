@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat Jul 10 07:13:36 2021
-#  Last Modified : <210710.1259>
+#  Last Modified : <250419.1105>
 #
 #  Description	
 #
@@ -117,6 +117,7 @@ snit::type LayoutDB2JMRITable {
     typevariable _lights
     typevariable _reporters
     typevariable _blocks
+    typevariable _signals
     typevariable _layoutDB
     typeconstructor {
         if {[llength $::argv] < 2} {
@@ -132,6 +133,7 @@ snit::type LayoutDB2JMRITable {
         set _lights [$_layout_config getElementsByTagName lights -depth 1]
         set _reporters [$_layout_config getElementsByTagName reporters -depth 1]
         set _blocks [$_layout_config getElementsByTagName blocks -depth 1]
+        set _signalmasts [$_layout_config getElementsByTagName signalmasts -depth 1]
         set op [[$_filehistory info type] create %%AUTO%% -tag operation]
         $_filehistory addchild $op
         set tp [[$op info type] create %%AUTO%% -tag type]
@@ -160,6 +162,9 @@ snit::type LayoutDB2JMRITable {
         }
         foreach control [$layout getElementsByTagName control -depth 1] {
             _createJMRIcontrol $control
+        }
+        foreach signal [$layout getElementsByTagName signal -depth 1] {
+            _createJMRIsignalmast $signal
         }
         set outfile [lindex $::argv 1]
         if {[catch {open $outfile w} fp]} {
@@ -264,6 +269,8 @@ snit::type LayoutDB2JMRITable {
                 _makeJMRIReporter $name $on $off
             }
         }
+    }
+    proc _createJMRIsignalmast {signal} {
     }
     proc _makeJMRILight {name on off} {
         puts stderr "*** _makeJMRILight $name $on $off"
