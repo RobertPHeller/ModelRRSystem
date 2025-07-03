@@ -1,3 +1,16 @@
+Thr Jul  3 08:18:13 2025 2.2.2
+
+  Add CDI "Hints" support.
+  Flesh out read/write methods for RB, CB, and scale.
+  Add readonly hint.
+  Add Action button support.
+  Add OpenLCB2: table display instead of tree display of node list.
+  Add LCC traffic monitor to OpenLCB and OpenLCB2
+  Add LCC traffic monitor to Dispatcher Panels
+  Minor fixes to OpenLCBCode.tcl
+  Update Configuration Editor to NOT cache CDI, in accordance with the spec.
+  
+
 Mon May 29 13:19:34 2023 2.2.1
 
    Update for new Darwin (MacOSX) build infrastructure and restored MacOSX 
