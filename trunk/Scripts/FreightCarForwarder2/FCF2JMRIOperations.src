@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jul 27 15:38:43 2025
-#  Last Modified : <250727.2224>
+#  Last Modified : <250728.1555>
 #
 #  Description	
 #
@@ -99,6 +99,11 @@ snit::type FCF2JMRIOperations {
     typemethod WriteStylesheetHeader {fp stylesheet} {
         puts $fp [format {<?xml-stylesheet href="%s" type="text/xsl"?>} stylesheet]
     }
+    typevariable Filename_config {Operations.xml}
+    typevariable Filename_locations {OperationsLocationRoster.xml}
+    typevariable Filename_routes {OperationsRouteRoster.xml}
+    typevariable Filename_trains {OperationsTrainRoster.xml}
+    typevariable Filename_cars {OperationsCarRoster.xml}
     typeconstructor {
         if {$::argc < 2} {
             error [_ "Missing parameters: SystemFile and JMRI_Output_dir"]
@@ -133,7 +138,7 @@ snit::type FCF2JMRIOperations {
         set railroad [SimpleDOMElement %AUTO% -tag "railRoad" \
                       -attributes [list name [TheSystem SystemName]]]
         $config addchild $railroad
-        set fp [open [file join $OutputDirectory Operations.xml] w]
+        set fp [open [file join $OutputDirectory $Filename_config] w]
         $type WriteXMLHeader $fp
         $type WriteStylesheetHeader $fp $OPSXSLT_config
         $type WriteDOCTYPEHeader $fp $OPSDTD_config
@@ -153,7 +158,8 @@ snit::type FCF2JMRIOperations {
         foreach did $divisions {
             set division [TheSystem TheDivision $did]
             set division_node [SimpleDOMElement %AUTO% -tag "division" \
-                               -attributes [list id $did name [Division_Name $division]]]
+                               -attributes [list id $did \
+                                            name [$division Name]]]
             $divisions_node addchild $division_node
         }
         set stations  [TheSystem StationIndexList]
@@ -161,7 +167,7 @@ snit::type FCF2JMRIOperations {
         $config addchild $locations_node
         foreach sid $stations {
             set station [TheSystem TheStation $sid]
-            set division [Station_MyDivision $station]
+            set division [$station MyDivision]
             set mydid 0
             foreach did $divisions {
                 if {$division eq [TheSystem TheDivision $did]} {
@@ -171,17 +177,257 @@ snit::type FCF2JMRIOperations {
             }
             set location_node [SimpleDOMElement %AUTO% -tag "location" \
                                -attributes [list id $sid \
-                                            name [Station_Name $station] \
+                                            name [$station Name] \
                                             divisionId $mydid]]
+            set locationTypeList [SimpleDOMElement %AUTO% -tag "types"]
+            $location_node addchild $locationTypeList
             $locations_node addchild $location_node
+            for {set i 0} {$i < [$station NumberOfIndustries]} {incr i} {
+                set industry [$station TheIndustry $i]
+                set industryId [GetIndustryId $industry]
+                set trackId [format {%ds%d} $industryId $sid]
+                set loads [split [$industry LoadsAccepted] {}]
+                set empties [split [$industry EmptiesAccepted] {}]
+                set attributes [list id $trackId \
+                                name [$industry Name] \
+                                length [$industry TrackLen] \
+                                trackType Spur]
+                if {[llength $loads] > 0 || [llength $empties] > 0} {
+                    lappend attributes carLoadOption Include
+                }
+                set tracknode [SimpleDOMElement %AUTO% -tag "track" \
+                               -attributes $attributes]
+                $location_node addchild $tracknode
+                set trackTypeList [SimpleDOMElement %AUTO% -tag "types"] 
+                $tracknode addchild $trackTypeList
+                set trackCarLoadsList [SimpleDOMElement %AUTO% -tag "carLoads"]
+                $tracknode addchild $trackCarLoadsList
+                foreach ct $loads {
+                    set cartype [TheSystem TheCarType "$ct"]
+                    set JMRICarType $cartypeMap($ct)
+                    set needType yes
+                    foreach cartype [$trackTypeList getElementsByTagName carType] {
+                        if {[$cartype attribute name] eq $JMRICarType} {
+                            set needType no
+                            break
+                        }
+                    }
+                    if {$needType} {
+                        $trackTypeList addchild [SimpleDOMElement %AUTO% \
+                                                 -tag "carType" \
+                                                 -attributes [list name $JMRICarType]]
+                    }
+                    set LoadName [format "%s &amp; L" $JMRICarType]
+                    set needload yes
+                    foreach load [$trackCarLoadsList getElementsByTagName carLoad] {
+                        if {[$load attribute name] eq $LoadName} {
+                            set needload no
+                            break
+                        }
+                    }
+                    if {$needload} {
+                        $trackCarLoadsList addchild [SimpleDOMElement %AUTO% \
+                                                    -tag "carLoad" \
+                                                    -attributes [list name $LoadName]]
+                    }
+                    set needtype yes
+                    foreach ctype [$locationTypeList getElementsByTagName carType] {
+                        if {[$ctype attribute name] eq $JMRICarType} {
+                            set needtype no
+                            break
+                        }
+                    }
+                    if {$needtype} {
+                        $locationTypeList addchild [SimpleDOMElement %AUTO% \
+                                                    -tag "carType" \
+                                                    -attributes [list name $JMRICarType]]
+                    }
+                }
+                foreach ct $empties {
+                    if {$ct  in $loads} {continue}
+                    set cartype [TheSystem TheCarType "$ct"]
+                    set JMRICarType $cartypeMap($ct)
+                    set needType yes
+                    foreach cartype [$trackTypeList getElementsByTagName carType] {
+                        if {[$cartype attribute name] eq $JMRICarType} {
+                            set needType no
+                            break
+                        }
+                    }
+                    if {$needType} {
+                        $trackTypeList addchild [SimpleDOMElement %AUTO% \
+                                                 -tag "carType" \
+                                                 -attributes [list name $JMRICarType]]
+                    }
+                    set LoadName [format "%s &amp; E" $JMRICarType]
+                    set needload yes
+                    foreach load [$trackCarLoadsList getElementsByTagName carLoad] {
+                        if {[$load attribute name] eq $LoadName} {
+                            set needload no
+                            break
+                        }
+                    }
+                    if {$needload} {
+                        $trackCarLoadsList addchild [SimpleDOMElement %AUTO% \
+                                                    -tag "carLoad" \
+                                                    -attributes [list name $LoadName]]
+                    }
+                    set needtype yes
+                    foreach ctype [$locationTypeList getElementsByTagName carType] {
+                        if {[$ctype attribute name] eq $JMRICarType} {
+                            set needtype no
+                            break
+                        }
+                    }
+                    if {$needtype} {
+                        $locationTypeList addchild [SimpleDOMElement %AUTO% \
+                                                    -tag "carType" \
+                                                    -attributes [list name $JMRICarType]]
+                    }
+                }
+            }
         }
-        set fp [open [file join $OutputDirectory OperationsLocationRoster.xml] w]
+        set fp [open [file join $OutputDirectory $Filename_locations] w]
         $type WriteXMLHeader $fp
         $type WriteStylesheetHeader $fp $OPSXSLT_locations
         $type WriteDOCTYPEHeader $fp $OPSDTD_locations
         $operations_locations displayTree $fp
         close $fp 
         $operations_locations destroy
+        set operations_trains [ParseXML %AUTO% {<operations-config/>}]
+        set config_trains [$operations_trains getElementsByTagName operations-config]
+        set comment [SimpleDOMElement %AUTO% -tag "!"]
+        $comment setdata [format {Written by FCF2JMRIOperations %s on %s} \
+                          $MRRSystem::FCFCLASSES_VERSION \
+                          [clock format [clock seconds] -format {%+}]]
+        $config_trains addchild $comment 
+        set trains_node [SimpleDOMElement %AUTO% -tag "trains"]
+        $config_trains addchild $trains_node
+        set operations_routes [ParseXML %AUTO% {<operations-config/>}]
+        set config_routes [$operations_routes getElementsByTagName operations-config]
+        set comment [SimpleDOMElement %AUTO% -tag "!"]
+        $comment setdata [format {Written by FCF2JMRIOperations %s on %s} \
+                          $MRRSystem::FCFCLASSES_VERSION \
+                          [clock format [clock seconds] -format {%+}]]
+        $config_routes addchild $comment 
+        set routes_node [SimpleDOMElement %AUTO% -tag "routes"]
+        $config_routes addchild $routes_node
+        
+        set fp [open [file join $OutputDirectory $Filename_routes] w]
+        $type WriteXMLHeader $fp
+        $type WriteStylesheetHeader $fp $OPSXSLT_routes
+        $type WriteDOCTYPEHeader $fp $OPSDTD_routes
+        $operations_routes displayTree $fp
+        close $fp
+        $operations_routes destroy
+        set fp [open [file join $OutputDirectory $Filename_trains] w]
+        $type WriteXMLHeader $fp
+        $type WriteStylesheetHeader $fp $OPSXSLT_trains
+        $type WriteDOCTYPEHeader $fp $OPSDTD_trains
+        $operations_trains displayTree $fp
+        close $fp
+        $operations_trains destroy
+    }
+    proc GetIndustryId {industry} {
+        foreach indid [TheSystem IndustryIndexList] {
+            if {$industry eq [TheSystem TheIndustry $indid]} {
+                return $indid
+            }
+        }
+        return 0
+    }
+    typevariable cartypeMap -array {
+        "\]" Hopper
+        "^" Hopper
+        {%} Hopper
+        {=} HopCoal
+        {`} HopCoal
+        {_} HopCoal
+        "\{" HopCoal
+        {;} HopCoal
+        "\\" HopCoal
+        {|} HopCoal
+        "\}" HopCoal
+        {~} HopCoal
+        r Gon-scrap
+        s Gondola
+        t Gondola
+        w Gondola
+        x Gondola
+        y Gondola
+        z Gondola
+        u Gondola
+        v Gondola
+        "\[" Gondola
+        {<} Gondola
+        {>} Gondola
+        K Reefer
+        L Reefer
+        M Reefer
+        N Reefer
+        O Reefer
+        {!} Boxcar
+        {#} Boxcar
+        {$} Boxcar
+        {-} Boxcar
+        {*} Boxcar
+        {.} Boxcar
+        {/} Boxcar
+        {:} Boxcar
+        0 Boxcar
+        1 Boxcar
+        2 Boxcar
+        3 Boxcar
+        4 Boxcar
+        5 Boxcar
+        6 Boxcar
+        7 Boxcar
+        8 Boxcar
+        9 Boxcar
+        A Boxcar
+        B Boxcar
+        j Boxcar
+        E Baggage
+        F Baggage
+        G Baggage
+        H Stock
+        I Stock
+        P Hopper
+        Q Hopper
+        R HopCmnt
+        S HopChem
+        Y HopSand
+        T HopChem
+        U HopGrain
+        X Hopper
+        V HopChem
+        W HopGrain
+        Z Hopper
+        D HopSand
+        {+} "Tank Oil"
+        {(} "Tank Oil"
+        {)} "Tank Oil"
+        a "Tank Veg"
+        b "Tank Food"
+        c "Tank Oil"
+        d "Tank Oil"
+        e "Tank Oil"
+        f "Tank Oil"
+        g "Tank Oil"
+        h "Tank Gas" 
+        i "Tank Oil"
+        C "Flatcar"
+        J "FlatTimber"
+        j "Flatcar" 
+        k "Flatcar" 
+        l "Flatcar" 
+        m "Flatcar" 
+        p "Flatcar" 
+        o "Flatcar" 
+        q "Flatcar" 
+        {&} "Flatcar" 
+        {@} "Flatcar" 
+        n "Flatcar" 
     }
 }
 
