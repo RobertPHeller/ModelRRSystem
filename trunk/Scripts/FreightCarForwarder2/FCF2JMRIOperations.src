@@ -1,0 +1,188 @@
+#*****************************************************************************
+#
+#  System        : 
+#  Module        : 
+#  Object Name   : $RCSfile$
+#  Revision      : $Revision$
+#  Date          : $Date$
+#  Author        : $Author$
+#  Created By    : Robert Heller
+#  Created       : Sun Jul 27 15:38:43 2025
+#  Last Modified : <250727.2224>
+#
+#  Description	
+#
+#  Notes
+#
+#  History
+#	
+#*****************************************************************************
+## @copyright
+#    Copyright (C) 2025  Robert Heller D/B/A Deepwoods Software
+#			51 Locke Hill Road
+#			Wendell, MA 01379-9728
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+# @file FCF2JMRIOperations.src
+# @author Robert Heller
+# @date Sun Jul 27 15:38:43 2025
+# 
+#
+#*****************************************************************************
+
+
+## @defgroup FCF2JMRIOperations FCF2JMRIOperations
+# @brief Freight Car Forwarder (V2) database to JMRI Operations XML files
+#
+# @section SYNOPIS
+#
+# FCF2JMRIOperations SystemFile JMRI_Output_dir
+#
+# @section DESCRIPTION
+#
+# @section PARAMETERS
+#
+# @arg SystemFile The name of a system file to load
+# @arg JMRI_Output_dir Output directory for JMRI Operations XML files
+# @par
+# @section AUTHOR
+# Robert Heller \<heller\@deepsoft.com\>
+#
+
+set argv0 [file join [file dirname [info nameofexecutable]] FCFMain]
+namespace eval MRRSystem {variable FCFCLASSES_VERSION}
+set MRRSystem::FCFCLASSES_VERSION [package require Fcfclasses]
+package require gettext
+package require snit
+package require ParseXML
+
+set msgfiles [::msgcat::mcload [file join [file dirname [file dirname [file dirname \
+                                                        [info script]]]] Messages]]
+#puts stderr "*** msgfiles = $msgfiles"
+
+snit::type FCF2JMRIOperations {
+    pragma -hastypeinfo    no
+    pragma -hastypedestroy no
+    pragma -hasinstances   no
+    typevariable OutputDirectory
+    typevariable XMLHeader {<?xml version="1.0" encoding="UTF-8"?>}
+    typemethod WriteXMLHeader {fp} {
+        puts $fp $XMLHeader
+    }
+    typevariable OPSDTD_cars {/xml/DTD/operations-cars.dtd}
+    typevariable OPSDTD_config {/xml/DTD/operations-config.dtd}
+    typevariable OPSDTD_engines {/xml/DTD/operations-engines.dtd}
+    typevariable OPSDTD_locations {/xml/DTD/operations-locations.dtd}
+    typevariable OPSDTD_routes {/xml/DTD/operations-routes.dtd}
+    typevariable OPSDTD_trains {/xml/DTD/operations-trains.dtd}
+    typemethod WriteDOCTYPEHeader {fp doctype} {
+        puts $fp [format {<!DOCTYPE operations-config SYSTEM "%s">} $doctype]
+    }
+    typevariable OPSXSLT_cars {/xml/XSLT/operations-cars.xsl}
+    typevariable OPSXSLT_config {/xml/XSLT/operations-config.xsl}
+    typevariable OPSXSLT_engines {/xml/XSLT/operations-engines.xsl}
+    typevariable OPSXSLT_locations {/xml/XSLT/operations-locations.xsl}
+    typevariable OPSXSLT_routes {/xml/XSLT/operations-routes.xsl}
+    typevariable OPSXSLT_trains {/xml/XSLT/operations-trains.xsl}
+    typemethod WriteStylesheetHeader {fp stylesheet} {
+        puts $fp [format {<?xml-stylesheet href="%s" type="text/xsl"?>} stylesheet]
+    }
+    typeconstructor {
+        if {$::argc < 2} {
+            error [_ "Missing parameters: SystemFile and JMRI_Output_dir"]
+            exit 99
+        }
+        set fileName [lindex $::argv 0]
+        if {[catch {System TheSystem [file nativename "$fileName"] 1} message]} {
+            error [_ "Problem loading system file (%s): %s" $fileName $message]
+            exit 98
+        }
+        set OutputDirectory [lindex $::argv 1]
+        if {[file isdirectory $OutputDirectory] && 
+            [llength [glob -nocomplain [file join $OutputDirectory "*.xml"]]] > 0} {
+            error [_ "Output directory (%s) exists and is not empty!" $OutputDirectory]
+            exit 97
+        }
+        if {[file exists $OutputDirectory] &&
+            ![file isdirectory $OutputDirectory]} {
+            error [_ "Output directory (%s) exists and is not a directory!" $OutputDirectory]
+            exit 96
+        }
+        if {![file exists $OutputDirectory]} {
+            file mkdir $OutputDirectory
+        }
+        set operations_config [ParseXML %AUTO% {<operations-config />}]
+        set config [$operations_config getElementsByTagName {operations-config}]
+        set comment [SimpleDOMElement %AUTO% -tag "!"]
+        $comment setdata [format {Written by FCF2JMRIOperations %s on %s} \
+                          $MRRSystem::FCFCLASSES_VERSION \
+                          [clock format [clock seconds] -format {%+}]]
+        $config addchild $comment
+        set railroad [SimpleDOMElement %AUTO% -tag "railRoad" \
+                      -attributes [list name [TheSystem SystemName]]]
+        $config addchild $railroad
+        set fp [open [file join $OutputDirectory Operations.xml] w]
+        $type WriteXMLHeader $fp
+        $type WriteStylesheetHeader $fp $OPSXSLT_config
+        $type WriteDOCTYPEHeader $fp $OPSDTD_config
+        $operations_config displayTree $fp
+        close $fp
+        $operations_config destroy
+        set operations_locations [ParseXML %AUTO% {<operations-config/>}]
+        set config [$operations_locations getElementsByTagName {operations-config}]
+        set comment [SimpleDOMElement %AUTO% -tag "!"]
+        $comment setdata [format {Written by FCF2JMRIOperations %s on %s} \
+                          $MRRSystem::FCFCLASSES_VERSION \
+                          [clock format [clock seconds] -format {%+}]]
+        $config addchild $comment
+        set divisions_node [SimpleDOMElement %AUTO% -tag "divisions"]
+        $config addchild $divisions_node
+        set divisions [TheSystem DivisionIndexList]
+        foreach did $divisions {
+            set division [TheSystem TheDivision $did]
+            set division_node [SimpleDOMElement %AUTO% -tag "division" \
+                               -attributes [list id $did name [Division_Name $division]]]
+            $divisions_node addchild $division_node
+        }
+        set stations  [TheSystem StationIndexList]
+        set locations_node [SimpleDOMElement %AUTO% -tag "locations"]
+        $config addchild $locations_node
+        foreach sid $stations {
+            set station [TheSystem TheStation $sid]
+            set division [Station_MyDivision $station]
+            set mydid 0
+            foreach did $divisions {
+                if {$division eq [TheSystem TheDivision $did]} {
+                    set mydid $did
+                    break
+                }
+            }
+            set location_node [SimpleDOMElement %AUTO% -tag "location" \
+                               -attributes [list id $sid \
+                                            name [Station_Name $station] \
+                                            divisionId $mydid]]
+            $locations_node addchild $location_node
+        }
+        set fp [open [file join $OutputDirectory OperationsLocationRoster.xml] w]
+        $type WriteXMLHeader $fp
+        $type WriteStylesheetHeader $fp $OPSXSLT_locations
+        $type WriteDOCTYPEHeader $fp $OPSDTD_locations
+        $operations_locations displayTree $fp
+        close $fp 
+        $operations_locations destroy
+    }
+}
+
+                                                                       

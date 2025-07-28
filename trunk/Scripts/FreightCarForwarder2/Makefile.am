@@ -89,7 +89,7 @@ BUILT_SOURCES = $(TCLKIT)
 
 SUBDIRS = NorthAmerican
 
-bin_SCRIPTS = FCFMain$(EXEEXT) FCFCreate$(EXEEXT)
+bin_SCRIPTS = FCFMain$(EXEEXT) FCFCreate$(EXEEXT) FCF2JMRIOperations$(EXEEXT)
 
 EXTRA_DIST  = FCFMain.src FCFCreate.src $(FCFScripts) $(FCFCreScripts) \
 		addcar.gif assigncars.gif banner.gif \
@@ -106,7 +106,7 @@ desktop_DATA = FCFMain.desktop FCFCreate.desktop
 pixmapdir = $(datadir)/pixmaps
 pixmap_DATA = FCFMain.png FCFCreate.png
 
-man_MANS = man1/FCFMain.1 man1/FCFCreate.1
+man_MANS = man1/FCFMain.1 man1/FCFCreate.1 man1/FCF2JMRIOperations.1
 
 pkgdatadir = $(datadir)/$(PACKAGE)
 pkgdata_DATA = FreightCarForwarder2.pot
@@ -152,19 +152,23 @@ FCFCommonFiles = $(top_srcdir)/Scripts/Common/DeepwoodsBanner.gif \
 		 $(top_srcdir)/Scripts/Common/questhead.xbm \
 		 $(top_srcdir)/Scripts/Common/openfold.png \
 		 $(top_srcdir)/Scripts/Common/palette.png \
-		 $(top_srcdir)/Scripts/Common/unknown.xpm \
-		 $(top_srcdir)/Scripts/Common/
+		 $(top_srcdir)/Scripts/Common/unknown.xpm
+
+FCF2JMRIOperationsScripts = \
+	$(top_srcdir)/Scripts/Common/ParseXML.tcl \
+	$(top_srcdir)/Scripts/Common/gettext.tcl
 
 CXXSupport = FCFSupport
 CXXSupportFiles =  $(top_builddir)/C++/FCFSupport/.libs/libfcfclasses$(SHLIB_SUFFIX) \
 		   $(top_builddir)/C++/FCFSupport/pkgIndex.tcl 
 
 FreightCarForwarder2.pot: FCFMain.src FCFCreate.src $(FCFScripts) \
-			$(FCFCreScripts)\
+			FCF2JMRIOperations.src $(FCFCreScripts)\
 			$(top_srcdir)/Scripts/Common/snitStdMenuBar.tcl
 	$(XGETTEXT) -D $(top_srcdir) --force-po -o - -n -k_ -k_n:1,2 \
 		-k_m -L Tcl \
-		$(addprefix $(subdir)/,FCFMain.src FCFCreate.src $(FCFScripts) $(FCFCreScripts)) \
+		$(addprefix $(subdir)/,FCFMain.src FCFCreate.src \
+		FCF2JMRIOperations.src $(FCFScripts) $(FCFCreScripts)) \
 		Scripts/Common/snitStdMenuBar.tcl|\
 	sed -e 's/PACKAGE/@PACKAGE@/g' -e 's/VERSION/@VERSION@/g' \
 	    -e "s/THE @PACKAGE@'S COPYRIGHT HOLDER/Robert Heller/g" \
@@ -292,6 +296,39 @@ FCFCreate.app: FCFCreate${EXEEXT}
 
 endif
 
+
+FCF2JMRIOperationsScripts = \
+	$(top_srcdir)/Scripts/Common/ParseXML.tcl \
+	$(top_srcdir)/Scripts/Common/gettext.tcl
+
+FCF2JMRIOperations${EXEEXT} : FCF2JMRIOperations.src \
+	$(FCF2JMRIOperationsScripts) \
+	$(top_builddir)/po/FreightCarForwarder2/msgfiles \
+	$(top_builddir)/C++/FCFSupport/libfcfclasses.la \
+	$(top_builddir)/C++/FCFSupport/pkgIndex.tcl
+	-rm -rf FCF2JMRIOperations.vfs
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit qwrap $(srcdir)/FCF2JMRIOperations.src
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit unwrap  FCF2JMRIOperations.kit
+	-rm -rf FCF2JMRIOperations.kit
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit FCF2JMRIOperations \
+		lib $(SNITLIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitDir.kit FCF2JMRIOperations \
+		lib $(URILIB)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit -srcdir $(srcdir) FCF2JMRIOperations \
+		lib/$(FCFCommon) $(FCF2JMRIOperationsScripts)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/MakePkgIndex.kit FCF2JMRIOperations \
+		$(FCFCommon)
+	$(UNZIP) -qq -d FCF2JMRIOperations.vfs/lib \
+		$(top_srcdir)/BuildData/Tclxml3.1-GenericPureTcl.zip
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit FCF2JMRIOperations \
+		lib/$(CXXSupport) $(CXXSupportFiles)
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit FCF2JMRIOperations \
+		Help $(top_builddir)/Doc/User/FCF/*
+	$(TCLKIT) $(top_srcdir)/BuildScripts/AddKitFile.kit FCF2JMRIOperations \
+		Messages $(top_builddir)/po/FreightCarForwarder2/*.msg
+	$(TCLKIT) $(top_srcdir)/BuildScripts/sdx.kit wrap FCF2JMRIOperations${EXEEXT} -runtime $(top_srcdir)/BuildData/$(TCLKITRUN)
+	-rm -rf FCF2JMRIOperations.vfs FCF2JMRIOperations.kit
+
 $(top_builddir)/Doc/User/FCF/index.html : FORCE
 	$(MAKE) -C $(top_builddir)/Doc/User FCF/index.html
 
@@ -317,7 +354,8 @@ $(top_builddir)/Scripts/Common/Version.tcl: $(top_builddir)/config.status
 	$(MAKE) -C $(top_builddir)/Scripts/Common Version.tcl
 
 
-man1/FCFMain.1 man1/FCFCreate.1 : Doxyfile FCFMain.src FCFCreate.src
+man1/FCFMain.1 man1/FCFCreate.1 man1/FCF2JMRIOperations.1 : \
+	Doxyfile FCFMain.src FCFCreate.src FCF2JMRIOperations.src
 	-rm -rf man1
 	$(DOXYGEN)
 
