@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jul 27 15:38:43 2025
-#  Last Modified : <250728.1555>
+#  Last Modified : <250728.2200>
 #
 #  Description	
 #
@@ -312,7 +312,50 @@ snit::type FCF2JMRIOperations {
         $config_routes addchild $comment 
         set routes_node [SimpleDOMElement %AUTO% -tag "routes"]
         $config_routes addchild $routes_node
-        
+        foreach tid [TheSystem TrainIndexList] {
+            set train [TheSystem TrainByIndex $tid]
+            set trainNode [SimpleDOMElement %AUTO% -tag "train" \
+                           -attributes [list id $tid \
+                                        name [$train Name] \
+                                        departHour [expr {[$train OnDuty] / 60}] \
+                                        departMinute [expr {[$train OnDuty] % 60}] \
+                                        description [$train Description] \
+                                        printed [$train Print] \
+                                        routeId $tid]]
+            $trains_node addchild $trainNode
+            set trainTypeList [SimpleDOMElement %AUTO% -tag "types"]
+            $trainNode addchild $trainTypeList
+            foreach ct [split [$train CarTypes] {}] {
+                set cartype [TheSystem TheCarType "$ct"]
+                set JMRICarType $cartypeMap($ct)
+                set needType yes
+                foreach cartype [$trainTypeList getElementsByTagName carType] {
+                    if {[$cartype attribute name] eq $JMRICarType} {
+                        set needType no
+                        break
+                    }
+                }
+                if {$needType} {
+                    $trainTypeList addchild  [SimpleDOMElement %AUTO% \
+                                              -tag "carType" \
+                                              -attributes [list name $JMRICarType]]
+                }
+            }
+            
+            set routeNode [SimpleDOMElement %AUTO% -tag "route" \
+                           -attributes [list id $tid name [$train Name]]]
+            $routes_node addchild $routeNode
+            for {set i 0} {$i < [$train NumberOfStops]} {incr i} {
+                set station [$train StationStop $i]
+                set locId [GetStationID $station]
+                set routeid [format {%dr%d} $tid [expr {$i + 1}]]
+                $routeNode addchild [SimpleDOMElement %AUTO% -tag "location"\
+                                     -attributes [list id $routeid \
+                                                  locationId $locId \
+                                                  name [$station Name]]]
+            }
+                                        
+        }
         set fp [open [file join $OutputDirectory $Filename_routes] w]
         $type WriteXMLHeader $fp
         $type WriteStylesheetHeader $fp $OPSXSLT_routes
@@ -327,6 +370,108 @@ snit::type FCF2JMRIOperations {
         $operations_trains displayTree $fp
         close $fp
         $operations_trains destroy
+        set operations_cars [ParseXML %AUTO% {<operations-config/>}]
+        set config_cars [$operations_cars getElementsByTagName operations-config]
+        set comment [SimpleDOMElement %AUTO% -tag "!"]
+        $comment setdata [format {Written by FCF2JMRIOperations %s on %s} \
+                          $MRRSystem::FCFCLASSES_VERSION \
+                          [clock format [clock seconds] -format {%+}]]
+        $config_cars addchild $comment
+        set roadsList [SimpleDOMElement %AUTO% -tag "roads"]
+        $config_cars addchild $roadsList
+        set lengthList [SimpleDOMElement %AUTO% -tag "lengths"]
+        $config_cars addchild $lengthList
+        set ownersList  [SimpleDOMElement %AUTO% -tag "owners"]
+        $config_cars addchild $ownersList
+        set carsList [SimpleDOMElement %AUTO% -tag "cars"]
+        $config_cars addchild $carsList
+        set loadsList [SimpleDOMElement %AUTO% -tag "loads"]
+        $config_cars addchild $loadsList
+        $loadsList addchild  [SimpleDOMElement %AUTO% -tag "defaults" \
+                              -attributes [list empty E load L]]
+        set typesList [SimpleDOMElement %AUTO% -tag "types"]
+        $config_cars addchild $typesList
+        for {set i 0} {$i < [TheSystem NumberOfCars]} {incr i} {
+            set car [TheSystem TheCar $i]
+            set attributes [list]
+            set JMRICarType $cartypeMap([$car Type])
+            set needType yes
+            foreach  cartype [$typesList getElementsByTagName type] {
+                if {[$cartype attribute name] eq $JMRICarType} {
+                    set needType no
+                    break
+                }
+            }
+            if {$needType} {
+                $typesList addchild [SimpleDOMElement %AUTO% -tag "type" \
+                                     -attributes [list name $JMRICarType]]
+            }
+            lappend attributes type $JMRICarType
+            set road [$car Marks]
+            set number [$car Number]
+            lappend attributes roadName $road \
+                  roadNumber $number \
+                  id [format {%s%s} $road $number]
+            set needRoad yes
+            foreach r [$roadsList getElementsByTagName road] {
+                if {[$r attribute name] eq $road} {
+                    set needRoad no
+                    break
+                }
+            }
+            if {$needRoad} {
+                $roadsList addchild [SimpleDOMElement %AUTO% -tag "road" \
+                                    -attributes [list name $road]]
+            }
+            set length [$car Length]
+            if {[$car LoadedP]} {
+                set loaded L
+            } else {
+                set loaded E
+            }
+            lappend attributes length $length load $loaded
+            set needLength yes
+            foreach l [$lengthList getElementsByTagName length] {
+                if {[$l attribute value] eq $length} {
+                    set needLength no
+                    break
+                }
+            }
+            if {$needLength} {
+                $lengthList addchild [SimpleDOMElement %AUTO% -tag "length" \
+                                      -attributes [list value $length]]
+            }
+            set ownerName [[$car CarOwner] Name]
+            set needOwner yes
+            foreach o [$ownersList getElementsByTagName owner] {
+                if {[$o attribute name] eq $ownerName} {
+                    set needOwner no
+                    break
+                }
+            }
+            if {$needOwner} {
+                $ownersList addchild [SimpleDOMElement %AUTO% -tag "owner" \
+                                     -attributes [list name $ownerName]]
+            }
+            lappend attributes locationId [GetIndustryId [$car Location]] \
+                  destinationId [GetIndustryId [$car Destination]]
+            $carsList  addchild [SimpleDOMElement %AUTO% -tag "car" \
+                                 -attributes $attributes]
+        }
+        set fp [open [file join $OutputDirectory $Filename_cars] w]
+        $type WriteXMLHeader $fp
+        $type WriteStylesheetHeader $fp $OPSXSLT_cars
+        $type WriteDOCTYPEHeader $fp $OPSDTD_cars
+        $operations_cars displayTree $fp
+        close $fp
+        
+    }
+    proc GetStationID {station} {
+        foreach locid [TheSystem StationIndexList] {
+            if {$station eq [TheSystem TheStation $locid]} {
+                return $locid
+            }
+        }
     }
     proc GetIndustryId {industry} {
         foreach indid [TheSystem IndustryIndexList] {
@@ -432,3 +577,4 @@ snit::type FCF2JMRIOperations {
 }
 
                                                                        
+
