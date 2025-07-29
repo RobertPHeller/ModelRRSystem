@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Jul 27 15:38:43 2025
-#  Last Modified : <250728.2200>
+#  Last Modified : <250729.0810>
 #
 #  Description	
 #
@@ -51,6 +51,9 @@
 # FCF2JMRIOperations SystemFile JMRI_Output_dir
 #
 # @section DESCRIPTION
+#
+# This program converts a Tim O'Conner / FCF data set to a JMRI OperationsPro 
+# dataset.
 #
 # @section PARAMETERS
 #
